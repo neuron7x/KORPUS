@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from evidence_source_binding import evidence_source_binding_failure
 from release_identity import release_tag
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -145,12 +146,40 @@ def _verify_evidence_matches_the_gate() -> None:
             )
 
 
+def _verify_evidence_source_is_committed(assurance: dict[str, object]) -> None:
+    """Просування доказу, чиє джерело не закомічене, — це доказ про недосяжний стан.
+
+    Виміряно 01.09.2026: `compute_source_digest` рахує РОБОЧЕ дерево, і одна правка
+    в доказовому файлі розводить його з HEAD. Ніщо цього не питало, тож звіт міг
+    бути виданий і опублікований із дайджестом, якого немає в жодному коміті —
+    відтворити його пізніше неможливо, бо байти існували лише в дереві, якого вже
+    немає.
+
+    Пропуск дозволений рівно один: якщо звіт узагалі не називає дайджесту, цим
+    займається `_verify_evidence_matches_the_gate`, і дублювати відмову тут означало
+    б покарати одну невизначеність двічі.
+    """
+    provenance = assurance.get("provenance")
+    claimed = provenance.get("source_digest") if isinstance(provenance, dict) else None
+    if claimed is None:
+        claimed = assurance.get("source_digest")
+    if claimed is None:
+        return
+    failure = evidence_source_binding_failure(claimed, root=ROOT)
+    if failure is not None:
+        raise SystemExit(
+            f"{failure}: доказ описує стан, якого немає в жодному коміті, "
+            "тож відтворити його пізніше неможливо"
+        )
+
+
 def main() -> int:
     assurance_path = VAR / "research-assurance-report.json"
     assurance = load_json(assurance_path) if assurance_path.is_file() else assemble_ci_report()
     if assurance.get("status") != "PASS":
         raise SystemExit("refusing to snapshot a failing assurance run")
     _verify_evidence_matches_the_gate()
+    _verify_evidence_source_is_committed(assurance)
 
     REPORTS.mkdir(exist_ok=True)
     assurance_path = REPORTS / "RESEARCH_ASSURANCE_REPORT.json"

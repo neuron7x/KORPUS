@@ -1775,7 +1775,7 @@
       "reason": "v6.8.2 assurance-boundary hardening: initial ceiling for recomputed production-report verification"
     },
     "apps/api/src/korpus/application/provenance.py": {
-      "lines": 220,
+      "lines": 265,
       "max_complexity": 11,
       "max_function_args": 2,
       "max_function_lines": 26,
@@ -3690,6 +3690,15 @@
       "proof_lines": 0,
       "reason": "gate reports kept under their digest for the system's life, sealed and honest about what a seal is"
     },
+    "scripts/evidence_source_binding.py": {
+      "lines": 105,
+      "max_complexity": 8,
+      "max_function_args": 3,
+      "max_function_lines": 26,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Прив'язка доказів до ЗАКОМІЧЕНИХ байтів. Виміряно: `compute_source_digest` рахує робоче дерево, і одна правка розводить його з HEAD (e4c4d942… проти 9c1960c0…), а не питав цього ніхто. Отже звіт міг бути виданий із дайджестом, якого немає в жодному коміті: відтворити його пізніше неможливо. `digest_source_records` — та сама функція для обох обчислень: друга реалізація того ж числа розійшлася б на першому уточненні правила, і розбіжність читалась би як «дерево змінилось»."
+    },
     "scripts/export_audit.py": {
       "lines": 125,
       "max_complexity": 7,
@@ -5091,7 +5100,7 @@
       "reason": "v0.4.0: artifact/material-bound SLSA v1.2 provenance with explicit untrusted local builder; initial measured ratchet ceiling"
     },
     "scripts/snapshot_assurance.py": {
-      "lines": 195,
+      "lines": 230,
       "max_complexity": 8,
       "max_function_args": 1,
       "max_function_lines": 58,
@@ -8994,6 +9003,28 @@
       "reason": "Гейт зветься «postgres security», а міряв лише гранти й відмови репозиторію. Деструктивні контролі самої МЕЖІ — підробка claim'ів RLS, стан політик, знищення дрейфу прав, походження затвердження — до нього не потрапили б самі: перелік цілей це звичайний список, і викреслений рядок нічого не ламає. Тепер перелік тримає окремий контрактний тест.",
       "to": {
         "lines": 88
+      }
+    },
+    {
+      "from": {
+        "lines": 220
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/application/provenance.py",
+      "reason": "Прив'язка доказів до ЗАКОМІЧЕНИХ байтів. Виміряно: `compute_source_digest` рахує робоче дерево, і одна правка розводить його з HEAD (e4c4d942… проти 9c1960c0…), а не питав цього ніхто. Отже звіт міг бути виданий із дайджестом, якого немає в жодному коміті: відтворити його пізніше неможливо. `digest_source_records` — та сама функція для обох обчислень: друга реалізація того ж числа розійшлася б на першому уточненні правила, і розбіжність читалась би як «дерево змінилось».",
+      "to": {
+        "lines": 265
+      }
+    },
+    {
+      "from": {
+        "lines": 195
+      },
+      "on": "2026-09-01",
+      "path": "scripts/snapshot_assurance.py",
+      "reason": "Прив'язка доказів до ЗАКОМІЧЕНИХ байтів. Виміряно: `compute_source_digest` рахує робоче дерево, і одна правка розводить його з HEAD (e4c4d942… проти 9c1960c0…), а не питав цього ніхто. Отже звіт міг бути виданий із дайджестом, якого немає в жодному коміті: відтворити його пізніше неможливо. `digest_source_records` — та сама функція для обох обчислень: друга реалізація того ж числа розійшлася б на першому уточненні правила, і розбіжність читалась би як «дерево змінилось».",
+      "to": {
+        "lines": 230
       }
     }
   ],

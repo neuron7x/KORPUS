@@ -22,7 +22,7 @@ import subprocess
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 PROVENANCE_KEY = "provenance"
@@ -106,6 +106,11 @@ def _digest_candidates(root: Path, sources: Iterable[str]) -> list[Path]:
 #: scope makes that failure name itself.
 DIGEST_SCOPE = "evidence_paths"
 
+#: Домен хешу. Винесено константою, бо його тепер читають ДВА обчислювачі —
+#: над файлами дерева й над байтами з git-посилання, — і розбіжність у домені
+#: дала б два різні числа про той самий вміст.
+_SOURCE_DIGEST_DOMAIN = b"korpus-source-digest-v2\0"
+
 
 def compute_source_digest(root: Path, sources: Iterable[str] = EVIDENCE_SOURCE_PATHS) -> str:
     """Digest the evidence-bearing source surface of a working tree.
@@ -118,7 +123,7 @@ def compute_source_digest(root: Path, sources: Iterable[str] = EVIDENCE_SOURCE_P
     """
 
     hasher = hashlib.sha256()
-    hasher.update(b"korpus-source-digest-v2\0")
+    hasher.update(_SOURCE_DIGEST_DOMAIN)
     for path in _digest_candidates(root, sources):
         relative = path.relative_to(root).as_posix().encode("utf-8")
         hasher.update(len(relative).to_bytes(4, "big"))
@@ -133,6 +138,41 @@ def compute_source_digest(root: Path, sources: Iterable[str] = EVIDENCE_SOURCE_P
         if observed_size != expected_size:
             raise ProvenanceError(f"source changed while hashing: {path}")
     return hasher.hexdigest()
+
+
+def digest_source_records(records: Iterable[tuple[str, bytes]]) -> str:
+    """Той САМИЙ дайджест, але над парами (шлях, байти) замість файлів на диску.
+
+    Потрібен, щоб дайджест ЗАКОМІЧЕНИХ байтів рахувався тією самою функцією, що й
+    дайджест робочого дерева. Друга реалізація того ж числа — це дві тотожності
+    одного предмета: вони розійшлися б на першому ж уточненні правила, і
+    розбіжність читалась би як «дерево змінилось».
+
+    Записи мусять прийти ВІДСОРТОВАНИМИ за шляхом — так само, як `_digest_candidates`
+    їх сортує; порядок входить у хеш.
+    """
+    hasher = hashlib.sha256()
+    hasher.update(_SOURCE_DIGEST_DOMAIN)
+    for name, payload in records:
+        relative = name.encode("utf-8")
+        hasher.update(len(relative).to_bytes(4, "big"))
+        hasher.update(relative)
+        hasher.update(len(payload).to_bytes(8, "big"))
+        hasher.update(payload)
+    return hasher.hexdigest()
+
+
+def evidence_source_path_included(relative: str) -> bool:
+    """Чи входить цей шлях у поверхню дайджесту — те саме правило, що на диску."""
+    path = PurePosixPath(relative)
+    if any(part in _EXCLUDED_DIRECTORY_NAMES for part in path.parts):
+        return False
+    if path.suffix in _EXCLUDED_SUFFIXES:
+        return False
+    return any(
+        relative == source or relative.startswith(f"{source.rstrip('/')}/")
+        for source in EVIDENCE_SOURCE_PATHS
+    )
 
 
 @dataclass(frozen=True)

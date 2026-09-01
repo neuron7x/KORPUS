@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1736,
-  "root_sha256": "415d51ef3e63467630e7cca2fe246e75198b441d36090373fc8dbc5ba7029073",
+  "file_count": 1737,
+  "root_sha256": "ce1d9948635773ed35a7dacd863b788758d8f2a1e9ba39f8c8f8d46d79ad431f",
   "files": [
     {
       "path": ".dockerignore",
@@ -1549,8 +1549,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/provenance.py",
-      "bytes": 9167,
-      "sha256": "cb400bbb0c8349ba6e04b2569721165a8bb10d16693b27554661777d15dc461f",
+      "bytes": 11398,
+      "sha256": "0a9d431b459dca42bc5d5cee4abba849f9e5783521759931b42656739fda6bdd",
       "mode": "0644"
     },
     {
@@ -4059,6 +4059,12 @@
       "path": "apps/api/tests/test_postgres_role_reprovision_boundary.py",
       "bytes": 9617,
       "sha256": "0c3ae27a81228fb89aa390cdd77090716b2071c2f702f931d6d3a232e2e3aaeb",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_postgres_security_gate_contract.py",
+      "bytes": 2853,
+      "sha256": "3253167de254aded4a078bfa6ac3869394b6e930c1434f41e0dee96ab613680c",
       "mode": "0644"
     },
     {
@@ -7087,8 +7093,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 459074,
-      "sha256": "8ad25129a84969eb46757c2fdc91b1627cf902e3cfa0c35f28eaace89c983857",
+      "bytes": 462128,
+      "sha256": "83375821c6b1ffc59a3ce9778879ec53bfe7ee173c9cda77c208585124907a20",
       "mode": "0644"
     },
     {
@@ -10063,8 +10069,8 @@
     },
     {
       "path": "scripts/snapshot_assurance.py",
-      "bytes": 7883,
-      "sha256": "a0b865db4e4cb3f111fab2f56a67c3fd833621dcd13e4ab8167eafe5b6926966",
+      "bytes": 9719,
+      "sha256": "48651d4fff157e7c2c89d6f89baefdaa5e919d29953f3f5cf4c725888a69ae4b",
       "mode": "0755"
     },
     {
