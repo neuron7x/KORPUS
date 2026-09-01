@@ -23,6 +23,7 @@ recorded", which is what is true about them.
 Revision ID: 0013_message_verdict
 Revises: 0012_tenancy
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence

@@ -9,6 +9,7 @@ document is the revision, so that is what must be unique.
 Revision ID: 0010_revision_identity
 Revises: 0009_reviewer_credentials
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -24,9 +25,7 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     with op.batch_alter_table("document_versions") as batch:
         batch.drop_constraint("uq_version_document_source_hash", type_="unique")
-        batch.create_unique_constraint(
-            "uq_version_document_revision", ["document_id", "revision"]
-        )
+        batch.create_unique_constraint("uq_version_document_revision", ["document_id", "revision"])
 
 
 def downgrade() -> None:

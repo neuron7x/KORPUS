@@ -55,7 +55,10 @@ READ_WRITE_TABLES = (
     "operational_task_competencies",
 )
 AUDIT_APPEND_TABLES = ("audit_events",)
-AUDIT_MUTABLE_TABLES = ("audit_anchor_outbox", "audit_heads")
+AUDIT_MUTABLE_TABLES = ("audit_anchor_outbox", "audit_heads", "corpus_state_epoch")
+#: Епоха стану корпусу мутабельна за призначенням: тригер піднімає її на КОЖНІЙ
+#: зміні складу доказів, і без права оновлювати її застосунок не міг би зафіксувати,
+#: що корпус зрушив між двома читаннями однієї відповіді.
 
 
 def read_secret(name: str, file_name: str) -> str:

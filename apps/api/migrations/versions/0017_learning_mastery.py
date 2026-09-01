@@ -3,6 +3,7 @@
 Revision ID: 0017_learning_mastery
 Revises: 0016_learning_course_graph
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence

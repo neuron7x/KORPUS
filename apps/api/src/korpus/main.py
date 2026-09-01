@@ -28,6 +28,7 @@ from korpus.application.request_audit_context import (
 from korpus.application.resilience import AdmissionController
 from korpus.application.trace import reset_trace_id, set_trace_id
 from korpus.config import Settings, get_settings, unknown_settings_variables
+from korpus.infrastructure.corpus_snapshot import SqlCorpusSnapshotReader
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.runtime import (
@@ -64,6 +65,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         policy = PolicyEngine()
         repository = create_repository(selected, policy)
         repository.initialize(create_schema=selected.schema_mode == "auto")
+        # Знімок читання корпусу для ОДНІЄЇ відповіді. Канон пінить корпус датою
+        # `as_of` і робить кілька незалежних читань на відповідь; між ними схвалення чи
+        # скасування змінює те, що бачить читач. Читач знімка дає монотонну епоху, за
+        # якою відповідь і її запис у журнал належать ОДНОМУ станові корпусу.
+        corpus_snapshot_reader = SqlCorpusSnapshotReader(repository)
+        corpus_snapshot_reader.initialize(create_schema=selected.schema_mode == "auto")
         object_store = create_object_store(selected)
         quarantine_store = create_quarantine_store(selected)
         ingestion_jobs = SqlIngestionJobQueue(repository.engine)
@@ -131,6 +138,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.policy = policy
         app.state.corpus_governance = corpus_governance
         app.state.repository = repository
+        app.state.corpus_snapshot_reader = corpus_snapshot_reader
         app.state.semantic_source = semantic_source
         install_model_executors(app.state, selected)
         app.state.object_store = object_store

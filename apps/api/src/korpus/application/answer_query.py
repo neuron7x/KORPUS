@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
+from datetime import date
 from typing import cast
 
 from korpus.application.answer_adjudication import AxisVerdict, adjudicate, presentation
@@ -19,6 +20,7 @@ from korpus.application.answer_analysis import (
 from korpus.application.answer_audit import append_answer_audit
 from korpus.application.answer_retrieval_gate import apply_retrieval_gate
 from korpus.application.composition import AnswerComposer, Composition, compose_answer
+from korpus.application.corpus_snapshot import CorpusReadToken
 from korpus.application.declared_subject import declared_subject_documents, subject_tokens
 from korpus.application.egress import ModelEgressPolicy
 from korpus.application.evidence import (
@@ -137,9 +139,33 @@ class ExtractiveAnswerService:
         self.egress_policy = egress_policy
         self.predictive_controller = predictive_controller
 
+    def _capture_snapshot(
+        self, identity: Identity, corpora: frozenset[str], as_of: date
+    ) -> CorpusReadToken | None:
+        """Знімок стану корпусу на цю відповідь — якщо читач знімка під'єднаний.
+
+        `corpus_release_id` каже, ЯКИЙ реліз назвали; знімок каже, який СТАН читали, і
+        несе монотонну епоху. Два записи журналу про той самий реліз розрізняються, якщо
+        між ними корпус рухався — а `as_of` це датою не бачить.
+
+        `None` тут законний: розгортання без читача знімка працює як раніше, лише без
+        цього поля в журналі. Портовано з GitHub-лінії ДОДАТКОВО, не замість.
+        """
+        reader = getattr(self.repository, "corpus_snapshot_reader", None)
+        if reader is None:
+            return None
+        try:
+            captured: CorpusReadToken = reader.capture(identity, corpora, as_of)
+            return captured
+        except Exception:  # noqa: BLE001 - знімок ОПИСУЄ відповідь, а не виробляє її:
+            # будь-яка його поломка не сміє відібрати в читача підставу, яку пошук уже
+            # знайшов. Ціна помилки — поле в журналі, а не відсутня відповідь.
+            return None
+
     def execute(self, identity: Identity, query: QueryRequest) -> Answer:
         corpora = self.policy_engine.resolve_corpora(identity, query.corpus_ids)
         release_id = self.repository.corpus_release_id(identity, corpora, query.as_of)
+        self._snapshot_token = self._capture_snapshot(identity, corpora, query.as_of)
         injection = assess_control_injection(query.text)
         if injection.blocked:
             answer = self._abstain(
@@ -791,4 +817,5 @@ class ExtractiveAnswerService:
             plan=plan,
             composition=composition,
             pec_trace=pec_trace.as_audit_record() if pec_trace is not None else None,
+            token=getattr(self, "_snapshot_token", None),
         )

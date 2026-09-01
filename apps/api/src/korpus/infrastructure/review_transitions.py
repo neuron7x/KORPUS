@@ -15,6 +15,7 @@ from korpus.domain.models import (
     Identity,
     ReviewState,
 )
+from korpus.infrastructure.evidence_sealing import seal_evidence_digest
 from korpus.infrastructure.schema import documents, versions
 
 VersionMapper = Callable[[Any], DocumentVersionRecord]
@@ -154,12 +155,18 @@ def _approval_changes(
     version_mapper: VersionMapper,
     document_mapper: DocumentMapper,
 ) -> dict[str, Any]:
+    # Запечатування ПЕРЕД зміною стану, не після: дайджест мусить описувати те, що
+    # затверджують, а не те, у що воно перетвориться. Портовано з GitHub-лінії разом із
+    # `evidence_sealing` — без цього рядка `evidence_digest` лишається None, і схваленню
+    # немає чого прив'язати до себе.
+    evidence_digest = seal_evidence_digest(connection, current.id)
     _retire_existing_approved(connection, current, version_mapper)
     _apply_access_tier(connection, current, actor, access_tier, document_mapper)
     return {
         "approved_at": datetime.now(UTC),
         "approved_by": actor.subject,
         "approver_credential_id": reviewer_credential_id,
+        "evidence_digest": evidence_digest,
         "is_current": True,
     }
 
@@ -267,6 +274,7 @@ def transition_version_in_connection(
             "metadata_reviewer_credential_id": updated.metadata_reviewer_credential_id,
             "content_reviewer_credential_id": updated.content_reviewer_credential_id,
             "approver_credential_id": updated.approver_credential_id,
+            "evidence_digest": changes.get("evidence_digest"),
             "near_duplicate_acknowledged_by": updated.near_duplicate_acknowledged_by,
             "extraction_quality_flags": sorted(updated.extraction_quality_flags),
             "extraction_quality_acknowledged_by": updated.extraction_quality_acknowledged_by,

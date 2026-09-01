@@ -3,6 +3,7 @@
 Revision ID: 0005_durable_ingestion_jobs
 Revises: 0004_compartmented_authorization
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence

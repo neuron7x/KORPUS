@@ -31,12 +31,41 @@ def test_mutated_baseline_history_is_rejected(tmp_path: Path) -> None:
     assert evaluate(root)["status"] == "FAIL"
 
 
+def _current_head(root: Path) -> str:
+    """Голова ЦЬОГО дерева, не вписана константа.
+
+    Тут стояло `down_revision = '0018_operational_competencies'`. Синтетична майбутня
+    міграція чіплялась за коліно, яке було головою, коли тест писали, — і щойно ланцюг
+    подовжили, вона створювала ДРУГУ голову, а тест звинувачував у цьому дерево.
+    Перевірка мусить будувати правильний вхід, а не той, що був правильним колись.
+    """
+    versions = root / "apps/api/migrations/versions"
+    revisions: dict[str, str] = {}
+    parents: set[str] = set()
+    for item in sorted(versions.glob("*.py")):
+        text = item.read_text(encoding="utf-8")
+        for line in text.splitlines():
+            stripped = line.strip()
+            for name in ("revision", "down_revision"):
+                if stripped.startswith((f"{name} =", f"{name}:")) and "=" in stripped:
+                    value = stripped.split("=", 1)[1].strip().strip("\"'")
+                    if value in {"None", ""}:
+                        continue
+                    if name == "revision":
+                        revisions[value] = item.name
+                    else:
+                        parents.add(value)
+    heads = [key for key in revisions if key not in parents]
+    assert len(heads) == 1, heads
+    return heads[0]
+
+
 def _future(root: Path, body: str, *, revision: str = "0019_test") -> Path:
     path = root / f"apps/api/migrations/versions/{revision}.py"
     path.write_text(
         "from alembic import op\nimport sqlalchemy as sa\n"
         f"revision = {revision!r}\n"
-        "down_revision = '0018_operational_competencies'\n"
+        f"down_revision = {_current_head(root)!r}\n"
         "def upgrade():\n"
         + "\n".join(f"    {line}" for line in body.splitlines())
         + "\ndef downgrade():\n    pass\n",

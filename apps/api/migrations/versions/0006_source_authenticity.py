@@ -3,6 +3,7 @@
 Revision ID: 0006_source_authenticity
 Revises: 0005_durable_ingestion_jobs
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence

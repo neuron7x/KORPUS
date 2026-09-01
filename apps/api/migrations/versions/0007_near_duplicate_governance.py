@@ -3,6 +3,7 @@
 Revision ID: 0007_near_duplicate_governance
 Revises: 0006_source_authenticity
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence

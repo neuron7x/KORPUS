@@ -86,6 +86,40 @@ def _verify_baseline(current: dict[str, Path], baseline: dict[str, str]) -> list
     return findings
 
 
+#: Дієслова, які лише ДОДАЮТЬ. `op.execute` — це інструмент, а не операція: єдиний
+#: спосіб створити тригер в alembic, і водночас спосіб знести таблицю. Заборона на
+#: сам виклик не розрізняє розширення від руйнування, тобто перевірка з іменем
+#: «expand-only» міряє механізм, а не властивість, яку охороняє.
+_EXPANDING_VERBS = ("create ",)
+
+
+def _execute_is_expanding(node: ast.Call) -> str | None:
+    """None означає «розширювальне і дозволене»; рядок — причину відмови.
+
+    Нелітеральний аргумент НЕ проходить: судити його зсередини неможливо, а
+    невідоме не є дозволом.
+    """
+    if not node.args:
+        return "op.execute without a statement"
+    first = node.args[0]
+    parts: list[str] = []
+    if isinstance(first, ast.Constant) and isinstance(first.value, str):
+        parts = [first.value]
+    elif isinstance(first, ast.JoinedStr):
+        parts = [
+            v.value
+            for v in first.values
+            if isinstance(v, ast.Constant) and isinstance(v.value, str)
+        ]
+    if not parts:
+        return "op.execute with a statement this gate cannot read"
+    statement = " ".join(parts).lstrip().lower()
+    if statement.startswith(_EXPANDING_VERBS):
+        return None
+    verb = statement.split(" ", 1)[0] or "?"
+    return f"op.execute({verb.upper()} …)"
+
+
 def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[str]) -> list[str]:
     upgrade = _upgrade_function(tree)
     if upgrade is None:
@@ -96,7 +130,9 @@ def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[
             continue
         opname = _op_call_name(node)
         if opname in forbidden:
-            findings.append(f"future migration is not expand-only: {relative}: op.{opname}")
+            reason = _execute_is_expanding(node) if opname == "execute" else "op." + opname
+            if reason is not None:
+                findings.append(f"future migration is not expand-only: {relative}: {reason}")
         reason = _unsafe_add_column(node)
         if reason:
             findings.append(f"future migration is not expand-only: {relative}: {reason}")

@@ -8,6 +8,7 @@ units avoid floating point money crossing the persistence boundary.
 Revision ID: 0015_plan_pricing
 Revises: 0014_subscription_last_event
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence

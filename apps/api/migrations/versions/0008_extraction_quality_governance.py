@@ -3,6 +3,7 @@
 Revision ID: 0008_extraction_quality_gov
 Revises: 0007_near_duplicate_governance
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence

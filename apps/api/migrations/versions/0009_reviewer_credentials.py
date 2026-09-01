@@ -3,6 +3,7 @@
 Revision ID: 0009_reviewer_credentials
 Revises: 0008_extraction_quality_gov
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence

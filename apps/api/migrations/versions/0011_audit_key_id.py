@@ -17,6 +17,7 @@ indistinguishable from a forged one.
 Revision ID: 0011_audit_key_id
 Revises: 0010_revision_identity
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence

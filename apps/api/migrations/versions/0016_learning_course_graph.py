@@ -3,6 +3,7 @@
 Revision ID: 0016_learning_course_graph
 Revises: 0015_plan_pricing
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -75,9 +76,7 @@ def _install_postgres_guards() -> None:
         $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog
         """
     )
-    op.execute(
-        "REVOKE ALL ON FUNCTION public.korpus_guard_learning_course_identity() FROM PUBLIC"
-    )
+    op.execute("REVOKE ALL ON FUNCTION public.korpus_guard_learning_course_identity() FROM PUBLIC")
     op.execute(
         "CREATE TRIGGER trg_korpus_learning_immutable_learning_courses "
         "BEFORE UPDATE OR DELETE ON public.learning_courses "

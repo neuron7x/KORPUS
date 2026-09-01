@@ -95,6 +95,7 @@ reviews, and the account layer arrived as six of them at once.
 | `span_embeddings` | replaceable vectors, versioned by model id |
 | `audit_events` | the hash chain; append-only, one key id per event |
 | `audit_heads` | the single head row the chain advances |
+| `corpus_state_epoch` | monotonic counter of corpus state; one answer reads one epoch |
 | `audit_anchor_outbox` | anchor deliveries still owed to the external witness |
 | `ingestion_jobs` | durable work for the parser, leased by a worker |
 | `accounts` | who somebody is here; status only |

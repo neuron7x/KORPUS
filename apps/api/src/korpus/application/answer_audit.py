@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from korpus.application.answer_analysis import ScopeBreach
 from korpus.application.answer_audit_envelope import answer_request_envelope
+from korpus.application.corpus_snapshot import CorpusReadToken, token_audit_record
 from korpus.application.evidence import SupportVerdict
 from korpus.application.pec_audit import pec_audit_payload
 from korpus.application.ports import Repository
@@ -32,6 +33,7 @@ def append_answer_audit(
     plan: QueryPlan | None = None,
     composition: str | None = None,
     pec_trace: dict[str, object] | None = None,
+    token: CorpusReadToken | None = None,
 ) -> None:
     if support is not None and not support.aligned:
         repository.append_audit(
@@ -103,6 +105,11 @@ def append_answer_audit(
             "retrieval_score_kind": answer.retrieval_score_kind,
             "calibration_id": answer.calibration_id,
             "corpus_release": answer.corpus_release,
+            # Знімок стану корпусу, у якому відповідь БУЛА складена. `corpus_release`
+            # каже, який реліз назвали; це каже, який стан читали — з монотонною
+            # епохою, тож два записи про один реліз розрізняються, якщо між ними корпус
+            # рухався. Портовано з GitHub-лінії 01.09.2026.
+            "corpus_snapshot": token_audit_record(token),
             "query_risk": risk.value,
             "as_of": query.as_of.isoformat(),
             "thresholds": {

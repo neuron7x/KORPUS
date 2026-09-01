@@ -3,6 +3,7 @@
 Revision ID: 0018_operational_competencies
 Revises: 0017_learning_mastery
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence

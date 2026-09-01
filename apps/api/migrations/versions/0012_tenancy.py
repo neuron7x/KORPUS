@@ -23,6 +23,7 @@ than in a service:
 Revision ID: 0012_tenancy
 Revises: 0011_audit_key_id
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -101,9 +102,7 @@ def upgrade() -> None:
         ),
     )
     op.create_index("ix_subscriptions_account_id", "subscriptions", ["account_id"])
-    op.create_index(
-        "ix_subscriptions_account_status", "subscriptions", ["account_id", "status"]
-    )
+    op.create_index("ix_subscriptions_account_status", "subscriptions", ["account_id", "status"])
     op.create_index(
         "uq_subscription_provider_id",
         "subscriptions",

@@ -3,6 +3,7 @@
 Revision ID: 0001_initial
 Revises: None
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence

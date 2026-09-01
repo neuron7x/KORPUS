@@ -15,6 +15,7 @@ that absence means "accept", not "reject".
 Revision ID: 0014_subscription_last_event
 Revises: 0013_message_verdict
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence

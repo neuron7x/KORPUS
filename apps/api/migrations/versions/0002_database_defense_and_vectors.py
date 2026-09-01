@@ -3,6 +3,7 @@
 Revision ID: 0002_db_defense_and_vectors
 Revises: 0001_initial
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence

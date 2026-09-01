@@ -3,6 +3,7 @@
 Revision ID: 0004_compartmented_authorization
 Revises: 0003_infrastructure_hardening
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -23,9 +24,7 @@ _CORPORA = "string_to_array(COALESCE(current_setting('korpus.corpora', true), ''
 _CLASSIFICATIONS = (
     "string_to_array(COALESCE(current_setting('korpus.classifications', true), ''), ',')"
 )
-_COMPARTMENTS = (
-    "string_to_array(COALESCE(current_setting('korpus.compartments', true), ''), ',')"
-)
+_COMPARTMENTS = "string_to_array(COALESCE(current_setting('korpus.compartments', true), ''), ',')"
 
 
 def _roles() -> str:

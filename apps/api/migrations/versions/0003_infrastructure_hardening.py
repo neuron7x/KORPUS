@@ -3,6 +3,7 @@
 Revision ID: 0003_infrastructure_hardening
 Revises: 0002_db_defense_and_vectors
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence
