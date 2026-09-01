@@ -20,12 +20,12 @@ from korpus.domain.models import (
 )
 from korpus.infrastructure.embedding_backfill import PgVectorEmbeddingBackfill
 from korpus.infrastructure.repository import (
-    SqlRepository,
     documents,
     span_embeddings,
     spans,
     versions,
 )
+from korpus.infrastructure.rls_repository import RlsBoundSqlRepository
 from sqlalchemy import insert, select, text
 from sqlalchemy.exc import DBAPIError
 
@@ -42,10 +42,14 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
     # finding. It shares the database with the rest of the suite when the whole suite
     # runs on PostgreSQL, so it starts from an empty one.
     reset_database()
-    repository = SqlRepository(
+    # Не `SqlRepository`: на PostgreSQL claim'и RLS кладе брокер, а не сам застосунок.
+    # Доти цей тест проходив саме тому, що політики читали `current_setting`, який
+    # застосунковий логін писав собі сам — тобто він міряв роботу дірки.
+    repository = RlsBoundSqlRepository(
         POSTGRES_URL,
         "postgres-integration-audit-key",
         audit_anchor_path=tmp_path / "postgres-anchor.json",
+        authz_database_url=os.environ["KORPUS_AUTHZ_DATABASE_URL"],
     )
     repository.initialize(create_schema=False)
     with repository.engine.connect() as connection:
@@ -124,7 +128,12 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
         dimensions=8,
         embed_many=lambda texts: [[0.125] * 8 for _ in texts],
     )
-    backfill = PgVectorEmbeddingBackfill(repository.engine, provider, batch_size=8)
+    backfill = PgVectorEmbeddingBackfill(
+        repository.engine,
+        provider,
+        batch_size=8,
+        bind_identity=repository._apply_postgres_identity,
+    )
     first_batch = backfill.run_batch(actor)
     assert first_batch.selected == 2
     assert first_batch.written == 2

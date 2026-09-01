@@ -23,6 +23,8 @@ from korpus.domain.models import AccessTier
 from korpus.infrastructure import corpus_snapshot_guards
 from sqlalchemy import text
 
+from apps.api.tests.conftest import privileged_connection
+
 
 def _token(release_id: str) -> CorpusReadToken:
     return CorpusReadToken(
@@ -234,21 +236,53 @@ def test_answer_runtime_rejects_split_snapshot_authorities() -> None:
         SnapshotAnswerRuntime(repository, retriever, policy)  # type: ignore[arg-type]
 
 
+# DDL сторожів пишеться РІЗНО в двох діалектах, і перенесені тести знали лише
+# один. На PostgreSQL `DROP TRIGGER x` без `ON <таблиця>` — синтаксична помилка, а
+# сторож зветься `trg_<table>_epoch`, не `..._epoch_insert`. Тобто на СУБД, якою
+# система розгортається, ці два негативні контролі не виконувались зовсім: вони
+# падали на власному підготуванні, і падіння виглядало як падіння предмета.
+_WRONG_RELATION = {
+    "sqlite": (
+        "DROP TRIGGER trg_documents_epoch_insert",
+        "CREATE TRIGGER trg_documents_epoch_insert "
+        "AFTER INSERT ON document_versions BEGIN "
+        "UPDATE corpus_state_epoch SET epoch = epoch + 1 WHERE singleton_id = 1; END",
+    ),
+    "postgresql": (
+        "DROP TRIGGER trg_documents_epoch ON documents",
+        "CREATE TRIGGER trg_documents_epoch AFTER INSERT OR UPDATE OR DELETE "
+        "ON document_versions FOR EACH STATEMENT EXECUTE FUNCTION korpus_bump_corpus_state_epoch()",
+    ),
+}
+_INERT_TRIGGER = {
+    "sqlite": (
+        "DROP TRIGGER trg_documents_epoch_insert",
+        "CREATE TRIGGER trg_documents_epoch_insert AFTER INSERT ON documents BEGIN SELECT 1; END",
+    ),
+    "postgresql": (
+        "DROP TRIGGER trg_documents_epoch ON documents",
+        "CREATE FUNCTION pg_temp_inert() RETURNS trigger AS "
+        "$$ BEGIN RETURN NULL; END; $$ LANGUAGE plpgsql;"
+        "CREATE TRIGGER trg_documents_epoch AFTER INSERT ON documents "
+        "FOR EACH STATEMENT EXECUTE FUNCTION pg_temp_inert()",
+    ),
+}
+
+
+def _rewrite_guard(connection, statements: tuple[str, str]) -> None:
+    for statement in statements:
+        connection.execute(text(statement))
+
+
 def test_guard_verification_binds_trigger_name_to_target_relation(client) -> None:
     """A correctly named trigger on the wrong table is not a temporal guard."""
     reader = client.app.state.corpus_snapshot_reader
-    repository = client.app.state.repository
-    with repository.engine.connect() as connection:
-        transaction = connection.begin()
+    # Власником схеми на PostgreSQL є не застосунковий логін, а `DROP TRIGGER`
+    # вимагає саме власника. Тут міряється перевірка сторожів, не гранти.
+    with privileged_connection(client) as connection:
+        transaction = connection.begin_nested()
         try:
-            connection.execute(text("DROP TRIGGER trg_documents_epoch_insert"))
-            connection.execute(
-                text(
-                    "CREATE TRIGGER trg_documents_epoch_insert "
-                    "AFTER INSERT ON document_versions BEGIN "
-                    "UPDATE corpus_state_epoch SET epoch = epoch + 1 WHERE singleton_id = 1; END"
-                )
-            )
+            _rewrite_guard(connection, _WRONG_RELATION[connection.dialect.name])
             with pytest.raises(RuntimeError, match="corpus snapshot guards are missing"):
                 reader._require_guards(connection)
         finally:
@@ -258,17 +292,12 @@ def test_guard_verification_binds_trigger_name_to_target_relation(client) -> Non
 def test_guard_verification_rejects_correctly_named_noop_trigger(client) -> None:
     """A correctly named trigger with inert SQL must fail startup verification."""
     reader = client.app.state.corpus_snapshot_reader
-    repository = client.app.state.repository
-    with repository.engine.connect() as connection:
-        transaction = connection.begin()
+    # Власником схеми на PostgreSQL є не застосунковий логін, а `DROP TRIGGER`
+    # вимагає саме власника. Тут міряється перевірка сторожів, не гранти.
+    with privileged_connection(client) as connection:
+        transaction = connection.begin_nested()
         try:
-            connection.execute(text("DROP TRIGGER trg_documents_epoch_insert"))
-            connection.execute(
-                text(
-                    "CREATE TRIGGER trg_documents_epoch_insert "
-                    "AFTER INSERT ON documents BEGIN SELECT 1; END"
-                )
-            )
+            _rewrite_guard(connection, _INERT_TRIGGER[connection.dialect.name])
             with pytest.raises(RuntimeError, match="invalid definition"):
                 reader._require_guards(connection)
         finally:

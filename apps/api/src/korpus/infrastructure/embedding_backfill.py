@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from datetime import UTC, datetime
 
 from sqlalchemy import Engine
 from sqlalchemy import text as sql_text
+from sqlalchemy.engine import Connection
 
 from korpus.application.embedding_backfill_run import BackfillResult
 from korpus.domain.models import Identity
@@ -25,10 +27,18 @@ class PgVectorEmbeddingBackfill:
         *,
         batch_size: int = 32,
         corpus_governance: CorpusGovernanceProfile | None = None,
+        bind_identity: Callable[[Connection, Identity], None] | None = None,
     ) -> None:
         if engine.dialect.name != "postgresql":
             raise ValueError("embedding backfill requires PostgreSQL")
         self.engine = engine
+        #: Хто прив'язує особистість до з'єднання. Доти тут стояв СТАТИЧНИЙ виклик
+        #: `SqlRepository._apply_postgres_identity`, тобто `set_config` — джерело,
+        #: якого політики більше не читають. Наслідок був би не помилкою, а тишею:
+        #: RLS ховає все, вибірка порожня, `BackfillResult(selected=0, complete=True)`
+        #: звітує «нема чого робити». Вектори не будувались би НІКОЛИ, і жоден лог
+        #: цього не сказав би.
+        self.bind_identity = bind_identity
         self.provider = provider
         self.batch_size = count(batch_size, 1, "batch_size")
         if self.batch_size > 64:
@@ -36,10 +46,13 @@ class PgVectorEmbeddingBackfill:
         self.corpus_governance = corpus_governance
 
     def run_batch(self, identity: Identity) -> BackfillResult:
-        from korpus.infrastructure.repository import SqlRepository
+        from korpus.infrastructure.repository import apply_session_claims
 
         with self.engine.begin() as connection:
-            SqlRepository._apply_postgres_identity(connection, identity)
+            if self.bind_identity is not None:
+                self.bind_identity(connection, identity)
+            else:
+                apply_session_claims(connection, identity)
             rows = connection.execute(
                 sql_text(
                     """
@@ -70,7 +83,10 @@ class PgVectorEmbeddingBackfill:
         vectors = self.provider.embed_many([str(row.text) for row in rows])
         written = 0
         with self.engine.begin() as connection:
-            SqlRepository._apply_postgres_identity(connection, identity)
+            if self.bind_identity is not None:
+                self.bind_identity(connection, identity)
+            else:
+                apply_session_claims(connection, identity)
             for row, vector in zip(rows, vectors, strict=True):
                 literal = "[" + ",".join(f"{value:.9g}" for value in vector) + "]"
                 result = connection.execute(

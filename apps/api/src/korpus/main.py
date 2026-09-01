@@ -97,6 +97,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     max_response_bytes=selected.embedding_max_response_bytes,
                 ),
                 corpus_governance=corpus_governance,
+                bind_identity=repository._apply_postgres_identity,  # noqa: SLF001
             )
             if selected.semantic_retrieval_enabled
             else None

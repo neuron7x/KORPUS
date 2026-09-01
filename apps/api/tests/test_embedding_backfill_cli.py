@@ -83,9 +83,21 @@ def test_component_boundary_binds_governance_and_closes_resources(
         def dispose(self) -> None:
             events.append("engine-close")
 
-    engine = Engine()
+    class Repository:
+        """Скрипт більше не відкриває голий engine: під межею RLS особистість кладе
+        брокер, і прив'язка живе в репозиторії."""
+
+        engine = Engine()
+
+        def close(self) -> None:
+            events.append("engine-close")
+
+        @staticmethod
+        def _apply_postgres_identity(connection: object, identity: object) -> None:
+            del connection, identity
+
     monkeypatch.setattr(cli, "HttpEmbeddingProvider", Provider)
-    monkeypatch.setattr(cli, "create_engine", lambda *args, **kwargs: engine)
+    monkeypatch.setattr(cli, "create_repository", lambda *args, **kwargs: Repository())
     monkeypatch.setattr(cli, "exclusive_backfill_run", lambda *args: nullcontext())
     monkeypatch.setattr(cli, "PgVectorEmbeddingBackfill", lambda *args, **kwargs: object())
     coverage = assess_embedding_coverage(
@@ -141,9 +153,13 @@ def test_incomplete_coverage_never_builds_index(tmp_path: Path, monkeypatch) -> 
     profile = SimpleNamespace(profile_id="governed-v1", corpora={"doctrine"})
     monkeypatch.setattr(cli.CorpusGovernanceProfile, "load", lambda *args: profile)
     provider = SimpleNamespace(model_id="model-v1", dimensions=8, close=lambda: None)
-    engine = SimpleNamespace(dispose=lambda: None)
+    repository = SimpleNamespace(
+        engine=SimpleNamespace(dispose=lambda: None),
+        close=lambda: None,
+        _apply_postgres_identity=lambda connection, identity: None,
+    )
     monkeypatch.setattr(cli, "HttpEmbeddingProvider", lambda *args, **kwargs: provider)
-    monkeypatch.setattr(cli, "create_engine", lambda *args, **kwargs: engine)
+    monkeypatch.setattr(cli, "create_repository", lambda *args, **kwargs: repository)
     monkeypatch.setattr(cli, "exclusive_backfill_run", lambda *args: nullcontext())
     monkeypatch.setattr(cli, "PgVectorEmbeddingBackfill", lambda *args, **kwargs: object())
     coverage = assess_embedding_coverage(

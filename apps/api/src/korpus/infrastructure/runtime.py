@@ -5,6 +5,7 @@ from korpus.application.ports import ObjectStore
 from korpus.config import Settings
 from korpus.infrastructure.object_store import LocalObjectStore, S3ObjectStore
 from korpus.infrastructure.repository import SqlRepository
+from korpus.infrastructure.rls_repository import RlsBoundSqlRepository
 from korpus.infrastructure.runtime_cloud import (
     create_audit_anchor,
     create_gcs_store,
@@ -15,7 +16,17 @@ from korpus.infrastructure.runtime_cloud import (
 def create_repository(settings: Settings, policy: PolicyEngine | None = None) -> SqlRepository:
     audit_key = settings.resolved_audit_hmac_key.encode("utf-8")
     anchor = create_audit_anchor(settings, audit_key)
-    return SqlRepository(
+    # На PostgreSQL репозиторій ЗАВЖДИ той, що не дає підробити claim: політики
+    # читають довірену таблицю, а не `current_setting`, який пише сам застосунок.
+    # Обирати тут між двома реалізаціями за прапорцем означало б лишити ввімкнену
+    # дірку одним рядком конфігурації.
+    factory = (
+        RlsBoundSqlRepository if settings.database_url.startswith("postgresql") else SqlRepository
+    )
+    extra: dict[str, object] = {}
+    if settings.database_url.startswith("postgresql"):
+        extra["authz_database_url"] = settings.authz_database_url
+    return factory(
         settings.database_url,
         settings.resolved_audit_hmac_key,
         policy,
@@ -31,6 +42,7 @@ def create_repository(settings: Settings, policy: PolicyEngine | None = None) ->
         # Іменована, бо вставка поруч із ключем зсунула б позиційні аргументи — це вже
         # ставалось і віддало `FileAuditAnchorStore` самому собі як шлях.
         audit_keyring=settings.resolved_audit_keyring(),
+        **extra,  # type: ignore[arg-type]
     )
 
 

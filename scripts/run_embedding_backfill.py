@@ -11,7 +11,7 @@ import tempfile
 from contextlib import ExitStack
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from korpus.infrastructure.runtime import create_repository
 from sqlalchemy.engine import Engine
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -107,8 +107,12 @@ def _execute(args: argparse.Namespace, settings: Settings) -> int:
             max_batch_size=args.batch_size,
         )
         resources.callback(provider.close)
-        engine = create_engine(settings.database_url, pool_pre_ping=True)
-        resources.callback(engine.dispose)
+        # Не голий engine: під межею RLS особистість кладе БРОКЕР, і скрипт, який
+        # прив'язує її сам через `set_config`, побачив би нуль рядків і доповів би
+        # «нема чого робити». Репозиторій знає, як прив'язувати; він тут і будується.
+        repository = create_repository(settings)
+        resources.callback(repository.close)
+        engine = repository.engine
         identity = Identity(
             subject="embedding-backfill",
             roles=frozenset({"admin", "curator"}),
@@ -116,9 +120,18 @@ def _execute(args: argparse.Namespace, settings: Settings) -> int:
             corpora=frozenset(profile.corpora),
         )
         worker = PgVectorEmbeddingBackfill(
-            engine, provider, batch_size=args.batch_size, corpus_governance=profile
+            engine,
+            provider,
+            batch_size=args.batch_size,
+            corpus_governance=profile,
+            bind_identity=repository._apply_postgres_identity,  # noqa: SLF001
         )
-        semantic_index = PgVectorSemanticIndex(engine, provider, corpus_governance=profile)
+        semantic_index = PgVectorSemanticIndex(
+            engine,
+            provider,
+            corpus_governance=profile,
+            bind_identity=repository._apply_postgres_identity,  # noqa: SLF001
+        )
         receipt, coverage, index_name = _run_locked(
             engine, provider, worker, semantic_index, identity, profile, args.max_batches
         )

@@ -282,12 +282,11 @@ class Governance:
 
 
 def test_pgvector_search_upsert_governance_and_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None:
-    from korpus.infrastructure.repository import SqlRepository
-
+    # Прив'язку робить функція модуля, а не статичний метод класу: підклас із
+    # межею RLS перевизначає МЕТОД, тож статичний виклик не міг би знати про брокера.
     monkeypatch.setattr(
-        SqlRepository,
-        "_apply_postgres_identity",
-        staticmethod(lambda connection, identity: None),
+        "korpus.infrastructure.repository.apply_session_claims",
+        lambda connection, identity: None,
     )
     span_id = uuid4()
     provider = SimpleNamespace(

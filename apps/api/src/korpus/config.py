@@ -60,6 +60,10 @@ class Settings(BaseSettings):
     environment: str = "local"
     runtime_role: str = "api"
     database_url: str = "sqlite:///./var/korpus.db"
+    #: Окремий логін PostgreSQL, який кладе claim'и RLS у довірену таблицю. Без
+    #: нього застосунковий логін пише їх сам — і тоді RLS вірить тому, кого
+    #: обмежує. На SQLite не має сенсу й ігнорується.
+    authz_database_url: str | None = None
     database_pool_size: int = Field(default=8, ge=1, le=128)
     database_max_overflow: int = Field(default=8, ge=0, le=256)
     database_pool_timeout_seconds: float = Field(default=10.0, gt=0, le=120)

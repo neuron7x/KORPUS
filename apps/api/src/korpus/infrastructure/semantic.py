@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from datetime import UTC, date, datetime
 from uuid import UUID
 
 from sqlalchemy import Engine
 from sqlalchemy import text as sql_text
+from sqlalchemy.engine import Connection
 
 from korpus.domain.models import Identity
 from korpus.infrastructure.embedding_provider import EmbeddingProvider
@@ -24,12 +26,17 @@ class PgVectorSemanticIndex(SemanticCoverageReader):
         provider: EmbeddingProvider,
         *,
         corpus_governance: CorpusGovernanceProfile | None = None,
+        bind_identity: Callable[[Connection, Identity], None] | None = None,
     ) -> None:
         if engine.dialect.name != "postgresql":
             raise ValueError("pgvector integration requires PostgreSQL")
         self.engine = engine
         self.provider = provider
         self.corpus_governance = corpus_governance
+        #: Хто прив'язує особистість. Статичний `SqlRepository._apply_postgres_identity`
+        #: ставить `set_config`, якого політики під межею RLS не читають: семантичний
+        #: пошук повертав би НУЛЬ кандидатів і не сказав би, чому.
+        self.bind_identity = bind_identity
 
     def search(
         self,
@@ -39,7 +46,7 @@ class PgVectorSemanticIndex(SemanticCoverageReader):
         as_of: date,
         limit: int,
     ) -> list[tuple[UUID, float]]:
-        from korpus.infrastructure.repository import SqlRepository
+        from korpus.infrastructure.repository import SqlRepository, apply_session_claims
 
         authorized = corpus_ids.intersection(identity.corpora)
         if not authorized or limit < 1:
@@ -73,7 +80,10 @@ CAST(:vector AS vector)))) AS score
         )
         classifications = SqlRepository._allowed_classifications(identity.clearance)
         with self.engine.begin() as connection:
-            SqlRepository._apply_postgres_identity(connection, identity)
+            if self.bind_identity is not None:
+                self.bind_identity(connection, identity)
+            else:
+                apply_session_claims(connection, identity)
             rows = connection.execute(
                 statement,
                 {
@@ -90,10 +100,13 @@ CAST(:vector AS vector)))) AS score
         return [(UUID(row.span_id), float(row.score)) for row in rows]
 
     def upsert(self, identity: Identity, span_id: UUID, text: str, text_hash: str) -> None:
-        from korpus.infrastructure.repository import SqlRepository
+        from korpus.infrastructure.repository import apply_session_claims
 
         with self.engine.begin() as connection:
-            SqlRepository._apply_postgres_identity(connection, identity)
+            if self.bind_identity is not None:
+                self.bind_identity(connection, identity)
+            else:
+                apply_session_claims(connection, identity)
             corpus_row = connection.execute(
                 sql_text(
                     """
@@ -115,7 +128,10 @@ CAST(:vector AS vector)))) AS score
         vector = self.provider.embed(text)
         vector_literal = "[" + ",".join(f"{value:.9g}" for value in vector) + "]"
         with self.engine.begin() as connection:
-            SqlRepository._apply_postgres_identity(connection, identity)
+            if self.bind_identity is not None:
+                self.bind_identity(connection, identity)
+            else:
+                apply_session_claims(connection, identity)
             connection.execute(
                 sql_text(
                     """

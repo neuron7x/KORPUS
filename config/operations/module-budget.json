@@ -2194,7 +2194,7 @@
       "reason": "the composition root: the only module that names both an application port and an infrastructure adapter, so neither layer has to"
     },
     "apps/api/src/korpus/config.py": {
-      "lines": 464,
+      "lines": 470,
       "max_complexity": 4,
       "max_function_args": 2,
       "max_function_lines": 20,
@@ -2403,10 +2403,10 @@
       "proof_lines": 0
     },
     "apps/api/src/korpus/infrastructure/embedding_backfill.py": {
-      "lines": 108,
-      "max_complexity": 9,
-      "max_function_args": 5,
-      "max_function_lines": 71,
+      "lines": 128,
+      "max_complexity": 11,
+      "max_function_args": 6,
+      "max_function_lines": 80,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Reduced exact ceiling after moving the orchestration contract into the application layer"
@@ -2695,7 +2695,7 @@
       "reason": "PEC v1 initial ratchet: low-cardinality observability primitive measured at first integration; ceiling may only move down"
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1141,
+      "lines": 1195,
       "max_complexity": 13,
       "max_function_args": 14,
       "max_function_lines": 84,
@@ -2757,6 +2757,15 @@
       "proof_lines": 0,
       "reason": "Запечатування доказів ПЕРЕД зміною стану, не після: дайджест мусить описувати те, що затверджують, а не те, у що воно перетвориться. Без цього рядка `evidence_digest` лишається None і схваленню немає чого прив'язати до себе."
     },
+    "apps/api/src/korpus/infrastructure/rls_repository.py": {
+      "lines": 130,
+      "max_complexity": 8,
+      "max_function_args": 9,
+      "max_function_lines": 55,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Непідробна межа особистості RLS, портована з GitHub-лінії й розширена на `ingestion_jobs` та claim `korpus.subject`, яких там не було. Загрозу виміряно ЗАПУСКОМ: логін `korpus_app` підняв собі clearance 0 → 3 і побачив та ЗАПИСАВ документ грифу restricted. Дев'ять параметрів `__init__` — це параметри `SqlRepository` плюс `authz_database_url`; підклас не має права звузити сигнатуру батька."
+    },
     "apps/api/src/korpus/infrastructure/row_mapping.py": {
       "lines": 268,
       "max_complexity": 8,
@@ -2766,10 +2775,10 @@
       "proof_lines": 0
     },
     "apps/api/src/korpus/infrastructure/runtime.py": {
-      "lines": 74,
+      "lines": 90,
       "max_complexity": 3,
       "max_function_args": 2,
-      "max_function_lines": 20,
+      "max_function_lines": 34,
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "ratchet ceiling lowered after production-plane decomposition"
@@ -2793,20 +2802,20 @@
       "reason": "Дві додані таблиці/колонки порту: `corpus_state_epoch` (монотонний лічильник стану корпусу) і `evidence_digest` у версіях (дайджест ЗАПЕЧАТАНОГО набору доказів). `source_hash` каже, з чого версію зробили; `evidence_digest` — що саме затвердили."
     },
     "apps/api/src/korpus/infrastructure/semantic.py": {
-      "lines": 174,
-      "max_complexity": 7,
+      "lines": 195,
+      "max_complexity": 8,
       "max_function_args": 6,
-      "max_function_lines": 57,
-      "max_nesting": 1,
+      "max_function_lines": 64,
+      "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Exact rebaseline adds only the deterministic index lifecycle seam; DDL generation remains extracted"
     },
     "apps/api/src/korpus/infrastructure/semantic_coverage.py": {
-      "lines": 69,
-      "max_complexity": 3,
+      "lines": 76,
+      "max_complexity": 4,
       "max_function_args": 3,
-      "max_function_lines": 53,
-      "max_nesting": 1,
+      "max_function_lines": 60,
+      "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Initial exact ceiling for RLS-scoped model/hash/dimension coverage measurement"
     },
@@ -2870,10 +2879,10 @@
       "reason": "a register of deployment requirements: it grows when the deployment gains a property, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
     },
     "apps/api/src/korpus/main.py": {
-      "lines": 303,
+      "lines": 306,
       "max_complexity": 25,
       "max_function_args": 2,
-      "max_function_lines": 250,
+      "max_function_lines": 253,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Читач знімка в композиційному корені. Канон пінить корпус ДАТОЮ `as_of` і робить кілька незалежних читань на одну відповідь; між ними схвалення чи скасування змінює те, що бачить читач."
@@ -4471,7 +4480,7 @@
       "reason": "Initial measured ceiling for interpreter-bound PostgreSQL gate execution"
     },
     "scripts/prepare_postgres_role.py": {
-      "lines": 134,
+      "lines": 212,
       "max_complexity": 4,
       "max_function_args": 2,
       "max_function_lines": 7,
@@ -4731,10 +4740,10 @@
       "reason": "v0.6.0: exact test outcome + semantic replay equivalence across hash seeds; decomposed complexity"
     },
     "scripts/run_embedding_backfill.py": {
-      "lines": 195,
+      "lines": 208,
       "max_complexity": 5,
       "max_function_args": 7,
-      "max_function_lines": 64,
+      "max_function_lines": 80,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Exact rebaseline adds singleton orchestration and post-coverage deterministic index promotion without increasing complexity | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
@@ -4847,7 +4856,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5840,
+      "lines": 5880,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -8710,6 +8719,171 @@
       "reason": "M579–M581: заміщення повз межу документа, бюджет добору на невидимих відсіках і дуал до нього — відмова тому, хто відсік МАЄ.",
       "to": {
         "lines": 5840
+      }
+    },
+    {
+      "from": {
+        "lines": 464
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/config.py",
+      "reason": "Поле `authz_database_url`: окремий логін, що кладе claim'и RLS. Непідробна межа особистості RLS, портована з GitHub-лінії й розширена на `ingestion_jobs` та claim `korpus.subject`, яких там не було. Загрозу виміряно ЗАПУСКОМ: логін `korpus_app` підняв собі clearance 0 → 3 і побачив та ЗАПИСАВ документ грифу restricted.",
+      "to": {
+        "lines": 470
+      }
+    },
+    {
+      "from": {
+        "lines": 108,
+        "max_complexity": 9,
+        "max_function_args": 5,
+        "max_function_lines": 71
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/infrastructure/embedding_backfill.py",
+      "reason": "Прив'язка особистості стала ВХОДОМ, а не статичним викликом `SqlRepository._apply_postgres_identity`. Той виклик ставив `set_config`, якого політики більше не читають: вибірка порожня, `BackfillResult(selected=0, complete=True)` — «нема чого робити». Вектори не будувались би НІКОЛИ, і жоден лог не сказав би.",
+      "to": {
+        "lines": 128,
+        "max_complexity": 11,
+        "max_function_args": 6,
+        "max_function_lines": 80
+      }
+    },
+    {
+      "from": {
+        "lines": 1141
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/infrastructure/repository.py",
+      "reason": "Версія, народжена ЗАТВЕРДЖЕНОЮ, минала шлях перегляду й лишалась без печатки доказів. На PostgreSQL це ловив `ck_approved_version_evidence_digest`, на SQLite не ловило ніщо. Порядок вставки єдиний можливий: CHECK негайний, а тригер незмінності не дає писати прольоти вже запечатаної версії.",
+      "to": {
+        "lines": 1190
+      }
+    },
+    {
+      "from": {
+        "lines": 74,
+        "max_function_lines": 20
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/infrastructure/runtime.py",
+      "reason": "На PostgreSQL репозиторій ЗАВЖДИ той, що не дає підробити claim. Непідробна межа особистості RLS, портована з GitHub-лінії й розширена на `ingestion_jobs` та claim `korpus.subject`, яких там не було. Загрозу виміряно ЗАПУСКОМ: логін `korpus_app` підняв собі clearance 0 → 3 і побачив та ЗАПИСАВ документ грифу restricted.",
+      "to": {
+        "lines": 90,
+        "max_function_lines": 34
+      }
+    },
+    {
+      "from": {
+        "lines": 134
+      },
+      "on": "2026-09-01",
+      "path": "scripts/prepare_postgres_role.py",
+      "reason": "Роль брокера: єдина відмінність від застосункової — право ВИКЛИКАТИ `korpus_bind_rls_context`. Плюс `GRANT EXECUTE` на функції-читачі claim'ів застосунковій ролі: вираз політики виконується від імені того, хто робить запит, і без цього права жоден SELECT не проходить.",
+      "to": {
+        "lines": 212
+      }
+    },
+    {
+      "from": {
+        "lines": 195,
+        "max_function_lines": 64
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_embedding_backfill.py",
+      "reason": "Скрипт більше не відкриває голий engine — прив'язку особистості знає репозиторій.",
+      "to": {
+        "lines": 208,
+        "max_function_lines": 76
+      }
+    },
+    {
+      "from": {
+        "lines": 5840
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "M582–M584: PostgreSQL без межі RLS, брокер = застосунковий логін, добір векторів прив'язує особистість старим способом.",
+      "to": {
+        "lines": 5880
+      }
+    },
+    {
+      "from": {
+        "lines": 1190
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/infrastructure/repository.py",
+      "reason": "Прив'язка особистості до з'єднання стала ВХОДОМ. Доти `PgVectorSemanticIndex`, `semantic_coverage` і добір векторів кликали СТАТИЧНИЙ `SqlRepository._apply_postgres_identity`, тобто `set_config` — джерело, якого політики під межею RLS не читають. Наслідок був би не помилкою, а тишею: семантичний пошук і добір повертали б НУЛЬ рядків. Статичний виклик не МОЖЕ знати про брокера, тому метод став методом примірника, а спільне тіло — функцією `apply_session_claims`.",
+      "to": {
+        "lines": 1195
+      }
+    },
+    {
+      "from": {
+        "lines": 174,
+        "max_complexity": 7,
+        "max_function_lines": 57,
+        "max_nesting": 1
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/infrastructure/semantic.py",
+      "reason": "Прив'язка особистості до з'єднання стала ВХОДОМ. Доти `PgVectorSemanticIndex`, `semantic_coverage` і добір векторів кликали СТАТИЧНИЙ `SqlRepository._apply_postgres_identity`, тобто `set_config` — джерело, якого політики під межею RLS не читають. Наслідок був би не помилкою, а тишею: семантичний пошук і добір повертали б НУЛЬ рядків. Статичний виклик не МОЖЕ знати про брокера, тому метод став методом примірника, а спільне тіло — функцією `apply_session_claims`.",
+      "to": {
+        "lines": 195,
+        "max_complexity": 8,
+        "max_function_lines": 64,
+        "max_nesting": 2
+      }
+    },
+    {
+      "from": {
+        "lines": 69,
+        "max_complexity": 3,
+        "max_function_lines": 53,
+        "max_nesting": 1
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/infrastructure/semantic_coverage.py",
+      "reason": "Прив'язка особистості до з'єднання стала ВХОДОМ. Доти `PgVectorSemanticIndex`, `semantic_coverage` і добір векторів кликали СТАТИЧНИЙ `SqlRepository._apply_postgres_identity`, тобто `set_config` — джерело, якого політики під межею RLS не читають. Наслідок був би не помилкою, а тишею: семантичний пошук і добір повертали б НУЛЬ рядків. Статичний виклик не МОЖЕ знати про брокера, тому метод став методом примірника, а спільне тіло — функцією `apply_session_claims`.",
+      "to": {
+        "lines": 76,
+        "max_complexity": 4,
+        "max_function_lines": 60,
+        "max_nesting": 2
+      }
+    },
+    {
+      "from": {
+        "lines": 303
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/main.py",
+      "reason": "Прив'язка особистості до з'єднання стала ВХОДОМ. Доти `PgVectorSemanticIndex`, `semantic_coverage` і добір векторів кликали СТАТИЧНИЙ `SqlRepository._apply_postgres_identity`, тобто `set_config` — джерело, якого політики під межею RLS не читають. Наслідок був би не помилкою, а тишею: семантичний пошук і добір повертали б НУЛЬ рядків. Статичний виклик не МОЖЕ знати про брокера, тому метод став методом примірника, а спільне тіло — функцією `apply_session_claims`.",
+      "to": {
+        "lines": 306
+      }
+    },
+    {
+      "from": {
+        "max_function_lines": 250
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/main.py",
+      "reason": "Один рядок прив'язки особистості: `bind_identity=repository._apply_postgres_identity`. Без нього семантичний шлях під межею RLS мовчки бачив би нуль рядків.",
+      "to": {
+        "max_function_lines": 253
+      }
+    },
+    {
+      "from": {
+        "max_function_lines": 76
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_embedding_backfill.py",
+      "reason": "Один рядок прив'язки особистості: `bind_identity=repository._apply_postgres_identity`. Без нього семантичний шлях під межею RLS мовчки бачив би нуль рядків.",
+      "to": {
+        "max_function_lines": 80
       }
     }
   ],

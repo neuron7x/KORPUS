@@ -12,8 +12,13 @@ from korpus.application.retrieval import HybridLexicalRetriever, RetrievalWeight
 from korpus.application.snapshot_retrieval import SnapshotBoundRetriever
 from korpus.infrastructure.schema import audits, span_embeddings, spans, versions
 from sqlalchemy import delete, insert, select, update
-from sqlalchemy.exc import IntegrityError
 
+# Той самий тригер відмовляє РІЗНИМИ класами винятків: SQLite через RAISE(ABORT)
+# дає IntegrityError, PL/pgSQL RAISE — ProgrammingError. Спільний предок плюс
+# звірка тексту відмови міряє ВІДМОВУ, а не діалект.
+from sqlalchemy.exc import DBAPIError
+
+from apps.api.tests.conftest import privileged_connection
 from apps.api.tests.helpers import approve, ingest_text
 
 
@@ -70,9 +75,8 @@ def test_approval_seals_the_exact_persisted_evidence_set(client, admin_identity)
     result = ingest_text(client)
     version_id = _version_id(result)
     approve(client, version_id)
-    repository = client.app.state.repository
 
-    with repository.engine.begin() as connection:
+    with privileged_connection(client) as connection:
         stored_digest = connection.execute(
             select(versions.c.evidence_digest).where(versions.c.id == version_id)
         ).scalar_one()
@@ -118,9 +122,8 @@ def test_approved_evidence_and_its_seal_are_database_immutable(client) -> None:
     result = ingest_text(client)
     version_id = _version_id(result)
     approve(client, version_id)
-    repository = client.app.state.repository
 
-    with repository.engine.begin() as connection:
+    with privileged_connection(client) as connection:
         span = (
             connection.execute(
                 select(spans)
@@ -134,14 +137,14 @@ def test_approved_evidence_and_its_seal_are_database_immutable(client) -> None:
 
     changed_text = f"{span['text']} tampered"
     changed_hash = hashlib.sha256(changed_text.encode("utf-8")).hexdigest()
-    with pytest.raises(IntegrityError), repository.engine.begin() as connection:
+    with pytest.raises(DBAPIError, match="immutable"), privileged_connection(client) as connection:
         connection.execute(
             update(spans)
             .where(spans.c.id == span["id"])
             .values(text=changed_text, text_hash=changed_hash)
         )
 
-    with pytest.raises(IntegrityError), repository.engine.begin() as connection:
+    with pytest.raises(DBAPIError, match="immutable"), privileged_connection(client) as connection:
         connection.execute(
             insert(spans).values(
                 id=str(uuid4()),
@@ -155,10 +158,10 @@ def test_approved_evidence_and_its_seal_are_database_immutable(client) -> None:
             )
         )
 
-    with pytest.raises(IntegrityError), repository.engine.begin() as connection:
+    with pytest.raises(DBAPIError, match="immutable"), privileged_connection(client) as connection:
         connection.execute(delete(spans).where(spans.c.id == span["id"]))
 
-    with pytest.raises(IntegrityError), repository.engine.begin() as connection:
+    with pytest.raises(DBAPIError, match="immutable"), privileged_connection(client) as connection:
         connection.execute(
             update(versions).where(versions.c.id == version_id).values(evidence_digest="0" * 64)
         )
@@ -174,11 +177,11 @@ def test_approval_between_token_validation_and_retrieval_fails_closed(
     )
     second_version = _version_id(second)
 
-    repository = client.app.state.repository
     reader = client.app.state.corpus_snapshot_reader
     corpora = frozenset({"public"})
     as_of = datetime.now(UTC).date()
     token_a = reader.capture(admin_identity, corpora, as_of)
+    repository = client.app.state.repository
     delegate = HybridLexicalRetriever(repository, candidate_budget=8)
     interleaved = _MutateBeforeSearch(
         lambda: approve(client, second_version),
@@ -209,11 +212,11 @@ def test_rescission_after_retrieval_before_revalidation_fails_closed(
     version_id = _version_id(result)
     approve(client, version_id)
 
-    repository = client.app.state.repository
     reader = client.app.state.corpus_snapshot_reader
     corpora = frozenset({"public"})
     as_of = datetime.now(UTC).date()
     token_a = reader.capture(admin_identity, corpora, as_of)
+    repository = client.app.state.repository
     delegate = HybridLexicalRetriever(repository, candidate_budget=8)
 
     def rescind() -> None:
@@ -254,12 +257,12 @@ def test_lexical_then_state_change_before_semantic_phase_fails_closed(
     )
     second_version = _version_id(second)
 
-    repository = client.app.state.repository
     reader = client.app.state.corpus_snapshot_reader
     corpora = frozenset({"public"})
     as_of = datetime.now(UTC).date()
     token_a = reader.capture(admin_identity, corpora, as_of)
     semantic = _MutationSemanticSource(lambda: approve(client, second_version))
+    repository = client.app.state.repository
     delegate = HybridLexicalRetriever(
         repository,
         candidate_budget=8,
@@ -291,13 +294,12 @@ def test_semantic_backfill_invalidates_an_inflight_snapshot_token(client, admin_
     result = ingest_text(client)
     version_id = _version_id(result)
     approve(client, version_id)
-    repository = client.app.state.repository
     reader = client.app.state.corpus_snapshot_reader
     as_of = datetime.now(UTC).date()
     corpora = frozenset({"public"})
     token_before = reader.capture(admin_identity, corpora, as_of)
 
-    with repository.engine.begin() as connection:
+    with privileged_connection(client) as connection:
         span = (
             connection.execute(
                 select(spans.c.id, spans.c.text_hash)
@@ -368,8 +370,7 @@ def test_answer_and_audit_commit_to_the_same_snapshot_release(client) -> None:
     answer = response.json()
     assert answer["status"] == "answered"
 
-    repository = client.app.state.repository
-    with repository.engine.begin() as connection:
+    with privileged_connection(client) as connection:
         payload = connection.execute(
             select(audits.c.payload_json)
             .where(audits.c.action == "answer.completed")

@@ -15,7 +15,7 @@ class SemanticCoverageReader:
     provider: EmbeddingProvider
 
     def coverage(self, identity: Identity, corpus_ids: frozenset[str]) -> EmbeddingCoverage:
-        from korpus.infrastructure.repository import SqlRepository
+        from korpus.infrastructure.repository import apply_session_claims
 
         authorized = corpus_ids.intersection(identity.corpora)
         if not authorized:
@@ -28,7 +28,11 @@ class SemanticCoverageReader:
                 spans_stale_text=0,
             )
         with self.engine.begin() as connection:
-            SqlRepository._apply_postgres_identity(connection, identity)  # noqa: SLF001
+            binder = getattr(self, "bind_identity", None)
+            if binder is not None:
+                binder(connection, identity)
+            else:
+                apply_session_claims(connection, identity)
             row = connection.execute(
                 sql_text(
                     """

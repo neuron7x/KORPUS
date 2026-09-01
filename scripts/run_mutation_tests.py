@@ -1045,7 +1045,7 @@ MUTANTS = (
     Mutant(
         "M94_SCHEMA_REVISION_PIN_UNCHECKED",
         "apps/api/src/korpus/infrastructure/schema.py",
-        'SCHEMA_REVISION = "0019_temporal_corpus_snapshot"',
+        'SCHEMA_REVISION = "0020_rls_identity_boundary"',
         'SCHEMA_REVISION = "0016_learning_course_graph"',
         (
             "apps/api/tests/test_schema_revision_pin.py::test_the_code_pins_the_head_of_the_migration_graph",
@@ -5505,6 +5505,46 @@ MUTANTS = (
         (
             "apps/api/tests/test_candidate_visibility_equivalence.py::"
             "test_assigned_compartment_is_admitted_but_partial_assignment_is_not",
+        ),
+    ),
+    Mutant(
+        # Дірка, вмикна одним рядком конфігурації, — це не полагоджена дірка.
+        "M582_POSTGRES_MAY_RUN_WITHOUT_THE_RLS_BOUNDARY",
+        "apps/api/src/korpus/infrastructure/runtime.py",
+        "    factory = (\n"
+        "        RlsBoundSqlRepository"
+        ' if settings.database_url.startswith("postgresql") else SqlRepository\n'
+        "    )",
+        "    factory = SqlRepository",
+        (
+            "apps/api/tests/test_rls_identity_boundary_wiring.py::"
+            "test_postgres_always_gets_the_boundary_bound_repository",
+        ),
+    ),
+    Mutant(
+        # Брокер, що збігається із застосунковим логіном, — та сама дірка під іншим
+        # ім'ям: підробити claim зміг би той самий, від кого межа боронить.
+        "M583_THE_BROKER_MAY_BE_THE_APPLICATION_LOGIN",
+        "apps/api/src/korpus/infrastructure/rls_repository.py",
+        "        if not authz.username or authz.username == primary.username:\n"
+        '            raise ValueError("authz database identity must use a distinct PostgreSQL login")',
+        "        if not authz.username:\n"
+        '            raise ValueError("authz database identity must use a distinct PostgreSQL login")',
+        (
+            "apps/api/tests/test_rls_identity_boundary_wiring.py::"
+            "test_a_broker_that_is_not_a_separate_login_is_refused",
+        ),
+    ),
+    Mutant(
+        # Прив'язка особистості в доборі векторів: статичний виклик ставив `set_config`,
+        # якого політики не читають, і вибірка ставала порожньою МОВЧКИ.
+        "M584_EMBEDDING_BACKFILL_BINDS_IDENTITY_THE_OLD_WAY",
+        "apps/api/src/korpus/infrastructure/embedding_backfill.py",
+        "        self.bind_identity = bind_identity",
+        "        self.bind_identity = None",
+        (
+            "apps/api/tests/test_embedding_backfill.py::"
+            "test_the_batch_binds_the_identity_it_was_given",
         ),
     ),
 )

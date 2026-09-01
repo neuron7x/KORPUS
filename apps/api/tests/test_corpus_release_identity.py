@@ -58,6 +58,9 @@ def _versions_in_release(client: TestClient, as_of: date) -> set[str]:
     from korpus.infrastructure.semantic_release import semantic_release_members
 
     with repository.engine.begin() as connection:
+        # Без цього на PostgreSQL RLS ховає все, і тест порівняв би дві ПОРОЖНІ
+        # множини — тобто проходив би завжди й не міряв би нічого.
+        repository._apply_postgres_identity(connection, READER)
         statement = retrieval_queries.release_projection(READER, frozenset({"public"}), as_of)
         rows = list(connection.execute(statement).mappings().all())
         visible = [row for row in rows if retrieval_queries.release_row_is_current(row, as_of)]

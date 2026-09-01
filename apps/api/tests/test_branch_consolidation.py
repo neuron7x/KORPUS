@@ -64,7 +64,7 @@ def test_the_head_is_the_one_the_deployed_base_expects() -> None:
     пін зсунуто СВІДОМО. Пін існує, щоб зсув не стався непоміченим, а не щоб його
     заборонити — тому змінюється він разом із міграцією, в одному комітті з нею.
     """
-    assert alembic_heads() == ["0019_temporal_corpus_snapshot.py"]
+    assert alembic_heads() == ["0020_rls_identity_boundary.py"]
 
 
 # ── Найдорожча помилка цього інструмента: він довіряв власному застарілому входові.

@@ -53,6 +53,7 @@ from korpus.infrastructure.audit_reader import AuditReader, audit_canonical
 
 # COD-001: the physical schema moved to infrastructure/schema.py. Re-exported here
 # because every call site, migration and mutant names these on `repository`.
+from korpus.infrastructure.evidence_sealing import seal_evidence_digest
 from korpus.infrastructure.ingestion_schema import ingestion_jobs
 from korpus.infrastructure.schema import (
     SCHEMA_REVISION,
@@ -298,10 +299,46 @@ class SqlRepository:
                         for value in sorted(document.compartments)
                     ],
                 )
-            connection.execute(insert(versions).values(**self._version_values(version)))
+            # Версія, народжена ЗАТВЕРДЖЕНОЮ, минає шлях перегляду — а печатку доказів
+            # ставить саме він. Обмеження `ck_approved_version_evidence_digest` (0019)
+            # ловило це лише на PostgreSQL і лише як помилку вставки; на SQLite такий
+            # запис проходив, і затверджена версія жила БЕЗ печатки.
+            #
+            # Порядок тут ЄДИНИЙ можливий, і кожна альтернатива вже спробувана:
+            # запечатати після вставки не можна, бо CHECK у PostgreSQL негайний;
+            # вставити відразу запечатаною теж не можна, бо тригер незмінності
+            # відмовляє писати прольоти вже запечатаної версії. Тож версія входить
+            # чернеткою, прольоти лягають, і та сама транзакція піднімає її до
+            # затвердженої разом із пломбою — рівно те, що робить шлях перегляду.
+            # `CONTENT_REVIEWED` — стан безпосередньо перед затвердженням: він не
+            # затверджений, тож тригер незмінності мовчить, і він не чернетка, тож
+            # проміжний стан не бреше про те, чим версія була.
+            values = self._version_values(version)
+            seal_after_spans = (
+                version.review_state is ReviewState.APPROVED
+                and not values.get("evidence_digest")
+                and bool(records)
+            )
+            current_after_seal = bool(values.get("is_current"))
+            if seal_after_spans:
+                values["review_state"] = ReviewState.CONTENT_REVIEWED.value
+                # `ck_version_current_approved` каже, що чинною буває лише затверджена,
+                # тож проміжний стан мусить віддати й це — і повернути в тому ж UPDATE.
+                values["is_current"] = False
+            connection.execute(insert(versions).values(**values))
             if records:
                 connection.execute(insert(spans), [self._span_values(record) for record in records])
                 self._index_spans(connection, records)
+            if seal_after_spans:
+                connection.execute(
+                    update(versions)
+                    .where(versions.c.id == str(version.id))
+                    .values(
+                        review_state=ReviewState.APPROVED.value,
+                        is_current=current_after_seal,
+                        evidence_digest=seal_evidence_digest(connection, version.id),
+                    )
+                )
             anchor = self._append_audit_in_connection(
                 connection,
                 actor,
@@ -323,10 +360,46 @@ class SqlRepository:
     ) -> None:
         def operation(connection: Connection) -> tuple[None, tuple[int, str]]:
             self._apply_postgres_identity(connection, actor)
-            connection.execute(insert(versions).values(**self._version_values(version)))
+            # Версія, народжена ЗАТВЕРДЖЕНОЮ, минає шлях перегляду — а печатку доказів
+            # ставить саме він. Обмеження `ck_approved_version_evidence_digest` (0019)
+            # ловило це лише на PostgreSQL і лише як помилку вставки; на SQLite такий
+            # запис проходив, і затверджена версія жила БЕЗ печатки.
+            #
+            # Порядок тут ЄДИНИЙ можливий, і кожна альтернатива вже спробувана:
+            # запечатати після вставки не можна, бо CHECK у PostgreSQL негайний;
+            # вставити відразу запечатаною теж не можна, бо тригер незмінності
+            # відмовляє писати прольоти вже запечатаної версії. Тож версія входить
+            # чернеткою, прольоти лягають, і та сама транзакція піднімає її до
+            # затвердженої разом із пломбою — рівно те, що робить шлях перегляду.
+            # `CONTENT_REVIEWED` — стан безпосередньо перед затвердженням: він не
+            # затверджений, тож тригер незмінності мовчить, і він не чернетка, тож
+            # проміжний стан не бреше про те, чим версія була.
+            values = self._version_values(version)
+            seal_after_spans = (
+                version.review_state is ReviewState.APPROVED
+                and not values.get("evidence_digest")
+                and bool(records)
+            )
+            current_after_seal = bool(values.get("is_current"))
+            if seal_after_spans:
+                values["review_state"] = ReviewState.CONTENT_REVIEWED.value
+                # `ck_version_current_approved` каже, що чинною буває лише затверджена,
+                # тож проміжний стан мусить віддати й це — і повернути в тому ж UPDATE.
+                values["is_current"] = False
+            connection.execute(insert(versions).values(**values))
             if records:
                 connection.execute(insert(spans), [self._span_values(record) for record in records])
                 self._index_spans(connection, records)
+            if seal_after_spans:
+                connection.execute(
+                    update(versions)
+                    .where(versions.c.id == str(version.id))
+                    .values(
+                        review_state=ReviewState.APPROVED.value,
+                        is_current=current_after_seal,
+                        evidence_digest=seal_evidence_digest(connection, version.id),
+                    )
+                )
             anchor = self._append_audit_in_connection(
                 connection,
                 actor,
@@ -712,27 +785,14 @@ class SqlRepository:
         merged.extend(span_id for span_id in lexical if span_id not in seen)
         return merged[:limit]
 
-    @staticmethod
-    def _apply_postgres_identity(connection: Connection, identity: Identity) -> None:
-        if connection.dialect.name != "postgresql":
-            return
-        classifications = SqlRepository._allowed_classifications(identity.clearance)
-        connection.execute(
-            sql_text(
-                "SELECT set_config('korpus.clearance', :clearance, true), "
-                "set_config('korpus.corpora', :corpora, true), "
-                "set_config('korpus.classifications', :classifications, true), "
-                "set_config('korpus.compartments', :compartments, true), "
-                "set_config('korpus.roles', :roles, true)"
-            ),
-            {
-                "clearance": str(int(identity.clearance)),
-                "corpora": ",".join(sorted(identity.corpora)),
-                "classifications": ",".join(classifications),
-                "compartments": ",".join(sorted(identity.compartments)),
-                "roles": ",".join(sorted(identity.roles)),
-            },
-        )
+    def _apply_postgres_identity(self, connection: Connection, identity: Identity) -> None:
+        """Прив'язати особистість до з'єднання. Підклас із межею RLS це перевизначає.
+
+        Метод примірника, не статичний: статичний виклик НЕ МОЖЕ знати про брокера,
+        а саме так це й ламалось — `PgVectorSemanticIndex`, `semantic_coverage` і
+        добір векторів кликали клас напряму й під межею бачили б НУЛЬ рядків мовчки.
+        """
+        apply_session_claims(connection, identity)
 
     def _initialize_search_index(self, connection: Connection) -> None:
         if self.engine.dialect.name == "sqlite":
@@ -1106,3 +1166,26 @@ class SqlRepository:
     _document_from_projection = staticmethod(row_mapping.document_from_projection)
     _version_from_projection = staticmethod(row_mapping.version_from_projection)
     _span_from_projection = staticmethod(row_mapping.span_from_projection)
+
+
+def apply_session_claims(connection: Connection, identity: Identity) -> None:
+    """Записати claim'и особистості як налаштування сесії PostgreSQL."""
+    if connection.dialect.name != "postgresql":
+        return
+    classifications = SqlRepository._allowed_classifications(identity.clearance)  # noqa: SLF001
+    connection.execute(
+        sql_text(
+            "SELECT set_config('korpus.clearance', :clearance, true), "
+            "set_config('korpus.corpora', :corpora, true), "
+            "set_config('korpus.classifications', :classifications, true), "
+            "set_config('korpus.compartments', :compartments, true), "
+            "set_config('korpus.roles', :roles, true)"
+        ),
+        {
+            "clearance": str(int(identity.clearance)),
+            "corpora": ",".join(sorted(identity.corpora)),
+            "classifications": ",".join(classifications),
+            "compartments": ",".join(sorted(identity.compartments)),
+            "roles": ",".join(sorted(identity.roles)),
+        },
+    )

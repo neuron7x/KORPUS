@@ -85,9 +85,14 @@ def identity() -> Identity:
 def test_database_state_is_resume_checkpoint_and_stale_writes_are_discarded(
     monkeypatch, identity
 ) -> None:
-    from korpus.infrastructure.repository import SqlRepository
+    import korpus.infrastructure.embedding_backfill as backfill_module
 
-    monkeypatch.setattr(SqlRepository, "_apply_postgres_identity", lambda *args: None)
+    # Прив'язку тепер робить функція модуля, а не статичний метод класу: підклас
+    # із межею RLS перевизначає метод, тож статичний виклик не міг би про нього знати.
+    monkeypatch.setattr(
+        "korpus.infrastructure.repository.apply_session_claims", lambda *args: None
+    )
+    del backfill_module
     rows = [
         SimpleNamespace(id="a", text="alpha", text_hash="1" * 64, corpus_id="public"),
         SimpleNamespace(id="b", text="beta", text_hash="2" * 64, corpus_id="public"),
@@ -110,9 +115,14 @@ def test_database_state_is_resume_checkpoint_and_stale_writes_are_discarded(
 
 
 def test_empty_selection_is_complete_without_provider_call(monkeypatch, identity) -> None:
-    from korpus.infrastructure.repository import SqlRepository
+    import korpus.infrastructure.embedding_backfill as backfill_module
 
-    monkeypatch.setattr(SqlRepository, "_apply_postgres_identity", lambda *args: None)
+    # Прив'язку тепер робить функція модуля, а не статичний метод класу: підклас
+    # із межею RLS перевизначає метод, тож статичний виклик не міг би про нього знати.
+    monkeypatch.setattr(
+        "korpus.infrastructure.repository.apply_session_claims", lambda *args: None
+    )
+    del backfill_module
     provider = Provider()
     result = PgVectorEmbeddingBackfill(Engine(Connection([])), provider).run_batch(identity)
 
@@ -128,3 +138,29 @@ def test_backfill_bounds_and_postgres_requirement() -> None:
         PgVectorEmbeddingBackfill(sqlite, provider)
     with pytest.raises(ValueError, match="must not exceed"):
         PgVectorEmbeddingBackfill(Engine(connection), provider, batch_size=65)
+
+
+def test_the_batch_binds_the_identity_it_was_given(identity) -> None:
+    """Прив'язку особистості мусить робити ТОЙ, кого передали, а не клас.
+
+    Доти тут стояв статичний `SqlRepository._apply_postgres_identity`, тобто
+    `set_config`. Під межею RLS політики його не читають: вибірка стає порожньою, і
+    `BackfillResult(selected=0, complete=True)` звітує «нема чого робити». Вектори не
+    будувались би ніколи, і жодна помилка про це не сказала б — тому тест питає саме
+    те, ЧИЙ виклик пролунав.
+    """
+    calls: list[object] = []
+    rows = [SimpleNamespace(id="a", text="alpha", text_hash="1" * 64, corpus_id="public")]
+    worker = PgVectorEmbeddingBackfill(
+        Engine(Connection(rows, write_counts=(1,))),
+        Provider(),
+        batch_size=2,
+        corpus_governance=Governance(),
+        bind_identity=lambda connection, bound: calls.append(bound),
+    )
+
+    worker.run_batch(identity)
+
+    # Дві прив'язки, бо вибірка і запис — окремі транзакції; важливо, що ОБИДВІ
+    # пройшли через переданий викликач, а не через статичний метод класу.
+    assert calls == [identity, identity]

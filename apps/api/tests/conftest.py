@@ -94,6 +94,17 @@ def _reset_postgres(url: str) -> None:
                 ),
                 {"zero": "0" * 64},
             )
+            # Те саме й для епохи стану корпусу: міграція 0019 сіє єдиний рядок,
+            # `TRUNCATE` його зносить, а читач знімка відмовляється стартувати без
+            # нього — і правильно робить, бо епоха без початку не монотонна. Без
+            # цього рядка ВЕСЬ прогін на PostgreSQL падав на підйомі застосунку:
+            # 197 помилок фікстури, жодна з яких не про предмет свого тесту.
+            connection.execute(
+                text(
+                    "INSERT INTO corpus_state_epoch (singleton_id, epoch) "
+                    "VALUES (1, 0) ON CONFLICT (singleton_id) DO NOTHING"
+                )
+            )
     finally:
         engine.dispose()
 
