@@ -26,6 +26,7 @@ from korpus.domain.models import (
     VersionCreate,
 )
 from korpus.infrastructure.object_store import LocalObjectStore
+from korpus.infrastructure.corpus_snapshot import SqlCorpusSnapshotReader
 from korpus.infrastructure.repository import SqlRepository
 
 DATASET = Path("evals/datasets/assurance.jsonl")
@@ -175,6 +176,10 @@ def main() -> None:
             root / "audit-anchor.json",
         )
         repository.initialize()
+        # Реліз бере лише знімок, тож без читача відповідь ЗАКОННО відмовляє
+        # `corpus_snapshot_unavailable`. Оцінка міряє бойовий шлях відповіді — вона
+        # мусить мати те саме, що має бойовий: читача знімка, причепленого збоку.
+        SqlCorpusSnapshotReader(repository).initialize(create_schema=True)
         store = LocalObjectStore(root / "objects")
         admin = Identity(
             subject="eval-admin",
