@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+  <meta name="theme-color" content="#010101">
+  <meta name="description" content="KORPUS — контрольована база знань із доказовими відповідями">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="icon" href="/icons/icon-192.png" type="image/png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="/tokens.css">
+  <link rel="stylesheet" href="/styles.css">
+  <title>KORPUS — перевірені знання з точними джерелами</title>
+</head>
+<body>
+  <a class="skip-link" href="#query">Перейти до поля запиту</a>
+
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="KORPUS — головна">
+      <span class="pixel-wordmark" aria-hidden="true"><span class="ltr">K</span><span class="ltr">O</span><span class="ltr">R</span><span class="ltr">P</span><span class="ltr">U</span><span class="ltr">S</span><i class="scan"></i></span>
+      <span class="brand-sub">КОНТРОЛЬОВАНІ ЗНАННЯ</span>
+    </a>
+    <div class="header-actions">
+      <button id="theme-toggle" type="button" class="theme-toggle" aria-pressed="false"
+              aria-label="Увімкнути бойову тему">
+        <span class="theme-toggle-mark" aria-hidden="true"></span>
+        <span data-theme-label>БОЙОВА</span>
+      </button>
+      <span class="system-signal"><i aria-hidden="true"></i> відповідь тільки з доказом</span>
+      <a href="/console.html" data-private-only class="console-link">Консоль</a>
+      <button id="logout" type="button" class="ghost small" hidden>Вийти</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <div id="entry-errors" class="errors" role="alert" tabindex="-1" hidden></div>
+
+    <section id="entry" class="welcome" aria-labelledby="entry-heading">
+      <div class="welcome-copy">
+        <p class="eyebrow">ПЕРЕВІРЕНІ ВІДПОВІДІ</p>
+        <h1 id="entry-heading">Запитайте.<br><em>Отримайте доказ.</em></h1>
+        <p class="lead">KORPUS знаходить чинне джерело й показує точний фрагмент. Немає доказу — немає відповіді.</p>
+        <div class="hero-actions" data-private-only>
+          <button id="login" type="button" class="primary large">Увійти в KORPUS</button>
+          <span class="hero-note">Безпечний вхід · Підписка · Перевірені джерела</span>
+        </div>
+      </div>
+
+      <div class="trust-demo" aria-label="Приклад доказової відповіді KORPUS">
+        <div class="demo-head">
+          <span>МАРШРУТ ВІДПОВІДІ</span>
+          <strong><i aria-hidden="true"></i> ДОКАЗ ДОПУЩЕНО</strong>
+        </div>
+        <div class="demo-query">
+          <span class="demo-role">Q</span>
+          <p>Що є підставою для цієї дії?</p>
+        </div>
+        <div class="demo-trace" aria-hidden="true">
+          <span>ЗНАЙТИ</span><i></i><span>ПЕРЕВІРИТИ</span><i></i><span>ВІДПОВІСТИ</span>
+        </div>
+        <div class="demo-answer">
+          <div class="demo-verdict"><span class="status-dot"></span><strong>ДОКАЗ ЗНАЙДЕНО</strong></div>
+          <p>Твердження допускається лише разом із фрагментом чинного джерела.</p>
+          <blockquote>«…точний фрагмент затвердженого документа…»</blockquote>
+          <div class="demo-source">
+            <span>ред. 04</span><span>с. 18</span><span>sha 8a31…</span><span>span 19f2…</span>
+          </div>
+        </div>
+        <div class="demo-foot">
+          <span>ПРАВИЛО ВІДПОВІДІ</span>
+          <strong>Тільки підтверджені твердження</strong>
+        </div>
+      </div>
+
+      <div class="auth-ledger" data-private-only>
+        <div>
+          <span>АВТЕНТИФІКАЦІЯ</span>
+          <strong id="identity-state" role="status" aria-live="polite">не автентифіковано</strong>
+        </div>
+        <details class="token-access">
+          <summary>Службовий доступ</summary>
+          <label for="bearer-token">Короткоживучий access token</label>
+          <div class="inline">
+            <input id="bearer-token" type="password" autocomplete="off" spellcheck="false"
+                   placeholder="JWT / OIDC access token">
+            <button id="check-auth" type="button" class="secondary">Перевірити</button>
+          </div>
+        </details>
+      </div>
+
+    </section>
+
+    <section id="product" class="product-shell" hidden aria-label="Робочий простір KORPUS">
+      <aside class="left-rail">
+        <div class="rail-brand" aria-hidden="true"><span class="mark"></span><span>K</span></div>
+        <div class="account-card">
+          <div class="account-avatar" aria-hidden="true">K</div>
+          <div>
+            <strong id="account-label">Обліковий запис KORPUS</strong>
+            <span id="subscription-pill" data-tone="neutral">стан підписки…</span>
+          </div>
+        </div>
+
+        <button id="conversation-new" type="button" class="new-chat" data-new-conversation aria-label="Нова розмова">
+          <span aria-hidden="true">＋</span><span>Нова розмова</span>
+        </button>
+
+        <nav id="primary-nav" class="primary-nav" aria-label="Основна навігація">
+          <a href="/chat" data-route-link>Чат</a>
+          <a href="/knowledge" data-route-link>База знань</a>
+          <a href="/documents" data-route-link>Документи</a>
+          <a href="/sources" data-route-link>Джерела</a>
+          <a href="/offline" data-route-link>Офлайн</a>
+          <a href="/audit" data-route-link>Аудит</a>
+          <a href="/profile" data-route-link>Профіль</a>
+        </nav>
+
+        <details id="conversations" class="conversations" hidden>
+          <summary id="conversations-summary">Розмови</summary>
+          <div class="conversations-actions" hidden></div>
+          <div id="conversations-body" class="conversations-body" aria-live="polite">
+            <p class="note">Завантаження…</p>
+          </div>
+          <p class="rail-note">Історія — це контекст, не доказ. KORPUS не цитує власні попередні відповіді.</p>
+        </details>
+
+        <details id="corpus" class="corpus" hidden>
+          <summary>База знань</summary>
+          <div id="corpus-body" class="corpus-body"><p class="note">Завантаження переліку…</p></div>
+        </details>
+
+        <details id="session-context" class="session-context" data-private-only>
+          <summary>Контекст сесії</summary>
+          <p class="note">Система їх не перевіряє. Дані не надають допуску й не є доказом.</p>
+          <form id="declaration-form" novalidate>
+            <div class="fields compact">
+              <div>
+                <label for="family-name">Прізвище</label>
+                <input id="family-name" name="family-name" type="text" autocomplete="family-name"
+                       autocapitalize="words" spellcheck="false" required aria-describedby="family-name-hint">
+                <p id="family-name-hint" class="hint">Заявлене користувачем.</p>
+              </div>
+              <div>
+                <label for="given-name">Ім’я</label>
+                <input id="given-name" name="given-name" type="text" autocomplete="given-name"
+                       autocapitalize="words" spellcheck="false" required>
+              </div>
+              <div class="wide">
+                <label for="specialty">Спеціальність</label>
+                <input id="specialty" name="specialty" type="text" autocomplete="organization-title"
+                       spellcheck="false" required list="specialty-suggestions" aria-describedby="specialty-hint">
+                <datalist id="specialty-suggestions">
+                  <option value="Бойове управління"></option><option value="Інженерне забезпечення"></option>
+                  <option value="Медичне забезпечення"></option><option value="Зв’язок"></option>
+                  <option value="Логістика"></option><option value="Розвідка"></option>
+                  <option value="Артилерія"></option><option value="Юридичне забезпечення"></option>
+                </datalist>
+                <p id="specialty-hint" class="hint">Входить до аудиту лише як заява.</p>
+              </div>
+            </div>
+            <button id="declaration-submit" type="submit" class="secondary full">Зберегти контекст сесії</button>
+          </form>
+        </details>
+
+        <div class="rail-policy">
+          <span>ПРАВИЛО</span>
+          <strong>Тільки з доказом</strong>
+          <p>Немає підтримки — немає твердження.</p>
+        </div>
+      </aside>
+
+      <section class="chat-stage">
+        <div class="chat-topline" data-chat-only>
+          <div>
+            <p class="eyebrow">KORPUS / РОБОЧИЙ ПРОСТІР</p>
+            <h2>Перевірка знань</h2>
+          </div>
+          <details id="standing" class="standing status-disclosure">
+            <summary class="trust-summary"><span class="trust-summary-mark" aria-hidden="true"></span><span>Стан перевірки</span><small id="trust-model-summary">МОДЕЛЬ · ПЕРЕВІРКА</small></summary>
+            <section class="trust-panel" aria-label="Поточна ідентичність і стан системи">
+              <span class="chip verified" id="standing-verified">ДОПУСК</span>
+              <span class="chip declared" id="standing-declared">КОНТЕКСТ НЕ ЗАДАНО</span>
+              <span class="chip" id="inference-state" role="status" aria-live="polite">МОДЕЛЬ · ПЕРЕВІРКА</span>
+              <p id="inference-detail">Модель може допомагати шукати й компонувати, але не створює факти.</p>
+              <button id="standing-edit" type="button" class="link">Змінити контекст</button>
+            </section>
+          </details>
+        </div>
+
+        <details id="evidence-trace" class="evidence-trace" data-chat-only
+                 aria-label="KORPUS TRACE — маршрут доказової відповіді"></details>
+
+
+        <section id="route-view" class="route-view" hidden aria-live="polite" aria-label="Поточний розділ"></section>
+
+        <section id="result" data-chat-only class="answer-stream hidden" role="status" aria-live="polite" dir="auto"
+                 aria-label="Результат запиту"></section>
+
+        <div id="empty-chat" data-chat-only class="empty-chat">
+          <div class="empty-symbol" aria-hidden="true">⊛</div>
+          <h2>Що потрібно перевірити?</h2>
+          <p>Поставте запит. Отримайте джерело або чітку відмову.</p>
+        </div>
+
+        <section id="ask-section" data-chat-only class="ask-section" aria-labelledby="ask-heading">
+          <h2 id="ask-heading" class="sr-only">Запит</h2>
+          <div class="quick-actions" aria-label="Швидкі операції">
+            <button class="quick-action" type="button" data-template="Знайди чинну норму щодо "><b>01</b>Знайти</button>
+            <button class="quick-action" type="button" data-template="Перевір твердження: "><b>02</b>Перевірити</button>
+            <button class="quick-action" type="button" data-template="Порівняй редакції щодо "><b>03</b>Порівняти</button>
+          </div>
+          <form id="query-form" novalidate>
+            <label for="query" class="sr-only">Питання до контрольованого корпусу</label>
+            <div class="composer">
+              <textarea id="query" minlength="3" required rows="1" dir="auto"
+                        placeholder="Введіть запит…"></textarea>
+              <div class="composer-foot">
+                <span><i aria-hidden="true"></i> Відповідь тільки з доказом</span>
+                <button id="submit" type="submit" aria-label="Надіслати запит">↑</button>
+              </div>
+            </div>
+            <p class="hint composer-hint">Enter — надіслати · Shift + Enter — новий рядок</p>
+          </form>
+        </section>
+      </section>
+
+    </section>
+
+    <section id="pricing" class="pricing" hidden aria-labelledby="pricing-heading" tabindex="-1">
+      <div class="pricing-inner">
+        <div class="pricing-head">
+          <p class="eyebrow">ДОСТУП / ПІДПИСКА</p>
+          <h2 id="pricing-heading">Відкрийте доступ до KORPUS</h2>
+          <p>Підписка відкриває доступ. Правила допуску лишаються незмінними.</p>
+        </div>
+        <div id="plans" class="plans" aria-live="polite"><p class="note">Завантаження тарифів…</p></div>
+        <div class="pricing-trust">
+          <span>Платіжні дані вводяться на сторінці платіжного провайдера.</span>
+          <span>KORPUS не отримує номер картки або CVV.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+
+  <dialog id="evidence-dialog" class="evidence-dialog" aria-labelledby="evidence-dialog-title">
+    <div class="evidence-dialog-head">
+      <div><span class="rail-kicker">ДОКАЗ / ТОЧНИЙ ФРАГМЕНТ</span><h2 id="evidence-dialog-title">Джерело</h2></div>
+      <button id="evidence-close" type="button" class="secondary" aria-label="Закрити джерело">Закрити</button>
+    </div>
+    <p id="evidence-validity" class="route-note"></p>
+    <blockquote id="evidence-text" tabindex="-1" dir="auto"></blockquote>
+    <dl id="evidence-meta" class="route-metrics"></dl>
+  </dialog>
+
+  <nav id="mobile-nav" class="mobile-nav" aria-label="Мобільна навігація" hidden>
+    <a href="/chat" data-route-link>Чат</a>
+    <a href="/knowledge" data-route-link>Знання</a>
+    <a href="/documents" data-route-link>Документи</a>
+    <a href="/profile" data-route-link>Профіль</a>
+    <details class="mobile-more">
+      <summary>Ще</summary>
+      <div class="mobile-more-menu">
+        <a id="conversation-new-mobile" href="/chat" data-route-link data-new-conversation>Нова розмова</a>
+        <a href="/sources" data-route-link>Джерела</a>
+        <a href="/offline" data-route-link>Офлайн</a>
+        <a href="/audit" data-route-link>Аудит</a>
+      </div>
+    </details>
+  </nav>
+
+  <script src="/config.js"></script>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
