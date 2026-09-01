@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1697,
-  "root_sha256": "ab2d83e144f8d3e4c3397bfd92f09dfc06b8c0c2fc4585aeaeec440a5e900a61",
+  "file_count": 1700,
+  "root_sha256": "4e7364672f27098507032b2d24de907cca9422bc1b86228316f69ab23a2df557",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 81003,
-      "sha256": "b3147d0e0eff6786ee973271f76f598d9467b5fbe980ca0f5075ffeacf2be80d",
+      "bytes": 81724,
+      "sha256": "498ef39f80ca4c147621be023b7540dd90b5b1407afb896be621c8ab32e1bf44",
       "mode": "0644"
     },
     {
@@ -2763,6 +2763,12 @@
       "path": "apps/api/tests/test_calibration.py",
       "bytes": 4800,
       "sha256": "88d19790509dedb7b3a94e08c86498d8fd5a3b7cca4fd473fc4c79d67640d9f5",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_canonical_state.py",
+      "bytes": 7604,
+      "sha256": "51681298380a343eedfb494e897ae365a5ee32393c7b7199482b9406184bb963",
       "mode": "0644"
     },
     {
@@ -6852,6 +6858,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/operations/canonical-state.json",
+      "bytes": 4106,
+      "sha256": "12315d659663e7496ef089b1a570b200f7e86e933ae5b0aede364dedbaba4475",
+      "mode": "0644"
+    },
+    {
       "path": "config/operations/deployment-debt.json",
       "bytes": 2980,
       "sha256": "edfb7ca0241f5002431eb2c05c10c72816095c4a394b98e44da7da860d914887",
@@ -6895,8 +6907,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 406226,
-      "sha256": "ffe677d513021d9cdcb51a56d5ae42a106d3bdd250a36994e1ba38a3f14516ab",
+      "bytes": 407954,
+      "sha256": "48b13f6a69c386d868fa78fe6ce2824ebb2e9e71594b4ce555a5e8d475740f6b",
       "mode": "0644"
     },
     {
@@ -9655,8 +9667,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 245963,
-      "sha256": "51912c2b1800beac8fc49f33033a182e97e0fac735df302610d4d6fa20edadc7",
+      "bytes": 248260,
+      "sha256": "770efa216439b8ccd99cebe02d8399515f6d5fbb5e15106ba563415145e39fcb",
       "mode": "0755"
     },
     {
@@ -10018,6 +10030,12 @@
       "bytes": 309,
       "sha256": "05633878458398cf30a0a2159988df97b1aa9e8d0a52919ab718b3f3dcfd9524",
       "mode": "0644"
+    },
+    {
+      "path": "scripts/verify_canonical_state.py",
+      "bytes": 22161,
+      "sha256": "27ce87c071420341ddf13fab41f8521bd69e71fb02302f1ab17bbcd1e228f46b",
+      "mode": "0755"
     },
     {
       "path": "scripts/verify_clean_clone.sh",

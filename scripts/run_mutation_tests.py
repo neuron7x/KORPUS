@@ -4586,6 +4586,72 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M538_A_DIVERGED_TRUNK_IS_REPORTED_AS_MERELY_BEHIND",
+        "scripts/verify_canonical_state.py",
+        "    elif not ancestor:",
+        "    elif False:",
+        (
+            "apps/api/tests/test_canonical_state.py::"
+            "test_a_trunk_that_diverged_is_not_merely_behind",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M539_AN_UNDECLARED_PUBLICATION_SURFACE_IS_ACCEPTED",
+        "scripts/verify_canonical_state.py",
+        "    extra = sorted(seen - known)",
+        "    extra = []",
+        (
+            "apps/api/tests/test_canonical_state.py::"
+            "test_an_undeclared_publication_surface_is_refused",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M540_THE_UNDECIDED_REMOTE_QUIETLY_COUNTS_AS_DECIDED",
+        "scripts/verify_canonical_state.py",
+        "    if live:",
+        "    if False:",
+        (
+            "apps/api/tests/test_canonical_state.py::"
+            "test_the_undecided_remote_is_named_and_stays_red_until_decided",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M541_A_REMOTE_URL_THAT_DIFFERS_FROM_THE_DECLARED_ONE_IS_ACCEPTED",
+        "scripts/verify_canonical_state.py",
+        '        if entry.get("url") and url != entry["url"]:',
+        "        if False:",
+        (
+            "apps/api/tests/test_canonical_state.py::"
+            "test_a_remote_pointing_somewhere_else_than_declared_is_refused",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M542_TRANSIENT_WORKTREES_COUNT_AGAINST_THE_CEILING",
+        "scripts/verify_canonical_state.py",
+        "        if not any(path.startswith(prefix) for prefix in transient)",
+        "        if True",
+        (
+            "apps/api/tests/test_canonical_state.py::"
+            "test_transient_session_worktrees_do_not_count_against_the_ceiling",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M543_A_NON_CANONICAL_ROOT_IS_JUDGED_AS_IF_IT_WERE_CANONICAL",
+        "scripts/verify_canonical_state.py",
+        '    if observation.get("root") != declared_root:',
+        "    if False:",
+        (
+            "apps/api/tests/test_canonical_state.py::"
+            "test_a_worktree_that_is_not_the_canonical_root_cannot_judge_the_checkout",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M519_A_DECLARED_SELFTEST_THAT_NEVER_RAN_COUNTS_AS_GREEN",
         "scripts/verify_selftest_coverage.py",
         "    missed = sorted(set(expected) - seen)",
