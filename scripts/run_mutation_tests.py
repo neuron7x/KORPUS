@@ -4608,6 +4608,50 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M570_A_BRANCH_WITH_ITS_OWN_COMMITS_NEED_NOT_BE_NAMED",
+        "scripts/verify_branch_integration.py",
+        "    unnamed = sorted(set(diverged) - set(named))",
+        "    unnamed = []",
+        (
+            "apps/api/tests/test_branch_integration.py::"
+            "test_a_branch_with_its_own_commits_must_be_named",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M571_A_RECORD_ABOUT_AN_ALREADY_MERGED_BRANCH_SURVIVES",
+        "scripts/verify_branch_integration.py",
+        "    merged = sorted(set(named) - set(diverged))",
+        "    merged = []",
+        (
+            "apps/api/tests/test_branch_integration.py::"
+            "test_a_record_about_an_already_merged_branch_is_refused",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M572_AN_ENTRY_MAY_STAY_SILENT_ABOUT_WHAT_IT_CARRIES",
+        "scripts/verify_branch_integration.py",
+        '        and not (isinstance(entry.get("carries"), str) and len(entry["carries"].strip()) >= 20)',
+        "        and False",
+        (
+            "apps/api/tests/test_branch_integration.py::"
+            "test_an_entry_that_does_not_say_what_it_carries_is_refused",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M573_A_CLEAN_BRANCH_MAY_LINGER_WITHOUT_A_REASON",
+        "scripts/verify_branch_integration.py",
+        '        if state.get("clean") and not named.get(branch, {}).get("clean_but_held")',
+        "        if False",
+        (
+            "apps/api/tests/test_branch_integration.py::"
+            "test_a_cleanly_merging_branch_may_not_linger_without_a_reason",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M538_A_DIVERGED_TRUNK_IS_REPORTED_AS_MERELY_BEHIND",
         "scripts/verify_canonical_state.py",
         "    elif not ancestor:",

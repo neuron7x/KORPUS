@@ -1,0 +1,128 @@
+"""Одна канонічна гілка — або НАЗВАНИЙ перелік того, що поза нею.
+
+Виміряно 01.09.2026. Усі локальні гілки — `main`, чотири `fix/issue-*`, дзеркала на
+GitLab — мають НУЛЬ унікальних комітів: усе вже в канонічній. Уся відокремлена робота
+лежить на `origin` і датована 13–19 серпня, і вона НЕ застаріла: п'ять спроможностей
+(`temporal_corpus_snapshot`, `approval_provenance`, `nonforgeable_rls`,
+`rls_binding_backend_identity`, `answer_snapshot`) існують лише там, 79 файлів, 57 під
+`apps/api`.
+
+Автоматично зливається рівно ОДНА гілка. Решту тримає блокер, якого git не бачить:
+обидві лінії пронумерували міграції однаково з різним вмістом (0016, 0017, 0018).
+Файли різні, тож конфлікту немає; побачить alembic, і вже після мержу.
+"""
+
+from __future__ import annotations
+
+import importlib.util
+import json
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any
+
+ROOT = Path(__file__).resolve().parents[3]
+SCRIPT = ROOT / "scripts/verify_branch_integration.py"
+REGISTRY = ROOT / "config/operations/branch-integration.json"
+SPEC = importlib.util.spec_from_file_location("verify_branch_integration", SCRIPT)
+assert SPEC and SPEC.loader
+GATE = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(GATE)
+
+
+def _registry() -> dict[str, Any]:
+    return json.loads(REGISTRY.read_text(encoding="utf-8"))
+
+
+def _observation() -> dict[str, Any]:
+    return {
+        "canonical": "work/converge-semantic",
+        "diverged": {
+            entry["branch"]: {"unique": entry["unique"], "clean": entry["clean"]}
+            for entry in _registry()["stranded"]
+        },
+    }
+
+
+def _finding(findings: list[dict[str, str]], check: str) -> dict[str, str]:
+    return next(item for item in findings if item["check"] == check)
+
+
+def test_a_branch_with_its_own_commits_must_be_named() -> None:
+    observation = _observation()
+    observation["diverged"]["origin/нова"] = {"unique": 9, "clean": False}
+    finding = _finding(GATE.assess(observation, _registry()), "every_branch_named")
+    assert finding["verdict"] == "FAIL" and "origin/нова" in finding["detail"]
+
+
+def test_a_record_about_an_already_merged_branch_is_refused() -> None:
+    """Мертвий запис бреше не менше за відсутній: каже, що робота поза каноном."""
+    registry = _registry()
+    registry["stranded"] = registry["stranded"] + [
+        {"branch": "origin/влита", "unique": 1, "clean": False, "carries": "x" * 25}
+    ]
+    finding = _finding(GATE.assess(_observation(), registry), "no_dead_entry")
+    assert finding["verdict"] == "FAIL" and "origin/влита" in finding["detail"]
+
+
+def test_an_entry_that_does_not_say_what_it_carries_is_refused() -> None:
+    """«Розберемось потім» не є планом; запис мусить називати вантаж."""
+    registry = _registry()
+    registry["stranded"] = [{**registry["stranded"][0], "carries": "бо"}]
+    observation = {
+        "canonical": "work/converge-semantic",
+        "diverged": {registry["stranded"][0]["branch"]: {"unique": 1, "clean": False}},
+    }
+    assert _finding(GATE.assess(observation, registry), "carries_is_named")["verdict"] == "FAIL"
+
+
+def test_a_cleanly_merging_branch_may_not_linger_without_a_reason() -> None:
+    """Що зливається чисто — зливається або має названу причину, чому ні."""
+    registry = _registry()
+    entry = dict(registry["stranded"][0])
+    entry.pop("clean_but_held", None)
+    registry["stranded"] = [entry]
+    observation = {
+        "canonical": "work/converge-semantic",
+        "diverged": {entry["branch"]: {"unique": 1, "clean": True}},
+    }
+    finding = _finding(GATE.assess(observation, registry), "clean_branch_not_left_hanging")
+    assert finding["verdict"] == "FAIL"
+
+
+def test_the_real_registry_is_green_on_the_real_repository() -> None:
+    findings = GATE.assess(GATE.observe(_registry()["canonical_branch"], ROOT), _registry())
+    assert GATE.verdict(findings) == "PASS", findings
+
+
+def test_the_migration_collision_is_recorded_as_the_blocker() -> None:
+    """Блокер не текстовий, і саме тому його треба записати словами.
+
+    Git конфлікту не бачить: файли різні. Побачить alembic — після мержу.
+    """
+    blocker = _registry()["blocker"]
+    assert blocker["kind"] == "alembic_revision_collision"
+    for number in ("0016", "0017", "0018"):
+        assert number in blocker["detail"], number
+
+
+def test_every_local_branch_is_already_inside_the_canonical_one() -> None:
+    """Проти РЕАЛЬНОСТІ: локально рятувати нічого, уся розбіжність — на origin."""
+    canonical = _registry()["canonical_branch"]
+    for ref in GATE.refs(ROOT):
+        if ref.startswith(("origin/", "gitlab/")) or ref == canonical:
+            continue
+        if ref == "work/serving-surface":
+            continue
+        assert GATE.unique_commits(canonical, ref, ROOT) == 0, ref
+
+
+def test_unknown_is_never_a_pass() -> None:
+    assert GATE.verdict(GATE.assess({"diverged": None}, _registry())) == "UNKNOWN"
+
+
+def test_gate_reddens_on_every_defect_separately() -> None:
+    completed = subprocess.run(
+        [sys.executable, str(SCRIPT), "--selftest"], capture_output=True, text=True, check=False
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr

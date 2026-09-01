@@ -1,0 +1,221 @@
+{
+  "blocker": {
+    "closes_when": "міграції надмножини перенумеровано понад 0018 і граф ревізій лінійний",
+    "detail": "Обидві лінії пронумерували міграції ОДНАКОВО з різним вмістом: 0016 канон learning_course_graph проти github temporal_corpus_snapshot; 0017 learning_mastery проти approval_provenance_boundary; 0018 operational_competencies проти nonforgeable_rls_identity. Git конфлікту не бачить — файли різні. Побачить alembic, і вже ПІСЛЯ мержу. Тому інтеграція починається з перенумерації гілки-надмножини, а не з git merge.",
+    "kind": "alembic_revision_collision"
+  },
+  "canonical_branch": "work/converge-semantic",
+  "integration_order": [
+    "1. перенумерувати міграції origin/canonical/final-2026-08-15 понад 0018",
+    "2. злити надмножину — вона покриває 11 із 21 гілки origin",
+    "3. злити шість дельт поза нею (issue-31-nonforgeable 17, issue-27 17, issue-8 13, issue-16 1, issue-18 1, qualification 2)",
+    "4. вирішити долю issue-1-github-governance разом із роллю origin",
+    "5. після кожного кроку — повний ланцюг доказів, бо мутації в'яжуться до дайджесту"
+  ],
+  "measured_at": "2026-09-01",
+  "note": "Одна канонічна гілка — або НАЗВАНИЙ перелік того, що поза нею. Виміряно 01.09.2026: усі локальні гілки (main, чотири fix/issue-*, дзеркала GitLab) мають НУЛЬ унікальних комітів — усе вже в канонічній. Уся відокремлена робота на origin, датована 13–19 серпня, і вона НЕ застаріла: п'ять спроможностей існують лише там. Автоматично зливається рівно одна гілка; решта має спільний блокер, якого git не бачить.",
+  "schema": "korpus.branch-integration-registry.v1",
+  "stranded": [
+    {
+      "branch": "origin/canonical/final-2026-08-15",
+      "carries": "НАДМНОЖИНА: temporal_corpus_snapshot, approval_provenance, nonforgeable_rls, rls_binding_backend_identity, answer_snapshot — п'ять спроможностей, яких у каноні немає ЖОДНОЮ згадкою; 79 файлів лише тут, 57 під apps/api",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 355
+    },
+    {
+      "branch": "origin/agent/act-lrn-002-course-domain-model",
+      "carries": "доменна модель навчального курсу; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 326
+    },
+    {
+      "branch": "origin/protocol/ai-training-platform-act",
+      "carries": "протокол платформи навчання; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 288
+    },
+    {
+      "branch": "origin/agent/issue-31-nonforgeable-rls-identity",
+      "carries": "непідробна особа для RLS; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 286
+    },
+    {
+      "branch": "origin/agent/issue-31-nonforgeable-rls",
+      "carries": "попередня ітерація RLS; 17 комітів ПОЗА надмножиною",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 225
+    },
+    {
+      "branch": "origin/agent/issue-25-approval-provenance",
+      "carries": "походження затвердження версії; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 208
+    },
+    {
+      "branch": "origin/agent/issue-26-semantic-release-identity",
+      "carries": "семантична тотожність релізу; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 203
+    },
+    {
+      "branch": "origin/tmp/semantic-to-canonical",
+      "carries": "те саме, що issue-26; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 203
+    },
+    {
+      "branch": "origin/agent/issue-23-temporal-release-snapshot",
+      "carries": "часовий знімок релізу; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 182
+    },
+    {
+      "branch": "origin/agent/issue-27-candidate-visibility-equivalence",
+      "carries": "еквівалентність видимості кандидата; 17 комітів ПОЗА надмножиною",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 70
+    },
+    {
+      "branch": "origin/tmp/candidate-to-canonical",
+      "carries": "те саме, що issue-27; 17 комітів ПОЗА надмножиною",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 70
+    },
+    {
+      "branch": "origin/agent/issue-18-no-history-bundle",
+      "carries": "пакет без історії; 1 коміт ПОЗА надмножиною",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 54
+    },
+    {
+      "branch": "origin/tmp/no-history-to-canonical",
+      "carries": "те саме, що issue-18; 1 коміт ПОЗА надмножиною",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 54
+    },
+    {
+      "branch": "origin/agent/issue-16-evidence-execution-closure",
+      "carries": "замикання виконання доказів; 1 коміт ПОЗА надмножиною",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 51
+    },
+    {
+      "branch": "origin/agent/issue-14-canonical-zip-inventory",
+      "carries": "інвентар канонічного зіпа; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 48
+    },
+    {
+      "branch": "origin/agent/issue-8-artifact-bound-release-metadata",
+      "carries": "метадані релізу, прив'язані до артефакта; 13 комітів ПОЗА надмножиною",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 42
+    },
+    {
+      "branch": "origin/tmp/artifact-to-canonical",
+      "carries": "те саме, що issue-8; 13 комітів ПОЗА надмножиною",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 42
+    },
+    {
+      "branch": "origin/agent/issue-12-packaged-assurance-snapshot",
+      "carries": "знімок гарантій у пакеті; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 41
+    },
+    {
+      "branch": "origin/agent/issue-6-embedded-source-manifest",
+      "carries": "вбудований маніфест джерела; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 29
+    },
+    {
+      "branch": "origin/agent/issue-7-canonical-snapshot",
+      "carries": "канонічний знімок; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 23
+    },
+    {
+      "branch": "origin/agent/issue-4-release-binding",
+      "carries": "прив'язка релізу; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 18
+    },
+    {
+      "branch": "work/serving-surface",
+      "carries": "поточна робота цієї сесії: гейти канонічності та інтеграції гілок",
+      "clean": true,
+      "clean_but_held": "вливається в канон цим же кроком; запис зникне після fast-forward",
+      "closes_when": "fast-forward канону на цю гілку",
+      "unique": 5
+    },
+    {
+      "branch": "origin/agent/issue-1-github-governance",
+      "carries": "врядування GitHub; актуальність залежить від рішення про роль origin",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 2
+    },
+    {
+      "branch": "origin/qualification/v0.9.2-hard-gates",
+      "carries": "жорсткі гейти кваліфікації v0.9.2",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 2
+    },
+    {
+      "branch": "origin/dependabot/github_actions/github-actions-0d78cc90a8",
+      "carries": "оновлення прив'язаних SHA дій GitHub: actions/download-artifact v8.0.0→v8.0.1 і actions/attest v4.1.1→v4.2.2 у чотирьох робочих потоках",
+      "clean": true,
+      "clean_but_held": "злито в work/serving-surface цим кроком; github-actions-validate зелений, 10 потоків, findings порожній. Запис зникне після fast-forward канону",
+      "closes_when": "fast-forward канону на work/serving-surface",
+      "contained_in": null,
+      "unique": 1
+    }
+  ]
+}

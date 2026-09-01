@@ -4294,7 +4294,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5645,
+      "lines": 5689,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -4713,6 +4713,15 @@
       "max_function_args": 0,
       "max_function_lines": 0,
       "max_nesting": 0
+    },
+    "scripts/verify_branch_integration.py": {
+      "lines": 236,
+      "max_complexity": 11,
+      "max_function_args": 3,
+      "max_function_lines": 64,
+      "max_nesting": 2,
+      "proof_lines": 58,
+      "reason": "Новий гейт: одна канонічна гілка або названий перелік того, що поза нею. Виміряно 01.09.2026 — 21 гілка origin з 18–355 власними комітами і п'ятьма спроможностями, яких у каноні немає; блокер — зіткнення номерів міграцій, якого git не бачить. Мутанти M570–M573."
     },
     "scripts/verify_canonical_state.py": {
       "lines": 449,
@@ -8103,6 +8112,30 @@
       "reason": "Четверте зведення дня: каталог росте лише додаванням, стеля — вимір об'єднаного дерева. Мої M538–M545 (канонічність) поверх M525+ сусідньої сесії.",
       "to": {
         "lines": 5645
+      }
+    },
+    {
+      "on": "2026-09-01",
+      "path": "scripts/verify_branch_integration.py",
+      "reason": "Новий гейт: одна канонічна гілка або названий перелік того, що поза нею. Виміряно 01.09.2026 — 21 гілка origin з 18–355 власними комітами і п'ятьма спроможностями, яких у каноні немає; блокер — зіткнення номерів міграцій, якого git не бачить. Мутанти M570–M573.",
+      "to": {
+        "lines": 236,
+        "max_complexity": 11,
+        "max_function_args": 3,
+        "max_function_lines": 64,
+        "max_nesting": 2,
+        "proof_lines": 58
+      }
+    },
+    {
+      "from": {
+        "lines": 5645
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Новий гейт: одна канонічна гілка або названий перелік того, що поза нею. Виміряно 01.09.2026 — 21 гілка origin з 18–355 власними комітами і п'ятьма спроможностями, яких у каноні немає; блокер — зіткнення номерів міграцій, якого git не бачить. Мутанти M570–M573.",
+      "to": {
+        "lines": 5689
       }
     }
   ],

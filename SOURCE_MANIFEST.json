@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1705,
-  "root_sha256": "e0e8bc6eb860fded75d5b7636d47b959696e8ca1dff538466246198c47f64112",
+  "file_count": 1708,
+  "root_sha256": "66ea298f927efe927e1117c13caf7ed185807e1fe5b8a495b1dd21ca8005d365",
   "files": [
     {
       "path": ".dockerignore",
@@ -62,7 +62,7 @@
     {
       "path": ".github/workflows/external-assurance-ingest.yml",
       "bytes": 2943,
-      "sha256": "04986f884dd26aa6baa278b114ac3e05db29c8a80fb8c43210959d878668f725",
+      "sha256": "6b7ca9139dda8f0a15e722da5a4a708237199598f63acf13c377adb39efcd97d",
       "mode": "0644"
     },
     {
@@ -80,13 +80,13 @@
     {
       "path": ".github/workflows/gcp-production.yml",
       "bytes": 26233,
-      "sha256": "aed917b4076390399a33aa069c513fb5d217b7a35c05ff096ecf188f480d6fcf",
+      "sha256": "39df867a3d9b49e7f3c217359c2dcf40e031fff9a5c2c831115499d89eaaf7f1",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/pec-production-evidence.yml",
       "bytes": 4383,
-      "sha256": "f36949cefcc1f53ed6c12ce306298f74137d4ae310b1809500852f1012ed5e29",
+      "sha256": "9f10f665b7b73223ad0085a2c7a6ea2ee13dd6077b804f04ea255151029e0c1a",
       "mode": "0644"
     },
     {
@@ -98,7 +98,7 @@
     {
       "path": ".github/workflows/release.yml",
       "bytes": 3088,
-      "sha256": "dc09925fb474cd5d83c5fce499367b778646d541e391a986bb8955c17bf04ce5",
+      "sha256": "d9f33342ab06a8d91f61b50005ece102a650c23c61e3cbe8f8335f7c61169d62",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 83444,
-      "sha256": "be6cb52ac8b9c3a06e0b51b7daaa2b0c542ead58efa42efe8198adc755db7991",
+      "bytes": 84273,
+      "sha256": "7256e57e98038d905878b80f0bcc0d4b400d0a8905bfa667ce537a79efbfbd32",
       "mode": "0644"
     },
     {
@@ -2715,6 +2715,12 @@
       "path": "apps/api/tests/test_branch_cycle2_storage_pdf_v050.py",
       "bytes": 14774,
       "sha256": "91b2ea3c352ef57b5c8a038ef8d4d4256c3624d03cd8ef1c795551e252ca8c13",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_branch_integration.py",
+      "bytes": 5887,
+      "sha256": "3b200e13ee72547f1cb4fe3523fe5ff9541f63d3c696884d298d1f6ecf11fe47",
       "mode": "0644"
     },
     {
@@ -6870,6 +6876,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/operations/branch-integration.json",
+      "bytes": 12377,
+      "sha256": "b43ef4c750a9e00658220d5cf8f6f11fcf07a70fc2c81491ac7ccf583be7c377",
+      "mode": "0644"
+    },
+    {
       "path": "config/operations/canonical-state.json",
       "bytes": 4759,
       "sha256": "54e826cb5c7a1c9cef06177b74fee16bf10c9920c8028b892b57cba6d329280d",
@@ -6925,8 +6937,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 412574,
-      "sha256": "769ae9e6e6fe4e8877be3f76e6981de48234f0c61229c1a1ced64e08022cb1d1",
+      "bytes": 414639,
+      "sha256": "f40f263945034090a62f4cbf72b053603463a57f3060695feb186b0ee094b4bc",
       "mode": "0644"
     },
     {
@@ -9697,8 +9709,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 252480,
-      "sha256": "ad443d0a5560aacf4bbb26687aec3c8911176c2b3cfd4ec2e85c6f7253f61f82",
+      "bytes": 254128,
+      "sha256": "a2d8997901f9d68eb71c0a55786b85cbd9bc918518406b4ae2ba910f7d7fc8ed",
       "mode": "0755"
     },
     {
@@ -10060,6 +10072,12 @@
       "bytes": 309,
       "sha256": "05633878458398cf30a0a2159988df97b1aa9e8d0a52919ab718b3f3dcfd9524",
       "mode": "0644"
+    },
+    {
+      "path": "scripts/verify_branch_integration.py",
+      "bytes": 11951,
+      "sha256": "b93aa83ddb09853a0383c4ec099e49ae4820f195560faf554a0975e35a657a25",
+      "mode": "0755"
     },
     {
       "path": "scripts/verify_canonical_state.py",
