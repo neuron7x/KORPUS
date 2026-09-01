@@ -4556,6 +4556,38 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M535_AN_INSTALLED_UNIT_THAT_DIFFERS_FROM_THE_TREE_IS_ACCEPTED",
+        "scripts/verify_installed_units.py",
+        "        if mine == theirs:",
+        "        if True:",
+        (
+            "apps/api/tests/test_installed_units.py::"
+            "test_an_extra_directive_in_the_installed_unit_is_refused",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M536_A_COMMENT_IS_TREATED_AS_A_DIFFERENCE",
+        "scripts/verify_installed_units.py",
+        '        if line.strip() and not line.lstrip().startswith("#")',
+        "        if line.strip()",
+        (
+            "apps/api/tests/test_installed_units.py::test_a_comment_is_not_a_difference",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M537_THE_ROOT_EXCUSE_SWALLOWS_A_REAL_DIFFERENCE",
+        "scripts/verify_installed_units.py",
+        "        if text is not None and root is not None and installed_root not in (None, root):",
+        "        if text is not None:",
+        (
+            "apps/api/tests/test_installed_units.py::"
+            "test_the_same_root_still_shows_a_real_difference",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M519_A_DECLARED_SELFTEST_THAT_NEVER_RAN_COUNTS_AS_GREEN",
         "scripts/verify_selftest_coverage.py",
         "    missed = sorted(set(expected) - seen)",

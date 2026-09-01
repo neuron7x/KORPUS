@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1692,
-  "root_sha256": "467c21b7daef10beaadd403f09e2c934cfbb76c153495c18eceb9aa748d5a1d7",
+  "file_count": 1694,
+  "root_sha256": "be0884a5da5388d5db921ba044be83d1be66df9535d2dac052e1cade7ed280d5",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 79657,
-      "sha256": "efda858ac7bd90152ead88d1118c442a57cdd2a0c9ad2537d757bdfe9d3f9bcf",
+      "bytes": 80461,
+      "sha256": "91947c7e9f4cd28a26d4c2f97f1e2e4a3cc6cead7dab6e385200fec76a1bd878",
       "mode": "0644"
     },
     {
@@ -3447,6 +3447,12 @@
       "path": "apps/api/tests/test_ingestion_queue_ownership.py",
       "bytes": 10941,
       "sha256": "bb7c25707dc8b983fcea2d579e5a1d0bf81ec68248364af9d7178b1d2596d0c7",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_installed_units.py",
+      "bytes": 4741,
+      "sha256": "6c8eee1421102ddb76d536b7211cafd45b2410dbc2f9724f44f9f0e7d0713941",
       "mode": "0644"
     },
     {
@@ -6883,8 +6889,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 400457,
-      "sha256": "ae154aef05fadf0aa16de55e84e91b37ddbbcd7451ead5b947a7af146dc0044a",
+      "bytes": 402187,
+      "sha256": "a156266b78cb813782fa6e2d6a1de1c0dad546f78cba4c6f217abdfb70814009",
       "mode": "0644"
     },
     {
@@ -9631,8 +9637,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 242172,
-      "sha256": "5e80327f30b0915821813a0060b06753d1537b047f796f541d9626c610fcc4db",
+      "bytes": 243334,
+      "sha256": "59b4bd63359e4dc654e820d82f2703c34a314f549e121784025835c7f336a144",
       "mode": "0755"
     },
     {
@@ -10048,6 +10054,12 @@
       "bytes": 13432,
       "sha256": "7b8a534eef78140bfd7439b6d99a54878f791c17f59f101540bcf9fb2f525cdb",
       "mode": "0644"
+    },
+    {
+      "path": "scripts/verify_installed_units.py",
+      "bytes": 10328,
+      "sha256": "3ab58828fa8ebf656aff2ea0ec4ba75a2bf86c4f61e090978c717e3831da775a",
+      "mode": "0755"
     },
     {
       "path": "scripts/verify_observability_contract.py",

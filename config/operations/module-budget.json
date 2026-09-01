@@ -4278,7 +4278,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5396,
+      "lines": 5428,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -4763,6 +4763,15 @@
       "max_function_lines": 183,
       "max_nesting": 2,
       "reason": "v0.1.1: clean-source handoff validation is separated from post-test release evidence; missing evidence remains unavailable, partial/stale evidence is refused | 2026-08-29 +3 lines: release_evidence is now asserted on. UNAVAILABLE and STALE were both printed beside status: PASS and never checked, so the first target of `make validate` was green with the release evidence absent entirely and green with it describing a different tree."
+    },
+    "scripts/verify_installed_units.py": {
+      "lines": 174,
+      "max_complexity": 9,
+      "max_function_args": 3,
+      "max_function_lines": 55,
+      "max_nesting": 2,
+      "proof_lines": 56,
+      "reason": "Новий гейт: чи те, що ВСТАНОВЛЕНО на машині, є тим, що описує дерево. Виміряно 01.09.2026 — встановлений korpus-public-api.service має EnvironmentFile=, а шаблон у дереві самооголошений, тож public-env-parity звіряв дві копії, жодна з яких не виконується. Стеля — виміряне значення дня. Мутанти M535–M537."
     },
     "scripts/verify_observability_contract.py": {
       "lines": 76,
@@ -7927,6 +7936,30 @@
       "reason": "Друге зведення того ж дня: каталог росте лише ДОДАВАННЯМ, стеля — вимір об'єднаного дерева. M523–M524 сусідньої сесії (свіжість обслуговування) поверх M492–M499, M521–M522 і моїх M500–M520, M530–M534.",
       "to": {
         "lines": 5396
+      }
+    },
+    {
+      "on": "2026-09-01",
+      "path": "scripts/verify_installed_units.py",
+      "reason": "Новий гейт: чи те, що ВСТАНОВЛЕНО на машині, є тим, що описує дерево. Виміряно 01.09.2026 — встановлений korpus-public-api.service має EnvironmentFile=, а шаблон у дереві самооголошений, тож public-env-parity звіряв дві копії, жодна з яких не виконується. Стеля — виміряне значення дня. Мутанти M535–M537.",
+      "to": {
+        "lines": 174,
+        "max_complexity": 9,
+        "max_function_args": 3,
+        "max_function_lines": 55,
+        "max_nesting": 2,
+        "proof_lines": 56
+      }
+    },
+    {
+      "from": {
+        "lines": 5396
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "+M535–M537 до каталогу.",
+      "to": {
+        "lines": 5428
       }
     }
   ],
