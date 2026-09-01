@@ -309,9 +309,23 @@ def selftest() -> int:
     return 0 if passed == len(checks) else 1
 
 
+def _declared_canonical() -> str:
+    """Канонічна гілка з реєстру інтеграції — ЄДИНЕ її оголошення в дереві."""
+    registry = ROOT / "config/operations/branch-integration.json"
+    try:
+        declared = json.loads(registry.read_text(encoding="utf-8"))["canonical_branch"]
+    except (OSError, ValueError, KeyError):
+        return "main"
+    return str(declared)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--canonical", default="work/converge-semantic")
+    # Канонічну гілку НЕ вписувати сюди константою. Вона вже оголошена в реєстрі, і
+    # два оголошення розходяться мовчки: 01.09.2026 канон переїхав на `main`, а цей
+    # сторож ще пів дня звітував ACCEPTED про `work/converge-semantic` — дзеркало,
+    # застигле на комітах тому. Вирок був правдивий про той ref і хибний про предмет.
+    parser.add_argument("--canonical", default=_declared_canonical())
     parser.add_argument("--prefix", default="archive/2026-09-01")
     parser.add_argument("--out", type=Path, default=ROOT / "var/branch-consolidation.json")
     parser.add_argument("--root", type=Path, default=None, help="корінь репозиторію")

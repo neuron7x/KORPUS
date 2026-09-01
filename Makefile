@@ -995,9 +995,13 @@ lane-report:
 # База порівняння — сорок тегів `archive/<дата>/*`, знятих ДО зведення: після нього
 # «загублене» і «ніколи не існувало» виглядають однаково. Тег живе в репозиторії й
 # тримає коміт від збирача сміття, тож знімок переживає і скретчпад, і сесію.
+# Канонічну гілку тут НЕ називати. Її оголошує `config/operations/branch-integration.json`,
+# і третє оголошення (аргумент у Makefile) перебивало і реєстр, і дефолт скрипта: сторож
+# пів дня звітував ACCEPTED про дзеркало, застигле на комітах тому. `CANONICAL=` лишається
+# як явне перевизначення для разових перевірок іншої гілки.
 branch-consolidation:
 	$(PY) scripts/verify_branch_consolidation.py --selftest
-	$(PY) scripts/verify_branch_consolidation.py --canonical "$(or $(CANONICAL),work/converge-semantic)"
+	$(PY) scripts/verify_branch_consolidation.py $(if $(CANONICAL),--canonical "$(CANONICAL)")
 
 check-nightly:
 # ПЕРШИМ, і це не порядок за смаком: гейт про недосяжність сам мусить бути досяжним.
