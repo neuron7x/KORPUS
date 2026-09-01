@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1699,
-  "root_sha256": "4a52ad40d2a9d658622e6506dde202f5d167044b4e1e155bb544de20d01a8ca9",
+  "file_count": 1702,
+  "root_sha256": "649407fedda4c44b621d265796bbe83e21af1f5c3719d314d23314f6aac39f24",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 81994,
-      "sha256": "d7f121565014b43eb9521e785168b7b1cdf0aa80b3be957759aabaa6dfaab365",
+      "bytes": 82723,
+      "sha256": "5b9750e6ad0be84df08cabbbcbd4d6ab68c0c962015ff4c229a2ecc3f6df918e",
       "mode": "0644"
     },
     {
@@ -3003,6 +3003,12 @@
       "path": "apps/api/tests/test_document_intake_refusals.py",
       "bytes": 7551,
       "sha256": "6d647bd9fc49aad26bf886b2137ba21a93ddc2c5b5f2f8c3905dbad9dddf2959",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_dormant_subsystems.py",
+      "bytes": 6871,
+      "sha256": "a36a660b2748c200933d60750edb52fe93a4e8a5a8ba5022e9eb05b5bde700b8",
       "mode": "0644"
     },
     {
@@ -6841,8 +6847,8 @@
     },
     {
       "path": "config/operations/answer-axes.json",
-      "bytes": 52618,
-      "sha256": "9308fb3773b8c2331118df7ce43ba2fb0e8fd8b94e31fae5c79669507114a8a6",
+      "bytes": 56609,
+      "sha256": "19a7c7d5deb8fcba38c0195b5c9b3802ffcef367797caaf53433175cbec9410e",
       "mode": "0644"
     },
     {
@@ -6876,9 +6882,15 @@
       "mode": "0644"
     },
     {
+      "path": "config/operations/dormant-subsystems.json",
+      "bytes": 4679,
+      "sha256": "24be0065bc1c2afaaf4ebbe1cf81633772439518be0ea706fac683ed0aaa27da",
+      "mode": "0644"
+    },
+    {
       "path": "config/operations/evidence-bases.json",
-      "bytes": 5285,
-      "sha256": "6510e1b419884888bd2fae186c08a8f233ab5c95ae1931650c70865fb8b21cce",
+      "bytes": 7021,
+      "sha256": "435b1917a071b8e9b4256dae979fbb077fd6cb5f53214968cb595ea789788cdd",
       "mode": "0644"
     },
     {
@@ -6901,8 +6913,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 407569,
-      "sha256": "599bc8afd06b407ce21ffab901bde9aa9d989631e27f26e505551b0f4bcfa665",
+      "bytes": 409345,
+      "sha256": "ce3689b93b7f46228b4021db78b50361150428fffe6730c0ffd69ee97abeeb29",
       "mode": "0644"
     },
     {
@@ -8497,8 +8509,8 @@
     },
     {
       "path": "scripts/benchmark_subject_precision.py",
-      "bytes": 19733,
-      "sha256": "1ab7e70126a32965944eb10d6fd517c4a6e96d44a02720567fb229520921fc9f",
+      "bytes": 20256,
+      "sha256": "695b73a3db20ae9cb467d2d1cf7835c3e810b0350f230f704056ca0843d1646f",
       "mode": "0755"
     },
     {
@@ -8619,6 +8631,12 @@
       "path": "scripts/check_deployment_debt.py",
       "bytes": 10214,
       "sha256": "7b3b58d662a0c138b5a7ef31b77eb7b43716858eb69c049ef6f5d05fb3d0eb30",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/check_dormant_subsystems.py",
+      "bytes": 10836,
+      "sha256": "4127f5b62c402866cf1b5a8f4e75c173500a1f02e68ba5fb9c211d4c449e56a1",
       "mode": "0755"
     },
     {
@@ -9667,8 +9685,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 247545,
-      "sha256": "034996d912ccc2afabe162fa83b20a4a1aa4e4b11e88999334119d8206e3507a",
+      "bytes": 249562,
+      "sha256": "08f75e6c9ddeb25f7fb9df09e12364b1f6a7dd54b38f4bedd6aa4b244fc3a522",
       "mode": "0755"
     },
     {
