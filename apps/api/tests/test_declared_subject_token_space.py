@@ -30,7 +30,10 @@ import pytest
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
-from korpus.application.declared_subject import subject_tokens  # noqa: E402
+from korpus.application.declared_subject import (  # noqa: E402
+    subject_tokens,
+    subjects_in_question,
+)
 from korpus.application.retrieval_math import tokenize  # noqa: E402
 
 #: Обидва предмети інфлектовані в питанні цілком: жодне слово не переживає стемер
@@ -76,3 +79,58 @@ def test_a_subject_the_question_does_not_name_stays_disjoint() -> None:
     title = "Обов'язки: Днювальний парку (Статут, ст.358)"
 
     assert not subject_tokens([title]).intersection(tokenize("Що таке артилерійська батарея?"))
+
+
+# ── Допуск за ПОЧАТКОМ слова. Людина питає родовим, роль береться із заголовка як є.
+
+
+def test_the_subject_is_found_in_the_genitive() -> None:
+    """Виміряно 01.09.2026: дослівний підрядок давав родовим 1 із 14, тут 13 із 14."""
+    titles = ["Обов'язки: Днювальний парку (Статут, ст.358)"]
+
+    assert subjects_in_question("Які обов'язки днювального парку?", titles) == titles
+
+
+def test_the_nominative_still_works() -> None:
+    """Негативний контроль до попереднього: правило, що ламає називний, не є ліками."""
+    titles = ["Обов'язки: Днювальний парку (Статут, ст.358)"]
+
+    assert subjects_in_question("Які обов'язки має днювальний парку?", titles) == titles
+
+
+def test_a_neighbouring_role_is_not_admitted() -> None:
+    """Збіг за початком не сміє зробити «черговий» і «днювальний» одним предметом."""
+    other = ["Обов'язки: Черговий парку (Статут, ст.353)"]
+
+    assert subjects_in_question("Які обов'язки днювального парку?", other) == []
+
+
+def test_the_longer_subject_comes_first() -> None:
+    """Порядок за довжиною доживає до ранжування — інакше узагальнення виграє."""
+    specific = "Обов'язки: Безпосередні командири (Статут, ст.104)"
+    generic = "Обов'язки: Командир (начальник) (Статут, ст.36)"
+
+    found = subjects_in_question("Які обов'язки безпосередніх командирів?", [generic, specific])
+
+    assert found[0] == specific
+
+
+def test_a_short_function_word_does_not_block_the_subject() -> None:
+    """«Інструктор ІЗ тактичної медицини» мусить знайтись питанням зі «з»."""
+    titles = ["Обов'язки: Інструктор із тактичної медицини роти (Статут, ст.1)"]
+
+    assert (
+        subjects_in_question("Які обов'язки інструктора з тактичної медицини роти?", titles)
+        == titles
+    )
+
+
+def test_a_subject_with_no_long_word_is_not_admitted() -> None:
+    """Негативний контроль: предмет із самих коротких слів збігався б із будь-чим."""
+    assert subjects_in_question("Що робити?", ["Обов'язки: та по із (Статут, ст.1)"]) == []
+
+
+def test_a_question_about_something_else_admits_nothing() -> None:
+    titles = ["Обов'язки: Днювальний парку (Статут, ст.358)"]
+
+    assert subjects_in_question("Що таке артилерійська батарея?", titles) == []

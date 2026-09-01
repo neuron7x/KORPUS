@@ -4820,6 +4820,38 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    # ── Допуск оголошеного предмета за початком слова. Дослівний підрядок вимагав від
+    # людини називного відмінка: виміряно 1 із 14 у родовому проти 13 після зміни.
+    Mutant(
+        "M527_THE_SUBJECT_MUST_BE_SPELLED_AS_THE_TITLE_SPELLS_IT",
+        "apps/api/src/korpus/application/declared_subject.py",
+        "            any(asked[:MIN_PREFIX] == word[:MIN_PREFIX] for asked in question_words)",
+        "            any(asked == word for asked in question_words)",
+        (
+            "apps/api/tests/test_declared_subject_token_space.py::"
+            "test_the_subject_is_found_in_the_genitive",
+        ),
+    ),
+    Mutant(
+        "M528_ANY_ONE_WORD_OF_THE_SUBJECT_IS_ENOUGH_TO_ADMIT_IT",
+        "apps/api/src/korpus/application/declared_subject.py",
+        "        if all(",
+        "        if any(",
+        (
+            "apps/api/tests/test_declared_subject_token_space.py::"
+            "test_a_neighbouring_role_is_not_admitted",
+        ),
+    ),
+    Mutant(
+        "M529_A_SUBJECT_OF_ONLY_SHORT_WORDS_IS_ADMITTED_AGAIN",
+        "apps/api/src/korpus/application/declared_subject.py",
+        "        if not significant:\n            continue",
+        "        if False:\n            continue",
+        (
+            "apps/api/tests/test_declared_subject_token_space.py::"
+            "test_a_subject_with_no_long_word_is_not_admitted",
+        ),
+    ),
     # ── Друга форма питання. Лінійка, що зараховує довшу роль за коротшу або цитату
     # не першою, показала б високе число там, де воно 1/14.
     Mutant(

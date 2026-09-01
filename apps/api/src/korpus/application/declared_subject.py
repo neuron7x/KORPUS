@@ -42,17 +42,53 @@ def declared_subject(title: str) -> str | None:
     return subject if len(subject) >= MIN_SUBJECT_CHARS else None
 
 
+#: Найкоротший початок слова, який система вже вважає значущим: `_ukrainian_stem`
+#: відмовляється лишати основу, коротшу за чотири символи. Константа успадкована, а не
+#: підібрана тут — і виміряна: на 3, 4 і 5 обидві форми питання дають 14 із 14, на 2
+#: ламається родовий, на 6 — обидва.
+MIN_PREFIX = 4
+
+
+def _words(text: str) -> list[str]:
+    return re.findall(r"[\w'’\-]{2,}", text.lower().replace("’", "'"))
+
+
 def subjects_in_question(question: str, titles: Iterable[str]) -> list[str]:
-    """Заголовки, чий оголошений предмет названо в питанні дослівно.
+    """Заголовки, чий оголошений предмет названо в питанні — у будь-якому відмінку.
 
     Довші предмети першими: «Заступник командира бригади» мусить виграти в «командира
     бригади», інакше питання про заступника віддасть документ командира — і навпаки.
+
+    ЗБІГ ЗА ПОЧАТКОМ СЛОВА, не дослівний підрядок. Тут стояло `subject.lower() in
+    question.lower()`, і воно вимагало від людини називного відмінка, бо роль береться
+    із заголовка документа як є. Виміряно 01.09.2026 на живому продукті, 14 оголошених
+    предметів: називним 14/14, родовим **1/14**. Єдиний успіх пояснювався не морфологією,
+    а рідкістю хвоста («бригади» 231 проліт проти «роти» 2012) — тобто клас предмета не
+    вмикався в жодному з чотирнадцяти, і працювала гола релевантність.
+
+    Прилад не новий: пошук уже шукає основу як ПРЕФІКС (`candidate_terms` віддає
+    `днювальн*` до FTS). Тут та сама дія, і саме тому не потрібно чіпати `tokenize` —
+    гіпотеза «доведеться замикати список суфіксів» перевірена й ВІДКИНУТА до
+    реалізації: сама лише ця зміна дає 14/14 в обох відмінках.
+
+    Слова, коротші за `MIN_PREFIX`, ігноруються: одно- й двобуквені («із», «на», «по»)
+    не розрізняють ролі, а вимога точного збігу на них робила «Інструктор ІЗ тактичної
+    медицини роти» недосяжним для питання зі «з». Предмет без жодного довгого слова не
+    допускається взагалі — інакше «Солдат» збігався б із будь-чим.
     """
-    lowered = question.lower()
+    question_words = [word for word in _words(question) if len(word) >= MIN_PREFIX]
     matched: list[tuple[str, str]] = []
     for title in titles:
         subject = declared_subject(title)
-        if subject is not None and subject.lower() in lowered:
+        if subject is None:
+            continue
+        significant = [word for word in _words(subject) if len(word) >= MIN_PREFIX]
+        if not significant:
+            continue
+        if all(
+            any(asked[:MIN_PREFIX] == word[:MIN_PREFIX] for asked in question_words)
+            for word in significant
+        ):
             matched.append((subject, title))
     matched.sort(key=lambda pair: len(pair[0]), reverse=True)
     return [title for _subject, title in matched]

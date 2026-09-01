@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1697,
-  "root_sha256": "047ed992d2961201f0db44beb7071b249766210613354fca2e140955262c53cb",
+  "root_sha256": "ab2d83e144f8d3e4c3397bfd92f09dfc06b8c0c2fc4585aeaeec440a5e900a61",
   "files": [
     {
       "path": ".dockerignore",
@@ -967,8 +967,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/declared_subject.py",
-      "bytes": 9215,
-      "sha256": "dc509c4fbba58af5aebc9e2c3f8b70bed97be0f44bf326b9d2ff6874fefd56e3",
+      "bytes": 12105,
+      "sha256": "5ccf3ac17f756fe0a5cbc20ef682a4636dd1e2ff462da8e2aa29455c08303045",
       "mode": "0644"
     },
     {
@@ -2941,8 +2941,8 @@
     },
     {
       "path": "apps/api/tests/test_declared_subject_token_space.py",
-      "bytes": 5189,
-      "sha256": "d72223fb2e7f3f8f23b82bdf228ececce519418246b5e15bd6ac43bd742d4dd9",
+      "bytes": 8276,
+      "sha256": "9187662fb5089b62c3f9424367931431d033ae0e97150d078cc33a06a60d9379",
       "mode": "0644"
     },
     {
@@ -6835,8 +6835,8 @@
     },
     {
       "path": "config/operations/answer-axes.json",
-      "bytes": 50418,
-      "sha256": "c9aa410c74a71bde7f3686ab772e3bfea207c38ceda3cfcc1dcb383d87d36e95",
+      "bytes": 52618,
+      "sha256": "9308fb3773b8c2331118df7ce43ba2fb0e8fd8b94e31fae5c79669507114a8a6",
       "mode": "0644"
     },
     {
@@ -6895,8 +6895,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 404284,
-      "sha256": "3017537551be7be297bca70836fea9a492356518e532ed81ea2a1a88d77cf4cf",
+      "bytes": 406226,
+      "sha256": "ffe677d513021d9cdcb51a56d5ae42a106d3bdd250a36994e1ba38a3f14516ab",
       "mode": "0644"
     },
     {
@@ -9655,8 +9655,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 244446,
-      "sha256": "aa62e1f792d32fcc27309da4f305f7946b0585bd3168330bf96cecc13d7fb0cd",
+      "bytes": 245963,
+      "sha256": "51912c2b1800beac8fc49f33033a182e97e0fac735df302610d4d6fa20edadc7",
       "mode": "0755"
     },
     {
