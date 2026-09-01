@@ -31,6 +31,15 @@ if [[ -n "${KORPUS_TEST_DATABASE_URL:-}" ]]; then
   exec env PYTHONPATH="$root/apps/api/src" "$python_bin" -m pytest -p no:cacheprovider apps/api/tests --no-cov "$@"
 fi
 
+# Відсутній docker — ВІДМОВА, не пропуск. Набір потрапив до нічного лану 01.09.2026
+# саме тому, що прогін на СУБД розгортання дав чотири вади, невидимі на SQLite;
+# «тихо не побігло» повернуло б рівно той стан, який це мало закрити.
+if ! command -v docker >/dev/null 2>&1; then
+  echo "docker is required for the PostgreSQL suite; set KORPUS_TEST_DATABASE_URL to" \
+       "run against an existing database instead" >&2
+  exit 2
+fi
+
 image="pgvector/pgvector:0.8.5-pg17-trixie@sha256:69573b32242ca232f65871d4cb916ba7210a372b9bd74068204c1a9a57bada4f"
 container="${KORPUS_PG_CONTAINER:-korpus-pg-suite}"
 port="${KORPUS_PG_PORT:-55433}"

@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1731,
-  "root_sha256": "9627c06dbe9c368498b62a7e4b7d4133f956c3f8367f28544c155254a48458fc",
+  "file_count": 1735,
+  "root_sha256": "4bf3284ef9cc2dcf7d4ee964d7ffb7ea357f91b651effed2d088342d82a53a71",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 85576,
-      "sha256": "b39cc642b9302ded877be6c9b01a54db2b9a61e56e73fd5a7aaf7ce510f50879",
+      "bytes": 86154,
+      "sha256": "050d177554a10f29873ccc0feb8051c270da6d396ba17b87466e05b6884bb662",
       "mode": "0644"
     },
     {
@@ -633,6 +633,18 @@
       "path": "apps/api/migrations/versions/0020_rls_identity_boundary.py",
       "bytes": 15940,
       "sha256": "bbc102caf9431a4dae83a5e50ac77a33f59b5109a44ce44d31e8cad2d67dee3d",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/migrations/versions/0021_alembic_version_width.py",
+      "bytes": 2168,
+      "sha256": "f1feb43189f3186b2f9f3ed4f7ba5ca28955bdf8819090d5d09d03e7cdab13d7",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/migrations/versions/0022_approval_provenance_boundary.py",
+      "bytes": 3532,
+      "sha256": "ddc729343f7623b0d3ec4e689333997373677a8e8305fdf60834b896b0c1e7d0",
       "mode": "0644"
     },
     {
@@ -4011,6 +4023,12 @@
       "path": "apps/api/tests/test_policy.py",
       "bytes": 1055,
       "sha256": "c4ea7591558f35cabeb55eaf7cff9dd1822cf10a2a6c26650629c4d69fbaab56",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_postgres_approval_provenance.py",
+      "bytes": 9796,
+      "sha256": "07a22419c7c19576f21c5ec6bbba40d78114cf8979ae6409c996ea62c750701c",
       "mode": "0644"
     },
     {
@@ -9558,9 +9576,15 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/postgres_role_hardening.py",
+      "bytes": 2710,
+      "sha256": "b2e067b9d7fcf07a01804c543b639d0181405951878ed6714b2cfa3721a91152",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/prepare_postgres_role.py",
-      "bytes": 22040,
-      "sha256": "e64ba25e7a105661e7fafc0513196841754550018ca50f57dff32fcb6c4cb373",
+      "bytes": 22799,
+      "sha256": "56038fd5949d69e7b26bab8dbfa5a09e38e4b62e637e9f851fcc6c49cec3661f",
       "mode": "0755"
     },
     {
@@ -9901,8 +9925,8 @@
     },
     {
       "path": "scripts/run_postgres_suite.sh",
-      "bytes": 3593,
-      "sha256": "64cb656522b87f19ad1e1315ea369700c0f4f03223a9bec9ae1ebec592734217",
+      "bytes": 4190,
+      "sha256": "9d911a39e68f8c1b7ca78b4d990e0806e20f6c25322ebececb609ddf67e77ec5",
       "mode": "0755"
     },
     {

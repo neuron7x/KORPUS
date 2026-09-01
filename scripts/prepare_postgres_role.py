@@ -4,10 +4,17 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
 from sqlalchemy import create_engine, text
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from postgres_role_hardening import revoke_all_memberships  # noqa: E402
 
 # Every table the application touches has to appear in exactly one of these lists —
 # the role starts from REVOKE ALL, so an omission is a runtime InsufficientPrivilege
@@ -179,6 +186,14 @@ with engine.connect() as connection:
         )
     )
     connection.execute(text("REVOKE CREATE ON SCHEMA public FROM PUBLIC"))
+    # `CONNECT` і `TEMP` PostgreSQL видає базі для PUBLIC за замовчуванням, тож усі
+    # три рантайм-логіни мали `TEMP`, якого їм ніхто не давав. Виміряно 01.09.2026:
+    # `has_database_privilege(role,'TEMP')` = true для всіх трьох. Тимчасова схема —
+    # це ще й місце, куди можна підкласти об'єкт під чуже ім'я; `SECURITY DEFINER`
+    # тут прибиває `search_path`, але право, якого не давали, лишається правом.
+    # `CONNECT` знімається з PUBLIC із тієї ж причини: кожна роль дістає його явно.
+    connection.execute(text(f"REVOKE TEMPORARY ON DATABASE {database_sql} FROM PUBLIC"))
+    connection.execute(text(f"REVOKE CONNECT ON DATABASE {database_sql} FROM PUBLIC"))
     connection.execute(text(f"GRANT CONNECT ON DATABASE {database_sql} TO {role_sql}"))
     connection.execute(text(f"GRANT USAGE ON SCHEMA public TO {role_sql}"))
     connection.execute(text(f"REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {role_sql}"))
@@ -232,20 +247,7 @@ with engine.connect() as connection:
     )
     connection.execute(text(f"REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {marker}"))
     connection.execute(text(f"REVOKE ALL ON SCHEMA public FROM {marker}"))
-    for parent in (
-        connection.execute(
-            text(
-                "SELECT parent.rolname FROM pg_catalog.pg_auth_members m "
-                "JOIN pg_catalog.pg_roles parent ON parent.oid = m.roleid "
-                "JOIN pg_catalog.pg_roles member ON member.oid = m.member "
-                "WHERE member.rolname = :role"
-            ),
-            {"role": app_role},
-        )
-        .scalars()
-        .all()
-    ):
-        connection.execute(text(f"REVOKE {quoted_identifier(str(parent))} FROM {role_sql}"))
+    revoke_all_memberships(connection, app_role)
     connection.execute(text(f"GRANT {marker} TO {role_sql}"))
 
     connection.execute(text(f"REVOKE UPDATE ON TABLE document_versions FROM {role_sql}"))
@@ -306,6 +308,7 @@ if review_password:
                 f"PASSWORD '{escaped_review}'"
             )
         )
+        revoke_all_memberships(connection, review_role)
         connection.execute(text(f"GRANT CONNECT ON DATABASE {database_sql} TO {review_sql}"))
         connection.execute(text(f"GRANT USAGE ON SCHEMA public TO {review_sql}"))
         connection.execute(text(f"REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {review_sql}"))
@@ -384,6 +387,7 @@ if authz_password:
                 f"NOINHERIT NOBYPASSRLS CONNECTION LIMIT 32 PASSWORD '{escaped_authz}'"
             )
         )
+        revoke_all_memberships(connection, authz_role)
         connection.execute(text(f"GRANT CONNECT ON DATABASE {database_sql} TO {authz_sql}"))
         connection.execute(text(f"GRANT USAGE ON SCHEMA public TO {authz_sql}"))
         connection.execute(text(f"REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {authz_sql}"))
