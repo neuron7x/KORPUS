@@ -4820,6 +4820,38 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    # ── Бігун лану. `make -k` дає два стани; тут первинний саме ТРЕТІЙ, і мутанти
+    # цілять у нього: невиконане, зараховане як пройдене, — це і є та вада.
+    Mutant(
+        "M538_A_TARGET_NEVER_REACHED_IS_COUNTED_AS_PASSED",
+        "scripts/run_lane.py",
+        '        name: {"state": NOT_RUN, "code": None, "seconds": 0.0} for name in targets',
+        '        name: {"state": PASSED, "code": 0, "seconds": 0.0} for name in targets',
+        (
+            "apps/api/tests/test_lane_report.py::"
+            "test_a_target_the_runner_never_reached_stays_not_run_on_disk",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M539_A_LANE_WITH_UNMEASURED_TARGETS_STILL_CALLS_ITSELF_MEASURED",
+        "scripts/run_lane.py",
+        '        "status": "MEASURED" if counts[NOT_RUN] == 0 else "PARTIAL",',
+        '        "status": "MEASURED",',
+        ("apps/api/tests/test_lane_report.py::test_an_unreached_target_makes_the_lane_partial",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M540_A_TIMED_OUT_TARGET_IS_A_PASS",
+        "scripts/run_lane.py",
+        '        return {"state": TIMED_OUT, "code": None, "seconds": round(time.monotonic() - started, 1)}',
+        '        return {"state": PASSED, "code": 0, "seconds": round(time.monotonic() - started, 1)}',
+        (
+            "apps/api/tests/test_lane_report.py::"
+            "test_a_timeout_is_recorded_as_a_timeout_by_the_runner_itself",
+        ),
+        full_copy=True,
+    ),
     # ── Допуск оголошеного предмета за початком слова. Дослівний підрядок вимагав від
     # людини називного відмінка: виміряно 1 із 14 у родовому проти 13 після зміни.
     Mutant(

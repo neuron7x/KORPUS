@@ -4278,7 +4278,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5482,
+      "lines": 5514,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -4906,6 +4906,14 @@
       "max_function_lines": 29,
       "max_nesting": 2,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/run_lane.py": {
+      "lines": 200,
+      "max_complexity": 10,
+      "max_function_lines": 45,
+      "max_function_args": 5,
+      "max_nesting": 3,
+      "reason": "Що лан ВИМІРЯВ, а що просто не встиг. `make` спиняється на першій відмові, тож ціль після червоної не боронить нічого й виглядає так само, як зелена. `make -k` дає два стани й не має третього: ціль, до якої не дійшли, у ньому не відрізняється від відсутньої. Тут перелік заповнюється NOT_RUN ДО прогону, тож обвал самого бігуна лишає невиконані видимими. Виміряно на першому ж прогоні: `validate` називав ОДНУ проблему, бігун показав ТРИ."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -7996,6 +8004,14 @@
       },
       "on": "2026-09-01",
       "reason": "+32 рядки за M527–M529: правопис предмета як у заголовку, допуск за ОДНИМ словом замість усіх, і предмет із самих коротких слів."
+    },
+    {
+      "path": "scripts/run_mutation_tests.py",
+      "to": {
+        "lines": 5514
+      },
+      "on": "2026-09-01",
+      "reason": "+32 рядки за M538–M540: невиконана ціль, зарахована як пройдена; лан із невиміряними цілями, що зве себе виміряним; таймаут як проходження."
     }
   ],
   "recorded_at": "2026-09-01",

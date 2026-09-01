@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1697,
-  "root_sha256": "ab2d83e144f8d3e4c3397bfd92f09dfc06b8c0c2fc4585aeaeec440a5e900a61",
+  "file_count": 1699,
+  "root_sha256": "4b547295669726b85be96bf65af1d98f35c3157ad3023cb6ba5553e8a0515379",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 81003,
-      "sha256": "b3147d0e0eff6786ee973271f76f598d9467b5fbe980ca0f5075ffeacf2be80d",
+      "bytes": 81994,
+      "sha256": "d7f121565014b43eb9521e785168b7b1cdf0aa80b3be957759aabaa6dfaab365",
       "mode": "0644"
     },
     {
@@ -3241,8 +3241,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 123376,
-      "sha256": "6433fd682646cf66d32609af29e40992f8133e303a3afeeb4ddf7e1552108fb0",
+      "bytes": 126267,
+      "sha256": "8467c967d336a7f9d47628ad19a3c3a8e0ee350e237cf330b2b06237b44423e4",
       "mode": "0644"
     },
     {
@@ -3459,6 +3459,12 @@
       "path": "apps/api/tests/test_intra_span_contradiction.py",
       "bytes": 8024,
       "sha256": "ede3902ac24e7d6f47f08f7f98287ea734ea7140270324b0d0c015c27088beba",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_lane_report.py",
+      "bytes": 6173,
+      "sha256": "f86cb741550a2bd9fba193a250d06ec2b28e67586446880aa5954fd0692f94f3",
       "mode": "0644"
     },
     {
@@ -6895,8 +6901,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 406226,
-      "sha256": "ffe677d513021d9cdcb51a56d5ae42a106d3bdd250a36994e1ba38a3f14516ab",
+      "bytes": 407569,
+      "sha256": "599bc8afd06b407ce21ffab901bde9aa9d989631e27f26e505551b0f4bcfa665",
       "mode": "0644"
     },
     {
@@ -9624,6 +9630,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/run_lane.py",
+      "bytes": 9568,
+      "sha256": "24ba33b60f57c53fc8015af3cf7bdff3d8a477978c375e27194ba41a157075fd",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/run_local_production_preflight.py",
       "bytes": 5587,
       "sha256": "f048720fffc87b1be64d6613e177c182516d5f0d0c9e0e1e7b366f997933f38d",
@@ -9655,8 +9667,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 245963,
-      "sha256": "51912c2b1800beac8fc49f33033a182e97e0fac735df302610d4d6fa20edadc7",
+      "bytes": 247545,
+      "sha256": "9d9392486b7a21ce9c3ceec42c3ea24c221a23f5c5aa029e6a085beac45f11a9",
       "mode": "0755"
     },
     {

@@ -1563,6 +1563,53 @@ def test_mutant_ids_are_unique() -> None:
     assert [identifier for identifier, count in counts.items() if count > 1] == []
 
 
+#: Номери, що вже носять по два різні мутанти. Заморожені ПОІМЕННО, а не прощені
+#: правилом: перейменування тридцяти двох записів коштувало б повного перепрогону
+#: мутацій за нуль поведінкової різниці — `--only` резолвить ТОЧНИЙ ідентифікатор і
+#: неповне ім'я відхиляє, тож двозначності в інструменті немає. Псується лише читання
+#: звіту, де два рядки виглядають однаково пронумерованими.
+NUMBERS_THAT_ALREADY_REPEAT = frozenset(f"M{number}" for number in range(124, 156))
+
+
+def test_a_mutant_number_is_not_reused_by_a_new_mutant() -> None:
+    """Ідентифікатори унікальні; НОМЕРИ дотепер не боронив ніхто — і це майже коштувало.
+
+    01.09.2026 дві сесії працювали над каталогом одночасно й обидві почали з M500.
+    Колізію спіймали листуванням, не гейтом; за годину я повторила її на M530–M532 і
+    знову помітила рукою. Номер — те, чим мутанта називають у розмові й у звіті, тож
+    два різні мутанти під одним номером роблять будь-яку згадку двозначною саме тоді,
+    коли над каталогом працює більш ніж одна пара рук.
+
+    Ратчет УПЕРЕД: наявні тридцять два номери заморожені поіменно, новий повтор — червоно.
+    """
+    import sys
+    from collections import Counter
+
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from run_mutation_tests import MUTANTS
+
+    counts = Counter(mutant.id.split("_", 1)[0] for mutant in MUTANTS)
+    repeated = {number for number, count in counts.items() if count > 1}
+
+    assert repeated <= NUMBERS_THAT_ALREADY_REPEAT, sorted(repeated - NUMBERS_THAT_ALREADY_REPEAT)
+
+
+def test_the_frozen_list_does_not_forgive_more_than_it_must() -> None:
+    """Негативний контроль: заморозка, ширша за факт, — це прощення, а не ратчет."""
+    import sys
+    from collections import Counter
+
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from run_mutation_tests import MUTANTS
+
+    counts = Counter(mutant.id.split("_", 1)[0] for mutant in MUTANTS)
+    repeated = {number for number, count in counts.items() if count > 1}
+
+    assert repeated == NUMBERS_THAT_ALREADY_REPEAT, sorted(
+        NUMBERS_THAT_ALREADY_REPEAT.symmetric_difference(repeated)
+    )
+
+
 def test_the_import_pipeline_refuses_a_draft_manifest() -> None:
     """`build_import_manifest.py` marks what it could not read; the importer must refuse it.
 
