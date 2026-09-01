@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1708,
-  "root_sha256": "a8143a11657a19359e7a93d6cf2e60e6092aab49b45af80824a60a8da3f6236e",
+  "file_count": 1710,
+  "root_sha256": "06d24dc0910c07bfa70a24ebed46fd45051cc83afe8c91920049e6f79dcebc2c",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 84273,
-      "sha256": "7256e57e98038d905878b80f0bcc0d4b400d0a8905bfa667ce537a79efbfbd32",
+      "bytes": 85051,
+      "sha256": "ce138119e33e2ef944ded217f26b7361c8cfb48c70b7e0b180277a3a4d2d1b28",
       "mode": "0644"
     },
     {
@@ -2685,6 +2685,12 @@
       "path": "apps/api/tests/test_boundary_coverage_v5.py",
       "bytes": 20359,
       "sha256": "ed3ba63793dea585bfaba6fde1604ca57c4c06b9a2033ea7131b328b8cae1d3f",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_branch_consolidation.py",
+      "bytes": 4722,
+      "sha256": "494faa727b3bca0bb9dd4551f370f2a8586e4ae8af1bf9afde5f9e7534a81644",
       "mode": "0644"
     },
     {
@@ -6937,8 +6943,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 415960,
-      "sha256": "aee47e8abf624f802b7d0c9ee0f17ff76b158d504e0c4d54adba608f46a0d066",
+      "bytes": 419100,
+      "sha256": "869f042ad8b1b50d4350d212f79d374c7deb380a77c16f606ea6f4af4ae0b904",
       "mode": "0644"
     },
     {
@@ -9709,8 +9715,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 255022,
-      "sha256": "0ffef02cfb524aa6ed02880e1392c2fc7b955d14077d84b01e9b3b901e427d7b",
+      "bytes": 256438,
+      "sha256": "c7becbf0d5b3e21dc33a7f4d89733b8847a7b0c55dfae16a45c654ad5376aca5",
       "mode": "0755"
     },
     {
@@ -10072,6 +10078,12 @@
       "bytes": 309,
       "sha256": "05633878458398cf30a0a2159988df97b1aa9e8d0a52919ab718b3f3dcfd9524",
       "mode": "0644"
+    },
+    {
+      "path": "scripts/verify_branch_consolidation.py",
+      "bytes": 16148,
+      "sha256": "57832fa583084e58e79d28e11a754df74e62eb6e94766d856edcef72097963b0",
+      "mode": "0755"
     },
     {
       "path": "scripts/verify_branch_integration.py",

@@ -4974,6 +4974,38 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    # ── Приймальна перевірка зведення. Сторож, який довіряє власному застарілому
+    # входові, видає непроміряний стан за перевірений — і саме це сталося 01.09.2026.
+    Mutant(
+        "M553_A_LANE_REPORT_OLDER_THAN_HEAD_IS_STILL_TRUSTED",
+        "scripts/verify_branch_consolidation.py",
+        "    return moment < head_epoch",
+        "    return False",
+        (
+            "apps/api/tests/test_branch_consolidation.py::"
+            "test_a_report_taken_before_the_head_is_stale",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M554_A_ROOT_OF_THE_CHAIN_IS_MISTAKEN_FOR_A_NAME",
+        "scripts/verify_branch_consolidation.py",
+        '            return None if value in {"None", ""} else value',
+        "            return value",
+        ("apps/api/tests/test_branch_consolidation.py::test_none_is_absence_not_a_name",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M555_A_COMMENTED_ASSIGNMENT_INVENTS_A_REVISION",
+        "scripts/verify_branch_consolidation.py",
+        '        if stripped.startswith((f"{name} =", f"{name}:")):',
+        '        if f"{name} =" in stripped:',
+        (
+            "apps/api/tests/test_branch_consolidation.py::"
+            "test_a_commented_line_is_not_an_assignment",
+        ),
+        full_copy=True,
+    ),
     # ── Сплячі підсистеми. Гейт мусить падати в ОБИДВА боки: той, що ловить лише
     # пробудження, не помітить тихого видалення, і реєстр стане описом неіснуючого.
     Mutant(

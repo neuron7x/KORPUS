@@ -1,0 +1,335 @@
+#!/usr/bin/env python3
+"""Чи зведення гілок нічого не втратило — питання до ВМІСТУ, не до графа комітів.
+
+01.09.2026 гілок було сорок: локальні, `gitlab/*` і двадцять п'ять `origin/*` із лінії,
+що розійшлася 12–19 серпня. Їх зводять в одну канонічну. Це та операція, після якої
+«загублене» і «ніколи не існувало» виглядають однаково — тому знімок робиться ДО, і
+робиться ТЕГАМИ, а не файлом: файл у скретчпаді переживе не кожен день, тег живе в
+самому репозиторії й тримає коміт від збирача сміття.
+
+## Що саме перевіряється
+
+1. **Жоден зафіксований тіп не став недосяжним.** Сорок тегів `archive/<дата>/*` — це
+   і є база порівняння. Тег, що зник або більше не вказує на коміт, означає, що гілку
+   прибрали разом із роботою.
+2. **Канон нічого не ВТРАТИВ.** Дерево канону порівнюється з його ж тегом-знімком:
+   файл, що був і зник, — це втрата, навіть якщо мердж «пройшов зелено». Саме цього
+   бояться при зведенні старої лінії поверх нової.
+3. **Alembic має РІВНО ОДНУ голову.** Три номери міграцій означають різні міграції у
+   двох лініях (0016 `learning_course_graph` проти `temporal_corpus_snapshot`, і те саме
+   на 0017 та 0018). Наївний мердж дає дві голови або тихо хибний порядок на базі, яка
+   вже розгорнута з канонічними.
+4. **Лан `validate` виміряний цілком**, а не спинений на першій відмові: `not_run` = 0.
+5. **Профіль осей** — вердикт PASS і жодна вісь не під підлогою.
+6. **Мутанти** — вбито стільки ж, скільки є, `survived` порожній.
+
+Кожне твердження падає окремо й називає, ЩО саме не так. Відсутній звіт — це UNKNOWN,
+не PASS: лан, якого не ганяли, нічого не доводить.
+
+    verify_branch_consolidation.py [--canonical work/converge-semantic] [--prefix archive/2026-09-01]
+    verify_branch_consolidation.py --selftest
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
+
+
+#: Корінь визначається репозиторієм, а не батьком файла: інструмент контролю мусить
+#: працювати й ЗЗОВНІ дерева. Під час заморозки він там і лежить — скрипт у `scripts/`
+#: без цілі в Makefile червонить `test_every_script_is_reachable_from_a_runner`, і
+#: 01.09.2026 він так зіпсував чужий прогін доказів. Тобто інструмент контролю ледь не
+#: став джерелом того, що контролює.
+def _repo_root(start: Path) -> Path:
+    for candidate in (start, *start.parents):
+        if (candidate / ".git").exists():
+            return candidate
+    return start
+
+
+ROOT = _repo_root(Path(__file__).resolve().parent)
+
+
+def git(*args: str) -> str:
+    done = subprocess.run(
+        ["git", *args], cwd=str(ROOT), capture_output=True, text=True, check=False
+    )
+    return done.stdout.strip()
+
+
+def baseline_tags(prefix: str) -> dict[str, str]:
+    """Тег → коміт. База порівняння живе в репозиторії, не в теці процесу."""
+    pairs: dict[str, str] = {}
+    for line in git(
+        "for-each-ref", "--format=%(refname:short) %(objectname)", f"refs/tags/{prefix}"
+    ).splitlines():
+        name, _, sha = line.partition(" ")
+        if name:
+            pairs[name] = git("rev-parse", f"{name}^{{commit}}") or sha
+    return pairs
+
+
+def unreachable(tags: dict[str, str]) -> list[str]:
+    return [name for name, sha in tags.items() if git("cat-file", "-t", sha) != "commit"]
+
+
+def files_lost(canonical: str, snapshot: str) -> list[str]:
+    """Файли, які були в каноні на момент знімка і зникли. Втрата, навіть якщо зелено."""
+    before = set(git("ls-tree", "-r", "--name-only", snapshot).splitlines())
+    after = set(git("ls-tree", "-r", "--name-only", canonical).splitlines())
+    return sorted(before - after)
+
+
+def alembic_heads() -> list[str]:
+    versions = ROOT / "apps/api/migrations/versions"
+    if not versions.is_dir():
+        return []
+    revisions: dict[str, str] = {}
+    parents: set[str] = set()
+    for path in sorted(versions.glob("*.py")):
+        text = path.read_text(encoding="utf-8")
+        revision = _literal(text, "revision")
+        previous = _literal(text, "down_revision")
+        if revision:
+            revisions[revision] = path.name
+        if previous:
+            parents.add(previous)
+    return sorted(name for key, name in revisions.items() if key not in parents)
+
+
+def _literal(text: str, name: str) -> str | None:
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith((f"{name} =", f"{name}:")):
+            value = stripped.split("=", 1)[-1].split(":", 1)[-1].strip().strip("\"'")
+            return None if value in {"None", ""} else value
+    return None
+
+
+def _report(path: Path) -> dict[str, Any] | None:
+    if not path.is_file():
+        return None
+    try:
+        loaded: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return loaded
+
+
+def report_is_stale(ran_at: str, head_epoch: int) -> bool:
+    """Звіт, знятий РАНІШЕ за поточний HEAD, описує інше дерево.
+
+    Нечитний або відсутній штамп — теж застарілий: доводити свіжість мусить звіт, а не
+    той, хто його читає. Перша версія цього інструмента взагалі не питала віку й сказала
+    ACCEPTED на домерджевому звіті, коли лан мав три червоні.
+    """
+    try:
+        moment = int(datetime.fromisoformat(ran_at).timestamp())
+    except (TypeError, ValueError):
+        return True
+    return moment < head_epoch
+
+
+def _lane_findings(lane: dict[str, Any] | None, stale: bool) -> tuple[list[str], list[str]]:
+    if lane is None:
+        return [], ["немає var/lane-validate.json — лан не ганяли, отже нічого не доведено"]
+    if stale:
+        return [], ["звіт лану СТАРШИЙ за HEAD — він про інше дерево, прожени лан заново"]
+    if lane.get("not_run") or lane.get("failed"):
+        return [f"лан: впало {lane.get('failed')}, НЕ ЗАПУСКАЛОСЬ {lane.get('not_run')}"], []
+    return [], []
+
+
+def _axes_findings(axes: dict[str, Any] | None) -> tuple[list[str], list[str]]:
+    """UNKNOWN і FAIL — різні вироки, і плутати їх тут найдорожче.
+
+    Вісь `evidence_bases` має стелю віку одна година, тож профіль стає UNKNOWN сам
+    собою. Приписати це зведенню означало б звинуватити мердж у власному
+    протермінованому вході. Нижче підлоги — шкода; несвіжий вхід — UNKNOWN.
+    """
+    if axes is None:
+        return [], ["немає var/answer-axes.json — профіль осей не міряли"]
+    below = [
+        item["axis"]
+        for item in axes.get("axes", [])
+        if item.get("state") == "MEASURED" and item.get("below_floor")
+    ]
+    stale = [
+        f"{item['axis']}: {item.get('reason', '')}"
+        for item in axes.get("axes", [])
+        if item.get("state") != "MEASURED"
+    ]
+    problems = [f"осі ПІД ПІДЛОГОЮ: {below}"] if below else []
+    if axes.get("verdict") == "FAIL" and not below:
+        problems.append("вердикт осей FAIL без названої осі — звіт суперечить сам собі")
+    return problems, stale
+
+
+def _mutation_findings(mutation: dict[str, Any] | None) -> tuple[list[str], list[str]]:
+    """Внутрішня узгодженість звіту НЕ означає, що він бачив каталог.
+
+    Після зведення каталог виріс до 525, а звіт лишився про 511 і виглядав цілим:
+    511 із 511, `survived` порожній. Тому питаємо окремий гейт свіжості.
+    """
+    problems: list[str] = []
+    freshness = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/check_mutation_report_freshness.py")],
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if freshness.returncode != 0:
+        unseen = re.findall(r"каталог має (\d+) мутантів", freshness.stdout)
+        problems.append(
+            f"звіт мутацій не бачив {unseen[0]} мутантів каталогу"
+            if unseen
+            else "звіт мутацій розійшовся з каталогом"
+        )
+    if mutation is None:
+        return problems, ["немає reports/MUTATION_REPORT.json"]
+    if mutation.get("survived") or mutation.get("killed") != mutation.get("mutants"):
+        problems.append(
+            f"мутанти: {mutation.get('killed')}/{mutation.get('mutants')}, "
+            f"вижили {mutation.get('survived')}"
+        )
+    return problems, []
+
+
+def _produce_axes() -> dict[str, Any] | None:
+    """Профіль виробляється ТУТ: він не має власного `--out`, а вік входів вимірюється
+    годинами, тож учорашній файл питає про інший стан."""
+    path = ROOT / "var/answer-axes.json"
+    produced = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/check_answer_axes.py")],
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if produced.stdout.strip().startswith("{"):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(produced.stdout, encoding="utf-8")
+    return _report(path)
+
+
+def _tree_findings(
+    tags: dict[str, str],
+    prefix: str,
+    snapshot: str,
+    gone: list[str],
+    lost: list[str],
+    heads: list[str],
+) -> list[str]:
+    """Твердження про сам репозиторій: база порівняння, втрати, ланцюг міграцій."""
+    problems: list[str] = []
+    if not tags:
+        problems.append(f"немає жодного тега {prefix}/* — база порівняння відсутня")
+    if gone:
+        problems.append(f"тіпи стали недосяжними: {gone}")
+    if snapshot not in tags:
+        problems.append(f"немає знімка канону {snapshot} — «що втрачено» порахувати нічим")
+    if lost:
+        problems.append(f"канон ВТРАТИВ {len(lost)} файлів, напр. {lost[:5]}")
+    if len(heads) != 1:
+        problems.append(f"alembic голів {len(heads)}, мусить бути 1: {heads}")
+    return problems
+
+
+def gather(canonical: str, prefix: str) -> dict[str, Any]:
+    tags = baseline_tags(prefix)
+    snapshot = f"{prefix}/{canonical.replace('/', '-')}"
+    lost = files_lost(canonical, snapshot) if snapshot in tags else []
+    heads = alembic_heads()
+    head_time = int(git("log", "-1", "--format=%ct", canonical) or 0)
+    lane = _report(ROOT / "var/lane-validate.json")
+    lane_stale = lane is not None and report_is_stale(str(lane.get("ran_at", "")), head_time)
+
+    gone = unreachable(tags)
+    problems: list[str] = _tree_findings(tags, prefix, snapshot, gone, lost, heads)
+    unknown: list[str] = []
+    for source in (
+        _lane_findings(lane, lane_stale),
+        _axes_findings(_produce_axes()),
+        _mutation_findings(_report(ROOT / "reports/MUTATION_REPORT.json")),
+    ):
+        problems.extend(source[0])
+        unknown.extend(source[1])
+
+    axes = _report(ROOT / "var/answer-axes.json")
+    mutation = _report(ROOT / "reports/MUTATION_REPORT.json")
+    return {
+        "schema": "korpus.branch-consolidation.v1",
+        "ran_at": datetime.now(UTC).isoformat(),
+        "canonical": canonical,
+        "canonical_head": git("rev-parse", "--short", canonical),
+        "baseline_tags": len(tags),
+        "tips_unreachable": gone,
+        "files_lost_from_canonical": lost[:40],
+        "files_lost_count": len(lost),
+        "alembic_heads": heads,
+        "lane": {k: lane.get(k) for k in ("passed", "failed", "not_run")} if lane else None,
+        "axes_verdict": axes.get("verdict") if axes else None,
+        "mutation": (
+            {"killed": mutation.get("killed"), "mutants": mutation.get("mutants")}
+            if mutation
+            else None
+        ),
+        "branches_now": len(git("for-each-ref", "--format=%(refname)", "refs/heads").splitlines()),
+        "problems": problems,
+        "unknown": unknown,
+        "verdict": "REJECTED" if problems else ("UNKNOWN" if unknown else "ACCEPTED"),
+        "ACCEPTED": not problems and not unknown,
+    }
+
+
+def selftest() -> int:
+    checks: list[tuple[str, Any, Any]] = [
+        ("голова без нащадків — голова", _literal("revision = '0018_x'", "revision"), "0018_x"),
+        ("None читається як відсутність", _literal("down_revision = None", "down_revision"), None),
+        ("порожнє — теж відсутність", _literal("down_revision = ''", "down_revision"), None),
+        ("лапки знімаються", _literal('revision = "0001"', "revision"), "0001"),
+        ("чужий рядок не плутається", _literal("# revision = 'x'", "revision"), None),
+    ]
+    heads = alembic_heads()
+    checks.append(("у цьому дереві рівно одна голова", len(heads), 1))
+    passed = 0
+    for name, got, want in checks:
+        ok = got == want
+        passed += ok
+        print(f"  {'ok' if ok else 'ПРОВАЛ'} {name}: {got!r}")
+    print(f"негативний контроль: {passed}/{len(checks)}")
+    return 0 if passed == len(checks) else 1
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--canonical", default="work/converge-semantic")
+    parser.add_argument("--prefix", default="archive/2026-09-01")
+    parser.add_argument("--out", type=Path, default=ROOT / "var/branch-consolidation.json")
+    parser.add_argument("--root", type=Path, default=None, help="корінь репозиторію")
+    parser.add_argument("--selftest", action="store_true")
+    arguments = parser.parse_args()
+    if arguments.root:
+        globals()["ROOT"] = arguments.root
+    if arguments.selftest:
+        return selftest()
+    report = gather(arguments.canonical, arguments.prefix)
+    arguments.out.parent.mkdir(parents=True, exist_ok=True)
+    rendered = json.dumps(report, ensure_ascii=False, indent=2)
+    arguments.out.write_text(rendered, encoding="utf-8")
+    print(rendered)
+    if report["problems"]:
+        return 1
+    return 0 if not report["unknown"] else 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
