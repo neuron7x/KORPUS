@@ -3107,6 +3107,14 @@
       "max_nesting": 2,
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
+    "scripts/check_serving_freshness.py": {
+      "lines": 176,
+      "max_complexity": 10,
+      "max_function_args": 2,
+      "max_function_lines": 40,
+      "max_nesting": 3,
+      "reason": "Чи процес, який відповідає читачеві, виконує те саме дерево, що лежить у git. Звіт із застарілим КОРПУСОМ ловиться ідентичністю входів; звіт із застарілим ПРОЦЕСОМ не ловиться нічим — корпус той самий, вимірювач той самий, вік малий, а відповідав інший код. Виявлення з оточення живих процесів, не з переліку в конфізі: перелік був би другим оголошенням того самого факту."
+    },
     "scripts/compare_retrieval_configs.py": {
       "lines": 138,
       "max_complexity": 9,
@@ -4270,7 +4278,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5372,
+      "lines": 5396,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -7725,6 +7733,14 @@
       }
     },
     {
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "+24 рядки за M523–M524: сервер, старший за код, зараховувався як такий, що його виконує, і нуль обслуговуючих процесів зараховувався як згода. П'ять осей профілю міряються ЗАПИТОМ до сервера, тож без цих двох гейт кредитував би дерево числом, порахованим іншим кодом.",
+      "to": {
+        "lines": 5125
+      }
+    },
+    {
       "from": {
         "lines": 318,
         "max_function_args": 4,
@@ -7900,6 +7916,17 @@
       "reason": "+M532–M534 до зведеного каталогу.",
       "to": {
         "lines": 5372
+      }
+    },
+    {
+      "from": {
+        "lines": 5372
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Друге зведення того ж дня: каталог росте лише ДОДАВАННЯМ, стеля — вимір об'єднаного дерева. M523–M524 сусідньої сесії (свіжість обслуговування) поверх M492–M499, M521–M522 і моїх M500–M520, M530–M534.",
+      "to": {
+        "lines": 5396
       }
     }
   ],

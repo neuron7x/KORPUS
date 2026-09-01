@@ -4790,6 +4790,30 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    # ── Свіжість обслуговуючого процесу. П'ять осей міряються запитом до сервера, тож
+    # вони кредитують ПРОЦЕС, а не дерево, і жодне поле звіту про це не каже.
+    Mutant(
+        "M523_A_SERVER_OLDER_THAN_THE_CODE_STILL_COUNTS_AS_SERVING_IT",
+        "scripts/check_serving_freshness.py",
+        '    judged = [{**item, "serves_current_code": item["started_epoch"] >= stamp} for item in processes]',
+        '    judged = [{**item, "serves_current_code": True} for item in processes]',
+        (
+            "apps/api/tests/test_serving_freshness.py::"
+            "test_a_process_older_than_the_code_does_not_serve_the_tree",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M524_NO_SERVING_PROCESS_COUNTS_AS_AGREEMENT",
+        "scripts/check_serving_freshness.py",
+        '        "status": "MEASURED" if judged else "UNKNOWN",',
+        '        "status": "MEASURED",',
+        (
+            "apps/api/tests/test_serving_freshness.py::"
+            "test_no_serving_process_is_unknown_rather_than_agreement",
+        ),
+        full_copy=True,
+    ),
     Mutant(
         "M522_THE_DIRECTIVE_SET_WIDENS_UNTIL_EVERYTHING_IS_ACTIONABLE",
         "scripts/measure_declared_coverage.py",
