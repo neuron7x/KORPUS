@@ -6,7 +6,7 @@ import hashlib
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date
-from typing import Protocol
+from typing import Protocol, cast
 
 from korpus.domain.models import Identity, RetrievedEvidence
 
@@ -80,6 +80,51 @@ class CorpusSnapshotReader(Protocol):
         as_of: date,
         token: CorpusReadToken,
     ) -> None: ...
+
+
+class ReleaseIdentityUnavailable(RuntimeError):
+    """Ніхто не причепив читача знімка, тож назвати реліз нічим.
+
+    Це НЕ те саме, що «реліз порожній»: порожній корпус має цілком законну
+    тотожність — дайджест порожньої множини. Тут тотожності немає ЗОВСІМ, і
+    єдина чесна відповідь — відмова, а не тихо інша, слабша тотожність.
+    """
+
+
+def attached_snapshot_reader(repository: object) -> CorpusSnapshotReader | None:
+    """Читач знімка, якого композиційний корінь повісив на репозиторій, або None.
+
+    Оголосити його в порті `Repository` не можна: знімок ОПИСУЄ читання, а не є
+    його частиною, і залежність стала б двобічною. Але чотири місця питали релізну
+    тотожність у самого репозиторію — і діставали ІНШУ, слабшу тотожність, ніж та,
+    якою журнал засвідчує ту саму відповідь.
+    """
+    reader = getattr(repository, "corpus_snapshot_reader", None)
+    if reader is None:
+        return None
+    return cast(CorpusSnapshotReader, reader)
+
+
+def release_token(
+    repository: object,
+    identity: Identity,
+    corpus_ids: frozenset[str],
+    as_of: date,
+) -> CorpusReadToken:
+    """Єдиний спосіб дізнатись, ЯКИЙ реліз читають — і він один на всю систему.
+
+    Раніше їх було два: `Repository.corpus_release_id` рахував дайджест із чотирьох
+    полів на версію й обрізав до 16 шістнадцяткових, а знімок — із дев'ятнадцяти,
+    повною довжиною. Обидва звалися релізом. Два стани корпусу, що різняться лише
+    грифом, відкликанням чи відсіками, діставали ОДНАКОВИЙ старий ідентифікатор:
+    відповідь називала реліз, який уже не описував того, що читач бачив.
+    """
+    reader = attached_snapshot_reader(repository)
+    if reader is None:
+        raise ReleaseIdentityUnavailable(
+            "no corpus snapshot reader is attached; the release identity is unknown"
+        )
+    return reader.capture(identity, corpus_ids, as_of)
 
 
 class SnapshotRetriever(Protocol):

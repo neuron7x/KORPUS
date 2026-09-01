@@ -83,7 +83,7 @@ class ControllerRule(BaseModel):
 class ControllerProfile(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    schema_version: int = Field(default=2, ge=2, le=2)
+    schema_version: int = Field(default=3, ge=3, le=3)
     profile_id: str = Field(min_length=3, max_length=120)
     dataset_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     system_manifest_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
@@ -91,7 +91,11 @@ class ControllerProfile(BaseModel):
     replay_receipt_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     training_receipt_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     feature_schema_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
-    corpus_release_id: str = Field(pattern=r"^[a-f0-9]{16}$")
+    # Єдине поле профілю, що не було повним дайджестом: воно зв'язувалось із
+    # ОБРІЗАНОЮ до 16 знаків релізною тотожністю. Відколи реліз один і повний,
+    # обрізок означав би, що профіль зв'язаний слабше, ніж усе інше поруч —
+    # два різні релізи ділили б один префікс і профіль не помітив би підміни.
+    corpus_release_id: str = Field(pattern=r"^[a-f0-9]{64}$")
     answer_calibration_id: str = Field(min_length=3, max_length=120)
     admission_status: Literal["PASS", "FAIL", "UNKNOWN"] = "UNKNOWN"
     controller_risk_limit: float = Field(gt=0.0, lt=1.0)

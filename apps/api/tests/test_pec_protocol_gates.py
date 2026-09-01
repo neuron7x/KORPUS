@@ -60,7 +60,7 @@ def _metamorphic_base() -> dict[str, object]:
         "gold_retrievable": True,
         "answer_status": "answered",
         "source_digest": "1" * 64,
-        "corpus_release_id": "a" * 16,
+        "corpus_release_id": "a" * 64,
         "evaluation_protocol_sha256": "2" * 64,
         "answer_calibration_id": "cal-test",
     }
@@ -77,7 +77,7 @@ def _metamorphic_transform() -> dict[str, object]:
         "planner_permission_expanded": False,
         "answer_status": "answered",
         "source_digest": "1" * 64,
-        "corpus_release_id": "a" * 16,
+        "corpus_release_id": "a" * 64,
         "evaluation_protocol_sha256": "2" * 64,
         "answer_calibration_id": "cal-test",
     }
@@ -113,7 +113,7 @@ def _admitted_profile() -> ControllerProfile:
         replay_receipt_sha256="4" * 64,
         training_receipt_sha256="5" * 64,
         feature_schema_sha256=feature_schema_sha256(),
-        corpus_release_id="a" * 16,
+        corpus_release_id="a" * 64,
         answer_calibration_id="cal-test",
         admission_status="PASS",
         controller_risk_limit=0.05,

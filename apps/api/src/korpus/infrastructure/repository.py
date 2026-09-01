@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 import threading
@@ -860,38 +859,6 @@ class SqlRepository:
 
     def verify_audit(self) -> AuditVerification:
         return self._audit_reader.verify_audit()
-
-    def corpus_release_id(
-        self,
-        identity: Identity,
-        corpus_ids: frozenset[str],
-        as_of: date,
-    ) -> str:
-        authorized_corpora = corpus_ids.intersection(identity.corpora)
-        if not authorized_corpora:
-            unique_versions: set[tuple[str, str, str, str]] = set()
-        else:
-            statement = retrieval_queries.release_projection(identity, authorized_corpora, as_of)
-            with self.engine.begin() as connection:
-                self._apply_postgres_identity(connection, identity)
-                rows = connection.execute(statement).mappings().all()
-            unique_versions = {
-                (
-                    str(row["document_id"]),
-                    str(row["version_id"]),
-                    str(row["source_hash"]),
-                    str(row["review_state"]),
-                )
-                for row in rows
-                # The same currency rule the span path applies, evaluated once per
-                # version rather than once per span. `in_force_from` is the domain's,
-                # not a second copy of it.
-                if retrieval_queries.release_row_is_current(row, as_of)
-            }
-        digest = hashlib.sha256()
-        for row_key in sorted(unique_versions):
-            digest.update(":".join(row_key).encode("utf-8") + b"\n")
-        return digest.hexdigest()[:16]
 
     def schema_revision(self) -> str | None:
         try:

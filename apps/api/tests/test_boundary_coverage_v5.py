@@ -13,6 +13,8 @@ from korpus.domain.models import AccessTier, Identity
 from korpus.infrastructure.object_store import LocalObjectStore
 from korpus.infrastructure.semantic import HttpEmbeddingProvider, PgVectorSemanticIndex
 
+from apps.api.tests.helpers import StubSnapshotReader
+
 
 class FakeResponse:
     def __init__(
@@ -378,9 +380,7 @@ class DummyRepository:
     def object_inventory(self) -> dict[str, set[str]]:
         return self.inventory
 
-    def corpus_release_id(self, identity: object, corpora: object, as_of: object) -> str:
-        del identity, corpora, as_of
-        return "release-1"
+    corpus_snapshot_reader = StubSnapshotReader("d" * 64)
 
     def close(self) -> None:
         self.closed = True
@@ -445,7 +445,7 @@ def test_cli_read_commands_close_all_resources(
 
     cli, repository, content, quarantine = _run_cli(monkeypatch, ["release-id"])
     cli.main()
-    assert capsys.readouterr().out.strip() == "release-1"
+    assert capsys.readouterr().out.strip() == "d" * 64
     assert repository.closed and content.closed and quarantine.closed
 
     cli, repository, content, quarantine = _run_cli(monkeypatch, ["issue-token"])

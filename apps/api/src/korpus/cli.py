@@ -5,6 +5,7 @@ import os
 import socket
 from datetime import UTC, datetime
 
+from korpus.application.corpus_snapshot import release_token
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.ingestion_jobs import IngestionWorker
 from korpus.application.policy import PolicyEngine
@@ -156,9 +157,9 @@ def main() -> None:
             )
             if args.command == "release-id":
                 print(
-                    repository.corpus_release_id(
-                        identity, identity.corpora, datetime.now(UTC).date()
-                    )
+                    release_token(
+                        repository, identity, identity.corpora, datetime.now(UTC).date()
+                    ).release_id
                 )
             else:
                 print(issue_token(identity, settings))

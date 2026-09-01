@@ -337,7 +337,9 @@ def test_monotonic_epoch_kills_release_aba_without_changing_historical_identity(
     corpora = frozenset({"public"})
     token_a = reader.capture(admin_identity, corpora, as_of)
 
-    second = ingest_text(client, title="B", text="Маркер BRAVO наказує подати рапорт негайно.")
+    second = ingest_text(
+        client, title="Наказ Б", text="Маркер BRAVO наказує подати рапорт негайно."
+    )
     second_version = _version_id(second)
     approve(client, second_version)
     token_b = reader.capture(admin_identity, corpora, as_of)

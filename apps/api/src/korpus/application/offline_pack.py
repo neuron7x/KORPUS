@@ -13,6 +13,7 @@ import json
 from datetime import UTC, datetime, timedelta
 from typing import Protocol
 
+from korpus.application.corpus_snapshot import release_token
 from korpus.application.policy import PolicyEngine
 from korpus.application.policy_evidence import answer_policy_decision_id
 from korpus.application.ports import Repository
@@ -66,7 +67,7 @@ class OfflinePackService:
                 f"offline pack contains {len(rows)} spans; configured maximum is {self.max_spans}"
             )
         rows.sort(key=lambda row: (str(row[1].id), str(row[2].id), row[0].ordinal, str(row[0].id)))
-        release = self.repository.corpus_release_id(identity, corpora, issued.date())
+        release = release_token(self.repository, identity, corpora, issued.date()).release_id
         policy_id = answer_policy_decision_id(identity, requested_corpora)
         payload: dict[str, object] = {
             "schema": "korpus.offline-pack.v1",

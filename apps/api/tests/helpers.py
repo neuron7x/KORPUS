@@ -4,6 +4,7 @@ import json
 from datetime import date
 
 from fastapi.testclient import TestClient
+from korpus.application.corpus_snapshot import CorpusConsistencyError, CorpusReadToken
 
 
 def ingest_text(
@@ -109,3 +110,45 @@ def approve(client: TestClient, version_id: str) -> dict[str, object]:
     for target in ("metadata_reviewed", "content_reviewed", "approved"):
         result = transition(client, version_id, target)
     return result
+
+
+class StubSnapshotReader:
+    """Читач знімка для подвійників репозиторію: одна тотожність, названа явно.
+
+    Відколи релізна тотожність береться ЛИШЕ зі знімка, подвійник репозиторію без
+    читача не вміє назвати реліз — і код правильно відмовляє. Це не незручність, а
+    сенс зміни: місце, яке колись діставало другу, слабшу тотожність, тепер мусить
+    сказати, яку саме тотожність воно вдає.
+    """
+
+    def __init__(self, release: str = "1" * 64, epoch: int = 1) -> None:
+        self.release = release
+        self.epoch = epoch
+        self.captures = 0
+
+    def capture(self, identity: object, corpus_ids: frozenset[str], as_of: date) -> CorpusReadToken:
+        self.captures += 1
+        corpora = frozenset(corpus_ids) & frozenset(getattr(identity, "corpora", corpus_ids))
+        return CorpusReadToken(
+            state_epoch=self.epoch,
+            release_id=self.release,
+            as_of=as_of,
+            corpus_ids=corpora,
+            authorization_scope_id="b" * 64,
+        )
+
+    def validate(
+        self,
+        identity: object,
+        corpus_ids: frozenset[str],
+        as_of: date,
+        token: CorpusReadToken,
+    ) -> None:
+        if token.state_epoch != self.epoch:
+            raise CorpusConsistencyError("corpus state changed after read token capture")
+
+
+def with_snapshot(repository: object, release: str = "1" * 64) -> object:
+    """Причепити подвійникові репозиторію читача знімка й повернути його ж."""
+    repository.corpus_snapshot_reader = StubSnapshotReader(release)  # type: ignore[attr-defined]
+    return repository

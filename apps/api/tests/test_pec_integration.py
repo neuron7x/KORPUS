@@ -130,9 +130,9 @@ def test_easy_query_stops_after_original_retrieval_and_does_not_call_planner(
     result = ingest_text(client)
     approve(client, result["version"]["id"])
     query = QueryRequest(text="Що має містити кожен запис?", as_of=date(2026, 8, 21))
-    release_id = client.app.state.repository.corpus_release_id(
+    release_id = client.app.state.corpus_snapshot_reader.capture(
         admin_identity, frozenset({"public"}), query.as_of
-    )
+    ).release_id
     planner = CountingPlanner(["дата відповідальна особа"])
     answer = _service(client, admin_identity, planner, release_id).execute(admin_identity, query)
     assert answer.status.value == "answered"
@@ -150,7 +150,7 @@ def test_stale_profile_falls_back_to_baseline_and_calls_planner(client, admin_id
         client.app.state.policy,
         AnswerPolicy(0.1, 0.1, 0.1, "pec-test-cal"),
         query_planner=planner,
-        predictive_controller=_controller("f" * 16),
+        predictive_controller=_controller("f" * 64),
     )
     answer = service.execute(admin_identity, query)
     assert answer.status.value == "answered"
@@ -161,9 +161,9 @@ def test_controller_cannot_turn_insufficient_evidence_into_an_answer(
     client, admin_identity
 ) -> None:
     query = QueryRequest(text="Який пароль адміністратора системи?", as_of=date(2026, 8, 21))
-    release_id = client.app.state.repository.corpus_release_id(
+    release_id = client.app.state.corpus_snapshot_reader.capture(
         admin_identity, frozenset({"public"}), query.as_of
-    )
+    ).release_id
     planner = CountingPlanner([])
     answer = _service(client, admin_identity, planner, release_id).execute(admin_identity, query)
     assert answer.status.value == "insufficient_evidence"
@@ -174,9 +174,9 @@ def test_controller_trace_reaches_completed_answer_audit(client, admin_identity)
     result = ingest_text(client)
     approve(client, result["version"]["id"])
     query = QueryRequest(text="Що має містити кожен запис?", as_of=date(2026, 8, 21))
-    release_id = client.app.state.repository.corpus_release_id(
+    release_id = client.app.state.corpus_snapshot_reader.capture(
         admin_identity, frozenset({"public"}), query.as_of
-    )
+    ).release_id
     planner = CountingPlanner(["дата відповідальна особа"])
     _service(client, admin_identity, planner, release_id).execute(admin_identity, query)
     with client.app.state.repository.engine.begin() as connection:
@@ -218,7 +218,7 @@ def test_removing_controller_restores_baseline_answer_semantics_without_data_mig
         client.app.state.policy,
         AnswerPolicy(0.1, 0.1, 0.1, "pec-test-cal"),
         query_planner=stale_planner,
-        predictive_controller=_controller("f" * 16),
+        predictive_controller=_controller("f" * 64),
     )
     restored = stale_service.execute(admin_identity, query)
     assert restored.model_dump(exclude={"id", "created_at"}) == baseline.model_dump(
@@ -234,9 +234,9 @@ def test_controller_abstain_is_terminal_even_when_first_pass_has_eligible_eviden
     result = ingest_text(client)
     approve(client, result["version"]["id"])
     query = QueryRequest(text="Що має містити кожен запис?", as_of=date(2026, 8, 21))
-    release_id = client.app.state.repository.corpus_release_id(
+    release_id = client.app.state.corpus_snapshot_reader.capture(
         admin_identity, frozenset({"public"}), query.as_of
-    )
+    ).release_id
     planner = CountingPlanner(["дата відповідальна особа"])
     service = ExtractiveAnswerService(
         client.app.state.repository,
@@ -257,9 +257,9 @@ def test_planner_escalation_does_not_repeat_original_lexical_search(client, admi
     result = ingest_text(client)
     approve(client, result["version"]["id"])
     query = QueryRequest(text="Що має містити кожен запис?", as_of=date(2026, 8, 21))
-    release_id = client.app.state.repository.corpus_release_id(
+    release_id = client.app.state.corpus_snapshot_reader.capture(
         admin_identity, frozenset({"public"}), query.as_of
-    )
+    ).release_id
     planner = CountingPlanner(["дата відповідальна особа"])
     retriever = CountingRetriever(HybridLexicalRetriever(client.app.state.repository))
     service = ExtractiveAnswerService(

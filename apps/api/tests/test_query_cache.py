@@ -3,13 +3,22 @@ from datetime import date
 from korpus.application.cache import CachedRetriever, EvidenceQueryCache
 from korpus.domain.models import AccessTier, Identity
 
+from apps.api.tests.helpers import StubSnapshotReader
+
 
 class Repo:
-    def __init__(self):
-        self.release = "r1"
+    """Подвійник репозиторію мусить сказати, ЯКИЙ реліз він вдає, а не просто «r1»."""
 
-    def corpus_release_id(self, identity, corpus_ids, as_of):
-        return self.release
+    def __init__(self):
+        self.corpus_snapshot_reader = StubSnapshotReader("a" * 64)
+
+    @property
+    def release(self):
+        return self.corpus_snapshot_reader.release
+
+    @release.setter
+    def release(self, value):
+        self.corpus_snapshot_reader.release = value
 
 
 class Delegate:
@@ -40,7 +49,7 @@ def test_cache_is_bound_to_identity_release_and_configuration():
     assert delegate.calls == 1
     retriever.search(identity("bob"), "query", frozenset({"public"}), date(2026, 1, 1))
     assert delegate.calls == 2
-    repo.release = "r2"
+    repo.release = "b" * 64
     retriever.search(identity("alice"), "query", frozenset({"public"}), date(2026, 1, 1))
     assert delegate.calls == 3
     assert cache.stats().hits == 1
@@ -72,8 +81,7 @@ def test_two_compartment_sets_do_not_share_a_cached_result() -> None:
     from korpus.domain.models import AccessTier, Identity
 
     class ReleaseOnly:
-        def corpus_release_id(self, *args: object, **kwargs: object) -> str:
-            return "release"
+        corpus_snapshot_reader = StubSnapshotReader("c" * 64)
 
     def identity(compartments: set[str]) -> Identity:
         return Identity(

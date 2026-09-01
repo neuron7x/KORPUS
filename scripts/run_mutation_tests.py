@@ -118,17 +118,21 @@ MUTANTS = (
     ),
     Mutant(
         "M06_RELEASE_SCOPE_BROADENED",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/corpus_snapshot.py",
         # Re-anchored 2026-08-06: the release id is computed from the version projection
         # rather than by materialising every span. The scope it is asked for is what
         # this still mutates.
+        # Re-anchored 2026-09-01: релізна тотожність одна, і рахує її читач знімка —
+        # `SqlRepository.corpus_release_id` більше не існує. Властивість та сама, дім
+        # інший. `type(identity.clearance)` замість імпорту `AccessTier`: мутація не
+        # сміє вбиватись NameError'ом, бо тоді вона міряє імпорт, а не гриф.
         (
-            "            statement = retrieval_queries.release_projection("
-            "identity, authorized_corpora, as_of)"
+            "                statement = retrieval_queries.release_projection("
+            "identity, authorized, as_of)"
         ),
         (
-            "            statement = retrieval_queries.release_projection("
-            "identity.model_copy(update={'clearance': AccessTier.RESTRICTED, "
+            "                statement = retrieval_queries.release_projection("
+            "identity.model_copy(update={'clearance': type(identity.clearance).RESTRICTED, "
             "'corpora': frozenset({'public', 'restricted-demo'})}), "
             "frozenset({'public', 'restricted-demo'}), as_of)"
         ),
@@ -1791,9 +1795,12 @@ MUTANTS = (
         # same question explicitly, and dropping it puts tomorrow's order into today's
         # fingerprint — every answer stamped with a corpus it was not drawn from.
         "M196_RELEASE_ID_IGNORES_CURRENCY",
-        "apps/api/src/korpus/infrastructure/repository.py",
-        "                if retrieval_queries.release_row_is_current(row, as_of)",
-        "                if True",
+        "apps/api/src/korpus/infrastructure/corpus_snapshot.py",
+        (
+            "            visible = [row for row in rows "
+            "if retrieval_queries.release_row_is_current(row, as_of)]"
+        ),
+        "            visible = list(rows)",
         (
             "apps/api/tests/test_corpus_release_identity.py::"
             "test_a_version_not_yet_in_force_is_not_in_the_release",

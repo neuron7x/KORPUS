@@ -64,7 +64,7 @@ def _evidence(text: str, *, score: float = 0.8, coverage: float = 0.75) -> Retri
     )
 
 
-def _profile(*, release: str = "b" * 16, admitted: bool = True) -> ControllerProfile:
+def _profile(*, release: str = "b" * 64, admitted: bool = True) -> ControllerProfile:
     return ControllerProfile(
         profile_id="pec-test-v1",
         dataset_sha256="1" * 64,
@@ -161,9 +161,9 @@ def test_controller_is_deterministic_and_source_bound() -> None:
         eligible_evidence_count=1,
     )
     controller = PredictiveEvidenceController(_profile(), shadow_mode=False)
-    left = controller.decide(state, corpus_release_id="b" * 16, answer_calibration_id="cal-v1")
-    right = controller.decide(state, corpus_release_id="b" * 16, answer_calibration_id="cal-v1")
-    stale = controller.decide(state, corpus_release_id="c" * 16, answer_calibration_id="cal-v1")
+    left = controller.decide(state, corpus_release_id="b" * 64, answer_calibration_id="cal-v1")
+    right = controller.decide(state, corpus_release_id="b" * 64, answer_calibration_id="cal-v1")
+    stale = controller.decide(state, corpus_release_id="c" * 64, answer_calibration_id="cal-v1")
     assert left == right
     assert left.effective_action is RetrievalAction.STOP_USE_CURRENT_EVIDENCE
     assert stale.effective_action is RetrievalAction.BASELINE
@@ -178,7 +178,7 @@ def test_unadmitted_leaf_and_out_of_support_fall_back() -> None:
         eligible_evidence_count=1,
     )
     controller = PredictiveEvidenceController(_profile(admitted=False), shadow_mode=False)
-    decision = controller.decide(state, corpus_release_id="b" * 16, answer_calibration_id="cal-v1")
+    decision = controller.decide(state, corpus_release_id="b" * 64, answer_calibration_id="cal-v1")
     assert decision.effective_action is RetrievalAction.BASELINE
     assert decision.fallback_reason == "leaf_not_admitted"
 
@@ -209,7 +209,7 @@ def test_semantic_action_refuses_when_semantic_is_unavailable() -> None:
         semantic_available=False,
     )
     decision = PredictiveEvidenceController(profile, shadow_mode=False).decide(
-        state, corpus_release_id="b" * 16, answer_calibration_id="cal-v1"
+        state, corpus_release_id="b" * 64, answer_calibration_id="cal-v1"
     )
     assert decision.effective_action is RetrievalAction.BASELINE
     assert decision.fallback_reason == "semantic_retrieval_unavailable"
@@ -223,7 +223,7 @@ def test_shadow_mode_never_changes_runtime_action() -> None:
         eligible_evidence_count=1,
     )
     decision = PredictiveEvidenceController(_profile(), shadow_mode=True).decide(
-        state, corpus_release_id="b" * 16, answer_calibration_id="cal-v1"
+        state, corpus_release_id="b" * 64, answer_calibration_id="cal-v1"
     )
     assert decision.predicted_action is RetrievalAction.STOP_USE_CURRENT_EVIDENCE
     assert decision.effective_action is RetrievalAction.BASELINE
@@ -255,7 +255,7 @@ def test_profile_rejects_wrong_feature_schema_and_underpowered_admitted_leaf() -
             replay_receipt_sha256="4" * 64,
             training_receipt_sha256="5" * 64,
             feature_schema_sha256=feature_schema_sha256(),
-            corpus_release_id="b" * 16,
+            corpus_release_id="b" * 64,
             answer_calibration_id="cal-v1",
             admission_status="PASS",
             controller_risk_limit=0.05,

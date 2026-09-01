@@ -21,6 +21,8 @@ from korpus.application.release_claims import _claim_status
 from korpus.domain.models import Identity
 from korpus.infrastructure.gcp_identity import MetadataIdentityError, MetadataIdentityProvider
 
+from apps.api.tests.helpers import StubSnapshotReader
+
 SHA = "a" * 64
 
 
@@ -153,7 +155,7 @@ def _meta_row(pair: str, variant: str, **extra: object) -> dict[str, object]:
         "pair_id": pair,
         "variant": variant,
         "source_digest": SHA,
-        "corpus_release_id": "1" * 16,
+        "corpus_release_id": "1" * 64,
         "evaluation_protocol_sha256": "b" * 64,
         "answer_calibration_id": "cal-1",
     }
@@ -222,8 +224,7 @@ def test_release_claim_status_branches(
 
 
 class _Repo:
-    def corpus_release_id(self, identity: Identity, corpus_ids: frozenset[str], as_of: date) -> str:
-        return "release-1"
+    corpus_snapshot_reader = StubSnapshotReader("e" * 64)
 
 
 class _Delegate:
@@ -598,7 +599,7 @@ def _controller_profile(
         replay_receipt_sha256="4" * 64,
         training_receipt_sha256="5" * 64,
         feature_schema_sha256=feature_schema_sha256(),
-        corpus_release_id="b" * 16,
+        corpus_release_id="b" * 64,
         answer_calibration_id="cal-v1",
         admission_status=admission_status,
         controller_risk_limit=risk_limit,
@@ -772,10 +773,10 @@ def test_predictive_controller_binding_and_out_of_support_branches() -> None:
     state = _State()
     not_admitted = PredictiveEvidenceController(
         _controller_profile(admission_status="UNKNOWN"), shadow_mode=False
-    ).decide(state, corpus_release_id="b" * 16, answer_calibration_id="cal-v1")
+    ).decide(state, corpus_release_id="b" * 64, answer_calibration_id="cal-v1")
     assert not_admitted.fallback_reason == "profile_not_admitted"
     calibration = PredictiveEvidenceController(_controller_profile(), shadow_mode=False).decide(
-        state, corpus_release_id="b" * 16, answer_calibration_id="other"
+        state, corpus_release_id="b" * 64, answer_calibration_id="other"
     )
     assert calibration.fallback_reason == "answer_calibration_mismatch"
     false_rule = ControllerRule(
@@ -791,7 +792,7 @@ def test_predictive_controller_binding_and_out_of_support_branches() -> None:
     )
     out = PredictiveEvidenceController(
         _controller_profile(rules=(false_rule,)), shadow_mode=False
-    ).decide(state, corpus_release_id="b" * 16, answer_calibration_id="cal-v1")
+    ).decide(state, corpus_release_id="b" * 64, answer_calibration_id="cal-v1")
     assert out.fallback_reason == "state_out_of_support"
 
 

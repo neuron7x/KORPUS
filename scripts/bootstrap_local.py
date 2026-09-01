@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
+from korpus.application.corpus_snapshot import release_token
 from korpus.application.ingestion import ExtractionSettings
 from korpus.application.policy import PolicyEngine
 from korpus.composition import build_ingestion_service
@@ -91,7 +92,8 @@ def main() -> None:
     print(f"database={settings.database_url}")
     print(f"document={result.document.id}")
     print(f"version={result.version.id}")
-    print(f"release={repository.corpus_release_id(actor, actor.corpora, date.today())}")
+    release = release_token(repository, actor, actor.corpora, date.today()).release_id
+    print(f"release={release}")
 
 
 if __name__ == "__main__":

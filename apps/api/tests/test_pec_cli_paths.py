@@ -126,7 +126,7 @@ def test_controller_verifier_fails_on_promoted_oracle_mismatch() -> None:
             replay_receipt_sha256=digest(replay),
             training_receipt_sha256=digest(training),
             feature_schema_sha256=feature_schema_sha256(),
-            corpus_release_id="a" * 16,
+            corpus_release_id="a" * 64,
             answer_calibration_id="cal-test",
             admission_status="PASS",
             controller_risk_limit=0.05,
@@ -208,7 +208,7 @@ def test_controller_export_refuses_cross_run_training_binding() -> None:
                 {
                     "status": "PASS",
                     "dataset_sha256": digest(dataset),
-                    "corpus_release_id": "a" * 16,
+                    "corpus_release_id": "a" * 64,
                     "evaluation_protocol_sha256": digest(protocol),
                     "answer_calibration_id": "cal-test",
                 }
@@ -249,7 +249,7 @@ def test_controller_export_refuses_cross_run_training_binding() -> None:
                 "--replay-receipt",
                 str(replay),
                 "--corpus-release-id",
-                "a" * 16,
+                "a" * 64,
                 "--answer-calibration-id",
                 "cal-test",
                 "--profile-id",

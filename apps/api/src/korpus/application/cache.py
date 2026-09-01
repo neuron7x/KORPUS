@@ -7,6 +7,7 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import date
 
+from korpus.application.corpus_snapshot import release_token
 from korpus.application.ports import Repository, Retriever
 from korpus.application.retrieval import normalize_text
 from korpus.domain.models import Identity, RetrievedEvidence
@@ -96,7 +97,10 @@ class CachedRetriever(Retriever):
         as_of: date,
         limit: int,
     ) -> str:
-        release_id = self.repository.corpus_release_id(identity, corpus_ids, as_of)
+        # Ключ мусить нести ТУ САМУ релізну тотожність, яку відповідь назве читачеві.
+        # Поки їх було дві, кеш умів віддати відповідь, засвідчену іншим релізом, ніж
+        # той, за яким її поклали, — і жодне поле не розрізняло ці два випадки.
+        release_id = release_token(self.repository, identity, corpus_ids, as_of).release_id
         material = "\x1f".join(
             [
                 identity.subject,

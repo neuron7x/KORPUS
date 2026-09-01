@@ -63,21 +63,47 @@ def test_application_repository_port_cannot_recompute_answer_release() -> None:
     assert not hasattr(Repository, "corpus_release_id")
 
 
+def _release_recomputations(tree: ast.AST) -> list[str]:
+    """Місця, де реліз ПЕРЕРАХОВУЮТЬ, а не читають уже зафіксований.
+
+    Порт із GitHub-лінії забороняв будь-яке звертання з іменем `corpus_release_id`.
+    Це ловило й `profile.corpus_release_id` — поле замороженого профілю PEC, яке
+    нічого не рахує, а лише зберігає, до якого релізу профіль прив'язаний. Правило
+    мусить називати те, що боронить: перерахунок — це ВИКЛИК, а не читання поля.
+
+    Натомість правило стало суворішим у головному: означення методу заборонене
+    СКРІЗЬ, а не лише поза `infrastructure/repository.py`. Тотожність релізу одна,
+    і рахує її знімок.
+    """
+    findings: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef) and (
+            node.name == "corpus_release_id"
+        ):
+            findings.append(f"{node.lineno}: definition")
+        if isinstance(node, ast.Call):
+            function = node.func
+            if isinstance(function, ast.Attribute) and function.attr == "corpus_release_id":
+                findings.append(f"{node.lineno}: call")
+            if isinstance(function, ast.Name) and function.id == "corpus_release_id":
+                findings.append(f"{node.lineno}: call")
+    return findings
+
+
+def test_the_recomputation_rule_can_fail() -> None:
+    """Негативний контроль: правило, яке ніколи не червоніє, нічого не боронить."""
+    assert _release_recomputations(ast.parse("x = repo.corpus_release_id(a, b, c)"))
+    assert _release_recomputations(ast.parse("def corpus_release_id(self): ...\n"))
+    assert _release_recomputations(ast.parse("profile.corpus_release_id")) == []
+
+
 def test_no_runtime_component_calls_legacy_release_restamp() -> None:
     source_root = Path(__file__).resolve().parents[1] / "src/korpus"
     findings: list[str] = []
-    for path in source_root.rglob("*.py"):
+    for path in sorted(source_root.rglob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         relative = path.relative_to(source_root)
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Attribute) and node.attr == "corpus_release_id":
-                findings.append(f"{relative}:{node.lineno}: call/reference")
-            if (
-                isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
-                and node.name == "corpus_release_id"
-                and relative.as_posix() != "infrastructure/repository.py"
-            ):
-                findings.append(f"{relative}:{node.lineno}: definition")
+        findings.extend(f"{relative}:{item}" for item in _release_recomputations(tree))
     assert findings == []
 
 
