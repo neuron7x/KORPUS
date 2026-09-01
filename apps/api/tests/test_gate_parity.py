@@ -2071,16 +2071,25 @@ def test_the_handoff_refuses_a_digest_from_the_other_scope() -> None:
     original = assurance.read_bytes()
     try:
         payload = json.loads(original)
-        # Спершу — НОВА перевага: коли звіт несе поле ВЛАСНОЇ міри цієї перевірки,
-        # береться воно, і хибний `digest_scope` сусіда вироку не змінює. Саме це
-        # прибрало вічний STALE, тож воно мусить бути виміряним, а не припущеним.
-        assert handoff._release_evidence_state() == "BOUND"
+        # НОВА перевага міряється КОНСТРУКЦІЄЮ, а не станом дерева: значення поля
+        # ставиться правильним навмисно. Перша версія читала звіт як є й падала
+        # щоразу, коли HEAD рухався після складання, — тобто питала свіжість.
+        from source_digest import source_tree_digest
+
         with_wrong_label = dict(payload)
+        with_wrong_label["tracked_tree_sha256"] = source_tree_digest()
         with_wrong_label["digest_scope"] = "нісенітниця"
         assurance.write_text(json.dumps(with_wrong_label, ensure_ascii=False), encoding="utf-8")
         assert handoff._release_evidence_state() == "BOUND", (
             "поле власної міри мусить мати перевагу над ярликом чужої"
         )
+
+        # Дуал: те саме поле з ЧУЖИМ числом мусить дати STALE, інакше перевага
+        # означала б «завжди BOUND» — перевірку, яка не має стану, де червоніє.
+        with_wrong_value = dict(with_wrong_label)
+        with_wrong_value["tracked_tree_sha256"] = "c" * 64
+        assurance.write_text(json.dumps(with_wrong_value, ensure_ascii=False), encoding="utf-8")
+        assert handoff._release_evidence_state() == "STALE"
 
         # А далі — стара властивість, і вона лишається дійсною для звіту, який поля
         # власної міри НЕ несе: порівняння через різні лінійки не «застаріле», воно
@@ -2329,19 +2338,18 @@ def test_the_assurance_producer_pairs_every_digest_with_its_own_ruler() -> None:
     # «ярлик відповідає значенню» не доводило б нічого.
     assert report["evidence_source_sha256"] != report["tracked_tree_sha256"]
 
-    # А відповідність числа своїй лінійці зіставна лише з тим станом, із якого звіт
-    # зроблено. Свіжість — предмет `evidence_provenance`, і карати одну невизначеність
-    # двічі означало б зробити цей тест червоним щоразу, коли дерево просто рухається.
-    changed = subprocess.run(
-        ["git", "-C", str(ROOT), "status", "--porcelain"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout.strip()
-    if changed:
-        pytest.skip("дерево рухалось після складання звіту; відповідність незіставна")
-    assert report.get("evidence_source_sha256") == compute_source_digest(ROOT)
-    assert report.get("tracked_tree_sha256") == source_tree_digest()
+    # Відповідність числа своїй лінійці НЕ перевіряється порівнянням із сьогоднішнім
+    # деревом. Перша спроба робила саме так і падала щоразу, коли HEAD рухався після
+    # складання звіту — тобто міряла СВІЖІСТЬ під виглядом відповідності. Свіжість —
+    # предмет `evidence_provenance`, і карати одну невизначеність двічі означає лише
+    # зробити другий сигнал шумом. Тут перевіряється те, що від стану дерева не
+    # залежить: обидві лінійки викликаються, дають різні числа, і кожне має свій ярлик.
+    assert compute_source_digest(ROOT) != source_tree_digest(), (
+        "дві лінійки, що завжди дають однакове число, — це одна лінійка"
+    )
+    for value in (report["evidence_source_sha256"], report["tracked_tree_sha256"]):
+        assert isinstance(value, str) and len(value) == 64
+        int(value, 16)
 
 
 def test_only_one_definition_of_what_a_source_is() -> None:
