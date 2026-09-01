@@ -4278,7 +4278,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5548,
+      "lines": 5570,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -4699,12 +4699,12 @@
       "max_nesting": 0
     },
     "scripts/verify_canonical_state.py": {
-      "lines": 391,
+      "lines": 449,
       "max_complexity": 11,
       "max_function_args": 4,
       "max_function_lines": 58,
       "max_nesting": 2,
-      "proof_lines": 140,
+      "proof_lines": 149,
       "reason": "Новий гейт: що саме означає «канонічне». Виміряно 01.09.2026 — кандидатів ТРИ (локальна гілка, main, опубліковане на GitLab), розходяться на 105–125 комітів, жодна перевірка не бачила; продакшенне правило CI вказує на застарілий main. Стеля — виміряне значення дня. Мутанти M538–M543."
     },
     "scripts/verify_current_truth.py": {
@@ -8028,6 +8028,30 @@
       "reason": "+M538–M543 до каталогу.",
       "to": {
         "lines": 5548
+      }
+    },
+    {
+      "from": {
+        "lines": 391,
+        "proof_lines": 140
+      },
+      "on": "2026-09-01",
+      "path": "scripts/verify_canonical_state.py",
+      "reason": "Вік замість кількості комітів: перша версія ставила поріг на числі комітів і почервоніла на першому ж власному коміті. Додано committed_at, days_between, _staleness. Мутанти M538–M545.",
+      "to": {
+        "lines": 449,
+        "proof_lines": 149
+      }
+    },
+    {
+      "from": {
+        "lines": 5548
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Вік замість кількості комітів: перша версія ставила поріг на числі комітів і почервоніла на першому ж власному коміті. Додано committed_at, days_between, _staleness. Мутанти M538–M545.",
+      "to": {
+        "lines": 5570
       }
     }
   ],

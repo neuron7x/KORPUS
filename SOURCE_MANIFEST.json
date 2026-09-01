@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1700,
-  "root_sha256": "4e7364672f27098507032b2d24de907cca9422bc1b86228316f69ab23a2df557",
+  "root_sha256": "3381630321a221d7ec15fe0186871a6c6b88e852b26e0d9e58036cb7f148d742",
   "files": [
     {
       "path": ".dockerignore",
@@ -2767,8 +2767,8 @@
     },
     {
       "path": "apps/api/tests/test_canonical_state.py",
-      "bytes": 7604,
-      "sha256": "51681298380a343eedfb494e897ae365a5ee32393c7b7199482b9406184bb963",
+      "bytes": 9147,
+      "sha256": "77ab562a6d3425eb20700cd162e8d9d57b3601d07239ea3536fd2a5fd9a291e1",
       "mode": "0644"
     },
     {
@@ -6859,8 +6859,8 @@
     },
     {
       "path": "config/operations/canonical-state.json",
-      "bytes": 4106,
-      "sha256": "12315d659663e7496ef089b1a570b200f7e86e933ae5b0aede364dedbaba4475",
+      "bytes": 4759,
+      "sha256": "54e826cb5c7a1c9cef06177b74fee16bf10c9920c8028b892b57cba6d329280d",
       "mode": "0644"
     },
     {
@@ -6907,8 +6907,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 407954,
-      "sha256": "48b13f6a69c386d868fa78fe6ce2824ebb2e9e71594b4ce555a5e8d475740f6b",
+      "bytes": 409002,
+      "sha256": "3dd3d29bb2544fa12d0a443723aeee18f23e6ea1f2f38a085a1a17322f69633a",
       "mode": "0644"
     },
     {
@@ -9667,8 +9667,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 248260,
-      "sha256": "770efa216439b8ccd99cebe02d8399515f6d5fbb5e15106ba563415145e39fcb",
+      "bytes": 248976,
+      "sha256": "3e9d3a6a50253148e45a4a2e3241cd73083185ed038970a67a6631ebae42d910",
       "mode": "0755"
     },
     {
@@ -10033,8 +10033,8 @@
     },
     {
       "path": "scripts/verify_canonical_state.py",
-      "bytes": 22161,
-      "sha256": "27ce87c071420341ddf13fab41f8521bd69e71fb02302f1ab17bbcd1e228f46b",
+      "bytes": 25562,
+      "sha256": "cdf55d9b53f125cb8c37a78729d3c6da94aa05af463c0c8c2c0f749236ab19de",
       "mode": "0755"
     },
     {

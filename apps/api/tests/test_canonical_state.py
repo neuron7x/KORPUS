@@ -55,9 +55,11 @@ def _observation() -> dict[str, Any]:
 def _measured() -> dict[str, Any]:
     registry = _registry()
     return {
-        "trunk_behind": registry["trunk"]["max_behind"],
+        "trunk_behind": 126,
+        "trunk_days": registry["trunk"]["max_days"] - 0.5,
         "trunk_is_ancestor": True,
-        "publication_behind": {"gitlab": registry["publications"][0]["max_behind"]},
+        "publication_behind": {"gitlab": 107},
+        "publication_days": {"gitlab": registry["publications"][0]["max_days"] - 0.5},
     }
 
 
@@ -78,14 +80,42 @@ def test_a_trunk_that_diverged_is_not_merely_behind() -> None:
     assert _finding(findings, "trunk_is_ancestor")["verdict"] == "FAIL"
 
 
-def test_the_trunk_lag_is_a_ratchet_in_both_directions() -> None:
+def test_the_trunk_is_judged_by_age_not_by_commit_count() -> None:
+    """Перша версія міряла КІЛЬКІСТЬ комітів і почервоніла на першому ж власному.
+
+    Кожен коміт у канонічну гілку додає одиницю до відставання, тож поріг довелося б
+    піднімати щоразу — величина, яка росте від роботи, як поріг стає податком на
+    роботу. Вік від роботи не росте: його збільшує лише час, а fast-forward обнуляє.
+    """
     registry = _registry()
-    ceiling = registry["trunk"]["max_behind"]
-    worse = GATE.assess(_observation(), {**_measured(), "trunk_behind": ceiling + 1}, registry)
-    assert _finding(worse, "trunk_behind")["verdict"] == "FAIL"
-    better = GATE.assess(_observation(), {**_measured(), "trunk_behind": 0}, registry)
-    lowered = _finding(better, "trunk_behind")
-    assert lowered["verdict"] == "PASS" and "знизити до 0" in lowered["detail"]
+    assert "max_behind" not in registry["trunk"], "кількість комітів більше не судить"
+    stale = GATE.assess(
+        _observation(), {**_measured(), "trunk_days": registry["trunk"]["max_days"] + 0.1}, registry
+    )
+    assert _finding(stale, "trunk_staleness")["verdict"] == "FAIL"
+
+    busy = GATE.assess(_observation(), {**_measured(), "trunk_behind": 100_000}, registry)
+    assert GATE.verdict([_finding(busy, "trunk_staleness")]) == "PASS"
+    assert _finding(busy, "trunk_behind")["verdict"] == "PASS", "кількість — спостереження"
+
+
+def test_the_publication_is_judged_by_age_too() -> None:
+    registry = _registry()
+    stale = GATE.assess(
+        _observation(),
+        {
+            **_measured(),
+            "publication_days": {"gitlab": registry["publications"][0]["max_days"] + 1},
+        },
+        registry,
+    )
+    assert _finding(stale, "publication_staleness:gitlab")["verdict"] == "FAIL"
+
+
+def test_age_is_measured_between_two_dates_and_missing_one_is_unknown() -> None:
+    assert GATE.days_between("2026-08-30T20:54:00+03:00", "2026-09-01T08:54:00+03:00") == 1.5
+    assert GATE.days_between(None, "2026-09-01T08:54:00+03:00") is None
+    assert GATE.days_between("не дата", "2026-09-01T08:54:00+03:00") is None
 
 
 def test_an_undeclared_publication_surface_is_refused() -> None:
@@ -142,9 +172,9 @@ def test_transient_session_worktrees_do_not_count_against_the_ceiling() -> None:
 
 def test_unknown_is_never_a_pass() -> None:
     assert GATE.verdict(GATE.assess({"branches": []}, _measured(), _registry())) == "UNKNOWN"
-    blind = {**_measured(), "trunk_behind": None}
+    blind = {**_measured(), "trunk_days": None}
     assert (
-        _finding(GATE.assess(_observation(), blind, _registry()), "trunk_behind")["verdict"]
+        _finding(GATE.assess(_observation(), blind, _registry()), "trunk_staleness")["verdict"]
         == "UNKNOWN"
     )
 

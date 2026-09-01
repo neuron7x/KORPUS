@@ -35,6 +35,7 @@ import argparse
 import json
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -89,6 +90,23 @@ def behind(reference: str, target: str, root: Path = ROOT) -> int | None:
         return int(count) if count is not None else None
     except ValueError:
         return None
+
+
+def committed_at(reference: str, root: Path = ROOT) -> str | None:
+    """Дата верхівки гілки в ISO. None — гілки немає або git недоступний."""
+    return _git("log", "-1", "--format=%cI", reference, root=root)
+
+
+def days_between(earlier: str | None, later: str | None) -> float | None:
+    """Скільки діб між двома датами. None — якщо бракує хоч однієї."""
+    if not earlier or not later:
+        return None
+    try:
+        start = datetime.fromisoformat(earlier)
+        end = datetime.fromisoformat(later)
+    except ValueError:
+        return None
+    return (end - start).total_seconds() / 86400.0
 
 
 def is_ancestor(reference: str, target: str, root: Path = ROOT) -> bool | None:
@@ -168,8 +186,37 @@ def _check_trunk(measured: dict[str, Any], registry: dict[str, Any]) -> list[dic
         )
     else:
         found.append(_finding("trunk_is_ancestor", "PASS", f"{name} — строгий предок"))
-    found.append(_ratchet("trunk_behind", name, lag, trunk.get("max_behind")))
+    found.append(
+        _staleness("trunk_staleness", name, measured.get("trunk_days"), trunk.get("max_days"))
+    )
+    found.append(
+        _finding("trunk_behind", "PASS", f"{name}: позаду на {lag} комітів (спостереження)")
+        if lag is not None
+        else _finding("trunk_behind", "UNKNOWN", f"{name}: відставання не виміряно")
+    )
     return found
+
+
+def _staleness(check: str, name: Any, days: float | None, ceiling: Any) -> dict[str, str]:
+    """Скільки діб відстає, проти НАЗВАНОГО порогу.
+
+    Це поріг, а не ратчет, і різниця тут суттєва. Перша версія міряла кількість
+    комітів відставання й ставила стелю на виміряному числі — і почервоніла на
+    ПЕРШОМУ ж власному коміті: кожен коміт у канонічну гілку додає одиницю, тож
+    стелю довелося б піднімати щоразу. Ратчет на величині, яка росте від роботи,
+    перетворюється на податок на роботу.
+
+    Вік стовбура від роботи не росте: його збільшує лише ЧАС, а fast-forward
+    обнуляє. Саме це ми й хочемо сказати — «стовбур мусить оновлюватись», а не
+    «працюйте менше».
+    """
+    if days is None:
+        return _finding(check, "UNKNOWN", f"{name}: вік не виміряно")
+    if not isinstance(ceiling, (int, float)):
+        return _finding(check, "FAIL", f"{name}: поріг не є числом")
+    if days > ceiling:
+        return _finding(check, "FAIL", f"{name}: відстає на {days:.1f} доби проти порогу {ceiling}")
+    return _finding(check, "PASS", f"{name}: відстає на {days:.1f} доби, поріг {ceiling}")
 
 
 def _ratchet(check: str, name: Any, measured: int | None, ceiling: Any) -> dict[str, str]:
@@ -243,11 +290,11 @@ def _check_publications(
             )
             continue
         found.append(
-            _ratchet(
-                f"publication_behind:{name}",
+            _staleness(
+                f"publication_staleness:{name}",
                 name,
-                measured.get("publication_behind", {}).get(name),
-                entry.get("max_behind"),
+                measured.get("publication_days", {}).get(name),
+                entry.get("max_days"),
             )
         )
     return found
@@ -337,10 +384,21 @@ def measure(
         name, branch = item.get("remote"), item.get("tracks") or canonical
         if isinstance(name, str) and isinstance(branch, str):
             behind_map[name] = behind(f"{name}/{branch}", str(canonical), root=root)
+    canonical_at = committed_at(str(canonical), root=root)
+    days_map = {
+        item["remote"]: days_between(
+            committed_at(f"{item['remote']}/{item.get('tracks') or canonical}", root=root),
+            canonical_at,
+        )
+        for item in publications
+        if isinstance(item.get("remote"), str)
+    }
     return {
         "trunk_behind": behind(str(trunk.get("branch")), str(canonical), root=root),
+        "trunk_days": days_between(committed_at(str(trunk.get("branch")), root=root), canonical_at),
         "trunk_is_ancestor": is_ancestor(str(trunk.get("branch")), str(canonical), root=root),
         "publication_behind": behind_map,
+        "publication_days": days_map,
     }
 
 
@@ -358,25 +416,34 @@ def selftest() -> int:
     registry: dict[str, Any] = {
         "canonical_branch": "work/converge-semantic",
         "canonical_root": "/canon",
-        "trunk": {"branch": "main", "max_behind": 124},
-        "publications": [{"remote": "gitlab", "url": "git@gitlab.com:x/y.git", "max_behind": 105}],
+        "trunk": {"branch": "main", "max_days": 2},
+        "publications": [{"remote": "gitlab", "url": "git@gitlab.com:x/y.git", "max_days": 2}],
         "max_worktrees": 2,
         "transient_worktree_prefixes": ["/tmp/claude-"],
     }
-    measured = {
+    measured: dict[str, Any] = {
         "trunk_behind": 124,
+        "trunk_days": 1.4,
         "trunk_is_ancestor": True,
         "publication_behind": {"gitlab": 105},
+        "publication_days": {"gitlab": 1.4},
     }
 
     cases: list[tuple[str, dict[str, Any], dict[str, Any], dict[str, Any], str]] = [
         ("усе названо й на стелі", observation, measured, registry, "PASS"),
         (
-            "стовбур відстав СИЛЬНІШЕ за стелю",
+            "стовбур СТАРІШИЙ за поріг",
             observation,
-            {**measured, "trunk_behind": 125},
+            {**measured, "trunk_days": 2.1},
             registry,
             "FAIL",
+        ),
+        (
+            "нові коміти в канон НЕ роблять стовбур червоним",
+            observation,
+            {**measured, "trunk_behind": 100000},
+            registry,
+            "PASS",
         ),
         (
             "стовбур РОЗІЙШОВСЯ — це не відставання",
@@ -410,9 +477,9 @@ def selftest() -> int:
             "FAIL",
         ),
         (
-            "опубліковане відстало сильніше за стелю",
+            "опубліковане СТАРІШЕ за поріг",
             observation,
-            {**measured, "publication_behind": {"gitlab": 106}},
+            {**measured, "publication_days": {"gitlab": 9.0}},
             registry,
             "FAIL",
         ),
@@ -445,9 +512,9 @@ def selftest() -> int:
             "FAIL",
         ),
         (
-            "відставання не виміряно — UNKNOWN, не PASS",
+            "вік не виміряно — UNKNOWN, не PASS",
             observation,
-            {**measured, "trunk_behind": None},
+            {**measured, "trunk_days": None},
             registry,
             "UNKNOWN",
         ),

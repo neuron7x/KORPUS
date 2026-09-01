@@ -4586,6 +4586,28 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M544_THE_TRUNK_IS_JUDGED_BY_COMMIT_COUNT_AGAIN",
+        "scripts/verify_canonical_state.py",
+        "    if days > ceiling:",
+        "    if False:",
+        (
+            "apps/api/tests/test_canonical_state.py::"
+            "test_the_trunk_is_judged_by_age_not_by_commit_count",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M545_A_MISSING_DATE_IS_TREATED_AS_ZERO_AGE",
+        "scripts/verify_canonical_state.py",
+        "    if not earlier or not later:",
+        "    if False:",
+        (
+            "apps/api/tests/test_canonical_state.py::"
+            "test_age_is_measured_between_two_dates_and_missing_one_is_unknown",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M538_A_DIVERGED_TRUNK_IS_REPORTED_AS_MERELY_BEHIND",
         "scripts/verify_canonical_state.py",
         "    elif not ancestor:",
