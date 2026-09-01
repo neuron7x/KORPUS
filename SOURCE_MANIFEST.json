@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1739,
-  "root_sha256": "d5e4fff84cf8617539dc98973b4b67c101869e6fb5326db18de284d345426098",
+  "file_count": 1745,
+  "root_sha256": "218eb76f3dea8eef5f9e6d4b020f1503e4dfa42eb8408a693c0290e3d899dd95",
   "files": [
     {
       "path": ".dockerignore",
@@ -2310,6 +2310,30 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/src/korpus/mcp/__init__.py",
+      "bytes": 244,
+      "sha256": "e546d0b90578db8c9a09014d3d88fdfb31d1f30c01b99a202b4de672aaac6c5f",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/mcp/server.py",
+      "bytes": 10395,
+      "sha256": "ebcf88b5e48b1b58eec3ad4a9f6d05de13fdfce3286234cdbdd45f360e46bb76",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/mcp/stdio.py",
+      "bytes": 4653,
+      "sha256": "74ba9e79002d428b4fb9e11a69192bbf50add4e45c6561975cdb8a4f7297dd33",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/mcp/transport.py",
+      "bytes": 3715,
+      "sha256": "95707acb9c8632118e6dd729fa533027c08e7233a3e71c7849bacb1af0d943ae",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/src/korpus/model_composition.py",
       "bytes": 2542,
       "sha256": "0e63c1617fb660724d38c911b5bc3c964452eb3ca8a832474df5798c493e8c47",
@@ -3663,6 +3687,12 @@
       "path": "apps/api/tests/test_mathematical_integrity_hardening.py",
       "bytes": 25851,
       "sha256": "60e6063ace62d124e4b1bf31873f2b4d7cf403d47cd8204b81add8600076687c",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_mcp_server.py",
+      "bytes": 9762,
+      "sha256": "8bef5913486ad8888bb8934515fc6659ad2753241b6191474949f5da26b572e7",
       "mode": "0644"
     },
     {
@@ -9861,6 +9891,12 @@
       "path": "scripts/run_local_production_preflight.py",
       "bytes": 5587,
       "sha256": "f048720fffc87b1be64d6613e177c182516d5f0d0c9e0e1e7b366f997933f38d",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/run_mcp_server.py",
+      "bytes": 2257,
+      "sha256": "52b3f112b85b0e4f54ee95d8b47f76421802fa065f15aa0ba62873ee5a67d83d",
       "mode": "0755"
     },
     {
