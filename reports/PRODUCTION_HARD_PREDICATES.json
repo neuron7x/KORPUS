@@ -1,7 +1,7 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "9db10a0010b42b654a8fbd1ca4de9418b1358236e650bf1bbc3b7c3be5a99c64",
+  "source_tree_sha256": "e270574c38980cb750322d54551ac70f1bc4ff0869ac323aae47849589cdc512",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
@@ -46,10 +46,6 @@
       "production_satisfied": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "security_scanners_current_commit",
-        "container_scanners_executed_clean",
-        "container_scanners_current_commit",
-        "container_sboms_valid",
         "evidence_manifest_bound",
         "evidence_attestation_verified",
         "evidence_trusted_signer",
@@ -65,13 +61,7 @@
       "production_satisfied": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "target_files_present",
-        "grant_contract_static",
-        "postgres_runtime_available",
-        "postgres_adversarial_suite",
-        "metadata:backend",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ]
     },
     {
@@ -92,14 +82,9 @@
         "required_attack_families_covered",
         "tevv_admissible",
         "pass_rate",
-        "citation_integrity",
-        "leakage",
-        "determinism",
         "null_controls",
-        "null_false_accepts",
         "attack_families",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ]
     },
     {
@@ -115,8 +100,7 @@
         "assessor_structured",
         "assessor_attestation_verified",
         "assessor_trusted_signer",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ]
     },
     {
@@ -131,8 +115,7 @@
         "environment_class",
         "assessor_attestation_verified",
         "assessor_trusted_signer",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ]
     },
     {
@@ -144,16 +127,9 @@
       "production_satisfied": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "live_load_soak_executed",
         "load_source_bound",
         "load_environment",
-        "load_slo_steady_p95",
-        "load_slo_cold_start",
-        "load_slo_no_5xx_rated",
-        "load_slo_no_subject_throttle_rated",
-        "load_slo_no_retrieval_deadline",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ]
     },
     {
@@ -167,8 +143,7 @@
       "failed_external_checks": [
         "load_attestation_verified",
         "load_trusted_signer",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ]
     },
     {
@@ -180,13 +155,11 @@
       "production_satisfied": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "recovery_drill_executed",
         "recovery_source_bound",
         "recovery_environment",
         "recovery_attestation_verified",
         "recovery_trusted_signer",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ]
     },
     {
@@ -231,14 +204,9 @@
       "production_satisfied": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "all_locked_components_installed",
-        "all_versions_exact",
-        "no_unmanaged_distributions",
         "production_python_exact",
-        "lock_hashes_present",
         "metadata:status",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ]
     },
     {

@@ -4823,7 +4823,7 @@ MUTANTS = (
     # ── Бігун лану. `make -k` дає два стани; тут первинний саме ТРЕТІЙ, і мутанти
     # цілять у нього: невиконане, зараховане як пройдене, — це і є та вада.
     Mutant(
-        "M538_A_TARGET_NEVER_REACHED_IS_COUNTED_AS_PASSED",
+        "M546_A_TARGET_NEVER_REACHED_IS_COUNTED_AS_PASSED",
         "scripts/run_lane.py",
         '        name: {"state": NOT_RUN, "code": None, "seconds": 0.0} for name in targets',
         '        name: {"state": PASSED, "code": 0, "seconds": 0.0} for name in targets',
@@ -4834,7 +4834,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M539_A_LANE_WITH_UNMEASURED_TARGETS_STILL_CALLS_ITSELF_MEASURED",
+        "M547_A_LANE_WITH_UNMEASURED_TARGETS_STILL_CALLS_ITSELF_MEASURED",
         "scripts/run_lane.py",
         '        "status": "MEASURED" if counts[NOT_RUN] == 0 else "PARTIAL",',
         '        "status": "MEASURED",',
@@ -4842,7 +4842,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M540_A_TIMED_OUT_TARGET_IS_A_PASS",
+        "M548_A_TIMED_OUT_TARGET_IS_A_PASS",
         "scripts/run_lane.py",
         '        return {"state": TIMED_OUT, "code": None, "seconds": round(time.monotonic() - started, 1)}',
         '        return {"state": PASSED, "code": 0, "seconds": round(time.monotonic() - started, 1)}',
