@@ -4630,6 +4630,41 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M576_A_WILDCARD_ORIGIN_PASSES_AS_AN_ADDRESS",
+        "scripts/check_public_env_parity.py",
+        '_ORIGIN = re.compile(r"^https?://[A-Za-z0-9._-]+(?::\\d+)?$")',
+        '_ORIGIN = re.compile(r".")',
+        (
+            "apps/api/tests/test_public_env_parity.py::"
+            "test_a_wildcard_origin_is_refused_because_it_is_not_an_address",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M577_AN_EMPTY_ORIGIN_LIST_IS_A_QUIET_SUCCESS",
+        "scripts/check_public_env_parity.py",
+        "    if not origins:",
+        "    if False:",
+        (
+            "apps/api/tests/test_public_env_parity.py::test_an_empty_origin_list_is_a_quiet_success"
+            if False
+            else "apps/api/tests/test_public_env_parity.py::"
+            "test_an_empty_origin_list_is_a_refusal_not_a_quiet_success",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M578_THE_TWO_DECLARATIONS_MAY_DISAGREE_ON_THE_ALLOWED_ORIGIN",
+        "scripts/check_public_env_parity.py",
+        '    "KORPUS_CORS_ORIGINS": "https://korpus-web-3cd81d.gitlab.io",\n}',
+        "}",
+        (
+            "apps/api/tests/test_public_env_parity.py::"
+            "test_the_two_declarations_may_not_disagree_on_the_allowed_origin",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M570_A_BRANCH_WITH_ITS_OWN_COMMITS_NEED_NOT_BE_NAMED",
         "scripts/verify_branch_integration.py",
         "    unnamed = sorted(set(diverged) - set(named))",

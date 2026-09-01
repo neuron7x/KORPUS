@@ -130,6 +130,19 @@ export KORPUS_MAX_CONCURRENT_ANSWERS="${KORPUS_MAX_CONCURRENT_ANSWERS:-4}"
 # дивиться в інтернет, друге питання має відповідь «немає», і вмикання інференсу не
 # повинно мовчки її змінювати: `local_only` лишає лише loopback і приватні адреси.
 export KORPUS_MODEL_EGRESS_POSTURE="${KORPUS_MODEL_EGRESS_POSTURE:-local_only}"
+# Сторінка тепер живе НЕ там, де API: інтерфейс роздає GitLab Pages, щоб він
+# відкривався незалежно від цієї машини, а відповіді йдуть сюди. Отже браузер робить
+# запит через межу походження, і без цього рядка він мовчки відкидає відповідь.
+#
+# Виміряно 01.09.2026 на живому: preflight із `Origin: https://korpus-web-3cd81d.gitlab.io`
+# повертав `allow-methods`, `allow-headers` і `max-age` — усе, крім `allow-origin`.
+# У вкладці «мережа» це виглядає як успішна відповідь 200 із трьома заголовками, і саме
+# тому таке не помічають місяцями: відповідь несе КОЖНЕ поле, крім вирішального.
+#
+# Перелік вузький навмисно. `*` тут означав би «будь-яка сторінка в інтернеті може
+# питати від імені відвідувача», а межа й так віддає корпус без облікового запису —
+# розширювати ще й походження нема заради чого.
+export KORPUS_CORS_ORIGINS="${KORPUS_CORS_ORIGINS:-https://korpus-web-3cd81d.gitlab.io}"
 export PYTHONPATH="$ROOT/apps/api/src"
 
 # 24h, the policy ceiling. Re-run this script to rotate; the visitor notices nothing

@@ -3100,11 +3100,12 @@
       "reason": "Гейт на розбіжність звіту мутацій із каталогом. Стеля з виміру на день додавання плюс запас на дві перевірки; кожен новий клас розбіжності — це рядок у переліку `problems`, а не гілка."
     },
     "scripts/check_public_env_parity.py": {
-      "lines": 297,
+      "lines": 331,
       "max_complexity": 14,
       "max_function_args": 3,
-      "max_function_lines": 66,
+      "max_function_lines": 67,
       "max_nesting": 2,
+      "proof_lines": 66,
       "reason": "ZBIM: субстрат став абсолютним нулем sRGB, плюс гейт паритету двох оголошень оточення публічного API (скрипт і юніт systemd). Мутанти M450–M452."
     },
     "scripts/check_release_identity.py": {
@@ -4295,7 +4296,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5743,
+      "lines": 5778,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -4715,6 +4716,14 @@
       "max_function_lines": 0,
       "max_nesting": 0
     },
+    "scripts/verify_branch_consolidation.py": {
+      "lines": 335,
+      "max_complexity": 15,
+      "max_function_args": 6,
+      "max_function_lines": 55,
+      "max_nesting": 3,
+      "reason": "Чи зведення гілок нічого не втратило — питання до ВМІСТУ, не до графа комітів. База порівняння — сорок тегів `archive/2026-09-01/*`, знятих ДО зведення: після нього «загублене» і «ніколи не існувало» виглядають однаково, а тег живе в репозиторії й тримає коміт від збирача сміття.\nПерша версія сказала ACCEPTED одразу після мержу, коли лан мав ТРИ червоні: читала домерджевий `lane-validate.json` і звіряла мутантів на ВНУТРІШНЮ узгодженість (511 із 511) замість каталогу, що виріс до 523. Сторож доповідав про власний застарілий вхід як про стан предмета — той самий клас, що `pgrep -f`, який матчить сам себе. Тому `report_is_stale` винесено окремим предикатом і має власний мутант."
+    },
     "scripts/verify_branch_integration.py": {
       "lines": 236,
       "max_complexity": 11,
@@ -4941,14 +4950,6 @@
       "max_function_lines": 29,
       "max_nesting": 2,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
-    },
-    "scripts/verify_branch_consolidation.py": {
-      "lines": 335,
-      "max_complexity": 15,
-      "max_function_lines": 55,
-      "max_function_args": 6,
-      "max_nesting": 3,
-      "reason": "Чи зведення гілок нічого не втратило — питання до ВМІСТУ, не до графа комітів. База порівняння — сорок тегів `archive/2026-09-01/*`, знятих ДО зведення: після нього «загублене» і «ніколи не існувало» виглядають однаково, а тег живе в репозиторії й тримає коміт від збирача сміття.\nПерша версія сказала ACCEPTED одразу після мержу, коли лан мав ТРИ червоні: читала домерджевий `lane-validate.json` і звіряла мутантів на ВНУТРІШНЮ узгодженість (511 із 511) замість каталогу, що виріс до 523. Сторож доповідав про власний застарілий вхід як про стан предмета — той самий клас, що `pgrep -f`, який матчить сам себе. Тому `report_is_stale` винесено окремим предикатом і має власний мутант."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -8172,20 +8173,44 @@
       }
     },
     {
+      "on": "2026-09-01",
       "path": "scripts/verify_branch_consolidation.py",
+      "reason": "Чи зведення гілок нічого не втратило — питання до ВМІСТУ, не до графа комітів. База порівняння — сорок тегів `archive/2026-09-01/*`, знятих ДО зведення: після нього «загублене» і «ніколи не існувало» виглядають однаково, а тег живе в репозиторії й тримає коміт від збирача сміття.\nПерша версія сказала ACCEPTED одразу після мержу, коли лан мав ТРИ червоні: читала домерджевий `lane-validate.json` і звіряла мутантів на ВНУТРІШНЮ узгодженість (511 із 511) замість каталогу, що виріс до 523. Сторож доповідав про власний застарілий вхід як про стан предмета — той самий клас, що `pgrep -f`, який матчить сам себе. Тому `report_is_stale` винесено окремим предикатом і має власний мутант.",
       "to": {
         "lines": 335
-      },
-      "on": "2026-09-01",
-      "reason": "Чи зведення гілок нічого не втратило — питання до ВМІСТУ, не до графа комітів. База порівняння — сорок тегів `archive/2026-09-01/*`, знятих ДО зведення: після нього «загублене» і «ніколи не існувало» виглядають однаково, а тег живе в репозиторії й тримає коміт від збирача сміття.\nПерша версія сказала ACCEPTED одразу після мержу, коли лан мав ТРИ червоні: читала домерджевий `lane-validate.json` і звіряла мутантів на ВНУТРІШНЮ узгодженість (511 із 511) замість каталогу, що виріс до 523. Сторож доповідав про власний застарілий вхід як про стан предмета — той самий клас, що `pgrep -f`, який матчить сам себе. Тому `report_is_stale` винесено окремим предикатом і має власний мутант."
+      }
     },
     {
+      "on": "2026-09-01",
       "path": "scripts/run_mutation_tests.py",
+      "reason": "+32 рядки за M553–M555: звіт, старший за HEAD, зарахований свіжим; корінь ланцюга міграцій, прочитаний як ім'я ревізії; закоментоване присвоєння, що вигадує ревізію.",
       "to": {
+        "lines": 5743
+      }
+    },
+    {
+      "from": {
+        "lines": 297,
+        "max_function_lines": 66
+      },
+      "on": "2026-09-01",
+      "path": "scripts/check_public_env_parity.py",
+      "reason": "Публічний інтерфейс переїхав на GitLab Pages, тож запит іде через межу походження. Додано KORPUS_CORS_ORIGINS у безпекові значення (обидва оголошення мусять збігатись) і правило `походження — це АДРЕСА`, яке відхиляє `*` формою, а не переліком заборонених. Мутанти M576–M578.",
+      "to": {
+        "lines": 331,
+        "max_function_lines": 67
+      }
+    },
+    {
+      "from": {
         "lines": 5743
       },
       "on": "2026-09-01",
-      "reason": "+32 рядки за M553–M555: звіт, старший за HEAD, зарахований свіжим; корінь ланцюга міграцій, прочитаний як ім'я ревізії; закоментоване присвоєння, що вигадує ревізію."
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Публічний інтерфейс переїхав на GitLab Pages, тож запит іде через межу походження. Додано KORPUS_CORS_ORIGINS у безпекові значення (обидва оголошення мусять збігатись) і правило `походження — це АДРЕСА`, яке відхиляє `*` формою, а не переліком заборонених. Мутанти M576–M578.",
+      "to": {
+        "lines": 5778
+      }
     }
   ],
   "recorded_at": "2026-09-01",

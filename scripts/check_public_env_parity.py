@@ -60,7 +60,14 @@ SAFETY_VALUES = {
     "KORPUS_BIND_HOST": "127.0.0.1",
     "KORPUS_AUTH_MODE": "jwt",
     "KORPUS_AUDIT_KEY_ID": "korpus-public-2026-08-31",
+    "KORPUS_CORS_ORIGINS": "https://korpus-web-3cd81d.gitlab.io",
 }
+
+#: Походження мусить бути АДРЕСОЮ: схема плюс непорожній хост. Правило написане так
+#: навмисно — воно відхиляє `*` тим, що зірочка не адреса, а не тим, що вона в переліку
+#: заборонених. Заборонений перелік завжди неповний: після `*` довелося б згадати
+#: `null`, порожній рядок, `https://*` і те, чого ми ще не бачили.
+_ORIGIN = re.compile(r"^https?://[A-Za-z0-9._-]+(?::\d+)?$")
 
 #: Дві форми systemd: `Environment=NAME=value` і `Environment="NAME=value"`. Друга
 #: потрібна, коли значення містить пробіли або лапки, і саме на ній попередній регекс
@@ -188,7 +195,34 @@ def assess(unit: dict[str, str], shell: dict[str, str]) -> list[dict[str, str]]:
         if leaked
         else _finding("no_secret_by_value", "PASS", "юніт посилається на секрет файлом")
     )
+    findings.append(_check_origins(unit, shell))
     return findings
+
+
+def _check_origins(unit: dict[str, str], shell: dict[str, str]) -> dict[str, str]:
+    """Кожне дозволене походження мусить бути АДРЕСОЮ, і перелік — непорожнім.
+
+    `*` відхиляється тим, що зірочка не адреса, а не тим, що вона в переліку
+    заборонених: заборонений перелік завжди неповний. Порожній перелік — теж відмова,
+    інакше `all([])` зробив би «жодного походження» тихим успіхом, і сторінка на
+    Pages мовчки перестала б отримувати відповіді.
+    """
+    declared = [
+        value for source in (unit, shell) for value in [source.get("KORPUS_CORS_ORIGINS", "")]
+    ]
+    origins = [part.strip() for value in declared for part in value.split(",") if part.strip()]
+    if not origins:
+        return _finding("cors_origins_are_addresses", "FAIL", "жодного дозволеного походження")
+    wrong = sorted({o for o in origins if not _ORIGIN.match(o)})
+    if wrong:
+        return _finding(
+            "cors_origins_are_addresses",
+            "FAIL",
+            "походження не є адресою (схема плюс хост): " + ", ".join(wrong),
+        )
+    return _finding(
+        "cors_origins_are_addresses", "PASS", f"{len(set(origins))} походжень, кожне — адреса"
+    )
 
 
 def verdict(findings: list[dict[str, str]]) -> str:
@@ -206,6 +240,7 @@ def selftest() -> int:
         "KORPUS_BIND_HOST": "127.0.0.1",
         "KORPUS_AUTH_MODE": "jwt",
         "KORPUS_AUDIT_KEY_ID": "korpus-public-2026-08-31",
+        "KORPUS_CORS_ORIGINS": "https://korpus-web-3cd81d.gitlab.io",
         "KORPUS_JWT_SECRET_FILE": "%h/x",
         "KORPUS_RUNTIME_ROLE": "api",
     }
@@ -214,6 +249,7 @@ def selftest() -> int:
         "KORPUS_BIND_HOST": "127.0.0.1",
         "KORPUS_AUTH_MODE": "jwt",
         "KORPUS_AUDIT_KEY_ID": "korpus-public-2026-08-31",
+        "KORPUS_CORS_ORIGINS": "https://korpus-web-3cd81d.gitlab.io",
         "KORPUS_JWT_SECRET": "s3cret",
     }
 

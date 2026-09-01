@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1710,
-  "root_sha256": "06d24dc0910c07bfa70a24ebed46fd45051cc83afe8c91920049e6f79dcebc2c",
+  "root_sha256": "fb2c491f8c15dc66eae3b27da6c852c682a5a03f0efcc769a9dc98b5331f1659",
   "files": [
     {
       "path": ".dockerignore",
@@ -3997,8 +3997,8 @@
     },
     {
       "path": "apps/api/tests/test_public_env_parity.py",
-      "bytes": 8148,
-      "sha256": "15cd1603afbb27c398f233c972846615b85725a36cf94f34b9a20529c1912cb3",
+      "bytes": 12223,
+      "sha256": "c4934a6268e828cf37a734999598d140c472714f05d1a2425d4f5b2dc278f85f",
       "mode": "0644"
     },
     {
@@ -6943,8 +6943,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 419100,
-      "sha256": "869f042ad8b1b50d4350d212f79d374c7deb380a77c16f606ea6f4af4ae0b904",
+      "bytes": 420520,
+      "sha256": "a6993259caae43a5c62fcd6b110793c60bc4102502ba4fe011fe3e57a04002c5",
       "mode": "0644"
     },
     {
@@ -7105,8 +7105,8 @@
     },
     {
       "path": "deploy/public/korpus-public-api.service",
-      "bytes": 2959,
-      "sha256": "64c66677144d60fbf042b252d463d7c2427ca7d3f6671a5f7b8fff5e9370f86d",
+      "bytes": 3719,
+      "sha256": "0b1f46d88c3ab321091e173477239d0c36d22612e5a67df7cdecade46fb2b286",
       "mode": "0644"
     },
     {
@@ -8701,8 +8701,8 @@
     },
     {
       "path": "scripts/check_public_env_parity.py",
-      "bytes": 17993,
-      "sha256": "b61056813da1eb7a50257e5328ba8e3d9502df6003f2ff14a9356289a86d196e",
+      "bytes": 20390,
+      "sha256": "25339e3eee4bb2b44510b568351fa75ec06891753f6440582c6865f4093b43d7",
       "mode": "0755"
     },
     {
@@ -9715,8 +9715,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 256438,
-      "sha256": "c7becbf0d5b3e21dc33a7f4d89733b8847a7b0c55dfae16a45c654ad5376aca5",
+      "bytes": 257741,
+      "sha256": "106fc8e08442b2df60ae6b599de1a225cfdd30b374fb900b84cd052b98fa7e0d",
       "mode": "0755"
     },
     {
@@ -9883,8 +9883,8 @@
     },
     {
       "path": "scripts/serve_public.sh",
-      "bytes": 16004,
-      "sha256": "e41da4f189867f815237825fa0e172ebe9be908a320c6e6808b80ea0dd3f4675",
+      "bytes": 17416,
+      "sha256": "0bf5adc0de8d130da1616a6a102b37c3ac2adaff1144ee77a4636f0defaab5cd",
       "mode": "0755"
     },
     {

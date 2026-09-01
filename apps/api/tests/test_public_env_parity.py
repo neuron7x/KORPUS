@@ -164,3 +164,76 @@ def test_the_exported_database_path_is_absolute() -> None:
         if item.startswith("KORPUS_DATABASE_URL=")
     )
     assert line.split("=", 1)[1].startswith("sqlite:////"), line
+
+
+# ------------------------------- дозволене походження: адреса, а не перелік заборон
+
+
+def test_the_page_now_lives_elsewhere_and_both_declarations_say_so() -> None:
+    """Інтерфейс роздає GitLab Pages, API відповідає з цієї машини.
+
+    Отже браузер робить запит через межу походження. Виміряно 01.09.2026 на живому:
+    preflight із `Origin: https://korpus-web-3cd81d.gitlab.io` повертав `allow-methods`,
+    `allow-headers` і `max-age` — **усе, крім `allow-origin`**. У вкладці «мережа» це
+    виглядає як успішна відповідь із трьома заголовками, і саме тому таке не помічають:
+    відповідь несе КОЖНЕ поле, крім вирішального.
+    """
+    unit, shell = _real()
+    expected = "https://korpus-web-3cd81d.gitlab.io"
+    assert unit.get("KORPUS_CORS_ORIGINS") == expected
+    assert shell.get("KORPUS_CORS_ORIGINS") == expected
+
+
+def test_a_wildcard_origin_is_refused_because_it_is_not_an_address() -> None:
+    """Правило відхиляє `*` тим, що зірочка не адреса, а НЕ переліком заборонених.
+
+    Заборонений перелік завжди неповний: після `*` довелося б згадати `null`, порожній
+    рядок, `https://*` і те, чого ми ще не бачили.
+    """
+    unit, shell = _real()
+    for bad in ("*", "null", "https://*", "javascript:alert(1)", "korpus-web.gitlab.io"):
+        finding = _finding(
+            GATE.assess(
+                {**unit, "KORPUS_CORS_ORIGINS": bad}, {**shell, "KORPUS_CORS_ORIGINS": bad}
+            ),
+            "cors_origins_are_addresses",
+        )
+        assert finding["verdict"] == "FAIL", bad
+
+
+def test_an_empty_origin_list_is_a_refusal_not_a_quiet_success() -> None:
+    """`all([])` істинне — без цієї вимоги «жодного походження» стало б тихим успіхом,
+    і сторінка на Pages мовчки перестала б отримувати відповіді."""
+    unit, shell = _real()
+    finding = _finding(
+        GATE.assess({**unit, "KORPUS_CORS_ORIGINS": ""}, {**shell, "KORPUS_CORS_ORIGINS": ""}),
+        "cors_origins_are_addresses",
+    )
+    assert finding["verdict"] == "FAIL"
+
+
+def test_a_real_address_with_a_port_is_accepted() -> None:
+    """Дуал: правило не сміє бути таким вузьким, що відкидає законне походження."""
+    unit, shell = _real()
+    for good in ("http://localhost:3000", "https://a.example:8443"):
+        finding = _finding(
+            GATE.assess(
+                {**unit, "KORPUS_CORS_ORIGINS": good}, {**shell, "KORPUS_CORS_ORIGINS": good}
+            ),
+            "cors_origins_are_addresses",
+        )
+        assert finding["verdict"] == "PASS", good
+
+
+def test_the_two_declarations_may_not_disagree_on_the_allowed_origin() -> None:
+    """Обидві адреси законні за формою — і саме тому потрібне ЗБІГАННЯ, а не лише форма.
+
+    Без цього сторож підняв би API юнітом, який пускає одне походження, тоді як скрипт
+    оголошував інше, і сторінка на Pages отримувала б відповідь, яку браузер відкидає.
+    Це рівно та вада, що вже сталася 31.08 з посадою єгресу — ненаглядовий шлях мовчки
+    ніс інше оточення.
+    """
+    unit, shell = _real()
+    drifted = {**unit, "KORPUS_CORS_ORIGINS": "https://зовсім-інша.example"}
+    finding = _finding(GATE.assess(drifted, shell), "safety_values")
+    assert finding["verdict"] == "FAIL" and "KORPUS_CORS_ORIGINS" in finding["detail"]
