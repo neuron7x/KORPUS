@@ -4519,6 +4519,17 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    Mutant(
+        "M522_THE_DIRECTIVE_SET_WIDENS_UNTIL_EVERYTHING_IS_ACTIONABLE",
+        "scripts/measure_declared_coverage.py",
+        '    r"проводиться|виконується|застосовується|вживає|вживають)",',
+        '    r"проводиться|виконується|застосовується|вживає|вживають|вивча|перелік|опис)",',
+        (
+            "apps/api/tests/test_declared_coverage.py::"
+            "test_the_directive_set_is_narrow_enough_to_separate",
+        ),
+        full_copy=True,
+    ),
     # ── Бази доказів. Гейт проти неоголошених баз, який сам спирається на оголошення,
     # зелений саме в тому стані, заради якого існує: M498 — це та отрута, що проходила.
     Mutant(
