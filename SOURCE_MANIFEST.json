@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1723,
-  "root_sha256": "e48a8369b44cd1b52ab92620f73a4e9fd1daeadaa3a7b15073587cef06c21209",
+  "file_count": 1728,
+  "root_sha256": "fadc58c087859bcf1e89349a42fade445b31c187f40c493775056e0b8ceabea5",
   "files": [
     {
       "path": ".dockerignore",
@@ -627,6 +627,12 @@
       "path": "apps/api/migrations/versions/0019_temporal_corpus_snapshot.py",
       "bytes": 11851,
       "sha256": "005196b255b07279c2c16e8342a2bcd66ea4df659186e5ddfd3044db5851e679",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/migrations/versions/0020_rls_identity_boundary.py",
+      "bytes": 15940,
+      "sha256": "bbc102caf9431a4dae83a5e50ac77a33f59b5109a44ce44d31e8cad2d67dee3d",
       "mode": "0644"
     },
     {
@@ -1819,8 +1825,8 @@
     },
     {
       "path": "apps/api/src/korpus/config.py",
-      "bytes": 23387,
-      "sha256": "cf4d94b662684adc1fc9d3364f2524d85ba62703ffea40201f300a64164e5880",
+      "bytes": 23764,
+      "sha256": "e9297b1c329403744ba2768105f9c2ebb6bb3d36cc847ffe181695165a9a4b0c",
       "mode": "0644"
     },
     {
@@ -1963,8 +1969,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/embedding_backfill.py",
-      "bytes": 4868,
-      "sha256": "69da2be8779e90e1d646c6bca4654e285ca4ba2326c54ee81e9ad92da58f33cc",
+      "bytes": 5964,
+      "sha256": "2d6c700f71135e8cb201ac5392baf04b550f92595d6d49eda5728f3bc3281e54",
       "mode": "0644"
     },
     {
@@ -2161,8 +2167,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/repository.py",
-      "bytes": 49314,
-      "sha256": "f6b630680f891183bf63054a6af62d60bf5c7a2005c61186b346ed77c2305eff",
+      "bytes": 55758,
+      "sha256": "868087ddb4b225a624440a79f259c508f2b89080562d59c7fcdb7e83063634ec",
       "mode": "0644"
     },
     {
@@ -2179,8 +2185,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
-      "bytes": 5812,
-      "sha256": "99f4f7226aa3fedc017b051f8efd413ae1d0089e9b22cfa193bd86bfb4e983b4",
+      "bytes": 8162,
+      "sha256": "f6d2570c6dd89855c474c568fb2c59096152e130cd1beff9d40ce4f6b1e9e896",
       "mode": "0644"
     },
     {
@@ -2202,6 +2208,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/src/korpus/infrastructure/rls_repository.py",
+      "bytes": 6530,
+      "sha256": "c20bde03bd0f9f21d423227d0f86e3ba1b745b4b43346670768c343faa1362c1",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/src/korpus/infrastructure/row_mapping.py",
       "bytes": 11437,
       "sha256": "b166338ecba941c9ef3951c80eb68928d47d60be4663fc36aca71ee3fdbc2514",
@@ -2209,8 +2221,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/runtime.py",
-      "bytes": 3423,
-      "sha256": "340f50271500194188aef40b9417094bbddb847e349a3f78c488f9ed686708cd",
+      "bytes": 4275,
+      "sha256": "2ea374f0cf9180cfda13aa4a08baab77d8ab7cb09ecc2c282073e0b58e8778d2",
       "mode": "0644"
     },
     {
@@ -2221,20 +2233,20 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/schema.py",
-      "bytes": 9999,
-      "sha256": "daeb44dcdf0f96aeb2d656bbcdcd41ccac3adb58eb29105a34408bf507cc400d",
+      "bytes": 9996,
+      "sha256": "75bd53f67fa2e5512b6637b3abd2144c263f7c7927c27df34eaa530b46933813",
       "mode": "0644"
     },
     {
       "path": "apps/api/src/korpus/infrastructure/semantic.py",
-      "bytes": 7258,
-      "sha256": "ceac7bfafa604b23d0249be3acf07eb97e5b081ca41e13c3bde12242b0f1a76b",
+      "bytes": 8174,
+      "sha256": "e1251735dbf30dd32cbdcc16178a2fd896d07ca738dafddb645d133e0db5f35b",
       "mode": "0644"
     },
     {
       "path": "apps/api/src/korpus/infrastructure/semantic_coverage.py",
-      "bytes": 3135,
-      "sha256": "b8878f0ce00d17b3790fc2d26caa8be67dc8cfc312f7ccd9e1039a6af5a07ff9",
+      "bytes": 3268,
+      "sha256": "6fb9d8a377075801472318386cb827c982517b12ab54be912b4909b1b983b0f7",
       "mode": "0644"
     },
     {
@@ -2281,8 +2293,8 @@
     },
     {
       "path": "apps/api/src/korpus/main.py",
-      "bytes": 13761,
-      "sha256": "79a5daf44e39ae7fcc573f9a64525f4346d3263936ddec28554d6cc89baafcce",
+      "bytes": 13844,
+      "sha256": "a9734ead1b2796375adfaff0514dd52ae747dc750ca1d49e6ffb38ddec27903e",
       "mode": "0644"
     },
     {
@@ -2491,8 +2503,8 @@
     },
     {
       "path": "apps/api/tests/conftest.py",
-      "bytes": 6923,
-      "sha256": "72c76451b409f07c8ea36cad207454142f45fa1b394c34200c28fa5a89b194b2",
+      "bytes": 7807,
+      "sha256": "9aa06b30dd01f51416de26ef422fa6998d8ea679b1692dcd7fff9d76625385c9",
       "mode": "0644"
     },
     {
@@ -2743,14 +2755,14 @@
     },
     {
       "path": "apps/api/tests/test_boundary_coverage_v5.py",
-      "bytes": 20315,
-      "sha256": "c30459b979cdbbc7effb726290bf39e3506e28b8ddac52440095a25f208f92ca",
+      "bytes": 20527,
+      "sha256": "afe27a008d2f90f572ef424252b73c8472f0755672f7906052df877d95f3e80a",
       "mode": "0644"
     },
     {
       "path": "apps/api/tests/test_branch_consolidation.py",
-      "bytes": 5192,
-      "sha256": "503daea9805615786da705562285fb7919468310d75f58229d476a2e65cd3a46",
+      "bytes": 5189,
+      "sha256": "943842cd428e74cb76fcc7afd81517a86d43554304953a4b7a6715c232b507c0",
       "mode": "0644"
     },
     {
@@ -2835,6 +2847,12 @@
       "path": "apps/api/tests/test_calibration.py",
       "bytes": 4800,
       "sha256": "88d19790509dedb7b3a94e08c86498d8fd5a3b7cca4fd473fc4c79d67640d9f5",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_candidate_visibility_equivalence.py",
+      "bytes": 5678,
+      "sha256": "a8af04c3d8079af0556ec70bcf6006bec76c1c8004d39e6c526d8d064becf368",
       "mode": "0644"
     },
     {
@@ -2941,8 +2959,8 @@
     },
     {
       "path": "apps/api/tests/test_corpus_release_identity.py",
-      "bytes": 9254,
-      "sha256": "9dcae921cdca86437e478bff705949a103e625133bc84743f1c283e8dbb594ca",
+      "bytes": 9554,
+      "sha256": "a01bef7779ff11eb6d4c0d41b18b7206bc4644c8e17d0eadeedb96278202901a",
       "mode": "0644"
     },
     {
@@ -2953,8 +2971,8 @@
     },
     {
       "path": "apps/api/tests/test_corpus_snapshot_contract.py",
-      "bytes": 15162,
-      "sha256": "1660fe554c6bf300c3ef311a34d85fd9a8a407ca8d3564352abe5b082ab3d38c",
+      "bytes": 17000,
+      "sha256": "8942bde9ac0fec337eb410c4de6908640eb5751442b29edefbfbfee5e06b1cf4",
       "mode": "0644"
     },
     {
@@ -3115,14 +3133,14 @@
     },
     {
       "path": "apps/api/tests/test_embedding_backfill.py",
-      "bytes": 3902,
-      "sha256": "7de61b9c5579573431bf1e9e6409552f3a2934efd6e207ff62c85f420abe2e14",
+      "bytes": 6077,
+      "sha256": "fc3830a9ebf204f59aff1b5f42d5a57cff67098af47f98315378e7e588eac078",
       "mode": "0644"
     },
     {
       "path": "apps/api/tests/test_embedding_backfill_cli.py",
-      "bytes": 8270,
-      "sha256": "1f1ce84eb55a731f9904b6861ff4c5b5bf1ba7d56bfda686cf294ff8e389b57c",
+      "bytes": 8893,
+      "sha256": "177be4e9f2406fc6e6b245fb78874ba33953d3a72701be177fd66306e3a04c86",
       "mode": "0644"
     },
     {
@@ -3991,8 +4009,14 @@
     },
     {
       "path": "apps/api/tests/test_postgres_integration.py",
-      "bytes": 6825,
-      "sha256": "935a9242cfee2181afdc96bd922b203ca1cc0f0fada1f69177e532ff095015c9",
+      "bytes": 7421,
+      "sha256": "b85583579b0d6a5b01f811a125cb7df432fe8c8d80a2b420b184312ca71f8bad",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_postgres_rls_claim_forgery.py",
+      "bytes": 7530,
+      "sha256": "8c005033b58c6691988b2089a6d861dd9f720b327a7d01f7232e478d56c8a3ab",
       "mode": "0644"
     },
     {
@@ -4345,8 +4369,8 @@
     },
     {
       "path": "apps/api/tests/test_retrieval_supersession_cost.py",
-      "bytes": 5264,
-      "sha256": "d44ac0daaadfbdda59b366738611d31d0ce6bd633b2537981e6e1d6ccb0e3e03",
+      "bytes": 5390,
+      "sha256": "7af19a1a601f5c575e9fea7deac15749858b7240e1fee5327a40943b633ea9ef",
       "mode": "0644"
     },
     {
@@ -4377,6 +4401,12 @@
       "path": "apps/api/tests/test_risk_rules.py",
       "bytes": 6959,
       "sha256": "6318c83c607645c1a7aa974a778fb86decfa00ad66333a0aa8f50ce508ea4f14",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_rls_identity_boundary_wiring.py",
+      "bytes": 4398,
+      "sha256": "97f3381fd8c1e03bae50806706072a824a714a07dcad7864dca789de001c8948",
       "mode": "0644"
     },
     {
@@ -4417,8 +4447,8 @@
     },
     {
       "path": "apps/api/tests/test_sealed_evidence_immutability.py",
-      "bytes": 1304,
-      "sha256": "e3abdd56738146b9351c04e3b1478d1ed45557bf04159eaa713d42d15bdc2ac4",
+      "bytes": 1325,
+      "sha256": "bd636dfd21e92014381b333b524a6e3dd58bea590cba1ee9b9e24001af892785",
       "mode": "0644"
     },
     {
@@ -4441,8 +4471,8 @@
     },
     {
       "path": "apps/api/tests/test_semantic_coverage_runtime.py",
-      "bytes": 3168,
-      "sha256": "be7d3380a69aad95959c32cc22a5bfc9635644d42088b379af5df7dab6b70002",
+      "bytes": 3664,
+      "sha256": "923223725114f829233d6f539ad4d630948df89fe6162b44104d61014e120326",
       "mode": "0644"
     },
     {
@@ -4585,8 +4615,8 @@
     },
     {
       "path": "apps/api/tests/test_temporal_corpus_snapshot.py",
-      "bytes": 13865,
-      "sha256": "db617137aa83d578e594cc7d6a9108a97356a55f20b87d291dc5df7497ad3082",
+      "bytes": 14158,
+      "sha256": "692f4ac069f06edbdfa99b325cd4da82a2772dfcf3ef211badddef938f34b638",
       "mode": "0644"
     },
     {
@@ -7021,8 +7051,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 439085,
-      "sha256": "5099b52db8ba74d5f4372604f153186d297e64fda15332c6236ec95d428ae08d",
+      "bytes": 450885,
+      "sha256": "3b96c98da57eb2ccff533dad997f8ca6c219f82b0d79d20e9e9c83a459ddc1c5",
       "mode": "0644"
     },
     {
@@ -7057,8 +7087,8 @@
     },
     {
       "path": "config/production/migration-policy.json",
-      "bytes": 3617,
-      "sha256": "eeaaa9182fc2f726c5d076dbacaed56172f76e8e3939635daa61a7005fdb4674",
+      "bytes": 4744,
+      "sha256": "dca7b4fc974e13312c913765bd0fd0024f2c75b02224d4459acfd018968151f6",
       "mode": "0644"
     },
     {
@@ -9511,8 +9541,8 @@
     },
     {
       "path": "scripts/prepare_postgres_role.py",
-      "bytes": 5965,
-      "sha256": "e52b423a04250c64f9c8794475db8d4418d4e467dd54833b0991982d73945b37",
+      "bytes": 10551,
+      "sha256": "9d9f8e72292e9e1ded270d24fbf7e214383b4ee636dc713f84a744b5f67595e5",
       "mode": "0755"
     },
     {
@@ -9709,8 +9739,8 @@
     },
     {
       "path": "scripts/run_embedding_backfill.py",
-      "bytes": 7504,
-      "sha256": "eb44b06a9f4417362edcf86814f6295be084bbd06d22d34a991d91c737970b2f",
+      "bytes": 8187,
+      "sha256": "409c18ebc2a7255da98f44b2d33489e6ace932d949d882d0dc99c2f1b5350210",
       "mode": "0755"
     },
     {
@@ -9793,8 +9823,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 258320,
-      "sha256": "b54e24dc174c11b5ae8dd429d675d64d450a74eb89f97a34e7a049a03e5cb8e1",
+      "bytes": 263985,
+      "sha256": "6a60b60fcb5599838dfaaf3d9be51cb81c65b77a95dc051856443982aebaad1d",
       "mode": "0755"
     },
     {
@@ -9853,8 +9883,8 @@
     },
     {
       "path": "scripts/run_postgres_suite.sh",
-      "bytes": 3060,
-      "sha256": "40578cd649c52373c23c468cd64496cf475ed763599b2b62a9d51197ace3ccf4",
+      "bytes": 3321,
+      "sha256": "82bcf7f19e9024348752380c96396c0bb5500fd89e0fc8419437112cb91706ae",
       "mode": "0755"
     },
     {

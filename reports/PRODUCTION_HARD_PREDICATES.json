@@ -1,7 +1,7 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "d771ca84d96daef337105366dec03dc9bd73a495fab385a4d267494b9e2d53db",
+  "source_tree_sha256": "e9675180847b2c9ba363cd7c91c68dc7fe4ed9e9e98a68a1f4bffcd9ec4f891b",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
