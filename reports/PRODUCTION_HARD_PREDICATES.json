@@ -1,7 +1,7 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "d493d9429bca7a4e1652d1e7b87dbdc38928cb09824525a557bfd7c00d7018e4",
+  "source_tree_sha256": "1bbb242544b568571d0f57e0d362e6fea06735e37656d0ecacd3abd046b031a2",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
@@ -34,8 +34,7 @@
         "blocking_findings_closed",
         "declared_status_consistent",
         "metadata:status",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ]
     },
     {
@@ -47,7 +46,6 @@
       "production_satisfied": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "security_scanners_executed_clean",
         "security_scanners_current_commit",
         "container_scanners_executed_clean",
         "container_scanners_current_commit",
@@ -55,8 +53,7 @@
         "evidence_manifest_bound",
         "evidence_attestation_verified",
         "evidence_trusted_signer",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ]
     },
     {

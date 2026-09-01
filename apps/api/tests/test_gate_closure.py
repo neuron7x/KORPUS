@@ -267,7 +267,11 @@ def test_a_target_that_only_runs_a_selftest_is_covered_by_the_selftest_gate() ->
     """
     text = (ROOT / "Makefile").read_text(encoding="utf-8")
     only = GATE.selftest_only(text)
-    for name in ("public-surface-selftest", "capture-evidence-selftest", "recheck-blocked-selftest"):
+    for name in (
+        "public-surface-selftest",
+        "capture-evidence-selftest",
+        "recheck-blocked-selftest",
+    ):
         assert name in only, name
     assert "check" not in only and "validate" not in only
 
@@ -275,8 +279,7 @@ def test_a_target_that_only_runs_a_selftest_is_covered_by_the_selftest_gate() ->
 def test_a_target_that_does_more_than_a_selftest_is_not_covered_for_free() -> None:
     """Інакше будь-яка ціль, що ЗАОДНО кличе самоперевірку, ставала б закритою."""
     only = GATE.selftest_only(
-        "a:\n\t$(PY) x.py --selftest\n"
-        "b:\n\t$(PY) x.py --selftest\n\t$(PY) x.py --database d\n"
+        "a:\n\t$(PY) x.py --selftest\nb:\n\t$(PY) x.py --selftest\n\t$(PY) x.py --database d\n"
     )
     assert only == {"a"}
 
@@ -284,11 +287,16 @@ def test_a_target_that_does_more_than_a_selftest_is_not_covered_for_free() -> No
 def test_the_selftest_shortcut_needs_the_selftest_gate_to_be_covered() -> None:
     """Якщо `selftest-coverage` випаде з `validate`, знижка мусить зникнути разом із ним."""
     text = (ROOT / "Makefile").read_text(encoding="utf-8")
-    without = text.replace("validate: public-env-parity gate-closure selftest-coverage",
-                           "validate: public-env-parity gate-closure")
-    assert "selftest-coverage" not in without.splitlines()[
-        next(i for i, line in enumerate(without.splitlines()) if line.startswith("validate:"))
-    ]
+    without = text.replace(
+        "validate: public-env-parity gate-closure selftest-coverage",
+        "validate: public-env-parity gate-closure",
+    )
+    assert (
+        "selftest-coverage"
+        not in without.splitlines()[
+            next(i for i, line in enumerate(without.splitlines()) if line.startswith("validate:"))
+        ]
+    )
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
     edges, declared, scripts = GATE.parse_graph(without)
     findings = GATE.assess(edges, declared, registry, scripts, without)

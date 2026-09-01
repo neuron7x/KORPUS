@@ -4571,9 +4571,7 @@ MUTANTS = (
         "scripts/verify_installed_units.py",
         '        if line.strip() and not line.lstrip().startswith("#")',
         "        if line.strip()",
-        (
-            "apps/api/tests/test_installed_units.py::test_a_comment_is_not_a_difference",
-        ),
+        ("apps/api/tests/test_installed_units.py::test_a_comment_is_not_a_difference",),
         full_copy=True,
     ),
     Mutant(

@@ -156,9 +156,7 @@ def test_the_mirror_the_neighbouring_session_created_is_declared() -> None:
     вісь `evidence_bases` мала ДВІ бази. Гейт знайшов її сам — виявлення не спирається
     на реєстр, інакше «прибрати запис» було б способом стати зеленим.
     """
-    entry = next(
-        e for e in _registry()["stores"] if e["path"] == "var/liveness-fixture/mirror.db"
-    )
+    entry = next(e for e in _registry()["stores"] if e["path"] == "var/liveness-fixture/mirror.db")
     assert entry["optional"] is True and entry["role"] == "fixture"
 
 
