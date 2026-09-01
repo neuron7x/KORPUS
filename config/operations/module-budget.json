@@ -3041,11 +3041,12 @@
       "max_nesting": 1
     },
     "scripts/check_deployment_debt.py": {
-      "lines": 153,
+      "lines": 163,
       "max_complexity": 9,
-      "max_function_args": 2,
-      "max_function_lines": 38,
+      "max_function_args": 3,
+      "max_function_lines": 40,
       "max_nesting": 2,
+      "proof_lines": 60,
       "reason": "Другий вхід гейтів — `check-deployment` — і ратчет прийнятого боргу розгортання: стеля, відмова на погіршенні, вимога знизити стелю при поліпшенні. Мутанти M460–M463."
     },
     "scripts/check_environment_drift.py": {
@@ -3696,6 +3697,14 @@
       "max_nesting": 2,
       "reason": "Ідентичність корпусу, похідна від ЗМІСТУ: голова журналу, лічильники, сума хешів прольотів і дайджест посилань. Не sha256 файла — той рухається від VACUUM і сторінкового кешу, яких жодна вісь не міряє; не mtime — його рухає `touch`."
     },
+    "scripts/measure_declared_coverage.py": {
+      "lines": 240,
+      "max_complexity": 14,
+      "max_function_args": 2,
+      "max_function_lines": 50,
+      "max_nesting": 3,
+      "reason": "Розрив між тим, що система про себе ОГОЛОСИЛА, і тим, що корпус тримає. Два найбільші відкриті борги знайдені випадково; інструмента, який сказав би це сам, не було. Вибрані з корпусу питання лічаться окремо (підтримка в них є за побудовою), випадки з очікуваною ВІДМОВОЮ виключені."
+    },
     "scripts/measure_recovery.py": {
       "lines": 183,
       "max_complexity": 5,
@@ -4251,11 +4260,12 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4946,
+      "lines": 5130,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
       "max_nesting": 2,
+      "proof_lines": 0,
       "reason": "+73 рядки за M483–M486: відмова як прогалина покриття, вибране як оголошене, найчастіший термін замість найрідшого, службові слова як свідчення."
     },
     "scripts/run_operational_gate.py": {
@@ -4655,12 +4665,12 @@
       "max_nesting": 2
     },
     "scripts/validate_span_hygiene.py": {
-      "lines": 154,
-      "max_complexity": 6,
+      "lines": 182,
+      "max_complexity": 7,
       "max_function_args": 1,
-      "max_function_lines": 16,
+      "max_function_lines": 24,
       "max_nesting": 2,
-      "proof_lines": 30,
+      "proof_lines": 59,
       "reason": "Точна виміряна початкова стеля. Ловить ЕКРАНОВАНУ розмітку в цитовних прольотах: `&lt;p>` не є текстом документа ні в якій доктрині, це залишок подвійного кодування. Правило звужене після двох хибних спроб, які позначали справжню доктрину сміттям."
     },
     "scripts/verify_audit.py": {
@@ -4686,6 +4696,15 @@
       "max_nesting": 2,
       "reason": "v0.5.0: dependency closure now source/release-bound; exact expanded ceiling"
     },
+    "scripts/verify_evidence_stores.py": {
+      "lines": 340,
+      "max_complexity": 8,
+      "max_function_args": 3,
+      "max_function_lines": 35,
+      "max_nesting": 3,
+      "proof_lines": 94,
+      "reason": "Нова вісь: скільки баз доказів існує і чи та, яку подають, є тією, яку назвали. Виміряно 01.09.2026 — п'ять сховищ у дереві плюс постгрес; порожнє на типовому шляху config.py і постгрес із тими самими 256 документами, але іншою нарізкою. Стеля — виміряне значення дня. Мутанти M507–M512."
+    },
     "scripts/verify_final_release_authorization.py": {
       "lines": 110,
       "max_complexity": 5,
@@ -4695,11 +4714,12 @@
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
     },
     "scripts/verify_gate_closure.py": {
-      "lines": 318,
+      "lines": 467,
       "max_complexity": 15,
-      "max_function_args": 4,
-      "max_function_lines": 66,
+      "max_function_args": 5,
+      "max_function_lines": 68,
       "max_nesting": 4,
+      "proof_lines": 124,
       "reason": "Гейт покриття гейтами: що саме означає «дерево зелене». Виміряно 193 цілі, 44 перевірочних, 27 не виконуються під `check`. Стеля — виміряне значення дня."
     },
     "scripts/verify_gcp_production.py": {
@@ -4788,11 +4808,12 @@
       "reason": "Гейт форми публічної поверхні: шість незалежних перевірок таблицею чистих предикатів плюс тринадцять негативних контролів у тому ж файлі. Перевірки НЕ склеєні в одне тіло навмисно — попередня версія мала складність 38 і ратчет мав рацію."
     },
     "scripts/verify_regression_carry_forward.py": {
-      "lines": 157,
+      "lines": 161,
       "max_complexity": 11,
       "max_function_args": 2,
       "max_function_lines": 61,
       "max_nesting": 2,
+      "proof_lines": 0,
       "reason": "bounded regression evidence carry-forward verifier; production gates do not consume it"
     },
     "scripts/verify_release_evidence.py": {
@@ -4849,14 +4870,6 @@
       "max_function_lines": 29,
       "max_nesting": 2,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
-    },
-    "scripts/measure_declared_coverage.py": {
-      "lines": 240,
-      "max_complexity": 14,
-      "max_function_lines": 50,
-      "max_function_args": 2,
-      "max_nesting": 3,
-      "reason": "Розрив між тим, що система про себе ОГОЛОСИЛА, і тим, що корпус тримає. Два найбільші відкриті борги знайдені випадково; інструмента, який сказав би це сам, не було. Вибрані з корпусу питання лічаться окремо (підтримка в них є за побудовою), випадки з очікуваною ВІДМОВОЮ виключені."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -7585,14 +7598,107 @@
       }
     },
     {
+      "on": "2026-08-31",
       "path": "scripts/run_mutation_tests.py",
+      "reason": "+73 рядки за M483–M486: відмова як прогалина покриття, вибране як оголошене, найчастіший термін замість найрідшого, службові слова як свідчення.",
       "to": {
         "lines": 4946
+      }
+    },
+    {
+      "from": {
+        "lines": 318,
+        "max_function_args": 4,
+        "max_function_lines": 66
       },
-      "on": "2026-08-31",
-      "reason": "+73 рядки за M483–M486: відмова як прогалина покриття, вибране як оголошене, найчастіший термін замість найрідшого, службові слова як свідчення."
+      "on": "2026-09-01",
+      "path": "scripts/verify_gate_closure.py",
+      "reason": "Дві властивості САМОГО Makefile стали перевірками: ціль, оголошена двічі з рецептом (make мовчки лишає останній — виміряно на `fetch-stubs`), і причина «потребує аргумент», яку доти ніхто не перевіряв. Додано `recipes`, `duplicate_recipes`, `_strip_optional`, `_closing_paren`, `mandatory_variables`, `_assess_makefile_truth` і п'ять негативних контролів. Мутанти M503–M506.",
+      "to": {
+        "lines": 467,
+        "max_function_args": 5,
+        "max_function_lines": 68
+      }
+    },
+    {
+      "from": {
+        "lines": 154,
+        "max_complexity": 6,
+        "max_function_lines": 16,
+        "proof_lines": 30
+      },
+      "on": "2026-09-01",
+      "path": "scripts/validate_span_hygiene.py",
+      "reason": "Вибір бази за ФОРМОЮ рядка, а не за тим, чи файл трапився на місці. Старе правило мовчки міняло предмет виміру: відсутній SQLite ставав запитом до psql, тобто до ІНШОГО корпусу. Додано `backend`, відмову на названому файлі, якого немає, і сім перевірок форми. Мутанти M500–M502.",
+      "to": {
+        "lines": 182,
+        "max_complexity": 7,
+        "max_function_lines": 24,
+        "proof_lines": 59
+      }
+    },
+    {
+      "from": {
+        "lines": 153,
+        "max_function_args": 2,
+        "max_function_lines": 38
+      },
+      "on": "2026-09-01",
+      "path": "scripts/check_deployment_debt.py",
+      "reason": "`metric_kind: length` — перелік відмов міряється довжиною. Без цього стелю для `production-assurance-verify` (звіт називає відмови поіменно й не рахує їх) поставити було б нічим, і врядувальна відмовка лишалась би словом. Мутанти M513–M515.",
+      "to": {
+        "lines": 163,
+        "max_function_args": 3,
+        "max_function_lines": 40
+      }
+    },
+    {
+      "from": {
+        "lines": 4946
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "+173 рядки за M500–M515: підміна бази доказів, дубльована ціль Makefile, неперевірена причина в реєстрі, нечитане сховище доказів і перелік відмов як число.",
+      "to": {
+        "lines": 5119
+      }
+    },
+    {
+      "on": "2026-09-01",
+      "path": "scripts/verify_evidence_stores.py",
+      "reason": "Нова вісь: скільки баз доказів існує і чи та, яку подають, є тією, яку назвали. Виміряно 01.09.2026 — п'ять сховищ у дереві плюс постгрес; порожнє на типовому шляху config.py і постгрес із тими самими 256 документами, але іншою нарізкою. Стеля — виміряне значення дня. Мутанти M507–M512.",
+      "to": {
+        "lines": 340,
+        "max_complexity": 8,
+        "max_function_args": 3,
+        "max_function_lines": 35,
+        "max_nesting": 3,
+        "proof_lines": 94
+      }
+    },
+    {
+      "from": {
+        "lines": 5119
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "+184 рядки за M500–M516: підміна бази доказів, дубльована ціль Makefile, неперевірена причина в реєстрі, нечитане сховище доказів, перелік відмов як число і перевірка, що писала в доказ, який перевіряє.",
+      "to": {
+        "lines": 5130
+      }
+    },
+    {
+      "from": {
+        "lines": 157
+      },
+      "on": "2026-09-01",
+      "path": "scripts/verify_regression_carry_forward.py",
+      "reason": "Типовий вихід перенесено з релізного звіту в чернетку. Виміряно 01.09.2026: щоб дізнатись, чи ціль запускається, її запустили — і вона перезаписала reports/release/v0.7.0/REGRESSION_CARRY_FORWARD.json, той самий артефакт, який build_readiness_947_evidence.py читає як доказ. Мутант M516.",
+      "to": {
+        "lines": 161
+      }
     }
   ],
-  "recorded_at": "2026-08-24",
+  "recorded_at": "2026-09-01",
   "schema_version": 1
 }

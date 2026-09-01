@@ -43,13 +43,6 @@
       "target": "liveness-fixture"
     },
     {
-      "class": "requires_live_service",
-      "closes_when": "з'явиться щоденний прогін проти публічного розгортання",
-      "on": "2026-08-31",
-      "reason": "Б'є навантаженням у ЖИВИЙ API за адресою BASE. Вимір проти сервісу не належить гейту, який мусить проходити там, де сервісу немає.",
-      "target": "load-probe"
-    },
-    {
       "class": "requires_argument",
       "closes_when": "інвентар версій стане артефактом дерева",
       "on": "2026-08-31",
@@ -65,9 +58,11 @@
     },
     {
       "class": "requires_external_evidence",
-      "closes_when": "хтось, уповноважений вирішувати, внесе ключі підписантів",
+      "closes_when": "у реєстрах підписантів з'явиться хоча б один довірений ключ; до того число відмов тримає стеля в deployment-debt.json",
+      "measured_failures": 10,
+      "measured_on": "2026-09-01",
       "on": "2026-08-31",
-      "reason": "Перевіряє підписані докази продакшену; усі дев'ять реєстрів довірених підписантів порожні, тож перевірка недосяжна не через дефект.",
+      "reason": "Виміряно 01.09.2026: ціль ЗАПУСКАЄТЬСЯ без аргументів і дає вирок — слово «недосяжна» в попередньому записі було хибним. Вона червона на 10 перевірках, і вони різного роду. Вісім — свіжість пакета доказів (source_bound, gate_hashes_current, embedded_gates_current, checks_recomputed, failures_recomputed і похідні від них recomputed_pass, status_pass, production_authorized); їх знімає нічний прогін evidence. Дві — врядування, не інженерія: assurance_attestation_verified і assurance_trusted_signer, бо всі дев'ять реєстрів довірених підписантів порожні. Ключі туди вносить той, хто вповноважений вирішувати, а не збірка.",
       "target": "production-assurance-verify"
     },
     {

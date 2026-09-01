@@ -45,7 +45,7 @@ import argparse
 import json
 import re
 import sys
-from collections import deque
+from collections import Counter, deque
 from pathlib import Path
 from typing import Any
 
@@ -130,6 +130,103 @@ def parse_graph(text: str) -> tuple[dict[str, set[str]], list[str], dict[str, se
     return edges, declared, scripts
 
 
+#: Змінні, які завжди має збірка; їхня згадка в рецепті нічого не вимагає від людини.
+_AMBIENT = frozenset({"PY", "PYTHON", "MAKE", "SHELL", "CURDIR", "SERVED_CORPUS", "OBJECTS"})
+_VARIABLE = re.compile(r"\$\((?P<name>[A-Z][A-Z0-9_]*)\)")
+_GUARD = re.compile(r"test\s+-n\s+\"?\$\((?P<name>[A-Z][A-Z0-9_]*)\)")
+
+
+def recipes(text: str) -> dict[str, list[str]]:
+    """Ціль → рядки її рецепта. Порядок збережено; заголовки не входять."""
+    found: dict[str, list[str]] = {}
+    current: str | None = None
+    for line in text.splitlines():
+        if line.startswith("\t"):
+            if current is not None:
+                found.setdefault(current, []).append(line)
+            continue
+        matched = _RULE.match(line)
+        if matched is None:
+            continue
+        names = matched.group("names").split()
+        current = None if names[0] == ".PHONY" else names[0]
+    return found
+
+
+def duplicate_recipes(text: str) -> list[str]:
+    """Цілі, оголошені двічі З РЕЦЕПТОМ. GNU make лишає ОСТАННІЙ і лише попереджає.
+
+    Це та сама форма, що вже коштувала нам зеленого конвеєра: дубльоване ім'я джоба
+    в `include` перекривається МОВЧКИ. Тут виміряно 01.09.2026 — `fetch-stubs` мав два
+    визначення, і те, що виконувалось, вийшло сильнішим ВИПАДКОВО: у порядку навпаки
+    ціль ходила б без `--database`, тобто не дивилась би на обслуговуваний корпус і
+    лишалась зеленою. Попередження make ніхто не читає, бо воно не змінює коду виходу.
+    """
+    with_recipe: Counter[str] = Counter()
+    current: str | None = None
+    counted: set[str] = set()
+    for line in text.splitlines():
+        if line.startswith("\t"):
+            if current is not None and current not in counted and line.strip():
+                with_recipe[current] += 1
+                counted.add(current)
+            continue
+        matched = _RULE.match(line)
+        if matched is None:
+            continue
+        names = matched.group("names").split()
+        if names[0] == ".PHONY" or "%" in names[0]:
+            current = None
+            continue
+        current = names[0]
+        counted.discard(current)
+    return sorted(name for name, count in with_recipe.items() if count > 1)
+
+
+def _strip_optional(line: str) -> str:
+    """Прибрати `$(if ...)` і `$(or ...)` разом із їхнім вмістом, рахуючи дужки.
+
+    Усе, що всередині них, за побудовою НЕ обов'язкове: `$(if $(POLICY),--policy ...)`
+    зникає цілком, коли POLICY порожня, а `$(or $(A),$(B))` має запасне значення.
+    """
+    for opener in ("$(if ", "$(or "):
+        while (start := line.find(opener)) >= 0:
+            end = _closing_paren(line, start)
+            if end is None:
+                return line[:start]
+            line = line[:start] + line[end + 1 :]
+    return line
+
+
+def _closing_paren(text: str, start: int) -> int | None:
+    """Індекс дужки, що закриває відкриту одразу після `start`, або None.
+
+    Винесено з `_strip_optional` не заради краси: разом вони давали глибину шість,
+    а ратчет складності ходить УНИЗ. Незакрита дужка — не помилка розбору, а обірваний
+    рядок продовження; тоді все від `start` вважається необов'язковим.
+    """
+    depth = 0
+    for index in range(start + 1, len(text)):
+        if text[index] == "(":
+            depth += 1
+        elif text[index] == ")":
+            depth -= 1
+            if depth == 0:
+                return index
+    return None
+
+
+def mandatory_variables(recipe: list[str]) -> set[str]:
+    """Змінні, без яких ціль СПРАВДІ не працює: під `test -n` або згадані безумовно."""
+    required: set[str] = set()
+    for line in recipe:
+        for match in _GUARD.finditer(line):
+            required.add(match.group("name"))
+        for match in _VARIABLE.finditer(_strip_optional(line)):
+            required.add(match.group("name"))
+    return required - _AMBIENT
+
+
 def reachable(edges: dict[str, set[str]], roots: tuple[str, ...]) -> set[str]:
     """Транзитивне замикання від коренів. Цикли не зациклюють: `seen` росте."""
     seen: set[str] = set()
@@ -193,6 +290,7 @@ def assess(
     declared: list[str],
     registry: dict[str, Any],
     scripts: dict[str, set[str]] | None = None,
+    makefile: str | None = None,
 ) -> list[dict[str, str]]:
     """Вирок над графом і реєстром. UNKNOWN — окремо і НЕ PASS."""
     if not declared:
@@ -253,7 +351,58 @@ def assess(
         else _finding("unreasoned_exemption", "PASS", "кожен запис несе причину")
     )
 
+    findings.extend(_assess_makefile_truth(named, makefile))
     return findings
+
+
+def _assess_makefile_truth(
+    named: dict[str, dict[str, Any]], makefile: str | None
+) -> list[dict[str, str]]:
+    """Дві властивості САМОГО Makefile, які реєстр припускає, але ніхто не міряв.
+
+    Перша: жодна ціль не оголошена двічі з рецептом — інакше make мовчки лишає
+    останній, і те, що виконується, залежить від порядку рядків, а не від наміру.
+
+    Друга: причина у реєстрі — теж ТВЕРДЖЕННЯ, і його ніхто не перевіряв. Запис класу
+    `requires_argument` каже «без аргументу не запуститься»; це можна спростувати
+    статично — якщо в рецепті кожна змінна загорнута в `$(if ...)`, ціль запускається
+    порожньою, і виняток описує неіснуючу перешкоду.
+    """
+    if makefile is None:
+        return [
+            _finding("duplicate_target", "UNKNOWN", "Makefile не переданий — не виміряно"),
+            _finding("unfounded_requirement", "UNKNOWN", "Makefile не переданий — не виміряно"),
+        ]
+
+    duplicates = duplicate_recipes(makefile)
+    found = [
+        _finding(
+            "duplicate_target",
+            "FAIL",
+            "ціль оголошена двічі з рецептом, make мовчки лишає останній: " + ", ".join(duplicates),
+        )
+        if duplicates
+        else _finding("duplicate_target", "PASS", "жодної цілі з двома рецептами")
+    ]
+
+    all_recipes = recipes(makefile)
+    unfounded = sorted(
+        target
+        for target, entry in named.items()
+        if entry.get("class") == "requires_argument"
+        and not mandatory_variables(all_recipes.get(target, []))
+    )
+    found.append(
+        _finding(
+            "unfounded_requirement",
+            "FAIL",
+            "виняток «потребує аргумент» для цілі, яка запускається без нього: "
+            + ", ".join(unfounded),
+        )
+        if unfounded
+        else _finding("unfounded_requirement", "PASS", "кожне «потребує аргумент» має підставу")
+    )
+    return found
 
 
 def verdict(findings: list[dict[str, str]]) -> str:
@@ -281,7 +430,7 @@ def selftest() -> int:
 
     def run(makefile: str, registry: dict[str, Any]) -> str:
         edges, declared, scripts = parse_graph(makefile)
-        return verdict(assess(edges, declared, registry, scripts))
+        return verdict(assess(edges, declared, registry, scripts, makefile))
 
     reason = "причина, довша за двадцять символів"
     cases: list[tuple[str, str, dict[str, Any], str]] = [
@@ -325,6 +474,63 @@ def selftest() -> int:
             "UNKNOWN",
         ),
         ("реєстр не список — читається як порожній, не як дозвіл", orphan_make, {}, "FAIL"),
+        (
+            "ціль з двома рецептами: make мовчки лишить останній",
+            clean_make + "span-hygiene:\n\tsix\n",
+            {"accepted": []},
+            "FAIL",
+        ),
+        (
+            "другий заголовок БЕЗ рецепта — законний і не червоніє",
+            clean_make + "span-hygiene: audit-verify\n",
+            {"accepted": []},
+            "PASS",
+        ),
+        (
+            "«потребує аргумент» для цілі, де кожна змінна необов'язкова",
+            orphan_make,
+            {
+                "accepted": [
+                    {
+                        "target": "gate-liveness",
+                        "class": "requires_argument",
+                        "reason": reason,
+                        "on": "2026-08-31",
+                    }
+                ]
+            },
+            "FAIL",
+        ),
+        (
+            "«потребує аргумент» із безумовною змінною — підстава є",
+            clean_make + 'gate-liveness:\n\t$(PY) x.py --in "$(LEDGER)"\n',
+            {
+                "accepted": [
+                    {
+                        "target": "gate-liveness",
+                        "class": "requires_argument",
+                        "reason": reason,
+                        "on": "2026-08-31",
+                    }
+                ]
+            },
+            "PASS",
+        ),
+        (
+            "змінна лише під $(if ...) підставою не є",
+            clean_make + 'gate-liveness:\n\t$(PY) x.py $(if $(LEDGER),--in "$(LEDGER)")\n',
+            {
+                "accepted": [
+                    {
+                        "target": "gate-liveness",
+                        "class": "requires_argument",
+                        "reason": reason,
+                        "on": "2026-08-31",
+                    }
+                ]
+            },
+            "FAIL",
+        ),
     ]
 
     bad = 0
@@ -358,7 +564,7 @@ def main() -> int:
         registry = {}
 
     edges, declared, scripts = parse_graph(text)
-    findings = assess(edges, declared, registry, scripts)
+    findings = assess(edges, declared, registry, scripts, text)
     overall = verdict(findings)
     covered = enforced(edges, scripts)
     targets = verification_targets(declared)

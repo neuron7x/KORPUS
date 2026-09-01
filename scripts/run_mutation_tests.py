@@ -4400,6 +4400,190 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M516_THE_VERIFIER_WRITES_INTO_THE_EVIDENCE_IT_VERIFIES",
+        "scripts/verify_regression_carry_forward.py",
+        '    parser.add_argument("--out", type=Path, default=ROOT / "var/regression-carry-forward.json")',
+        '    parser.add_argument("--out", type=Path, default=ROOT / "reports/release/v0.7.0/RCF.json")',
+        (
+            "apps/api/tests/test_regression_carry_forward.py::"
+            "test_the_verifier_does_not_write_into_the_evidence_it_verifies",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M513_A_LIST_IS_READ_AS_A_NUMBER_WITHOUT_BEING_ASKED",
+        "scripts/check_deployment_debt.py",
+        '    if kind == "length":',
+        "    if True:",
+        (
+            "apps/api/tests/test_deployment_debt.py::"
+            "test_a_list_is_not_a_number_unless_the_entry_says_so",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M514_THE_LENGTH_OF_A_NON_LIST_IS_INVENTED",
+        "scripts/check_deployment_debt.py",
+        "        return len(node) if isinstance(node, list) else None",
+        "        return len(node) if hasattr(node, \"__len__\") else None",
+        (
+            "apps/api/tests/test_deployment_debt.py::"
+            "test_length_of_something_that_is_not_a_list_is_unknown",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M515_THE_ENTRY_KIND_IS_IGNORED_AND_EVERY_METRIC_IS_A_NUMBER",
+        "scripts/check_deployment_debt.py",
+        '        report, str(entry.get("metric", "")), str(entry.get("metric_kind", "number"))',
+        '        report, str(entry.get("metric", ""))',
+        (
+            "apps/api/tests/test_deployment_debt.py::"
+            "test_a_list_of_failures_is_measured_by_its_length",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M507_THE_SERVED_STORE_IS_NEVER_COMPARED_TO_WHAT_THE_UNIT_HANDS_OVER",
+        "scripts/verify_evidence_stores.py",
+        "    if served[0] != unit:",
+        "    if False:",
+        (
+            "apps/api/tests/test_evidence_stores.py::"
+            "test_the_served_store_is_the_one_the_unit_hands_the_service",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M508_A_STORE_NOBODY_NAMED_IS_NOT_REPORTED",
+        "scripts/verify_evidence_stores.py",
+        '    extra = sorted(set(observation["stores"]) - set(declared))',
+        "    extra = []",
+        (
+            "apps/api/tests/test_evidence_stores.py::test_a_store_nobody_named_is_refused",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M509_AN_OPTIONAL_STORE_THAT_IS_ABSENT_IS_CALLED_A_GHOST",
+        "scripts/verify_evidence_stores.py",
+        '        if path not in observation["stores"] and not entry.get("optional")',
+        '        if path not in observation["stores"]',
+        (
+            "apps/api/tests/test_evidence_stores.py::test_an_optional_store_may_be_absent",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M510_ANY_NUMBER_OF_SERVED_STORES_IS_ACCEPTED",
+        "scripts/verify_evidence_stores.py",
+        "    if len(served) == 1:",
+        "    if len(served) >= 1:",
+        (
+            "apps/api/tests/test_evidence_stores.py::test_two_served_stores_are_refused",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M511_THE_CONFIG_DEFAULT_MAY_QUIETLY_BE_THE_SERVED_CORPUS",
+        "scripts/verify_evidence_stores.py",
+        '    if entry.get("role") == "served":',
+        "    if False:",
+        (
+            "apps/api/tests/test_evidence_stores.py::"
+            "test_the_config_default_must_not_be_the_served_store",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M512_HALF_THE_SHAPE_IS_ENOUGH_TO_BE_AN_EVIDENCE_STORE",
+        "scripts/verify_evidence_stores.py",
+        "        if not set(SHAPE) <= names:",
+        "        if not set(SHAPE) & names:",
+        (
+            "apps/api/tests/test_evidence_stores.py::"
+            "test_only_both_tables_together_make_an_evidence_store",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M500_A_MISSING_FILE_SILENTLY_BECOMES_A_DIFFERENT_DATABASE",
+        "scripts/validate_span_hygiene.py",
+        '    if "/" in database or database.endswith((".db", ".sqlite", ".sqlite3")):',
+        "    if False:",
+        (
+            "apps/api/tests/test_span_hygiene_backend.py::"
+            "test_a_path_that_does_not_exist_is_still_sqlite",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M501_THE_SQLITE_SCHEME_IS_HANDED_TO_PSQL",
+        "scripts/validate_span_hygiene.py",
+        '    if database.startswith("sqlite:"):',
+        "    if False:",
+        (
+            "apps/api/tests/test_span_hygiene_backend.py::"
+            "test_the_sqlite_scheme_keeps_the_absolute_path",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M502_A_NAMED_FILE_THAT_IS_ABSENT_IS_ASKED_OF_ANOTHER_DATABASE",
+        "scripts/validate_span_hygiene.py",
+        "        if not Path(target).is_file():",
+        "        if False:",
+        (
+            "apps/api/tests/test_span_hygiene_backend.py::"
+            "test_a_named_file_that_is_missing_is_a_refusal_not_another_database",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M503_A_TARGET_WITH_TWO_RECIPES_IS_NOT_REPORTED",
+        "scripts/verify_gate_closure.py",
+        "    duplicates = duplicate_recipes(makefile)",
+        "    duplicates = []",
+        (
+            "apps/api/tests/test_gate_closure.py::"
+            "test_a_duplicated_target_reddens_on_the_real_makefile",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M504_A_SECOND_HEADER_WITHOUT_A_RECIPE_IS_CALLED_A_DUPLICATE",
+        "scripts/verify_gate_closure.py",
+        "            if current is not None and current not in counted and line.strip():",
+        "            if current is not None:",
+        (
+            "apps/api/tests/test_gate_closure.py::"
+            "test_a_second_header_without_a_recipe_is_legal",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M505_THE_REASON_REQUIRES_ARGUMENT_IS_TAKEN_ON_TRUST",
+        "scripts/verify_gate_closure.py",
+        "        and not mandatory_variables(all_recipes.get(target, []))",
+        "        and False",
+        (
+            "apps/api/tests/test_gate_closure.py::"
+            "test_the_reason_requires_argument_is_itself_checked",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M506_A_VARIABLE_ONLY_INSIDE_AN_IF_COUNTS_AS_MANDATORY",
+        "scripts/verify_gate_closure.py",
+        '    for opener in ("$(if ", "$(or "):',
+        "    for opener in ():",
+        (
+            "apps/api/tests/test_gate_closure.py::"
+            "test_a_variable_only_inside_an_if_is_not_a_requirement",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M464_A_REPORT_ABOUT_A_MOVED_CORPUS_STILL_CREDITS_ITS_AXIS",
         "scripts/check_answer_axes.py",
         '    if identity_digest(corpus_identity(database)) != recorded.get("corpus"):',

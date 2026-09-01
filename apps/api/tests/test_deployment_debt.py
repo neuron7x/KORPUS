@@ -79,3 +79,38 @@ def test_gate_reddens_on_every_defect_separately() -> None:
         [sys.executable, str(SCRIPT), "--selftest"], capture_output=True, text=True, check=False
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
+
+
+# ------------------------------------- перелік відмов як число: врядування → метрика
+
+
+def test_a_list_of_failures_is_measured_by_its_length() -> None:
+    """`production-assurance-verify` називає відмови поіменно й не рахує їх.
+
+    Без цього стелю на «скільки саме» поставити було б нічим, і врядувальна відмовка
+    («реєстри підписантів порожні») лишалась би словом, а не числом, яке помічає і
+    погіршення, і покращення.
+    """
+    entry = {"target": "t", "metric": "failures", "metric_kind": "length", "ceiling": 2}
+    assert DEBT.judge(entry, {"failures": ["a", "b"]})["verdict"] == "PASS"
+    assert DEBT.judge(entry, {"failures": ["a", "b", "c"]})["verdict"] == "FAIL"
+    improved = DEBT.judge(entry, {"failures": ["a"]})
+    assert improved["verdict"] == "PASS" and improved["lower_ceiling_to"] == 1
+
+
+def test_a_list_is_not_a_number_unless_the_entry_says_so() -> None:
+    """Мовчазне читання списку як числа зробило б стелю випадковою."""
+    assert DEBT.metric_at({"failures": ["a"]}, "failures") is None
+    assert DEBT.metric_at({"failures": ["a"]}, "failures", "length") == 1
+
+
+def test_length_of_something_that_is_not_a_list_is_unknown() -> None:
+    assert DEBT.metric_at({"failures": 3}, "failures", "length") is None
+    assert DEBT.metric_at({"failures": {"a": 1}}, "failures", "length") is None
+
+
+def test_the_real_registry_names_a_ceiling_for_production_assurance() -> None:
+    registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    entry = next(e for e in registry["accepted"] if e["target"] == "production-assurance-verify")
+    assert entry["metric_kind"] == "length" and isinstance(entry["ceiling"], int)
+    assert "недосяжн" in entry["reason"], "запис мусить називати спростоване твердження"

@@ -70,7 +70,7 @@ def test_recipe_edges_count_as_reachability() -> None:
 
 def _verdict(makefile: str, registry: dict) -> str:
     edges, declared, scripts = GATE.parse_graph(makefile)
-    return GATE.verdict(GATE.assess(edges, declared, registry, scripts))
+    return GATE.verdict(GATE.assess(edges, declared, registry, scripts, makefile))
 
 
 def test_a_new_unwired_verification_target_reddens_on_the_real_makefile() -> None:
@@ -112,7 +112,8 @@ def test_the_real_tree_has_no_unregistered_gap() -> None:
     """Стан репозиторію, а не синтетика: кожна діра або закрита, або названа."""
     edges, declared, scripts = _real()
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
-    findings = GATE.assess(edges, declared, registry, scripts)
+    text = (ROOT / "Makefile").read_text(encoding="utf-8")
+    findings = GATE.assess(edges, declared, registry, scripts, text)
     assert GATE.verdict(findings) == "PASS", findings
 
 
@@ -133,3 +134,80 @@ def test_gate_reddens_on_every_defect_separately() -> None:
         [sys.executable, str(SCRIPT), "--selftest"], capture_output=True, text=True, check=False
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
+
+
+# ------------------------------------------- дві властивості САМОГО Makefile
+
+
+def test_a_duplicated_target_reddens_on_the_real_makefile() -> None:
+    """Виміряно 01.09.2026: `fetch-stubs` мав два визначення.
+
+    Виконувалось останнє — і воно вийшло сильнішим ВИПАДКОВО. У зворотному порядку
+    ціль ходила б без `--database`, тобто не дивилась би на обслуговуваний корпус і
+    лишалась зеленою. make лише попереджає, код виходу не міняється, тож ніхто не
+    читає. Пор. те саме з дубльованим ім'ям джоба в CI.
+    """
+    text = (ROOT / "Makefile").read_text(encoding="utf-8")
+    assert GATE.duplicate_recipes(text) == []
+    poisoned = text + "\nspan-hygiene:\n\t@echo друге визначення\n"
+    assert GATE.duplicate_recipes(poisoned) == ["span-hygiene"]
+    assert _verdict(poisoned, json.loads(REGISTRY.read_text(encoding="utf-8"))) == "FAIL"
+
+
+def test_a_second_header_without_a_recipe_is_legal() -> None:
+    """Розділене оголошення передумов — звичайний make і НЕ мовчазне перекриття."""
+    text = (ROOT / "Makefile").read_text(encoding="utf-8")
+    assert GATE.duplicate_recipes(text + "\nspan-hygiene: api-test\n") == []
+
+
+def test_the_reason_requires_argument_is_itself_checked() -> None:
+    """Причина в реєстрі — теж твердження, і його ніхто не перевіряв.
+
+    `requires_argument` каже «без аргументу не запуститься». Якщо в рецепті кожна
+    змінна загорнута в `$(if ...)`, ціль запускається порожньою — виняток описує
+    перешкоду, якої немає.
+    """
+    text = (ROOT / "Makefile").read_text(encoding="utf-8")
+    registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    registry["accepted"].append(
+        {
+            "target": "load-probe",
+            "class": "requires_argument",
+            "reason": "z" * 40,
+            "on": "2026-09-01",
+        }
+    )
+    edges, declared, scripts = _real()
+    findings = GATE.assess(edges, declared, registry, scripts, text)
+    assert _finding_named(findings, "unfounded_requirement")["verdict"] == "FAIL"
+
+
+def _finding_named(findings: list[dict[str, str]], check: str) -> dict[str, str]:
+    """Конкретна перевірка, не сукупний вирок: інакше мутант ховається за сусідкою."""
+    return next(item for item in findings if item["check"] == check)
+
+
+def test_every_requires_argument_entry_names_a_variable_it_truly_needs() -> None:
+    text = (ROOT / "Makefile").read_text(encoding="utf-8")
+    all_recipes = GATE.recipes(text)
+    registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    for entry in registry["accepted"]:
+        if entry.get("class") != "requires_argument":
+            continue
+        assert GATE.mandatory_variables(all_recipes[entry["target"]]), entry["target"]
+
+
+def test_a_variable_only_inside_an_if_is_not_a_requirement() -> None:
+    assert GATE.mandatory_variables(['\t$(PY) x.py $(if $(A),--a "$(A)")']) == set()
+    assert GATE.mandatory_variables(['\t$(PY) x.py --a "$(A)"']) == {"A"}
+    assert GATE.mandatory_variables(['\t@test -n "$(A)" || exit 2']) == {"A"}
+    assert GATE.mandatory_variables(['\t$(PY) x.py --a "$(or $(A),$(SERVED_CORPUS))"']) == set()
+
+
+def test_not_measured_is_not_a_pass() -> None:
+    """Makefile не переданий — обидві нові перевірки UNKNOWN, і вирок не PASS."""
+    edges, declared, scripts = _real()
+    registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    findings = GATE.assess(edges, declared, registry, scripts)
+    assert _finding_named(findings, "duplicate_target")["verdict"] == "UNKNOWN"
+    assert GATE.verdict(findings) == "UNKNOWN"

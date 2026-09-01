@@ -142,9 +142,13 @@ def main() -> int:
         type=Path,
         default=ROOT / "config/assurance/regression-carry-forward-v0.7.0.json",
     )
-    parser.add_argument(
-        "--out", type=Path, default=ROOT / "reports/release/v0.7.0/REGRESSION_CARRY_FORWARD.json"
-    )
+    # Типовий вихід — чернетка, а НЕ релізний звіт. Виміряно 01.09.2026: щоб дізнатись,
+    # чи ця ціль узагалі запускається, я її запустила — і вона перезаписала
+    # `reports/release/v0.7.0/REGRESSION_CARRY_FORWARD.json`, тобто той самий артефакт,
+    # який `build_readiness_947_evidence.py` читає як доказ. Перевірка, що пише в те, що
+    # перевіряє, робить розбіжність між твердженням і станом непомітною: після прогону
+    # вони збігаються завжди. Писати в реліз тепер можна лише назвавши шлях явно.
+    parser.add_argument("--out", type=Path, default=ROOT / "var/regression-carry-forward.json")
     args = parser.parse_args()
     payload = evaluate(_json(args.policy.resolve()))
     args.out.parent.mkdir(parents=True, exist_ok=True)

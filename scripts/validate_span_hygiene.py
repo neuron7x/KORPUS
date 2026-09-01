@@ -123,14 +123,42 @@ def _rows_from_psql(database: str) -> list[tuple[str, str, str]]:
     return rows
 
 
+def backend(database: str) -> tuple[str, str]:
+    """Яку базу назвали — за ФОРМОЮ рядка, не за тим, чи файл трапився на місці.
+
+    Попереднє правило було «є файл — SQLite, немає — psql», і воно тихо міняло
+    ПРЕДМЕТ виміру. У чистому worktree `var/runtime/` немає взагалі, тож шлях до
+    обслуговуваного корпусу не існував, і гейт ішов у psql. Сьогодні там нікого не
+    було й вийшла зрозуміла відмова сокета; але `korpus-postgres-1` піднятий і
+    здоровий, і якби сокет був відкритий, гейт ПОМІРЯВ БИ ІНШИЙ КОРПУС і доповів
+    число так, наче воно про той, що подається солдату. Це вже коштувало нам дня в
+    `audit-verify`: «anchor is ahead of the database head» описувало не журнал, а
+    дві різні бази під одним якорем.
+
+    Тому форма вирішує, а існування перевіряється ПІСЛЯ вибору: названий файл, якого
+    немає, — це відмова, а не привід спитати когось іншого.
+    """
+    if database.startswith("sqlite:"):
+        return "sqlite", database.removeprefix("sqlite:///").removeprefix("sqlite://")
+    if "://" in database:
+        return "psql", database
+    if "=" in database and "/" not in database.split("=", 1)[0]:
+        return "psql", database
+    if "/" in database or database.endswith((".db", ".sqlite", ".sqlite3")):
+        return "sqlite", database
+    return "psql", database
+
+
 def _rows_from(database: str) -> list[tuple[str, str, str]]:
-    # Файл на диску — SQLite, усе інше — psql. Розрізняємо за наявністю файла, а не за
-    # префіксом рядка: трапляються обидва написання, а хибний вибір psql дає незрозумілу
-    # відмову сокета замість роботи.
-    candidate = database.removeprefix("sqlite:///").removeprefix("sqlite://")
-    if Path(candidate).is_file():
-        return _rows_from_sqlite(candidate)
-    return _rows_from_psql(database)
+    kind, target = backend(database)
+    if kind == "sqlite":
+        if not Path(target).is_file():
+            raise SystemExit(
+                f"названо файл бази, якого немає: {target}. Це відмова — гейт не піде "
+                "питати іншу базу замість названої."
+            )
+        return _rows_from_sqlite(target)
+    return _rows_from_psql(target)
 
 
 def selftest() -> int:
@@ -161,8 +189,37 @@ def selftest() -> int:
         print(f"  {'ok' if good else 'ПРОВАЛ'} {name}: {got!r} (мало бути {want!r})")
     empty = scan([])
     print(f"  {'ok' if empty['status'] == 'PASS' else 'ПРОВАЛ'} порожній вхід не падає у FAIL")
-    print(f"негативний контроль: {ok}/{len(cases)}")
-    return 0 if ok == len(cases) else 1
+
+    # Другий негативний контроль — про ПРЕДМЕТ виміру, не про правило. Названий файл,
+    # якого немає, мусить лишатись SQLite і давати відмову; мовчазний перехід на іншу
+    # базу дав би число про чужий корпус.
+    forms: list[tuple[str, str, str]] = [
+        ("шлях до файла", "var/runtime/corpus-v6-20260807/korpus.db", "sqlite"),
+        ("шлях, якого немає", "var/runtime/немає/korpus.db", "sqlite"),
+        ("схема sqlite", "sqlite:////tmp/korpus.db", "sqlite"),
+        ("URL постгреса", "postgresql://user@host/korpus", "psql"),
+        ("conninfo", "dbname=korpus host=localhost", "psql"),
+        ("голе ім'я бази", "korpus", "psql"),
+    ]
+    form_ok = 0
+    for name, value, want in forms:
+        got = backend(value)[0]
+        good = got == want
+        form_ok += good
+        print(f"  {'ok' if good else 'ПРОВАЛ'} форма «{name}»: {got} (мало бути {want})")
+
+    missing = "var/runtime/цього-немає/korpus.db"
+    try:
+        _rows_from(missing)
+        refused = False
+    except SystemExit as error:
+        refused = "якого немає" in str(error)
+    form_ok += refused
+    print(f"  {'ok' if refused else 'ПРОВАЛ'} відсутній файл — відмова, а не інша база")
+
+    total = len(cases) + len(forms) + 1
+    print(f"негативний контроль: {ok + form_ok}/{total}")
+    return 0 if ok + form_ok == total else 1
 
 
 def main() -> int:

@@ -35,17 +35,25 @@ REGISTRY = ROOT / "config/operations/deployment-debt.json"
 SCHEMA = "korpus.deployment-debt.v1"
 
 
-def metric_at(report: dict[str, Any], path: str) -> int | None:
+def metric_at(report: dict[str, Any], path: str, kind: str = "number") -> int | None:
     """Число за шляхом виду `spans_dirty` або `by_kind.chrome`.
 
     `None` — не «нуль», а «не виміряно»: звіт без цього поля нічого не доводить, і
     зарахувати його в нуль означало б оголосити борг закритим тим, що його не міряли.
+
+    `kind="length"` міряє ДОВЖИНУ переліку за шляхом. Потрібно там, де звіт називає
+    відмови поіменно й не рахує їх: `production-assurance-verify` віддає
+    `failures: [...]`, і без цього стелю на «скільки саме» не можна було б поставити,
+    хоча саме вона перетворює врядувальну відмовку на число, яке помітить і
+    погіршення, і покращення.
     """
     node: Any = report
     for part in path.split("."):
         if not isinstance(node, dict) or part not in node:
             return None
         node = node[part]
+    if kind == "length":
+        return len(node) if isinstance(node, list) else None
     return node if isinstance(node, int) and not isinstance(node, bool) else None
 
 
@@ -56,7 +64,9 @@ def judge(entry: dict[str, Any], report: dict[str, Any] | None) -> dict[str, Any
         return {"target": target, "verdict": "UNKNOWN", "detail": "звіт не прочитано"}
     if not isinstance(ceiling, int):
         return {"target": target, "verdict": "FAIL", "detail": "стеля не є цілим числом"}
-    measured = metric_at(report, str(entry.get("metric", "")))
+    measured = metric_at(
+        report, str(entry.get("metric", "")), str(entry.get("metric_kind", "number"))
+    )
     if measured is None:
         return {
             "target": target,
@@ -146,6 +156,25 @@ def selftest() -> int:
     bad += not ok
     print(f"  [{'ok' if ok else 'ЗБІЙ'}] вкладена метрика читається: {nested['verdict']}")
 
+    length_entry = {"target": "t", "metric": "failures", "metric_kind": "length", "ceiling": 2}
+    for name, report, expected in (
+        ("перелік відмов рахується довжиною", {"failures": ["a", "b"]}, "PASS"),
+        ("на одну відмову більше — стеля пробита", {"failures": ["a", "b", "c"]}, "FAIL"),
+        ("перелік не список — UNKNOWN, не нуль", {"failures": 2}, "UNKNOWN"),
+    ):
+        got = judge(length_entry, report)["verdict"]
+        ok = got == expected
+        bad += not ok
+        print(f"  [{'ok' if ok else 'ЗБІЙ'}] {name}: {got}")
+
+    numeric_on_a_list = judge({"target": "t", "metric": "failures", "ceiling": 2}, {"failures": []})
+    ok = numeric_on_a_list["verdict"] == "UNKNOWN"
+    bad += not ok
+    print(
+        f"  [{'ok' if ok else 'ЗБІЙ'}] без metric_kind перелік НЕ читається як число: "
+        f"{numeric_on_a_list['verdict']}"
+    )
+
     no_ceiling = judge({"target": "t", "metric": "x"}, {"x": 1})
     ok = no_ceiling["verdict"] == "FAIL"
     bad += not ok
@@ -153,7 +182,7 @@ def selftest() -> int:
         f"  [{'ok' if ok else 'ЗБІЙ'}] запис без стелі — відмова, не дозвіл: {no_ceiling['verdict']}"
     )
 
-    total = len(cases) + 3
+    total = len(cases) + 7
     print(f"\nнегативний контроль: {total - bad}/{total}")
     return 1 if bad else 0
 

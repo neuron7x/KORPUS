@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene fetch-stubs compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
+.PHONY: install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -737,10 +737,6 @@ repair-span-markup:
 	$(PY) scripts/repair_span_markup.py --selftest
 	$(PY) scripts/repair_span_markup.py --database "$(or $(DATABASE),$(SERVED_CORPUS))" $(if $(APPLY),--apply)
 
-## Заглушки вибірки джерел.
-fetch-stubs:
-	$(PY) scripts/validate_fetch_stubs.py
-
 ## Бенчмарк предметної точності. Не гейт: потребує піднятого API. Але число з нього
 ## — головне, що ця система має показувати замість обіцянок: чи відповідь про того,
 ## кого спитали. Базова лінія 31.08.2026: top1 = 0.000 на 92 оголошених предметах,
@@ -749,6 +745,13 @@ subject-precision:
 	$(PY) scripts/benchmark_subject_precision.py --selftest
 	@test -n "$(BASE)" || { echo "вжиток: make subject-precision BASE=http://127.0.0.1:8000 [DATABASE=...]" >&2; exit 64; }
 	$(PY) scripts/benchmark_subject_precision.py --base "$(BASE)" --database "$(or $(DATABASE),$(SERVED_CORPUS))"
+
+## Скільки баз доказів існує — і чи та, яку подають, є тією, яку назвали. Виміряно
+## 01.09.2026: шість сховищ форми «докази», з них порожнє на типовому шляху
+## налаштувань і постгрес із тими самими 256 документами, але іншою нарізкою.
+evidence-stores:
+	$(PY) scripts/verify_evidence_stores.py --selftest
+	$(PY) scripts/verify_evidence_stores.py
 
 span-hygiene:
 	$(PY) scripts/validate_span_hygiene.py --selftest
@@ -838,7 +841,8 @@ ingestion-drill:
 
 load-probe:
 	$(PY) scripts/load_probe.py $(if $(BASE),--base "$(BASE)") $(if $(TOKEN),--token "$(TOKEN)") \
-	  $(if $(CONCURRENCY),--concurrency $(CONCURRENCY)) $(if $(SPIKE),--spike $(SPIKE))
+	  $(if $(CONCURRENCY),--concurrency $(CONCURRENCY)) $(if $(SPIKE),--spike $(SPIKE)) \
+	  $(if $(SECONDS),--seconds $(SECONDS)) $(if $(SOAK_SECONDS),--soak-seconds $(SOAK_SECONDS))
 
 # Restores somewhere else on purpose: a drill that overwrites the live corpus is a drill
 # nobody runs, and one that never runs is not known to work.
@@ -877,6 +881,8 @@ install-nightly-gates:
 # а не стелею, і докази заразом свіжішають щоночі.
 check-nightly:
 	$(MAKE) nightly-evidence PY=$(PY)
+	$(MAKE) check-deployment PY=$(PY)
+	$(MAKE) load-probe PY=$(PY) SECONDS=8 SOAK_SECONDS=8 CONCURRENCY=3 SPIKE=8
 	$(MAKE) gate-liveness PY=$(PY)
 	$(MAKE) mutation-probe PY=$(PY)
 	$(MAKE) verify-clean-clone PY=$(PY)
@@ -895,7 +901,7 @@ nightly-evidence:
 	$(MAKE) snapshot PY=$(PY)
 	$(MAKE) evidence-refresh PY=$(PY)
 
-check-deployment: runtime-corpus-audit corpus-integrity audit-verify deployment-debt
+check-deployment: runtime-corpus-audit corpus-integrity audit-verify deployment-debt evidence-stores
 
 deployment-debt:
 	$(PY) scripts/check_deployment_debt.py
