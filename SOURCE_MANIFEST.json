@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1739,
-  "root_sha256": "110aeb453a4ae415c984f2c2996c0ae438c37585868aa2b8ba13c9b7780eb623",
+  "root_sha256": "d5e4fff84cf8617539dc98973b4b67c101869e6fb5326db18de284d345426098",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 86154,
-      "sha256": "050d177554a10f29873ccc0feb8051c270da6d396ba17b87466e05b6884bb662",
+      "bytes": 86644,
+      "sha256": "b3cc07dc2ba04c6a07fb86b28917e6a98f4d08f8d581aa08c1de46e7b06b66b1",
       "mode": "0644"
     },
     {
@@ -949,8 +949,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/client_bootstrap.py",
-      "bytes": 2005,
-      "sha256": "28993e2f2a14809cb0160474cbae88a916e1ccc49ce65f565551a2eae948312c",
+      "bytes": 3790,
+      "sha256": "383624b783b589b2a7c24b2798370a63df2a30b4cdf4cae4af86942b22ca9273",
       "mode": "0644"
     },
     {
@@ -2911,8 +2911,8 @@
     },
     {
       "path": "apps/api/tests/test_client_bootstrap.py",
-      "bytes": 2238,
-      "sha256": "3fbfce7a503a5282039bbd793163510b0222682760ec60e485b1c40f2e2f0ab5",
+      "bytes": 5901,
+      "sha256": "c093b2a53971e2d0c7d6c1c3b676f75027e7c0a070883773e41f003a968116a4",
       "mode": "0644"
     },
     {
@@ -7099,8 +7099,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 464909,
-      "sha256": "d5ac33020292d57087fce28aaf4a502b6a6f5d95d86bb8aba8fd958233411101",
+      "bytes": 470706,
+      "sha256": "207d95fde40dde65f83a3085888bb6d4d0deff02c2da3e41cbfbd50697512dc2",
       "mode": "0644"
     },
     {
@@ -7153,8 +7153,8 @@
     },
     {
       "path": "contracts/openapi.json",
-      "bytes": 52781,
-      "sha256": "071671e6cb0e9a92be5010458474b4f0f976d5c19ae85ab6623868b3722b872e",
+      "bytes": 54538,
+      "sha256": "b0cd9f067b6e9d5dc41e7b06a3803bc004a5830aaf8a73729f26f817e0ad8d46",
       "mode": "0644"
     },
     {
@@ -9889,8 +9889,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 265940,
-      "sha256": "41e95c037700d78fc13d935a2d750903c5d95250130e9134557bc2ff083d1931",
+      "bytes": 267914,
+      "sha256": "07e162a37546b98861a3bdca3a859f73ab11200a30ce0e56df1599fe84322966",
       "mode": "0755"
     },
     {

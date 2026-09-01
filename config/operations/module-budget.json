@@ -896,10 +896,10 @@
       "proof_lines": 0
     },
     "apps/api/src/korpus/application/client_bootstrap.py": {
-      "lines": 60,
+      "lines": 95,
       "max_complexity": 2,
       "max_function_args": 3,
-      "max_function_lines": 15,
+      "max_function_lines": 24,
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "v0.9.7 architecture/UI contract synchronization; exact initial measured ceiling"
@@ -2887,6 +2887,42 @@
       "proof_lines": 0,
       "reason": "Читач знімка в композиційному корені. Канон пінить корпус ДАТОЮ `as_of` і робить кілька незалежних читань на одну відповідь; між ними схвалення чи скасування змінює те, що бачить читач."
     },
+    "apps/api/src/korpus/mcp/__init__.py": {
+      "lines": 8,
+      "max_complexity": 1,
+      "max_function_args": 0,
+      "max_function_lines": 0,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "КОРПУС як інструмент агента (MCP по stdio, без нової залежності). Шар ТОНКИЙ навмисно: у процесі агента немає ні журналу, ні прив'язки RLS, тож другий шлях відповіді там був би відповіддю без сліду й без межі. Єдине похідне число — ЗАПАС над порогом, який публікує сам API: виміряно на живому, що «Яка столиця Бразилії?» дістає `answered` із покриттям РІВНО 0.5 при межі 0.5, тобто `status` чужого питання від свого не відрізняє."
+    },
+    "apps/api/src/korpus/mcp/server.py": {
+      "lines": 220,
+      "max_complexity": 8,
+      "max_function_args": 4,
+      "max_function_lines": 70,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "КОРПУС як інструмент агента (MCP по stdio, без нової залежності). Шар ТОНКИЙ навмисно: у процесі агента немає ні журналу, ні прив'язки RLS, тож другий шлях відповіді там був би відповіддю без сліду й без межі. Єдине похідне число — ЗАПАС над порогом, який публікує сам API: виміряно на живому, що «Яка столиця Бразилії?» дістає `answered` із покриттям РІВНО 0.5 при межі 0.5, тобто `status` чужого питання від свого не відрізняє."
+    },
+    "apps/api/src/korpus/mcp/stdio.py": {
+      "lines": 116,
+      "max_complexity": 12,
+      "max_function_args": 4,
+      "max_function_lines": 40,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "КОРПУС як інструмент агента (MCP по stdio, без нової залежності). Шар ТОНКИЙ навмисно: у процесі агента немає ні журналу, ні прив'язки RLS, тож другий шлях відповіді там був би відповіддю без сліду й без межі. Єдине похідне число — ЗАПАС над порогом, який публікує сам API: виміряно на живому, що «Яка столиця Бразилії?» дістає `answered` із покриттям РІВНО 0.5 при межі 0.5, тобто `status` чужого питання від свого не відрізняє."
+    },
+    "apps/api/src/korpus/mcp/transport.py": {
+      "lines": 78,
+      "max_complexity": 8,
+      "max_function_args": 4,
+      "max_function_lines": 24,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "КОРПУС як інструмент агента (MCP по stdio, без нової залежності). Шар ТОНКИЙ навмисно: у процесі агента немає ні журналу, ні прив'язки RLS, тож другий шлях відповіді там був би відповіддю без сліду й без межі. Єдине похідне число — ЗАПАС над порогом, який публікує сам API: виміряно на живому, що «Яка столиця Бразилії?» дістає `answered` із покриттям РІВНО 0.5 при межі 0.5, тобто `status` чужого питання від свого не відрізняє."
+    },
     "apps/api/src/korpus/model_composition.py": {
       "lines": 65,
       "max_complexity": 5,
@@ -4856,6 +4892,15 @@
       "proof_lines": 0,
       "reason": "v0.6.0: plasticity evidence joins fail-closed local preflight | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
+    "scripts/run_mcp_server.py": {
+      "lines": 62,
+      "max_complexity": 4,
+      "max_function_args": 1,
+      "max_function_lines": 20,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "КОРПУС як інструмент агента (MCP по stdio, без нової залежності). Шар ТОНКИЙ навмисно: у процесі агента немає ні журналу, ні прив'язки RLS, тож другий шлях відповіді там був би відповіддю без сліду й без межі. Єдине похідне число — ЗАПАС над порогом, який публікує сам API: виміряно на живому, що «Яка столиця Бразилії?» дістає `answered` із покриттям РІВНО 0.5 при межі 0.5, тобто `status` чужого питання від свого не відрізняє."
+    },
     "scripts/run_migration_gate.py": {
       "lines": 104,
       "max_complexity": 10,
@@ -4883,7 +4928,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5920,
+      "lines": 5950,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -9062,6 +9107,30 @@
       "reason": "Одне ім'я поля на дві різні лінійки. `assemble_assurance` писав ярлик \"tracked_tree\" над числом \"evidence_paths\"; коментар двома рядками вище описував саме цю небезпеку й був правий, хибним був код під ним. Наслідок жив у дереві: `handoff-verify` порівнював різні міри й ПОСТІЙНО звітував `release_evidence: STALE` при `status: PASS`. Замість вибору переможця зникає ЗІТКНЕННЯ ІМЕН: кожне число має власне поле й власний ярлик.",
       "to": {
         "lines": 275
+      }
+    },
+    {
+      "from": {
+        "lines": 60,
+        "max_function_lines": 15
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/application/client_bootstrap.py",
+      "reason": "Клієнт діставав вирок сервера, але не ПРАВИЛО, за яким той вирішив. Без порога число `query_coverage: 0.5` нечитабельне: агент не відрізнить відповідь, що пройшла рівно по межі, від тієї, що має запас удвічі.",
+      "to": {
+        "lines": 95,
+        "max_function_lines": 24
+      }
+    },
+    {
+      "from": {
+        "lines": 5920
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "M588–M590: запас над порогом, здогад замість відмови, транспортна відмова як відповідь.",
+      "to": {
+        "lines": 5950
       }
     }
   ],

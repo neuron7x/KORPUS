@@ -5584,6 +5584,39 @@ MUTANTS = (
             "test_a_vanished_trunk_block_is_refused_unless_the_debt_was_closed",
         ),
     ),
+    Mutant(
+        # Без запасу агент бачить `answered` і не бачить, що відповідь пройшла
+        # РІВНО по межі. Виміряно на живому: «Яка столиця Бразилії?» — запас 0.0.
+        "M588_THE_AGENT_IS_NOT_TOLD_HOW_CLOSE_TO_THE_FLOOR_IT_IS",
+        "apps/api/src/korpus/mcp/server.py",
+        '                "at_floor": abs(float(value) - float(floor)) < 1e-9,',
+        '                "at_floor": False,',
+        ("apps/api/tests/test_mcp_server.py::test_an_answer_at_the_threshold_is_marked_as_such",),
+    ),
+    Mutant(
+        # Власна константа замість опублікованого порога — це друга тотожність
+        # «своє питання», яка розійдеться з першою мовчки.
+        "M589_THE_TOOL_GUESSES_A_THRESHOLD_INSTEAD_OF_REFUSING",
+        "apps/api/src/korpus/mcp/server.py",
+        '            raise ToolFailure("korpus api does not publish its admission thresholds")',
+        '            return {"min_query_coverage": 0.5, "min_retrieval_score": 0.18}',
+        (
+            "apps/api/tests/test_mcp_server.py::"
+            "test_without_published_thresholds_the_tool_refuses_instead_of_guessing",
+        ),
+    ),
+    Mutant(
+        # Транспортна відмова, віддана як результат, — найтихіша підміна: агент
+        # запише у висновок відсутність підстав, якої ніхто не міряв.
+        "M590_A_TRANSPORT_FAILURE_LOOKS_LIKE_AN_ANSWER",
+        "apps/api/src/korpus/mcp/stdio.py",
+        '    body = {"error": reason, "retryable": retryable}',
+        '    body = {"error": reason, "retryable": False}',
+        (
+            "apps/api/tests/test_mcp_server.py::"
+            "test_a_transport_failure_is_not_reported_as_absent_grounds",
+        ),
+    ),
 )
 
 
