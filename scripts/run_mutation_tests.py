@@ -4544,7 +4544,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M500_THE_PUBLISHED_FINGERPRINT_CARRIES_THE_PASSWORD",
+        "M521_THE_PUBLISHED_FINGERPRINT_CARRIES_THE_PASSWORD",
         "scripts/measure_evidence_bases.py",
         '        return f"postgres:{user}@{location}"',
         '        return f"postgres:{credentials}@{location}"',

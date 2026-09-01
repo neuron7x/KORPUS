@@ -35,7 +35,28 @@ export KORPUS_OBJECT_ROOT="$ROOT/var/runtime/pg-objects"
 # ланцюг, який не рухався, поки рухався чужий. Контрольний прогін піднімає другий
 # процес на тій самій базі, тож спільний якір був би вадою за побудовою.
 export KORPUS_AUDIT_ANCHOR_PATH="$ROOT/var/runtime/pg-audit-${PORT}.anchor"
-export KORPUS_AUDIT_HMAC_KEY="${KORPUS_AUDIT_HMAC_KEY:-local-audit-key}"
+# Ключ журналу не вигадується цим скриптом — так само, як у `serve_public.sh`.
+#
+# Тут стояло `${KORPUS_AUDIT_HMAC_KEY:-local-audit-key}` — той самий вписаний літерал,
+# який у публічному скрипті вже прибрали 31.08.2026. Наслідок виміряний 01.09.2026 на
+# цій базі: 1925 подій, УСІ під ярликом `legacy-unversioned`, підписані рядком із цього
+# файла. Тобто засвідчених подій тут НУЛЬ, і борг РІС із кожним прогоном порівняння,
+# доки процес живий. Вісь `audit_attribution` цього не бачила: вона міряє базу обліку.
+#
+# Контрольна база — не менш доказова за бойову: висновок про пошук, зроблений на ній,
+# лягає в реєстр вимог. Журнал, який не можна засвідчити, робить незасвідченим і його.
+[[ -s "$SECRET_DIR/audit-key.txt" ]] || {
+  echo "немає ключа аудиту: $SECRET_DIR/audit-key.txt — спершу 'make serve-public'" >&2
+  exit 69; }
+export KORPUS_AUDIT_HMAC_KEY_FILE="$SECRET_DIR/audit-key.txt"
+export KORPUS_AUDIT_KEY_ID="${KORPUS_AUDIT_KEY_ID:-korpus-public-2026-08-31}"
+# Каблучка несе старий літерал НА ДИСКУ: 1925 подій, підписаних ним, мусять лишатись
+# перевірюваними й завтра. Прибрати файл означає зробити історію неперевірюваною рівно
+# в мить, коли її полагодили.
+[[ -s "$SECRET_DIR/audit-key-serve-semantic-inline.txt" ]] || {
+  printf '%s' 'local-audit-key' > "$SECRET_DIR/audit-key-serve-semantic-inline.txt"
+  chmod 600 "$SECRET_DIR/audit-key-serve-semantic-inline.txt"; }
+export KORPUS_AUDIT_VERIFICATION_KEY_FILES="{\"legacy-unversioned\":\"$SECRET_DIR/audit-key-serve-semantic-inline.txt\"}"
 export KORPUS_AUTH_MODE=jwt
 export KORPUS_JWT_SECRET="$(cat "$SECRET_DIR/jwt-secret.txt")"
 # Перемикається, бо без цього семантику не можна відокремити від бази. Прогін
