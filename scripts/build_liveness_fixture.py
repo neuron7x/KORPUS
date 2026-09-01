@@ -258,6 +258,25 @@ def build(target: Path) -> dict[str, str]:
     connection.commit()
     connection.close()
     shutil.copyfile(SOURCES_DIR / "audit-key.txt", target / "audit-key.txt")
+    # Друга база й фальшивий каталог процесів — для гейта `evidence-bases`.
+    #
+    # Він судить РЕЄСТР, і реєстр лежить у дереві, як і належить. Але його присуд має
+    # сенс лише там, де є ЩО не оголосити: без другої бази й без процесу, який її
+    # обслуговує, отруту «база жива, а реєстр про неї не знає» відтворити нічим — а це
+    # рівно та отрута, яку перша версія гейта пропускала з кодом 0.
+    #
+    # Шлях у `environ` записаний ВІДНОСНИЙ (`sqlite:///` + шлях без початкової навскісної,
+    # як у SQLAlchemy) і тому однаковий у кожній збірці: `--verify` порівнює два прогони
+    # побайтово, і абсолютний шлях зробив би еталон недетермінованим за побудовою.
+    # Розв'язується він від робочого каталогу, а проба живучості запускає гейт із кореня
+    # дерева — тобто рівно там, де ці бази й лежать.
+    shutil.copyfile(database, target / "mirror.db")
+    for pid, name in (("4242", "korpus.db"), ("4243", "mirror.db")):
+        entry = target / "proc" / pid
+        entry.mkdir(parents=True, exist_ok=True)
+        (entry / "environ").write_bytes(
+            f"KORPUS_DATABASE_URL=sqlite:///var/liveness-fixture/{name}".encode()
+        )
     (target / "README.md").write_text(
         "# Еталон для проб живучості гейтів\n\n"
         "Зібрано `scripts/build_liveness_fixture.py`. Не правити руками: `--verify` доводить,\n"
@@ -300,13 +319,19 @@ def main() -> int:
             second.mkdir()
             build(first)
             build(second)
-            same = digest_tree(first) == digest_tree(second)
+            # Обидва дайджести знімаються ТУТ, усередині блоку. Друкований раніше
+            # рахувався після виходу з нього — каталогу вже не було, `rglob` не знаходив
+            # нічого, і у звіт лягав sha256 порожнього рядка
+            # (e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855) для
+            # будь-якого еталона. Порівняння було справжнім, надрукований доказ — ні.
+            digest = digest_tree(first)
+            same = digest == digest_tree(second)
         print(
             json.dumps(
                 {
                     "status": "PASS" if same else "FAIL",
                     "deterministic": same,
-                    "digest": digest_tree(first) if same else None,
+                    "digest": digest if same else None,
                     "why": (
                         "два прогони з тих самих текстів мусять дати той самий еталон; "
                         "інакше проба живучості порівнює гейт із рухомою ціллю"

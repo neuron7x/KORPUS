@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1680,
-  "root_sha256": "6134ddf7bb057cfc82c2e98ad906c60ad0c627a51b8b9b18a617bff400da08dc",
+  "file_count": 1684,
+  "root_sha256": "9a924244afaaef767a18bb4f099b0445e553bc4ad3e0c3cd3109000778dffeef",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 73096,
-      "sha256": "11cc95186e1e6e699b3c30f144d16607725670c99e87af2942db628a58fc3da6",
+      "bytes": 76440,
+      "sha256": "154f7d43af15f2228c8d8556815bbe0c3a7a947ffd25533bdba80723fadc5006",
       "mode": "0644"
     },
     {
@@ -3120,6 +3120,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_evidence_bases.py",
+      "bytes": 5899,
+      "sha256": "b0ad986a836c6296d5dde46fb64d23143fa138f67a064504d15382a26f688316",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_evidence_fusion.py",
       "bytes": 2271,
       "sha256": "fde5f96f044abc15c881c6a5185643d5e1bf58ad5e91743ffe77e19f59d7669d",
@@ -3457,8 +3463,8 @@
     },
     {
       "path": "apps/api/tests/test_learning_course_domain.py",
-      "bytes": 13624,
-      "sha256": "98b0eb53953945b495c9910038a22fa8220978d8a6a2d69279d80ada2266e57d",
+      "bytes": 16028,
+      "sha256": "8876b43369f99119e66286aa92b56bfb29d850920fc7381ae82628132f1bf081",
       "mode": "0644"
     },
     {
@@ -6793,8 +6799,8 @@
     },
     {
       "path": "config/operations/answer-axes.json",
-      "bytes": 32414,
-      "sha256": "3c455cdad6c666d718940320c1cfa58c797f8459c24b550666ed4d4a6c148241",
+      "bytes": 37306,
+      "sha256": "b72484d23bb5c69da266262e73919c8a36e65c41dae33fa23ff0e98cadd5f1f3",
       "mode": "0644"
     },
     {
@@ -6828,6 +6834,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/operations/evidence-bases.json",
+      "bytes": 5285,
+      "sha256": "6510e1b419884888bd2fae186c08a8f233ab5c95ae1931650c70865fb8b21cce",
+      "mode": "0644"
+    },
+    {
       "path": "config/operations/gate-closure.json",
       "bytes": 8537,
       "sha256": "4dd87e2d55c7f7211b490bb21a74bedbbf132bb2785d3e479766bd9a99e2e0a4",
@@ -6835,14 +6847,14 @@
     },
     {
       "path": "config/operations/gate-liveness.yaml",
-      "bytes": 20697,
-      "sha256": "d443bbe41227a3b71917b1f37b276953d914e001c13fe06f6b3c4be410088416",
+      "bytes": 23040,
+      "sha256": "259db25bd44dd18d7cdd4de4f85031b62a1c3e7f26ed6600c5fa6bb025419a96",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 381312,
-      "sha256": "a3eca73ba22f1ab2fc748620fd9b6d23a75c74edfe85b9d538098fb6520d7fc0",
+      "bytes": 387313,
+      "sha256": "93643bbaf57b09b24cdde4b95d217797f386dc58a021b14f949e7004a39cfc3f",
       "mode": "0644"
     },
     {
@@ -7830,6 +7842,12 @@
       "mode": "0644"
     },
     {
+      "path": "evals/fixtures/liveness/sources/evidence-bases.json",
+      "bytes": 918,
+      "sha256": "d4123838bc9fea01b89e0a4f02eb5c1cea97a62808ec0bd2847382dc299e50cc",
+      "mode": "0644"
+    },
+    {
       "path": "evals/fixtures/liveness/sources/statute.txt",
       "bytes": 788,
       "sha256": "c472541d400e979080b0e0317effe4494a3a7e96bf19fb70ab780b720c5358ac",
@@ -8449,8 +8467,8 @@
     },
     {
       "path": "scripts/build_liveness_fixture.py",
-      "bytes": 15557,
-      "sha256": "51a9eda8b436aef24a98488708b3885aa4936f0e58a4bb932e81094475dc780a",
+      "bytes": 17885,
+      "sha256": "d7471c057c5e1f515496f9f894ca3c942815cbb117d17576535e7194d1cc3c87",
       "mode": "0755"
     },
     {
@@ -9108,6 +9126,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/measure_evidence_bases.py",
+      "bytes": 26626,
+      "sha256": "d258deafa2e708beeae4ece41c659943ba809a76b876e59f882da48b9a1fcbf8",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/measure_recovery.py",
       "bytes": 7792,
       "sha256": "4e536d10f4ca735ae022e8cab3299e8eb025169f6cfaeeb57dd8b0fa025843dc",
@@ -9571,8 +9595,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 225482,
-      "sha256": "41b5fae35ea10186ac36ac9c436c6327aed0a9df2774f4e31460409b82cd1625",
+      "bytes": 230105,
+      "sha256": "fbd0b338917ff7ca31f008eba6ac37757f10c8462c48ff8076422be92cadd8f0",
       "mode": "0755"
     },
     {

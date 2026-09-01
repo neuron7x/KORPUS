@@ -4519,6 +4519,98 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    # ── Бази доказів. Гейт проти неоголошених баз, який сам спирається на оголошення,
+    # зелений саме в тому стані, заради якого існує: M498 — це та отрута, що проходила.
+    Mutant(
+        "M498_A_BASE_EXISTS_ONLY_IF_THE_REGISTRY_NAMES_IT",
+        "scripts/measure_evidence_bases.py",
+        "                found.setdefault(fingerprint(value), entry.name)",
+        "                pass",
+        (
+            "apps/api/tests/test_evidence_bases.py::"
+            "test_discovery_reads_the_environment_of_live_processes",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M499_A_DECLARATION_THAT_STOPPED_BEING_TRUE_IS_TOLERATED",
+        "scripts/measure_evidence_bases.py",
+        "        if key in declared and declared[key] != actual[key]",
+        "        if False",
+        (
+            "apps/api/tests/test_evidence_bases.py::"
+            "test_a_declaration_that_says_the_same_about_a_base_that_differs_fails",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M500_THE_PUBLISHED_FINGERPRINT_CARRIES_THE_PASSWORD",
+        "scripts/measure_evidence_bases.py",
+        '        return f"postgres:{user}@{location}"',
+        '        return f"postgres:{credentials}@{location}"',
+        (
+            "apps/api/tests/test_evidence_bases.py::test_the_fingerprint_does_not_carry_the_password",
+        ),
+        full_copy=True,
+    ),
+    # ── Навчальний шар: 1516 рядків коду й 1036 рядків тестів, і ЖОДНОГО мутанта до
+    # 01.09.2026. Жоден маршрут API його не імпортує, усі його таблиці порожні в обох
+    # базах — тобто «тести є» було твердженням, яке ніхто не перевіряв. Шість мутантів
+    # цілять у шість РІЗНИХ тверджень цього шару, а не в шість рядків одного.
+    Mutant(
+        "M492_A_SUPERSET_OF_THE_CORRECT_ANSWERS_COUNTS_AS_CORRECT",
+        "apps/api/src/korpus/application/learning_assessment.py",
+        "    correct = attempt.selected_option_ids == check.correct_option_ids",
+        "    correct = attempt.selected_option_ids >= check.correct_option_ids",
+        (
+            "apps/api/tests/test_learning_assessment.py::"
+            "test_extra_selection_does_not_receive_partial_credit",
+        ),
+    ),
+    Mutant(
+        "M493_AN_ATTEMPT_MAY_NAME_AN_OPTION_THAT_DOES_NOT_EXIST",
+        "apps/api/src/korpus/application/learning_assessment.py",
+        "    unknown = attempt.selected_option_ids.difference(declared)",
+        "    unknown = frozenset[str]()",
+        ("apps/api/tests/test_learning_assessment.py::test_attempt_rejects_undeclared_options",),
+    ),
+    Mutant(
+        "M494_A_CHECK_MAY_TEACH_AN_OBJECTIVE_THE_LESSON_DOES_NOT_HAVE",
+        "apps/api/src/korpus/application/learning_assessment.py",
+        "    if check.objective_id not in objective_ids:",
+        "    if objective_ids and check.objective_id not in sorted(objective_ids)[:0]:",
+        ("apps/api/tests/test_learning_assessment.py::test_a_well_bound_check_has_no_blockers",),
+    ),
+    Mutant(
+        "M495_ANY_OVERLAP_OF_EVIDENCE_SPANS_IS_ENOUGH_TO_PUBLISH",
+        "apps/api/src/korpus/domain/learning.py",
+        "            if not binding.evidence_span_ids <= state.evidence_span_ids:",
+        "            if not binding.evidence_span_ids & state.evidence_span_ids:",
+        (
+            "apps/api/tests/test_learning_course_domain.py::"
+            "test_a_binding_that_cites_one_held_span_and_one_absent_span_is_rejected",
+        ),
+    ),
+    Mutant(
+        "M496_ONLY_RESCISSION_STOPS_PUBLICATION_NOT_APPROVAL_OR_WINDOW",
+        "apps/api/src/korpus/domain/learning.py",
+        "            if not state.is_effective(observed):",
+        "            if state.rescinded_at is not None:",
+        (
+            "apps/api/tests/test_learning_course_domain.py::"
+            "test_publication_validation_rejects_unapproved_source",
+        ),
+    ),
+    Mutant(
+        "M497_A_PREREQUISITE_CYCLE_IS_SEEN_AND_NOT_REPORTED",
+        "apps/api/src/korpus/domain/learning.py",
+        '            violations.add(f"{CourseGraphViolation.PREREQUISITE_CYCLE}:{lesson_id}")',
+        "            pass",
+        (
+            "apps/api/tests/test_learning_course_domain.py::"
+            "test_publication_validation_detects_prerequisite_cycle_deterministically",
+        ),
+    ),
     Mutant(
         "M491_THE_SUBJECT_IS_PARSED_IN_A_DIFFERENT_SPACE_FROM_THE_QUESTION",
         "apps/api/src/korpus/application/declared_subject.py",

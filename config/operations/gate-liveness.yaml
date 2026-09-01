@@ -254,3 +254,34 @@ gates:
         target: evals/fixtures/liveness/sources/audit-events.json
         find: '"previous_hash": "0000000000000000000000000000000000000000000000000000000000000000"'
         payload: '"previous_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"'
+
+  # Гейт, що боронить від НЕОГОЛОШЕНИХ баз, не сміє сам спиратися на оголошення. Перша
+  # версія читала лише реєстр, і отрута «прибрати базу з реєстру» — рівно те, що сталося
+  # 31.08.2026 — давала код 0: нема кого міряти, отже все гаразд. Тому еталон несе ДРУГУ
+  # базу й фальшивий каталог процесів, які їх обслуговують: без них цю отруту відтворити
+  # нічим, а вона єдина питає те, заради чого гейт існує.
+  - name: evidence-bases
+    run: ["sh", "-c", "'/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/build_liveness_fixture.py >/dev/null && '/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/measure_evidence_bases.py --registry evals/fixtures/liveness/sources/evidence-bases.json --proc-root var/liveness-fixture/proc --out /dev/null"]
+    timeout: 300
+    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
+    poisons:
+      - name: база жива, і реєстр про неї не знає
+        kind: replace
+        target: evals/fixtures/liveness/sources/evidence-bases.json
+        find: '"path": "var/liveness-fixture/mirror.db"'
+        payload: '"path": "var/liveness-fixture/korpus.db"'
+      - name: оголошено «нарізка інша» там, де вона та сама
+        kind: replace
+        target: evals/fixtures/liveness/sources/evidence-bases.json
+        find: '"spans": "same"'
+        payload: '"spans": "different"'
+      - name: співвідношення ідентифікаторів не оголошене взагалі
+        kind: replace
+        target: evals/fixtures/liveness/sources/evidence-bases.json
+        find: '"version_ids": "same"'
+        payload: '"version_ids_disabled": "same"'
+      - name: той самий реєстр, зайвий переведений рядок
+        kind: append
+        target: evals/fixtures/liveness/sources/evidence-bases.json
+        payload: "\n"
+        equivalent: true
