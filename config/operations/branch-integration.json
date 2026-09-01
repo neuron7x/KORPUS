@@ -4,7 +4,7 @@
     "detail": "Обидві лінії пронумерували міграції ОДНАКОВО з різним вмістом: 0016 канон learning_course_graph проти github temporal_corpus_snapshot; 0017 learning_mastery проти approval_provenance_boundary; 0018 operational_competencies проти nonforgeable_rls_identity. Git конфлікту не бачить — файли різні. Побачить alembic, і вже ПІСЛЯ мержу. Тому інтеграція починається з перенумерації гілки-надмножини, а не з git merge.",
     "kind": "alembic_revision_collision"
   },
-  "canonical_branch": "main",
+  "canonical_branch_declared_in": "config/operations/canonical-state.json",
   "integrated": [
     {
       "branch": "origin/dependabot/github_actions/github-actions-0d78cc90a8",

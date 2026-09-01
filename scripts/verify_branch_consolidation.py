@@ -310,13 +310,16 @@ def selftest() -> int:
 
 
 def _declared_canonical() -> str:
-    """Канонічна гілка з реєстру інтеграції — ЄДИНЕ її оголошення в дереві."""
-    registry = ROOT / "config/operations/branch-integration.json"
-    try:
-        declared = json.loads(registry.read_text(encoding="utf-8"))["canonical_branch"]
-    except (OSError, ValueError, KeyError):
-        return "main"
-    return str(declared)
+    """Канонічна гілка — з `canonical-state.json` через спільний модуль.
+
+    Перша версія читала `branch-integration.json` і мала дефолт `"main"`. Обидва
+    рішення були хибні: оголошень стало два, а дефолт зробив би реєстр без імені
+    невідрізненним від реєстру, що назвав правильно.
+    """
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from canonical_declaration import canonical_branch
+
+    return canonical_branch(ROOT)
 
 
 def main() -> int:

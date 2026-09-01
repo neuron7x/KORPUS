@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1728,
-  "root_sha256": "5170efee798e9eb61d9aeae27c2f3bb0ce46c7f7cb97ac13fadf0dfb89a87e7e",
+  "root_sha256": "b909c62d036115db01fef761e747b892f00549bbd2ea486da6f151c1d555a0dd",
   "files": [
     {
       "path": ".dockerignore",
@@ -2797,8 +2797,8 @@
     },
     {
       "path": "apps/api/tests/test_branch_integration.py",
-      "bytes": 5887,
-      "sha256": "3b200e13ee72547f1cb4fe3523fe5ff9541f63d3c696884d298d1f6ecf11fe47",
+      "bytes": 6139,
+      "sha256": "ee4186944b012230ab3a9c043491a50016152c4ef591fc62f3aa92c33e04a835",
       "mode": "0644"
     },
     {
@@ -2857,8 +2857,8 @@
     },
     {
       "path": "apps/api/tests/test_canonical_state.py",
-      "bytes": 9147,
-      "sha256": "77ab562a6d3425eb20700cd162e8d9d57b3601d07239ea3536fd2a5fd9a291e1",
+      "bytes": 12644,
+      "sha256": "cccb18e339dedf5127bda66a52f3821301bbf5b87347c26e61dd08f5976e3da0",
       "mode": "0644"
     },
     {
@@ -3133,8 +3133,8 @@
     },
     {
       "path": "apps/api/tests/test_embedding_backfill.py",
-      "bytes": 6077,
-      "sha256": "fc3830a9ebf204f59aff1b5f42d5a57cff67098af47f98315378e7e588eac078",
+      "bytes": 6049,
+      "sha256": "c590b15b999fd0b0d82d83cf7108697a19f3e78e87739928c6da63c143305e35",
       "mode": "0644"
     },
     {
@@ -4471,8 +4471,8 @@
     },
     {
       "path": "apps/api/tests/test_semantic_coverage_runtime.py",
-      "bytes": 3664,
-      "sha256": "923223725114f829233d6f539ad4d630948df89fe6162b44104d61014e120326",
+      "bytes": 3636,
+      "sha256": "64a69c89b65028f07cebf8acca88bbba33ff08f307edb4a60d8e73ed0f1de534",
       "mode": "0644"
     },
     {
@@ -6991,14 +6991,14 @@
     },
     {
       "path": "config/operations/branch-integration.json",
-      "bytes": 15612,
-      "sha256": "0d3e746dfe3014ad029417a52cdb09b12401cb3f2f6614936aa627d2ac1a4642",
+      "bytes": 15658,
+      "sha256": "a92880f7f4a25c7e722dbfbcb7a8497602d367318aa46e624020bbde21f7c933",
       "mode": "0644"
     },
     {
       "path": "config/operations/canonical-state.json",
-      "bytes": 4759,
-      "sha256": "54e826cb5c7a1c9cef06177b74fee16bf10c9920c8028b892b57cba6d329280d",
+      "bytes": 6197,
+      "sha256": "0aeffca8ff65a067112464b442b4baf9a391314ac5e3855761664a84e753bb1c",
       "mode": "0644"
     },
     {
@@ -7051,8 +7051,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 451491,
-      "sha256": "c08ae23f4d38766bc934d0d2981a2dfce02794cbcc91d1b5f8d2acafca51beb1",
+      "bytes": 454361,
+      "sha256": "54dae42c8282e152fc769bf4402ad4a322f3f5f51599cbc44de4c45a15e593d1",
       "mode": "0644"
     },
     {
@@ -9758,7 +9758,7 @@
     {
       "path": "scripts/run_evals.py",
       "bytes": 17413,
-      "sha256": "7f67944f440e66ed238701036a07a94094ea8ec687aad96e04d45b0b7da9140d",
+      "sha256": "da12b95d67a2512650408fb6fdf106635968e2504b7366c2c267c37dc5455c02",
       "mode": "0644"
     },
     {
@@ -9823,8 +9823,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 263985,
-      "sha256": "6a60b60fcb5599838dfaaf3d9be51cb81c65b77a95dc051856443982aebaad1d",
+      "bytes": 265933,
+      "sha256": "e3c5b53ecd22c9dddf41b178a85f449df29c541a2fdeb8d5db8256ae6303d980",
       "mode": "0755"
     },
     {
@@ -10189,8 +10189,8 @@
     },
     {
       "path": "scripts/verify_branch_consolidation.py",
-      "bytes": 17118,
-      "sha256": "ea3c104b311c8fb73b4fbe3693a9b135879063b1fd3fc6366bce6ac6f8b8e7f5",
+      "bytes": 17333,
+      "sha256": "7e72317092f187b4498bcc7ee04927e3c4e8192943630959763ad32f377f436a",
       "mode": "0755"
     },
     {
@@ -10201,8 +10201,8 @@
     },
     {
       "path": "scripts/verify_canonical_state.py",
-      "bytes": 25562,
-      "sha256": "cdf55d9b53f125cb8c37a78729d3c6da94aa05af463c0c8c2c0f749236ab19de",
+      "bytes": 27303,
+      "sha256": "13e8cb0cbc818ac7c03b77a2c03677fc9fc80e5f8e119035b7d306c57f1a1709",
       "mode": "0755"
     },
     {

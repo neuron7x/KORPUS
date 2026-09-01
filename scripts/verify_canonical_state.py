@@ -166,11 +166,43 @@ def _check_checked_out(observation: dict[str, Any], registry: dict[str, Any]) ->
     return _finding("canonical_checked_out", "PASS", f"канонічний корінь на {head}")
 
 
+def _closed(registry: dict[str, Any], name: str) -> bool:
+    """Чи цей борг ЗАКРИТО названим записом, а не просто зник із реєстру."""
+    closed = registry.get("closed_debts")
+    if not isinstance(closed, list):
+        return False
+    return any(
+        isinstance(item, dict) and item.get("name") == name and str(item.get("why", "")).strip()
+        for item in closed
+    )
+
+
 def _check_trunk(measured: dict[str, Any], registry: dict[str, Any]) -> list[dict[str, str]]:
     trunk = registry.get("trunk")
     if not isinstance(trunk, dict):
+        # Відсутність — це або закритий борг, або тиха втрата. Розрізняє лише запис.
+        if _closed(registry, "trunk_lag"):
+            return [
+                _finding(
+                    "trunk_declared",
+                    "PASS",
+                    "стовбур і канон — одна гілка; борг відставання закрито названим записом",
+                )
+            ]
         return [_finding("trunk_declared", "FAIL", "реєстр не називає стовбура")]
     name = trunk.get("branch")
+    if name == registry.get("canonical_branch"):
+        # Перевірка, яка не має стану, де вона червоніє, — не перевірка. Стовбур,
+        # оголошений тією самою гілкою, що й канон, робить `trunk_is_ancestor` і
+        # `trunk_staleness` тотожно істинними: вони міряли б нуль за побудовою.
+        return [
+            _finding(
+                "trunk_declared",
+                "FAIL",
+                f"стовбур {name} оголошено тією самою гілкою, що й канон — "
+                "перевірки відставання стають тотожно істинними; закрий борг записом",
+            )
+        ]
     ancestor = measured.get("trunk_is_ancestor")
     lag = measured.get("trunk_behind")
     found = []

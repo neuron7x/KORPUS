@@ -89,9 +89,7 @@ def test_database_state_is_resume_checkpoint_and_stale_writes_are_discarded(
 
     # Прив'язку тепер робить функція модуля, а не статичний метод класу: підклас
     # із межею RLS перевизначає метод, тож статичний виклик не міг би про нього знати.
-    monkeypatch.setattr(
-        "korpus.infrastructure.repository.apply_session_claims", lambda *args: None
-    )
+    monkeypatch.setattr("korpus.infrastructure.repository.apply_session_claims", lambda *args: None)
     del backfill_module
     rows = [
         SimpleNamespace(id="a", text="alpha", text_hash="1" * 64, corpus_id="public"),
@@ -119,9 +117,7 @@ def test_empty_selection_is_complete_without_provider_call(monkeypatch, identity
 
     # Прив'язку тепер робить функція модуля, а не статичний метод класу: підклас
     # із межею RLS перевизначає метод, тож статичний виклик не міг би про нього знати.
-    monkeypatch.setattr(
-        "korpus.infrastructure.repository.apply_session_claims", lambda *args: None
-    )
+    monkeypatch.setattr("korpus.infrastructure.repository.apply_session_claims", lambda *args: None)
     del backfill_module
     provider = Provider()
     result = PgVectorEmbeddingBackfill(Engine(Connection([])), provider).run_batch(identity)

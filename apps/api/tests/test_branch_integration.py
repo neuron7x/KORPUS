@@ -29,6 +29,13 @@ assert SPEC and SPEC.loader
 GATE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(GATE)
 
+sys.path.insert(0, str(ROOT / "scripts"))
+from canonical_declaration import canonical_branch  # noqa: E402
+
+#: Ім'я канону НЕ вписане тут константою: чотири копії цього рядка вже розійшлись,
+#: і кожна тихо судила про інший предмет.
+CANON = canonical_branch(ROOT)
+
 
 def _registry() -> dict[str, Any]:
     return json.loads(REGISTRY.read_text(encoding="utf-8"))
@@ -36,7 +43,7 @@ def _registry() -> dict[str, Any]:
 
 def _observation() -> dict[str, Any]:
     return {
-        "canonical": "work/converge-semantic",
+        "canonical": CANON,
         "diverged": {
             entry["branch"]: {"unique": entry["unique"], "clean": entry["clean"]}
             for entry in _registry()["stranded"]
@@ -70,7 +77,7 @@ def test_an_entry_that_does_not_say_what_it_carries_is_refused() -> None:
     registry = _registry()
     registry["stranded"] = [{**registry["stranded"][0], "carries": "бо"}]
     observation = {
-        "canonical": "work/converge-semantic",
+        "canonical": CANON,
         "diverged": {registry["stranded"][0]["branch"]: {"unique": 1, "clean": False}},
     }
     assert _finding(GATE.assess(observation, registry), "carries_is_named")["verdict"] == "FAIL"
@@ -83,7 +90,7 @@ def test_a_cleanly_merging_branch_may_not_linger_without_a_reason() -> None:
     entry.pop("clean_but_held", None)
     registry["stranded"] = [entry]
     observation = {
-        "canonical": "work/converge-semantic",
+        "canonical": CANON,
         "diverged": {entry["branch"]: {"unique": 1, "clean": True}},
     }
     finding = _finding(GATE.assess(observation, registry), "clean_branch_not_left_hanging")
@@ -91,7 +98,7 @@ def test_a_cleanly_merging_branch_may_not_linger_without_a_reason() -> None:
 
 
 def test_the_real_registry_is_green_on_the_real_repository() -> None:
-    findings = GATE.assess(GATE.observe(_registry()["canonical_branch"], ROOT), _registry())
+    findings = GATE.assess(GATE.observe(CANON, ROOT), _registry())
     assert GATE.verdict(findings) == "PASS", findings
 
 
@@ -108,7 +115,7 @@ def test_the_migration_collision_is_recorded_as_the_blocker() -> None:
 
 def test_every_local_branch_is_already_inside_the_canonical_one() -> None:
     """Проти РЕАЛЬНОСТІ: локально рятувати нічого, уся розбіжність — на origin."""
-    canonical = _registry()["canonical_branch"]
+    canonical = CANON
     for ref in GATE.refs(ROOT):
         if ref.startswith(("origin/", "gitlab/")) or ref == canonical:
             continue

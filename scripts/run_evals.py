@@ -25,8 +25,8 @@ from korpus.domain.models import (
     ReviewTransition,
     VersionCreate,
 )
-from korpus.infrastructure.object_store import LocalObjectStore
 from korpus.infrastructure.corpus_snapshot import SqlCorpusSnapshotReader
+from korpus.infrastructure.object_store import LocalObjectStore
 from korpus.infrastructure.repository import SqlRepository
 
 DATASET = Path("evals/datasets/assurance.jsonl")

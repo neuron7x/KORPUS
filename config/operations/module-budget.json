@@ -3386,6 +3386,15 @@
       "max_nesting": 2,
       "proof_lines": 0
     },
+    "scripts/canonical_declaration.py": {
+      "lines": 45,
+      "max_complexity": 4,
+      "max_function_args": 1,
+      "max_function_lines": 20,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Ім'я канонічної гілки жило в ЧОТИРЬОХ оголошеннях; після переїзду канону на `main` три лишились на `work/converge-semantic`, і кожне тихо судило про інший предмет. Тепер джерело одне — `canonical-state.json` через `scripts/canonical_declaration.py`, і читач ВІДМОВЛЯЄ замість дефолту. Плюс борг відставання стовбура закрито записом, а гейт відтепер відмовляє реєстрові, що оголошує стовбур тією самою гілкою, що й канон: такі перевірки тотожно істинні."
+    },
     "scripts/capture_source_evidence.py": {
       "lines": 979,
       "max_complexity": 12,
@@ -4856,7 +4865,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5880,
+      "lines": 5920,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -5344,7 +5353,7 @@
       "reason": "Новий гейт: одна канонічна гілка або названий перелік того, що поза нею. Виміряно 01.09.2026 — 21 гілка origin з 18–355 власними комітами і п'ятьма спроможностями, яких у каноні немає; блокер — зіткнення номерів міграцій, якого git не бачить. Мутанти M570–M573."
     },
     "scripts/verify_canonical_state.py": {
-      "lines": 449,
+      "lines": 485,
       "max_complexity": 11,
       "max_function_args": 4,
       "max_function_lines": 58,
@@ -8897,6 +8906,28 @@
       "to": {
         "lines": 435,
         "max_function_lines": 282
+      }
+    },
+    {
+      "from": {
+        "lines": 5880
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Ім'я канонічної гілки жило в ЧОТИРЬОХ оголошеннях; після переїзду канону на `main` три лишились на `work/converge-semantic`, і кожне тихо судило про інший предмет. Тепер джерело одне — `canonical-state.json` через `scripts/canonical_declaration.py`, і читач ВІДМОВЛЯЄ замість дефолту. Плюс борг відставання стовбура закрито записом, а гейт відтепер відмовляє реєстрові, що оголошує стовбур тією самою гілкою, що й канон: такі перевірки тотожно істинні.",
+      "to": {
+        "lines": 5920
+      }
+    },
+    {
+      "from": {
+        "lines": 449
+      },
+      "on": "2026-09-01",
+      "path": "scripts/verify_canonical_state.py",
+      "reason": "Ім'я канонічної гілки жило в ЧОТИРЬОХ оголошеннях; після переїзду канону на `main` три лишились на `work/converge-semantic`, і кожне тихо судило про інший предмет. Тепер джерело одне — `canonical-state.json` через `scripts/canonical_declaration.py`, і читач ВІДМОВЛЯЄ замість дефолту. Плюс борг відставання стовбура закрито записом, а гейт відтепер відмовляє реєстрові, що оголошує стовбур тією самою гілкою, що й канон: такі перевірки тотожно істинні.",
+      "to": {
+        "lines": 485
       }
     }
   ],

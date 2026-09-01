@@ -66,9 +66,7 @@ def _index(row: object) -> PgVectorSemanticIndex:
 def test_runtime_coverage_is_model_dimension_and_text_hash_bound(monkeypatch) -> None:
     # Прив'язку робить функція модуля, а не статичний метод класу: підклас із
     # межею RLS перевизначає МЕТОД, тож статичний виклик не міг би знати про брокера.
-    monkeypatch.setattr(
-        "korpus.infrastructure.repository.apply_session_claims", lambda *args: None
-    )
+    monkeypatch.setattr("korpus.infrastructure.repository.apply_session_claims", lambda *args: None)
     row = SimpleNamespace(
         spans_total=10,
         spans_embedded_active=10,
@@ -91,9 +89,7 @@ def test_runtime_coverage_is_model_dimension_and_text_hash_bound(monkeypatch) ->
 def test_runtime_coverage_detects_stale_vectors(monkeypatch) -> None:
     # Прив'язку робить функція модуля, а не статичний метод класу: підклас із
     # межею RLS перевизначає МЕТОД, тож статичний виклик не міг би знати про брокера.
-    monkeypatch.setattr(
-        "korpus.infrastructure.repository.apply_session_claims", lambda *args: None
-    )
+    monkeypatch.setattr("korpus.infrastructure.repository.apply_session_claims", lambda *args: None)
     index = _index(
         SimpleNamespace(
             spans_total=10,

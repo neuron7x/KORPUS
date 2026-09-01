@@ -5547,6 +5547,43 @@ MUTANTS = (
             "test_the_batch_binds_the_identity_it_was_given",
         ),
     ),
+    Mutant(
+        # Дефолт замість відмови: реєстр, що перестав називати канон, читався б як
+        # реєстр, який назвав правильно — і саме в момент переїзду канону.
+        "M585_A_MISSING_CANONICAL_DECLARATION_GUESSES_MAIN",
+        "scripts/canonical_declaration.py",
+        '        raise CanonicalDeclarationMissing(f"{path} не називає канонічної гілки") '
+        "from error",
+        '        return "main"',
+        (
+            "apps/api/tests/test_canonical_declaration.py::"
+            "test_a_registry_that_names_nothing_refuses_instead_of_guessing",
+        ),
+    ),
+    Mutant(
+        # Стовбур, оголошений тією самою гілкою, що й канон: перевірки відставання
+        # стають тотожно істинними, і гейт зелений рівно в тому стані, заради якого існує.
+        "M586_TRUNK_MAY_BE_THE_CANONICAL_BRANCH_ITSELF",
+        "scripts/verify_canonical_state.py",
+        '    if name == registry.get("canonical_branch"):',
+        "    if False:",
+        (
+            "apps/api/tests/test_canonical_state.py::"
+            "test_a_trunk_declared_as_the_canonical_branch_is_refused",
+        ),
+    ),
+    Mutant(
+        # Закритий борг без причини закриває його лише на вигляд.
+        "M587_A_CLOSED_DEBT_NEED_NOT_SAY_WHY",
+        "scripts/verify_canonical_state.py",
+        '        isinstance(item, dict) and item.get("name") == name '
+        'and str(item.get("why", "")).strip()',
+        '        isinstance(item, dict) and item.get("name") == name',
+        (
+            "apps/api/tests/test_canonical_state.py::"
+            "test_a_vanished_trunk_block_is_refused_unless_the_debt_was_closed",
+        ),
+    ),
 )
 
 
