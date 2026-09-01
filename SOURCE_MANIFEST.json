@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1694,
-  "root_sha256": "0be4a4e52e26572bae904d5b4f90c89523addb9ced10dbe2b4c5e84d5d8e0c2b",
+  "file_count": 1697,
+  "root_sha256": "047ed992d2961201f0db44beb7071b249766210613354fca2e140955262c53cb",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 80461,
-      "sha256": "91947c7e9f4cd28a26d4c2f97f1e2e4a3cc6cead7dab6e385200fec76a1bd878",
+      "bytes": 81003,
+      "sha256": "b3147d0e0eff6786ee973271f76f598d9467b5fbe980ca0f5075ffeacf2be80d",
       "mode": "0644"
     },
     {
@@ -4434,6 +4434,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_subject_inflection.py",
+      "bytes": 5247,
+      "sha256": "14227cc012c71c60d2edc3ccbc30fc05c2356a452ad1bffb5c3e47c09f03527d",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_supply_chain_attestation_v097.py",
       "bytes": 1120,
       "sha256": "db08d666838921d004662d4a01339a8c8388c5077c0fb803fa90f6ffe526044b",
@@ -6829,8 +6835,8 @@
     },
     {
       "path": "config/operations/answer-axes.json",
-      "bytes": 45345,
-      "sha256": "c3c2998532b6dfa84746b39093d3b168decf30a1ec047308c2292eb8efa4a549",
+      "bytes": 50418,
+      "sha256": "c9aa410c74a71bde7f3686ab772e3bfea207c38ceda3cfcc1dcb383d87d36e95",
       "mode": "0644"
     },
     {
@@ -6889,8 +6895,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 402187,
-      "sha256": "a156266b78cb813782fa6e2d6a1de1c0dad546f78cba4c6f217abdfb70814009",
+      "bytes": 404284,
+      "sha256": "3017537551be7be297bca70836fea9a492356518e532ed81ea2a1a88d77cf4cf",
       "mode": "0644"
     },
     {
@@ -7824,6 +7830,18 @@
       "mode": "0644"
     },
     {
+      "path": "evals/datasets/subject_inflection.README.md",
+      "bytes": 3526,
+      "sha256": "d6ad360bcaaab2f7d8fa7859fdfde5d6651b5a10a50f495576f416d4282136c3",
+      "mode": "0644"
+    },
+    {
+      "path": "evals/datasets/subject_inflection.jsonl",
+      "bytes": 2657,
+      "sha256": "952b306476a41583d8d386f74e122aa921994ead0880bb8eff6d119d10c46c6c",
+      "mode": "0644"
+    },
+    {
       "path": "evals/datasets/v2/RELEASE_EVAL_DATASET_MANIFEST.json",
       "bytes": 1420,
       "sha256": "0e91184c2ced1942decfe8a5c7bdfc950b98ae831c3b3a5920993a53770ad106",
@@ -8473,8 +8491,8 @@
     },
     {
       "path": "scripts/benchmark_subject_precision.py",
-      "bytes": 12472,
-      "sha256": "1e528ccf282b3cab90461a366a3a6c294c6c0eb430581a399a3e9515f339f5bc",
+      "bytes": 19733,
+      "sha256": "1ab7e70126a32965944eb10d6fd517c4a6e96d44a02720567fb229520921fc9f",
       "mode": "0755"
     },
     {
@@ -9637,8 +9655,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 243312,
-      "sha256": "21a63e3d30e0ace40034787b70db8c12d43a9e451a02d681eb85f9740013f2e0",
+      "bytes": 244446,
+      "sha256": "aa62e1f792d32fcc27309da4f305f7946b0585bd3168330bf96cecc13d7fb0cd",
       "mode": "0755"
     },
     {

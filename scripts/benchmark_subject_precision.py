@@ -17,7 +17,16 @@
 означає протилежне тому, що обіцяє. Перший вимір дав саме це: 1.0 на хибних проти
 0.8 на правильній.
 
+ДРУГА ФОРМА, і без неї перше число неповне. Еталон питає НАЗИВНИМ, бо роль береться із
+заголовка як є; людина питає РОДОВИМ. Виміряно 01.09.2026 на живому продукті:
+називний 14/14, родовий **1/14**. Отже 0.9670 — правда про розподіл входу «називний», і
+про форму, яку справді введе читач, воно не каже нічого. Відмінені форми лежать
+замороженим набором (`evals/datasets/subject_inflection.jsonl`), кожна прогнана на
+сервері до внесення: автоматично утворити родовий для 92 українських ролей надійно не
+можна, а утворене без перевірки було б думкою про мову, покладеною в еталон.
+
     benchmark_subject_precision.py --base http://127.0.0.1:8000 --database DB
+    benchmark_subject_precision.py --base ... --inflected
     benchmark_subject_precision.py --selftest
 """
 
@@ -65,6 +74,113 @@ PHRASINGS = (
     "За що відповідає {role}?",
     "{role} — обов'язки",
 )
+
+
+INFLECTION_SET = ROOT / "evals/datasets/subject_inflection.jsonl"
+
+
+def inflection_pairs(path: Path) -> list[dict[str, Any]]:
+    """Відмінені форми з дерева, не утворені на льоту.
+
+    Морфологія тут — ДАНІ, і навмисно. Правило, яке утворювало б родовий із називного,
+    було б моєю думкою про українську мову всередині вимірювача, і його помилка
+    виглядала б як властивість системи.
+    """
+    return [
+        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
+    ]
+
+
+def cited_first_is(answer: dict[str, Any] | None, role: str) -> bool:
+    """Перша цитата — документ, що ОГОЛОСИВ саме цю роль. Не схожість, а заголовок.
+
+    Апостроф у заголовках трапляється двома символами, тож обидва зводяться до одного
+    перед порівнянням: інакше правильна відповідь читалась би як хибна через кодування.
+    """
+    if answer is None:
+        return False
+    cited = [str(citation.get("title", "")) for citation in answer.get("citations", ())]
+    if not cited:
+        return False
+    # Рівність оголошеного предмета, не префікс заголовка. Префікс зараховував би
+    # «Обов'язки: Днювальний парку ТА СКЛАДУ» за «Днювальний парку»: роль — підрядок
+    # довшої ролі, і саме так виглядала б хибно висока цифра. Розбір той самий, що вище
+    # в цьому файлі, і навмисно НЕ імпортований із конвеєра.
+    return declared_subject(cited[0]) == role
+
+
+def _inflection_result(
+    arguments: argparse.Namespace, pair: dict[str, Any]
+) -> dict[str, Any] | None:
+    """Одна роль у двох відмінках. None означає НЕДОСЯЖНО, а не промах."""
+    role = str(pair["role"])
+    nominative = ask(
+        arguments.base, arguments.token, f"Які обов'язки має {role.lower()}?", arguments.timeout
+    )
+    genitive = ask(
+        arguments.base, arguments.token, f"Які обов'язки {pair['genitive']}?", arguments.timeout
+    )
+    if nominative is None or genitive is None:
+        return None
+    return {
+        "id": pair.get("id"),
+        "role": role,
+        "adjectival": bool(pair.get("adjectival")),
+        "nominative": cited_first_is(nominative, role),
+        "genitive": cited_first_is(genitive, role),
+    }
+
+
+def summarise_inflection(results: list[dict[str, Any]], unreachable: int) -> dict[str, Any]:
+    total = len(results)
+    nominative_ok = sum(1 for item in results if item["nominative"])
+    genitive_ok = sum(1 for item in results if item["genitive"])
+    return {
+        "schema": "korpus.subject-inflection.v1",
+        "cases": total,
+        "unreachable": unreachable,
+        "nominative": round(nominative_ok / total, 4) if total else None,
+        "genitive": round(genitive_ok / total, 4) if total else None,
+        #: Частка класу предмета, що ПЕРЕЖИВАЄ відмінювання. Відношення подібного до
+        #: подібного, а не сира частка: якщо колись просяде сам називний, ця вісь не
+        #: зросте від того, що обидві форми стали однаково поганими.
+        "survives_inflection": (round(genitive_ok / nominative_ok, 4) if nominative_ok else None),
+        #: Стеля 12/14 — межа МЕТОДУ, не борг: дві пари не зводяться відрізанням
+        #: суфікса в принципі (випадний голосний, чергування основи).
+        "ceiling": round(12 / total, 4) if total else None,
+        "failed_in_genitive": [item["role"] for item in results if not item["genitive"]],
+        "status": "MEASURED" if total else "UNKNOWN",
+    }
+
+
+def run_inflected(arguments: argparse.Namespace) -> int:
+    """Те саме питання у двох відмінках; різниця між ними і є вимір."""
+    pairs = inflection_pairs(arguments.inflection_set)
+    if not pairs:
+        raise SystemExit("набір відмінків порожній — це відмова, а не результат")
+    results: list[dict[str, Any]] = []
+    unreachable = 0
+    for pair in pairs:
+        result = _inflection_result(arguments, pair)
+        if result is None:
+            unreachable += 1
+        else:
+            results.append(result)
+    report = {
+        **summarise_inflection(results, unreachable),
+        "base": arguments.base,
+        "set": str(arguments.inflection_set.relative_to(ROOT)),
+    }
+    arguments.out.parent.mkdir(parents=True, exist_ok=True)
+    arguments.out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(
+        json.dumps(
+            {k: v for k, v in report.items() if k != "failed_in_genitive"},
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return 0
 
 
 def corpus_subjects(database: str) -> dict[str, str]:
@@ -217,10 +333,22 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=0, help="0 = усі оголошені предмети")
     parser.add_argument("--timeout", type=float, default=45.0)
     parser.add_argument("--out", type=Path, default=ROOT / "var/subject-precision.json")
+    parser.add_argument(
+        "--inflected",
+        action="store_true",
+        help="друга форма: кожна роль питається називним І родовим із замороженого набору",
+    )
+    parser.add_argument("--inflection-set", type=Path, default=INFLECTION_SET)
     parser.add_argument("--selftest", action="store_true")
     arguments = parser.parse_args()
     if arguments.selftest:
         return selftest()
+    # Друга форма читає ЗАМОРОЖЕНИЙ набір, не корпус, тож бази їй не треба. Перевірка
+    # на `--database` стоїть нижче саме тому: вимога, яка не потрібна цій дорозі,
+    # відхиляла б правильний виклик.
+    if arguments.inflected:
+        return run_inflected(arguments)
+
     if not arguments.database:
         parser.error("потрібен --database")
 

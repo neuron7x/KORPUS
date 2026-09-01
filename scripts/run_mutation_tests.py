@@ -4820,6 +4820,30 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    # ── Друга форма питання. Лінійка, що зараховує довшу роль за коротшу або цитату
+    # не першою, показала б високе число там, де воно 1/14.
+    Mutant(
+        "M525_A_LONGER_ROLE_COUNTS_AS_THE_ROLE_ASKED_FOR",
+        "scripts/benchmark_subject_precision.py",
+        "    return declared_subject(cited[0]) == role",
+        '    return cited[0].replace("\u2019", "\'").startswith(f"Обов\'язки: {role} ")',
+        (
+            "apps/api/tests/test_subject_inflection.py::"
+            "test_a_longer_role_that_starts_the_same_is_not_the_role",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M526_THE_ROLE_CITED_ANYWHERE_COUNTS_AS_CITED_FIRST",
+        "scripts/benchmark_subject_precision.py",
+        "    return declared_subject(cited[0]) == role",
+        "    return any(declared_subject(title) == role for title in cited)",
+        (
+            "apps/api/tests/test_subject_inflection.py::"
+            "test_the_same_document_cited_second_does_not",
+        ),
+        full_copy=True,
+    ),
     # ── Свіжість обслуговуючого процесу. П'ять осей міряються запитом до сервера, тож
     # вони кредитують ПРОЦЕС, а не дерево, і жодне поле звіту про це не каже.
     Mutant(

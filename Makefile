@@ -800,6 +800,11 @@ subject-precision:
 	$(PY) scripts/benchmark_subject_precision.py --selftest
 	@test -n "$(BASE)" || { echo "вжиток: make subject-precision BASE=http://127.0.0.1:8000 [DATABASE=...]" >&2; exit 64; }
 	$(PY) scripts/benchmark_subject_precision.py --base "$(BASE)" --database "$(or $(DATABASE),$(SERVED_CORPUS))"
+# Друга форма питання. Еталон питає НАЗИВНИМ, бо роль береться із заголовка як є;
+# людина питає РОДОВИМ. Виміряно 01.09.2026: називний 14/14, родовий 1/14 — тобто
+# перше число правдиве про свій розподіл входу й мовчить про той, який справді буде.
+	$(PY) scripts/benchmark_subject_precision.py --base "$(BASE)" --inflected \
+	  --out var/subject-inflection.json
 
 ## Скільки баз доказів існує — і чи та, яку подають, є тією, яку назвали. Виміряно
 ## 01.09.2026: шість сховищ форми «докази», з них порожнє на типовому шляху
