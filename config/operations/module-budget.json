@@ -4847,7 +4847,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5778,
+      "lines": 5790,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -8675,6 +8675,17 @@
       "reason": "M06 і M196 перенесено з `infrastructure/repository.py` до `infrastructure/corpus_snapshot.py` разом із кодом, який вони боронять; обидва вбито на новому місці. Прибрати їх було б тихою втратою двох сторожів.",
       "to": {
         "lines": 5755
+      }
+    },
+    {
+      "from": {
+        "lines": 5778
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "M06 і M196 перенесено з `infrastructure/repository.py` до `infrastructure/corpus_snapshot.py` разом із кодом, який вони боронять — `SqlRepository.corpus_release_id` більше не існує. Прибрати мутантів було б тихою втратою двох сторожів: обидва вбито на новому місці.",
+      "to": {
+        "lines": 5790
       }
     }
   ],
