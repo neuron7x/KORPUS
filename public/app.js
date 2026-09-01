@@ -1,0 +1,643 @@
+import {
+  ApiRefusal, NetworkError, call, clearBearerToken, describeError, escapeHtml, loginUrl, setBearerToken,
+} from "./api.js";
+import {CHAT_STATE, createChatMachine, replayServerOutcome} from "./chat_fsm.js";
+import {askIn} from "./conversations.js";
+import {
+  forgetDeclaration, readDeclaration, rememberDeclaration, restoreDeclaration,
+} from "./reader_declaration.js";
+import {wireCorpus} from "./reader_corpus.js";
+import {createConversationController} from "./reader_conversations.js";
+import {UNFINISHED, VERDICT} from "./reader_verdicts.js";
+
+const $ = id => document.getElementById(id);
+
+const themeToggle = $("theme-toggle");
+let unmountCombatScene = null;
+
+function applyTheme(combat) {
+  if (combat && !document.getElementById("combat-theme")) {
+    const link = document.createElement("link");
+    Object.assign(link, {id: "combat-theme", rel: "stylesheet", href: "/combat.css"});
+    document.head.append(link);
+  }
+  document.documentElement.dataset.theme = combat ? "combat" : "core";
+  if (combat) {
+    import("./combat_scene.js").then(({mountCombatScene}) => {
+      if (document.documentElement.dataset.theme === "combat" && !unmountCombatScene) {
+        unmountCombatScene = mountCombatScene();
+      }
+    });
+  } else if (unmountCombatScene) {
+    unmountCombatScene();
+    unmountCombatScene = null;
+  }
+  themeToggle?.setAttribute("aria-pressed", String(combat));
+  themeToggle?.setAttribute("aria-label", combat ? "Увімкнути основну тему" : "Увімкнути бойову тему");
+  const label = themeToggle?.querySelector("[data-theme-label]");
+  if (label) label.textContent = combat ? "ОСНОВНА" : "БОЙОВА";
+}
+
+let combat = false;
+try {
+  combat = sessionStorage.getItem("korpus-theme") === "combat";
+} catch { /* Core remains canonical when browser storage is unavailable. */ }
+applyTheme(combat);
+themeToggle?.addEventListener("click", () => {
+  combat = !combat;
+  applyTheme(combat);
+  try { sessionStorage.setItem("korpus-theme", combat ? "combat" : "core"); } catch { /* Applies in-memory. */ }
+});
+
+const entry = $("entry");
+const product = $("product");
+const standing = $("standing");
+const askSection = $("ask-section");
+const declarationForm = $("declaration-form");
+const sessionContext = $("session-context");
+const queryForm = $("query-form");
+const query = $("query");
+const submit = $("submit");
+const result = $("result");
+const errors = $("entry-errors");
+const identityState = $("identity-state");
+const pricing = $("pricing");
+const emptyChat = $("empty-chat");
+
+let identity = null;
+let bootstrap = null;
+let declaration = null;
+let commerce = null;
+let chatMachine = createChatMachine();
+const observedSources = new Map();
+let traceControllerPromise;
+function renderTraceState(state) {
+  traceControllerPromise ??= import("./trace.js").then(({createTraceController}) => createTraceController());
+  traceControllerPromise.then(controller => controller.render(state));
+}
+
+function setChatMachine(machine) {
+  chatMachine = machine;
+  if (product) product.dataset.chatState = machine.state;
+  renderTraceState(machine.state);
+}
+function chatEvent(event) {
+  const state = chatMachine.send(event);
+  if (product) product.dataset.chatState = state;
+  renderTraceState(state);
+  return state;
+}
+
+const publicMode = Boolean(globalThis.window?.KORPUS_CONFIG?.publicMode);
+const conversationController = createConversationController({publicMode, result, query});
+
+if (publicMode) {
+  for (const node of document.querySelectorAll("[data-private-only]")) node.remove();
+}
+
+// ---------------------------------------------------------------- identity + product state
+
+function renderIdentity(loaded) {
+  identity = loaded;
+  setChatMachine(createChatMachine(loaded ? CHAT_STATE.READY : CHAT_STATE.UNAUTHENTICATED));
+  if (!loaded) {
+    if (identityState) identityState.textContent = "не автентифіковано";
+    if ($("login")) $("login").hidden = false;
+    if ($("logout")) $("logout").hidden = true;
+    entry.hidden = false;
+    product.hidden = true;
+    pricing.hidden = true;
+    $("mobile-nav").hidden = true;
+    return;
+  }
+  if (identityState) {
+    identityState.innerHTML =
+      `<strong>${escapeHtml(loaded.subject)}</strong>` +
+      `<span class="sep">·</span>${escapeHtml(loaded.clearance)}`;
+  }
+  if ($("login")) $("login").hidden = true;
+  if ($("logout")) $("logout").hidden = false;
+  $("mobile-nav").hidden = false;
+}
+
+async function loadIdentity() {
+  if (identityState) identityState.textContent = "перевірка…";
+  bootstrap = await call("/v1/client/bootstrap");
+  renderIdentity(bootstrap.identity);
+  return identity;
+}
+
+function hasPermission(permission) {
+  return new Set(bootstrap?.effective_permissions ?? []).has(permission);
+}
+
+function updateStanding() {
+  if (!identity) return;
+  $("standing-verified").textContent = `ДОПУСК · ${identity.clearance}`;
+  $("standing-declared").textContent = declaration
+    ? `ЗАЯВЛЕНО · ${declaration.family_name} ${declaration.given_name} · ${declaration.specialty}`
+    : "КОНТЕКСТ НЕ ЗАДАНО";
+}
+
+async function loadInferenceStatus() {
+  const node = $("inference-state");
+  const detail = $("inference-detail");
+  if (!node) return;
+  try {
+    const state = await call("/v1/inference/status");
+    if (!state.enabled) {
+      node.textContent = "МОДЕЛЬ · ВИМКНЕНО";
+      $("trust-model-summary").textContent = node.textContent;
+      node.dataset.tone = "off";
+      if (detail) detail.textContent = "Model-egress вимкнено · модель не створює факти · лише цитати.";
+      node.title = detail?.textContent || "Model-egress вимкнено";
+      return;
+    }
+    node.textContent = `МОДЕЛЬ · ${String(state.provider).toUpperCase()}`;
+    $("trust-model-summary").textContent = node.textContent;
+    node.dataset.tone = "on";
+    if (detail) detail.textContent = `${state.model} · модель не створює факти · fallback: цитати`;
+    node.title = `${state.model} · ${state.max_query_variants} вар. · ${state.max_input_bytes / 1024}/${state.max_response_bytes / 1024} KiB`;
+  } catch {
+    node.textContent = "МОДЕЛЬ · СТАН НЕВІДОМИЙ";
+    $("trust-model-summary").textContent = node.textContent;
+    node.dataset.tone = "unknown";
+    if (detail) detail.textContent = "Статус невідомий · модель не створює факти · лише цитати.";
+  }
+}
+
+function enterWorkingState() {
+  if (!identity) return;
+  entry.hidden = true;
+  product.hidden = false;
+  standing.hidden = false;
+  updateStanding();
+  $("corpus").hidden = !hasPermission("document:list");
+  if (hasPermission("answer:read")) void conversationController.start();
+}
+
+function forgetIdentity(message) {
+  clearBearerToken();
+  identity = null;
+  bootstrap = null;
+  commerce = null;
+  forgetDeclaration();
+  declaration = null;
+  renderIdentity(null);
+  if (identityState) identityState.textContent = message;
+  result.innerHTML = "";
+  result.classList.add("hidden");
+}
+
+$("check-auth")?.addEventListener("click", async () => {
+  setBearerToken($("bearer-token").value);
+  try {
+    await loadIdentity();
+    $("bearer-token").value = "";
+    declaration = restoreDeclaration();
+    enterWorkingState();
+    const route = await renderWorkspaceRoute();
+    if (route?.id === "chat" || route?.id === "chat-conversation") query.focus({preventScroll:true});
+    await loadInferenceStatus();
+    if (!publicMode) await refreshBilling();
+  } catch (error) {
+    forgetIdentity(describeError(error, "Не вдалося підтвердити обліковий запис.").message);
+  }
+});
+
+$("login")?.addEventListener("click", () => {
+  window.location.assign(loginUrl(window.location.pathname));
+});
+
+$("logout")?.addEventListener("click", async () => {
+  try {
+    await call("/v1/auth/logout", {method: "POST"});
+    forgetIdentity("не автентифіковано");
+  } catch (error) {
+    if (identityState) {
+      identityState.textContent = describeError(error, "Не вдалося завершити сеанс.").message;
+    }
+  }
+});
+
+// ---------------------------------------------------------------- billing
+
+let billingPromise = null;
+function getBilling() {
+  if (publicMode) return Promise.resolve(null);
+  if (!billingPromise) {
+    billingPromise = import("./billing.js").then(({createBillingController}) =>
+      createBillingController({
+        pricing,
+        plansNode: $("plans"),
+        statusNode: $("subscription-pill"),
+        accountNode: $("account-label"),
+        onState: state => {
+          commerce = state;
+          const locked = state.enforced && !state.active;
+          document.body.dataset.access = locked ? "locked" : "active";
+          askSection.hidden = locked;
+          emptyChat.hidden = locked;
+          if (locked) {
+            pricing.hidden = false;
+            $("pricing-heading").textContent = state.unavailable
+              ? "Платний доступ поки не налаштований"
+              : "Відкрийте доступ до KORPUS";
+            requestAnimationFrame(() => {
+              pricing.scrollIntoView({block: "start", behavior: "smooth"});
+              pricing.focus({preventScroll: true});
+            });
+          }
+        },
+      })
+    );
+  }
+  return billingPromise;
+}
+
+async function refreshBilling() {
+  const controller = await getBilling();
+  if (controller) await controller.refresh();
+}
+
+// ---------------------------------------------------------------- optional declared session context
+
+function showErrors(problems) {
+  if (!problems.length) {
+    errors.hidden = true;
+    errors.innerHTML = "";
+    return;
+  }
+  errors.innerHTML =
+    `<h2>Не надіслано: ${problems.length}</h2><ul>${problems.map(({field, message}) =>
+      `<li><a href="#${escapeHtml(field)}">${escapeHtml(message)}</a></li>`).join("")}</ul>`;
+  errors.hidden = false;
+  errors.focus();
+  for (const {field} of problems) $(field)?.setAttribute("aria-invalid", "true");
+}
+
+declarationForm?.addEventListener("submit", event => {
+  event.preventDefault();
+  const {declared, problems} = readDeclaration();
+  showErrors(problems);
+  if (problems.length) return;
+  declaration = rememberDeclaration(declared);
+  updateStanding();
+  sessionContext.open = false;
+  query.focus();
+});
+
+$("standing-edit")?.addEventListener("click", () => {
+  if (!sessionContext) return;
+  sessionContext.open = true;
+  $("family-name")?.focus();
+});
+
+// ---------------------------------------------------------------- answer presentation
+
+// `evidence_coverage` показувалось читачеві як «Покриття доказом» і не могло почервоніти:
+// воно рахує частку claim'ів, чиї span_id є серед цитат, а кожен claim будується з
+// цитованого спана. Тавтологія за побудовою — 1.000 у КОЖНІЙ відповіді. Гірше:
+// паралельний вимір 31.08.2026 показав, що воно ВИЩЕ на хибних відповідях (0.9431) ніж
+// на правильних (0.9359). Тобто єдине число впевненості означало протилежне обіцяному.
+// Тут показано присуд незалежних осей: він уміє сказати «спірно», і саме тому вартий
+// того місця. Число лишається в payload — воно просто перестало вдавати впевненість.
+function axisVerdict(answer) {
+  const verdicts = (answer.citations ?? []).map(citation => citation.presentation ?? "supported");
+  if (!verdicts.length) return "—";
+  if (verdicts.some(verdict => verdict === "contested")) return "є спірні";
+  const supported = verdicts.filter(verdict => verdict === "supported").length;
+  return `${supported} з ${verdicts.length} підтверджено`;
+}
+
+const CLAIM_VERDICT = {
+  supported: "ПІДТВЕРДЖЕНО",
+  tangential: "ДОТИЧНО",
+  contested: "СПІРНО",
+};
+
+// Твердження нарізно: кожне зі своїм присудом і своїм джерелом.
+//
+// `answer.text` — склейка всіх claim'ів, і виводилась одним абзацом. 31.08.2026 на
+// живому корпусі питання про днювального дало чотири claim'и: стаття про днювального,
+// інший розділ статуту, уривок ЗМІСТУ і текст про танкову роту. Присуд по кожному вже
+// був у payload — третій ніс `contested` («фрагмент верстки, а не речення документа») —
+// і губився на рендері: усі чотири однакові, під заголовком «ПІДСТАВА Є». Той самий
+// клас, через який звідси прибрали `evidence_coverage` як міру впевненості.
+// Нових суджень тут не з'являється. Без claim'ів (відмова, ліміт) — один абзац.
+function claimBlocks(answer) {
+  const claims = answer.claims ?? [];
+  const flow = escapeHtml(answer.text ?? "").replaceAll("\n", "<br>");
+  if (!claims.length) return `<p class="answer-text">${flow}</p>`;
+  const bySpan = new Map((answer.citations ?? []).map(one => [String(one.span_id), one]));
+  return `<div class="answer-text">${claims.map(claim => {
+    const cited = (claim.evidence_span_ids ?? []).map(id => bySpan.get(String(id))).find(Boolean);
+    const verdict = cited?.presentation ?? "supported";
+    const reason = cited?.adjudication_reason ?? "";
+    return `<section class="claim ${escapeHtml(verdict)}">`
+      + `<p class="claim-text">${escapeHtml(claim.text ?? "").replaceAll("\n", "<br>")}</p>`
+      + `<p class="meta"><span class="chip">${escapeHtml(CLAIM_VERDICT[verdict] ?? verdict)}</span>`
+      + `<span class="claim-source">${escapeHtml(cited?.title ?? "джерело не назване")}</span></p>`
+      + (reason ? `<p class="note">${escapeHtml(reason)}</p>` : "")
+      + `</section>`;
+  }).join("")}</div>`;
+}
+
+function citationCard(citation, index) {
+  const facts = [
+    citation.page ? `с. ${escapeHtml(citation.page)}` : "",
+    citation.section ? escapeHtml(citation.section) : "",
+    `sha ${escapeHtml(String(citation.source_hash).slice(0, 12))}…`,
+    `span ${escapeHtml(String(citation.span_id).slice(0, 8))}…`,
+  ].filter(Boolean).map(fact => `<span>${fact}</span>`).join("");
+  return `
+    <article class="citation">
+      <div class="citation-index">${index + 1}</div>
+      <div class="citation-body">
+        <h3>${escapeHtml(citation.title)} · ред. ${escapeHtml(citation.revision)}</h3>
+        <blockquote>${citation.quote_starts_mid_sentence ? "…" : ""}${escapeHtml(citation.quote)}</blockquote>
+        <div class="meta">${facts}</div>
+        <button type="button" class="secondary citation-open" data-open-span="${escapeHtml(String(citation.span_id))}" data-version-id="${escapeHtml(String(citation.version_id))}">Відкрити точний фрагмент</button>
+      </div>
+    </article>`;
+}
+
+function render(answer, question) {
+  const [verdict, tone] = UNFINISHED.has(answer.decision_reason)
+    ? ["ПОШУК НЕ ЗАВЕРШЕНО", "denied"]
+    : VERDICT[answer.status] ?? ["ВІДМОВА", "withheld"];
+  const citationCards = (answer.citations ?? []).map(citationCard);
+  const primaryCitation = citationCards[0] ?? "";
+  const additionalCitations = citationCards.slice(1).join("");
+  const limitations = (answer.limitations ?? [])
+    .map(item => `<li>${escapeHtml(item)}</li>`).join("");
+  for (const citation of answer.citations ?? []) {
+    observedSources.set(String(citation.span_id), Object.freeze({...citation}));
+  }
+  const withheld = answer.status === "answered"
+    ? ""
+    : UNFINISHED.has(answer.decision_reason)
+      ? `<p class="note">Пошук не завершив усі gates. Це не твердження про відсутність підстави.</p>`
+      : `<p class="note">Відмова означає лише те, що достатнього чинного доказу для цієї відповіді не допущено.</p>`;
+
+  const block = document.createElement("article");
+  block.className = "turn";
+  block.innerHTML = `
+    <p class="turn-question"><span class="turn-mark" aria-hidden="true"></span>${escapeHtml(question)}</p>
+    <div class="verdict ${tone}">
+      <span class="verdict-mark" aria-hidden="true"></span>
+      <h2>${escapeHtml(verdict)}</h2>
+      <span class="verdict-code">${escapeHtml(answer.decision_reason)}</span>
+    </div>
+    ${answer.opening ? `<p class="answer-opening">${escapeHtml(answer.opening)}</p>` : ""}
+    ${claimBlocks(answer)}
+    ${withheld}
+    <details class="answer-meta"><summary>Деталі перевірки</summary>
+      <dl class="metrics">
+        <div><dt>Якість ранжування</dt><dd>${Number(answer.retrieval_score).toFixed(3)}</dd></div>
+        <div><dt>Присуд осей</dt><dd>${axisVerdict(answer)}</dd></div>
+        <div><dt>Цитат</dt><dd>${(answer.citations ?? []).length}</dd></div>
+        <div><dt>Версія корпусу</dt><dd>${escapeHtml(answer.corpus_release)}</dd></div>
+      </dl><p class="note">Якість ранжування не є ймовірністю правильності.</p>
+    </details>
+    ${primaryCitation ? `<section class="primary-evidence" aria-label="Головний доказ"><h3>Головний доказ</h3>${primaryCitation}</section>` : ""}
+    ${additionalCitations ? `<details class="additional-evidence"><summary>Ще доказів: ${citationCards.length - 1}</summary>${additionalCitations}</details>` : ""}
+    ${limitations ? `<h3 class="limits-heading">Межі відповіді</h3><ul class="limits">${limitations}</ul>` : ""}`;
+  result.append(block);
+  dispatchEvent(new CustomEvent("korpus:radar", {detail: {
+    state: answer.status,
+    stage: 3,
+    coverage: Number(answer.evidence_coverage),
+    sources: answer.citations ?? [],
+  }}));
+  import("./decision_field.js").then(({createDecisionField}) => {
+    const anchor = block.querySelector(".answer-meta");
+    anchor?.insertAdjacentElement("afterend", createDecisionField(answer));
+  });
+  result.classList.remove("hidden", "error");
+  emptyChat.hidden = true;
+  block.scrollIntoView({block: "nearest", behavior: "smooth"});
+}
+
+async function ask() {
+  const question = query.value.trim();
+  if (chatMachine.state !== CHAT_STATE.READY) setChatMachine(createChatMachine(CHAT_STATE.READY));
+  chatEvent("SUBMIT");
+  chatEvent("REQUEST_SENT");
+  submit.disabled = true;
+  submit.setAttribute("aria-busy", "true");
+  query.setAttribute("aria-busy", "true");
+  result.setAttribute("aria-busy", "true");
+  submit.textContent = "…";
+  result.classList.remove("hidden", "error");
+  emptyChat.hidden = true;
+  const pending = document.createElement("p");
+  pending.className = "note pending";
+  pending.textContent = "Шукаю джерела → перевіряю доказ → за потреби компоную без нових фактів…";
+  result.append(pending);
+  try {
+    // Exact body shape is contract evidence: declared context accompanies the query but
+    // remains a separate field and therefore can never masquerade as authenticated identity.
+    const body = {text: question, declaration};
+    const conversation = await conversationController.forQuestion(question);
+    const answer = conversation
+      ? await askIn(conversation, body)
+      : await call("/v1/answers", {method: "POST", body});
+    pending.remove();
+    replayServerOutcome(chatMachine, answer);
+    if (product) product.dataset.chatState = chatMachine.state;
+    renderTraceState(chatMachine.state);
+    render(answer, question);
+    void conversationController.refresh();
+    query.value = "";
+  } catch (error) {
+    pending.remove();
+    if (error instanceof ApiRefusal && error.status === 403 && chatMachine.state === CHAT_STATE.POLICY_CHECK) {
+      chatEvent("SERVER_DENIED");
+    } else if ([CHAT_STATE.QUERY_SUBMITTED, CHAT_STATE.POLICY_CHECK, CHAT_STATE.RETRIEVING].includes(chatMachine.state)) {
+      chatEvent("FAIL");
+    }
+    if (error instanceof NetworkError) {
+      const copy = describeError(error);
+      const block = document.createElement("article");
+      block.className = "turn";
+      block.innerHTML =
+        `<p class="turn-question"><span class="turn-mark" aria-hidden="true"></span>${escapeHtml(question)}</p>` +
+        `<div class="verdict denied"><span class="verdict-mark" aria-hidden="true"></span>` +
+        `<h2>${escapeHtml(copy.title)}</h2></div>` +
+        `<p class="answer-text">${escapeHtml(copy.message)}</p>` +
+        `<button type="button" class="secondary retry-query" data-retry-query>Повторити запит</button>`;
+      result.append(block);
+      block.scrollIntoView({block: "nearest", behavior: "smooth"});
+      return;
+    }
+    const refusal = error instanceof ApiRefusal ? error : null;
+    const paywalled = refusal?.status === 402;
+    const copy = describeError(error, "Запит не вдалося завершити.");
+    const heading = paywalled ? "ПОТРІБНА ПІДПИСКА" : copy.title;
+    const reason = copy.message;
+    const block = document.createElement("article");
+    block.className = "turn";
+    block.innerHTML =
+      `<p class="turn-question"><span class="turn-mark" aria-hidden="true"></span>${escapeHtml(question)}</p>` +
+      `<div class="verdict ${paywalled ? "withheld" : "denied"}"><span class="verdict-mark" aria-hidden="true"></span>` +
+      `<h2>${escapeHtml(heading)}</h2></div><p class="answer-text">${escapeHtml(reason)}</p>` +
+      (paywalled ? `<p class="note">Це комерційна відмова, а не висновок про базу знань.</p>` : "") +
+      (!paywalled && (!refusal || refusal.status >= 429) ? `<button type="button" class="secondary retry-query" data-retry-query>Повторити запит</button>` : "");
+    result.append(block);
+    if (paywalled && !publicMode) {
+      await refreshBilling();
+      pricing.scrollIntoView({block: "start", behavior: "smooth"});
+    }
+    block.scrollIntoView({block: "nearest", behavior: "smooth"});
+  } finally {
+    submit.disabled = false;
+    submit.removeAttribute("aria-busy");
+    query.removeAttribute("aria-busy");
+    result.removeAttribute("aria-busy");
+    submit.textContent = "↑";
+    resizeComposer();
+  }
+}
+
+queryForm.addEventListener("submit", event => {
+  event.preventDefault();
+  if (commerce?.enforced && !commerce?.active) {
+    pricing.scrollIntoView({block: "start", behavior: "smooth"});
+    return;
+  }
+  if (query.value.trim().length < 3) {
+    showErrors([{field: "query", message: "Питання має містити щонайменше 3 символи"}]);
+    return;
+  }
+  showErrors([]);
+  void ask();
+});
+
+function resizeComposer() {
+  query.style.height = "auto";
+  query.style.height = `${Math.min(query.scrollHeight, 190)}px`;
+}
+
+for (const action of document.querySelectorAll(".quick-action[data-template]")) {
+  action.addEventListener("click", () => {
+    query.value = action.dataset.template ?? "";
+    resizeComposer();
+    query.focus();
+  });
+}
+
+query.addEventListener("input", resizeComposer);
+query.addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+    event.preventDefault();
+    queryForm.requestSubmit();
+  }
+});
+resizeComposer();
+
+// ---------------------------------------------------------------- exact evidence + routed workspace
+
+const evidenceDialog = $("evidence-dialog");
+const evidenceText = $("evidence-text");
+const evidenceMeta = $("evidence-meta");
+const evidenceValidity = $("evidence-validity");
+let evidenceReturnFocus = null;
+
+function evidenceField(label, value) {
+  const dt = document.createElement("dt"); dt.textContent = label;
+  const dd = document.createElement("dd"); dd.textContent = value == null || value === "" ? "—" : String(value);
+  evidenceMeta.append(dt, dd);
+}
+
+async function openEvidence(spanId, expectedVersion, opener) {
+  evidenceReturnFocus = opener ?? document.activeElement;
+  evidenceText.textContent = "Завантаження точного фрагмента…";
+  evidenceMeta.replaceChildren();
+  evidenceValidity.textContent = "Повторна серверна авторизація джерела…";
+  if (!evidenceDialog.open) evidenceDialog.showModal();
+  try {
+    const span = await call(`/v1/spans/${encodeURIComponent(spanId)}`);
+    if (String(span.id) !== String(spanId) || (expectedVersion && String(span.version_id) !== String(expectedVersion))) {
+      throw new Error("source identity mismatch");
+    }
+    evidenceText.textContent = span.text;
+    const until = span.rescinded_at ? `відкликано ${span.rescinded_at}` : span.effective_until ? `до ${span.effective_until}` : "кінцеву дату не задано";
+    evidenceValidity.textContent = `ред. ${span.revision} · чинність від ${span.effective_from ?? span.publication_date ?? "невідомо"} · ${until}`;
+    evidenceField("Документ", span.document_title);
+    evidenceField("Ідентифікатор версії", span.version_id);
+    evidenceField("Ідентифікатор фрагмента", span.id);
+    evidenceField("Місце", [span.page ? `с. ${span.page}` : "", span.section ?? "", `порядок ${span.ordinal}`].filter(Boolean).join(" · "));
+    evidenceField("Клас джерела", span.authority);
+    evidenceField("SHA-256 джерела", span.source_hash);
+    evidenceField("SHA-256 фрагмента", span.text_hash);
+    evidenceField("Адреса джерела", span.source_uri);
+    evidenceText.focus({preventScroll:true});
+  } catch (error) {
+    evidenceValidity.textContent = "Джерело не розкрито. 404 не відрізняє відсутність від відсутності права.";
+    evidenceText.textContent = error instanceof ApiRefusal ? error.reason : "Не вдалося повторно авторизувати точний фрагмент.";
+  }
+}
+
+document.addEventListener("click", event => {
+  if (event.target.closest?.("[data-retry-query]")) {
+    queryForm.requestSubmit();
+    return;
+  }
+  const open = event.target.closest?.("[data-open-span]");
+  if (open) void openEvidence(open.dataset.openSpan, open.dataset.versionId, open);
+});
+$("evidence-close")?.addEventListener("click", () => evidenceDialog?.close());
+evidenceDialog?.addEventListener("close", () => evidenceReturnFocus?.focus?.({preventScroll:true}));
+
+let workspaceRouterPromise = null;
+function getWorkspaceRouter() {
+  if (!workspaceRouterPromise) {
+    workspaceRouterPromise = import("./workspace_routes.js").then(({createWorkspaceRouter}) =>
+      createWorkspaceRouter({
+        view: $("route-view"),
+        nav: document,
+        chatNodes: [...document.querySelectorAll("[data-chat-only]")],
+        isAuthenticated: () => Boolean(identity),
+        getBootstrap: () => bootstrap,
+        getIdentity: () => identity,
+        getSources: () => [...observedSources.values()],
+      })
+    );
+  }
+  return workspaceRouterPromise;
+}
+
+async function renderWorkspaceRoute() {
+  return (await getWorkspaceRouter()).render();
+}
+
+// ---------------------------------------------------------------- corpus + boot
+
+// Desktop exposes conversation history by default; compact viewports protect the main
+// task from being pushed below an open navigation panel. This only sets the initial
+// disclosure state — after boot the user owns the control.
+const conversationsPanel = $("conversations");
+if (conversationsPanel) conversationsPanel.open = false;
+
+wireCorpus({corpus: $("corpus"), body: $("corpus-body")});
+
+loadIdentity()
+  .then(async () => {
+    if (!identity) return;
+    declaration = restoreDeclaration();
+    enterWorkingState();
+    const route = await renderWorkspaceRoute();
+    if (route?.id === "chat" || route?.id === "chat-conversation") query.focus({preventScroll:true});
+    await loadInferenceStatus();
+    if (!publicMode) await refreshBilling();
+    const returned = new URLSearchParams(window.location.search).get("billing") === "return";
+    if (returned) {
+      $("subscription-pill").textContent = commerce?.active
+        ? "Підписка активна"
+        : "Платіж прийнято провайдером · очікую callback";
+    }
+  })
+  .catch(() => { forgetIdentity("не автентифіковано"); void renderWorkspaceRoute(); });
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => undefined);
