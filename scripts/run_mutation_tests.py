@@ -1045,7 +1045,7 @@ MUTANTS = (
     Mutant(
         "M94_SCHEMA_REVISION_PIN_UNCHECKED",
         "apps/api/src/korpus/infrastructure/schema.py",
-        'SCHEMA_REVISION = "0020_rls_identity_boundary"',
+        'SCHEMA_REVISION = "0022_approval_provenance_boundary"',
         'SCHEMA_REVISION = "0016_learning_course_graph"',
         (
             "apps/api/tests/test_schema_revision_pin.py::test_the_code_pins_the_head_of_the_migration_graph",

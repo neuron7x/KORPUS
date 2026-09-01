@@ -74,6 +74,84 @@ def quoted_identifier(value: str) -> str:
     return '"' + value.replace('"', '""') + '"'
 
 
+#: Кожна колонка `document_versions`, названа ЯВНО. Виведений із метаданих перелік
+#: звірявся б сам із собою: нова колонка потрапила б і в перелік, і в грант, і ніхто
+#: б не спитав, чиє це право.
+VERSION_COLUMNS = (
+    "id",
+    "document_id",
+    "revision",
+    "publication_identifier",
+    "source_uri",
+    "source_hash",
+    "evidence_digest",
+    "object_key",
+    "mime_type",
+    "publication_date",
+    "effective_from",
+    "effective_until",
+    "rescinded_at",
+    "authority",
+    "source_key_id",
+    "source_signature_b64",
+    "content_fingerprint",
+    "near_duplicate_of_version_id",
+    "near_duplicate_similarity",
+    "near_duplicate_acknowledged_by",
+    "extraction_text_chars",
+    "extraction_alnum_ratio",
+    "extraction_replacement_ratio",
+    "extraction_quality_flags_json",
+    "extraction_quality_acknowledged_by",
+    "review_state",
+    "supersedes_version_id",
+    "state_version",
+    "metadata_reviewed_by",
+    "metadata_reviewer_credential_id",
+    "content_reviewed_by",
+    "content_reviewer_credential_id",
+    "approved_at",
+    "approved_by",
+    "approver_credential_id",
+    "is_current",
+    "created_at",
+)
+
+#: Колонки `documents`, названі явно з тієї ж причини.
+DOCUMENT_COLUMNS = (
+    "id",
+    "canonical_title",
+    "corpus_id",
+    "issuer",
+    "jurisdiction",
+    "document_type",
+    "access_tier",
+    "classification",
+    "compartments_json",
+    "created_at",
+)
+
+#: Гриф документа встановлює ЗАТВЕРДЖУВАЧ, а не той, хто подав.
+REVIEW_CONTROLLED_DOCUMENT_COLUMNS = frozenset({"access_tier"})
+
+#: Колонки, які виражають РІШЕННЯ рецензента. `rescinded_at` і `state_version` тут
+#: НЕМАЄ навмисно: відкликання робить застосунок, а лічильник версії стану рухають
+#: обидва шляхи, і забрати його означало б зламати оптимістичне блокування.
+REVIEW_CONTROLLED_COLUMNS = frozenset(
+    {
+        "review_state",
+        "evidence_digest",
+        "metadata_reviewed_by",
+        "metadata_reviewer_credential_id",
+        "content_reviewed_by",
+        "content_reviewer_credential_id",
+        "approved_at",
+        "approved_by",
+        "approver_credential_id",
+        "is_current",
+    }
+)
+
 admin_url = os.environ["KORPUS_DATABASE_URL"]
 app_role = os.getenv("KORPUS_POSTGRES_APP_ROLE", "korpus_app")
 app_password = read_secret("KORPUS_POSTGRES_APP_PASSWORD", "KORPUS_POSTGRES_APP_PASSWORD_FILE")
@@ -124,12 +202,155 @@ with engine.connect() as connection:
             )
         )
     connection.execute(text(f"GRANT SELECT ON TABLE alembic_version TO {role_sql}"))
+    # ── Колонки рішення рецензента ─────────────────────────────────────────────
+    # Затвердження — не дія застосунку. Табличний `GRANT UPDATE` віддавав ці
+    # колонки застосунковому логінові разом з усіма іншими, і єдиним, що їх
+    # боронило, була обіцянка коду ходити через шлях перегляду. Тепер межа —
+    # ГРАНТ: `UPDATE` видається поколонково, а колонки рішення з переліку
+    # ВИКЛЮЧЕНІ. Помилка тут падає закрито: забута колонка = відмова в записі,
+    # а не тихо відкрите право.
+    # ── Маркерна група ─────────────────────────────────────────────────────────
+    # Група НІЧОГО не дає: NOLOGIN, NOINHERIT, без жодного гранта. Вона потрібна,
+    # щоб тригер `korpus_guard_app_version_insert` міг спитати «чи це рантайм
+    # застосунку», не тримаючи списку імен усередині бази. Членство знімається
+    # й видається наново при кожній переприв'язці: застаріле членство — це право,
+    # якого вже не давали, і жоден GRANT його не покаже.
+    marker = quoted_identifier(f"{app_role}_runtime")
+    if (
+        connection.execute(
+            text("SELECT 1 FROM pg_roles WHERE rolname = :role"),
+            {"role": f"{app_role}_runtime"},
+        ).scalar_one_or_none()
+        is None
+    ):
+        connection.execute(text(f"CREATE ROLE {marker} NOLOGIN"))
+    connection.execute(
+        text(
+            f"ALTER ROLE {marker} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE "
+            "NOINHERIT NOREPLICATION NOBYPASSRLS"
+        )
+    )
+    connection.execute(text(f"REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {marker}"))
+    connection.execute(text(f"REVOKE ALL ON SCHEMA public FROM {marker}"))
+    for parent in (
+        connection.execute(
+            text(
+                "SELECT parent.rolname FROM pg_catalog.pg_auth_members m "
+                "JOIN pg_catalog.pg_roles parent ON parent.oid = m.roleid "
+                "JOIN pg_catalog.pg_roles member ON member.oid = m.member "
+                "WHERE member.rolname = :role"
+            ),
+            {"role": app_role},
+        )
+        .scalars()
+        .all()
+    ):
+        connection.execute(text(f"REVOKE {quoted_identifier(str(parent))} FROM {role_sql}"))
+    connection.execute(text(f"GRANT {marker} TO {role_sql}"))
+
+    connection.execute(text(f"REVOKE UPDATE ON TABLE document_versions FROM {role_sql}"))
+    # Те саме для грифа документа. `REVOKE UPDATE (col)` за наявності ТАБЛИЧНОГО
+    # гранта — не помилка й не дія: PostgreSQL лишає табличне право, і поколонкова
+    # відмова просто не має що знімати. Перша версія цього рядка була саме такою й
+    # виглядала як межа, не будучи нею. Тому спершу табличне право знімається цілком.
+    connection.execute(text(f"REVOKE UPDATE ON TABLE documents FROM {role_sql}"))
+    document_columns = ", ".join(
+        quoted_identifier(name)
+        for name in DOCUMENT_COLUMNS
+        if name not in REVIEW_CONTROLLED_DOCUMENT_COLUMNS
+    )
+    connection.execute(text(f"GRANT UPDATE ({document_columns}) ON TABLE documents TO {role_sql}"))
+    application_columns = [
+        name for name in VERSION_COLUMNS if name not in REVIEW_CONTROLLED_COLUMNS
+    ]
+    columns_sql = ", ".join(quoted_identifier(name) for name in application_columns)
+    connection.execute(
+        text(f"GRANT UPDATE ({columns_sql}) ON TABLE document_versions TO {role_sql}")
+    )
     # No blanket/default privileges: a new migration remains inaccessible until reviewed here.
     connection.execute(text(f"ALTER ROLE {role_sql} SET statement_timeout = '60s'"))
     connection.execute(text(f"ALTER ROLE {role_sql} SET lock_timeout = '5s'"))
     connection.execute(
         text(f"ALTER ROLE {role_sql} SET idle_in_transaction_session_timeout = '60s'")
     )
+
+# ── Логін переходів перегляду ────────────────────────────────────────────────────
+# Третій логін, і його відмінність від застосункового рівно одна: він МАЄ право
+# UPDATE на колонках рішення рецензента, а застосунковий — НЕ має. Затвердження
+# перестає бути обіцянкою коду й стає грантом. Створюється лише за наявності пароля:
+# мовчазний дефолт означав би третій логін із відомим паролем.
+review_role = os.getenv("KORPUS_POSTGRES_REVIEW_ROLE", "korpus_review")
+review_password = os.getenv("KORPUS_POSTGRES_REVIEW_PASSWORD")
+if review_password is None:
+    path = os.getenv("KORPUS_POSTGRES_REVIEW_PASSWORD_FILE")
+    if path:
+        review_password = Path(path).read_text(encoding="utf-8").strip()
+if review_password:
+    if not review_role.replace("_", "").isalnum() or not review_role[0].isalpha():
+        raise SystemExit("invalid PostgreSQL review role")
+    if review_role in {app_role, os.getenv("KORPUS_POSTGRES_AUTHZ_ROLE", "korpus_authz")}:
+        raise SystemExit("review role must be distinct from the application and broker roles")
+    review_sql = quoted_identifier(review_role)
+    escaped_review = review_password.replace("'", "''")
+    engine = create_engine(admin_url, isolation_level="AUTOCOMMIT", pool_pre_ping=True)
+    with engine.connect() as connection:
+        exists = connection.execute(
+            text("SELECT 1 FROM pg_roles WHERE rolname = :role"), {"role": review_role}
+        ).scalar_one_or_none()
+        verb = "ALTER ROLE" if exists is not None else "CREATE ROLE"
+        login = "" if exists is not None else "LOGIN "
+        connection.execute(
+            text(
+                f"{verb} {review_sql} {login}NOSUPERUSER NOCREATEDB NOCREATEROLE "
+                f"NOINHERIT NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 32 "
+                f"PASSWORD '{escaped_review}'"
+            )
+        )
+        connection.execute(text(f"GRANT CONNECT ON DATABASE {database_sql} TO {review_sql}"))
+        connection.execute(text(f"GRANT USAGE ON SCHEMA public TO {review_sql}"))
+        connection.execute(text(f"REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {review_sql}"))
+        # Перегляд читає документи й прольоти, щоб перевірити перехід, і пише лише
+        # версії. Журнал він ДОПИСУЄ: перехід і його подія — одна транзакція.
+        for table_name in ("documents", "document_compartments", "evidence_spans"):
+            connection.execute(
+                text(f"GRANT SELECT ON TABLE {quoted_identifier(table_name)} TO {review_sql}")
+            )
+        connection.execute(text(f"GRANT SELECT, UPDATE ON TABLE document_versions TO {review_sql}"))
+        # Гриф документа — окреме рішення затверджувача, і живе воно в `documents`.
+        connection.execute(text(f"GRANT UPDATE (access_tier) ON TABLE documents TO {review_sql}"))
+        for table_name in AUDIT_APPEND_TABLES:
+            connection.execute(
+                text(
+                    f"GRANT SELECT, INSERT ON TABLE {quoted_identifier(table_name)} TO {review_sql}"
+                )
+            )
+        for table_name in AUDIT_MUTABLE_TABLES:
+            connection.execute(
+                text(
+                    f"GRANT SELECT, INSERT, UPDATE ON TABLE "
+                    f"{quoted_identifier(table_name)} TO {review_sql}"
+                )
+            )
+        connection.execute(text(f"GRANT SELECT ON TABLE alembic_version TO {review_sql}"))
+        for claim in (
+            "subject",
+            "clearance",
+            "corpora",
+            "classifications",
+            "compartments",
+            "roles",
+        ):
+            connection.execute(
+                text(f"GRANT EXECUTE ON FUNCTION public.korpus_rls_{claim}() TO {review_sql}")
+            )
+        connection.execute(text(f"ALTER ROLE {review_sql} SET statement_timeout = '60s'"))
+        connection.execute(text(f"ALTER ROLE {review_sql} SET lock_timeout = '5s'"))
+        connection.execute(
+            text(f"ALTER ROLE {review_sql} SET idle_in_transaction_session_timeout = '60s'")
+        )
+    engine.dispose()
+    print(f"prepared PostgreSQL review role: {review_role} on {database}")
+
 
 # ── Брокер RLS ───────────────────────────────────────────────────────────────────
 # Другий логін, і його єдина відмінність від застосункового — право ВИКЛИКАТИ

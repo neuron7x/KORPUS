@@ -20,6 +20,7 @@ from korpus.domain.models import (
 )
 from korpus.infrastructure.embedding_backfill import PgVectorEmbeddingBackfill
 from korpus.infrastructure.repository import (
+    SqlRepository,
     documents,
     span_embeddings,
     spans,
@@ -97,9 +98,21 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
             ordinal=0,
             text=f"{marker} indexed evidence is retrievable only when authorized.",
         )
-        repository.create_document_bundle(
-            actor, document, version, [span], {"integration": "postgres", "corpus": corpus}
+        # Версія, народжена ЗАТВЕРДЖЕНОЮ, — стан, який шлях перегляду виробляє, а
+        # застосунковий логін відтепер НЕ МОЖЕ: `UPDATE` на колонках рішення в нього
+        # немає, і саме це тут доводить `test_postgres_approval_provenance`. Цей тест
+        # про пошук і журнал під RLS, тому фікстуру кладе ВЛАСНИК схеми.
+        owner = SqlRepository(
+            os.environ["KORPUS_TEST_DATABASE_ADMIN_URL"],
+            "postgres-integration-audit-key",
+            audit_anchor_path=tmp_path / "postgres-owner-anchor.json",
         )
+        try:
+            owner.create_document_bundle(
+                actor, document, version, [span], {"integration": "postgres", "corpus": corpus}
+            )
+        finally:
+            owner.close()
         with repository.engine.begin() as connection:
             repository._apply_postgres_identity(connection, actor)
             connection.execute(

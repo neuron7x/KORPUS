@@ -23,7 +23,7 @@ from sqlalchemy import (
 from sqlalchemy import (
     text as sql_text,
 )
-from sqlalchemy.engine import Connection
+from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.exc import DatabaseError, OperationalError
 from sqlalchemy.pool import NullPool
 
@@ -166,6 +166,12 @@ class SqlRepository:
         connect_timeout_seconds: int = 5,
         statement_timeout_ms: int = 30_000,
         lock_timeout_ms: int = 5_000,
+        #: Окремий логін для переходів перегляду. На PostgreSQL застосунковий логін
+        #: НЕ МАЄ права UPDATE на колонках, які виражають рішення рецензента
+        #: (`review_state`, `evidence_digest`, посвідчення, `approved_*`): затвердження
+        #: — це не дія застосунку, і межа тут ГРАНТ, а не наша обіцянка. `None`
+        #: означає «немає розділення» — так працює SQLite, де ролей немає взагалі.
+        review_database_url: str | None = None,
         # Last, and only ever passed by name. Inserting it beside `audit_hmac_key` shifted
         # every positional argument after it, and `FileAuditAnchorStore` was handed
         # another `FileAuditAnchorStore` as its path.
@@ -197,6 +203,7 @@ class SqlRepository:
         self.engine = create_engine(database_url, **engine_options)
         if database_url.startswith("sqlite"):
             event.listen(self.engine, "connect", self._configure_sqlite)
+        self.review_engine = self._build_review_engine(review_database_url, **engine_options)
         self.audit_key = audit_hmac_key.encode("utf-8")
         #: One key until an operator rotates. `AuditKeyRing.single` names it
         #: `legacy-unversioned`, which is what the migration wrote into every existing
@@ -224,6 +231,12 @@ class SqlRepository:
             self.schema_revision,
             SCHEMA_REVISION,
         )
+
+    def _build_review_engine(self, url: str | None, **options: Any) -> Engine | None:
+        """Рушій переходів перегляду, або None, якщо розділення не оголошено."""
+        if not url or not url.startswith("postgresql"):
+            return None
+        return create_engine(url, **options)
 
     @staticmethod
     def _configure_sqlite(dbapi_connection: Any, connection_record: Any) -> None:
@@ -573,7 +586,9 @@ class SqlRepository:
             except review_transitions.ReviewTransitionConflict as exc:
                 raise NonRetryableWriteError(str(exc)) from exc
 
-        return self._transaction_with_anchor(operation)
+        # Саме тут — і тільки тут — пишуться колонки рішення рецензента. Якщо
+        # розділення оголошено, транзакція йде логіном, який має на них право.
+        return self._transaction_with_anchor(operation, engine=self.review_engine)
 
     def rescind_version(
         self,
@@ -988,6 +1003,8 @@ class SqlRepository:
         )
 
     def close(self) -> None:
+        if self.review_engine is not None:
+            self.review_engine.dispose()
         try:
             self.anchor_store.close()
         finally:
@@ -1030,15 +1047,16 @@ class SqlRepository:
         self,
         operation: Callable[[Connection], tuple[T, tuple[int, str]]],
         retries: int = 8,
+        *,
+        engine: Engine | None = None,
     ) -> T:
+        target = engine or self.engine
         last_error: Exception | None = None
-        write_guard = (
-            self._sqlite_write_lock if self.engine.dialect.name == "sqlite" else nullcontext()
-        )
+        write_guard = self._sqlite_write_lock if target.dialect.name == "sqlite" else nullcontext()
         with write_guard:
             for attempt in range(retries):
                 try:
-                    with self.engine.begin() as connection:
+                    with target.begin() as connection:
                         result, _anchor = operation(connection)
                     # Commit succeeded. The durable outbox is retried by the lifecycle worker.
                     with suppress(AnchorError, OSError, TimeoutError):

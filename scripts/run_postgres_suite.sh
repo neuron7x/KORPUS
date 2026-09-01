@@ -37,6 +37,7 @@ port="${KORPUS_PG_PORT:-55433}"
 password="korpus-suite-$$"
 app_password="korpus-app-$$"
 authz_password="korpus-authz-$$"
+review_password="korpus-review-$$"
 database="korpus_suite"
 
 cleanup() {
@@ -62,15 +63,18 @@ docker exec "$container" pg_isready -U postgres >/dev/null
 admin_url="postgresql+psycopg://postgres:${password}@127.0.0.1:${port}/${database}"
 app_url="postgresql+psycopg://korpus_app:${app_password}@127.0.0.1:${port}/${database}"
 authz_url="postgresql+psycopg://korpus_authz:${authz_password}@127.0.0.1:${port}/${database}"
+review_url="postgresql+psycopg://korpus_review:${review_password}@127.0.0.1:${port}/${database}"
 
 ( cd apps/api && KORPUS_DATABASE_URL="$admin_url" "$python_bin" -m alembic -c alembic.ini upgrade head >/dev/null )
 KORPUS_DATABASE_URL="$admin_url" KORPUS_POSTGRES_ADMIN_URL="$admin_url" \
   KORPUS_POSTGRES_APP_ROLE=korpus_app KORPUS_POSTGRES_APP_PASSWORD="$app_password" \
   KORPUS_POSTGRES_AUTHZ_ROLE=korpus_authz KORPUS_POSTGRES_AUTHZ_PASSWORD="$authz_password" \
+  KORPUS_POSTGRES_REVIEW_ROLE=korpus_review KORPUS_POSTGRES_REVIEW_PASSWORD="$review_password" \
   PYTHONPATH="$root/apps/api/src" "$python_bin" scripts/prepare_postgres_role.py >/dev/null
 
 KORPUS_TEST_DATABASE_URL="$app_url" \
 KORPUS_TEST_DATABASE_ADMIN_URL="$admin_url" \
 KORPUS_POSTGRES_TEST_URL="$app_url" \
 KORPUS_AUTHZ_DATABASE_URL="$authz_url" \
+KORPUS_REVIEW_DATABASE_URL="$review_url" \
 PYTHONPATH="$root/apps/api/src" "$python_bin" -m pytest -p no:cacheprovider apps/api/tests --no-cov "$@"

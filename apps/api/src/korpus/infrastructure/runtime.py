@@ -26,6 +26,7 @@ def create_repository(settings: Settings, policy: PolicyEngine | None = None) ->
     extra: dict[str, object] = {}
     if settings.database_url.startswith("postgresql"):
         extra["authz_database_url"] = settings.authz_database_url
+        extra["review_database_url"] = settings.review_database_url
     return factory(
         settings.database_url,
         settings.resolved_audit_hmac_key,

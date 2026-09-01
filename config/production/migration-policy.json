@@ -1,6 +1,6 @@
 {
   "schema": "korpus.migration-compatibility-policy.v1",
-  "baseline_revision": "0020_rls_identity_boundary",
+  "baseline_revision": "0022_approval_provenance_boundary",
   "baseline_files": {
     "apps/api/migrations/versions/0001_initial.py": "262e3161b14f24a3d3e5385c7cc19b582254cf52c1bf98b94df6bc614a47d7fe",
     "apps/api/migrations/versions/0002_database_defense_and_vectors.py": "cc41ccbe1ccfbd5cbf58ee15c2cef0de982e02b6873a038be0038d2863acc27f",
@@ -21,7 +21,9 @@
     "apps/api/migrations/versions/0017_learning_mastery.py": "52330c66a8c5a6324d05693ea0bd844a3b865a96bc556b6aa8d97bad7d6e6ab6",
     "apps/api/migrations/versions/0018_operational_competencies.py": "f3cdc7b42d44a69fc4b97a8b87adbf48ef5bc3e0785dbd38ce6ffa62347069bd",
     "apps/api/migrations/versions/0019_temporal_corpus_snapshot.py": "005196b255b07279c2c16e8342a2bcd66ea4df659186e5ddfd3044db5851e679",
-    "apps/api/migrations/versions/0020_rls_identity_boundary.py": "bbc102caf9431a4dae83a5e50ac77a33f59b5109a44ce44d31e8cad2d67dee3d"
+    "apps/api/migrations/versions/0020_rls_identity_boundary.py": "bbc102caf9431a4dae83a5e50ac77a33f59b5109a44ce44d31e8cad2d67dee3d",
+    "apps/api/migrations/versions/0021_alembic_version_width.py": "f1feb43189f3186b2f9f3ed4f7ba5ca28955bdf8819090d5d09d03e7cdab13d7",
+    "apps/api/migrations/versions/0022_approval_provenance_boundary.py": "ddc729343f7623b0d3ec4e689333997373677a8e8305fdf60834b896b0c1e7d0"
   },
   "future_upgrade_forbidden_calls": [
     "drop_table",
@@ -32,5 +34,5 @@
     "alter_column",
     "execute"
   ],
-  "rationale": "Production migrates before application traffic promotion. Existing migration history is immutable; post-baseline upgrades must be expand-only so the currently serving N-1 revision remains schema-compatible. Destructive contract changes require a later release after old revisions are retired.\nБазу підсунуто на 0019_temporal_corpus_snapshot 01.09.2026 при портуванні знімка корпусу з GitHub-лінії. Міграція розширювальна: створює `corpus_state_epoch`, тригери епохи та незмінності запечатаних прольотів, сіє один керуючий рядок через `op.bulk_insert`. Жодного `drop`, `alter` чи перейменування.\nБазу підсунуто на 0020_rls_identity_boundary 01.09.2026. Ця міграція НЕ розширювальна за змістом і не претендує на це: вона ЗАМІНЮЄ джерело claim'ів RLS. Стара ревізія застосунку, піднята проти нової схеми, ставила б `set_config('korpus.*')`, якого політики більше не читають, і бачила б НУЛЬ рядків — відмову, а не витік. Тому послідовність жорстка: мігрувати, потім підняти новий код; відкат вимагає `downgrade`, який повертає політики на `current_setting`. Причина заміни виміряна запуском, а не взята з документа: логін `korpus_app` підняв собі clearance 0 → 3 і побачив та ЗАПИСАВ документ грифу restricted."
+  "rationale": "Production migrates before application traffic promotion. Existing migration history is immutable; post-baseline upgrades must be expand-only so the currently serving N-1 revision remains schema-compatible. Destructive contract changes require a later release after old revisions are retired.\nБазу підсунуто на 0019_temporal_corpus_snapshot 01.09.2026 при портуванні знімка корпусу з GitHub-лінії. Міграція розширювальна: створює `corpus_state_epoch`, тригери епохи та незмінності запечатаних прольотів, сіє один керуючий рядок через `op.bulk_insert`. Жодного `drop`, `alter` чи перейменування.\nБазу підсунуто на 0020_rls_identity_boundary 01.09.2026. Ця міграція НЕ розширювальна за змістом і не претендує на це: вона ЗАМІНЮЄ джерело claim'ів RLS. Стара ревізія застосунку, піднята проти нової схеми, ставила б `set_config('korpus.*')`, якого політики більше не читають, і бачила б НУЛЬ рядків — відмову, а не витік. Тому послідовність жорстка: мігрувати, потім підняти новий код; відкат вимагає `downgrade`, який повертає політики на `current_setting`. Причина заміни виміряна запуском, а не взята з документа: логін `korpus_app` підняв собі clearance 0 → 3 і побачив та ЗАПИСАВ документ грифу restricted.\nБазу підсунуто на 0022_approval_provenance_boundary 01.09.2026. 0021 розширює `alembic_version.version_num` 32 → 128: обмеження жило в ІМЕНІ ревізії й падало на записі власного імені вже після застосування DDL. 0022 ставить тригер, який не дає застосунковому логінові НАРОДИТИ версію із станом рішення рецензента — поколонкові гранти закривають UPDATE, а INSERT видається на таблицю цілком, тож розділ прав обходився б однією вставкою. Обидві PostgreSQL-only, на SQLite — no-op."
 }

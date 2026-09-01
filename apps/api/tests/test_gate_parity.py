@@ -373,6 +373,20 @@ def test_every_ci_job_that_runs_korpus_code_installs_the_locked_environment() ->
     )
 
 
+def _declared_alembic_version_width() -> int:
+    """Ширина `alembic_version.version_num`, прочитана з міграцій, а не вписана.
+
+    Береться НАЙБІЛЬША оголошена: міграція, що розширює колонку, лишає в дереві й
+    свій `downgrade` зі старим числом, а судити треба за станом після `upgrade`.
+    """
+    pattern = re.compile(r"version_num TYPE VARCHAR\((\d+)\)")
+    widths = {32}
+    for path in (ROOT / "apps/api/migrations/versions").glob("*.py"):
+        text = path.read_text(encoding="utf-8")
+        widths.update(int(found) for found in pattern.findall(text))
+    return max(widths)
+
+
 def test_no_migration_revision_exceeds_the_alembic_version_column() -> None:
     """Alembic stores the current revision in version_num VARCHAR(32), fixed width.
 
@@ -384,7 +398,11 @@ def test_no_migration_revision_exceeds_the_alembic_version_column() -> None:
     RLS, pgvector, backup and restore work sitting behind those migrations had never
     executed anywhere.
     """
-    limit = 32
+    # Стеля НЕ вписана числом. 01.09.2026 міграція `0021_alembic_version_width`
+    # розширила колонку до 128, і константа `32` тут почервоніла б на ревізії, яка
+    # вже вміщається — тобто гейт судив би за станом, якого в базі більше немає.
+    # Ширина читається з тієї міграції, що її оголошує: два оголошення розійшлись би.
+    limit = _declared_alembic_version_width()
     offenders: list[tuple[str, int]] = []
     for path in sorted((ROOT / "apps/api/migrations/versions").glob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8"))

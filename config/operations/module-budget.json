@@ -2194,7 +2194,7 @@
       "reason": "the composition root: the only module that names both an application port and an infrastructure adapter, so neither layer has to"
     },
     "apps/api/src/korpus/config.py": {
-      "lines": 470,
+      "lines": 475,
       "max_complexity": 4,
       "max_function_args": 2,
       "max_function_lines": 20,
@@ -2695,9 +2695,9 @@
       "reason": "PEC v1 initial ratchet: low-cardinality observability primitive measured at first integration; ceiling may only move down"
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1195,
+      "lines": 1215,
       "max_complexity": 13,
-      "max_function_args": 14,
+      "max_function_args": 15,
       "max_function_lines": 84,
       "max_nesting": 4,
       "proof_lines": 0,
@@ -2760,7 +2760,7 @@
     "apps/api/src/korpus/infrastructure/rls_repository.py": {
       "lines": 130,
       "max_complexity": 8,
-      "max_function_args": 9,
+      "max_function_args": 10,
       "max_function_lines": 55,
       "max_nesting": 2,
       "proof_lines": 0,
@@ -4488,8 +4488,17 @@
       "proof_lines": 0,
       "reason": "Initial measured ceiling for interpreter-bound PostgreSQL gate execution"
     },
+    "scripts/postgres_role_hardening.py": {
+      "lines": 72,
+      "max_complexity": 3,
+      "max_function_args": 3,
+      "max_function_lines": 18,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Примітиви керування ролями, по одному твердженню на функцію. Найважливіший — `revoke_all_memberships`: переприв'язка мусить ЗНИЩУВАТИ застаріле членство, інакше роль зберігає права, яких їй уже не давали."
+    },
     "scripts/prepare_postgres_role.py": {
-      "lines": 212,
+      "lines": 435,
       "max_complexity": 4,
       "max_function_args": 2,
       "max_function_lines": 7,
@@ -8928,6 +8937,52 @@
       "reason": "Ім'я канонічної гілки жило в ЧОТИРЬОХ оголошеннях; після переїзду канону на `main` три лишились на `work/converge-semantic`, і кожне тихо судило про інший предмет. Тепер джерело одне — `canonical-state.json` через `scripts/canonical_declaration.py`, і читач ВІДМОВЛЯЄ замість дефолту. Плюс борг відставання стовбура закрито записом, а гейт відтепер відмовляє реєстрові, що оголошує стовбур тією самою гілкою, що й канон: такі перевірки тотожно істинні.",
       "to": {
         "lines": 485
+      }
+    },
+    {
+      "from": {
+        "lines": 470
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/config.py",
+      "reason": "Розділення прав перегляду. Затвердження перестало бути обіцянкою коду й стало ГРАНТОМ: `korpus_app` не має UPDATE на колонках рішення рецензента, `korpus_review` має; `documents.access_tier` належить затверджувачеві, `canonical_title` — подавцеві. Плюс маркерна група й тригер, бо INSERT видається на таблицю цілком і поколонковий розділ обходився б однією вставкою.",
+      "to": {
+        "lines": 475
+      }
+    },
+    {
+      "from": {
+        "lines": 1195,
+        "max_function_args": 14
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/infrastructure/repository.py",
+      "reason": "Розділення прав перегляду. Затвердження перестало бути обіцянкою коду й стало ГРАНТОМ: `korpus_app` не має UPDATE на колонках рішення рецензента, `korpus_review` має; `documents.access_tier` належить затверджувачеві, `canonical_title` — подавцеві. Плюс маркерна група й тригер, бо INSERT видається на таблицю цілком і поколонковий розділ обходився б однією вставкою.",
+      "to": {
+        "lines": 1215,
+        "max_function_args": 15
+      }
+    },
+    {
+      "from": {
+        "max_function_args": 9
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/infrastructure/rls_repository.py",
+      "reason": "Розділення прав перегляду. Затвердження перестало бути обіцянкою коду й стало ГРАНТОМ: `korpus_app` не має UPDATE на колонках рішення рецензента, `korpus_review` має; `documents.access_tier` належить затверджувачеві, `canonical_title` — подавцеві. Плюс маркерна група й тригер, бо INSERT видається на таблицю цілком і поколонковий розділ обходився б однією вставкою.",
+      "to": {
+        "max_function_args": 10
+      }
+    },
+    {
+      "from": {
+        "lines": 212
+      },
+      "on": "2026-09-01",
+      "path": "scripts/prepare_postgres_role.py",
+      "reason": "Розділення прав перегляду. Затвердження перестало бути обіцянкою коду й стало ГРАНТОМ: `korpus_app` не має UPDATE на колонках рішення рецензента, `korpus_review` має; `documents.access_tier` належить затверджувачеві, `canonical_title` — подавцеві. Плюс маркерна група й тригер, бо INSERT видається на таблицю цілком і поколонковий розділ обходився б однією вставкою.",
+      "to": {
+        "lines": 435
       }
     }
   ],
