@@ -31,6 +31,12 @@ Environment=KORPUS_MAX_CONCURRENT_ANSWERS=4
 # а два під ГЕЙТОМ:
 # `check_public_env_parity.py` не дає їм розійтися вдруге.
 Environment=KORPUS_MODEL_EGRESS_POSTURE=local_only
+# Інтерфейс роздає GitLab Pages, API відповідає звідси — отже запит іде через межу
+# походження. Без цього рядка ненаглядовий шлях (сторож піднімає API юнітом) віддавав
+# би сторінці відповідь, яку браузер мовчки відкидає: preflight повертає всі заголовки,
+# крім `allow-origin`, і це виглядає як успіх. Перелік вузький: `*` означав би, що
+# будь-яка сторінка в інтернеті може питати від імені відвідувача.
+Environment=KORPUS_CORS_ORIGINS=https://korpus-web-3cd81d.gitlab.io
 Environment=KORPUS_AUDIT_HMAC_KEY_FILE=%h/.local/state/korpus-public/audit-key.txt
 Environment=KORPUS_AUDIT_KEY_ID=korpus-public-2026-08-31
 Environment="KORPUS_AUDIT_VERIFICATION_KEY_FILES={\"legacy-unversioned\":\"%h/.local/state/korpus-public/audit-key-legacy-unversioned.txt\",\"serve-public-inline-2026-08\":\"%h/.local/state/korpus-public/audit-key-serve-public-inline.txt\"}"
