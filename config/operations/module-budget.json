@@ -2722,10 +2722,10 @@
       "reason": "Strict infrastructure resource-bound arithmetic"
     },
     "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py": {
-      "lines": 126,
+      "lines": 160,
       "max_complexity": 13,
       "max_function_args": 6,
-      "max_function_lines": 112,
+      "max_function_lines": 120,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
@@ -4847,7 +4847,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5790,
+      "lines": 5840,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -8686,6 +8686,30 @@
       "reason": "M06 і M196 перенесено з `infrastructure/repository.py` до `infrastructure/corpus_snapshot.py` разом із кодом, який вони боронять — `SqlRepository.corpus_release_id` більше не існує. Прибрати мутантів було б тихою втратою двох сторожів: обидва вбито на новому місці.",
       "to": {
         "lines": 5790
+      }
+    },
+    {
+      "from": {
+        "lines": 126,
+        "max_function_lines": 112
+      },
+      "on": "2026-09-01",
+      "path": "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
+      "reason": "Дешевий добір кандидатів дістав ті самі два правила видимості, що й остаточна проєкція: заміщення лише в межах ОДНОГО документа й фільтр відсіків. Це були два написання одного правила, і вони розійшлися — `_visibility_filters` мав обидва, CTE добору не мав жодного. Три тести GitHub-лінії червоніли на каноні ДО правки. Ціна виміряна: 78–83 мс проти 80–85 мс на теплому кеші, тобто нуль.",
+      "to": {
+        "lines": 160,
+        "max_function_lines": 120
+      }
+    },
+    {
+      "from": {
+        "lines": 5790
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "M579–M581: заміщення повз межу документа, бюджет добору на невидимих відсіках і дуал до нього — відмова тому, хто відсік МАЄ.",
+      "to": {
+        "lines": 5840
       }
     }
   ],

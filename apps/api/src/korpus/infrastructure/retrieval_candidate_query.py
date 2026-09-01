@@ -12,6 +12,34 @@ from korpus.domain.models import Identity
 from korpus.infrastructure import row_mapping
 
 
+def _candidate_compartment_filter(identity: Identity) -> tuple[str, dict[str, str]]:
+    """Відсіки в дешевому доборі — ті самі, що в остаточній проєкції.
+
+    Добір не був діркою в доступі: остаточна проєкція
+    (`retrieval_queries.retrievable_projection`) застосовує `compartment_predicate`
+    після нього, тож невидимий рядок читачеві не діставався. Він З'ЇДАВ БЮДЖЕТ:
+    добір обмежений `LIMIT`, і рядки, яких читач бачити не може, витісняли з
+    верхівки ті, які може. Ціна — «недостатньо підстав» про корпус, що має
+    відповідь; а порядок видачі ще й повідомляв про існування невидимого.
+    """
+    compartments = sorted(identity.compartments)
+    parameters = {f"compartment_{index}": value for index, value in enumerate(compartments)}
+    forbidden = ""
+    if compartments:
+        placeholders = ",".join(f":{name}" for name in parameters)
+        forbidden = f"AND dc.compartment NOT IN ({placeholders})"
+    # НЕ корельований підзапит. Форма `NOT EXISTS (... WHERE dc.document_id = d.id)`
+    # виражає те саме правило й читається природніше, але прив'язана до `d`, тож
+    # SQLite оцінює її НА КОЖЕН повнотекстовий збіг — рівно та вада, через яку
+    # перевірку заміщення свого часу винесли в CTE (2.5 с проти бюджету 1200 мс).
+    # `test_the_supersession_test_is_not_evaluated_per_matching_span` це ловить.
+    clause = (
+        "AND d.id NOT IN (SELECT dc.document_id FROM document_compartments dc "
+        f"WHERE 1=1 {forbidden})"
+    )
+    return clause, parameters
+
+
 def candidate_span_query(
     identity: Identity,
     corpora: frozenset[str],
@@ -41,6 +69,8 @@ def candidate_span_query(
     }
     parameters.update({f"corpus_{index}": value for index, value in enumerate(sorted_corpora)})
     parameters.update({f"class_{index}": value for index, value in enumerate(classifications)})
+    compartment_clause, compartment_parameters = _candidate_compartment_filter(identity)
+    parameters.update(compartment_parameters)
     if dialect == "sqlite":
         match_query = " OR ".join(
             f'"{term.replace(chr(34), chr(34) * 2)}"' + ("*" if prefix else "")
@@ -58,7 +88,7 @@ def candidate_span_query(
         statement = sql_text(
             f"""
             WITH superseded AS (
-              SELECT DISTINCT sv.supersedes_version_id AS id
+              SELECT DISTINCT sv.supersedes_version_id AS id, sv.document_id AS document_id
               FROM document_versions sv
               WHERE sv.supersedes_version_id IS NOT NULL
                 AND sv.review_state = 'approved'
@@ -76,10 +106,11 @@ def candidate_span_query(
               AND d.corpus_id IN ({corpus_placeholders})
               AND d.access_tier <= :clearance
               AND d.classification IN ({class_placeholders})
+              {compartment_clause}
               AND COALESCE(v.effective_from, v.publication_date) <= :as_of
               AND (v.effective_until IS NULL OR v.effective_until >= :as_of)
               AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)
-              AND v.id NOT IN (SELECT id FROM superseded)
+              AND (v.id, v.document_id) NOT IN (SELECT id, document_id FROM superseded)
             ORDER BY bm25(evidence_fts), s.id
             LIMIT :limit
             """
@@ -94,7 +125,7 @@ def candidate_span_query(
         statement = sql_text(
             f"""
             WITH superseded AS (
-              SELECT DISTINCT sv.supersedes_version_id AS id
+              SELECT DISTINCT sv.supersedes_version_id AS id, sv.document_id AS document_id
               FROM document_versions sv
               WHERE sv.supersedes_version_id IS NOT NULL
                 AND sv.review_state = 'approved'
@@ -111,10 +142,11 @@ def candidate_span_query(
               AND d.corpus_id IN ({corpus_placeholders})
               AND d.access_tier <= :clearance
               AND d.classification IN ({class_placeholders})
+              {compartment_clause}
               AND COALESCE(v.effective_from, v.publication_date) <= {as_of_date}
               AND (v.effective_until IS NULL OR v.effective_until >= {as_of_date})
               AND (v.rescinded_at IS NULL OR CAST(v.rescinded_at AS date) > {as_of_date})
-              AND v.id NOT IN (SELECT id FROM superseded)
+              AND (v.id, v.document_id) NOT IN (SELECT id, document_id FROM superseded)
             ORDER BY ts_rank_cd(
                 to_tsvector('simple', s.text), to_tsquery('simple', :query)
             ) DESC, s.id

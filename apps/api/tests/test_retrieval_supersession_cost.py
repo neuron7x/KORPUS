@@ -69,6 +69,8 @@ SCHEMA = [
     "CREATE TABLE document_versions (id TEXT PRIMARY KEY, document_id TEXT,"
     " review_state TEXT, effective_from TEXT, publication_date TEXT, effective_until TEXT,"
     " rescinded_at TEXT, supersedes_version_id TEXT)",
+    "CREATE TABLE document_compartments (document_id TEXT, compartment TEXT,"
+    " PRIMARY KEY (document_id, compartment))",
     "CREATE TABLE evidence_spans (id TEXT PRIMARY KEY, version_id TEXT, text TEXT)",
     "CREATE VIRTUAL TABLE evidence_fts USING fts5(span_id UNINDEXED, text)",
 ]

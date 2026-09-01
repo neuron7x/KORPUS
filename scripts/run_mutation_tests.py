@@ -387,9 +387,9 @@ MUTANTS = (
     Mutant(
         "M30_SQL_VALIDITY_START_SHIFT",
         "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
-        "              AND d.classification IN ({class_placeholders})\n"
+        "              {compartment_clause}\n"
         "              AND COALESCE(v.effective_from, v.publication_date) <= :as_of",
-        "              AND d.classification IN ({class_placeholders})\n"
+        "              {compartment_clause}\n"
         "              AND COALESCE(v.effective_from, v.publication_date) < :as_of",
         (
             "apps/api/tests/test_validity_boundaries.py::test_sql_and_domain_agree_on_every_day_around_both_bounds",
@@ -399,9 +399,9 @@ MUTANTS = (
         "M31_SQL_RESCISSION_SHIFT",
         "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
         "              AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)\n"
-        "              AND v.id NOT IN (SELECT id FROM superseded)",
+        "              AND (v.id, v.document_id) NOT IN (SELECT id, document_id FROM superseded)",
         "              AND (v.rescinded_at IS NULL OR date(v.rescinded_at) >= :as_of)\n"
-        "              AND v.id NOT IN (SELECT id FROM superseded)",
+        "              AND (v.id, v.document_id) NOT IN (SELECT id, document_id FROM superseded)",
         # Behaviourally this one is equivalent — `_materialize_current` re-checks the
         # domain and the answer is unchanged — so only the test that asserts the SQL
         # layer on its own can kill it.
@@ -1034,9 +1034,9 @@ MUTANTS = (
     Mutant(
         "M93_SQL_IGNORES_THE_LOWER_BOUND",
         "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
-        "              AND d.classification IN ({class_placeholders})\n"
+        "              {compartment_clause}\n"
         "              AND COALESCE(v.effective_from, v.publication_date) <= :as_of",
-        "              AND d.classification IN ({class_placeholders})\n"
+        "              {compartment_clause}\n"
         "              AND COALESCE(v.effective_from, v.publication_date, :as_of) <= :as_of",
         (
             "apps/api/tests/test_currency_lower_bound.py::test_the_candidate_sql_excludes_an_unbounded_version",
@@ -1776,7 +1776,7 @@ MUTANTS = (
         # reader as "the corpus holds nothing".
         "M195_SUPERSESSION_TEST_CORRELATED_AGAIN",
         "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
-        "              AND v.id NOT IN (SELECT id FROM superseded)\n"
+        "              AND (v.id, v.document_id) NOT IN (SELECT id, document_id FROM superseded)\n"
         "            ORDER BY bm25(evidence_fts), s.id",
         "              AND NOT EXISTS (\n"
         "                SELECT 1 FROM document_versions sv\n"
@@ -5456,6 +5456,56 @@ MUTANTS = (
             "apps/api/tests/test_mutation_probe_safety.py::test_an_orphaned_lock_is_reported_as_an_event",
         ),
         full_copy=True,
+    ),
+    Mutant(
+        # Дешевий добір і остаточна проєкція — ДВА написання одного правила, і саме
+        # так вони розійшлися: `_visibility_filters` вимагає, щоб наступник належав
+        # ТОМУ САМОМУ документові, а CTE добору цього не питав. Чужий документ,
+        # оголосивши заміщення, викидав чужий проліт із кандидатів; остаточний фільтр
+        # його вже не бачив і повертав «недостатньо підстав» про корпус, що має
+        # відповідь. Дірки в доступі не було — була відмова у праві на відповідь.
+        "M579_CANDIDATE_SUPERSESSION_CROSSES_DOCUMENTS",
+        "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
+        "              AND (v.id, v.document_id) NOT IN"
+        " (SELECT id, document_id FROM superseded)\n"
+        "            ORDER BY bm25(evidence_fts), s.id",
+        "              AND v.id NOT IN (SELECT id FROM superseded)\n"
+        "            ORDER BY bm25(evidence_fts), s.id",
+        (
+            "apps/api/tests/test_candidate_visibility_equivalence.py::"
+            "test_cross_document_supersession_cannot_remove_a_candidate",
+        ),
+    ),
+    Mutant(
+        # Відсіки в доборі не боронили доступу — його боронить остаточна проєкція.
+        # Вони боронили БЮДЖЕТ: `LIMIT` спільний, і невидимі рядки витісняли з
+        # верхівки видимі. Порядок видачі при цьому повідомляв про існування того,
+        # чого читач бачити не може.
+        "M580_CANDIDATE_BUDGET_SPENT_ON_INVISIBLE_COMPARTMENTS",
+        "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
+        "    clause = (\n"
+        '        "AND d.id NOT IN (SELECT dc.document_id FROM document_compartments dc "\n'
+        '        f"WHERE 1=1 {forbidden})"\n'
+        "    )",
+        '    clause = ""\n    _unused_forbidden = forbidden',
+        (
+            "apps/api/tests/test_candidate_visibility_equivalence.py::"
+            "test_invisible_compartment_rows_cannot_consume_candidate_budget",
+        ),
+    ),
+    Mutant(
+        # Дуал до M580, і тихіший за нього. M580 питає, що ПРОХОДИТЬ не маючи права;
+        # цей — що ВІДХИЛЯЄТЬСЯ, маючи його. Без `forbidden` читач із призначеним
+        # відсіком не бачить у доборі жодного відсіченого документа, тобто гейт стає
+        # суворішим за правило, яке він виражає, і мовчки звужує корпус.
+        "M581_AN_ASSIGNED_COMPARTMENT_IS_REFUSED_TOO",
+        "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
+        '        forbidden = f"AND dc.compartment NOT IN ({placeholders})"',
+        '        forbidden = "" if placeholders else ""',
+        (
+            "apps/api/tests/test_candidate_visibility_equivalence.py::"
+            "test_assigned_compartment_is_admitted_but_partial_assignment_is_not",
+        ),
     ),
 )
 
