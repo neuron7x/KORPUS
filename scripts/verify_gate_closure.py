@@ -75,6 +75,7 @@ ROOTS = ("check", "validate", "check-deployment", "check-nightly")
 #: тому й поріг асиметричний.
 VERIFICATION = re.compile(
     r"verify|check|audit|gate|lint|hygiene|ratchet|integrity|liveness|validate|probe"
+    r"|axes|stores|selftest"
 )
 
 #: Заголовок правила. `:=` виключено — це присвоєння змінної, не ціль.
@@ -240,6 +241,25 @@ def reachable(edges: dict[str, set[str]], roots: tuple[str, ...]) -> set[str]:
     return seen
 
 
+def selftest_only(makefile: str) -> set[str]:
+    """Цілі, чий рецепт не робить нічого, крім запуску `--selftest`.
+
+    Їхню роботу виконує `selftest-coverage`, який знаходить кожен скрипт з оголошенням
+    прапорця і запускає його сам. Але побачити це через перелік скриптів у рецепті
+    неможливо: у `selftest-coverage` в рецепті лише ВІН САМ, бо переліку в ньому немає
+    навмисно — перелік був би другим оголошенням того самого факту.
+
+    Тому правило записане тут, а не в реєстрі. Виняток у реєстрі був би твердженням,
+    яке ніхто не переміряє; це — обчислення, яке хибніє разом із рецептом.
+    """
+    covered: set[str] = set()
+    for target, recipe in recipes(makefile).items():
+        lines = [line for line in recipe if line.strip() and not line.strip().startswith("#")]
+        if lines and all("--selftest" in line for line in lines):
+            covered.add(target)
+    return covered
+
+
 def verification_targets(declared: list[str]) -> list[str]:
     return [name for name in declared if VERIFICATION.search(name)]
 
@@ -300,7 +320,16 @@ def assess(
             _finding("gate_closure", "UNKNOWN", "жодного кореня " + ", ".join(ROOTS) + " немає")
         ]
 
+    if makefile is None:
+        # Без тексту Makefile покриття не обчислюється ПОВНІСТЮ: знижку для цілей, чия
+        # робота — самоперевірка, дає `selftest_only`, і без неї вони виглядали б дірами.
+        # Оголосити їх дірами означало б звинуватити за брак ВЛАСНОГО входу, тому тут
+        # UNKNOWN, а не FAIL: невиміряне не є ні провалом, ні дозволом.
+        return [_finding("gate_closure", "UNKNOWN", "Makefile не переданий — покриття не виміряно")]
+
     covered = enforced(edges, scripts or {})
+    if "selftest-coverage" in covered:
+        covered |= selftest_only(makefile)
     named = _named(registry)
     targets = verification_targets(declared)
     findings: list[dict[str, str]] = []

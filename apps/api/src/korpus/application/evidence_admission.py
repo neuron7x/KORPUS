@@ -9,6 +9,7 @@ best structurally valid candidate remains from admission.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 
 from korpus.application.retrieval import AUTHORITY_PRIOR
@@ -87,7 +88,7 @@ def evidence_is_eligible(
 def eligible_evidence(
     evidence: list[RetrievedEvidence],
     thresholds: RiskThresholds,
-    subject_documents: frozenset[str] = frozenset(),
+    subject_documents: Mapping[str, int] | frozenset[str] = frozenset(),
 ) -> list[RetrievedEvidence]:
     return [
         item

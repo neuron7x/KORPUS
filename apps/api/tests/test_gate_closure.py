@@ -204,13 +204,18 @@ def test_a_variable_only_inside_an_if_is_not_a_requirement() -> None:
     assert GATE.mandatory_variables(['\t$(PY) x.py --a "$(or $(A),$(SERVED_CORPUS))"']) == set()
 
 
-def test_not_measured_is_not_a_pass() -> None:
-    """Makefile не переданий — обидві нові перевірки UNKNOWN, і вирок не PASS."""
+def test_not_measured_is_not_a_pass_and_not_an_accusation() -> None:
+    """Без тексту Makefile покриття не обчислюється повністю — і це UNKNOWN.
+
+    Не FAIL: знижку для цілей, чия робота — самоперевірка, дає `selftest_only`, і без
+    неї три законні цілі виглядали б дірами. Оголосити їх дірами означало б звинуватити
+    за брак ВЛАСНОГО входу гейта.
+    """
     edges, declared, scripts = _real()
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
     findings = GATE.assess(edges, declared, registry, scripts)
-    assert _finding_named(findings, "duplicate_target")["verdict"] == "UNKNOWN"
     assert GATE.verdict(findings) == "UNKNOWN"
+    assert findings[0]["check"] == "gate_closure"
 
 
 # ------------------------------------------- безпека пакета, який ми самі роздаємо
@@ -238,3 +243,58 @@ def test_zip_safety_is_no_longer_an_accepted_gap() -> None:
     assert "zip-safety-verify" in GATE.enforced(edges, scripts)
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
     assert all(entry["target"] != "zip-safety-verify" for entry in registry["accepted"])
+
+
+# ------------------------------- ціль, чия робота — самоперевірка, і хто її виконує
+
+
+def test_the_classifier_sees_axis_and_store_shaped_names() -> None:
+    """Класифікатор за іменем не бачив власних нових гейтів.
+
+    `evidence-stores`, `corpus-axes`, `answer-axes`, `selftest-coverage` не містять
+    жодного слова зі старого правила, тож ніщо не змушувало б їх лишатись підключеними:
+    відключи — і `unregistered_gap` промовчав би. Ціна розширення асиметрична свідомо.
+    """
+    for name in ("evidence-stores", "corpus-axes", "answer-axes", "selftest-coverage"):
+        assert GATE.VERIFICATION.search(name), name
+
+
+def test_a_target_that_only_runs_a_selftest_is_covered_by_the_selftest_gate() -> None:
+    """`selftest-coverage` знаходить скрипти сам, тож у його рецепті їх НЕМАЄ.
+
+    Побачити покриття через перелік скриптів у рецепті тому неможливо, і виняток у
+    реєстрі був би твердженням, якого ніхто не переміряє. Правило обчислюється.
+    """
+    text = (ROOT / "Makefile").read_text(encoding="utf-8")
+    only = GATE.selftest_only(text)
+    for name in ("public-surface-selftest", "capture-evidence-selftest", "recheck-blocked-selftest"):
+        assert name in only, name
+    assert "check" not in only and "validate" not in only
+
+
+def test_a_target_that_does_more_than_a_selftest_is_not_covered_for_free() -> None:
+    """Інакше будь-яка ціль, що ЗАОДНО кличе самоперевірку, ставала б закритою."""
+    only = GATE.selftest_only(
+        "a:\n\t$(PY) x.py --selftest\n"
+        "b:\n\t$(PY) x.py --selftest\n\t$(PY) x.py --database d\n"
+    )
+    assert only == {"a"}
+
+
+def test_the_selftest_shortcut_needs_the_selftest_gate_to_be_covered() -> None:
+    """Якщо `selftest-coverage` випаде з `validate`, знижка мусить зникнути разом із ним."""
+    text = (ROOT / "Makefile").read_text(encoding="utf-8")
+    without = text.replace("validate: public-env-parity gate-closure selftest-coverage",
+                           "validate: public-env-parity gate-closure")
+    assert "selftest-coverage" not in without.splitlines()[
+        next(i for i, line in enumerate(without.splitlines()) if line.startswith("validate:"))
+    ]
+    registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    edges, declared, scripts = GATE.parse_graph(without)
+    findings = GATE.assess(edges, declared, registry, scripts, without)
+    gap = _finding_named(findings, "unregistered_gap")
+    # Конкретика, не сукупний вирок: без неї мутант ховається за тим, що сам
+    # `selftest-coverage` теж стає дірою, і гейт червоніє з іншої причини.
+    assert gap["verdict"] == "FAIL"
+    for name in ("public-surface-selftest", "capture-evidence-selftest"):
+        assert name in gap["detail"], gap["detail"]

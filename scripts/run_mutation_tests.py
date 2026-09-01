@@ -4523,6 +4523,39 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M532_THE_CLASSIFIER_STOPS_SEEING_AXIS_AND_STORE_SHAPED_NAMES",
+        "scripts/verify_gate_closure.py",
+        '    r"|axes|stores|selftest"',
+        '    r"|zzzz-nothing-matches-this"',
+        (
+            "apps/api/tests/test_gate_closure.py::"
+            "test_the_classifier_sees_axis_and_store_shaped_names",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M533_A_TARGET_THAT_DOES_MORE_THAN_A_SELFTEST_IS_COVERED_FOR_FREE",
+        "scripts/verify_gate_closure.py",
+        '        if lines and all("--selftest" in line for line in lines):',
+        '        if lines and any("--selftest" in line for line in lines):',
+        (
+            "apps/api/tests/test_gate_closure.py::"
+            "test_a_target_that_does_more_than_a_selftest_is_not_covered_for_free",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M534_THE_SELFTEST_SHORTCUT_APPLIES_EVEN_WITHOUT_THE_SELFTEST_GATE",
+        "scripts/verify_gate_closure.py",
+        '    if "selftest-coverage" in covered:',
+        "    if True:",
+        (
+            "apps/api/tests/test_gate_closure.py::"
+            "test_the_selftest_shortcut_needs_the_selftest_gate_to_be_covered",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M519_A_DECLARED_SELFTEST_THAT_NEVER_RAN_COUNTS_AS_GREEN",
         "scripts/verify_selftest_coverage.py",
         "    missed = sorted(set(expected) - seen)",
@@ -4724,6 +4757,161 @@ MUTANTS = (
             "test_function_words_are_not_evidence_of_coverage",
         ),
         full_copy=True,
+    ),
+    Mutant(
+        "M487_THE_SUBJECT_CLASS_IS_FLAT_AGAIN",
+        "apps/api/src/korpus/application/retrieval.py",
+        "        return float(subject_documents.get(key, 0))",
+        "        return 1.0 if key in subject_documents else 0.0",
+        (
+            "apps/api/tests/test_authority_ranking.py::"
+            "test_a_more_specific_declared_subject_outranks_one_that_is_merely_its_substring",
+        ),
+    ),
+    Mutant(
+        "M489_A_RECORDED_LEDGER_HEAD_IS_NEVER_COMPARED",
+        "scripts/check_answer_axes.py",
+        '    head = recorded.get("audit_head")',
+        "    head = None",
+        (
+            "apps/api/tests/test_report_input_binding.py::"
+            "test_a_recorded_input_the_gate_ignores_is_worse_than_none",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M490_THE_CORPUS_IDENTITY_MOVES_WITH_EVERY_ANSWER_AGAIN",
+        "scripts/corpus_identity.py",
+        '        "span_text_digest": digest.hexdigest(),',
+        '        "span_text_digest": digest.hexdigest(),\n        "audit_head": connection.execute("select head_hash from audit_heads").fetchone()[0],',
+        (
+            "apps/api/tests/test_report_input_binding.py::"
+            "test_housekeeping_does_not_move_the_identity",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M522_THE_DIRECTIVE_SET_WIDENS_UNTIL_EVERYTHING_IS_ACTIONABLE",
+        "scripts/measure_declared_coverage.py",
+        '    r"проводиться|виконується|застосовується|вживає|вживають)",',
+        '    r"проводиться|виконується|застосовується|вживає|вживають|вивча|перелік|опис)",',
+        (
+            "apps/api/tests/test_declared_coverage.py::"
+            "test_the_directive_set_is_narrow_enough_to_separate",
+        ),
+        full_copy=True,
+    ),
+    # ── Бази доказів. Гейт проти неоголошених баз, який сам спирається на оголошення,
+    # зелений саме в тому стані, заради якого існує: M498 — це та отрута, що проходила.
+    Mutant(
+        "M498_A_BASE_EXISTS_ONLY_IF_THE_REGISTRY_NAMES_IT",
+        "scripts/measure_evidence_bases.py",
+        "                found.setdefault(fingerprint(value), entry.name)",
+        "                pass",
+        (
+            "apps/api/tests/test_evidence_bases.py::"
+            "test_discovery_reads_the_environment_of_live_processes",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M499_A_DECLARATION_THAT_STOPPED_BEING_TRUE_IS_TOLERATED",
+        "scripts/measure_evidence_bases.py",
+        "        if key in declared and declared[key] != actual[key]",
+        "        if False",
+        (
+            "apps/api/tests/test_evidence_bases.py::"
+            "test_a_declaration_that_says_the_same_about_a_base_that_differs_fails",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M521_THE_PUBLISHED_FINGERPRINT_CARRIES_THE_PASSWORD",
+        "scripts/measure_evidence_bases.py",
+        '        return f"postgres:{user}@{location}"',
+        '        return f"postgres:{credentials}@{location}"',
+        (
+            "apps/api/tests/test_evidence_bases.py::test_the_fingerprint_does_not_carry_the_password",
+        ),
+        full_copy=True,
+    ),
+    # ── Навчальний шар: 1516 рядків коду й 1036 рядків тестів, і ЖОДНОГО мутанта до
+    # 01.09.2026. Жоден маршрут API його не імпортує, усі його таблиці порожні в обох
+    # базах — тобто «тести є» було твердженням, яке ніхто не перевіряв. Шість мутантів
+    # цілять у шість РІЗНИХ тверджень цього шару, а не в шість рядків одного.
+    Mutant(
+        "M492_A_SUPERSET_OF_THE_CORRECT_ANSWERS_COUNTS_AS_CORRECT",
+        "apps/api/src/korpus/application/learning_assessment.py",
+        "    correct = attempt.selected_option_ids == check.correct_option_ids",
+        "    correct = attempt.selected_option_ids >= check.correct_option_ids",
+        (
+            "apps/api/tests/test_learning_assessment.py::"
+            "test_extra_selection_does_not_receive_partial_credit",
+        ),
+    ),
+    Mutant(
+        "M493_AN_ATTEMPT_MAY_NAME_AN_OPTION_THAT_DOES_NOT_EXIST",
+        "apps/api/src/korpus/application/learning_assessment.py",
+        "    unknown = attempt.selected_option_ids.difference(declared)",
+        "    unknown = frozenset[str]()",
+        ("apps/api/tests/test_learning_assessment.py::test_attempt_rejects_undeclared_options",),
+    ),
+    Mutant(
+        "M494_A_CHECK_MAY_TEACH_AN_OBJECTIVE_THE_LESSON_DOES_NOT_HAVE",
+        "apps/api/src/korpus/application/learning_assessment.py",
+        "    if check.objective_id not in objective_ids:",
+        "    if objective_ids and check.objective_id not in sorted(objective_ids)[:0]:",
+        ("apps/api/tests/test_learning_assessment.py::test_a_well_bound_check_has_no_blockers",),
+    ),
+    Mutant(
+        "M495_ANY_OVERLAP_OF_EVIDENCE_SPANS_IS_ENOUGH_TO_PUBLISH",
+        "apps/api/src/korpus/domain/learning.py",
+        "            if not binding.evidence_span_ids <= state.evidence_span_ids:",
+        "            if not binding.evidence_span_ids & state.evidence_span_ids:",
+        (
+            "apps/api/tests/test_learning_course_domain.py::"
+            "test_a_binding_that_cites_one_held_span_and_one_absent_span_is_rejected",
+        ),
+    ),
+    Mutant(
+        "M496_ONLY_RESCISSION_STOPS_PUBLICATION_NOT_APPROVAL_OR_WINDOW",
+        "apps/api/src/korpus/domain/learning.py",
+        "            if not state.is_effective(observed):",
+        "            if state.rescinded_at is not None:",
+        (
+            "apps/api/tests/test_learning_course_domain.py::"
+            "test_publication_validation_rejects_unapproved_source",
+        ),
+    ),
+    Mutant(
+        "M497_A_PREREQUISITE_CYCLE_IS_SEEN_AND_NOT_REPORTED",
+        "apps/api/src/korpus/domain/learning.py",
+        '            violations.add(f"{CourseGraphViolation.PREREQUISITE_CYCLE}:{lesson_id}")',
+        "            pass",
+        (
+            "apps/api/tests/test_learning_course_domain.py::"
+            "test_publication_validation_detects_prerequisite_cycle_deterministically",
+        ),
+    ),
+    Mutant(
+        "M491_THE_SUBJECT_IS_PARSED_IN_A_DIFFERENT_SPACE_FROM_THE_QUESTION",
+        "apps/api/src/korpus/application/declared_subject.py",
+        "            tokens.update(tokenize(subject))",
+        r'            tokens.update(re.findall(r"\w+", subject.lower()))',
+        (
+            "apps/api/tests/test_declared_subject_token_space.py::"
+            "test_subject_tokens_are_produced_by_the_same_parser_as_the_question",
+        ),
+    ),
+    Mutant(
+        "M488_THE_MATCH_LENGTH_IS_DISCARDED_BEFORE_RANKING",
+        "apps/api/src/korpus/application/declared_subject.py",
+        "                specificity[document_id] = max(specificity.get(document_id, 0), len(subject))",
+        "                specificity[document_id] = 1",
+        (
+            "apps/api/tests/test_declared_subject_specificity.py::"
+            "test_the_ranker_receives_the_length_of_the_match",
+        ),
     ),
     Mutant(
         "M441_AUTHORITY_OUTRANKS_A_SOURCE_IT_DOES_NOT_ANSWER_WITH",

@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage
+.PHONY: corpus-axes evidence-bases control-copy install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -393,6 +393,48 @@ answer-axes:
 	$(PY) scripts/check_answer_axes.py --selftest
 	$(PY) scripts/check_answer_axes.py
 
+# Вимірювачі корпусу, журналу й баз — і лише потім вирок.
+#
+# Досі їх не кликав НІХТО: п'ять осей профілю мали вимірювача, і жоден лан його не
+# запускав, тож звіти вироблялись рукою. Мовчазним це не було — ідентичність входів
+# робить вісь UNMEASURED, щойно звіт перестає описувати той самий стан, — але
+# «не бреше» і «виконується» це різні твердження, і виконувалось лише перше.
+#
+# ПОРЯДОК НЕ ДЕКОРАТИВНИЙ. `measure_audit_integrity` іде БЕЗПОСЕРЕДНЬО перед
+# `check_answer_axes`: його вхід — голова журналу, а живий сервер рухає її на кожній
+# відповіді, тож будь-що між ними робить свіжий звіт несвіжим. `measure_evidence_bases`
+# стоїть перед ним, бо він не читає журналу.
+corpus-axes:
+	$(PY) scripts/measure_corpus_integrity.py --selftest
+	$(PY) scripts/measure_corpus_integrity.py --database "$(or $(DATABASE),$(SERVED_CORPUS))"
+	$(PY) scripts/validate_derived_source_links.py --selftest
+	$(PY) scripts/validate_derived_source_links.py --database "$(or $(DATABASE),$(SERVED_CORPUS))"
+	$(PY) scripts/measure_declared_coverage.py --selftest
+	$(PY) scripts/measure_declared_coverage.py --database "$(or $(DATABASE),$(SERVED_CORPUS))"
+	$(PY) scripts/measure_evidence_bases.py --selftest
+	$(PY) scripts/measure_evidence_bases.py
+	$(PY) scripts/measure_audit_integrity.py --selftest
+	$(PY) scripts/measure_audit_integrity.py --database "$(or $(DATABASE),$(SERVED_CORPUS))" \
+	  --key "korpus-public-2026-08-31=$(SECRET_DIR)/audit-key.txt" \
+	  --key "legacy-unversioned=$(SECRET_DIR)/audit-key-legacy-unversioned.txt" \
+	  --key "serve-public-inline-2026-08=$(SECRET_DIR)/audit-key-serve-public-inline.txt" \
+	  --min-attribution 1.0 --max-placeholder-signed 4061
+	$(MAKE) answer-axes PY=$(PY)
+
+evidence-bases:
+	$(PY) scripts/measure_evidence_bases.py --selftest
+	$(PY) scripts/measure_evidence_bases.py
+
+# Контрольний сервер на КОПІЇ обслуговуваної бази: наслідок зміни в коді відповіді
+# міряється, не чіпаючи те, що обслуговує читача. Порівняння робиться ДВОМА копіями на
+# двох портах — перший процес піднімається до правки, другий після, — бо два стани
+# одного дерева інакше ніколи не існують одночасно.
+#
+#   make control-copy PORT=8021 DB=/tmp/ab/A.db TAG=A
+control-copy:
+	sqlite3 "file:$(SERVED_CORPUS)?mode=ro" "VACUUM INTO '$(DB)'"
+	scripts/serve_control_copy.sh "$(or $(PORT),8021)" "$(DB)" "$(or $(TAG),control)"
+
 answer-quality:
 	PYTHONPATH=apps/api/src $(PY) scripts/run_boundary_eval.py $(if $(BASE),--base "$(BASE)")
 	$(PY) scripts/check_answer_quality_ratchet.py
@@ -720,6 +762,8 @@ serve-semantic-local:
 ## аргумент: перевірка, яку не запустили, і перевірка, якої немає, з відстані
 ## однакові.
 SERVED_CORPUS ?= var/runtime/corpus-v6-20260807/korpus.db
+# Ключі журналу живуть ПОЗА деревом: `zip -r korpus .` не сміє винести підпис доказу.
+SECRET_DIR ?= $(if $(XDG_STATE_HOME),$(XDG_STATE_HOME),$(HOME)/.local/state)/korpus-public
 SERVED_OBJECTS ?= var/runtime/corpus-v6-20260807/objects
 
 ## Обидві діагностики питають ЖИВИЙ API, а не базу: вони міряють, що система
@@ -892,6 +936,7 @@ check-nightly:
 	$(MAKE) nightly-evidence PY=$(PY)
 	$(MAKE) check-deployment PY=$(PY)
 	$(MAKE) load-probe PY=$(PY) SECONDS=8 SOAK_SECONDS=8 CONCURRENCY=3 SPIKE=8
+	$(MAKE) corpus-axes PY=$(PY)
 	$(MAKE) gate-liveness PY=$(PY)
 	$(MAKE) mutation-probe PY=$(PY)
 	$(MAKE) verify-clean-clone PY=$(PY)

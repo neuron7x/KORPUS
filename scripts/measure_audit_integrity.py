@@ -308,10 +308,20 @@ def main() -> int:
             # змінилась і атрибуція, тож старе число більше не про цей стан. Матеріал у
             # звіт не потрапляє ніколи.
             "inputs": report_inputs(
-                args.database, Path(__file__).resolve(), keys="|".join(sorted(keys))
+                args.database,
+                Path(__file__).resolve(),
+                keys="|".join(sorted(keys)),
+                # Голова журналу — вхід САМЕ цього звіту й нікого більше: осі корпусу
+                # від неї не залежать, а живий сервер рухає її на кожну відповідь.
+                audit_head=str(head["head_hash"]) if head else "",
             ),
             "inputs_digest": inputs_digest(
-                report_inputs(args.database, Path(__file__).resolve(), keys="|".join(sorted(keys)))
+                report_inputs(
+                    args.database,
+                    Path(__file__).resolve(),
+                    keys="|".join(sorted(keys)),
+                    audit_head=str(head["head_hash"]) if head else "",
+                )
             ),
             "keys_offered": sorted(keys),
             "weak_keys": weak,

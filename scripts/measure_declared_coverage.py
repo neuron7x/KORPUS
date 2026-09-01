@@ -26,6 +26,31 @@
 це інструмент пріоритету для інжесту, а не вирок про якість відповіді: вирок виносять осі
 відповіді, кожна на своєму наборі.
 
+## Наявність терміна ≠ можливість діяти
+
+Виміряно 01.09.2026, і воно спростовує попередній запис ЦЬОГО файла. «Тактична медицина
+українською майже відсутня» — надто сильно: корпус тримає два українські документи про
+неї. Але обидва — документи ПРО предмет, не документи предмета: наказ, що перелічує
+НАЗВИ втручань («Використання турнікета для зупинки кровотечі»), і силабус навчальної
+дисципліни («слухачі повинні знати», «удосконалення знань»). Ні там, ні там немає, ЯК.
+
+Тому додано другий сигнал: чи бодай один проліт, що містить найрідший термін питання,
+несе ДИРЕКТИВНУ форму — закритий набір нормативних зворотів («зобов’язаний», «повинен»,
+«необхідно», «забороняється», «накладається», «здійснюється»…).
+
+Контроль вбудований і без нього число нічого не варте:
+  по корпусу загалом    1745 із 31 464 прольотів = 0.055
+  «чатов»               52 із 99   = 0.53
+  «наказ»               218 із 522 = 0.42
+  «варт»                159 із 440 = 0.36
+  «турнікет»            0 із 2     «джгут» 0 із 4    «артеріальн» 0 із 2
+  «пневмоторакс»        0 із 5     «кровотеч» 1 із 13
+Службова частина корпусу вшестеро-вдесятеро над базовим рівнем; медична — на ньому або
+під ним. Отже детектор розділяє, і розділяє не мову, а рід тексту.
+
+`directive_baseline` друкується у звіті НАВМИСНО: послаблений набір зворотів підняв би
+«придатність», і єдине, що це видно — базовий рівень, який поїхав угору разом із нею.
+
     measure_declared_coverage.py --database DB [--out ФАЙЛ]
     measure_declared_coverage.py --selftest
 """
@@ -97,6 +122,16 @@ STOP = frozenset(
 THIN_BELOW = 10
 
 
+#: Закритий набір директивних зворотів українського нормативного тексту. Закритий, бо
+#: відкритий список — це регулятор, яким «придатність» підкручується до бажаного числа.
+DIRECTIVE = re.compile(
+    r"(зобов['’]язаний|зобов['’]язані|повинен|повинна|повинні|необхідно|слід\s|"
+    r"забороняється|не\s+дозволяється|дозволяється|накладається|здійснюється|"
+    r"проводиться|виконується|застосовується|вживає|вживають)",
+    re.IGNORECASE,
+)
+
+
 def content_terms(question: str) -> list[str]:
     return [word for word in _WORD.findall(question.lower()) if word not in STOP]
 
@@ -147,33 +182,80 @@ def declared_questions(paths: tuple[Path, ...]) -> list[dict[str, Any]]:
     return out
 
 
+def actionable(term: str, spans: list[str]) -> tuple[int, int]:
+    """Скільки прольотів містять термін і скільки з них ГОВОРЯТЬ, що робити."""
+    holding = [span for span in spans if term in span]
+    return len(holding), sum(1 for span in holding if DIRECTIVE.search(span))
+
+
+def classify(case: dict[str, Any], corpus: str, spans: list[str]) -> dict[str, Any] | None:
+    """Одне оголошення: чи термін є, і чи бодай один його проліт КАЖЕ, що робити."""
+    terms = content_terms(case["question"])
+    if not terms:
+        return None
+    weakest, counts = support(terms, corpus)
+    rarest = min(counts, key=lambda pair: pair[1])[0]
+    holding, directive = actionable(rarest, spans) if weakest else (0, 0)
+    return {
+        **case,
+        "min_support": weakest,
+        "absent_terms": sorted(term for term, count in counts if count == 0)[:4],
+        "rarest_term": rarest,
+        "spans_holding_rarest": holding,
+        "spans_with_directive": directive,
+    }
+
+
+def sort_into_buckets(
+    questions: list[dict[str, Any]], corpus: str, spans: list[str]
+) -> dict[str, list[dict[str, Any]]]:
+    """Чотири купки: без підстави, лише названі, придатні, тонкі.
+
+    «Лише названий» і «придатний» — не два ступені однієї шкали: перше означає, що
+    корпус говорить ПРО предмет, друге — що він говорить предметом. Читач може діяти
+    лише за другим.
+    """
+    buckets: dict[str, list[dict[str, Any]]] = {
+        "unsupported": [],
+        "named_only": [],
+        "actionable": [],
+        "thin": [],
+    }
+    for case in questions:
+        record = classify(case, corpus, spans)
+        if record is None:
+            continue
+        if record["min_support"] == 0:
+            buckets["unsupported"].append(record)
+            continue
+        buckets["actionable" if record["spans_with_directive"] else "named_only"].append(record)
+        if record["min_support"] < THIN_BELOW:
+            buckets["thin"].append(record)
+    return buckets
+
+
 def measure(database: Path, paths: tuple[Path, ...]) -> dict[str, Any]:
     connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
-    corpus = " ".join(
-        text.lower() for (text,) in connection.execute("select text from evidence_spans")
-    )
+    spans = [text.lower() for (text,) in connection.execute("select text from evidence_spans")]
     connection.close()
+    corpus = " ".join(spans)
+    # Базовий рівень рахується на ВСЬОМУ корпусі й друкується у звіті: без нього
+    # «придатність» підкручується послабленням набору зворотів, і ніхто не побачить.
+    baseline = sum(1 for span in spans if DIRECTIVE.search(span))
     every = declared_questions(paths)
     questions = [case for case in every if not case["sampled"]]
     sampled = [case for case in every if case["sampled"]]
-    unsupported: list[dict[str, Any]] = []
-    thin: list[dict[str, Any]] = []
-    sampled_absent: list[dict[str, Any]] = []
-    for case in sampled:
-        terms = content_terms(case["question"])
-        if terms and support(terms, corpus)[0] == 0:
-            sampled_absent.append(case)
-    for case in questions:
-        terms = content_terms(case["question"])
-        if not terms:
-            continue
-        weakest, counts = support(terms, corpus)
-        absent = sorted((t for t, n in counts if n == 0))
-        record = {**case, "min_support": weakest, "absent_terms": absent[:4]}
-        if weakest == 0:
-            unsupported.append(record)
-        elif weakest < THIN_BELOW:
-            thin.append(record)
+    sampled_absent = [
+        case
+        for case in sampled
+        if content_terms(case["question"])
+        and support(content_terms(case["question"]), corpus)[0] == 0
+    ]
+    buckets = sort_into_buckets(questions, corpus, spans)
+    unsupported = buckets["unsupported"]
+    thin = buckets["thin"]
+    actionable_cases = buckets["actionable"]
+    named_only = buckets["named_only"]
     total = len(questions)
     return {
         "schema": "korpus.declared-coverage.v1",
@@ -187,6 +269,13 @@ def measure(database: Path, paths: tuple[Path, ...]) -> dict[str, Any]:
         "unsupported": len(unsupported),
         "thin": len(thin),
         "rate": ((total - len(unsupported)) / total) if total else None,
+        # Наявність терміна ≠ можливість діяти. Наказ, що перелічує НАЗВИ втручань, і
+        # силабус навчальної дисципліни дають повну наявність і нульову придатність.
+        "actionable": len(actionable_cases),
+        "named_only": len(named_only),
+        "actionable_rate": (len(actionable_cases) / total) if total else None,
+        "directive_baseline": round(baseline / len(spans), 4) if spans else None,
+        "named_only_examples": named_only[:8],
         "unsupported_examples": unsupported[:12],
         "thin_examples": thin[:8],
         "status": "MEASURED" if total else "UNKNOWN",
@@ -195,6 +284,9 @@ def measure(database: Path, paths: tuple[Path, ...]) -> dict[str, Any]:
             "виглядає непокритим, а питання, чиї слова є, але не про те, — покритим.",
             "Це пріоритет для інжесту, не вирок про якість відповіді: вирок виносять осі "
             "відповіді, кожна на своєму наборі.",
+            "Директивна форма — ознака РОДУ тексту, не його правильності: проліт, що каже "
+            "робити не те, тут виглядає придатним. Розділяє він норму від опису норми, і "
+            "більше нічого.",
         ],
     }
 

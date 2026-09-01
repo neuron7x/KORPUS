@@ -79,6 +79,53 @@ def _evidence(
     )
 
 
+def test_a_more_specific_declared_subject_outranks_one_that_is_merely_its_substring() -> None:
+    """«Командир» є підрядком «Безпосередні командири», тож бінарний клас їх не розрізняв.
+
+    Виміряно 31.08.2026: питання «Які обов'язки має Безпосередні командири?» збігається
+    з ТРЬОМА оголошеними предметами — правильним на 22 символи і двома «Командир» по 8.
+    Усі троє потрапляли в один клас і далі змагалися релевантністю, де узагальнення
+    виграє: ранжувальник ставив «Командир (начальник)» (0.4129) перед «Безпосередні
+    командири» (0.3356).
+
+    Порядок за довжиною вже обчислювався в `subjects_in_question` і губився при
+    перетворенні на множину. Тепер він доживає до ранжування: `subject` 0.8352 → 0.9451.
+    """
+    specific = _evidence(AuthorityClass.OFFICIAL_UA, 0.30)
+    generic = _evidence(AuthorityClass.OFFICIAL_UA, 0.90)
+    subjects = {str(specific.document.id): 22, str(generic.document.id): 8}
+
+    selected = diversify_evidence([generic, specific], limit=1, subject_documents=subjects)
+
+    assert selected[0].document.id == specific.document.id
+
+
+def test_a_bare_set_of_subject_documents_keeps_the_previous_behaviour() -> None:
+    """Виклик, який ще не носить довжину збігу, не сміє змінити поведінку.
+
+    Інакше введення градації тихо переписало б ранг усюди, де його не оновили.
+    """
+    first = _evidence(AuthorityClass.OFFICIAL_UA, 0.30)
+    second = _evidence(AuthorityClass.OFFICIAL_UA, 0.90)
+    both = frozenset({str(first.document.id), str(second.document.id)})
+
+    selected = diversify_evidence([first, second], limit=1, subject_documents=both)
+
+    assert selected[0].document.id == second.document.id
+
+
+def test_a_document_with_no_declared_subject_does_not_enter_the_class() -> None:
+    """Негативний контроль: клас, у який потрапляють усі, нічого не впорядковує."""
+    named = _evidence(AuthorityClass.OFFICIAL_UA, 0.10)
+    unnamed = _evidence(AuthorityClass.OFFICIAL_UA, 0.95)
+
+    selected = diversify_evidence(
+        [unnamed, named], limit=1, subject_documents={str(named.document.id): 12}
+    )
+
+    assert selected[0].document.id == named.document.id
+
+
 def test_a_class_does_not_outrank_a_source_it_is_not_comparably_responsive_to() -> None:
     """Клас важить для джерела, яке САМЕ відповідає, а не для будь-якого офіційного.
 

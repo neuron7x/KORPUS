@@ -392,3 +392,50 @@ def test_publication_validation_rejects_evidence_span_mismatch() -> None:
     assert (
         f"{CourseGraphViolation.EVIDENCE_SPAN_MISMATCH}:lesson:binding-lesson" in result.violations
     )
+
+
+def test_a_binding_that_cites_one_held_span_and_one_absent_span_is_rejected() -> None:
+    """Часткове перекриття — це і є справжній випадок, і його не перевіряв ніхто.
+
+    Сусідній тест підміняє прольоти джерела ЦІЛКОМ (`{"other"}`), тож «включення» і
+    «будь-який перетин» дають на ньому однакову відповідь. Мутант
+    M495_ANY_OVERLAP_OF_EVIDENCE_SPANS_IS_ENOUGH_TO_PUBLISH пережив його 01.09.2026:
+    перевірка була зелена, бо міряла вужче за те, що охороняє.
+
+    Стан, заради якого правило існує, інший і буденний: версію джерела переглянуто,
+    один проліт зник, урок далі цитує обидва. Під слабшим правилом такий курс
+    публікується, і читач бачить посилання на проліт, якого у схваленому джерелі
+    немає — тобто рівно та поломка, яку `EVIDENCE_SPAN_MISMATCH` мусить ловити.
+    """
+    held = "33333333-3333-3333-3333-333333333333"
+    removed = "44444444-4444-4444-4444-444444444444"
+    lesson = Lesson(
+        id="lesson",
+        ordinal=0,
+        title="Lesson lesson",
+        objectives=(LearningObjective(id="objective-lesson", statement="Know the rule"),),
+        source_bindings=(
+            SourceBinding(
+                id="binding-lesson",
+                document_id="11111111-1111-1111-1111-111111111111",
+                version_id="22222222-2222-2222-2222-222222222222",
+                evidence_span_ids=frozenset({held, removed}),
+            ),
+        ),
+        blocks=(
+            LessonBlock(
+                id="block-lesson",
+                ordinal=0,
+                kind=LessonBlockKind.TEXT,
+                title="Evidence-bound block",
+                source_binding_ids=frozenset({"binding-lesson"}),
+            ),
+        ),
+    )
+
+    result = validate_course_publication(_version(lesson), _source_state(), as_of=date(2026, 8, 16))
+
+    assert (
+        f"{CourseGraphViolation.EVIDENCE_SPAN_MISMATCH}:lesson:binding-lesson" in result.violations
+    )
+    assert not result.publishable

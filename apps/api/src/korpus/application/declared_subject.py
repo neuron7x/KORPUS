@@ -22,7 +22,9 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
+
+from korpus.application.retrieval_math import tokenize
 
 #: `Обов'язки: <роль> (…)`. Апостроф у назвах трапляється двома символами.
 DECLARED_SUBJECT = re.compile(r"^Обов[’']язки:\s*(?P<subject>.+?)\s*\(")
@@ -57,21 +59,56 @@ def subjects_in_question(question: str, titles: Iterable[str]) -> list[str]:
 
 
 def subject_tokens(titles: Iterable[str]) -> set[str]:
-    """Слова оголошених предметів — ті, що документ покриває власною назвою."""
+    """Слова оголошених предметів — ті, що документ покриває власною назвою.
+
+    Токени беруться ТИМ САМИМ розбором, яким розбирається питання. Тут стояло
+    `re.findall(r"\\w+", subject.lower())` — розбір без основи, тоді як питання
+    проходить `tokenize`, що знімає закінчення. Множини жили у РІЗНИХ просторах, і
+    їхній перетин порожнів мовчки: єдиний споживач цієї функції перетинає її
+    результат із токенами питання, тож порожній перетин вимикав увесь допуск
+    оголошеного предмета — без винятку, без запису в журнал, без жодної ознаки.
+
+    Виміряно 01.09.2026 на 99 оголошених предметах корпусу: перетин порожній рівно
+    для двох — «Днювальний парку» (`днювальний, парку` проти `днюв, парк`) і
+    «Безпосередні командири» (`безпосередні, командири` проти `безпосередн,
+    командир`). Решта 97 виживали ВИПАДКОВО: у них є хоч одне слово, якого стемер
+    не чіпає («сержант», «варти»), і одного слова досить, щоб перетин був непорожній.
+    Тобто механізм працював не тому, що був правильний, а тому, що більшість назв
+    його помилку переживала.
+
+    Ті самі два предмети — і рівно вони — єдині, чий документ бенчмарк не бачив у
+    цитатах ЖОДНОГО разу (`any_citation_subject_recall` 0.978 = 89 із 91).
+
+    Наслідок для `tokenize`, а не для `\\w+`: стоп-слова знімаються з предмета так
+    само, як із питання. «Черговий по парку» більше не пропонує «по» як слово, що
+    документ покриває власною назвою, — воно й у питанні не токен.
+    """
     tokens: set[str] = set()
     for title in titles:
         subject = declared_subject(title)
         if subject:
-            tokens.update(re.findall(r"\w+", subject.lower()))
+            tokens.update(tokenize(subject))
     return tokens
 
 
-def declared_subject_documents(question: str, evidence: Iterable[object]) -> frozenset[str]:
-    """Ідентифікатори документів, чий оголошений предмет названо в питанні.
+def declared_subject_documents(question: str, evidence: Iterable[object]) -> Mapping[str, int]:
+    """Документи, чий оголошений предмет названо в питанні, і НАСКІЛЬКИ точно.
 
     Замикання словника тут суттєве: предмети беруться з ЗАГОЛОВКІВ самих кандидатів,
-    а не з питання. Тому обійти допуск формулюванням не можна — щоб потрапити в цю
-    множину, документ мусить уже існувати в корпусі й оголосити свій предмет сам.
+    а не з питання. Тому обійти допуск формулюванням не можна — щоб потрапити сюди,
+    документ мусить уже існувати в корпусі й оголосити свій предмет сам.
+
+    **Значення — довжина збігу, і це не оформлення.** Раніше поверталася множина, тож
+    клас предмета був БІНАРНИЙ: питання «Які обов'язки має Безпосередні командири?»
+    збігається з трьома оголошеними предметами — «Безпосередні командири» (22 символи)
+    і двома «Командир» (по 8), бо коротший є підрядком довшого. Усі троє потрапляли в
+    один клас і далі змагалися релевантністю, де узагальнення виграє: виміряно
+    31.08.2026, ранжувальник ставив «Командир (начальник)» першим (0.4129) перед
+    «Безпосередні командири» (0.3356).
+
+    Порядок за довжиною вже обчислювався в `subjects_in_question` — і губився при
+    перетворенні на множину. Тепер він доживає до ранжування. Перевірка `x in ...`
+    працює як і раніше: у відображенні членство — це ключі.
     """
     titles: dict[str, list[str]] = {}
     for item in evidence:
@@ -79,7 +116,11 @@ def declared_subject_documents(question: str, evidence: Iterable[object]) -> fro
         title = getattr(document, "canonical_title", None)
         if title:
             titles.setdefault(title, []).append(str(getattr(document, "id", "")))
-    matched = subjects_in_question(question, titles.keys())
-    return frozenset(
-        document_id for title in matched for document_id in titles.get(title, []) if document_id
-    )
+    specificity: dict[str, int] = {}
+    for title in subjects_in_question(question, titles.keys()):
+        subject = declared_subject(title) or ""
+        for document_id in titles.get(title, []):
+            if document_id:
+                # Документ може мати кілька заголовків у видачі; лишається найточніший.
+                specificity[document_id] = max(specificity.get(document_id, 0), len(subject))
+    return specificity

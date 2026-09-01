@@ -1,0 +1,22 @@
+{
+  "schema": "korpus.evidence-bases.v1",
+  "why": "Еталон живучості для гейта баз доказів. Дві бази — та сама мініатюра й її копія, — і фальшивий каталог процесів, який їх «обслуговує». Без другої бази й без процесу отруту «база жива й неоголошена» відтворити нічим, а саме вона проходила з кодом 0.",
+  "of_record": "fixture",
+  "bases": {
+    "fixture": {
+      "kind": "sqlite",
+      "role": "of_record",
+      "path": "var/liveness-fixture/korpus.db"
+    },
+    "fixture-mirror": {
+      "kind": "sqlite",
+      "role": "control",
+      "path": "var/liveness-fixture/mirror.db",
+      "relation_to_record": {
+        "sources": "same",
+        "spans": "same",
+        "version_ids": "same"
+      }
+    }
+  }
+}

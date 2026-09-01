@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from datetime import date
 from typing import Any
 
@@ -73,6 +73,24 @@ def _temporal_relevance(
     return max(0.25, 1.0 / (1.0 + age_days / 1461.0))
 
 
+def subject_rank(
+    item: RetrievedEvidence, subject_documents: Mapping[str, int] | frozenset[str]
+) -> float:
+    """Наскільки точно документ оголосив ТОЙ САМИЙ предмет, що названо в питанні.
+
+    Не прапорець: «Командир» є підрядком «Безпосередні командири», тож бінарний клас
+    ставив узагальнення поруч із конкретним і віддавав перемогу релевантності, де
+    узагальнення виграє. Довший збіг — точніший предмет.
+
+    Множина приймається як раніше й дає той самий бінарний результат: виклики, які ще
+    не носять довжину збігу, не міняють поведінки.
+    """
+    key = str(item.document.id)
+    if isinstance(subject_documents, Mapping):
+        return float(subject_documents.get(key, 0))
+    return 1.0 if key in subject_documents else 0.0
+
+
 def authority_tier_floor(ranked: Sequence[RetrievedEvidence], relevance_floor: float) -> float:
     """Оцінка, нижче якої клас джерела перестає щось важити.
 
@@ -101,7 +119,7 @@ def diversify_evidence(
     diversity_lambda: float = 0.82,
     per_version_cap: int = 1,
     authority_priors: dict[AuthorityClass, float] | None = None,
-    subject_documents: frozenset[str] = frozenset(),
+    subject_documents: Mapping[str, int] | frozenset[str] = frozenset(),
     authority_relevance_floor: float = 0.0,
 ) -> list[RetrievedEvidence]:
     """Maximal-marginal-relevance selection, ordered by authority class first.
@@ -165,7 +183,7 @@ def diversify_evidence(
                 )
                 mmr = diversity_lambda * item.score - (1 - diversity_lambda) * redundancy
             return (
-                1.0 if str(item.document.id) in subject_documents else 0.0,
+                subject_rank(item, subject_documents),
                 authority_tier(item, priors, tier_floor),
                 mmr,
                 item.score,

@@ -80,13 +80,6 @@
       "target": "recheck-blocked"
     },
     {
-      "class": "not_a_gate",
-      "closes_when": "recheck-blocked стане гейтом",
-      "on": "2026-08-31",
-      "reason": "Самоперевірка інструмента вище; має сенс лише разом із ним.",
-      "target": "recheck-blocked-selftest"
-    },
-    {
       "class": "requires_external_evidence",
       "closes_when": "релізні звіти ляжуть у дерево за відомим шляхом",
       "on": "2026-08-31",
