@@ -4520,6 +4520,16 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M491_THE_SUBJECT_IS_PARSED_IN_A_DIFFERENT_SPACE_FROM_THE_QUESTION",
+        "apps/api/src/korpus/application/declared_subject.py",
+        "            tokens.update(tokenize(subject))",
+        r'            tokens.update(re.findall(r"\w+", subject.lower()))',
+        (
+            "apps/api/tests/test_declared_subject_token_space.py::"
+            "test_subject_tokens_are_produced_by_the_same_parser_as_the_question",
+        ),
+    ),
+    Mutant(
         "M488_THE_MATCH_LENGTH_IS_DISCARDED_BEFORE_RANKING",
         "apps/api/src/korpus/application/declared_subject.py",
         "                specificity[document_id] = max(specificity.get(document_id, 0), len(subject))",

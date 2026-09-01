@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1678,
-  "root_sha256": "c7796755fe9d9f3f334e8238b6ec3ee86a76952a7d65d2a8e9efc9aa3cf506a9",
+  "file_count": 1680,
+  "root_sha256": "6134ddf7bb057cfc82c2e98ad906c60ad0c627a51b8b9b18a617bff400da08dc",
   "files": [
     {
       "path": ".dockerignore",
@@ -967,8 +967,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/declared_subject.py",
-      "bytes": 6837,
-      "sha256": "b6f794fb09a47429df67634b3f3c230860178e36001a3a70eb3d4695d845b82f",
+      "bytes": 9215,
+      "sha256": "dc509c4fbba58af5aebc9e2c3f8b70bed97be0f44bf326b9d2ff6874fefd56e3",
       "mode": "0644"
     },
     {
@@ -2937,6 +2937,12 @@
       "path": "apps/api/tests/test_declared_subject_specificity.py",
       "bytes": 2984,
       "sha256": "476de88c2ddbb9a7317d7d350763c1ef59c13430aa7d7e48edb5519a6d003460",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_declared_subject_token_space.py",
+      "bytes": 5189,
+      "sha256": "d72223fb2e7f3f8f23b82bdf228ececce519418246b5e15bd6ac43bd742d4dd9",
       "mode": "0644"
     },
     {
@@ -6787,8 +6793,8 @@
     },
     {
       "path": "config/operations/answer-axes.json",
-      "bytes": 30773,
-      "sha256": "73a3b51ebcc208f0c8dad4f3e64eb3091f1fa6567991f787922d963429ad05bc",
+      "bytes": 32414,
+      "sha256": "3c455cdad6c666d718940320c1cfa58c797f8459c24b550666ed4d4a6c148241",
       "mode": "0644"
     },
     {
@@ -9565,8 +9571,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 225020,
-      "sha256": "2ea627fee3d0fa170764e840b3dd6871a0002c0b69e0b418c2d3e013a9659f9f",
+      "bytes": 225482,
+      "sha256": "41b5fae35ea10186ac36ac9c436c6327aed0a9df2774f4e31460409b82cd1625",
       "mode": "0755"
     },
     {
@@ -9723,6 +9729,12 @@
       "path": "scripts/seed_recovery_fixture.py",
       "bytes": 4450,
       "sha256": "a8739daed70d8163f6715640d2dabb2667694c68a5ff4086894460c6cbbb707e",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/serve_control_copy.sh",
+      "bytes": 4861,
+      "sha256": "309efcb265dd88d78a81e85312b54f89e0979d987a72f0d40504bc5117972653",
       "mode": "0755"
     },
     {
