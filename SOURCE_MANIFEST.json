@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1737,
-  "root_sha256": "ce1d9948635773ed35a7dacd863b788758d8f2a1e9ba39f8c8f8d46d79ad431f",
+  "file_count": 1739,
+  "root_sha256": "fd20cfd1ec70ad23630226a1007a8974d9f2a3e58d643becc3a9d0d9e72a6306",
   "files": [
     {
       "path": ".dockerignore",
@@ -3270,6 +3270,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_evidence_source_binding.py",
+      "bytes": 4546,
+      "sha256": "093c451aaaf6f7477274f80373d98ab7882406866e0eeb865e7d75da44608e6e",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_evidence_stores.py",
       "bytes": 10588,
       "sha256": "d469aad470f0efb512e52203f23cd3ae54cea937c958435acd6ac714c1c08ee4",
@@ -3367,8 +3373,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 127569,
-      "sha256": "b1786ac272b466b41193de2f6fdef9851d645b8147e2635c96a51b8007400c39",
+      "bytes": 131618,
+      "sha256": "044979a8e45c3140ea81d9ef1651af8fa75691863f7aa2f40a249cc1ae9e7e92",
       "mode": "0644"
     },
     {
@@ -7093,8 +7099,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 462128,
-      "sha256": "83375821c6b1ffc59a3ce9778879ec53bfe7ee173c9cda77c208585124907a20",
+      "bytes": 464909,
+      "sha256": "d5ac33020292d57087fce28aaf4a502b6a6f5d95d86bb8aba8fd958233411101",
       "mode": "0644"
     },
     {
@@ -8617,8 +8623,8 @@
     },
     {
       "path": "scripts/assemble_assurance.py",
-      "bytes": 4854,
-      "sha256": "567a21c9fd1021266c8f08a0a6d6b8e97cacf4c6e1b080add66b50aa4dbac16e",
+      "bytes": 6259,
+      "sha256": "2873fc5015c8d52b8470916e2e8241c56f6fd75252e6a7647f0be3b9318b018d",
       "mode": "0755"
     },
     {
@@ -8973,6 +8979,12 @@
       "path": "scripts/evidence_registry.py",
       "bytes": 5393,
       "sha256": "ba2f3bb5f777b1b735d51c2b8eb7959d05453377cba1464e96e97e721bb215ff",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/evidence_source_binding.py",
+      "bytes": 4561,
+      "sha256": "39780fc542e9f51fa7a3bd2d6522d86f9810e26eac7f408d3d7e0b41b488011b",
       "mode": "0755"
     },
     {
@@ -10069,8 +10081,8 @@
     },
     {
       "path": "scripts/snapshot_assurance.py",
-      "bytes": 9719,
-      "sha256": "48651d4fff157e7c2c89d6f89baefdaa5e919d29953f3f5cf4c725888a69ae4b",
+      "bytes": 11139,
+      "sha256": "2eb5fc26e427f125bf0d5e7e13ff15604914c0fa033caf4878a2cdd17f7b0d2e",
       "mode": "0755"
     },
     {
@@ -10309,8 +10321,8 @@
     },
     {
       "path": "scripts/verify_handoff_contract.py",
-      "bytes": 13432,
-      "sha256": "7b8a534eef78140bfd7439b6d99a54878f791c17f59f101540bcf9fb2f525cdb",
+      "bytes": 14040,
+      "sha256": "bb92a7581d9c4abcb819420cb24894ef62f64987af4af4a1c68a2fcf05a5a912",
       "mode": "0644"
     },
     {

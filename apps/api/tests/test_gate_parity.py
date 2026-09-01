@@ -2071,14 +2071,32 @@ def test_the_handoff_refuses_a_digest_from_the_other_scope() -> None:
     original = assurance.read_bytes()
     try:
         payload = json.loads(original)
-        payload["digest_scope"] = "evidence_paths"
-        assurance.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        # Спершу — НОВА перевага: коли звіт несе поле ВЛАСНОЇ міри цієї перевірки,
+        # береться воно, і хибний `digest_scope` сусіда вироку не змінює. Саме це
+        # прибрало вічний STALE, тож воно мусить бути виміряним, а не припущеним.
+        assert handoff._release_evidence_state() == "BOUND"
+        with_wrong_label = dict(payload)
+        with_wrong_label["digest_scope"] = "нісенітниця"
+        assurance.write_text(json.dumps(with_wrong_label, ensure_ascii=False), encoding="utf-8")
+        assert handoff._release_evidence_state() == "BOUND", (
+            "поле власної міри мусить мати перевагу над ярликом чужої"
+        )
+
+        # А далі — стара властивість, і вона лишається дійсною для звіту, який поля
+        # власної міри НЕ несе: порівняння через різні лінійки не «застаріле», воно
+        # незіставне, і сказати «STALE» означало б звинуватити незмінене дерево.
+        legacy = {
+            key: value
+            for key, value in payload.items()
+            if key not in {"tracked_tree_sha256", "tracked_tree_scope"}
+        }
+        legacy["digest_scope"] = "evidence_paths"
+        assurance.write_text(json.dumps(legacy, ensure_ascii=False), encoding="utf-8")
         with pytest.raises(AssertionError, match="not comparable"):
             handoff._release_evidence_state()
 
-        payload["digest_scope"] = None
-        del payload["digest_scope"]
-        assurance.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        del legacy["digest_scope"]
+        assurance.write_text(json.dumps(legacy, ensure_ascii=False), encoding="utf-8")
         assert handoff._release_evidence_state() == "SCOPE_UNDECLARED", (
             "an unlabelled report must be a third state, not this checker's own scope"
         )
@@ -2294,23 +2312,36 @@ def test_the_assurance_producer_pairs_every_digest_with_its_own_ruler() -> None:
     тому, що дає названа ним лінійка.
     """
     sys.path.insert(0, str(ROOT / "scripts"))
-    from source_digest import DIGEST_SCOPE, source_tree_digest
-
     from korpus.application.provenance import DIGEST_SCOPE as EVIDENCE_SCOPE
     from korpus.application.provenance import compute_source_digest
+    from source_digest import DIGEST_SCOPE, source_tree_digest
 
     report_path = ROOT / "var/research-assurance-report.json"
     if not report_path.is_file():
         pytest.skip("assurance report is not assembled in this tree")
     report = json.loads(report_path.read_text(encoding="utf-8"))
 
+    # Ярлики — завжди: це властивість ВИРОБНИКА, і від стану дерева не залежить.
     assert report.get("digest_scope") == EVIDENCE_SCOPE
-    assert report.get("evidence_source_sha256") == compute_source_digest(ROOT)
     assert report.get("tracked_tree_scope") == DIGEST_SCOPE
-    assert report.get("tracked_tree_sha256") == source_tree_digest()
-    # Негативний контроль правила, а не лише його дотримання: дві лінійки мусять
-    # давати РІЗНІ числа, інакше «збіглось» нічого не доводить.
+    assert EVIDENCE_SCOPE != DIGEST_SCOPE, "дві лінійки мусять і зватись по-різному"
+    # Два різні числа — негативний контроль самого правила: якби вони збігались,
+    # «ярлик відповідає значенню» не доводило б нічого.
     assert report["evidence_source_sha256"] != report["tracked_tree_sha256"]
+
+    # А відповідність числа своїй лінійці зіставна лише з тим станом, із якого звіт
+    # зроблено. Свіжість — предмет `evidence_provenance`, і карати одну невизначеність
+    # двічі означало б зробити цей тест червоним щоразу, коли дерево просто рухається.
+    changed = subprocess.run(
+        ["git", "-C", str(ROOT), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    if changed:
+        pytest.skip("дерево рухалось після складання звіту; відповідність незіставна")
+    assert report.get("evidence_source_sha256") == compute_source_digest(ROOT)
+    assert report.get("tracked_tree_sha256") == source_tree_digest()
 
 
 def test_only_one_definition_of_what_a_source_is() -> None:
