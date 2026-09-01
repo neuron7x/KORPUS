@@ -51,6 +51,12 @@ def _release_evidence_state() -> str:
     # was measured the way this check measures — the same assumption `host in uri` made, and
     # it would silently absorb every future report that forgets the field. A third state
     # instead: a report that does not name its scope cannot be judged, and says so.
+    # Спершу поле ВЛАСНОЇ міри, якщо звіт його несе: воно з'явилось 01.09.2026, коли
+    # виявилось, що `digest_scope` називав "tracked_tree" над числом "evidence_paths",
+    # і ця перевірка через те роками порівнювала різні лінійки й вічно казала STALE.
+    tracked = assurance.get("tracked_tree_sha256")
+    if isinstance(tracked, str) and assurance.get("tracked_tree_scope") == DIGEST_SCOPE:
+        return "BOUND" if source_tree_digest() == tracked else "STALE"
     promoted_scope = assurance.get("digest_scope")
     if promoted_scope is None:
         return "SCOPE_UNDECLARED"

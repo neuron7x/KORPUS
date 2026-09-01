@@ -14,6 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from evidence_source_binding import evidence_source_binding_failure
 from release_identity import release_tag
+from source_digest import source_tree_digest
 
 ROOT = Path(__file__).resolve().parents[1]
 VAR = ROOT / "var"
@@ -149,23 +150,47 @@ def _verify_evidence_matches_the_gate() -> None:
 def _verify_evidence_source_is_committed(assurance: dict[str, object]) -> None:
     """Просування доказу, чиє джерело не закомічене, — це доказ про недосяжний стан.
 
-    Виміряно 01.09.2026: `compute_source_digest` рахує РОБОЧЕ дерево, і одна правка
-    в доказовому файлі розводить його з HEAD. Ніщо цього не питало, тож звіт міг
-    бути виданий і опублікований із дайджестом, якого немає в жодному коміті —
-    відтворити його пізніше неможливо, бо байти існували лише в дереві, якого вже
-    немає.
+    Перша версія цієї перевірки читала `provenance.source_digest` і мовчки
+    поверталась, коли поля немає. Звіт про забезпечення НЕ МАЄ такого поля: у нього
+    `evidence_source_sha256` і `provenance` як РЯДОК. Тобто перевірка була досяжна,
+    зелена й не міряла нічого — вада, яку показав лише негативний контроль на
+    справжньому гейті, а не юніт-тест.
 
-    Пропуск дозволений рівно один: якщо звіт узагалі не називає дайджесту, цим
-    займається `_verify_evidence_matches_the_gate`, і дублювати відмову тут означало
-    б покарати одну невизначеність двічі.
+    Другий урок був у ТІМ, ЩО порівнювати. У дереві два різні дайджести джерела:
+    `evidence_paths` (двадцять оголошених доказових шляхів) і `tracked_tree` (усе
+    відстежене мінус згенероване). Порівняти один з другим — рівно та помилка, про
+    яку попереджають обидва модулі: вирок «дерево змінилось» там, де порівняли дві
+    різні міри. Тому спершу звіряється ОБЛАСТЬ, і лише потім число.
+
+    Невідома область і відсутній дайджест — ВІДМОВА, не пропуск.
     """
-    provenance = assurance.get("provenance")
-    claimed = provenance.get("source_digest") if isinstance(provenance, dict) else None
+    scope = assurance.get("digest_scope")
+    claimed = assurance.get("evidence_source_sha256")
     if claimed is None:
-        claimed = assurance.get("source_digest")
+        provenance = assurance.get("provenance")
+        if isinstance(provenance, dict):
+            claimed = provenance.get("source_digest")
+            scope = scope or provenance.get("digest_scope") or "evidence_paths"
     if claimed is None:
-        return
-    failure = evidence_source_binding_failure(claimed, root=ROOT)
+        raise SystemExit(
+            "assurance report names no evidence source digest: promoting it would "
+            "publish evidence that cannot be bound to any commit"
+        )
+    if scope == "tracked_tree":
+        expected = source_tree_digest("HEAD")
+        failure = (
+            None
+            if isinstance(claimed, str) and claimed.lower() == expected
+            else "assurance evidence source digest does not match committed HEAD"
+        )
+    elif scope == "evidence_paths":
+        failure = evidence_source_binding_failure(claimed, root=ROOT)
+    else:
+        raise SystemExit(
+            f"assurance report declares an unknown digest scope {scope!r}: "
+            "two different source digests exist in this tree and comparing them "
+            "reports a changed tree when the tree did not change"
+        )
     if failure is not None:
         raise SystemExit(
             f"{failure}: доказ описує стан, якого немає в жодному коміті, "

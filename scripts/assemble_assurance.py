@@ -13,6 +13,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
 from korpus.application.assurance import evaluate_assurance  # noqa: E402  (path set above)
+from korpus.application.provenance import (  # noqa: E402
+    DIGEST_SCOPE as EVIDENCE_DIGEST_SCOPE,
+)
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 
 VAR = ROOT / "var"
@@ -80,8 +83,22 @@ def main() -> int:
         # the other reads as "the tree changed" when nothing changed. Without this field the
         # reader has no way to know which was used, and verify_handoff_contract must return
         # SCOPE_UNDECLARED rather than guess.
-        "digest_scope": DIGEST_SCOPE,
+        # ЯРЛИК МУСИТЬ НАЗИВАТИ ТУ ЛІНІЙКУ, ЯКА ДАЛА ЧИСЛО. Тут стояв
+        # `DIGEST_SCOPE` із `source_digest` — тобто "tracked_tree", — а число
+        # приходило з `compute_source_digest`, тобто "evidence_paths". Коментар
+        # двома рядками вище описував саме цю небезпеку, і був правий; хибним був
+        # код під ним. Наслідок жив у дереві й нікого не будив: `handoff-verify`
+        # порівнював `source_tree_digest()` із числом іншої міри й ПОСТІЙНО звітував
+        # `release_evidence: STALE` при `status: PASS`. Сигнал, увімкнений завжди,
+        # не несе інформації.
+        #
+        # Обидві лінійки потрібні, тож замість вибору переможця зникає ЗІТКНЕННЯ
+        # ІМЕН: кожне число має власне поле й власний ярлик, і кожен споживач
+        # читає те, що міряє сам.
+        "digest_scope": EVIDENCE_DIGEST_SCOPE,
         "evidence_source_sha256": compute_source_digest(ROOT),
+        "tracked_tree_scope": DIGEST_SCOPE,
+        "tracked_tree_sha256": source_tree_digest(),
         "checks": checks,
         "pytest": {
             key: suite.attrib.get(key, "0")

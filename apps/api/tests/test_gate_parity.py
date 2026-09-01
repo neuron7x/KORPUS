@@ -2277,22 +2277,40 @@ def test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost(
     assert gate.main() == 0, "a report sitting exactly on its floor must still pass"
 
 
-def test_the_assurance_producer_declares_which_ruler_it_used() -> None:
-    """DIGEST_SCOPE was inert: the checker read the field and no producer wrote it, so every
-    report in the tree was unlabelled and verify_handoff_contract could only guess or refuse.
+def test_the_assurance_producer_pairs_every_digest_with_its_own_ruler() -> None:
+    """Ярлик мусить називати ту лінійку, яка дала число — і це вимір, не написання.
 
-    A checker that reads a field nobody writes is a checker of nothing.
+    Попередня версія перевіряла ТЕКСТ: що в джерелі є рядок
+    `'"digest_scope": DIGEST_SCOPE'`, і що ця константа дорівнює "tracked_tree".
+    Обидва твердження були правдиві. Її обґрунтування — «assemble_assurance uses
+    source_tree_digest; the scope it declares must match it» — було ХИБНЕ: поле
+    заповнював `compute_source_digest`, тобто інша лінійка.
+
+    Тест був правдивий про текст і хибний про світ, тому мовчав, поки
+    `handoff-verify` порівнював різні міри й ПОСТІЙНО звітував `release_evidence:
+    STALE` при `status: PASS`. Сигнал, увімкнений завжди, не несе інформації.
+
+    Тому тут звіряється ВІДПОВІДНІСТЬ на виробленому звіті: кожне число дорівнює
+    тому, що дає названа ним лінійка.
     """
-    source = (ROOT / "scripts/assemble_assurance.py").read_text(encoding="utf-8")
-    assert '"digest_scope": DIGEST_SCOPE' in source, (
-        "the assurance report no longer names the digest scope it was measured with"
-    )
     sys.path.insert(0, str(ROOT / "scripts"))
-    from source_digest import DIGEST_SCOPE
+    from source_digest import DIGEST_SCOPE, source_tree_digest
 
-    assert DIGEST_SCOPE == "tracked_tree", (
-        "assemble_assurance uses source_tree_digest; the scope it declares must match it"
-    )
+    from korpus.application.provenance import DIGEST_SCOPE as EVIDENCE_SCOPE
+    from korpus.application.provenance import compute_source_digest
+
+    report_path = ROOT / "var/research-assurance-report.json"
+    if not report_path.is_file():
+        pytest.skip("assurance report is not assembled in this tree")
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+
+    assert report.get("digest_scope") == EVIDENCE_SCOPE
+    assert report.get("evidence_source_sha256") == compute_source_digest(ROOT)
+    assert report.get("tracked_tree_scope") == DIGEST_SCOPE
+    assert report.get("tracked_tree_sha256") == source_tree_digest()
+    # Негативний контроль правила, а не лише його дотримання: дві лінійки мусять
+    # давати РІЗНІ числа, інакше «збіглось» нічого не доводить.
+    assert report["evidence_source_sha256"] != report["tracked_tree_sha256"]
 
 
 def test_only_one_definition_of_what_a_source_is() -> None:

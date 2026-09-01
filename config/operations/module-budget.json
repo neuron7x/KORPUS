@@ -3184,10 +3184,10 @@
       "reason": "ACT-007: aggregate pinned CI scanner execution markers; initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/assemble_assurance.py": {
-      "lines": 127,
+      "lines": 150,
       "max_complexity": 12,
       "max_function_args": 1,
-      "max_function_lines": 87,
+      "max_function_lines": 106,
       "max_nesting": 1,
       "proof_lines": 0
     },
@@ -5100,8 +5100,8 @@
       "reason": "v0.4.0: artifact/material-bound SLSA v1.2 provenance with explicit untrusted local builder; initial measured ratchet ceiling"
     },
     "scripts/snapshot_assurance.py": {
-      "lines": 230,
-      "max_complexity": 8,
+      "lines": 255,
+      "max_complexity": 10,
       "max_function_args": 1,
       "max_function_lines": 58,
       "max_nesting": 2,
@@ -5443,7 +5443,7 @@
       "reason": "v0.8.2 production request-SLI decomposition; exact measured value becomes the ratchet ceiling"
     },
     "scripts/verify_handoff_contract.py": {
-      "lines": 264,
+      "lines": 275,
       "max_complexity": 43,
       "max_function_args": 1,
       "max_function_lines": 183,
@@ -9025,6 +9025,43 @@
       "reason": "Прив'язка доказів до ЗАКОМІЧЕНИХ байтів. Виміряно: `compute_source_digest` рахує робоче дерево, і одна правка розводить його з HEAD (e4c4d942… проти 9c1960c0…), а не питав цього ніхто. Отже звіт міг бути виданий із дайджестом, якого немає в жодному коміті: відтворити його пізніше неможливо. `digest_source_records` — та сама функція для обох обчислень: друга реалізація того ж числа розійшлася б на першому уточненні правила, і розбіжність читалась би як «дерево змінилось».",
       "to": {
         "lines": 230
+      }
+    },
+    {
+      "from": {
+        "lines": 127,
+        "max_function_lines": 87
+      },
+      "on": "2026-09-01",
+      "path": "scripts/assemble_assurance.py",
+      "reason": "Одне ім'я поля на дві різні лінійки. `assemble_assurance` писав ярлик \"tracked_tree\" над числом \"evidence_paths\"; коментар двома рядками вище описував саме цю небезпеку й був правий, хибним був код під ним. Наслідок жив у дереві: `handoff-verify` порівнював різні міри й ПОСТІЙНО звітував `release_evidence: STALE` при `status: PASS`. Замість вибору переможця зникає ЗІТКНЕННЯ ІМЕН: кожне число має власне поле й власний ярлик.",
+      "to": {
+        "lines": 150,
+        "max_function_lines": 106
+      }
+    },
+    {
+      "from": {
+        "lines": 230,
+        "max_complexity": 8
+      },
+      "on": "2026-09-01",
+      "path": "scripts/snapshot_assurance.py",
+      "reason": "Одне ім'я поля на дві різні лінійки. `assemble_assurance` писав ярлик \"tracked_tree\" над числом \"evidence_paths\"; коментар двома рядками вище описував саме цю небезпеку й був правий, хибним був код під ним. Наслідок жив у дереві: `handoff-verify` порівнював різні міри й ПОСТІЙНО звітував `release_evidence: STALE` при `status: PASS`. Замість вибору переможця зникає ЗІТКНЕННЯ ІМЕН: кожне число має власне поле й власний ярлик.",
+      "to": {
+        "lines": 255,
+        "max_complexity": 10
+      }
+    },
+    {
+      "from": {
+        "lines": 264
+      },
+      "on": "2026-09-01",
+      "path": "scripts/verify_handoff_contract.py",
+      "reason": "Одне ім'я поля на дві різні лінійки. `assemble_assurance` писав ярлик \"tracked_tree\" над числом \"evidence_paths\"; коментар двома рядками вище описував саме цю небезпеку й був правий, хибним був код під ним. Наслідок жив у дереві: `handoff-verify` порівнював різні міри й ПОСТІЙНО звітував `release_evidence: STALE` при `status: PASS`. Замість вибору переможця зникає ЗІТКНЕННЯ ІМЕН: кожне число має власне поле й власний ярлик.",
+      "to": {
+        "lines": 275
       }
     }
   ],
