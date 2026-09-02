@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1757,
-  "root_sha256": "b9529ebfe203d40ab60ceb85298e66a885a6956ffdeacffe82ede3fe6f27c30a",
+  "file_count": 1758,
+  "root_sha256": "8779b18cd6a28f122e78bb126c47e8a423710819030f1c876fb3a9b2c0ea6dcc",
   "files": [
     {
       "path": ".dockerignore",
@@ -4176,6 +4176,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_provenance_without_git.py",
+      "bytes": 5542,
+      "sha256": "7ed43b4702af14984739d2ffe0fb3734d1388655c6de7ba787af211ee3da2c91",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_public_deployment_script.py",
       "bytes": 6022,
       "sha256": "dd99060fff2e172cdef458acbe714983a6f86773c5c6e0d3e7e23e9dc2660973",
@@ -7202,7 +7208,7 @@
     {
       "path": "config/operations/release-surface.json",
       "bytes": 2782,
-      "sha256": "e8f86c33ad81db945aa4d9ea3d53abbebf77b380b4ca19fcd6f21aebe7817091",
+      "sha256": "0427b4591e3e649fc96be4d00a64e4f65d606f54e33f80f3139e528b5191d938",
       "mode": "0644"
     },
     {
