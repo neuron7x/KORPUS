@@ -74,6 +74,9 @@
         "source-manifest-verify",
         "standards-control-map",
         "supply-chain-inventory",
+        "validate_infrastructure.py",
+        "validate_kubernetes.py",
+        "validate_repository.py",
         "verdict-ledger"
       ]
     },

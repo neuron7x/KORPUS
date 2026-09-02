@@ -4,8 +4,14 @@ This runbook is fail-closed. Workflow existence is not evidence. Every accepted 
 
 ## 1. Final local closure
 
-1. Execute all 64 regression shards on the final source freeze; merge must account for the exact live collection with zero failures/errors and no unauthorized skips.
-2. Execute all 349 mutants on the same source freeze; required result: 349 killed, 0 survived, 0 invalid, 0 errors/timeouts.
+1. Execute all 24 regression shards (`REGRESSION_SHARDS ?= 24`, Makefile:1362) on the final source freeze; merge must account for the exact live collection with zero failures/errors and no unauthorized skips.
+2. Execute the whole mutation catalogue on the same source freeze; required result:
+   `killed == valid_mutants == len(MUTANTS)`, 0 survived, 0 invalid, 0 errors/timeouts.
+   ВИПРАВЛЕНО 2026-09-02: тут стояло «all 349 mutants … 349 killed». Каталог містить
+   **574**, тож приймальний критерій був невиконуваний за визначенням, а документ
+   названий поточною версією релізу. Число навмисно НЕ вкарбовано вдруге: каталог росте,
+   і друге оголошення розійшлося б знову. Джерело — `scripts/run_mutation_tests.py`,
+   охоронюване виміром `mutants` у `config/operations/release-surface.json`.
 3. Regenerate all CURRENT reports, `SOURCE_MANIFEST.json`, `PACKAGE_BUILD.json`, current truth and canonical package.
 4. Verify the unpacked package from a clean gitless directory.
 

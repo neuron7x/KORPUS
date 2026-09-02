@@ -803,9 +803,16 @@ compare-retrieval:
 	@test -n "$(BASE)" || { echo "вжиток: make compare-retrieval BASE=http://127.0.0.1:8000 TOKEN=..." >&2; exit 64; }
 	$(PY) scripts/compare_retrieval_configs.py --base "$(BASE)" $(if $(TOKEN),--token "$(TOKEN)")
 
+## ВИМІРЯНО 02.09.2026: ціль подавала `--database`, якого в парсері немає ЖОДНОГО,
+## і не подавала жодного з трьох обов'язкових. Вона впала б з rc=2 на першому ж
+## запуску. Ціль існує рівно для того, щоб ніхто не пропустив поломку скрипта —
+## і зламана була САМА ЦІЛЬ, бо її ніхто ніколи не запускав.
 remap-reference-versions:
-	@test -n "$(DATABASE)" || { echo "вжиток: make remap-reference-versions DATABASE=..." >&2; exit 64; }
-	$(PY) scripts/remap_reference_versions.py --database "$(DATABASE)"
+	@test -n "$(SOURCE_SQLITE)" && test -n "$(TARGET_URL)" && test -n "$(OUT)" || \
+	  { echo "вжиток: make remap-reference-versions SOURCE_SQLITE=var/runtime/korpus.db TARGET_URL=postgresql://... OUT=var/reference-remapped.jsonl [REFERENCE=evals/datasets/reference.jsonl]" >&2; exit 64; }
+	$(PY) scripts/remap_reference_versions.py \
+	  --source-sqlite "$(SOURCE_SQLITE)" --target-url "$(TARGET_URL)" --out "$(OUT)" \
+	  $(if $(REFERENCE),--reference "$(REFERENCE)")
 
 ## Локальний семантичний рушій для перевірки гібридного пошуку.
 serve-semantic-local:

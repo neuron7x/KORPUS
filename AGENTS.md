@@ -26,9 +26,11 @@ owner explicitly promotes or imports them into this workspace.
 
 ## Current repository state
 
-As recorded on 2026-08-24, this canonical root contains no Git metadata.
-Establishing Git history or connecting a remote requires an explicit, verified
-repository/bootstrap decision.
+ВИПРАВЛЕНО 2026-09-02. Запис від 2026-08-24 казав, що цей корінь не має метаданих Git.
+Це більше не так: репозиторій існує, гілка `main`, і правило було хибне у ЗВОРОТНИЙ бік —
+воно забороняло стверджувати, що зміну закомічено, тоді як коміти реальні.
+Стан читається командою, не цим абзацом: `git rev-parse --short HEAD` і `git status --short`.
+Число комітів і файлів тут навмисно не вкарбовано — вкарбоване число застаріває мовчки.
 
 ## Agent execution contract
 

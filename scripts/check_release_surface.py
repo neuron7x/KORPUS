@@ -56,10 +56,25 @@ COUNTED = ("mutants", "budgeted_modules", "scripts_declaring_selftest", "livenes
 
 
 def _lane_targets(makefile: str, lane: str) -> list[str]:
+    """Передумови ЗАГОЛОВКА плюс скрипти, які лан запускає у власному РЕЦЕПТІ.
+
+    ВИМІРЯНО 02.09.2026. Перша версія читала лише заголовок правила, і три скрипти,
+    які `validate` запускає прямо в рецепті — `validate_repository.py`,
+    `validate_infrastructure.py`, `validate_kubernetes.py` — не входили в знаменник
+    узагалі. Прибрати рядок із рецепта означало скоротити охоронювану поверхню, не
+    зрушивши жодного числа: рівно та дірка, проти якої цей гейт існує.
+
+    Скрипт рецепта і ціль-передумова — різні речі, тож і члени різні: `validate_x.py`
+    поруч із `openapi`. Спільне в них те, що зникнення кожного мусить бути назване.
+    """
     found = re.search(rf"^{re.escape(lane)}:([^=\n]*)$", makefile, re.M)
     if found is None:
         return []
-    return [item for item in found.group(1).split() if not item.startswith(("$", "#"))]
+    members = [item for item in found.group(1).split() if not item.startswith(("$", "#"))]
+    body = makefile[found.end() :]
+    recipe = body[: body.find("\n\n")] if "\n\n" in body else body
+    members += re.findall(r"scripts/([a-z_0-9]+\.py)", recipe)
+    return members
 
 
 def observe(root: Path = ROOT) -> dict[str, Any]:

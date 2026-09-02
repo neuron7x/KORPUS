@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1758,
-  "root_sha256": "5750011ffe2ea3d1590335368b60db19973d5aae9f7a437d02689edaa5afdaf5",
+  "file_count": 1759,
+  "root_sha256": "d5aeb7b56c238d6edda7e89c3467b3a533b4076e0bcbc0d4bb9ecf8ff841dbf2",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 43289,
-      "sha256": "05a69c5ede39044d87cb38c04658a3c1fb4edb8dec4c0faa47730118b2354439",
+      "bytes": 44081,
+      "sha256": "b223200e6e61e9532f5f8019234b43feb9fee285167ff90589d3a29a0acc2cd1",
       "mode": "0644"
     },
     {
@@ -151,8 +151,8 @@
     },
     {
       "path": "AGENTS.md",
-      "bytes": 2386,
-      "sha256": "ae31c1fc5cb57118289a96a37eb4923d20b9e251a11b4bbc9d08efe0ad0b11cb",
+      "bytes": 2922,
+      "sha256": "994896c0eb5ae52b78b9124bc4aec2faea454bb6673e4d82ce839f76a5c09311",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 91156,
-      "sha256": "360fbcef5815c0673cb696809980fc82bfb95bb8683a509de248f7068e0d5e0f",
+      "bytes": 91963,
+      "sha256": "5b05ffd08355011dd94c060fd5f6ef33f0d977f211d0290685809077c98ffa94",
       "mode": "0644"
     },
     {
@@ -3858,6 +3858,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_one_provenance_surface.py",
+      "bytes": 4424,
+      "sha256": "074cdd4d63653a0ce8eedc5654d699fb2c592db8805139c0ef5f707ca94bc57e",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_openai_model_adapter.py",
       "bytes": 9379,
       "sha256": "dad7ed261fd4e496a2c4b3524a4cf4ed5341475f7df60fbf702a9127679517ae",
@@ -7136,7 +7142,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "dc9b9c3ebee9d7d085009d8674093ce29e2dfc67f7adda7dfec0d6b2ed85a320",
+      "sha256": "30d471b47b84005407c66e88cca9d9ae2972a443a34f5d511874d3c9847a0bf8",
       "mode": "0644"
     },
     {
@@ -7159,8 +7165,8 @@
     },
     {
       "path": "config/operations/gate-closure.json",
-      "bytes": 9540,
-      "sha256": "9bf3260046cf1b137972f7628115a504ffc3efd16fb2961076adf1024e07eb59",
+      "bytes": 10096,
+      "sha256": "c0c2450403d460473dc98515ec9f420d454c8241168be3d8a64fa194205bd40c",
       "mode": "0644"
     },
     {
@@ -7171,8 +7177,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 490602,
-      "sha256": "4c8933320ca51275cb9b5fcfa80dc07ed482327641bc93bf09d5a048fb102cbf",
+      "bytes": 491732,
+      "sha256": "9f0e2010be51b77d53542bd696d6cae43b729c00999c8bf4ad7f27e9fb699565",
       "mode": "0644"
     },
     {
@@ -7201,8 +7207,8 @@
     },
     {
       "path": "config/operations/release-surface.json",
-      "bytes": 3566,
-      "sha256": "5f1be86b3775bd90c8af2353aa6d2c52f7b0cb5b8d8bc3010daf184de4f15ed6",
+      "bytes": 3672,
+      "sha256": "7f181cbfe0c382cbf4ab46cab2105cb75bab39286e61ee7f43ebb15b14b90097",
       "mode": "0644"
     },
     {
@@ -7381,8 +7387,8 @@
     },
     {
       "path": "docs/PRODUCTION_EVIDENCE_ACQUISITION_RUNBOOK_v0.9.7.md",
-      "bytes": 3150,
-      "sha256": "db4e70d0d84f7abdfca48da3b74c0a1a7ae855abc054ef00f66c463dd23d042b",
+      "bytes": 3887,
+      "sha256": "5ae993a0038f4afc0763e3418ec386d7b9d3b67cbb06f5542af6b04b125af0d9",
       "mode": "0644"
     },
     {
@@ -7537,8 +7543,8 @@
     },
     {
       "path": "docs/assurance/PRODUCTION_HARD_PREDICATES.md",
-      "bytes": 2680,
-      "sha256": "36ee163260966d48a1dbd9e4123e68da5e6ad15705ba083c67ec2ffcff1c887c",
+      "bytes": 3372,
+      "sha256": "a581050cede1a91b527c735c6731a9dac3d106e9f5ce8745c78ba07913d50145",
       "mode": "0644"
     },
     {
@@ -7993,8 +7999,8 @@
     },
     {
       "path": "docs/runbooks/INCIDENT_RESPONSE.md",
-      "bytes": 1509,
-      "sha256": "c7048062f1a2b220f63ef70aab1370813e500b3bffddacb007ed94a9d66faed4",
+      "bytes": 1846,
+      "sha256": "14467d8113211c2ed395580fe419796d5ceac556d8f52008bddb559aeb2161b5",
       "mode": "0644"
     },
     {
@@ -8965,8 +8971,8 @@
     },
     {
       "path": "scripts/check_release_surface.py",
-      "bytes": 10900,
-      "sha256": "700375c1c5016b5cfad53c05525f0328517e38870aafe4b57337cb75fdbfb2e8",
+      "bytes": 12131,
+      "sha256": "b14f975c8304ccd7e85db3aca10630735e1e898d5a8ea61429827437216c298f",
       "mode": "0755"
     },
     {

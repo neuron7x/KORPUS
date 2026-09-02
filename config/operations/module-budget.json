@@ -3575,7 +3575,7 @@
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/check_release_surface.py": {
-      "lines": 177,
+      "lines": 192,
       "max_complexity": 12,
       "max_function_args": 3,
       "max_function_lines": 31,
@@ -9482,6 +9482,17 @@
       "to": {
         "lines": 205,
         "max_function_lines": 67
+      }
+    },
+    {
+      "from": {
+        "lines": 177
+      },
+      "on": "2026-09-02",
+      "path": "scripts/check_release_surface.py",
+      "reason": "`_lane_targets` тепер читає ще й РЕЦЕПТ лану, не лише заголовок правила. До цієї зміни три скрипти, які `validate` запускає у власному рецепті (`validate_repository.py`, `validate_infrastructure.py`, `validate_kubernetes.py`), не входили в знаменник узагалі: прибрати рядок із рецепта означало скоротити охоронювану поверхню, не зрушивши жодного числа — рівно та дірка, проти якої цей гейт існує. Виміряно отрутою: заміна рядка 734 Makefile на `@true` дає FAIL «зник 'validate_kubernetes.py' і це ніде не названо». П'ятнадцять рядків — це докстрінг, що називає вимір; код виріс на шість.",
+      "to": {
+        "lines": 192
       }
     }
   ],
