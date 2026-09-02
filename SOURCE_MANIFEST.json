@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1784,
-  "root_sha256": "9d1121694ebebd1c5450e797129b639cc8e73793f8b6d3ffe8664b0bdbf0b584",
+  "file_count": 1785,
+  "root_sha256": "d761122ad8ad17e0f14e440251146e672c11bd5fc5b7767896b669dfd2fa96e8",
   "files": [
     {
       "path": ".dockerignore",
@@ -3828,6 +3828,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_mutation_report_declares_its_verdict.py",
+      "bytes": 4846,
+      "sha256": "6da54b493cf3c1be4649f916334586761f7fb88320d60c41ba2318046d1e5c4b",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_mutation_report_freshness.py",
       "bytes": 2254,
       "sha256": "c2b1dd384ae2a4ff07b2165e7dab3e8b87bc5aef5218f825c42a57a75f230058",
@@ -7267,8 +7273,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 530624,
-      "sha256": "90f8c83c992186fdcb9680d706c0b40ab300ef98ca106bf799feaf871eb85ac3",
+      "bytes": 532222,
+      "sha256": "aa50c9be5cd43e446a95a41c6fd65d683cded4916831b154b3174f9dec7bc234",
       "mode": "0644"
     },
     {
@@ -10147,8 +10153,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 296207,
-      "sha256": "e2e8d6a1d5d45bb999a850ef0736cb6588a9fb77ac949f35faed8713a5cf3db0",
+      "bytes": 297369,
+      "sha256": "5c5c0c7b1441eeca2469b421ab1be6538d79c0f541161741ecf715e272ac874b",
       "mode": "0755"
     },
     {
