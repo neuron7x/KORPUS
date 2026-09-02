@@ -106,6 +106,25 @@ def test_non_string_command_parts_are_not_executed() -> None:
     assert DEBT.resolve_command([sys.executable, 7]) is None
 
 
+def test_the_resolved_command_does_not_alias_the_registry_entry() -> None:
+    """Повернути ТОЙ САМИЙ список — це дописати `PY=` у реєстр назавжди.
+
+    При runtime_root=None `_bind_runtime_root` віддає свій аргумент без копії, а
+    `resolve_command` після цього робить append. Без копії на вході другий виклик того
+    самого запису дістав би команду з прапорцем, якого в реєстрі ніхто не писав, і
+    різниця між першим і другим прогоном читалася б як зміна дерева. Копію тримала
+    `list(value)`; типізація — та сама правка, що її ледь не прибрала.
+    """
+    entry = ["make", "production-assurance-verify"]
+    before = list(entry)
+
+    first = DEBT.resolve_command(entry)
+
+    assert first is not None and first is not entry
+    assert entry == before, f"resolve_command змінив запис реєстру: {entry}"
+    assert DEBT.resolve_command(entry) == first, "другий прогін того самого запису розійшовся"
+
+
 def test_the_span_hygiene_ceiling_is_the_measured_number() -> None:
     """Стеля — виміряне значення дня, не кругле й не із запасом."""
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))

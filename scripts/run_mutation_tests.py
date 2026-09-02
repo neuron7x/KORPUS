@@ -4855,7 +4855,7 @@ MUTANTS = (
     Mutant(
         "M541_A_REMOTE_URL_THAT_DIFFERS_FROM_THE_DECLARED_ONE_IS_ACCEPTED",
         "scripts/verify_canonical_state.py",
-        '        if entry.get("url") and url != entry["url"]:',
+        '    if entry.get("url") and url != entry["url"]:',
         "        if False:",
         (
             "apps/api/tests/test_canonical_state.py::"
@@ -5515,7 +5515,18 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M630_THE_DEBT_REGISTRY_BINDS_TO_A_CHECKOUT_VENV",
+        "M676_THE_RESOLVED_COMMAND_ALIASES_THE_REGISTRY_ENTRY",
+        "scripts/check_deployment_debt.py",
+        "    command: list[str] = list(value)",
+        "    command: list[str] = value  # type: ignore[assignment]",
+        (
+            "apps/api/tests/test_deployment_debt.py::"
+            "test_the_resolved_command_does_not_alias_the_registry_entry",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M653_THE_DEBT_REGISTRY_BINDS_TO_A_CHECKOUT_VENV",
         "scripts/check_deployment_debt.py",
         '    if command[0] == "{python}":',
         "    if False:",
@@ -5526,7 +5537,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M631_A_MISSING_GATE_BINARY_CRASHES_THE_DEBT_AUDIT",
+        "M654_A_MISSING_GATE_BINARY_CRASHES_THE_DEBT_AUDIT",
         "scripts/check_deployment_debt.py",
         "    try:\n"
         "        completed = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=False)\n"
@@ -5540,7 +5551,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M632_A_NON_STRING_COMMAND_PART_REACHES_SUBPROCESS",
+        "M655_A_NON_STRING_COMMAND_PART_REACHES_SUBPROCESS",
         "scripts/check_deployment_debt.py",
         "    if not isinstance(value, list) or not value or not all(isinstance(part, str) for part in value):",
         "    if not isinstance(value, list) or not value:",
@@ -5548,7 +5559,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M633_SYSTEMD_API_RESTART_BYPASSES_CORPUS_ADMISSION",
+        "M656_SYSTEMD_API_RESTART_BYPASSES_CORPUS_ADMISSION",
         "deploy/public/korpus-public-api.service",
         'ExecCondition="@KORPUS_ROOT@/apps/api/.venv/bin/python"',
         '# ExecCondition removed="@KORPUS_ROOT@/apps/api/.venv/bin/python"',
@@ -5558,7 +5569,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M634_SYSTEMD_WORKER_RESTART_BYPASSES_CORPUS_ADMISSION",
+        "M657_SYSTEMD_WORKER_RESTART_BYPASSES_CORPUS_ADMISSION",
         "deploy/public/korpus-worker.service",
         'ExecCondition="@KORPUS_ROOT@/apps/api/.venv/bin/python"',
         '# ExecCondition removed="@KORPUS_ROOT@/apps/api/.venv/bin/python"',
@@ -5569,7 +5580,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M635_MARKUP_REPAIR_REWRITES_SEALED_EVIDENCE",
+        "M658_MARKUP_REPAIR_REWRITES_SEALED_EVIDENCE",
         "scripts/repair_span_markup.py",
         "    applied = requested and not sealed",
         "    applied = requested",
@@ -5580,7 +5591,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M636_RESPAN_REWRITES_SEALED_EVIDENCE",
+        "M659_RESPAN_REWRITES_SEALED_EVIDENCE",
         "scripts/respan_from_source.py",
         "    refusal = sealed_refusal(versions) if args.apply else None",
         "    refusal = None",
@@ -5591,7 +5602,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M637_AN_INTEGRATION_SOURCE_IS_JUDGED_AS_A_MIRROR",
+        "M660_AN_INTEGRATION_SOURCE_IS_JUDGED_AS_A_MIRROR",
         "scripts/verify_canonical_state.py",
         '    if entry.get("role") == MIRROR:\n        found.append(',
         '    if entry.get("role") in (MIRROR, INTEGRATION_SOURCE):\n        found.append(',
@@ -5602,7 +5613,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M638_AN_INTEGRATION_SOURCE_NEED_NOT_NAME_ITS_GOVERNOR",
+        "M661_AN_INTEGRATION_SOURCE_NEED_NOT_NAME_ITS_GOVERNOR",
         "scripts/verify_canonical_state.py",
         '        valid = entry.get("governed_by") == INTEGRATION_REGISTRY',
         "        valid = True",
@@ -5613,7 +5624,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M639_AN_UNKNOWN_PUBLICATION_ROLE_IS_ACCEPTED",
+        "M662_AN_UNKNOWN_PUBLICATION_ROLE_IS_ACCEPTED",
         "scripts/verify_canonical_state.py",
         '        return _finding(f"publication_role:{name}", "FAIL", f"невідома роль: {role}")',
         '        return _finding(f"publication_role:{name}", "PASS", f"невідома роль: {role}")',
@@ -5621,7 +5632,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M640_MEASUREMENT_FETCHES_INTEGRATION_BRANCHES_AS_A_MIRROR",
+        "M663_MEASUREMENT_FETCHES_INTEGRATION_BRANCHES_AS_A_MIRROR",
         "scripts/verify_canonical_state.py",
         '        if item.get("role") != MIRROR:\n            continue',
         "        if False:\n            continue",
@@ -5632,7 +5643,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M641_MEASUREMENT_DATES_INTEGRATION_BRANCHES_AS_A_MIRROR",
+        "M664_MEASUREMENT_DATES_INTEGRATION_BRANCHES_AS_A_MIRROR",
         "scripts/verify_canonical_state.py",
         '        if item.get("role") == MIRROR and isinstance(item.get("remote"), str)',
         '        if isinstance(item.get("remote"), str)',
@@ -5643,7 +5654,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M642_BRANCH_INTEGRATION_READS_A_SECOND_CANONICAL_DECLARATION",
+        "M665_BRANCH_INTEGRATION_READS_A_SECOND_CANONICAL_DECLARATION",
         "scripts/verify_branch_integration.py",
         "        return canonical_branch(root)",
         '        return registry.get("canonical_branch")',
@@ -5654,7 +5665,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M643_BRANCH_INTEGRATION_IGNORES_THE_DECLARATION_POINTER",
+        "M666_BRANCH_INTEGRATION_IGNORES_THE_DECLARATION_POINTER",
         "scripts/verify_branch_integration.py",
         '    if registry.get("canonical_branch_declared_in") != CANONICAL_DECLARATION:',
         "    if False:",
@@ -5665,7 +5676,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M644_AN_ACTIVE_WORKTREE_IS_MISREPORTED_AS_STRANDED",
+        "M667_AN_ACTIVE_WORKTREE_IS_MISREPORTED_AS_STRANDED",
         "scripts/verify_branch_integration.py",
         "        if ref == canonical or ref in active:",
         "        if ref == canonical:",
@@ -5676,7 +5687,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M645_DEPLOYMENT_DEBT_MEASURES_THE_FEATURE_WORKTREE_AS_RUNTIME",
+        "M668_DEPLOYMENT_DEBT_MEASURES_THE_FEATURE_WORKTREE_AS_RUNTIME",
         "scripts/check_deployment_debt.py",
         '    return [part.replace("{runtime_root}", str(runtime_root)) for part in command]',
         '    return [part.replace("{runtime_root}", str(ROOT)) for part in command]',
@@ -5687,7 +5698,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M646_MAKE_DEBT_GATE_USES_A_MISSING_CHECKOUT_VENV",
+        "M669_MAKE_DEBT_GATE_USES_A_MISSING_CHECKOUT_VENV",
         "scripts/check_deployment_debt.py",
         '    if command[0] == "make" and not any(part.startswith("PY=") for part in command[1:]):',
         "    if False:",
@@ -5698,7 +5709,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M647_MAKE_SPLITS_AN_INTERPRETER_PATH_WITH_SPACES",
+        "M670_MAKE_SPLITS_AN_INTERPRETER_PATH_WITH_SPACES",
         "scripts/check_deployment_debt.py",
         '        command.append(f"PY={shlex.quote(sys.executable)}")',
         '        command.append(f"PY={sys.executable}")',
@@ -5709,7 +5720,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M648_RELEASE_VERIFY_USES_A_MISSING_CHECKOUT_VENV",
+        "M671_RELEASE_VERIFY_USES_A_MISSING_CHECKOUT_VENV",
         "scripts/run_release_verify.py",
         '    return ["make", target, f"PY={executable}"]',
         '    return ["make", target]',
@@ -5720,7 +5731,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M649_RELEASE_VERIFY_ALIAS_LEAVES_THE_ACTIVE_VENV",
+        "M672_RELEASE_VERIFY_ALIAS_LEAVES_THE_ACTIVE_VENV",
         "scripts/run_release_verify.py",
         "        alias.symlink_to(Path(sys.prefix), target_is_directory=True)",
         "        alias.symlink_to(executable.resolve().parent.parent, target_is_directory=True)",
@@ -5731,7 +5742,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M650_SOURCE_INTEGRITY_CLAIM_READS_AN_UNBOUND_MANIFEST",
+        "M673_SOURCE_INTEGRITY_CLAIM_READS_AN_UNBOUND_MANIFEST",
         "apps/api/src/korpus/application/release_claims.py",
         '            "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json",',
         '            "SOURCE_MANIFEST.json",',
@@ -5742,7 +5753,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M651_INVALID_SOURCE_MANIFEST_REPORTS_PASS",
+        "M674_INVALID_SOURCE_MANIFEST_REPORTS_PASS",
         "scripts/verify_source_manifest.py",
         '    payload["status"] = "PASS" if payload["valid"] else "FAIL"',
         '    payload["status"] = "PASS"',
@@ -5753,7 +5764,7 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M652_CLAIMS_RENDER_BEFORE_SOURCE_MANIFEST_VERIFICATION",
+        "M675_CLAIMS_RENDER_BEFORE_SOURCE_MANIFEST_VERIFICATION",
         "Makefile",
         "\tPYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_source_manifest.py --out reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json\n",
         "",

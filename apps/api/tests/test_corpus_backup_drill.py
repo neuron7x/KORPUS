@@ -61,6 +61,8 @@ def environment(tmp_path: Path) -> dict[str, str]:
     key = tmp_path / "key"
     key.write_text("0" * 64 + "\n", encoding="utf-8")
     key.chmod(0o600)
+    objects = tmp_path / "objects-default"
+    objects.mkdir()
     return {
         # The official Python container installs the interpreter in /usr/local/bin.
         # Keep the deliberately small tool PATH, but do not make the backup test
@@ -69,6 +71,7 @@ def environment(tmp_path: Path) -> dict[str, str]:
         "KORPUS_BACKUP_ENCRYPTION_KEY_FILE": str(key),
         "KORPUS_BACKUP_KEY_ID": "drill",
         "KORPUS_BACKUP_DIR": str(tmp_path / "backups"),
+        "KORPUS_BACKUP_OBJECT_ROOT": str(objects),
     }
 
 

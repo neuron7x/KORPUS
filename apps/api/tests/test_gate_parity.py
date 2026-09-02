@@ -1340,6 +1340,109 @@ def test_ci_secret_scan_is_bound_to_the_pipeline_revision() -> None:
     assert command in CI.read_text(encoding="utf-8")
 
 
+#: Імпорт модуля — теж згадка, і саме вона тут найчастіше правдива: ім'я з «.py» в
+#: рядку `from x import y` не зустрічається ніколи, тож бібліотека, яку сусід імпортує
+#: й виконує, читалася як мертвий файл.
+_IMPORTS = re.compile(
+    r"^\s*(?:from\s+([A-Za-z_][A-Za-z0-9_]*)\s+import\b"
+    r"|import\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s|$|,))",
+    re.MULTILINE,
+)
+
+
+def tracked_script_files() -> list[Path]:
+    """Файли `scripts/`, які РЕПОЗИТОРІЙ містить. Невідстежуване згадкою не рахується.
+
+    Вхід правила названо окремо від самого правила навмисно: регресію сюди вносять не
+    зміною правила, а тим, що йому передадуть `rglob("*")` замість цього переліку — і
+    тоді кеш mypy знову оживить будь-який скрипт, а обидва контролі лишаться зеленими.
+    """
+    listing = subprocess.run(
+        ["git", "ls-files", "-z", "--", "scripts"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.split("\0")
+    tracked = sorted({ROOT / name for name in listing if name})
+    assert tracked, "git ls-files не повернув нічого — правило міряло б порожню множину"
+    return tracked
+
+
+def scripts_reached_by_siblings(scripts: list[str], files: list[Path]) -> set[str]:
+    """Які зі `scripts` згадані у `files` — за іменем файла або за імпортом модуля.
+
+    Винесено окремо не заради краси: перелік файлів є ПАРАМЕТРОМ, тому те саме правило
+    можна спитати про підкинутий файл і довести, що згадка в ньому не рятує нічого.
+    Поки обчислення жило всередині тесту, довести це можна було лише руками.
+    """
+    reached: set[str] = set()
+    known = set(scripts)
+    for path in files:
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        reached.update(script for script in scripts if script != path.name and script in text)
+        modules = {f"{a or b}.py" for a, b in _IMPORTS.findall(text)}
+        reached.update((modules & known) - {path.name})
+    return reached
+
+
+def test_a_mention_inside_an_untracked_artefact_rescues_nothing(tmp_path: Path) -> None:
+    """Негативний контроль на саме правило досяжності, а не на його сьогоднішній результат.
+
+    Виняток називав `.mypy_cache`, а `mypy-scripts.ini` оголошує
+    `cache_dir = var/mypy-cache-scripts`: збігу не було жодного разу, і кеш із іменами
+    всіх модулів робив досяжним будь-який скрипт. Гейт при цьому лишався зеленим —
+    відмовити він міг лише в чистому клоні. Тому питається не «чи зелено зараз», а «чи
+    рятує згадка у файлі, якого немає в репозиторії»: якщо рятує — правило знову мертве.
+    """
+    orphan = "korpus_probe_that_no_runner_mentions.py"
+    cache = tmp_path / "var/mypy-cache-scripts/3.12"
+    cache.mkdir(parents=True)
+    artefact = cache / "cache.7.db"
+    artefact.write_text(f"{orphan} korpus_probe_that_no_runner_mentions\n", encoding="utf-8")
+
+    # Той самий файл, спитаний ПРЯМО, згадку дає — отже проба справді містить ім'я.
+    assert scripts_reached_by_siblings([orphan], [artefact]) == {orphan}
+
+    # А через відстежувані файли репозиторію — ні: артефакта немає в `git ls-files`.
+    tracked = tracked_script_files()
+    assert scripts_reached_by_siblings([orphan], tracked) == set()
+
+    # І сам ВХІД правила. Без цього достатньо передати правилу `rglob("*")`, щоб дірка
+    # відкрилась знову, а обидва контролі лишились зеленими: вони питали б правило, а не
+    # те, що йому дають. Проба створюється тут, а не шукається серед наявного сміття —
+    # у чистому клоні невідстежуваних файлів немає, і такий контроль був би порожнім
+    # рівно там, де все й перевіряють.
+    probe = ROOT / "scripts" / f"{orphan[:-3]}_untracked_probe.py"
+    try:
+        probe.write_text('if __name__ == "__main__":\n    raise SystemExit(0)\n', encoding="utf-8")
+        assert probe.is_file()
+        assert probe not in set(tracked_script_files()), (
+            "перелік віддав невідстежуваний файл — правило знову читає артефакти"
+        )
+    finally:
+        probe.unlink(missing_ok=True)
+
+
+def test_an_imported_module_counts_as_reached() -> None:
+    """Позитивна половина того самого правила: без неї «досяжність» знову стане текстом.
+
+    `scripts/snapshot_assurance.py` імпортує `evidence_source_binding` і викликає його
+    функцію; ціль `assurance` цей скрипт запускає. Фантомна ціль у Makefile, додана,
+    щоб гейт замовк, нічого з цього не змінювала — і саме її тут більше немає.
+    """
+    consumer = ROOT / "scripts/snapshot_assurance.py"
+    assert consumer.is_file()
+    assert scripts_reached_by_siblings(["evidence_source_binding.py"], [consumer]) == {
+        "evidence_source_binding.py"
+    }
+    assert "evidence_source_binding.py" not in consumer.read_text(encoding="utf-8"), (
+        "цей контроль має значення лише поки ім'я з «.py» у споживачі відсутнє"
+    )
+
+
 def test_every_script_is_reachable_from_a_runner() -> None:
     """A script nobody runs is a script nobody maintains — and one that is cited.
 
@@ -1399,19 +1502,24 @@ def test_every_script_is_reachable_from_a_runner() -> None:
     # whole pytest process with SIGTERM at 38% — no failure, no name, just "Припинено".
     # Measured 2026-08-30 after the directory grew past the machine's memory. Each file is
     # read once and asked which scripts it mentions.
-    # Кеші не рахуються згадкою. `scripts/.mypy_cache/3.12/cache.7.db` містить імена
-    # УСІХ модулів, тож один прогін mypy із cwd=scripts робив досяжним кожен скрипт —
-    # виправлення типізації мовчки вимикало цей гейт. Ловиться лише в чистому клоні,
-    # де кешу немає.
-    ignored = {"__pycache__", ".mypy_cache", ".pytest_cache", ".ruff_cache"}
-    reached_by_sibling: set[str] = set()
-    for path in (ROOT / "scripts").rglob("*"):
-        if not path.is_file() or ignored & set(path.parts):
-            continue
-        text = path.read_text(encoding="utf-8", errors="ignore")
-        reached_by_sibling.update(
-            script for script in scripts if script != path.name and script in text
-        )
+    # Кеші не рахуються згадкою — і перелік їхніх ІМЕН цього не забезпечив. Виняток
+    # називав `.mypy_cache`, тимчасом як `mypy-scripts.ini` оголошує
+    # `cache_dir = var/mypy-cache-scripts`, тож збігу не було ЖОДНОГО разу, і
+    # `scripts/var/mypy-cache-scripts/3.12/cache.7.db` з іменами всіх модулів знову
+    # робив досяжним будь-який скрипт. Виміряно 02.09.2026: у чистому прогоні цей тест
+    # (рядок 1343) червонів, а після `test_scripts_type_check_clean_right_now`
+    # (рядок 1859) кеш лишався на диску й наступний прогін зеленів — вердикт залежав
+    # від ПОРЯДКУ, а не від дерева. Кеш до того ж у .gitignore, тож гейтам репозиторію
+    # він невидимий. Перелік імен приречений відставати від конфігурації; правило
+    # «чого немає в репозиторії, те не згадка» не відстає ні від чого.
+
+    # Імпорт — це запуск. `scripts/snapshot_assurance.py` робить
+    # `from evidence_source_binding import evidence_source_binding_failure`, і функція
+    # виконується щоразу, коли бігає ціль `assurance`; але правило шукало ім'я З «.py»,
+    # якого в жодному імпорті немає, тож жива бібліотека читалась як мертвий файл.
+    # Відповіддю на це була фантомна ціль у Makefile, якої не кличе жоден лан: гейт
+    # задоволено, світ не змінився. Тут питається саме те, що гейт і мав питати.
+    reached_by_sibling = scripts_reached_by_siblings(scripts, tracked_script_files())
     unreachable = [
         script
         for script in scripts

@@ -78,10 +78,11 @@ def verdict(results: list[dict[str, Any]]) -> str:
 def resolve_command(value: object, runtime_root: Path | None = None) -> list[str] | None:
     if not isinstance(value, list) or not value or not all(isinstance(part, str) for part in value):
         return None
-    command = list(value)
-    command = _bind_runtime_root(command, runtime_root)
-    if command is None:
+    command: list[str] = list(value)
+    bound = _bind_runtime_root(command, runtime_root)
+    if bound is None:
         return None
+    command = bound
     if command[0] == "{python}":
         command[0] = sys.executable
     if command[0] == "make" and not any(part.startswith("PY=") for part in command[1:]):
