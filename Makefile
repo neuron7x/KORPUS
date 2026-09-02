@@ -420,6 +420,12 @@ corpus-axes:
 	$(PY) scripts/measure_declared_coverage.py --database "$(or $(DATABASE),$(SERVED_CORPUS))"
 	$(PY) scripts/measure_evidence_bases.py --selftest
 	$(PY) scripts/measure_evidence_bases.py
+# Ранжувальне плече `CalibrationProfile` — nDCG@10, MRR@10, Recall@20. Поля під них є з
+# першої версії схеми, математика є в `application/ranking_evaluation`, а водія не було:
+# `JudgedQuery` не будував ніхто поза тестами, тож плече жодного разу не бачило корпусу.
+	PYTHONPATH=apps/api/src $(PY) scripts/measure_ranking_quality.py --selftest
+	PYTHONPATH=apps/api/src $(PY) scripts/measure_ranking_quality.py \
+	  --database "$(or $(DATABASE),$(SERVED_CORPUS))"
 	$(PY) scripts/check_dormant_subsystems.py --selftest
 	$(PY) scripts/check_dormant_subsystems.py --database "$(or $(DATABASE),$(SERVED_CORPUS))"
 	$(PY) scripts/measure_audit_integrity.py --selftest

@@ -5799,6 +5799,42 @@ MUTANTS = (
             "test_a_report_without_provenance_is_not_read_as_fresh",
         ),
     ),
+    Mutant(
+        # Найтихіший спосіб дістати гарну оцінку ранжування: рахувати лише те, що
+        # вдалось. Тоді КОЖЕН провал добору піднімає число, і воно росте від поломки.
+        "M606_A_RETRIEVAL_FAILURE_RAISES_THE_RANKING_SCORE",
+        "scripts/measure_ranking_quality.py",
+        "    reachable_share = metrics.evaluated_queries / total",
+        "    reachable_share = 1.0",
+        (
+            "apps/api/tests/test_ranking_quality_driver.py::"
+            "test_the_whole_set_average_is_depressed_by_an_unreachable_query",
+        ),
+    ),
+    Mutant(
+        # Стеля, що завжди одиниця. Тоді Recall@20 = 0.52 читається як зламаний
+        # ранжувальник, хоча середній ДОСЯЖНИЙ максимум за міткою — 0.82.
+        "M607_THE_LABELLING_CEILING_DISAPPEARS_FROM_THE_REPORT",
+        "scripts/measure_ranking_quality.py",
+        "    return 1.0 if relevant_in_pool <= cutoff else cutoff / relevant_in_pool",
+        "    return 1.0",
+        (
+            "apps/api/tests/test_ranking_quality_driver.py::"
+            "test_the_recall_ceiling_is_twenty_over_the_relevant_count",
+        ),
+    ),
+    Mutant(
+        # Провал добору, знятий з обліку: список порожній, знаменник цілий, і різниця
+        # між «не знайшли» та «знайшли й погано впорядкували» зникає.
+        "M608_A_QUERY_WITH_NO_RELEVANT_CANDIDATE_IS_NOT_RECORDED",
+        "scripts/measure_ranking_quality.py",
+        '            unreachable.append(str(case["id"]))',
+        "            pass",
+        (
+            "apps/api/tests/test_ranking_quality_driver.py::"
+            "test_a_query_whose_pool_holds_nothing_relevant_is_counted_not_dropped",
+        ),
+    ),
 )
 
 
