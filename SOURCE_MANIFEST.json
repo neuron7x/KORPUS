@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1786,
-  "root_sha256": "fc6361cae1f7ce8ee7d2ebb11dbb75978955d4596107242edb4bcdc905c9bf6d",
+  "file_count": 1788,
+  "root_sha256": "b252c7ec77c1874cacc0801ef9a89baacb3ff2af762fd6fb6dc534bb53faefd3",
   "files": [
     {
       "path": ".dockerignore",
@@ -195,6 +195,18 @@
       "path": "GITLAB_IMPORT.md",
       "bytes": 548,
       "sha256": "f1d878e1ec9d07911f1a2607003fae9dc2c7df6e8406c5eea0572a5fd58e75b5",
+      "mode": "0644"
+    },
+    {
+      "path": "KORPUS_ENGINEERING_CLOSURE/00_SCOPE/baseline_state.json",
+      "bytes": 898,
+      "sha256": "0d65727015b9414af671cfabb17371abec86b13c54ba9e7de286d36d50dd6673",
+      "mode": "0644"
+    },
+    {
+      "path": "KORPUS_ENGINEERING_CLOSURE/08_DATA/postgres_report.json",
+      "bytes": 2625,
+      "sha256": "7ba8f9f5ffd0002ccb85509df6e4ea641c6839fbd1ee91a27d53c81303afc431",
       "mode": "0644"
     },
     {
@@ -1765,8 +1777,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/tevv_evidence.py",
-      "bytes": 4949,
-      "sha256": "5a395cd47e08023c36d6d750df3213e36f6631771943a9f964b497c8172ec2d2",
+      "bytes": 6961,
+      "sha256": "fa2ff88f28e3560039f33f6dbe0f4fbada9b45fb83d46539014d8adf54a7772b",
       "mode": "0644"
     },
     {
@@ -7273,8 +7285,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 534269,
-      "sha256": "d0d3c873ba2d8792b9b2363648cbe0d45c3d80144fa71cb082a3350e23c99f1a",
+      "bytes": 536980,
+      "sha256": "5cf645841aa17a310b587a451fbc04d509efaeab5ac347c988461db072dda430",
       "mode": "0644"
     },
     {
@@ -10087,8 +10099,8 @@
     },
     {
       "path": "scripts/run_evals.py",
-      "bytes": 17413,
-      "sha256": "da12b95d67a2512650408fb6fdf106635968e2504b7366c2c267c37dc5455c02",
+      "bytes": 18511,
+      "sha256": "15e21ec381285bb63e2301bd629d823ed7726952393315d8935997b9610e32e5",
       "mode": "0644"
     },
     {

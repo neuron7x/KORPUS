@@ -84,21 +84,44 @@ def _metrics(observations: list[dict[str, Any]], nulls: list[dict[str, Any]]) ->
     }
 
 
-def _declared_consistent(evidence: dict[str, Any], metrics: dict[str, Any]) -> bool:
-    return all(
-        evidence.get(key) is None or evidence.get(key) == metrics[key]
-        for key in (
-            "observations",
-            "passed",
-            "citation_failures",
-            "leakage_failures",
-            "determinism_failures",
-            "null_controls",
-            "null_control_false_accepts",
-            "attack_families",
-            "cohort_counts",
-        )
-    )
+#: Агрегати, які журнал TEVV мусить оголосити, щоб їх можна було звірити з виміряним.
+_DECLARED_AGGREGATES = (
+    "observations",
+    "passed",
+    "citation_failures",
+    "leakage_failures",
+    "determinism_failures",
+    "null_controls",
+    "null_control_false_accepts",
+    "attack_families",
+    "cohort_counts",
+)
+
+
+def _declared_agreement(evidence: dict[str, Any], metrics: dict[str, Any]) -> dict[str, Any]:
+    """Скільки оголошених агрегатів звірено, скільки збіглося і чого НЕ оголошено.
+
+    ОБЕРЕЖНО з висновком «відсутність читається як згода». Тут це НЕ так, і перша
+    редакція цієї правки помилилась саме в цей бік. Метрики `metrics` ПЕРЕРАХОВУЮТЬСЯ
+    з `observation_ledger` і `null_control_ledger`; оголошені агрегати — необов'язкова
+    НАДЛИШКОВА звірка поверх них. Журнал, що не оголошує жодного агрегату, підпертий
+    самим журналом, а не відсутністю: вимагати оголошення означало б зробити зручність
+    обов'язковим полем і відхиляти доказ, який є.
+
+    Що тут справді бракувало — ЗНАМЕННИКА. `all(...)` зводив «звірено 9 із 9» і
+    «звірено 0 із 9» до одного `True`, і читач не міг їх розрізнити. Тому вирок
+    лишається тим самим, а поруч виходить число: скільки агрегатів узагалі звірено.
+    """
+    declared = [key for key in _DECLARED_AGGREGATES if evidence.get(key) is not None]
+    mismatched = [key for key in declared if evidence.get(key) != metrics[key]]
+    return {
+        "declared": len(declared),
+        "total": len(_DECLARED_AGGREGATES),
+        "mismatched": mismatched,
+        "undeclared": [key for key in _DECLARED_AGGREGATES if key not in declared],
+        # Вирок незмінний: розбіжність — відмова, відсутність оголошення — не відмова.
+        "consistent": not mismatched,
+    }
 
 
 def evaluate_tevv_ledger(evidence: dict[str, Any], profile: dict[str, Any]) -> dict[str, Any]:
@@ -109,6 +132,7 @@ def evaluate_tevv_ledger(evidence: dict[str, Any], profile: dict[str, Any]) -> d
     metrics = _metrics(observations, nulls)
     required = set(profile.get("required_attack_families", ()))
     required_cohorts = set(profile.get("required_cohorts", ()))
+    agreement = _declared_agreement(evidence, metrics)
     minimum_cohort = profile.get("minimum_observations_per_required_cohort", 0)
     checks = {
         "observation_ledger_structured": observations_ok,
@@ -119,6 +143,6 @@ def evaluate_tevv_ledger(evidence: dict[str, Any], profile: dict[str, Any]) -> d
         "required_cohorts_covered": all(
             metrics["cohort_counts"].get(cohort, 0) >= minimum_cohort for cohort in required_cohorts
         ),
-        "declared_aggregates_consistent": _declared_consistent(evidence, metrics),
+        "declared_aggregates_consistent": agreement["consistent"],
     }
-    return {"checks": checks, "metrics": metrics}
+    return {"checks": checks, "metrics": metrics, "declared_agreement": agreement}
