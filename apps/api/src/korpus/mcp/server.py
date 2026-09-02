@@ -17,6 +17,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from korpus.application.composition import verify_draft
 from korpus.mcp.transport import KorpusApi, TransportFailure
 
 
@@ -122,6 +123,44 @@ class KorpusMcpServer:
             "authority": span.get("authority"),
         }
 
+    def verify(self, draft: str, quotes: list[str]) -> dict[str, Any]:
+        """Що з написаного агентом корпус ПІДТВЕРДЖУЄ — по реченню.
+
+        Замикає петлю. `korpus_ask` дає цитати, але відповідь користувачеві пише
+        агент вільним текстом, і довести, що він нічого не додав, доти не було чим.
+        Тут те саме правило, що боронить шлях відповіді, звернене назовні.
+
+        Чисто функція над текстом: ні бази, ні журналу, ні особистості. Агент
+        передає власну чернетку й ті цитати, які вже отримав; перевірка нічого не
+        читає й нічого не пише.
+        """
+        if not isinstance(draft, str) or not draft.strip():
+            raise ToolFailure("draft must be a non-empty string")
+        if isinstance(quotes, str) or not isinstance(quotes, list) or not quotes:
+            raise ToolFailure("quotes must be a non-empty list of citation texts")
+        verdicts = verify_draft(draft, [str(item) for item in quotes])
+        unsupported = [item for item in verdicts if not item.supported]
+        return {
+            "supported": not unsupported,
+            "sentences": [
+                {
+                    "sentence": item.sentence,
+                    "supported": item.supported,
+                    "reason": item.reason,
+                    "carried_by": item.carried_by,
+                }
+                for item in verdicts
+            ],
+            "unsupported_count": len(unsupported),
+            "contract": (
+                "`supported: false` означає, що речення не несе ЖОДНА окрема цитата. "
+                "Чотири способи це порушити названо окремо: чуже слово, чуже число, "
+                "склеювання двох цитат і ЗНЯТЕ заперечення джерела — останнє правило "
+                "словника не ловить за побудовою, бо вилучення слова не порушує "
+                "вкладення множин."
+            ),
+        }
+
     def grounds(self, question: str, as_of: str | None = None) -> dict[str, Any]:
         """Чи МАЄ корпус підставу — без тексту відповіді.
 
@@ -179,6 +218,26 @@ def build_tools(server: KorpusMcpServer) -> list[dict[str, Any]]:
             },
         },
         {
+            "name": "korpus_verify",
+            "description": (
+                "Перевірити ВЛАСНУ чернетку проти отриманих цитат: по реченню, з "
+                "названою причиною відмови. Ловить чуже слово, чуже число, "
+                "склеювання двох цитат і зняте заперечення джерела."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "draft": {"type": "string", "description": "Текст, написаний агентом."},
+                    "quotes": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Тексти цитат, отриманих із korpus_ask.",
+                    },
+                },
+                "required": ["draft", "quotes"],
+            },
+        },
+        {
             "name": "korpus_quote",
             "description": (
                 "Перевірити конкретну цитату: віддає проліт із хешем тексту, хешем "
@@ -199,6 +258,8 @@ def call_tool(server: KorpusMcpServer, name: str, arguments: dict[str, Any]) -> 
         return server.ask(arguments.get("question", ""), arguments.get("as_of"))
     if name == "korpus_grounds":
         return server.grounds(arguments.get("question", ""), arguments.get("as_of"))
+    if name == "korpus_verify":
+        return server.verify(arguments.get("draft", ""), arguments.get("quotes", []))
     if name == "korpus_quote":
         return server.quote(arguments.get("span_id", ""))
     raise ToolFailure(f"unknown tool: {name}")

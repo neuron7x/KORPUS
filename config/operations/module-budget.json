@@ -905,8 +905,8 @@
       "reason": "v0.9.7 architecture/UI contract synchronization; exact initial measured ceiling"
     },
     "apps/api/src/korpus/application/composition.py": {
-      "lines": 277,
-      "max_complexity": 9,
+      "lines": 400,
+      "max_complexity": 13,
       "max_function_args": 4,
       "max_function_lines": 44,
       "max_nesting": 2,
@@ -2897,10 +2897,10 @@
       "reason": "КОРПУС як інструмент агента (MCP по stdio, без нової залежності). Шар ТОНКИЙ навмисно: у процесі агента немає ні журналу, ні прив'язки RLS, тож другий шлях відповіді там був би відповіддю без сліду й без межі. Єдине похідне число — ЗАПАС над порогом, який публікує сам API: виміряно на живому, що «Яка столиця Бразилії?» дістає `answered` із покриттям РІВНО 0.5 при межі 0.5, тобто `status` чужого питання від свого не відрізняє."
     },
     "apps/api/src/korpus/mcp/server.py": {
-      "lines": 220,
+      "lines": 285,
       "max_complexity": 8,
       "max_function_args": 4,
-      "max_function_lines": 70,
+      "max_function_lines": 76,
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "КОРПУС як інструмент агента (MCP по stdio, без нової залежності). Шар ТОНКИЙ навмисно: у процесі агента немає ні журналу, ні прив'язки RLS, тож другий шлях відповіді там був би відповіддю без сліду й без межі. Єдине похідне число — ЗАПАС над порогом, який публікує сам API: виміряно на живому, що «Яка столиця Бразилії?» дістає `answered` із покриттям РІВНО 0.5 при межі 0.5, тобто `status` чужого питання від свого не відрізняє."
@@ -4928,7 +4928,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5975,
+      "lines": 6010,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -9168,6 +9168,43 @@
       "reason": "M591–M592: токен, який не може бути JWT; термін дії, що не доходить до видавця.",
       "to": {
         "lines": 5975
+      }
+    },
+    {
+      "from": {
+        "lines": 277,
+        "max_complexity": 9
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/application/composition.py",
+      "reason": "Перевірка ЧУЖОЇ чернетки: той самий інваріант, звернений назовні. Агент має LLM і пише вільно; тут дізнається, що з написаного корпус підтверджує — по реченню, бо гуртовий вирок не каже, ЯКЕ речення викинути. Плюс правило, якого не було: словникове бореться з ДОДАВАННЯМ і безсиле проти ВИЛУЧЕННЯ — виміряно 02.09.2026, що «менше 30 метрів» замість «не менше 30 метрів» проходило без жодної скарги. Для статуту це різниця між «не ближче» і «ближче».",
+      "to": {
+        "lines": 400,
+        "max_complexity": 13
+      }
+    },
+    {
+      "from": {
+        "lines": 220,
+        "max_function_lines": 70
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/mcp/server.py",
+      "reason": "Четвертий інструмент `korpus_verify`: замикає петлю — цитати давав `korpus_ask`, а довести, що агент нічого не додав у своїй відповіді, доти не було чим.",
+      "to": {
+        "lines": 285,
+        "max_function_lines": 76
+      }
+    },
+    {
+      "from": {
+        "lines": 5975
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "M593–M595: зняте заперечення, надто широке правило заперечення, гуртовий вирок.",
+      "to": {
+        "lines": 6010
       }
     }
   ],

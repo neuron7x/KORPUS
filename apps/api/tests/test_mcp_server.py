@@ -183,7 +183,7 @@ def test_an_empty_question_is_refused_before_it_reaches_the_corpus() -> None:
     assert api.asked == []
 
 
-def test_the_handshake_names_the_protocol_and_the_three_tools() -> None:
+def test_the_handshake_names_the_protocol_and_every_tool() -> None:
     server = _server()
     initialize = handle(server, {"jsonrpc": "2.0", "id": 1, "method": "initialize"})
     listed = handle(server, {"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
@@ -193,6 +193,7 @@ def test_the_handshake_names_the_protocol_and_the_three_tools() -> None:
     assert {tool["name"] for tool in listed["result"]["tools"]} == {
         "korpus_ask",
         "korpus_grounds",
+        "korpus_verify",
         "korpus_quote",
     }
 
@@ -214,9 +215,11 @@ def test_every_declared_tool_is_callable() -> None:
     """Дуал до попереднього: оголошення без реалізації — теж тиха відсутність."""
     server = _server(span={"id": "span-1", "text": "джерело", "text_hash": "e" * 64})
     for tool in build_tools(server):
-        arguments = {"question": "питання"} if "question" in str(tool["inputSchema"]) else {}
+        arguments: dict[str, Any] = {"question": "питання"}
         if tool["name"] == "korpus_quote":
             arguments = {"span_id": "span-1"}
+        elif tool["name"] == "korpus_verify":
+            arguments = {"draft": "знати завдання варти.", "quotes": ["знати завдання варти"]}
         assert call_tool(server, tool["name"], arguments)
 
 
@@ -255,3 +258,32 @@ def test_no_http_layer_exception_can_kill_the_serving_loop() -> None:
     with pytest.raises(TransportFailure) as raised:
         api._request("POST", "/v1/answers", _Exploding())
     assert raised.value.retryable in {True, False}
+
+
+def test_verification_needs_no_database_no_audit_and_no_identity() -> None:
+    """Чиста функція над текстом: агент передає СВОЮ чернетку й ті цитати, що вже має.
+
+    Тому подвійник API тут — той, що на будь-який виклик кидає: якщо перевірка
+    його торкнеться, тест почервоніє. Читати корпус тут нема чого, і саме це
+    робить інструмент безпечним для довільно частого виклику.
+    """
+    server = _server(raises=TransportFailure("не сміє торкатись", retryable=True))
+
+    result = server.verify(
+        "Дистанція між машинами менше 30 метрів.",
+        ["Дистанція між машинами не менше 30 метрів."],
+    )
+
+    assert result["supported"] is False
+    assert result["unsupported_count"] == 1
+    assert "знято заперечення" in result["sentences"][0]["reason"]
+
+
+def test_verification_refuses_a_joined_string_instead_of_a_list_of_quotes() -> None:
+    """Склеєний рядок — та сама спільна калюжа слів під іншим ім'ям."""
+    with pytest.raises(ToolFailure, match="quotes"):
+        _server().verify("чернетка", "одна склеєна цитата")  # type: ignore[arg-type]
+    with pytest.raises(ToolFailure, match="quotes"):
+        _server().verify("чернетка", [])
+    with pytest.raises(ToolFailure, match="draft"):
+        _server().verify("   ", ["цитата"])

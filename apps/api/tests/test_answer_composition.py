@@ -25,6 +25,7 @@ from korpus.application.composition import (
     CompositionRefused,
     admissible_opening,
     compose_answer,
+    verify_draft,
 )
 
 SPANS = [
@@ -202,3 +203,93 @@ def test_the_reader_is_shown_the_retrieved_span_not_the_composer_string() -> Non
     assert reason == "admitted"
     assert composition is not None
     assert composition.sentences == tuple(spans)
+
+
+# ── Перевірка ЧУЖОЇ чернетки. Той самий інваріант, звернений назовні: агент має
+# LLM і пише вільно, а тут дізнається, що з написаного корпус підтверджує.
+
+DISTANCE = "Дистанція між машинами не менше 30 метрів."
+DUTY = "Начальник варти зобов'язаний знати завдання варти."
+
+
+def test_a_verbatim_sentence_is_supported() -> None:
+    verdicts = verify_draft(DISTANCE, [DISTANCE, DUTY])
+
+    assert [item.supported for item in verdicts] == [True]
+    assert verdicts[0].carried_by == 0
+
+
+def test_a_dropped_negation_inverts_the_norm_and_the_vocabulary_rule_cannot_see_it() -> None:
+    """Найважливіший тут, і саме він показав дірку.
+
+    Правило словника бореться з ДОДАВАННЯМ: клауза не сміє нести чужого слова.
+    Проти ВИЛУЧЕННЯ воно безсиле за побудовою — прибрати слово не порушує
+    вкладення множин. Виміряно 02.09.2026: «менше 30 метрів» замість «не менше
+    30 метрів» проходило `_refuse_uncarried_clauses` без жодної скарги.
+
+    Для статуту це різниця між «не ближче» і «ближче», і боєць діяв би за другим.
+    """
+    from korpus.application.composition import _refuse_uncarried_clauses
+
+    inverted = "Дистанція між машинами менше 30 метрів."
+    # Старе правило мовчить — це негативний контроль ДІРКИ, не нового правила.
+    _refuse_uncarried_clauses(inverted, [DISTANCE])
+
+    verdict = verify_draft(inverted, [DISTANCE])[0]
+    assert verdict.supported is False
+    assert "знято заперечення" in (verdict.reason or "")
+
+
+def test_a_foreign_number_is_caught_by_the_vocabulary_rule_alone() -> None:
+    """Числа окремої заборони НЕ потребують — і це виміряно, а не припущено.
+
+    `admissible_opening` забороняє будь-яку цифру, бо боронить рядок обрамлення,
+    якому цифри не потрібні. У чернетці вони законні: приходять із корпусу.
+    Заборонити їх і тут означало б покарати ту саму невизначеність удруге.
+    """
+    verdict = verify_draft("Дистанція між машинами не менше 300 метрів.", [DISTANCE])[0]
+
+    assert verdict.supported is False
+    assert "300" in (verdict.reason or "")
+
+
+def test_words_pooled_from_two_citations_are_refused() -> None:
+    verdict = verify_draft("Начальник варти зобов'язаний знати дистанція.", [DISTANCE, DUTY])[0]
+
+    assert verdict.supported is False
+    assert "РІЗНИХ цитат" in (verdict.reason or "")
+
+
+def test_a_word_no_citation_carries_is_refused() -> None:
+    verdict = verify_draft("Начальник варти має право на відпустку.", [DUTY])[0]
+
+    assert verdict.supported is False
+    assert "не містить" in (verdict.reason or "")
+
+
+def test_the_verdict_is_per_sentence_not_wholesale() -> None:
+    """Гуртовий вирок марний: агент мусить знати, ЯКЕ речення викинути."""
+    draft = f"{DISTANCE} Начальник варти має право на відпустку. {DUTY}"
+
+    verdicts = verify_draft(draft, [DISTANCE, DUTY])
+
+    assert [item.supported for item in verdicts] == [True, False, True]
+
+
+def test_a_negation_elsewhere_in_a_long_citation_does_not_refuse_everything() -> None:
+    """Дуал: перевірка, що відхиляє все, не є перевіркою.
+
+    Правило дивиться на БЕЗПОСЕРЕДНЄ сусідство, а не на присутність «не» будь-де
+    в цитаті. Інакше довга цитата з одним запереченням робила б непідтвердженим
+    геть усе, що з неї цитують.
+    """
+    passage = "Вартовий зобов'язаний пильно охороняти пост і не залишати його."
+
+    assert verify_draft("Вартовий зобов'язаний пильно охороняти пост.", [passage])[0].supported
+
+
+def test_a_word_that_appears_both_negated_and_free_is_not_treated_as_negated() -> None:
+    """Одна вільна поява знімає підозру — інакше правило б угадувало."""
+    passage = "Вогонь відкривається за командою. Вогонь не відкривається без команди."
+
+    assert verify_draft("Вогонь відкривається за командою.", [passage])[0].supported

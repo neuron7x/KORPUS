@@ -43,6 +43,10 @@ COMPOSER_DEADLINE_SECONDS = 10.0
 #: Anything that looks like a quantity. A composition states no numbers at all: every
 #: figure a reader acts on must come from a sentence that carries a hash.
 _NUMBER = re.compile(r"\d")
+#: Межа речення. Крапка з великою літерою або кінець рядка — не ідеально,
+#: але помилка тут коштує розбиття, а не хибного вироку: кожен уламок
+#: судиться окремо тим самим правилом.
+_SENTENCE = re.compile(r"(?<=[.!?])\s+|\n+")
 
 #: Negation flips a norm without changing its vocabulary, so it cannot be caught by
 #: checking that every token is present in the evidence — "не" is present in almost any
@@ -175,6 +179,116 @@ def _refuse_uncarried_clauses(text: str, passages: Sequence[str]) -> None:
             raise CompositionRefused(
                 f"opening combines words from different citations: {content!r}"
             )
+
+
+def dropped_negations(clause: str, passage: str) -> list[str]:
+    """Заперечення, які джерело ставить перед словом, а клауза їх не має.
+
+    Правило словника (`_refuse_uncarried_clauses`) бореться з ДОДАВАННЯМ: клауза
+    не сміє нести слова, якого немає в цитаті. Проти ВИДАЛЕННЯ воно безсиле за
+    побудовою — вилучення слова не порушує вкладення множин.
+
+    Виміряно 02.09.2026 на цитаті «Дистанція між машинами не менше 30 метрів»:
+
+        дистанція між машинами не менше 30 метрів   ПРОПУЩЕНО   (правильно)
+        дистанція між машинами менше 30 метрів      ПРОПУЩЕНО   ← норму ВИВЕРНУТО
+        дистанція між машинами не менше 300 метрів  відхилено   (число чуже)
+
+    Тобто підміна числа ловиться, а зняття заперечення — ні. Для статуту це
+    різниця між «не ближче» і «ближче», і боєць діяв би за другим.
+
+    Правило вузьке навмисно: дивиться не на всю цитату, а на БЕЗПОСЕРЕДНЄ
+    сусідство. Заборонити клаузу лише тому, що десь у довгій цитаті трапилось
+    «не», означало б відхиляти майже все — а перевірка, що відхиляє все, не є
+    перевіркою.
+    """
+    source = _tokens(passage)
+    negated: dict[str, bool] = {}
+    for index, token in enumerate(source):
+        if token in _NEGATION:
+            continue
+        previous = source[index - 1] if index else None
+        # Слово вважається запереченим лише якщо КОЖНА його поява в джерелі
+        # стоїть за запереченням: одна вільна поява знімає підозру.
+        negated[token] = negated.get(token, True) and previous in _NEGATION
+    clause_tokens = _tokens(clause)
+    carried = set(clause_tokens)
+    return sorted(
+        {token for token in clause_tokens if negated.get(token) and not (_NEGATION & carried)}
+    )
+
+
+@dataclass(frozen=True)
+class SentenceVerdict:
+    """Вирок про ОДНЕ речення чернетки, з названою причиною."""
+
+    sentence: str
+    supported: bool
+    reason: str | None = None
+    carried_by: int | None = None
+
+
+def verify_draft(draft: str, passages: Sequence[str]) -> list[SentenceVerdict]:
+    """Які речення чернетки корпус несе, а які — ні. По реченню, не гуртом.
+
+    Це те саме правило, що боронить шлях відповіді (`_refuse_uncarried_clauses`),
+    але звернене назовні: агент має LLM і пише вільно, а тут дізнається, що з
+    написаного корпус підтверджує. Гуртовий вирок був би марним — агент мусить
+    знати, ЯКЕ речення викинути.
+
+    Чого тут НЕМАЄ проти `admissible_opening`, і чому. Той сторож боронить рядок
+    ОБРАМЛЕННЯ й тому забороняє будь-яку цифру та будь-яке заперечення взагалі:
+    рядок, що нічого не додає, їх і не потребує. Речення чернетки цитує норму, і
+    цифри та заперечення в ньому законні — вони приходять із корпусу. Виміряно, що
+    правило словника саме ловить чуже число (`300` замість `30` відхилено), тож
+    окрема заборона цифр тут була б покаранням тієї самої невизначеності вдруге.
+
+    А от ЗНЯТЕ заперечення воно не ловить за побудовою, і це виміряно окремо —
+    див. `dropped_negations`.
+    """
+    if isinstance(passages, str):
+        raise TypeError("passages must be the retrieved spans, not one joined string")
+    vocabularies = [set(_tokens(passage)) for passage in passages]
+    pooled: set[str] = set().union(*vocabularies) if vocabularies else set()
+    verdicts: list[SentenceVerdict] = []
+    for sentence in _SENTENCE.split(unicodedata.normalize("NFC", draft)):
+        text = sentence.strip()
+        if not text:
+            continue
+        verdicts.append(_verify_sentence(text, passages, vocabularies, pooled))
+    return verdicts
+
+
+def _verify_sentence(
+    text: str,
+    passages: Sequence[str],
+    vocabularies: list[set[str]],
+    pooled: set[str],
+) -> SentenceVerdict:
+    carried_by: int | None = None
+    for clause in _CLAUSE.split(text):
+        content = _content_tokens(clause)
+        if not content:
+            continue
+        missing = [token for token in content if token not in pooled]
+        if missing:
+            return SentenceVerdict(text, False, f"корпус не містить: {missing[0]!r}", None)
+        holders = [
+            index for index, vocabulary in enumerate(vocabularies) if set(content) <= vocabulary
+        ]
+        if not holders:
+            return SentenceVerdict(
+                text, False, "склеєно слова з РІЗНИХ цитат — жодна не каже цього цілком", None
+            )
+        dropped = [
+            token for index in holders for token in dropped_negations(clause, passages[index])
+        ]
+        if dropped and all(dropped_negations(clause, passages[index]) for index in holders):
+            return SentenceVerdict(
+                text, False, f"знято заперечення джерела перед {dropped[0]!r}", None
+            )
+        carried_by = holders[0] if carried_by is None else carried_by
+    return SentenceVerdict(text, True, None, carried_by)
 
 
 def admissible_opening(opening: str, passages: Sequence[str]) -> str:

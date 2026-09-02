@@ -5642,6 +5642,42 @@ MUTANTS = (
             "test_cli_read_commands_close_all_resources",
         ),
     ),
+    Mutant(
+        # Правило словника не бачить ЗНЯТОГО заперечення за побудовою: вилучення
+        # слова не порушує вкладення множин. Для статуту це різниця між «не
+        # ближче» і «ближче».
+        "M593_A_DROPPED_NEGATION_INVERTS_THE_NORM_UNNOTICED",
+        "apps/api/src/korpus/application/composition.py",
+        "        if dropped and all(",
+        "        if False and all(",
+        (
+            "apps/api/tests/test_answer_composition.py::"
+            "test_a_dropped_negation_inverts_the_norm_and_the_vocabulary_rule_cannot_see_it",
+        ),
+    ),
+    Mutant(
+        # Дуал: «заперечене будь-де в цитаті» замість «безпосереднього сусідства»
+        # робить непідтвердженим геть усе, що цитують із довгої цитати.
+        "M594_ANY_NEGATION_IN_A_CITATION_REFUSES_EVERYTHING",
+        "apps/api/src/korpus/application/composition.py",
+        "        negated[token] = negated.get(token, True) and previous in _NEGATION",
+        "        negated[token] = True",
+        (
+            "apps/api/tests/test_answer_composition.py::"
+            "test_a_negation_elsewhere_in_a_long_citation_does_not_refuse_everything",
+        ),
+    ),
+    Mutant(
+        # Гуртовий вирок марний: агент мусить знати, ЯКЕ речення викинути.
+        "M595_THE_DRAFT_IS_JUDGED_WHOLESALE",
+        "apps/api/src/korpus/application/composition.py",
+        '    for sentence in _SENTENCE.split(unicodedata.normalize("NFC", draft)):',
+        '    for sentence in [unicodedata.normalize("NFC", draft)]:',
+        (
+            "apps/api/tests/test_answer_composition.py::"
+            "test_the_verdict_is_per_sentence_not_wholesale",
+        ),
+    ),
 )
 
 
