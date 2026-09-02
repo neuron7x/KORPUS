@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1745,
-  "root_sha256": "33dee429f5cdc7024fe3b9d32bbed193c6d64696f0a07f291ba0b035d8aab9c8",
+  "root_sha256": "c288e884e25c39a2fe1b65a6fa83015775089fff7688ede71b6d14a002c30363",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 86644,
-      "sha256": "b3cc07dc2ba04c6a07fb86b28917e6a98f4d08f8d581aa08c1de46e7b06b66b1",
+      "bytes": 87828,
+      "sha256": "317866306b61e5c57470ec4442b8fcabc14ede1aab8d7fa68218680fb84983f2",
       "mode": "0644"
     },
     {
@@ -1531,8 +1531,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/production_hard_predicates.py",
-      "bytes": 10437,
-      "sha256": "9b15f7c27636841aa96df405aff8fcd2f2a3671f9d3460347b7dcf9fdb8bed69",
+      "bytes": 11085,
+      "sha256": "926986195e14e2958df580fe3c4caf448873b37b997142a025b1eae76401c7b9",
       "mode": "0644"
     },
     {
@@ -3307,8 +3307,8 @@
     },
     {
       "path": "apps/api/tests/test_exact_environment_evidence.py",
-      "bytes": 1850,
-      "sha256": "77d1edc125449266a61342c208fe82fc7c252600d1a4cb552af834f659f596e1",
+      "bytes": 4350,
+      "sha256": "4a236e9841ce359cf67e1181d3047206f63d0fcccde3df5e59e1d44ef8347a50",
       "mode": "0644"
     },
     {
@@ -4135,8 +4135,8 @@
     },
     {
       "path": "apps/api/tests/test_production_hard_predicates.py",
-      "bytes": 7382,
-      "sha256": "ab912139a1a627d529537d831a21af90acf85fc7d46b2d7c01724b9801c0f655",
+      "bytes": 9072,
+      "sha256": "091b6718629be80a9d8ef8980d5309a79dac7765cd7834c83fde5d11a638b792",
       "mode": "0644"
     },
     {
@@ -7129,8 +7129,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 474498,
-      "sha256": "180dec08c1f5b2bcd2af8b10dd9067eae15cb7443006cb060c2ef284fdc988a3",
+      "bytes": 478063,
+      "sha256": "0fb09a68bd30777b83a78113ee77781f896f7ee5636ad0990522b5a726b31d1c",
       "mode": "0644"
     },
     {
@@ -9859,8 +9859,8 @@
     },
     {
       "path": "scripts/run_exact_environment_gate.py",
-      "bytes": 2983,
-      "sha256": "66f521bb205576a34544f06d8618e06c690a85c23ddcfa8b3727b5fdbfc50405",
+      "bytes": 5424,
+      "sha256": "ccf51b16e19ecea972c325c234aad726f146958180fca5987d73cf5750e86503",
       "mode": "0755"
     },
     {
@@ -9925,8 +9925,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 271222,
-      "sha256": "8735c4fe2fef6ec59bb1159347ef7a4b7e762e0fbab2fcc0d8fe955c60eddb5f",
+      "bytes": 272678,
+      "sha256": "11e3ed31b431f163bb76590d2d07decfd0a82adb3f77ba5b4a00474646fd01e7",
       "mode": "0755"
     },
     {

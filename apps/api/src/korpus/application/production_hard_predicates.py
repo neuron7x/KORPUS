@@ -164,7 +164,12 @@ _REQUIREMENTS: dict[str, PredicateRequirement] = {
             "production_python_exact",
             "lock_hashes_present",
         ),
-        (("status", "PASS"),),
+        # `profile == runtime` — не декорація. Гейт судить середовище проти замка,
+        # який до нього застосовний: на робочій машині стоять обидва замки, але
+        # інтерпретатор 3.12.3 замість 3.12.13, тож `production_python_exact` там
+        # ВІДСУТНЄ. Без цієї вимоги доказ dev-машини задовольнив би твердження про
+        # продакшен рівно тому, що хибної перевірки в ньому немає.
+        (("status", "PASS"), ("profile", "runtime")),
     ),
     "pec_human_production_authority": PredicateRequirement(
         "pec_authority",

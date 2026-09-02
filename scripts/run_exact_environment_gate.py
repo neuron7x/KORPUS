@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import importlib.metadata
 import json
 import platform
@@ -18,13 +19,37 @@ from release_identity import release_tag  # noqa: E402
 
 PIN = re.compile(r"^([A-Za-z0-9_.-]+)==([^\\\s]+)")
 PYTHON = re.compile(r"^ARG PYTHON_IMAGE=python:(\d+\.\d+\.\d+)-", re.M)
-LOCKS = (ROOT / "apps/api/requirements.runtime.lock", ROOT / "apps/api/requirements.dev.lock")
+RUNTIME_LOCK = ROOT / "apps/api/requirements.runtime.lock"
+DEV_LOCK = ROOT / "apps/api/requirements.dev.lock"
 PROFILE = ROOT / "config/assurance/exact-environment-v1.json"
 
+#: Який замок застосовний до якого середовища — і це не смак.
+#:
+#: Перша версія читала ОБИДВА замки завжди й вимагала `production_python_exact`
+#: незалежно від того, де біжить. Виміряно 02.09.2026: жодне середовище не могло
+#: пройти обидві перевірки. На робочій машині стоїть 3.12.3 при вимозі 3.12.13,
+#: тож `production_python_exact` хибне; у продакшенному образі 3.12.13 і воно
+#: істинне, але dev-інструментів (pytest, mypy, coverage) там немає й бути не
+#: мусить, тож `all_locked_components_installed` хибне. Гейт був нездійсненний
+#: ЗА ПОБУДОВОЮ — стан, у якому він зелений, не існував.
+#:
+#: `production_python_exact` у профілі `development` ВІДСУТНЄ, а не хибне: dev-
+#: машина не є продакшеном, і питати її про це — питати не те. Профіль пишеться
+#: у доказ, а продакшенний предикат вимагає саме `runtime`: інакше доказ робочої
+#: машини задовольнив би твердження про продакшен.
+LOCK_PROFILES = {
+    "runtime": (RUNTIME_LOCK,),
+    "development": (RUNTIME_LOCK, DEV_LOCK),
+}
+EVIDENCE_CLASSES = {
+    "runtime": "EXACT_PRODUCTION_IMAGE",
+    "development": "DEVELOPMENT_INTERPRETER",
+}
 
-def _pins() -> dict[str, str]:
+
+def _pins(locks: tuple[Path, ...]) -> dict[str, str]:
     result: dict[str, str] = {}
-    for path in LOCKS:
+    for path in locks:
         for line in path.read_text(encoding="utf-8").splitlines():
             match = PIN.match(line.strip())
             if match:
@@ -33,7 +58,13 @@ def _pins() -> dict[str, str]:
 
 
 def main() -> int:
-    pins = _pins()
+    parser = argparse.ArgumentParser()
+    # БЕЗ дефолту. Профіль, обраний мовчки, зробив би доказ одного середовища
+    # непомітно придатним для тверджень про інше.
+    parser.add_argument("--profile", required=True, choices=sorted(LOCK_PROFILES))
+    args = parser.parse_args()
+    locks = LOCK_PROFILES[args.profile]
+    pins = _pins(locks)
     profile = json.loads(PROFILE.read_text(encoding="utf-8"))
     installed = {
         d.metadata["Name"].lower().replace("_", "-"): d.version
@@ -42,7 +73,7 @@ def main() -> int:
     }
     match = PYTHON.search((ROOT / "apps/api/Dockerfile").read_text(encoding="utf-8"))
     required = match.group(1) if match else ""
-    hashes_complete = all("--hash=sha256:" in path.read_text(encoding="utf-8") for path in LOCKS)
+    hashes_complete = all("--hash=sha256:" in path.read_text(encoding="utf-8") for path in locks)
     checks, missing, mismatched, extras = exact_environment_state(
         pins,
         installed,
@@ -51,6 +82,10 @@ def main() -> int:
         allowed_unmanaged=profile["allowed_unmanaged_distributions"],
         hashes_complete=hashes_complete,
     )
+    if args.profile != "runtime":
+        # Не False, а ВІДСУТНЄ: dev-машина не продакшен, і хибний вирок про неї
+        # був би твердженням про те, чого ніхто не питав.
+        checks.pop("production_python_exact", None)
     failures = [name for name, ok in checks.items() if not ok]
     result = gate_payload(
         "exact_environment",
@@ -59,7 +94,8 @@ def main() -> int:
         release=release_tag(),
         checks=checks,
         failures=failures,
-        evidence_class="EXACT_CURRENT_INTERPRETER",
+        evidence_class=EVIDENCE_CLASSES[args.profile],
+        profile=args.profile,
         python=platform.python_version(),
         required_python=required,
         implementation=platform.python_implementation(),

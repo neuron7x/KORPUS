@@ -36,6 +36,9 @@ def test_missing_external_evidence_never_becomes_production_satisfied() -> None:
 def test_exact_environment_requires_every_runtime_check() -> None:
     gate = {
         "status": "PASS",
+        # Профіль тепер частина доказу: без нього звіт не каже, ЯКЕ середовище
+        # виміряно, а перевірки двох середовищ не збігаються.
+        "profile": "runtime",
         "checks": {
             "all_locked_components_installed": True,
             "all_versions_exact": True,
@@ -49,6 +52,40 @@ def test_exact_environment_requires_every_runtime_check() -> None:
     )
     assert ok is False
     assert failed == ("lock_hashes_present",)
+
+
+def test_a_development_report_cannot_satisfy_the_production_predicate() -> None:
+    """Доказ робочої машини задовольнив би предикат рівно тому, що хибної
+    перевірки в ньому НЕМАЄ: у профілі `development` `production_python_exact`
+    відсутнє, бо dev-машина не продакшен. Профіль мусить вимагатись окремо."""
+    development = {
+        "status": "PASS",
+        "profile": "development",
+        "checks": {
+            "all_locked_components_installed": True,
+            "all_versions_exact": True,
+            "no_unmanaged_distributions": True,
+            "lock_hashes_present": True,
+        },
+    }
+    ok, failed = external_predicate_state(
+        "exact_python_3_12_13_environment", {"exact_environment": development}
+    )
+    assert ok is False
+    assert any("profile" in item for item in failed), failed
+
+    # Дуал: той самий набір перевірок під профілем `runtime` задовольняє предикат.
+    runtime = {
+        **development,
+        "profile": "runtime",
+        "checks": {**development["checks"], "production_python_exact": True},
+    }
+    assert (
+        external_predicate_state(
+            "exact_python_3_12_13_environment", {"exact_environment": runtime}
+        )[0]
+        is True
+    )
 
 
 def test_hosted_builder_cannot_be_inferred_from_workflow_presence() -> None:

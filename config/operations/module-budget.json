@@ -1748,7 +1748,7 @@
       "reason": "isolates external production trust predicates from gate aggregation | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "apps/api/src/korpus/application/production_hard_predicates.py": {
-      "lines": 306,
+      "lines": 315,
       "max_complexity": 9,
       "max_function_args": 5,
       "max_function_lines": 34,
@@ -4839,10 +4839,10 @@
       "reason": "v0.6.1: evaluation harness now binds explicit claim, tested system, budget, independence and validity-hazard contract; local fixture cannot self-authorize production"
     },
     "scripts/run_exact_environment_gate.py": {
-      "lines": 79,
-      "max_complexity": 6,
-      "max_function_args": 0,
-      "max_function_lines": 41,
+      "lines": 120,
+      "max_complexity": 8,
+      "max_function_args": 1,
+      "max_function_lines": 56,
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
@@ -4928,7 +4928,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 6010,
+      "lines": 6035,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -9205,6 +9205,45 @@
       "reason": "M593–M595: зняте заперечення, надто широке правило заперечення, гуртовий вирок.",
       "to": {
         "lines": 6010
+      }
+    },
+    {
+      "from": {
+        "lines": 306
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/application/production_hard_predicates.py",
+      "reason": "Гейт точного середовища був НЕЗДІЙСНЕННИЙ за побудовою: читав обидва замки завжди й вимагав `production_python_exact` незалежно від того, де біжить. Робоча машина має обидва замки, але 3.12.3 при вимозі 3.12.13; продакшен-образ має 3.12.13, але dev-інструментів там немає й бути не мусить. Жодне середовище не проходило обидві перевірки. Тепер профіль обов'язковий і БЕЗ дефолту, а предикат вимагає `profile: runtime` — інакше доказ робочої машини задовольнив би твердження про продакшен рівно тому, що хибної перевірки в ньому немає.",
+      "to": {
+        "lines": 315
+      }
+    },
+    {
+      "from": {
+        "lines": 79,
+        "max_complexity": 6,
+        "max_function_args": 0,
+        "max_function_lines": 41
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_exact_environment_gate.py",
+      "reason": "Гейт точного середовища був НЕЗДІЙСНЕННИЙ за побудовою: читав обидва замки завжди й вимагав `production_python_exact` незалежно від того, де біжить. Робоча машина має обидва замки, але 3.12.3 при вимозі 3.12.13; продакшен-образ має 3.12.13, але dev-інструментів там немає й бути не мусить. Жодне середовище не проходило обидві перевірки. Тепер профіль обов'язковий і БЕЗ дефолту, а предикат вимагає `profile: runtime` — інакше доказ робочої машини задовольнив би твердження про продакшен рівно тому, що хибної перевірки в ньому немає.",
+      "to": {
+        "lines": 120,
+        "max_complexity": 8,
+        "max_function_args": 1,
+        "max_function_lines": 56
+      }
+    },
+    {
+      "from": {
+        "lines": 6010
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Гейт точного середовища був НЕЗДІЙСНЕННИЙ за побудовою: читав обидва замки завжди й вимагав `production_python_exact` незалежно від того, де біжить. Робоча машина має обидва замки, але 3.12.3 при вимозі 3.12.13; продакшен-образ має 3.12.13, але dev-інструментів там немає й бути не мусить. Жодне середовище не проходило обидві перевірки. Тепер профіль обов'язковий і БЕЗ дефолту, а предикат вимагає `profile: runtime` — інакше доказ робочої машини задовольнив би твердження про продакшен рівно тому, що хибної перевірки в ньому немає.",
+      "to": {
+        "lines": 6035
       }
     }
   ],

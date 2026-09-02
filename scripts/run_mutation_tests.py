@@ -5678,6 +5678,31 @@ MUTANTS = (
             "test_the_verdict_is_per_sentence_not_wholesale",
         ),
     ),
+    Mutant(
+        # Один замок на всі середовища робить гейт нездійсненним: у продакшен-образі
+        # dev-інструментів немає й бути не мусить, а на робочій машині інтерпретатор
+        # не продакшенний. Стану, у якому гейт зелений, не існувало.
+        "M596_ONE_LOCK_SET_FOR_EVERY_ENVIRONMENT",
+        "scripts/run_exact_environment_gate.py",
+        '    "runtime": (RUNTIME_LOCK,),',
+        '    "runtime": (RUNTIME_LOCK, DEV_LOCK),',
+        (
+            "apps/api/tests/test_exact_environment_evidence.py::"
+            "test_the_gate_has_a_state_in_which_it_can_be_green",
+        ),
+    ),
+    Mutant(
+        # Без вимоги профілю доказ робочої машини задовольняє продакшенний предикат
+        # рівно тому, що хибної перевірки в ньому НЕМАЄ.
+        "M597_A_DEVELOPMENT_REPORT_SATISFIES_THE_PRODUCTION_PREDICATE",
+        "apps/api/src/korpus/application/production_hard_predicates.py",
+        '        (("status", "PASS"), ("profile", "runtime")),',
+        '        (("status", "PASS"),),',
+        (
+            "apps/api/tests/test_exact_environment_evidence.py::"
+            "test_a_development_report_cannot_satisfy_the_production_predicate",
+        ),
+    ),
 )
 
 
