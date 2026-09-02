@@ -128,6 +128,11 @@ repository:validate:
     # Ціль `make validate`, якої не було в жодній джобі, — гейт, що не спрацьовує на пуші.
     - PYTHONPATH=apps/api/src python scripts/check_mutation_report_freshness.py
     - PYTHONPATH=apps/api/src python scripts/check_mutation_report_freshness.py --selftest
+    # Ширше питання за сусіда вище: не «чи цей звіт бачив каталог», а «чи ВСІ звіти
+    # доказів описують це дерево». Додано разом із ціллю в `make validate` — саме на
+    # цьому кроці парність зі мною й спіткнулась, і спіймала за годину.
+    - PYTHONPATH=apps/api/src python scripts/check_evidence_freshness.py
+    - PYTHONPATH=apps/api/src python scripts/check_evidence_freshness.py --selftest
     - python scripts/verify_verdict_ledger.py
     - PYTHONPATH=apps/api/src python scripts/validate_remote_digest.py
     - PYTHONPATH=apps/api/src python scripts/validate_document_probe.py
