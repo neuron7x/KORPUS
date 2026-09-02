@@ -35,4 +35,7 @@ Every evaluation record includes: claim, tested-system identity, harness, resour
 Optimization is accepted only when differential or metamorphic tests establish preserved semantics. Architecture changes require regression tests and mutation targets. Release promotion occurs only after current evidence is regenerated against the exact source digest.
 
 ## Primary references
-The machine-readable registry is `config/assurance/ASSURANCE_SOURCE_REGISTRY_2026.json`.
+The canonical machine-readable registry is
+`config/assurance/ASSURANCE_SOURCE_REGISTRY_2026.json`; its human-readable and BibTeX
+renders are `docs/research/BIBLIOGRAPHY_2026.md` and
+`docs/research/korpus-engineering-2026.bib`.

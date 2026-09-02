@@ -5438,6 +5438,15 @@
       "max_nesting": 0,
       "proof_lines": 0
     },
+    "scripts/verify_bibliography.py": {
+      "lines": 342,
+      "max_complexity": 13,
+      "max_function_args": 4,
+      "max_function_lines": 43,
+      "max_nesting": 3,
+      "proof_lines": 25,
+      "reason": "Новий канонічний бібліографічний гейт, виміряний 2026-09-02: перевіряє 59 джерел, 18 доменів, DOI/URL/метадані, епістемічні межі та точність двох детермінованих рендерів; вісім негативних контролів доводять fail-closed поведінку."
+    },
     "scripts/verify_branch_consolidation.py": {
       "lines": 387,
       "max_complexity": 15,
