@@ -4,6 +4,28 @@ The functions in this module are deliberately strict at the numeric boundary:
 booleans, strings, NaN/Inf, negative counts and inconsistent Bernoulli counts are
 rejected rather than coerced.  This keeps offline admission mathematics and TEVV
 reporting on one executable contract.
+
+ТРИ МЕЖІ, І ВИБІР МІЖ НИМИ НЕ СПРАВА СМАКУ.
+
+`hoeffding_upper_bound` тримається для будь-якої обмеженої величини й тому не
+користається з того, що показник помилки двійковий. `clopper_pearson_upper_bound` —
+точна для біноміального; консервативна (покриття >= 1-delta), отже так само придатна
+для ТВЕРДОЇ гарантії ризику. `wilson_score_interval` наближений: він недопокриває, і
+для гарантії ризику не годиться взагалі — лише для звітності.
+
+Ціна вибору виміряна 02.09.2026 при delta=0.05 і нулі спостережених помилок:
+
+    довести ризик     Гефдінг       Клоппер-Пірсон
+        10 %          150 зразків        29
+         5 %          600                59
+         2 %         3745               149
+         1 %        14979               299
+
+На 203 судимих питаннях, які є в дереві, Гефдінг засвідчує 8.65 %, точна межа — 1.49 %
+на ТИХ САМИХ даних. Тобто ворота розгортання стояли на виборі методу, а не на якості
+системи. Покриття обох перевіряється симуляцією в `test_exact_risk_bound.py`, і поруч
+там стоїть негативний контроль — межа Вальда, яка ту саму перевірку зобов'язана
+завалити.
 """
 
 from __future__ import annotations
@@ -79,6 +101,48 @@ def hoeffding_upper_bound(
     empirical = errors_i / samples_i
     radius = math.sqrt(math.log(1.0 / local_delta) / (2.0 * samples_i))
     return min(1.0, empirical + radius)
+
+
+#: Кроків бісекції. 200 половинок доводять інтервал [0,1] нижче за подвійну точність,
+#: тож результат детермінований: те саме входження дає той самий біт.
+_BISECTION_STEPS = 200
+
+
+def _binomial_tail_at_most(errors: int, total: int, rate: float) -> float:
+    """P(X <= errors) для X ~ Binomial(total, rate)."""
+    return math.fsum(
+        math.comb(total, k) * rate**k * (1.0 - rate) ** (total - k) for k in range(errors + 1)
+    )
+
+
+def _union_corrected_delta(delta: object, hypotheses: object) -> float:
+    """Поправка Бонферроні: одна впевненість, поділена між перевірками."""
+    if not strict_int(hypotheses) or hypotheses < 1:
+        raise ValueError("hypotheses must be a positive integer")
+    return _confidence_delta(delta) / hypotheses
+
+
+def clopper_pearson_upper_bound(
+    errors: object,
+    samples: object,
+    delta: object,
+    *,
+    hypotheses: object = 1,
+) -> float:
+    """Точна одностороння біноміальна верхня межа. Порожній доказ дає 1.0.
+
+    Чому вона стоїть поруч із Гефдінговою, а не замість неї, — у докстрінгу модуля.
+    """
+    errors_i, samples_i = _bernoulli_counts(errors, samples)
+    local_delta = _union_corrected_delta(delta, hypotheses)
+    if errors_i == samples_i:
+        return 1.0
+    low, high = errors_i / samples_i, 1.0
+    for _ in range(_BISECTION_STEPS):
+        middle = (low + high) / 2.0
+        above = _binomial_tail_at_most(errors_i, samples_i, middle) > local_delta
+        low, high = (middle, high) if above else (low, middle)
+    return high
 
 
 def hoeffding_two_sided_interval(

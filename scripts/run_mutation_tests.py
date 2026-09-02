@@ -5716,6 +5716,53 @@ MUTANTS = (
             "test_an_empty_run_may_not_overwrite_a_measured_report",
         ),
     ),
+    Mutant(
+        # Бік нерівності бісекції. Перевернутий, він шукає межу з іншого кінця й видає
+        # число, яке виглядає правдоподібно і ЗАНИЖУЄ ризик — ловиться лише покриттям.
+        "M599_THE_EXACT_BOUND_SEARCHES_FROM_THE_WRONG_SIDE",
+        "apps/api/src/korpus/application/statistical_bounds.py",
+        "        above = _binomial_tail_at_most(errors_i, samples_i, middle) > local_delta",
+        "        above = _binomial_tail_at_most(errors_i, samples_i, middle) < local_delta",
+        ("apps/api/tests/test_exact_risk_bound.py",),
+    ),
+    Mutant(
+        # Замало кроків бісекції — межа недозбігається й недопокриває.
+        #
+        # Тут спершу стояла інша мутація: повертати `low` замість `high`. Вона ВИЖИЛА, і
+        # це не діра в тестах, а еквівалентність, доведена рахунком: після 200 половинок
+        # ширина інтервалу ~6e-61 при кроці double ~2e-16, тобто обидва кінці — той самий
+        # float. Записано, бо «вижив» і «не перевіряється» тут різні речі, і наступний
+        # прогін інакше витратив би вечір на пошук неіснуючої діри. Кінець бісекції не
+        # навантажений; навантажена КІЛЬКІСТЬ кроків, і мутується саме вона.
+        "M600_THE_EXACT_BOUND_STOPS_BISECTING_TOO_EARLY",
+        "apps/api/src/korpus/application/statistical_bounds.py",
+        "_BISECTION_STEPS = 200",
+        "_BISECTION_STEPS = 8",
+        ("apps/api/tests/test_exact_risk_bound.py::test_zero_errors_matches_the_closed_form",),
+    ),
+    Mutant(
+        # Без поправки на кількість гіпотез межа обіцяє 1-delta там, де перевірок кілька.
+        "M601_THE_EXACT_BOUND_DROPS_THE_UNION_CORRECTION",
+        "apps/api/src/korpus/application/statistical_bounds.py",
+        "    return _confidence_delta(delta) / hypotheses",
+        "    return _confidence_delta(delta)",
+        (
+            "apps/api/tests/test_exact_risk_bound.py::test_the_bound_moves_in_the_only_two_"
+            "directions_it_may",
+        ),
+    ),
+    Mutant(
+        # Ворота розгортання, тихо повернуті до вільнішої межі. Обидві валідні, тож
+        # жодна перевірка відношень цього не побачить — лише розрізняльний випадок.
+        "M602_THE_DEPLOYMENT_GATE_SILENTLY_REVERTS_TO_THE_LOOSE_BOUND",
+        "apps/api/src/korpus/application/calibration.py",
+        "        return clopper_pearson_upper_bound(",
+        "        return hoeffding_upper_bound(",
+        (
+            "apps/api/tests/test_exact_risk_bound.py::"
+            "test_the_deployment_gate_reads_the_exact_bound_and_not_the_loose_one",
+        ),
+    ),
 )
 
 

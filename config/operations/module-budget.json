@@ -879,7 +879,7 @@
       "proof_lines": 0
     },
     "apps/api/src/korpus/application/calibration.py": {
-      "lines": 195,
+      "lines": 202,
       "max_complexity": 4,
       "max_function_args": 4,
       "max_function_lines": 14,
@@ -2021,7 +2021,7 @@
       "reason": "Портовано знімок корпусу з GitHub-лінії 01.09.2026: одна відповідь читає ОДИН стан корпусу, а не кілька незалежних читань під датою `as_of`. `corpus_state_epoch` дає монотонний маркер, `evidence_sealing` прив'язує схвалення до конкретного набору доказів, і журнал відповіді несе `corpus_snapshot` поруч із `corpus_release`."
     },
     "apps/api/src/korpus/application/statistical_bounds.py": {
-      "lines": 97,
+      "lines": 161,
       "max_complexity": 6,
       "max_function_args": 4,
       "max_function_lines": 24,
@@ -4928,7 +4928,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 6050,
+      "lines": 6091,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -9292,6 +9292,39 @@
       "reason": "Записано перший вимір самих ПРОМТІВ на моделі: rewrite 0 придатних варіантів із 40, compose 0 допущених із 23, p50 6.65 с при дедлайні 10 с. Тести цього модуля перевіряють лише парсер канонсервованими рядками, тож без цього рядка промт лишався б єдиною недоведеною частиною контракту. Коду не додано.",
       "to": {
         "lines": 109
+      }
+    },
+    {
+      "from": {
+        "lines": 97
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/application/statistical_bounds.py",
+      "reason": "Додано точну біноміальну верхню межу (Clopper–Pearson) поруч із Гефдінговою. Обидві валідні на тій самій delta; різниця в тому, скільки судженого матеріалу коштує та сама гарантія — виміряно 02.09.2026 при нулі помилок: ризик 5 % вимагає 600 зразків за Гефдінгом і 59 за точною, ризик 2 % — 3745 проти 149. Гефдінг НЕ прибрано: він правильний для небернуллівських обмежених втрат. Складність знята розбором: поправка Бонферроні винесена в `_union_corrected_delta`, тож обидві межі читають одну функцію, а не дві копії правила.",
+      "to": {
+        "lines": 161
+      }
+    },
+    {
+      "from": {
+        "lines": 195
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/application/calibration.py",
+      "reason": "Докстрінг `upper_error_bound` називає, ЧОМУ ворота розгортання читають точну межу, а не вільнішу, і що гарантія при цьому та сама. Без цього наступна сесія прочитає заміну як послаблення гейта. Код виріс на два рядки, решта — запис виміру.",
+      "to": {
+        "lines": 202
+      }
+    },
+    {
+      "from": {
+        "lines": 6050
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Чотири мутанти на нову межу ризику. Один із них несе доведення ЕКВІВАЛЕНТНОСТІ попередньої спроби (`low` замість `high` після 200 половинок — той самий float, 6e-61 при кроці 2e-16), щоб наступний прогін не шукав неіснуючої діри в тестах.",
+      "to": {
+        "lines": 6091
       }
     }
   ],

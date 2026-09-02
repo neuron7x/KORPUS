@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from korpus.application.authority_policy import validate_authority_priors
 from korpus.application.retrieval import BM25Parameters, RetrievalWeights
-from korpus.application.statistical_bounds import hoeffding_upper_bound
+from korpus.application.statistical_bounds import clopper_pearson_upper_bound
 from korpus.domain.models import AuthorityClass
 
 
@@ -123,9 +123,16 @@ class CalibrationProfile(BaseModel):
 
     @property
     def upper_error_bound(self) -> float:
+        """Верхня межа частки помилок серед ПРИЙНЯТИХ відповідей на рівні 1-delta.
+
+        Точна біноміальна, не Гефдінгова: гарантія та сама delta, бо Clopper–Pearson
+        консервативний, але вимагає в рази менше судженого матеріалу. Заміна на
+        вільнішу межу — не послаблення гейта, а його подорожчання; таблиця в
+        `statistical_bounds`.
+        """
         if self.accepted_samples == 0:
             return 1.0
-        return hoeffding_upper_bound(
+        return clopper_pearson_upper_bound(
             self.observed_errors, self.accepted_samples, self.confidence_delta
         )
 
