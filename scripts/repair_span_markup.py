@@ -1,28 +1,8 @@
 #!/usr/bin/env python3
-"""Прибрати з уже збережених прольотів розмітку, яка осіла в них як текст документа.
+"""Очистити незапечатані прольоти тим самим `_strip_html`, що й екстракція.
 
-Причину усунено в екстракції: подвійно закодована розмітка тепер переparсюється, а не
-лишається `&lt;p>`. Але фікс діє на НОВІ прольоти. Ті, що вже лежать у корпусі, який
-подає сайт, лишаються такими, якими їх зберегли, — і саме їх солдат може отримати як
-доказ, із хешем і посиланням.
-
-Виміряно 31.08.2026 на `var/runtime/corpus-v6-20260807/korpus.db`: 98 цитовних прольотів
-із 38 863 несуть екрановану розмітку або обстановку носія, у 23 версіях документів —
-зокрема у Стройовому статуті ЗСУ й наказах Міноборони.
-
-Ремонт — той самий `_strip_html`, що виправлено в екстракції: проліт переparсюється,
-і `NON_DOCUMENT_ELEMENTS` діє на нього так само, як діяв би при першому розборі. Хеш
-перераховується, бо він є `sha256` тексту й мусить описувати те, що справді лежить.
-
-ЧОГО СКРИПТ НЕ РОБИТЬ. Не чіпає проліт, який після ремонту порожніє або коротшає до
-неречення: краще лишити брудний фрагмент видимим для гейта, ніж поставити на його місце
-уламок, що виглядає чистим. Не видаляє прольотів: `evidence_spans` не має стану, і
-видалення зсунуло б порядок. Не чинить те, у чому речення немає взагалі — 22 прольоти,
-де межа розрізала JSON банера згоди, лишаються як названий борг.
-
-    repair_span_markup.py --database DB            # показати, нічого не писати
-    repair_span_markup.py --database DB --apply
-    repair_span_markup.py --selftest
+Небезпечний результат не пишеться; запечатаний потребує нової версії й рецензування.
+`--apply` відмовляє до першого запису, не через помилку SQL-тригера.
 """
 
 from __future__ import annotations
@@ -34,21 +14,17 @@ import re
 import sqlite3
 import sys
 from pathlib import Path
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "apps/api/src"))
 
 from korpus.infrastructure.extraction import _strip_html
 
-#: Ті самі ознаки, що в `validate_span_hygiene.py`. Свідомо продубльовані ЗНАЧЕННЯМ, а не
-#: імпортом: гейт і ремонт мусять погоджуватись про те, що таке бруд, і розбіжність між
-#: ними має бути видно як розбіжність чисел, а не сховатись у спільній змінній.
 ESCAPED_MARKUP = re.compile(r"&lt;/?[a-z]|&#34;|&quot;|&amp;nbsp;")
 CHROME = re.compile(r"(?i)\bcmp-|reset password|\bcookies?\b|\bconsent banner\b")
 
-#: Скільки тексту дозволено втратити при ремонті. Розмітка коротка; якщо зникло більше
-#: половини, зник не тег, а речення — і такий проліт лишається неторканим.
+#: Межі захищають від заміни доказу коротким уламком.
 MIN_SURVIVING_RATIO = 0.5
-#: Коротше за це — вже не свідчення, хоч би яким чистим виглядало.
 MIN_LENGTH = 40
 
 SELECT = (
@@ -94,6 +70,40 @@ def apply(connection: sqlite3.Connection, changes: list[tuple[str, str, str]]) -
         [(new, hashlib.sha256(new.encode("utf-8")).hexdigest(), sid) for sid, _old, new in changes],
     )
     connection.commit()
+
+
+def sealed_span_ids(connection: sqlite3.Connection) -> set[str]:
+    return {
+        str(row[0])
+        for row in connection.execute(
+            "SELECT s.id FROM evidence_spans s JOIN document_versions v ON v.id=s.version_id "
+            "WHERE v.evidence_digest IS NOT NULL"
+        )
+    }
+
+
+def execute(
+    connection: sqlite3.Connection, changes: list[tuple[str, str, str]], requested: bool
+) -> tuple[list[str], bool]:
+    sealed = sorted({change[0] for change in changes} & sealed_span_ids(connection))
+    applied = requested and not sealed
+    if applied:
+        apply(connection, changes)
+    return sealed, applied
+
+
+def report(state: tuple[Any, ...]) -> dict[str, object]:
+    before, after, changes, refused, sealed, requested, applied = state
+    return {
+        "schema": "korpus.span-markup-repair.v1",
+        "dirty_before": before,
+        "repairable": len(changes),
+        "sealed_repairable": len(sealed),
+        "refused": refused,
+        "dirty_after": after if applied else "не застосовано",
+        "applied": applied,
+        "status": "REFUSED" if requested and sealed else "PASS",
+    }
 
 
 def selftest() -> int:
@@ -159,25 +169,12 @@ def main() -> int:
     connection = sqlite3.connect(arguments.database)
     before = sum(1 for _, text in connection.execute(SELECT) if dirty(text))
     changes, refused = plan(connection)
-    if arguments.apply:
-        apply(connection, changes)
+    sealed, applied = execute(connection, changes, arguments.apply)
     after = sum(1 for _, text in connection.execute(SELECT) if dirty(text))
     connection.close()
-    print(
-        json.dumps(
-            {
-                "schema": "korpus.span-markup-repair.v1",
-                "dirty_before": before,
-                "repairable": len(changes),
-                "refused": refused,
-                "dirty_after": after if arguments.apply else "не застосовано",
-                "applied": arguments.apply,
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
-    )
-    return 0
+    result = report((before, after, changes, refused, sealed, arguments.apply, applied))
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 1 if result["status"] == "REFUSED" else 0
 
 
 if __name__ == "__main__":

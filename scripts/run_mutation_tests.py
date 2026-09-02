@@ -5569,6 +5569,28 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M635_MARKUP_REPAIR_REWRITES_SEALED_EVIDENCE",
+        "scripts/repair_span_markup.py",
+        "    applied = requested and not sealed",
+        "    applied = requested",
+        (
+            "apps/api/tests/test_sealed_repair_refusal.py::"
+            "test_markup_repair_refuses_a_sealed_span_before_writing",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M636_RESPAN_REWRITES_SEALED_EVIDENCE",
+        "scripts/respan_from_source.py",
+        "    refusal = sealed_refusal(versions) if args.apply else None",
+        "    refusal = None",
+        (
+            "apps/api/tests/test_sealed_repair_refusal.py::"
+            "test_respan_refuses_sealed_versions_before_reading_source_objects",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M470_AN_UNUSABLE_VALUE_IS_TOLERATED",
         "scripts/check_public_env_parity.py",
         '        name for name, value in unit.items() if value.startswith("{") and not _parses_as_json(value)',

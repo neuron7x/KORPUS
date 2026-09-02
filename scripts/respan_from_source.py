@@ -1,41 +1,10 @@
 #!/usr/bin/env python3
-"""Проліт, який не є дослівним зрізом джерела, — це цитата, якої ніхто не казав.
+"""Перенарізати незапечатані версії лише з перевірених оригінальних об'єктів.
 
-`recut_span_boundaries.py` переносив провідний уламок речення у ПОПЕРЕДНІЙ проліт, щоб
-цитата не починалась посеред слова. Вимір показав, що він підняв `span_sentence_start`
-0.1555 → 0.7424. Адверсарний прогін 31.08.2026 показав ціну, якої та вісь не бачить:
-
-  · 23 689 із 38 863 прольотів (60.96 %) перестали бути підрядком свого джерела;
-  · 9 389 швів склеїли по дві літери в слова, яких у документі немає:
-    `…assistance or stabilityttacks.`, `…compromise, andontact…`, `…FSF membersted by…`.
-
-Власний інваріант ремонту — «конкатенація прольотів версії не змінилась» — зберігається
-при перенесенні символів між сусідами ЗАВЖДИ, тож побачити цього не міг. Єдина перевірка
-дослівності живе всередині `make_spans` (`infrastructure/extraction.py`), а ремонт писав
-у `evidence_spans` напряму, повз неї.
-
-Тому нарізка робиться заново з ОРИГІНАЛУ, а не лагодиться на місці. Об'єкт звіряється з
-`document_versions.source_hash` (256 із 256 збігаються), тож він і є документом.
-
-**Пошуковий індекс і вбудовування — частина того самого запису.** `evidence_fts` не має
-тригерів: її веде код застосунку, тож інструмент, що пише в `evidence_spans` напряму,
-лишає її вказувати на мертві ідентифікатори. Зовнішні ключі в SQLite за замовчуванням
-ВИМКНЕНІ, тому `ON DELETE CASCADE` у `span_embeddings` теж не спрацьовує сам. Виміряно на
-копії: після перебудови без цього кроку сиротами стають усі 38 863 записи індексу й усі
-2272 вбудовування — пошук перестає працювати мовчки. Тому індекс перебудовується тут же, а
-вбудовування прибираються: їхній `text_hash` більше не відповідає жодному прольоту, і
-лишити їх означало б тримати вектор, що видає себе за цитату, якої немає.
-
-**Два інваріанти, обидва перевіряються ПЕРЕД записом, для кожної версії:**
-  1. кожен проліт дорівнює `source[start:end]` — дослівність за побудовою і за звіркою;
-  2. прольоти покривають джерело без пропусків: `start[0] == 0`, `end[-1] == len(source)`,
-     `start[i+1] <= end[i]`. Перекриття дозволене, дірка — ні.
-Версія, яка не проходить обидва, НЕ записується й називається поіменно.
-
-**Межі речень, але не ціною дослівності.** Розріз ставиться після `.!?` перед пробілом;
-якщо в межах стелі такої межі немає, ріжеться по пробілу, а якщо немає й пробілу — по
-символу. Такий проліт починається посеред речення, і це чесно рахується, а не ховається:
-речень довших за стелю 331 із 357 250 (0.09 %), і в них 2.71 % символів корпусу.
+Кожен проліт є дослівним `source[start:end]`, усі разом покривають джерело без дірок,
+жоден не перевищує стелю. Після запису FTS перебудовується, осиротілі вбудовування
+видаляються. Запечатаний набір доказів потребує нової версії та нового рецензування;
+`--apply` відмовляє до читання об'єктів і до першого запису.
 
     respan_from_source.py --database DB [--apply] [--limit N]
     respan_from_source.py --selftest
@@ -223,14 +192,31 @@ def rebuild_index(connection: sqlite3.Connection) -> dict[str, int]:
     }
 
 
-def main() -> int:
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--database", type=Path, default=DEFAULT_DB)
     parser.add_argument("--object-root", type=Path)
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--limit", type=int, default=None, help="скільки версій обробити")
     parser.add_argument("--selftest", action="store_true")
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def sealed_refusal(versions: list[Any]) -> dict[str, Any] | None:
+    sealed = [str(row["id"]) for row in versions if row["evidence_digest"] is not None]
+    if not sealed:
+        return None
+    return {
+        "status": "REFUSED",
+        "applied": False,
+        "reason": "запечатані докази потребують нових версій",
+        "sealed_versions": sealed[:10],
+        "sealed_count": len(sealed),
+    }
+
+
+def main() -> int:
+    args = parse_args()
     if args.selftest:
         return selftest()
     if not args.database.is_file():
@@ -244,10 +230,16 @@ def main() -> int:
     connection = sqlite3.connect(str(args.database))
     connection.row_factory = sqlite3.Row
     versions = list(
-        connection.execute("select id, object_key, source_hash from document_versions order by id")
+        connection.execute(
+            "select id, object_key, source_hash, evidence_digest from document_versions order by id"
+        )
     )
-    if args.limit:
-        versions = versions[: args.limit]
+    versions = versions[: args.limit] if args.limit else versions
+    refusal = sealed_refusal(versions) if args.apply else None
+    if refusal:
+        connection.close()
+        print(json.dumps(refusal, ensure_ascii=False, indent=2))
+        return 1
     refused: list[dict[str, Any]] = []
     planned = written = 0
     now = datetime.now(UTC).isoformat(sep=" ")
