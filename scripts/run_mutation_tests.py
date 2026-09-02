@@ -5916,6 +5916,49 @@ MUTANTS = (
             "test_a_removal_without_a_reason_is_not_a_decision",
         ),
     ),
+    Mutant(
+        # Повернення до `killed != mutants`. Виміряно 02.09.2026: воно хибне для 0 != 0
+        # і для None != None, тож прогін, що не мутував нічого, читався як доказ.
+        "M616_A_MUTATION_RUN_THAT_KILLED_NOTHING_READS_AS_PROOF",
+        "scripts/verify_branch_consolidation.py",
+        "    if not isinstance(total, int) or total <= 0:",
+        "    if False:",
+        (
+            "apps/api/tests/test_verifier_resistance.py::"
+            "test_a_run_that_mutated_nothing_is_not_proof",
+        ),
+    ),
+    Mutant(
+        # Вижилі мутанти, прочитані як норма. Найдорожче з усього: саме це число і є
+        # тим, на що спирається вся заява про доведеність продукту.
+        "M617_SURVIVING_MUTANTS_STOP_BEING_A_PROBLEM",
+        "scripts/verify_branch_consolidation.py",
+        '        problems.append(f"вижили мутанти: {survived}")',
+        "        pass",
+        ("apps/api/tests/test_verifier_resistance.py",),
+    ),
+    Mutant(
+        # Вирок ACCEPTED при непорожньому `unknown`: «не виміряно» стає «доведено».
+        "M618_UNKNOWN_STOPS_BLOCKING_THE_ACCEPTED_VERDICT",
+        "scripts/verify_branch_consolidation.py",
+        '        "ACCEPTED": not problems and not unknown,',
+        '        "ACCEPTED": not problems,',
+        (
+            "apps/api/tests/test_verifier_resistance.py::"
+            "test_the_verdict_is_not_accepted_while_anything_is_unresolved",
+        ),
+    ),
+    Mutant(
+        # Код виходу, що зливає «не виміряно» з «усе добре». CI читає лише $?.
+        "M619_THE_EXIT_CODE_STOPS_DISTINGUISHING_UNKNOWN_FROM_PASS",
+        "scripts/verify_branch_consolidation.py",
+        '    return 0 if not report["unknown"] else 2',
+        "    return 0",
+        (
+            "apps/api/tests/test_verifier_resistance.py::"
+            "test_unknown_and_problem_leave_by_different_exit_codes",
+        ),
+    ),
 )
 
 

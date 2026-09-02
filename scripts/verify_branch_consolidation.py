@@ -223,12 +223,33 @@ def _mutation_findings(mutation: dict[str, Any] | None) -> tuple[list[str], list
         )
     if mutation is None:
         return problems, ["немає reports/MUTATION_REPORT.json"]
-    if mutation.get("survived") or mutation.get("killed") != mutation.get("mutants"):
-        problems.append(
-            f"мутанти: {mutation.get('killed')}/{mutation.get('mutants')}, "
-            f"вижили {mutation.get('survived')}"
-        )
+    problems.extend(mutation_consistency(mutation))
     return problems, []
+
+
+def mutation_consistency(mutation: dict[str, Any]) -> list[str]:
+    """Чому одного `killed == mutants` не досить.
+
+    Виміряно 02.09.2026 на цьому ж коді: `{"killed": 0, "mutants": 0, "survived": []}`
+    давало НУЛЬ проблем, бо `0 != 0` хибне. Прогін, який не мутував нічого, читався як
+    доказ. Порожній звіт `{}` проходив із тієї самої причини: `None != None` теж хибне.
+    Це `NOT_EXECUTED -> PASS` у чистому вигляді, і гейт свіжості його не ловить —
+    звіт, що перелічує всі ідентифікатори каталогу й не вбиває жодного, свіжий.
+
+    Тому три окремі твердження, кожне падає своїм рядком: мутантів БУЛО скільки їх є,
+    вбито рівно стільки ж, вижилих немає.
+    """
+    problems: list[str] = []
+    total, killed = mutation.get("mutants"), mutation.get("killed")
+    if not isinstance(total, int) or total <= 0:
+        problems.append(f"звіт мутацій не називає жодного мутанта: mutants={total!r}")
+        return problems
+    if not isinstance(killed, int) or killed != total:
+        problems.append(f"мутанти: {killed!r}/{total}, а мусить бути {total}/{total}")
+    survived = mutation.get("survived")
+    if survived:
+        problems.append(f"вижили мутанти: {survived}")
+    return problems
 
 
 def _produce_axes() -> dict[str, Any] | None:

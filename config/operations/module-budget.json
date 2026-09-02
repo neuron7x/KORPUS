@@ -4952,7 +4952,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 6244,
+      "lines": 6287,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -5422,7 +5422,7 @@
       "proof_lines": 0
     },
     "scripts/verify_branch_consolidation.py": {
-      "lines": 366,
+      "lines": 387,
       "max_complexity": 15,
       "max_function_args": 6,
       "max_function_lines": 55,
@@ -9415,6 +9415,28 @@
       "reason": "Три мутанти на захист знаменника: скорочення, віддане як PASS; зниклий член, невидимий за іменем (лічильник ловить лише чисте скорочення); прибирання без причини, прийняте як назване рішення.",
       "to": {
         "lines": 6244
+      }
+    },
+    {
+      "from": {
+        "lines": 366
+      },
+      "on": "2026-09-02",
+      "path": "scripts/verify_branch_consolidation.py",
+      "reason": "Перевірка узгодженості звіту мутацій розділена на три окремі твердження: мутантів БУЛО скільки їх є, вбито стільки ж, вижилих немає. Виміряно, що  хибне для 0!=0 і None!=None, тож прогін, який не мутував нічого, і порожній звіт читались як доказ.",
+      "to": {
+        "lines": 387
+      }
+    },
+    {
+      "from": {
+        "lines": 6244
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Чотири мутанти проти самого верифікатора: нуль мутантів як доказ, вижилі як норма, ACCEPTED при непорожньому unknown, код виходу, що зливає UNKNOWN із PASS.",
+      "to": {
+        "lines": 6287
       }
     }
   ],
