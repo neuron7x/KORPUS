@@ -3383,7 +3383,12 @@ MUTANTS = (
     Mutant(
         "M257_TEVV_DECLARED_AGGREGATE_CONFLICT_IGNORED",
         "apps/api/src/korpus/application/tevv_evidence.py",
-        '        "declared_aggregates_consistent": _declared_consistent(evidence, metrics),',
+        # Якір перенацілено 02.09.2026: `_declared_consistent` став `_declared_agreement`,
+        # який виводить ЗНАМЕННИК звірки поруч із вироком. Мутант лишається тим самим
+        # твердженням — «розбіжність оголошеного з виміряним ігнорується», — але цілиться
+        # в новий рядок. Не перенацілити означало б лишити його INVALID, тобто дати
+        # мутантові мовчки покинути знаменник каталогу.
+        '        "declared_aggregates_consistent": agreement["consistent"],',
         '        "declared_aggregates_consistent": True,',
         (
             "apps/api/tests/test_tevv_attestation_boundary.py::"

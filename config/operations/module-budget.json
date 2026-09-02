@@ -5001,13 +5001,13 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 6476,
+      "lines": 6481,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "Каталог мутацій ОГОЛОШУЄ власний вирок. Виміряно 02.09.2026: `release_claims` прив'язав його правильно і все одно дав UNDECLARED_EVIDENCE, бо поля вироку не було — його доводилось виводити з `mutation_score`. Читач, що виводить вирок сам, тримає знання про предмет у собі й розходиться з ним мовчки, щойно предмет зміниться. Вирок рахується з переліків survived/invalid/errors і з `mutation_score_over_catalogue`, а порожній перелік результатів дає FAIL: `all([])` істинне, а нуль мутантів означає, що каталог не бігав."
+      "reason": "Якір M257 перенацілено після рефакторингу `_declared_consistent` -> `_declared_agreement`: мутант став INVALID і мовчки покинув би знаменник каталогу. Не перенацілити означало б, що `mutation_score` лишається 1.0 при каталозі, що всихає — рівно та вада, проти якої існує `mutation_score_over_catalogue`."
     },
     "scripts/run_operational_gate.py": {
       "lines": 42,
@@ -9950,6 +9950,17 @@
         "max_function_lines": 292
       },
       "reason": "WS-05: два лічильники очікувань набору. `quote_ok`/`reason_ok` не відрізняли «звірено й збіглося» від «звіряти не було чого»: рядок без `expected_reason` давав True, не перевіривши нічого. Виміряно 02.09.2026 одразу після правки: очікувану ПРИЧИНУ оголошують 2 рядки з 30, очікувану цитату — 15. Вирок 30/30 лишається, але тепер несе, скільки з них мали що звіряти."
+    },
+    {
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "from": {
+        "lines": 6476
+      },
+      "to": {
+        "lines": 6481
+      },
+      "reason": "Якір M257 перенацілено після рефакторингу `_declared_consistent` -> `_declared_agreement`: мутант став INVALID і мовчки покинув би знаменник каталогу. Не перенацілити означало б, що `mutation_score` лишається 1.0 при каталозі, що всихає — рівно та вада, проти якої існує `mutation_score_over_catalogue`."
     }
   ],
   "recorded_at": "2026-09-02",
