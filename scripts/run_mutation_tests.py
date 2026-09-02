@@ -52,8 +52,8 @@ MUTANTS = (
     Mutant(
         "M631_FOLD_KEEPS_LAST_NOT_MAX",
         "apps/api/src/korpus/application/retrieval.py",
-        "            if overlap > value:\n                value = overlap",
-        "            if True:\n                value = overlap",
+        "            if overlap > best:\n                best = overlap",
+        "            if True:\n                best = overlap",
         (
             "apps/api/tests/test_diversify_incremental_identity.py::test_lazy_folding_equals_the_naive_recomputation",
         ),

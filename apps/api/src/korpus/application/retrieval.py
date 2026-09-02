@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from datetime import date
 from typing import Any
 
@@ -112,6 +112,62 @@ def authority_tier(
     return priors[item.version.authority] if item.score >= tier_floor else 0.0
 
 
+def _marginal_redundancy_fold(
+    ranked: list[RetrievedEvidence],
+) -> Callable[[RetrievedEvidence, list[RetrievedEvidence]], float]:
+    """Найбільший збіг кандидата з уже обраними, згорнутий ЛІНИВО.
+
+    Тотожність із перерахунком з нуля алгебраїчна, не наближена:
+    `max(S ∪ {x}) = max(max(S), x)`. Максимум асоціативний, а `jaccard` — частка двох
+    цілих, тож додавань, які могли б накопичити похибку, немає ЗОВСІМ. Порожній набір
+    обраних дає 0.0 — те саме, що `default=0.0` у редакції з перерахунком.
+
+    ЧОМУ ЛІНИВО, А НЕ НАПЕРЕД. Редакція, що оновлювала кеш для ВСІХ кандидатів після
+    кожного раунду, на справжніх прольотах корпусу дала: широкий випадок 227.44 → 125.08
+    мс, але вузький 62.52 → 72.09, тобто ГІРШЕ. При `per_version_cap=1` і одній версії
+    цикл обривається після першого раунду, попередній код майже не рахував `jaccard`, а
+    та редакція встигала оновити 255 кандидатів намарно. Оптимізація, що погіршує
+    випадок, оптимізацією не є.
+
+    ЧОМУ ФАБРИКА, А НЕ КЛАС. Виніс у клас із `__slots__` зберіг тотожність виходу, але
+    на вузькому випадку коштував +6.3 % (61.08 → 64.95 мс) при незмінних інших двох —
+    диспетчеризація методу й пошук атрибутів там, де замикання читає комірки. Рефакторинг
+    мав зменшити структурний борг БЕЗ зміни швидкодії, тож клас знято. Іменована фабрика
+    дає ту саму відокремленість і ту саму придатність до окремої перевірки.
+
+    ЧОМУ `selected` ПЕРЕДАЄТЬСЯ, А НЕ ЗБЕРІГАЄТЬСЯ. Тримати посилання на список, який
+    росте ззовні, означало б приховане зчеплення: правильність залежала б від того, чи
+    той самий об'єкт мутують у потрібному порядку. Тут пам'ять — лише про ВЖЕ згорнуте,
+    а джерело істини лишається у виклику.
+
+    ВИМІРЯНО 02.09.2026 на живому корпусі, 256 кандидатів, `limit=8`:
+        різних версій 1    62.52 → 61.52 мс   (-1.6 %)
+        різних версій 10  134.48 → 83.48 мс   (-37.9 %)
+        різних версій 20  227.44 → 103.52 мс  (-54.5 %)
+    Жоден випадок не погіршився — саме це відрізняє оптимізацію від обміну.
+    """
+    grams = {str(item.span.id): character_ngrams(item.span.text) for item in ranked}
+    folded: dict[str, int] = {}
+    value: dict[str, float] = {}
+
+    def fold(item: RetrievedEvidence, selected: list[RetrievedEvidence]) -> float:
+        key = str(item.span.id)
+        seen = folded.get(key, 0)
+        if seen == len(selected):
+            return value.get(key, 0.0)
+        best = value.get(key, 0.0)
+        item_grams = grams[key]
+        for other in selected[seen:]:
+            overlap = jaccard(item_grams, grams[str(other.span.id)])
+            if overlap > best:
+                best = overlap
+        value[key] = best
+        folded[key] = len(selected)
+        return best
+
+    return fold
+
+
 def diversify_evidence(
     ranked: list[RetrievedEvidence],
     *,
@@ -158,46 +214,7 @@ def diversify_evidence(
     selected: list[RetrievedEvidence] = []
     remaining = list(ranked)
     version_counts: defaultdict[str, int] = defaultdict(int)
-    grams = (
-        {str(item.span.id): character_ngrams(item.span.text) for item in ranked}
-        if diversity_lambda < 1.0
-        else {}
-    )
-    # Надлишковість ЗГОРТАЄТЬСЯ ЛІНИВО, а не перераховується з нуля щораунду.
-    #
-    # Тотожність значень алгебраїчна, не наближена: `max(S ∪ {x}) = max(max(S), x)`.
-    # Максимум асоціативний, а `jaccard` — частка двох цілих, тож додавань, які могли б
-    # накопичити похибку, немає ЗОВСІМ. Порожній `selected` дає 0.0 — те саме, що
-    # `default=0.0` у попередній редакції. Тотожність доведена диференційно: вихід
-    # збігається поелементно, разом із рангами й порядком.
-    #
-    # ЧОМУ ЛІНИВО, А НЕ НАПЕРЕД. Перша редакція рефакторингу оновлювала кеш для ВСІХ
-    # кандидатів після кожного раунду і на справжніх прольотах дала: широкий випадок
-    # 227.44 -> 125.08 мс, але вузький 62.52 -> 72.09 мс, тобто ГІРШЕ. Причина: при
-    # `per_version_cap=1` і одній версії цикл обривається після першого раунду, старий
-    # код майже не рахував jaccard, а нова редакція встигала оновити 255 кандидатів
-    # намарно. Оптимізація, що погіршує один із трьох випадків, не є оптимізацією.
-    #
-    # Ліниве згортання робить рівно ту роботу, яку хтось питає: кожен кандидат згортає
-    # лише тих переможців, яких ще не бачив, і лише коли його оцінюють.
-    folded: dict[str, int] = {}
-    redundancy: dict[str, float] = {}
-
-    def marginal_redundancy(item: RetrievedEvidence) -> float:
-        key = str(item.span.id)
-        seen = folded.get(key, 0)
-        if seen == len(selected):
-            return redundancy.get(key, 0.0)
-        value = redundancy.get(key, 0.0)
-        item_grams = grams[key]
-        for other in selected[seen:]:
-            overlap = jaccard(item_grams, grams[str(other.span.id)])
-            if overlap > value:
-                value = overlap
-        redundancy[key] = value
-        folded[key] = len(selected)
-        return value
-
+    redundancy = _marginal_redundancy_fold(ranked) if diversity_lambda < 1.0 else None
     while remaining and len(selected) < limit:
         admissible = [
             item for item in remaining if version_counts[str(item.version.id)] < per_version_cap
@@ -209,8 +226,9 @@ def diversify_evidence(
             if diversity_lambda == 1.0:
                 mmr = item.score
             else:
-                mmr = diversity_lambda * item.score - (1 - diversity_lambda) * marginal_redundancy(
-                    item
+                assert redundancy is not None
+                mmr = diversity_lambda * item.score - (1 - diversity_lambda) * redundancy(
+                    item, selected
                 )
             return (
                 subject_rank(item, subject_documents),

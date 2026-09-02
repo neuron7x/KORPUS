@@ -21,7 +21,7 @@
       ]
     },
     "budgeted_modules": {
-      "count": 593
+      "count": 594
     },
     "hard_predicates": {
       "members": [
@@ -110,7 +110,7 @@
       "count": 585
     },
     "scripts_declaring_selftest": {
-      "count": 45
+      "count": 46
     }
   },
   "removed": [
