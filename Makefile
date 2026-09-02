@@ -1133,7 +1133,11 @@ nightly-evidence:
 	$(MAKE) snapshot PY=$(PY)
 	$(MAKE) evidence-refresh PY=$(PY)
 
-check-deployment: runtime-corpus-audit corpus-integrity audit-verify deployment-debt evidence-stores
+# `serving-freshness` ПЕРШИМ у цьому лані. Чотири осі профілю відповідей міряються
+# запитом до живого процесу, тож вони описують ПРОЦЕС, а не дерево. Гейт існував із
+# власним негативним контролем і не входив у жоден лан: виміряно 02.09.2026, він був
+# передумовою лише `answer-quality`, який теж не входив нікуди.
+check-deployment: serving-freshness runtime-corpus-audit corpus-integrity audit-verify deployment-debt evidence-stores
 
 deployment-debt:
 	$(PY) scripts/check_deployment_debt.py
