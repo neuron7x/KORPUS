@@ -60,7 +60,11 @@ def _kw_bool(node: ast.Call, name: str) -> bool:
     return False
 
 
-def _dangerous_rule(node: ast.Call) -> str | None:
+#: Імена функцій, у яких слабкий геш не може бути «не для безпеки» за побудовою.
+_SIGNING_CONTEXT = re.compile(r"sign|signature|mac\b|hmac|auth|verify|digest|token", re.I)
+
+
+def _dangerous_rule(node: ast.Call, enclosing: str | None = None) -> str | None:
     name = _call_name(node)
     if name in {"eval", "exec", "builtins.eval", "builtins.exec"}:
         return "dynamic_code_execution"
@@ -88,7 +92,52 @@ def _dangerous_rule(node: ast.Call) -> str | None:
         and kw.value.value is False
         for kw in node.keywords
     )
+    # `usedforsecurity=False` — це ТВЕРДЖЕННЯ КОДУ ПРО СЕБЕ, і гейт, який приймає
+    # неперевірене твердження від власного суб'єкта, гейтом не є. Виміряно 02.09.2026:
+    # єдиний ужиток цього прапорця в дереві стояв у `liqpay._digest`, який кличе
+    # `sign_data`, тобто рахує ПІДПИС платіжного колбека. Прапорець казав «не для
+    # безпеки» про підпис, і детектор через це мовчав саме там, де мав спрацювати.
+    if weak_hash and explicit_nonsecurity and _SIGNING_CONTEXT.search(enclosing or ""):
+        return "weak_security_hash_claimed_nonsecurity"
     return "weak_security_hash" if weak_hash and not explicit_nonsecurity else None
+
+
+#: Прийняті знахідки. Прийняття — РІШЕННЯ з причиною і датою, а не прапорець у коді.
+ACCEPTANCES = Path("config/operations/security-acceptances.json")
+
+
+def _apply_acceptances(
+    root: Path, findings: list[dict[str, object]]
+) -> tuple[list[dict[str, object]], list[str]]:
+    """Знімає названі знахідки й повертає МЕРТВІ записи окремо.
+
+    Запис, що не збігається з жодною знахідкою, — теж дефект: реєстр не сміє переживати
+    причину, заради якої існує. Це той самий негативний контроль, що `dead_exemption` у
+    гейті замикання, і без нього реєстр повільно перетворюється на список побажань.
+
+    Усі чотири поля обов'язкові. Запис без причини й дати не є названим.
+    """
+    path = root / ACCEPTANCES
+    if not path.is_file():
+        return findings, []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return findings, ["реєстр прийняттів не читається"]
+    entries = [
+        item
+        for item in payload.get("accepted", [])
+        if isinstance(item, dict)
+        and item.get("rule")
+        and item.get("path")
+        and item.get("reason")
+        and item.get("on")
+    ]
+    keys = {(str(i["rule"]), str(i["path"])) for i in entries}
+    seen = {(str(f["rule"]), str(f["path"])) for f in findings}
+    remaining = [f for f in findings if (str(f["rule"]), str(f["path"])) not in keys]
+    dead = sorted(f"{rule} @ {where}" for rule, where in keys - seen)
+    return remaining, dead
 
 
 def _scan_python_file(root: Path, path: Path) -> list[dict[str, object]]:
@@ -104,11 +153,19 @@ def _scan_python_file(root: Path, path: Path) -> list[dict[str, object]]:
                 "detail": str(exc),
             }
         ]
+    # Ім'я охопної функції для КОЖНОГО виклику: правило слабкого гешу мусить знати, чи
+    # він рахує підпис. Без цього прапорець `usedforsecurity=False` виправдовує будь-що.
+    enclosing: dict[int, str] = {}
+    for holder in ast.walk(tree):
+        if isinstance(holder, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            for inner in ast.walk(holder):
+                if isinstance(inner, ast.Call):
+                    enclosing.setdefault(id(inner), holder.name)
     findings: list[dict[str, object]] = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
-        rule = _dangerous_rule(node)
+        rule = _dangerous_rule(node, enclosing.get(id(node)))
         if rule:
             findings.append(
                 {
@@ -162,7 +219,9 @@ def _secret_findings(root: Path) -> list[dict[str, object]]:
 
 def evaluate(root: Path) -> dict[str, object]:
     findings = [*_ast_findings(root), *_secret_findings(root)]
+    findings, dead = _apply_acceptances(root, findings)
     checks = {
+        "no_dead_acceptance": not dead,
         "python_sources_parse": not any(
             item["rule"] == "python_parse_failure" for item in findings
         ),
@@ -183,6 +242,7 @@ def evaluate(root: Path) -> dict[str, object]:
         "scope": {"python_roots": list(PYTHON_ROOTS), "secret_roots": list(SECRET_ROOTS)},
         "checks": checks,
         "findings": findings,
+        "dead_acceptances": dead,
         "limitations": [
             "not_a_dependency_vulnerability_scan",
             "not_a_container_or_os_vulnerability_scan",

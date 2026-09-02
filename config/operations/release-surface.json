@@ -44,6 +44,7 @@
     "lane_validate_targets": {
       "members": [
         "assurance-model-check",
+        "builtin-security",
         "cache-in-tree",
         "catalog-uri-uniqueness",
         "content-signals",

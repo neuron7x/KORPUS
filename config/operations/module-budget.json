@@ -2564,7 +2564,7 @@
       "reason": "ACT-LRN-003 exact ceiling after objective competency edge insertion"
     },
     "apps/api/src/korpus/infrastructure/liqpay.py": {
-      "lines": 204,
+      "lines": 208,
       "max_complexity": 10,
       "max_function_args": 6,
       "max_function_lines": 44,
@@ -4809,10 +4809,10 @@
       "reason": "Вимір межі домену на живому сервісі: скільки своїх питань система тягне і скільки чужих впускає. Стеля з виміру на день додавання плюс запас на третю страту."
     },
     "scripts/run_builtin_security_gate.py": {
-      "lines": 211,
-      "max_complexity": 12,
+      "lines": 271,
+      "max_complexity": 15,
       "max_function_args": 2,
-      "max_function_lines": 29,
+      "max_function_lines": 36,
       "max_nesting": 4,
       "proof_lines": 0,
       "reason": "zero-install security floor: high-confidence dangerous primitive and hardcoded-secret checks; external scanners remain mandatory"
@@ -5607,7 +5607,7 @@
       "reason": "v0.9.7: verifier binds every gate to the current source and release; measured implementation is the ratchet ceiling"
     },
     "scripts/verify_public_surface.py": {
-      "lines": 506,
+      "lines": 531,
       "max_complexity": 11,
       "max_function_args": 6,
       "max_function_lines": 54,
@@ -9592,6 +9592,43 @@
       "to": {
         "lines": 106,
         "max_function_lines": 75
+      }
+    },
+    {
+      "from": {
+        "lines": 204
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/infrastructure/liqpay.py",
+      "reason": "Знято ХИБНЕ `usedforsecurity=False` над `hashlib.sha1`, що рахує ПІДПИС колбека LiqPay: прапорець стверджував «не для безпеки» про підпис і глушив власний детектор дерева саме там, де він мав спрацювати. Ужиток лишається (його вимагає чужий протокол), але тепер НАЗВАНИЙ у config/operations/security-acceptances.json.",
+      "to": {
+        "lines": 208
+      }
+    },
+    {
+      "from": {
+        "lines": 211,
+        "max_complexity": 12,
+        "max_function_lines": 29
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_builtin_security_gate.py",
+      "reason": "Дві зміни. (1) `usedforsecurity=False` більше не виправдовує слабкий геш усередині функції, названої для підпису: прапорець — це твердження КОДУ ПРО СЕБЕ, і гейт, що приймає неперевірене твердження від власного суб'єкта, гейтом не є. Звідси плюс до складності: правило тепер знає охопну функцію. (2) Реєстр прийняттів із контролем МЕРТВИХ записів — той самий негативний контроль, що `dead_exemption` у гейті замикання. Обидва контролі доведено запуском: без причини FAIL, мертвий запис FAIL.",
+      "to": {
+        "lines": 271,
+        "max_complexity": 15,
+        "max_function_lines": 36
+      }
+    },
+    {
+      "from": {
+        "lines": 506
+      },
+      "on": "2026-09-02",
+      "path": "scripts/verify_public_surface.py",
+      "reason": "Проба записових маршрутів ходила ЛИШЕ в канонічному написанні — тобто рівно в тій формі, яку межа й так спиняла, і тому не рухала змінну, про яку твердила. Межа була `location ~` (регістрозалежна), і запит із інтернету це підтвердив: `/api/v1/Documents/ingest` віддав 404 З заголовком `x-request-id`, тобто ДІЙШОВ до застосунку, тоді як канонічний шлях спинявся на nginx. Перелік проб 6 -> 12.",
+      "to": {
+        "lines": 531
       }
     }
   ],
