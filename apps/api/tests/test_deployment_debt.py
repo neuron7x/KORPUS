@@ -14,6 +14,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/check_deployment_debt.py"
 REGISTRY = ROOT / "config/operations/deployment-debt.json"
@@ -91,6 +93,28 @@ def test_make_commands_use_the_current_worktree_interpreter() -> None:
         "production-assurance-verify",
         f"PY={DEBT.shlex.quote(sys.executable)}",
     ]
+
+
+def test_make_commands_quote_an_interpreter_path_that_contains_spaces(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Проба, наведена на ЗЛАМ, а не на те, що трапилось у цьому середовищі.
+
+    Тест вище звіряє `shlex.quote(sys.executable)` із результатом, і поки шлях
+    інтерпретатора пробілів не має, `shlex.quote(x) == x`: зняття лапок нічого не
+    змінює, і мутант M670 виживає. Виміряно 03.09.2026 — саме так він і вижив.
+    Канонічне дерево цієї системи лежить у теці «Ядро основний проект Корпус», тож
+    пробіл тут не гіпотетичний: у CI, де шлях чекаута пробілів не має, гейт був би
+    мертвий рівно там, де на нього покладаються.
+    """
+    spaced = "/srv/Ядро основний проект/apps/api/.venv/bin/python"
+    monkeypatch.setattr(DEBT.sys, "executable", spaced)
+
+    command = DEBT.resolve_command(["make", "production-assurance-verify"])
+
+    assert command is not None
+    assert command[-1] == f"PY={DEBT.shlex.quote(spaced)}"
+    assert command[-1] != f"PY={spaced}", "шлях із пробілом пішов у make без лапок"
 
 
 def test_runtime_root_comes_from_the_canonical_state_registry() -> None:

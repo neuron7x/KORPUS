@@ -4861,7 +4861,7 @@ MUTANTS = (
         "M541_A_REMOTE_URL_THAT_DIFFERS_FROM_THE_DECLARED_ONE_IS_ACCEPTED",
         "scripts/verify_canonical_state.py",
         '    if entry.get("url") and url != entry["url"]:',
-        "        if False:",
+        "    if False:",
         (
             "apps/api/tests/test_canonical_state.py::"
             "test_a_remote_pointing_somewhere_else_than_declared_is_refused",
@@ -5720,7 +5720,7 @@ MUTANTS = (
         '        command.append(f"PY={sys.executable}")',
         (
             "apps/api/tests/test_deployment_debt.py::"
-            "test_make_commands_use_the_current_worktree_interpreter",
+            "test_make_commands_quote_an_interpreter_path_that_contains_spaces",
         ),
         full_copy=True,
     ),
@@ -5742,7 +5742,7 @@ MUTANTS = (
         "        alias.symlink_to(executable.resolve().parent.parent, target_is_directory=True)",
         (
             "apps/api/tests/test_release_verify_runner.py::"
-            "test_no_space_alias_preserves_the_active_virtual_environment",
+            "test_a_spaced_interpreter_gets_an_alias_into_the_SAME_environment",
         ),
         full_copy=True,
     ),

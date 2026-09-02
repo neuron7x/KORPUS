@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/run_release_verify.py"
 SPEC = importlib.util.spec_from_file_location("run_release_verify", SCRIPT)
@@ -31,3 +33,40 @@ def test_no_space_alias_preserves_the_active_virtual_environment() -> None:
             check=True,
         )
     assert completed.stdout.strip() == str(Path(sys.prefix).resolve())
+
+
+def test_a_spaced_interpreter_gets_an_alias_into_the_SAME_environment(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Проба на ЗЛАМ, бо гілка з псевдонімом виконується лише при пробілі в шляху.
+
+    Тест вище входить у `interpreter_for_make()` з тим інтерпретатором, який дала
+    машина. Якщо в його шляху пробілів немає — а в чекауті CI їх немає, — функція
+    повертається на першому ж рядку, гілка з псевдонімом не виконується ЖОДНОГО разу,
+    і мутант M672 виживає, не змінивши нічого. Виміряно 03.09.2026: так він і вижив.
+    Пробіл тут не гіпотеза: канонічне дерево цієї системи лежить у теці
+    «Ядро основний проект Корпус», тож у продакшені гілка бере на себе кожен прогін,
+    а вартувала її перевірка, яка спрацьовує лише поза CI.
+
+    Псевдонім мусить вести в ТЕ САМЕ оточення. Вести його за `resolve()` означає
+    піти за симлінком venv на системний інтерпретатор і мовчки покинути venv — make
+    дістав би `/usr/bin/python` замість дерева, у якому міряють.
+    """
+    spaced = tmp_path / "з пробілом"
+    spaced.mkdir()
+    entry = spaced / Path(sys.executable).name
+    entry.symlink_to(sys.executable)
+    monkeypatch.setattr(RUNNER.sys, "executable", str(entry))
+
+    with RUNNER.interpreter_for_make() as executable:
+        assert not any(char.isspace() for char in executable), "псевдонім сам містить пробіл"
+        completed = subprocess.run(
+            [executable, "-c", "import pathlib,sys; print(pathlib.Path(sys.prefix).resolve())"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+    assert completed.stdout.strip() == str(Path(sys.prefix).resolve()), (
+        "псевдонім вивів із активного venv"
+    )
