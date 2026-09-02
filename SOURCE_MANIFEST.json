@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1753,
-  "root_sha256": "42dffb0119f4e364ad6155312f801bc71040905cf8c4de7f70c71f062f1b0649",
+  "file_count": 1756,
+  "root_sha256": "3bc8eafdb32e467cdf84e78d3a4fbf7138923fca233fb7465ce592da32f27acd",
   "files": [
     {
       "path": ".dockerignore",
@@ -4344,6 +4344,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_release_surface.py",
+      "bytes": 5989,
+      "sha256": "213b90220764f902764caff6d079d0b40b32d3467b9716fc71b7f5defcbccd2e",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_release_truth_hard_predicates.py",
       "bytes": 3282,
       "sha256": "bf0cf805d9173ed3ce4df31ed4dbec7d4dcf4a03b243def758318ba462f2c612",
@@ -7188,6 +7194,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/operations/release-surface.json",
+      "bytes": 2782,
+      "sha256": "aeb4965d20cfb1c78c358af319043a95f22d2b26284971338eddfd70d3791e68",
+      "mode": "0644"
+    },
+    {
       "path": "config/operations/test-adaptation-policy.json",
       "bytes": 885,
       "sha256": "fb35b512f47beedf76fdfa1c194a600a8a32b930ade320e96af17fe5ece7af1c",
@@ -8943,6 +8955,12 @@
       "path": "scripts/check_release_identity.py",
       "bytes": 3832,
       "sha256": "7c184b999e7210868ce72da5c9faf84b4529ecc0163f0807935c979c10b953ca",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/check_release_surface.py",
+      "bytes": 10900,
+      "sha256": "700375c1c5016b5cfad53c05525f0328517e38870aafe4b57337cb75fdbfb2e8",
       "mode": "0755"
     },
     {
