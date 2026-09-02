@@ -1858,13 +1858,13 @@
       "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
     },
     "apps/api/src/korpus/application/release_claims.py": {
-      "lines": 93,
-      "max_complexity": 10,
+      "lines": 139,
+      "max_complexity": 12,
       "max_function_args": 4,
       "max_function_lines": 60,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "v0.9.4 assurance-kernel hardening; initial exact measurement is the ratchet ceiling"
+      "reason": "WO-01: відсутність доказу перестала читатись як підтримка. Три дороги давали SUPPORTED без доказу «за» (нечитаний суфікс, JSON без прив'язки, JSON без вироку), і кожна тепер має власний стан. Плюс `_binding`: прив'язка читається і з верхнього рівня, і з канонічного конверта `provenance` — перша редакція знала лише верхній рівень і хибно оголосила каталог мутацій неприв'язаним. Складність 12 — це САМЕ ті нові стани: кожна гілка є окремим вироком, і злиття будь-яких двох повернуло б клас вади, заради якого правка писалась."
     },
     "apps/api/src/korpus/application/release_ledger.py": {
       "lines": 294,
@@ -3703,13 +3703,13 @@
       "reason": "v0.5.0: deterministic risk-weighted coverage ratchet with absolute uncovered-edge ceiling"
     },
     "scripts/current_truth_admission.py": {
-      "lines": 63,
-      "max_complexity": 10,
-      "max_function_args": 3,
-      "max_function_lines": 21,
+      "lines": 91,
+      "max_complexity": 11,
+      "max_function_args": 4,
+      "max_function_lines": 26,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "v0.9.4 assurance-kernel hardening; initial exact measurement is the ratchet ceiling"
+      "reason": "WO-01, другий кінець ланцюга: `bound is None or bound == digest` зараховував артефакт без прив'язки як поточний, а `all([])` робив нуль підтриманих претензій достатнім. Додано читання конверта `provenance`, окремий стан для двох прив'язок, що розійшлись, і предикат has_supported_claims. Зростання часткове компенсоване: `claim_admission_checks` читав журнал ДВІЧІ (два читання одного файла можуть дати різний вміст), тепер один раз, і його складність упала з 14 до нижчої за `_current_json`."
     },
     "scripts/current_truth_aliases.py": {
       "lines": 30,
@@ -9865,6 +9865,36 @@
         "max_function_lines": 55,
         "max_nesting": 2
       }
+    },
+    {
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/application/release_claims.py",
+      "from": {
+        "lines": 93,
+        "max_complexity": 10
+      },
+      "to": {
+        "lines": 139,
+        "max_complexity": 12
+      },
+      "reason": "WO-01: відсутність доказу перестала читатись як підтримка. Три дороги давали SUPPORTED без доказу «за» (нечитаний суфікс, JSON без прив'язки, JSON без вироку), і кожна тепер має власний стан. Плюс `_binding`: прив'язка читається і з верхнього рівня, і з канонічного конверта `provenance` — перша редакція знала лише верхній рівень і хибно оголосила каталог мутацій неприв'язаним. Складність 12 — це САМЕ ті нові стани: кожна гілка є окремим вироком, і злиття будь-яких двох повернуло б клас вади, заради якого правка писалась."
+    },
+    {
+      "on": "2026-09-02",
+      "path": "scripts/current_truth_admission.py",
+      "from": {
+        "lines": 63,
+        "max_complexity": 10,
+        "max_function_lines": 21,
+        "max_function_args": 3
+      },
+      "to": {
+        "lines": 91,
+        "max_complexity": 11,
+        "max_function_lines": 26,
+        "max_function_args": 4
+      },
+      "reason": "WO-01, другий кінець ланцюга: `bound is None or bound == digest` зараховував артефакт без прив'язки як поточний, а `all([])` робив нуль підтриманих претензій достатнім. Додано читання конверта `provenance`, окремий стан для двох прив'язок, що розійшлись, і предикат has_supported_claims. Зростання часткове компенсоване: `claim_admission_checks` читав журнал ДВІЧІ (два читання одного файла можуть дати різний вміст), тепер один раз, і його складність упала з 14 до нижчої за `_current_json`. Четвертий аргумент — у `_evidence_resolves(root, claim, release, digest)`: видiлення цієї перевірки і є тим, що збило складність `claim_admission_checks`; згорнути її параметри в об'єкт означало б завести тип заради числа в бюджеті."
     }
   ],
   "recorded_at": "2026-09-02",

@@ -37,34 +37,37 @@ def _current_json(path: Path, release: str, digest: str) -> bool:
     return bound is not None and bound == digest
 
 
+def _evidence_resolves(root: Path, claim: dict[str, object], release: str, digest: str) -> bool:
+    """Чи веде претензія до доказу, який описує САМЕ це дерево."""
+    evidence = claim.get("evidence")
+    if not isinstance(evidence, str) or not evidence:
+        return False
+    target = root / evidence
+    if not target.is_file():
+        return False
+    return target.suffix != ".json" or _current_json(target, release, digest)
+
+
 def claim_admission_checks(root: Path, release: str, digest: str) -> dict[str, bool]:
     ledger = root / f"reports/release/{release}/final/CLAIM_LEDGER.json"
     if not ledger.is_file():
         return {"CLAIM_LEDGER.supported_evidence_resolves": False}
-    unresolved = 0
-    for claim in load_object(ledger).get("claims", ()):
-        if not isinstance(claim, dict) or not str(claim.get("status", "")).startswith("SUPPORTED"):
-            continue
-        evidence = claim.get("evidence")
-        if not isinstance(evidence, str) or not evidence:
-            unresolved += 1
-            continue
-        target = root / evidence
-        if not target.is_file() or (
-            target.suffix == ".json" and not _current_json(target, release, digest)
-        ):
-            unresolved += 1
-    # `all([])` істинне: нуль підтриманих претензій задовольняв би обидві перевірки
-    # тривіально. Порожній перелік — це UNKNOWN, а не досконалість.
-    supported = sum(
-        1
+    # Журнал читається ОДИН раз. Перша редакція викликала `load_object` двічі — і це не
+    # лише подвійна робота: два читання одного файла можуть дати різний вміст, якщо між
+    # ними хтось пише, і тоді два числа описують два різні журнали.
+    claims = [
+        claim
         for claim in load_object(ledger).get("claims", ())
         if isinstance(claim, dict) and str(claim.get("status", "")).startswith("SUPPORTED")
-    )
+    ]
+    unresolved = sum(1 for claim in claims if not _evidence_resolves(root, claim, release, digest))
+    # `all([])` істинне: нуль підтриманих претензій задовольняв би обидві перевірки
+    # тривіально. Порожній перелік — це UNKNOWN, а не досконалість.
+    resolved = bool(claims) and unresolved == 0
     return {
-        "CLAIM_LEDGER.supported_evidence_resolves": supported > 0 and unresolved == 0,
-        "CLAIM_LEDGER.supported_unresolved_zero": supported > 0 and unresolved == 0,
-        "CLAIM_LEDGER.has_supported_claims": supported > 0,
+        "CLAIM_LEDGER.supported_evidence_resolves": resolved,
+        "CLAIM_LEDGER.supported_unresolved_zero": resolved,
+        "CLAIM_LEDGER.has_supported_claims": bool(claims),
     }
 
 
