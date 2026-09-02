@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1758,
-  "root_sha256": "8779b18cd6a28f122e78bb126c47e8a423710819030f1c876fb3a9b2c0ea6dcc",
+  "root_sha256": "bc535e7f8958549c3418567c27d303ba6ab3e2b52cd22ddfaa3d21f743b0877d",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 90398,
-      "sha256": "07a6c0b014b9c351f683de119d74013589a3734ffb81e72bc1d43a986b3a970f",
+      "bytes": 91156,
+      "sha256": "360fbcef5815c0673cb696809980fc82bfb95bb8683a509de248f7068e0d5e0f",
       "mode": "0644"
     },
     {
@@ -7177,8 +7177,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 490351,
-      "sha256": "f43e3dab5474720bb2abba2ab8f03c596579f522cd10fb11c40d9ac2803d2748",
+      "bytes": 490554,
+      "sha256": "a5d613528c52ec955cc6f629fff9ce5685086c82c2a7c673674edb39240767ad",
       "mode": "0644"
     },
     {
@@ -7208,7 +7208,7 @@
     {
       "path": "config/operations/release-surface.json",
       "bytes": 2782,
-      "sha256": "0427b4591e3e649fc96be4d00a64e4f65d606f54e33f80f3139e528b5191d938",
+      "sha256": "be467138dcf46b4e5934c788b308b790fd848da71a99e9e498efde3e1f9b0b2b",
       "mode": "0644"
     },
     {

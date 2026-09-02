@@ -5081,6 +5081,14 @@
       "proof_lines": 0,
       "reason": "v0.5.0: sandboxed release-critical mutation destruction campaign; exact baseline ceiling"
     },
+    "scripts/run_release_verify.py": {
+      "lines": 184,
+      "max_complexity": 12,
+      "max_function_args": 2,
+      "max_function_lines": 49,
+      "max_nesting": 3,
+      "proof_lines": 0
+    },
     "scripts/run_reliability_gate.py": {
       "lines": 78,
       "max_complexity": 3,
