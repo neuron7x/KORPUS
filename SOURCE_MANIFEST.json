@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1756,
-  "root_sha256": "f68fb2d560ffbe41dad216d2c27ef98224be18e89e0f5dcf38e4536dfcca55fb",
+  "file_count": 1757,
+  "root_sha256": "da1c7a3c49097d650c1017527b0956c69d05489ef0c4952b098cee7c063a9ba4",
   "files": [
     {
       "path": ".dockerignore",
@@ -4851,6 +4851,12 @@
       "path": "apps/api/tests/test_validity_boundaries.py",
       "bytes": 9964,
       "sha256": "64ff38d715bf37c82d9ae9a08cf455dae305831a335d8dee2bfe9945d3c5b6c4",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_verifier_resistance.py",
+      "bytes": 5073,
+      "sha256": "660b898744ca877a57450aab0035bf588e2a0f273b652f0a09c8c33cfea60927",
       "mode": "0644"
     },
     {

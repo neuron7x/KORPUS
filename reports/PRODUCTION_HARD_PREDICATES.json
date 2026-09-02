@@ -1,7 +1,7 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "32f04bc5c5782c452f301fd3b53fd49698f14f460b68134c48ade1f8f8729608",
+  "source_tree_sha256": "20475f9ea284f8190f2b23845ba68db4c504f3d198454d60698d66c559a85c97",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
@@ -62,7 +62,8 @@
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "postgres_adversarial_suite",
-        "metadata:backend"
+        "metadata:backend",
+        "gate_source_bound"
       ]
     },
     {
