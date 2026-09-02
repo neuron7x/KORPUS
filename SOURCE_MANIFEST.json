@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1785,
-  "root_sha256": "d761122ad8ad17e0f14e440251146e672c11bd5fc5b7767896b669dfd2fa96e8",
+  "root_sha256": "03f2376593bfa121242a64851cbe2f5c5d30750529c9a49418a0eb17812f180f",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 46728,
-      "sha256": "924af6d3bb8375b0944591a6f7b5b9ded6db4673e79cad13b1a1eff7139c87e4",
+      "bytes": 47298,
+      "sha256": "700170e92bc88dd7c71971b556d8e7e603229b9345832dea80bfb9200e7e5672",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 94953,
-      "sha256": "49003f503b605446557218fe2c83e91794b69d643d898ed575f297354cfb7e15",
+      "bytes": 95923,
+      "sha256": "e2c724d4865758fe30e6a7b431e6b0cdc26f84a725328872dadb2286553981b6",
       "mode": "0644"
     },
     {
@@ -7238,7 +7238,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "260fc0cd456c1f90c470d87ea6f6fc271bb1b95c4a068de0a9f6b783806a0bcc",
+      "sha256": "ba006b0999c5d4155ed9025ff7c81f1ea1b554391d7dcaa32f339bd02384a886",
       "mode": "0644"
     },
     {
@@ -7273,8 +7273,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 532222,
-      "sha256": "aa50c9be5cd43e446a95a41c6fd65d683cded4916831b154b3174f9dec7bc234",
+      "bytes": 534269,
+      "sha256": "d0d3c873ba2d8792b9b2363648cbe0d45c3d80144fa71cb082a3350e23c99f1a",
       "mode": "0644"
     },
     {
@@ -7345,8 +7345,8 @@
     },
     {
       "path": "deploy/agents/korpus-nightly-gates.service",
-      "bytes": 1316,
-      "sha256": "ee17976c251c30ed6adcb72e2cbeef37051fb8e2427636f464342149a03a8df8",
+      "bytes": 1916,
+      "sha256": "f3aa415752f9b6d288c2d96bb7f391c7f4ebf9768a817b364e33d7be9b35f116",
       "mode": "0644"
     },
     {
@@ -7357,8 +7357,8 @@
     },
     {
       "path": "deploy/agents/korpus-routine@.service",
-      "bytes": 547,
-      "sha256": "1e56c98aa45b892aede68dd5b12b6ce9fa94fe96165d1270e38e7b70c9ec277a",
+      "bytes": 676,
+      "sha256": "11c45db4493705eb2f440d3063cca947a2c81d2fa3bcdb9631970b90850ac84f",
       "mode": "0644"
     },
     {
@@ -10603,8 +10603,8 @@
     },
     {
       "path": "scripts/verify_installed_units.py",
-      "bytes": 10328,
-      "sha256": "3ab58828fa8ebf656aff2ea0ec4ba75a2bf86c4f61e090978c717e3831da775a",
+      "bytes": 12824,
+      "sha256": "dbbb27d27dc46605bb1644351c9155d211c2d50e990719aa89c4a41b6c58c5e5",
       "mode": "0755"
     },
     {

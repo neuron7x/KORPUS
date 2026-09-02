@@ -79,6 +79,48 @@ def working_directory(text: str) -> str | None:
     return None
 
 
+def tree_units(root: Path = ROOT) -> dict[str, str]:
+    """КОЖЕН шаблон юніта в дереві, розгорнутий для цього кореня.
+
+    Раніше тут стояв `INSTALLER.UNITS` — перелік із `install_public_runtime.py`, тобто
+    ДВА юніти. Нічний лан і рутини мають власні інсталятори, і паритет для них не
+    перевіряв ніхто. Виміряно 02.09.2026: встановлений `korpus-routine@.service` має
+    `ExecStart=%h/.claude/routines/run.sh %i`, а дерево описує запуск
+    `scripts/run_isolated_routine.py` — два зовсім різні юніти під одним іменем, і гейт
+    мовчав, бо цього імені не було в його переліку.
+
+    Тому переліку більше немає. Предмет — усе, що дерево ОГОЛОШУЄ як юніт: другий
+    перелік розійшовся б із першим саме тоді, коли хтось додасть юніт і забуде про гейт.
+    """
+    return {
+        path.name: path.read_text(encoding="utf-8").replace(
+            "@KORPUS_ROOT@", str(root).replace("\\", "\\\\")
+        )
+        for path in sorted((root / "deploy").rglob("*"))
+        if path.suffix in {".service", ".timer"}
+    }
+
+
+def substitution_agrees_with_installers(root: Path = ROOT) -> list[str]:
+    """Гейт мусить підставляти корінь ТАК САМО, як це роблять інсталятори.
+
+    Якщо вони розійдуться, гейт порівнюватиме своє розгортання з чужим встановленням і
+    червонітиме з власної причини — рівно та вада, яку він ловить, тільки в ньому самому.
+    """
+    expected = str(root).replace("\\", "\\\\")
+    problems: list[str] = []
+    for installer in sorted((root / "scripts").glob("install_*.py")):
+        text = installer.read_text(encoding="utf-8")
+        if "@KORPUS_ROOT@" not in text:
+            continue
+        if 'replace("@KORPUS_ROOT@", str(ROOT).replace("\\\\", "\\\\\\\\"))' not in text:
+            problems.append(
+                f"{installer.name}: підстановка кореня відрізняється від тієї, яку робить цей гейт"
+            )
+    del expected
+    return problems
+
+
 def assess(
     observed: dict[str, str | None], rendered: dict[str, str], root: str | None = None
 ) -> list[dict[str, str]]:
@@ -211,7 +253,7 @@ def main() -> int:
     if arguments.selftest:
         return selftest()
 
-    rendered: dict[str, str] = {name: INSTALLER.render(name) for name in INSTALLER.UNITS}
+    rendered: dict[str, str] = tree_units()
     observed: dict[str, str | None] = {name: installed(name) for name in rendered}
     findings = assess(observed, rendered, str(ROOT))
     overall = verdict(findings)

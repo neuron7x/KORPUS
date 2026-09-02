@@ -6,7 +6,8 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 WorkingDirectory=@KORPUS_ROOT@
-ExecStart=/usr/bin/python3 @KORPUS_ROOT@/scripts/run_isolated_routine.py --name %i --prompt-file %h/.claude/routines/%i.prompt --repository @KORPUS_ROOT@ --timeout-seconds 1800
+# Обидві підстановки в лапках — той самий клас, що зламав нічний лан.
+ExecStart=/usr/bin/python3 "@KORPUS_ROOT@/scripts/run_isolated_routine.py" --name %i --prompt-file %h/.claude/routines/%i.prompt --repository "@KORPUS_ROOT@" --timeout-seconds 1800
 TimeoutStartSec=35min
 KillMode=control-group
 CPUAccounting=true

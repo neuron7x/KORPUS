@@ -13,7 +13,12 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 WorkingDirectory=@KORPUS_ROOT@
-ExecStart=/usr/bin/make -C @KORPUS_ROOT@ check-nightly
+# Корінь ВЗЯТО В ЛАПКИ. systemd ділить `ExecStart=` за пробілами так само, як
+# оболонка, а канонічний корінь їх містить: без лапок сюди йшло
+# `make -C /home/neuro7/Desktop/Ядро` і три зайві «цілі», і юніт падав із кодом 2
+# від моменту встановлення. `WorkingDirectory=` вище лишалась правильною, бо її
+# значення systemd бере ЦІЛКОМ — саме тому вада не була видна згори.
+ExecStart=/usr/bin/make -C "@KORPUS_ROOT@" check-nightly
 # Стеля часу названа: лан, який може бігти нескінченно, з часом перестає бути ланом.
 TimeoutStartSec=90min
 Nice=10
