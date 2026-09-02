@@ -1,287 +1,405 @@
-# Чи кожен гейт КОРПУСа взагалі здатен почервоніти.
-#
-#   make gate-liveness
-#
-# Мутаційне тестування питає, чи ТЕСТИ бачать зміну в коді. Ніхто не питає того самого
-# про самі ГЕЙТИ: валідатори, CI-джоби, батареї перевірок. Гейт, який не може стати
-# червоним, звітує PASS вічно і лишає ланцюг доказів без нагляду, а виглядає при цьому
-# як суворість.
-#
-# Закон, сформульований один раз: гейт заслуговує ARMED лише показавши ОБИДВА вироки на
-# реальному вході. Один напрямок — це константа в одязі гейта, і напрямок «відхиляє
-# завжди» помітити важче, бо він читається як строгість.
-#
-# Три види проб:
-#   позитивний контроль — додається автоматично, чистий стан мусить пройти;
-#   отрута (kind без equivalent) — пошкодження, яке гейт ЗОБОВ'ЯЗАНИЙ відхилити;
-#   еквівалентна варіація (equivalent: true) — той самий вміст, записаний інакше;
-#     гейт мусить ПРИЙНЯТИ. Отрути питають «що проходить, а не мало б»; тільки ця питає
-#     «що відхиляється без підстав». Друга помилка тихіша: відмова приходить у вигляді
-#     факту («STALE», «dead»), а факт ніхто не переміряє.
-#
-# Отрути взято з дефектів, які реально ловилися на цьому дереві 29.08.2026: регістр і
-# трейлінг-крапка хоста обходили правило 14; digest у репозиторії й архіві розходився;
-# ратчет підлоги мовчав без git; таймаут зараховувався як проходження.
-#
-# Проба, чия find-строка застаріла, НЕ пропускається мовчки — вона падає з «проба не
-# застосувалась» і псує вирок гейта. Застаріла отрута не перевіряє нічого.
-
-# `ignore` зливається з типовим (.git, dist, __pycache__, .venv), не замінює його.
-# var/ — кеш байтів захоплення, 83 МБ на 29.08.2026; жоден гейт його не читає, а
-# копіювати його в кожну з 18 проб означало б годинний прогін.
 gates:
-  - name: doctrine-catalog
-    run: ["env", "PYTHONPATH=apps/api/src", "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python", "scripts/validate_doctrine_catalog.py"]
-    timeout: 600
-    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
-    poisons:
-      # Отрути на ДАНИХ. Перша версія псувала правила в коді й гейт лишався зеленим —
-      # не тому, що правила мертві, а тому, що жодне джерело каталогу їх уже не запускає:
-      # 28 content_probe і 102 якорі стоять там, де правила їх вимагають. Гейт на реальних
-      # даних ARMED лише тоді, коли дані містять негативний приклад.
-      # Вставка, не правка наявного рядка: `"content_probe"` трапляється 28 разів, і отрута
-      # на першому збігу псувала б те джерело, яке випадково стоїть першим. Після того як
-      # `_poison` став відмовляти при неоднозначному `find`, це стало видно.
-      - name: джерело на probeable-хості без жодного доказу
-        kind: replace
-        target: config/corpus/doctrine_catalog_2026.json
-        find: '"sources": ['
-        payload: '"sources": [{"id": "PROBE-NOEVIDENCE", "tier": "probe", "canonical_title": "проба", "issuer": "проба", "jurisdiction": "UA", "document_type": "probe", "authority": "official_ua", "access_tier": 0, "classification": "public", "source_uri": "https://zakon.rada.gov.ua/laws/show/000-00", "source_kind": "official", "provenance_status": "verified", "requires_second_source": false, "rights_status": "open", "ingestible": true, "notes": "проба"},'
-      - name: захоплений файл видалено з дерева, якір лишився
-        kind: delete
-        target: config/corpus/captures/ADV-CPD-REPORTS-2026.txt
-      - name: каталог зник — гейт мусить впасти, а не звітувати про порожнечу
-        kind: delete
-        target: config/corpus/doctrine_catalog_2026.json
-      - name: джерел немає — ключ перейменовано
-        kind: replace
-        target: config/corpus/doctrine_catalog_2026.json
-        find: '"sources": ['
-        payload: '"sources_disabled": ['
+- name: doctrine-catalog
+  run:
+  - env
+  - PYTHONPATH=apps/api/src
+  - /home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python
+  - scripts/validate_doctrine_catalog.py
+  timeout: 600
+  ignore:
+  - var
+  - htmlcov
+  - node_modules
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  poisons:
+  - name: джерело на probeable-хості без жодного доказу
+    kind: replace
+    target: config/corpus/doctrine_catalog_2026.json
+    find: '"sources": ['
+    payload: '"sources": [{"id": "PROBE-NOEVIDENCE", "tier": "probe", "canonical_title": "проба", "issuer":
+      "проба", "jurisdiction": "UA", "document_type": "probe", "authority": "official_ua", "access_tier":
+      0, "classification": "public", "source_uri": "https://zakon.rada.gov.ua/laws/show/000-00", "source_kind":
+      "official", "provenance_status": "verified", "requires_second_source": false, "rights_status": "open",
+      "ingestible": true, "notes": "проба"},'
+  - name: захоплений файл видалено з дерева, якір лишився
+    kind: delete
+    target: config/corpus/captures/ADV-CPD-REPORTS-2026.txt
+  - name: каталог зник — гейт мусить впасти, а не звітувати про порожнечу
+    kind: delete
+    target: config/corpus/doctrine_catalog_2026.json
+  - name: джерел немає — ключ перейменовано
+    kind: replace
+    target: config/corpus/doctrine_catalog_2026.json
+    find: '"sources": ['
+    payload: '"sources_disabled": ['
+- name: content-signals
+  run:
+  - /home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python
+  - scripts/validate_content_signals.py
+  timeout: 600
+  ignore:
+  - var
+  - htmlcov
+  - node_modules
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  poisons:
+  - name: оператор застеріг вміст проти нас, а джерело лишилось ingestible
+    kind: replace
+    target: config/corpus/doctrine_catalog_2026.json
+    find: '"sources": ['
+    payload: '"sources": [{"id": "PROBE-RESERVED", "ingestible": true, "source_uri": "https://probe.example/x",
+      "content_signal": {"verdict": "reserved_against_us", "read_on": "2026-08-30", "against_us": []}},'
+  - name: вимір сигналу застарілий на роки
+    kind: replace
+    target: config/corpus/doctrine_catalog_2026.json
+    find: '"sources": ['
+    payload: '"sources": [{"id": "PROBE-STALE", "ingestible": true, "source_uri": "https://probe.example/x",
+      "content_signal": {"verdict": "no_restriction", "read_on": "2019-01-01", "against_us": []}},'
+  - name: сам запис несе заборону проти нас, а вердикт каже «без обмежень»
+    kind: replace
+    target: config/corpus/doctrine_catalog_2026.json
+    find: '"sources": ['
+    payload: '"sources": [{"id": "PROBE-SYMM", "ingestible": true, "source_uri": "https://probe.example/x",
+      "content_signal": {"verdict": "no_restriction", "read_on": "2026-08-30", "against_us": ["ai-train=no"]}},'
+  - name: той самий день, записаний як ISO з часом — гейт мусить ПРИЙНЯТИ
+    kind: replace
+    target: config/corpus/doctrine_catalog_2026.json
+    find: '"sources": ['
+    payload: '"sources": [{"id": "PROBE-ISO", "ingestible": true, "source_uri": "https://probe.example/x",
+      "content_signal": {"verdict": "no_restriction", "read_on": "2026-08-30T00:00:00", "against_us":
+      []}},'
+    equivalent: true
+- name: source-manifest-verify
+  run:
+  - env
+  - PYTHONPATH=scripts
+  - python3
+  - scripts/verify_source_manifest.py
+  timeout: 600
+  ignore:
+  - var
+  - htmlcov
+  - node_modules
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  poisons:
+  - name: файл, описаний маніфестом, змінено
+    kind: append
+    target: scripts/source_digest.py
+    payload: '
 
-  - name: content-signals
-    run: ["/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python", "scripts/validate_content_signals.py"]
-    timeout: 600
-    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
-    poisons:
-      # Отрути тут на ДАНИХ, не на коді: правила живі, але жодне джерело каталогу їх не
-      # запускає — гейт на реальних даних ARMED лише тоді, коли дані містять негативний
-      # приклад. І вони ВСТАВЛЯЮТЬ рядок, а не правлять наявний: перша версія міняла
-      # `"verdict": "no_restriction"` на перший збіг із 184, тобто псувала те джерело, яке
-      # випадково стоїть першим. Після того як `_poison` став відмовляти при
-      # неоднозначному `find`, це стало видно; до того отрута мовчки міряла іншу річ,
-      # ніж називала. Вставка в `"sources": [` однозначна за побудовою й не залежить від
-      # порядку даних.
-      - name: оператор застеріг вміст проти нас, а джерело лишилось ingestible
-        kind: replace
-        target: config/corpus/doctrine_catalog_2026.json
-        find: '"sources": ['
-        payload: '"sources": [{"id": "PROBE-RESERVED", "ingestible": true, "source_uri": "https://probe.example/x", "content_signal": {"verdict": "reserved_against_us", "read_on": "2026-08-30", "against_us": []}},'
-      - name: вимір сигналу застарілий на роки
-        kind: replace
-        target: config/corpus/doctrine_catalog_2026.json
-        find: '"sources": ['
-        payload: '"sources": [{"id": "PROBE-STALE", "ingestible": true, "source_uri": "https://probe.example/x", "content_signal": {"verdict": "no_restriction", "read_on": "2019-01-01", "against_us": []}},'
-      - name: сам запис несе заборону проти нас, а вердикт каже «без обмежень»
-        kind: replace
-        target: config/corpus/doctrine_catalog_2026.json
-        find: '"sources": ['
-        payload: '"sources": [{"id": "PROBE-SYMM", "ingestible": true, "source_uri": "https://probe.example/x", "content_signal": {"verdict": "no_restriction", "read_on": "2026-08-30", "against_us": ["ai-train=no"]}},'
-      - name: той самий день, записаний як ISO з часом — гейт мусить ПРИЙНЯТИ
-        kind: replace
-        target: config/corpus/doctrine_catalog_2026.json
-        find: '"sources": ['
-        payload: '"sources": [{"id": "PROBE-ISO", "ingestible": true, "source_uri": "https://probe.example/x", "content_signal": {"verdict": "no_restriction", "read_on": "2026-08-30T00:00:00", "against_us": []}},'
-        equivalent: true
+      # POISON
 
-  - name: source-manifest-verify
-    run: ["env", "PYTHONPATH=scripts", "python3", "scripts/verify_source_manifest.py"]
-    timeout: 600
-    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
-    poisons:
-      - name: файл, описаний маніфестом, змінено
-        kind: append
-        target: scripts/source_digest.py
-        payload: "\n# POISON\n"
-      - name: файл поза маніфестом підкладено в дерево
-        kind: create
-        target: scripts/_injected_by_probe.py
-        payload: "VALUE = 1\n"
-      - name: маніфест зник
-        kind: delete
-        target: SOURCE_MANIFEST.json
+      '
+  - name: файл поза маніфестом підкладено в дерево
+    kind: create
+    target: scripts/_injected_by_probe.py
+    payload: 'VALUE = 1
 
-  # `keep: [".git"]` — цей гейт міряє САМЕ git-стан: `source_tree_digest` бере перелік
-  # відстежуваних шляхів у git, а в копії без `.git` падає на обхід файлової системи й
-  # рахує інший набір. Виміряно 2026-08-30: без `.git` чистий стан давав STALE, що
-  # читається як «гейт зламаний», хоча він працює правильно на іншому предметі.
-  # 124 МБ на пробу — ціна за те, щоб міряти той предмет, про який гейт говорить.
-  # `--require-bound`, не типова форма. Виміряно 29.08.2026: без прапорця гейт приймає і
-  # звіт із чужим digest, і звіт без оголошеної області — тобто саме те, від чого він
-  # нібито захищає. Вимірювати треба ту форму, яка щось зв'язує.
-  - name: handoff-verify
-    run: ["env", "PYTHONPATH=apps/api/src", "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python", "scripts/verify_handoff_contract.py", "--require-bound"]
-    timeout: 900
-    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
-    keep: [".git"]
-    poisons:
-      # Правити ЗНАЧЕННЯ, не вставляти ключ на початок: json бере ОСТАННЄ входження
-      # дубльованого ключа, тож вставка зверху нічого не міняла й отрута мовчки проходила.
-      - name: звіт оголошує чужу область вимірювання
-        kind: replace
-        target: reports/RESEARCH_ASSURANCE_REPORT.json
-        find: '"digest_scope": "tracked_tree"'
-        payload: '"digest_scope": "evidence_paths"'
-      # Не жорстко вписаний digest: він змінюється щоразу, коли змінюється дерево, і
-      # застаріла отрута «не застосувалась» замість того, щоб щось перевірити. Але й не
-      # голий префікс: `"source_tree_sha256"` трапляється у звіті ДВІЧІ — на верхньому
-      # рівні й усередині вкладеного прогону, — і отрута на першому збігу залежала б від
-      # порядку ключів. Анкеримо сусіднім рядком, який робить збіг однозначним.
-      - name: digest у звіті не той, що в дереві
-        kind: replace
-        target: reports/RESEARCH_ASSURANCE_REPORT.json
-        find: "\"provenance\": \"ASSEMBLED_FROM_INDIVIDUALLY_EXECUTED_LOCAL_GATES\",\n  \"source_tree_sha256\": \""
-        payload: "\"provenance\": \"ASSEMBLED_FROM_INDIVIDUALLY_EXECUTED_LOCAL_GATES\",\n  \"source_tree_sha256\": \"0000"
-      # Не «зняти перевірку, яка й так не спрацьовує на правильних даних» — це був
-      # еквівалентний мутант, і він проходив заслужено. Знімається третій стан: звіт БЕЗ
-      # оголошеної області мусить лишатись SCOPE_UNDECLARED, а не мовчки прийматись.
-      - name: незаявлена область перестає бути окремим станом
-        kind: replace
-        target: reports/RESEARCH_ASSURANCE_REPORT.json
-        find: '"digest_scope": "tracked_tree",'
-        payload: ''
+      '
+  - name: маніфест зник
+    kind: delete
+    target: SOURCE_MANIFEST.json
+- name: handoff-verify
+  run:
+  - env
+  - PYTHONPATH=apps/api/src
+  - /home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python
+  - scripts/verify_handoff_contract.py
+  - --require-bound
+  timeout: 900
+  ignore:
+  - var
+  - htmlcov
+  - node_modules
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  keep:
+  - .git
+  poisons:
+  - name: звіт оголошує чужу область вимірювання
+    kind: replace
+    target: reports/RESEARCH_ASSURANCE_REPORT.json
+    find: '"digest_scope": "tracked_tree"'
+    payload: '"digest_scope": "evidence_paths"'
+  - name: digest у звіті не той, що в дереві
+    kind: replace
+    target: reports/RESEARCH_ASSURANCE_REPORT.json
+    find: "\"provenance\": \"ASSEMBLED_FROM_INDIVIDUALLY_EXECUTED_LOCAL_GATES\",\n  \"source_tree_sha256\"\
+      : \""
+    payload: "\"provenance\": \"ASSEMBLED_FROM_INDIVIDUALLY_EXECUTED_LOCAL_GATES\",\n  \"source_tree_sha256\"\
+      : \"0000"
+  - name: незаявлена область перестає бути окремим станом
+    kind: replace
+    target: reports/RESEARCH_ASSURANCE_REPORT.json
+    find: '"digest_scope": "tracked_tree",'
+    payload: ''
+- name: module-budget
+  run:
+  - env
+  - PYTHONPATH=apps/api/src
+  - /home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python
+  - scripts/check_module_budget.py
+  timeout: 600
+  ignore:
+  - var
+  - htmlcov
+  - node_modules
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  poisons:
+  - name: модуль виріс над стелею
+    kind: append
+    target: scripts/check_module_budget.py
+    payload: '
 
-  - name: module-budget
-    run: ["env", "PYTHONPATH=apps/api/src", "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python", "scripts/check_module_budget.py"]
-    timeout: 600
-    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
-    poisons:
-      - name: модуль виріс над стелею
-        kind: append
-        target: scripts/check_module_budget.py
-        payload: "\n# POISON\nZ0 = 0\nZ1 = 0\nZ2 = 0\nZ3 = 0\nZ4 = 0\nZ5 = 0\nZ6 = 0\nZ7 = 0\nZ8 = 0\nZ9 = 0\n"
-      - name: бюджет зник — новий модуль лишається невиміряним
-        kind: delete
-        target: config/operations/module-budget.json
-      - name: selftest виріс — це доказ, а не код, гейт мусить ПРИЙНЯТИ
-        kind: replace
-        target: scripts/validate_remote_digest.py
-        find: "def selftest() -> int:"
-        payload: "def selftest() -> int:\n    _p0 = _p1 = _p2 = _p3 = _p4 = _p5 = _p6 = _p7 = _p8 = _p9 = 0\n    _q0 = _q1 = _q2 = _q3 = _q4 = _q5 = _q6 = _q7 = _q8 = _q9 = 0"
-        equivalent: true
+      # POISON
 
-  - name: verdict-ledger
-    run: ["env", "PYTHONPATH=apps/api/src", "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python", "scripts/verify_verdict_ledger.py"]
-    timeout: 600
-    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
-    poisons:
-      - name: журнал зник
-        kind: delete
-        target: .verdict-ledger.jsonl
-      - name: рядок журналу пошкоджено
-        kind: append
-        target: .verdict-ledger.jsonl
-        payload: "{не json\n"
+      Z0 = 0
 
-  # ── Гейти корпусу. Їх не було тут не через недбалість: проба копіює дерево й отруює
-  # копію, а ці гейти читають `var/runtime` — 395 МБ бази й об'єктів, плюс ключі, яких у
-  # дереві немає й бути не може. Отруїти такий вхід ніхто не міг, тож найважливіші
-  # перевірки — ті, що боронять саме твердження системи, — жодного разу не показали, що
-  # здатні почервоніти.
-  #
-  # Розв'язок — еталон у мініатюрі (evals/fixtures/liveness), який будується з ТЕКСТІВ у дереві.
-  # Тому `run` спершу перезбирає його: отрута лежить у вхідному тексті й доходить до
-  # гейта крізь генератор. Перша версія тримала тексти константами в самому генераторі —
-  # перезбирання затирало отруту, і проба питала чистий вхід під виглядом зіпсованого.
-  # Те саме окремо повторилось із журналом і ключем, і теж було спіймано пробою.
+      Z1 = 0
 
-  - name: derived-source-links
-    run: ["sh", "-c", "'/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/build_liveness_fixture.py >/dev/null && '/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/validate_derived_source_links.py --database var/liveness-fixture/korpus.db --object-root var/liveness-fixture/objects --out /dev/null"]
-    timeout: 300
-    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
-    poisons:
-      # Та сама підміна, що пройшла повз `citation_traceability` з кодом 0: вісь міряла
-      # ФОРМУ URI, тож посилання на завідомо чужий документ її не рухало.
-      - name: назване джерело більше не містить цієї статті
-        kind: replace
-        target: evals/fixtures/liveness/sources/statute.txt
-        find: "охороняти пост"
-        payload: "ЗМІНЕНО"
-      - name: похідна стаття взагалі не з цього корпусу
-        kind: replace
-        target: evals/fixtures/liveness/sources/derived.txt
-        find: "Вивідний зобов'язаний"
-        payload: "Командир накладає стягнення на порушника, і цього тексту немає в жодному статуті, тому підтвердити посилання нічим. Вивідний зобов'язаний"
-      - name: рівно той самий текст, інший кінцевий пробіл
-        kind: append
-        target: evals/fixtures/liveness/sources/statute.txt
-        payload: "\n"
-        equivalent: true
+      Z2 = 0
 
-  - name: span-hygiene
-    run: ["sh", "-c", "'/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/build_liveness_fixture.py >/dev/null && '/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/validate_span_hygiene.py --database var/liveness-fixture/korpus.db"]
-    timeout: 300
-    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
-    poisons:
-      - name: сміття веб-сторінки потрапило в доказ
-        kind: append
-        target: evals/fixtures/liveness/sources/statute.txt
-        payload: " We use cookies to understand additional site usage."
-      - name: розмітка, що втекла з витягу
-        kind: append
-        target: evals/fixtures/liveness/sources/statute.txt
-        payload: " &lt;div class=\"cmp-text\"&gt; Reset password &lt;/div&gt;"
+      Z3 = 0
 
-  - name: audit-integrity
-    run: ["sh", "-c", "'/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/build_liveness_fixture.py >/dev/null && '/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/measure_audit_integrity.py --database var/liveness-fixture/korpus.db --key fixture-2026-08=var/liveness-fixture/audit-key.txt --min-attribution 1.0 --out /dev/null"]
-    timeout: 300
-    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
-    poisons:
-      # Журнал, який лишається ЗЧЕПЛЕНИМ і перестає бути засвідченим — стан, у якому
-      # 31.08.2026 перебувала бойова база, і жодна перевірка про це не сказала.
-      - name: підмінено вміст події
-        kind: replace
-        target: evals/fixtures/liveness/sources/audit-events.json
-        find: '"payload_json": "{\"n\":2}"'
-        payload: '"payload_json": "{\"n\":99}"'
-      - name: ключ, який цих подій не підписував
-        kind: replace
-        target: evals/fixtures/liveness/sources/audit-key.txt
-        find: "fixture-only-not-a-deployment-key-2026"
-        payload: "another-key-that-signed-nothing-at-all"
-      - name: розірвано зчеплення з попередньою подією
-        kind: replace
-        target: evals/fixtures/liveness/sources/audit-events.json
-        find: '"previous_hash": "0000000000000000000000000000000000000000000000000000000000000000"'
-        payload: '"previous_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"'
+      Z4 = 0
 
-  # Гейт, що боронить від НЕОГОЛОШЕНИХ баз, не сміє сам спиратися на оголошення. Перша
-  # версія читала лише реєстр, і отрута «прибрати базу з реєстру» — рівно те, що сталося
-  # 31.08.2026 — давала код 0: нема кого міряти, отже все гаразд. Тому еталон несе ДРУГУ
-  # базу й фальшивий каталог процесів, які їх обслуговують: без них цю отруту відтворити
-  # нічим, а вона єдина питає те, заради чого гейт існує.
-  - name: evidence-bases
-    run: ["sh", "-c", "'/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/build_liveness_fixture.py >/dev/null && '/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/measure_evidence_bases.py --registry evals/fixtures/liveness/sources/evidence-bases.json --proc-root var/liveness-fixture/proc --out /dev/null"]
-    timeout: 300
-    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
-    poisons:
-      - name: база жива, і реєстр про неї не знає
-        kind: replace
-        target: evals/fixtures/liveness/sources/evidence-bases.json
-        find: '"path": "var/liveness-fixture/mirror.db"'
-        payload: '"path": "var/liveness-fixture/korpus.db"'
-      - name: оголошено «нарізка інша» там, де вона та сама
-        kind: replace
-        target: evals/fixtures/liveness/sources/evidence-bases.json
-        find: '"spans": "same"'
-        payload: '"spans": "different"'
-      - name: співвідношення ідентифікаторів не оголошене взагалі
-        kind: replace
-        target: evals/fixtures/liveness/sources/evidence-bases.json
-        find: '"version_ids": "same"'
-        payload: '"version_ids_disabled": "same"'
-      - name: той самий реєстр, зайвий переведений рядок
-        kind: append
-        target: evals/fixtures/liveness/sources/evidence-bases.json
-        payload: "\n"
-        equivalent: true
+      Z5 = 0
+
+      Z6 = 0
+
+      Z7 = 0
+
+      Z8 = 0
+
+      Z9 = 0
+
+      '
+  - name: бюджет зник — новий модуль лишається невиміряним
+    kind: delete
+    target: config/operations/module-budget.json
+  - name: selftest виріс — це доказ, а не код, гейт мусить ПРИЙНЯТИ
+    kind: replace
+    target: scripts/validate_remote_digest.py
+    find: 'def selftest() -> int:'
+    payload: "def selftest() -> int:\n    _p0 = _p1 = _p2 = _p3 = _p4 = _p5 = _p6 = _p7 = _p8 = _p9 =\
+      \ 0\n    _q0 = _q1 = _q2 = _q3 = _q4 = _q5 = _q6 = _q7 = _q8 = _q9 = 0"
+    equivalent: true
+- name: verdict-ledger
+  run:
+  - env
+  - PYTHONPATH=apps/api/src
+  - /home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python
+  - scripts/verify_verdict_ledger.py
+  timeout: 600
+  ignore:
+  - var
+  - htmlcov
+  - node_modules
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  poisons:
+  - name: журнал зник
+    kind: delete
+    target: .verdict-ledger.jsonl
+  - name: рядок журналу пошкоджено
+    kind: append
+    target: .verdict-ledger.jsonl
+    payload: '{не json
+
+      '
+- name: derived-source-links
+  run:
+  - sh
+  - -c
+  - '''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/build_liveness_fixture.py
+    >/dev/null && ''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/validate_derived_source_links.py
+    --database var/liveness-fixture/korpus.db --object-root var/liveness-fixture/objects --out /dev/null'
+  timeout: 300
+  ignore:
+  - var
+  - htmlcov
+  - node_modules
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  poisons:
+  - name: назване джерело більше не містить цієї статті
+    kind: replace
+    target: evals/fixtures/liveness/sources/statute.txt
+    find: охороняти пост
+    payload: ЗМІНЕНО
+  - name: похідна стаття взагалі не з цього корпусу
+    kind: replace
+    target: evals/fixtures/liveness/sources/derived.txt
+    find: Вивідний зобов'язаний
+    payload: Командир накладає стягнення на порушника, і цього тексту немає в жодному статуті, тому підтвердити
+      посилання нічим. Вивідний зобов'язаний
+  - name: рівно той самий текст, інший кінцевий пробіл
+    kind: append
+    target: evals/fixtures/liveness/sources/statute.txt
+    payload: '
+
+      '
+    equivalent: true
+- name: span-hygiene
+  run:
+  - sh
+  - -c
+  - '''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/build_liveness_fixture.py
+    >/dev/null && ''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/validate_span_hygiene.py
+    --database var/liveness-fixture/korpus.db'
+  timeout: 300
+  ignore:
+  - var
+  - htmlcov
+  - node_modules
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  poisons:
+  - name: сміття веб-сторінки потрапило в доказ
+    kind: append
+    target: evals/fixtures/liveness/sources/statute.txt
+    payload: ' We use cookies to understand additional site usage.'
+  - name: розмітка, що втекла з витягу
+    kind: append
+    target: evals/fixtures/liveness/sources/statute.txt
+    payload: ' &lt;div class="cmp-text"&gt; Reset password &lt;/div&gt;'
+- name: audit-integrity
+  run:
+  - sh
+  - -c
+  - '''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/build_liveness_fixture.py
+    >/dev/null && ''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/measure_audit_integrity.py
+    --database var/liveness-fixture/korpus.db --key fixture-2026-08=var/liveness-fixture/audit-key.txt
+    --min-attribution 1.0 --out /dev/null'
+  timeout: 300
+  ignore:
+  - var
+  - htmlcov
+  - node_modules
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  poisons:
+  - name: підмінено вміст події
+    kind: replace
+    target: evals/fixtures/liveness/sources/audit-events.json
+    find: '"payload_json": "{\"n\":2}"'
+    payload: '"payload_json": "{\"n\":99}"'
+  - name: ключ, який цих подій не підписував
+    kind: replace
+    target: evals/fixtures/liveness/sources/audit-key.txt
+    find: fixture-only-not-a-deployment-key-2026
+    payload: another-key-that-signed-nothing-at-all
+  - name: розірвано зчеплення з попередньою подією
+    kind: replace
+    target: evals/fixtures/liveness/sources/audit-events.json
+    find: '"previous_hash": "0000000000000000000000000000000000000000000000000000000000000000"'
+    payload: '"previous_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"'
+- name: evidence-bases
+  run:
+  - sh
+  - -c
+  - '''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/build_liveness_fixture.py
+    >/dev/null && ''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/measure_evidence_bases.py
+    --registry evals/fixtures/liveness/sources/evidence-bases.json --proc-root var/liveness-fixture/proc
+    --out /dev/null'
+  timeout: 300
+  ignore:
+  - var
+  - htmlcov
+  - node_modules
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  poisons:
+  - name: база жива, і реєстр про неї не знає
+    kind: replace
+    target: evals/fixtures/liveness/sources/evidence-bases.json
+    find: '"path": "var/liveness-fixture/mirror.db"'
+    payload: '"path": "var/liveness-fixture/korpus.db"'
+  - name: оголошено «нарізка інша» там, де вона та сама
+    kind: replace
+    target: evals/fixtures/liveness/sources/evidence-bases.json
+    find: '"spans": "same"'
+    payload: '"spans": "different"'
+  - name: співвідношення ідентифікаторів не оголошене взагалі
+    kind: replace
+    target: evals/fixtures/liveness/sources/evidence-bases.json
+    find: '"version_ids": "same"'
+    payload: '"version_ids_disabled": "same"'
+  - name: той самий реєстр, зайвий переведений рядок
+    kind: append
+    target: evals/fixtures/liveness/sources/evidence-bases.json
+    payload: '
+
+      '
+    equivalent: true
+- name: validate-repository
+  run:
+  - python3
+  - scripts/validate_repository.py
+  - --context
+  - FULL_SSOT_DISTRIBUTION
+  timeout: 600
+  ignore: &id001
+  - var
+  - htmlcov
+  - node_modules
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  poisons:
+  - name: обов'язковий файл реєстру прибрано з дерева
+    kind: delete
+    target: SECURITY.md
+  - name: версія веб-пакета розійшлась із release.json
+    kind: replace
+    target: apps/web/package.json
+    find: '"version": "0.9.7"'
+    payload: '"version": "9.9.9"'
+  keep:
+  - .git
+- name: validate-infrastructure
+  run:
+  - python3
+  - scripts/validate_infrastructure.py
+  timeout: 600
+  ignore: *id001
+  poisons:
+  - name: сервіс compose втратив no-new-privileges
+    kind: replace
+    target: docker-compose.yml
+    find: '    - no-new-privileges:true
+
+      '
+    payload: ''
+    occurrence: 2
+- name: validate-kubernetes
+  run:
+  - python3
+  - scripts/validate_kubernetes.py
+  timeout: 600
+  ignore: *id001
+  poisons:
+  - name: кореневу ФС контейнера зроблено записуваною
+    kind: replace
+    target: deploy/kubernetes/base/web-deployment.yaml
+    find: 'readOnlyRootFilesystem: true'
+    payload: 'readOnlyRootFilesystem: false'
+  - name: 'пошкоджено ЛИШЕ продакшенний оверлей: образ розпінано на :latest'
+    kind: append
+    target: deploy/kubernetes/overlays/production/kustomization.yaml
+    payload: "  - target: {kind: Deployment, name: korpus-api}\n    patch: |-\n      - op: replace\n \
+      \       path: /spec/template/spec/containers/0/image\n        value: korpus-api:latest\n"
