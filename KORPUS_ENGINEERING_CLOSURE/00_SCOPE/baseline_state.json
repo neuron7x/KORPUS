@@ -1,0 +1,23 @@
+{
+  "protocol": "EERP-06 / TECO-01",
+  "wave": 0,
+  "captured_at_utc": "2026-09-02T19:46:27.719953+00:00",
+  "canonical_branch": "main",
+  "commit": "27e9f76b3013750607feb2dc1b1b89b38834dcd6",
+  "source_digest_evidence_paths": "3f89ad8ede1544bfb8d9734dd205b960b12dfa20a39e765b06a1e151e0f9fd9b",
+  "source_digest_tracked_tree": "a78dae093adc9703f266003c0090b6b0f5a71ef3551a25004abdb9cc30ecc372",
+  "worktree_dirty_excluding_closure_tree": [],
+  "schema": {
+    "sqlite_of_record": "0022_approval_provenance_boundary",
+    "postgres_korpus": "0018_operational_competencies",
+    "migration_head": "0022_approval_provenance_boundary"
+  },
+  "ws04_status": "CLOSED_PREVIOUS_TRANCHE",
+  "ws04_evidence": {
+    "lane_validate": "37/37",
+    "mutation": "585/585 status PASS",
+    "current_truth": "PASS",
+    "fixed_point": "3f89ad8e == 3f89ad8e",
+    "consolidation_verdict": "ACCEPTED @27e9f76b"
+  }
+}
