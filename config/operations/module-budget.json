@@ -5001,13 +5001,13 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 6459,
+      "lines": 6476,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "+73 рядки за M483–M486: відмова як прогалина покриття, вибране як оголошене, найчастіший термін замість найрідшого, службові слова як свідчення."
+      "reason": "Каталог мутацій ОГОЛОШУЄ власний вирок. Виміряно 02.09.2026: `release_claims` прив'язав його правильно і все одно дав UNDECLARED_EVIDENCE, бо поля вироку не було — його доводилось виводити з `mutation_score`. Читач, що виводить вирок сам, тримає знання про предмет у собі й розходиться з ним мовчки, щойно предмет зміниться. Вирок рахується з переліків survived/invalid/errors і з `mutation_score_over_catalogue`, а порожній перелік результатів дає FAIL: `all([])` істинне, а нуль мутантів означає, що каталог не бігав."
     },
     "scripts/run_operational_gate.py": {
       "lines": 42,
@@ -9895,6 +9895,17 @@
         "max_function_args": 4
       },
       "reason": "WO-01, другий кінець ланцюга: `bound is None or bound == digest` зараховував артефакт без прив'язки як поточний, а `all([])` робив нуль підтриманих претензій достатнім. Додано читання конверта `provenance`, окремий стан для двох прив'язок, що розійшлись, і предикат has_supported_claims. Зростання часткове компенсоване: `claim_admission_checks` читав журнал ДВІЧІ (два читання одного файла можуть дати різний вміст), тепер один раз, і його складність упала з 14 до нижчої за `_current_json`. Четвертий аргумент — у `_evidence_resolves(root, claim, release, digest)`: видiлення цієї перевірки і є тим, що збило складність `claim_admission_checks`; згорнути її параметри в об'єкт означало б завести тип заради числа в бюджеті."
+    },
+    {
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "from": {
+        "lines": 6459
+      },
+      "to": {
+        "lines": 6476
+      },
+      "reason": "Каталог мутацій ОГОЛОШУЄ власний вирок. Виміряно 02.09.2026: `release_claims` прив'язав його правильно і все одно дав UNDECLARED_EVIDENCE, бо поля вироку не було — його доводилось виводити з `mutation_score`. Читач, що виводить вирок сам, тримає знання про предмет у собі й розходиться з ним мовчки, щойно предмет зміниться. Вирок рахується з переліків survived/invalid/errors і з `mutation_score_over_catalogue`, а порожній перелік результатів дає FAIL: `all([])` істинне, а нуль мутантів означає, що каталог не бігав."
     }
   ],
   "recorded_at": "2026-09-02",

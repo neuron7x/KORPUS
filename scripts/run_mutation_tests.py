@@ -6251,16 +6251,33 @@ def summarize(
     killed = sum(result["status"] == "KILLED" for result in results)
     valid = sum(result["status"] in {"KILLED", "SURVIVED"} for result in results)
     score = killed / valid if valid else 0.0
+    survived = [result["id"] for result in results if result["status"] == "SURVIVED"]
+    invalid = [result["id"] for result in results if result["status"] == "INVALID"]
+    errors = [result["id"] for result in results if result["status"] == "ERROR"]
+    # Артефакт, який цитують як доказ, мусить ОГОЛОШУВАТИ свій вирок, а не лишати його
+    # на здогад читача. Виміряно 02.09.2026: `release_claims` прив'язав цей каталог
+    # правильно і все одно дав UNDECLARED_EVIDENCE, бо вироку тут не було — його
+    # доводилось виводити з `mutation_score`. Читач, що виводить вирок сам, тримає
+    # знання про предмет у собі, і при зміні предмета розходиться з ним мовчки.
+    #
+    # Порожній перелік результатів — НЕ успіх: `all([])` істинне, а нуль мутантів
+    # означає, що каталог не бігав. Тому `results` стоїть у самій умові.
+    status = (
+        "PASS"
+        if results and not survived and not invalid and not errors and score == 1.0
+        else "FAIL"
+    )
     return {
         "schema_version": 3,
+        "status": status,
         "shard_index": shard_index,
         "shard_count": shard_count,
         "mutants": len(results),
         "valid_mutants": valid,
         "killed": killed,
-        "survived": [result["id"] for result in results if result["status"] == "SURVIVED"],
-        "invalid": [result["id"] for result in results if result["status"] == "INVALID"],
-        "errors": [result["id"] for result in results if result["status"] == "ERROR"],
+        "survived": survived,
+        "invalid": invalid,
+        "errors": errors,
         "mutation_score": score,
         # mutation_score divides by the mutants that still *apply*. A mutant whose
         # target line was reformatted stops applying, leaves the denominator, and the
