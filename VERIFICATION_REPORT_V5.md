@@ -9,7 +9,7 @@ Verification date: 2026-08-01.
 | Gate | Procedure | Result | Evidence class |
 |---|---|---|---|
 | Functional/property/state/concurrency/security tests | branch-aware `pytest` suite | 172 collected; 171 PASS; 1 live-PostgreSQL SKIP; 0 failures/errors | ANCHORED_LOCAL |
-| Coverage | `coverage.py` XML over API trust kernel | line 87.00%; branch 66.87%; combined gate 82.60% | ANCHORED_LOCAL |
+| Coverage | XML від інструмента coverage (стороннього, не файла дерева) над ядром довіри API | line 87.00%; branch 66.87%; combined gate 82.60% | ANCHORED_LOCAL |
 | Adversarial evaluation | frozen 30-case dataset and protocol | 30/30 PASS | ANCHORED_LOCAL |
 | Citation binding | exact substring, offsets, quote/source hash | 17 checks; 0 failures | ANCHORED_LOCAL |
 | Access noninterference | identity/corpus/tier/compartment isolation | 0 leakage failures | ANCHORED_LOCAL |

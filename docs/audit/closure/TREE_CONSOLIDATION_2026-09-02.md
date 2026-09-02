@@ -41,7 +41,8 @@ sha256 кожного файлу проти канону. Копія несе р
 
 **44 файли, що виглядають як втрачена робота.** Гілка GitHub тримає
 `0016_temporal_corpus_snapshot` … `0019_rls_binding_backend_identity`,
-`rls_identity.py`, `secure_repository.py`, `answer_composition.py`, `review_locking.py`,
+`rls_identity.py`, `secure_repository.py`, `answer_composition.py`, `review_locking.py`
+(жодного з цих імен у каноні НЕМАЄ — вони лишились на гілці GitHub),
 пакувальні `assurance_snapshot_*`, `package_contracts`, `snapshot_mutants`. Кожне має
 канонового відповідника під іншим іменем і номером: міграції `0016`–`0022`,
 `rls_repository.py`, `application/composition.py`, `infrastructure/review_transitions.py`

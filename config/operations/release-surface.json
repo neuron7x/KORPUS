@@ -21,7 +21,7 @@
       ]
     },
     "budgeted_modules": {
-      "count": 590
+      "count": 592
     },
     "hard_predicates": {
       "members": [
@@ -47,11 +47,13 @@
         "cache-in-tree",
         "catalog-uri-uniqueness",
         "content-signals",
+        "corpus-path-declarations",
         "current-truth-verify",
         "dependency-locks",
         "desired-state",
         "doctrine-catalog",
         "document-probe",
+        "document-references",
         "evidence-freshness",
         "evidence-refusal",
         "file-modes",
@@ -84,8 +86,10 @@
       "members": [
         "audit-integrity",
         "content-signals",
+        "corpus-path-declarations",
         "derived-source-links",
         "doctrine-catalog",
+        "document-references",
         "evidence-bases",
         "handoff-verify",
         "module-budget",
@@ -98,13 +102,13 @@
       ]
     },
     "liveness_poisons": {
-      "count": 36
+      "count": 41
     },
     "mutants": {
-      "count": 574
+      "count": 582
     },
     "scripts_declaring_selftest": {
-      "count": 42
+      "count": 44
     }
   },
   "removed": [

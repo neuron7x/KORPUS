@@ -7,7 +7,7 @@
 | Service wiring | Compose services existed but API did not consume them | runtime URLs/secrets and dependency order are machine-validated |
 | Schema startup | API could start before migrations | migration job must complete before API |
 | Database isolation | RLS covered only part of corpus data | FORCE RLS covers documents, versions, spans and embeddings under a non-superuser role |
-| Credential scope | API could share storage administrator credentials | dedicated MinIO identity is restricted to `objects/*` and cannot delete objects |
+| Credential scope | API could share storage administrator credentials | dedicated MinIO identity is restricted to `objects/*` **and `quarantine/*`** and cannot delete objects (виправлено 02.09.2026: `infra/minio/korpus-app-policy.json` дає Get/Put на обидва префікси; «cannot delete» — правда) |
 | Object durability | retention setting did not prove bucket capability | readiness checks versioning and object lock when retention is enabled |
 | Audit ambiguity | external anchor failure could follow a committed transaction | durable outbox decouples business commit and anchor delivery |
 | Audit truncation | a signed but reset/stale anchor could be accepted | readiness compares anchor to historical event and recoverable outbox gap |

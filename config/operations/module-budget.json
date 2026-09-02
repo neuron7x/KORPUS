@@ -3307,10 +3307,10 @@
       "reason": "Друга форма питання. Еталон питав лише НАЗИВНИМ, бо роль береться із заголовка документа як є; людина питає родовим. Виміряно 01.09.2026 на живому продукті: називний 14/14, родовий 1/14 — отже 0.9670 було правдою про свій розподіл входу й мовчало про той, який справді буде. +128 рядків: відмінений набір читається як ДАНІ (правило утворення родового було б думкою про українську мову всередині вимірювача), а звірка йде на РІВНІСТЬ оголошеного предмета, не на префікс заголовка — префікс зараховував би «Днювальний парку та складу» за «Днювальний парку». Цю ваду знайшов власний тест до першого прогону."
     },
     "scripts/bootstrap_local.py": {
-      "lines": 103,
+      "lines": 106,
       "max_complexity": 3,
       "max_function_args": 0,
-      "max_function_lines": 72,
+      "max_function_lines": 75,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "the local bootstrap: approval refuses a version stating neither effective_from nor publication_date, so this script had to state one"
@@ -3379,10 +3379,10 @@
       "reason": "v0.9.7 fail-closed readiness aggregation: dimension PASS now requires non-empty all-true criteria; exact measured ceiling"
     },
     "scripts/build_reference_set.py": {
-      "lines": 368,
+      "lines": 370,
       "max_complexity": 9,
       "max_function_args": 3,
-      "max_function_lines": 64,
+      "max_function_lines": 66,
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "freezes a reference set from the deployed corpus; objective on retrieval, citation and refusal, silent on quality"
@@ -3477,6 +3477,15 @@
       "reason": "гейт, що робить виконуваним правило «стелю можна лише знижувати»",
       "worst_function": "_named_paths"
     },
+    "scripts/check_corpus_path_declarations.py": {
+      "lines": 258,
+      "max_complexity": 9,
+      "max_function_args": 2,
+      "max_function_lines": 26,
+      "max_nesting": 3,
+      "proof_lines": 51,
+      "reason": "Новий гейт: дефолт, який не існує, означає, що безаргументна дорога інструмента МЕРТВА. Виміряно 02.09.2026 — три дефолти вказували на неіснуючий var/korpus-ml.db, і один із них бекап живого корпусу на 276 МБ: `make backup-sqlite` виходив із rc=66, теки var/backups/sqlite/ не існувало, бекапу не робилось ЖОДНОГО РАЗУ. Та сама вада вже стріляла й уже полагоджена в serve_public.sh — полагодили копію, що зламалась, а не константу. Перша версія гейта вимагала ОДНОГО шляху в дереві й була знята виміром: баз законно кілька (еталон живучості, доктринальна), тож правило дало б хибну тривогу."
+    },
     "scripts/check_coverage_thresholds.py": {
       "lines": 80,
       "max_complexity": 7,
@@ -3493,6 +3502,15 @@
       "max_nesting": 2,
       "proof_lines": 60,
       "reason": "Другий вхід гейтів — `check-deployment` — і ратчет прийнятого боргу розгортання: стеля, відмова на погіршенні, вимога знизити стелю при поліпшенні. Мутанти M460–M463."
+    },
+    "scripts/check_document_references.py": {
+      "lines": 224,
+      "max_complexity": 10,
+      "max_function_args": 3,
+      "max_function_lines": 29,
+      "max_nesting": 4,
+      "proof_lines": 67,
+      "reason": "Новий гейт: документ, що називає файл, якого немає, — не помилка форматування. Виміряно 02.09.2026 — звіт про стадію руйнування подавав числа від ТРЬОХ скриптів атак, яких не існувало в жодній гілці; помічене подавалось як виміряне. Форма мала три ітерації, кожну зняв ЗАПУСК: дослівні шляхи дали 242 хибні з 242 (звідси розв'язання скорочень); реєстр виправдань зробив би правду про видалене дорожчою за мовчання (звідси маркер у самому тексті); опора на `git ls-files` червонила б гейт у пісочниці, в образі й у чистому клоні (звідси три яруси опису і ОКРЕМИЙ, ширший обсяг розв'язання)."
     },
     "scripts/check_dormant_subsystems.py": {
       "lines": 230,
@@ -3627,7 +3645,7 @@
       "reason": "Гейт звіряє записану голову журналу; ідентичність корпусу її БІЛЬШЕ НЕ містить. Перша версія включала — і живий сервер, що пише подію на кожну відповідь, робив усі звіти про корпус несвіжими за секунди. Свіжість звіту мусить залежати від того, ПРО ЩО він."
     },
     "scripts/corpus_release.py": {
-      "lines": 203,
+      "lines": 205,
       "max_complexity": 5,
       "max_function_args": 3,
       "max_function_lines": 36,
@@ -4303,7 +4321,7 @@
       "reason": " | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/measure_semantic_separation.py": {
-      "lines": 231,
+      "lines": 233,
       "max_complexity": 6,
       "max_function_args": 6,
       "max_function_lines": 66,
@@ -4943,7 +4961,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 6311,
+      "lines": 6387,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -5615,7 +5633,7 @@
       "proof_lines": 0
     },
     "scripts/verify_selftest_coverage.py": {
-      "lines": 159,
+      "lines": 186,
       "max_complexity": 8,
       "max_function_args": 3,
       "max_function_lines": 35,
@@ -9188,9 +9206,9 @@
       },
       "on": "2026-09-02",
       "path": "scripts/run_mutation_tests.py",
-      "reason": "M591–M592: токен, який не може бути JWT; термін дії, що не доходить до видавця.",
+      "reason": "M591–M592: токен, який не може бути JWT; термін дії, що не доходить до видавця. Число включає перенесення рядків від `ruff format`.",
       "to": {
-        "lines": 5975
+        "lines": 6359
       }
     },
     {
@@ -9493,6 +9511,87 @@
       "reason": "`_lane_targets` тепер читає ще й РЕЦЕПТ лану, не лише заголовок правила. До цієї зміни три скрипти, які `validate` запускає у власному рецепті (`validate_repository.py`, `validate_infrastructure.py`, `validate_kubernetes.py`), не входили в знаменник узагалі: прибрати рядок із рецепта означало скоротити охоронювану поверхню, не зрушивши жодного числа — рівно та дірка, проти якої цей гейт існує. Виміряно отрутою: заміна рядка 734 Makefile на `@true` дає FAIL «зник 'validate_kubernetes.py' і це ніде не названо». П'ятнадцять рядків — це докстрінг, що називає вимір; код виріс на шість.",
       "to": {
         "lines": 192
+      }
+    },
+    {
+      "from": {
+        "lines": 159
+      },
+      "on": "2026-09-02",
+      "path": "scripts/verify_selftest_coverage.py",
+      "reason": "Хто перевіряє перевіряльника. Гейт виключає САМ СЕБЕ зі свого знаменника, бо запустити власний `--selftest` усередині себе означало б рекурсію. Виняток законний, але лишав гарантію неповною рівно на один скрипт, і покривався ОДНИМ рядком рецепта `selftest-coverage`. Прибери той рядок — і `--selftest` цього гейта не бігатиме НІДЕ, мовчки, а звіт і далі казатиме «жодної пропущеної»: виключений зі знаменника не з'явиться серед пропущених. Наявність рядка стала перевіркою `the_checker_itself_is_checked`. Озброєно отрутою: заміна рядка 883 Makefile на `@true` дає FAIL.",
+      "to": {
+        "lines": 186
+      }
+    },
+    {
+      "from": {
+        "lines": 231
+      },
+      "on": "2026-09-02",
+      "path": "scripts/measure_semantic_separation.py",
+      "reason": "Дефолт `--database` наведено на обслуговуваний корпус: він указував на var/korpus-doctrine.db, файл на НУЛЬ байтів, тобто безаргументний прогін міряв порожню базу. Знайдено гейтом check_corpus_path_declarations.py як сироту — шлях, у який не вірить ні конфіг, ні тест, ні інший модуль. Два рядки від переносу.",
+      "to": {
+        "lines": 233
+      }
+    },
+    {
+      "from": {
+        "lines": 6311
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "П'ять мутантів на два нові гейти: M575..M578 на правило підтвердження дефолтів (зокрема M578 — чи розрізняє розбір `default=` від будь-якого іменованого аргумента; перша версія тесту його НЕ вбивала) і M579 на перевірку перевіряльника у verify_selftest_coverage.py. Каталог 574 -> 579, усі п'ять убиті пробою.",
+      "to": {
+        "lines": 6351
+      }
+    },
+    {
+      "from": {
+        "lines": 368,
+        "max_function_lines": 64
+      },
+      "on": "2026-09-02",
+      "path": "scripts/build_reference_set.py",
+      "reason": "Дефолт `--database` наведено на обслуговуваний корпус: він указував на неіснуючий var/korpus-ml.db, тобто безаргументна дорога вела в нікуди. `ruff format` перенісся довгий рядок у три — звідси і зростання файла, і функції `main`. Знайдено гейтом check_corpus_path_declarations.py.",
+      "to": {
+        "lines": 370,
+        "max_function_lines": 66
+      }
+    },
+    {
+      "from": {
+        "lines": 203
+      },
+      "on": "2026-09-02",
+      "path": "scripts/corpus_release.py",
+      "reason": "Дефолт `--database` наведено на обслуговуваний корпус: він указував на неіснуючий var/korpus-ml.db, тобто безаргументна дорога вела в нікуди. `ruff format` перенісся довгий рядок у три — звідси і зростання файла, і функції `main`. Знайдено гейтом check_corpus_path_declarations.py.",
+      "to": {
+        "lines": 205
+      }
+    },
+    {
+      "from": {
+        "lines": 6359
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Три мутанти на гейт мертвих посилань: M627 (чи перевіряється саме посилання — перша версія тесту його НЕ вбивала, бо не йшла дорогою `observe`), M628 (неописане дерево як PASS), M629 (суфікс без межі теки).",
+      "to": {
+        "lines": 6387
+      }
+    },
+    {
+      "from": {
+        "lines": 103,
+        "max_function_lines": 72
+      },
+      "on": "2026-09-02",
+      "path": "scripts/bootstrap_local.py",
+      "reason": "Читача знімка причеплено: без нього `release_token` кидав ReleaseIdentityUnavailable і `make sqlite-recovery-drill` — прилад, що доводить RTO/RPO — не запускався взагалі.",
+      "to": {
+        "lines": 106,
+        "max_function_lines": 75
       }
     }
   ],

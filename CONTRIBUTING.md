@@ -13,7 +13,7 @@ make api-lint
 make package
 ```
 
-GitHub is the primary CI transport for the `v0.1.x` line. The protected merge path is defined by `.github/workflows/` plus `docs/operations/GITHUB_REPOSITORY_POLICY.md`. The retained GitLab pipeline is a legacy parity/evidence surface during migration and does not define a second semantic policy.
+GitHub is the primary CI transport for the current release line (`v0.9.7`). (ВИПРАВЛЕНО 02.09.2026: тут значилась лінія `v0.1.x`. Чинна тотожність релізу — **`0.9.7`**, `apps/api/src/korpus/release.json`; лінії v0.1.x більше немає) The protected merge path is defined by `.github/workflows/` plus `docs/operations/GITHUB_REPOSITORY_POLICY.md`. The retained GitLab pipeline is a legacy parity/evidence surface during migration and does not define a second semantic policy.
 
 Internal script helpers `scripts/manifest_paths.py` and `scripts/openapi_normalization.py` are imported by the manifest and OpenAPI runners respectively; they are library modules, not standalone CLI entry points.
 

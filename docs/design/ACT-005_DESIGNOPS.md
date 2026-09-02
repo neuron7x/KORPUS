@@ -23,3 +23,10 @@ Replace the external design-file dependency with an executable, repository-nativ
 
 ## Promotion rule
 No visual claim becomes PASS from prose alone. It needs a deterministic structural gate or rendered browser evidence.
+
+
+> **ВИПРАВЛЕНО 02.09.2026.** Ширина планшета значилась як `834 × 1112`. SSOT, названий
+> цими ж документами — `apps/web/design/viewports.json` — дає `proofViewports`
+> 320×700 / 390×844 / **768×1024** / 1440×1000. Ширини 834 в коді немає взагалі.
+> Окремо: `proofViewports` не читає ЖОДЕН виконуваний файл, тож і SSOT тут поки що
+> оголошення, а не гейт.

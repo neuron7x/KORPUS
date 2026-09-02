@@ -25,7 +25,8 @@ regression baselines and device acceptance against the production edge.
 **Implemented in v6.5.0 candidate:** premium consumer landing/workspace convergence,
 plain-Enter chat interaction with Shift+Enter newline/IME protection, bounded auto-growing
 composer, direct subscription-gate routing, accessibility busy/focus semantics and a
-32 KiB first-party consumer gzip ratchet. Official promotion remains blocked on fresh
+34 KiB first-party consumer gzip ratchet (`CONSUMER_BUDGET_BYTES = 34 * 1024`,
+`apps/web/scripts/validate.mjs:61` — джерело, а не переказ). Official promotion remains blocked on fresh
 exact-lock assurance and live production dependencies.
 
 **Implemented in v6.6.0 candidate:** repository-native DesignOps: DTCG-compatible design

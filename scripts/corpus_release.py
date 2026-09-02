@@ -182,7 +182,9 @@ def main() -> int:
     subparsers = parser.add_subparsers(required=True)
 
     freezer = subparsers.add_parser("freeze")
-    freezer.add_argument("--database", type=Path, default=ROOT / "var/korpus-ml.db")
+    freezer.add_argument(
+        "--database", type=Path, default=ROOT / "var/runtime/corpus-v6-20260807/korpus.db"
+    )
     freezer.add_argument("--out", type=Path, required=True)
     freezer.add_argument("--key-file", type=Path)
     freezer.add_argument("--signer", default="не вказано")

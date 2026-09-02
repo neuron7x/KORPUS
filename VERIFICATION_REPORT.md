@@ -1,16 +1,25 @@
 # KORPUS v0.9.7 — Verification Entry Point
 
-Behavioral source digest: `15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa`.
+## Як перевірити поточний стан
 
-## Current verified local state
+```
+make release-verify
+```
 
-- Regression: **2345/2345 PASS**, 64/64 shards, 0 failures/errors, 1 real-PostgreSQL skip.
-- Mutation: **349/349 KILLED**.
-- Web Node: **146/146 PASS**.
-- Browser E2E: **5/5 PASS**.
-- Determinism: **4 seeds × 66 tests PASS**.
-- Current truth: PASS.
-- Production authorization: **false**.
+Вона й тільки вона дає ці числа про ОДНЕ дерево: спиняється на першій відмові, бо далі
+числа були б про інше дерево, і звіряє дайджест джерела ДО і ПІСЛЯ прогону.
+
+- Regression, Mutation, Web, Determinism — у її звіті
+- Current truth: `make current-truth-verify` (значення рухоме — тут воно НЕ вкарбоване;
+  02.09.2026 цей рядок казав `PASS`, тоді як верифікатор давав `FAIL` із шістьма
+  відмовами `.source_bound`)
+- Production authorization: **false**
+> **ВИПРАВЛЕНО 02.09.2026.** Числа в цьому блоці були заморожені 23.08.2026 і подавались
+> як поточний стан. Виміряно: тестів **3814**, не 2345; мутантів **574**, не 349; шардів
+> регресії **24**, не 64; дайджест джерела за одну годину прийняв три різні значення.
+> Тому числа, що рухаються, тут більше не вкарбовані — названі ЛИШЕ джерела, бо друге
+> оголошення рухомого числа розходиться мовчки, і саме так воно й розійшлось.
+
 
 ## Verify extracted repository
 

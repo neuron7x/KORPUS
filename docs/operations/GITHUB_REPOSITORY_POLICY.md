@@ -2,7 +2,7 @@
 
 ## Authority
 
-GitHub becomes the primary collaboration and CI transport for the `v0.1.x` line.
+GitHub becomes the primary collaboration and CI transport for the current release line (`v0.9.7`). (ВИПРАВЛЕНО 02.09.2026: тут значилась лінія `v0.1.x`. Чинна тотожність релізу — **`0.9.7`**, `apps/api/src/korpus/release.json`; лінії v0.1.x більше немає)
 Repository scripts, manifests, tests, and release identity remain the semantic source of
 truth. The retained GitLab pipeline is a legacy parity/evidence surface during migration;
 it must not become a second policy implementation.

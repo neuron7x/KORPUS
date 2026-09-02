@@ -203,7 +203,9 @@ PostgreSQL debt below.
 
 ## Open engineering debt
 
-- the transactional core of the SQL repository (1047 lines, down from 1855): CRUD,
+- the transactional core of the SQL repository (**1209** lines as of 2026-09-02; the
+  `1047` recorded here was measured earlier and this section is the list of CURRENT
+  debt, which the document's historical banner does not cover): CRUD,
   review transitions, audit append, readiness and the RLS session context still share
   one class, because splitting them splits a transaction;
 - formula evaluation, and table structure recovered from PDF layout rather than flagged;

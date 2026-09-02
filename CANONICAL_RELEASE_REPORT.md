@@ -18,4 +18,13 @@
 
 ## Verdict
 
-Local engineering closure is PASS with an explicit external boundary. Staging handoff is permitted. Production authorization is denied until real PostgreSQL/RLS, hosted load/recovery, exact external environment, hosted supply-chain evidence, independent TEVV/red-team and HUMAN PEC evidence satisfy the hard predicates.
+Local engineering closure is `PASS_WITH_CAVEATS` with an explicit external boundary.
+**Staging handoff is NOT permitted**: `reports/CANONICAL_RELEASE_REPORT.json` — машинний
+двійник цього документа і його джерело — каже `staging_ready: false` та
+`engineering_release_candidate: false`.
+
+> **ВИПРАВЛЕНО 02.09.2026.** Тут стояло «closure is PASS … Staging handoff is permitted»,
+> тоді як JSON тієї самої назви казав `PASS_WITH_CAVEATS` і `staging_ready: false`. Дві
+> тотожності одного предмета, і слабша — рукописна — стверджувала дозвіл, якого машина
+> не давала. Шукати треба не згоду, а стан РОЗХОДЖЕННЯ; у розходженні хибний той, кого
+> ніхто не перераховує. Production authorization is denied until real PostgreSQL/RLS, hosted load/recovery, exact external environment, hosted supply-chain evidence, independent TEVV/red-team and HUMAN PEC evidence satisfy the hard predicates.

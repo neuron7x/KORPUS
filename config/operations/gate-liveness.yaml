@@ -388,6 +388,65 @@ gates:
       '
     payload: ''
     occurrence: 2
+- name: document-references
+  run:
+  - python3
+  - scripts/check_document_references.py
+  timeout: 600
+  ignore:
+  - var
+  - htmlcov
+  - node_modules
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  poisons:
+  # Отрута ПО ДАНИХ: документ починає називати інструмент, якого немає. Саме такий
+  # стан мав DESTRUCTION_STAGE_2026-08-05.md, і його не помітив ніхто.
+  - name: "документ називає інструмент, якого немає"
+    kind: append
+    target: docs/adr/0001-modular-monolith.md
+    payload: "\n\nВідтворено (`attack_phantom_probe.py`): 41x.\n"
+  # Метаморфна: те саме речення, але зі словом про видалення. Гейт МУСИТЬ прийняти —
+  # інакше він карав би саме той текст, яким автор каже правду про прибране.
+  - name: "той самий інструмент, названий видаленим"
+    kind: append
+    equivalent: true
+    target: docs/adr/0001-modular-monolith.md
+    payload: "\n\n`attack_phantom_probe.py` ВИДАЛЕНО з дерева; числа з нього не чинні.\n"
+- name: corpus-path-declarations
+  run:
+  - python3
+  - scripts/check_corpus_path_declarations.py
+  timeout: 600
+  ignore:
+  - var
+  - htmlcov
+  - node_modules
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  poisons:
+  # Головна отрута — ПО ДАНИХ, не по коду гейта. Саме такий дефолт стояв у дереві до
+  # 02.09.2026, і саме через нього бекап живого корпусу не робився жодного разу.
+  - name: "дефолт argparse веде на непідтверджений шлях"
+    kind: replace
+    target: scripts/diagnose_size_bias.py
+    find: '"--database", type=Path, default=ROOT / "var/runtime/corpus-v6-20260807/korpus.db"'
+    payload: '"--database", type=Path, default=ROOT / "var/korpus-nonexistent.db"'
+  - name: "дефолт оболонки веде на неіснуючий шлях"
+    kind: replace
+    target: scripts/backup_sqlite.sh
+    find: 'database="${KORPUS_BACKUP_SQLITE_PATH:-$root/var/runtime/corpus-v6-20260807/korpus.db}"'
+    payload: 'database="${KORPUS_BACKUP_SQLITE_PATH:-$root/var/korpus-ml.db}"'
+  # Метаморфна: той самий шлях, інші пробіли. Гейт МУСИТЬ прийняти — розбіжність тут
+  # означає ХИБНЕ ВІДХИЛЕННЯ, а не пропущену ваду.
+  - name: "той самий дефолт, інші пробіли навколо ділення"
+    kind: replace
+    equivalent: true
+    target: scripts/diagnose_size_bias.py
+    find: '"--database", type=Path, default=ROOT / "var/runtime/corpus-v6-20260807/korpus.db"'
+    payload: '"--database", type=Path, default=ROOT/"var/runtime/corpus-v6-20260807/korpus.db"'
 - name: validate-kubernetes
   run:
   - python3

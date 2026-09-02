@@ -8,7 +8,7 @@ This is the operating loop for design work performed in this chat without an ext
 4. **IMPLEMENT** — edit the real product, not a detached mockup.
 5. **FALSIFY** — add or update a negative control that fails when the intended design property is removed.
 6. **VERIFY** — tests → lint/typecheck → build → structural/accessibility/size gates.
-7. **VISUAL PROOF** — when browser execution is available, capture 390×844, 834×1112 and 1440×1000 and compare against acceptance criteria.
+7. **VISUAL PROOF** — when browser execution is available, capture 390×844, 768×1024 and 1440×1000 and compare against acceptance criteria.
 8. **PACKAGE** — manifest, Git bundle, checksum, candidate status.
 9. **REPEAT** — next highest-impact UX debt only after the previous delta is green.
 
@@ -20,3 +20,10 @@ P2: typography rhythm / spacing / component consistency / microinteraction.
 P3: decorative polish.
 
 No P3 work may hide an unresolved P0/P1 defect.
+
+
+> **ВИПРАВЛЕНО 02.09.2026.** Ширина планшета значилась як `834 × 1112`. SSOT, названий
+> цими ж документами — `apps/web/design/viewports.json` — дає `proofViewports`
+> 320×700 / 390×844 / **768×1024** / 1440×1000. Ширини 834 в коді немає взагалі.
+> Окремо: `proofViewports` не читає ЖОДЕН виконуваний файл, тож і SSOT тут поки що
+> оголошення, а не гейт.

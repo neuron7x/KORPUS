@@ -1,6 +1,17 @@
 # Local secrets
 
-Run `make infra-secrets` before `make infra-up`. Generated files are mode `0600` and ignored by Git.
+Run `make infra-secrets` before `make infra-up`. Generated files are mode `0644`, inside a
+directory that is mode `0700`, and ignored by Git.
+
+**ВИПРАВЛЕНО 2026-09-02.** Тут стояло `0600`, а генератор ставить `0644` — і саме він
+має рацію. Захистом є ТЕКА: жоден інший користувач не пройде крізь `0700`, тож режим
+самого файла проти нього не боронить нічого. Натомість контейнер, що скидає всі
+спроможності, НЕ МОЖЕ прочитати файл `0600`, якого не володіє, навіть як root, бо
+`DAC_OVERRIDE` серед скинутих. Виміряно 2026-08-06: з `0600` minio вмирав на «Unable
+to validate credentials inherited from the secret file(s)», і в такому стані був
+КОЖЕН сервіс compose, що читає секрет — саме тому топологія ніколи не піднімалась.
+Повне обґрунтування — у `scripts/init_local_secrets.sh`, і воно тут не дублюється:
+друге оголошення того самого факту розійшлося б знову, як розійшлось це.
 
 Credential domains:
 

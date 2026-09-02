@@ -21,8 +21,15 @@ umask 077
 script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 root="$(CDPATH= cd -- "$script_dir/.." && pwd)"
 
-database="${KORPUS_BACKUP_SQLITE_PATH:-$root/var/korpus-ml.db}"
-object_root="${KORPUS_BACKUP_OBJECT_ROOT:-$root/var/objects-ml}"
+# ВИПРАВЛЕНО 02.09.2026. Дефолт вказував на $root/var/korpus-ml.db — файла з таким
+# іменем у дереві НЕМАЄ. Наслідок: `make backup-sqlite` виходив із rc=66, теки
+# var/backups/sqlite/ не існувало, БЕКАПУ ЖИВОГО КОРПУСУ НА 276 МБ НЕ РОБИЛОСЬ
+# ЖОДНОГО РАЗУ, а runbook казав про ці команди «executable as written». Та сама
+# вада вже стріляла й уже полагоджена в serve_public.sh (див. коментар там про
+# «silently selected the empty var/korpus-ml.db»): полагодили копію, що зламалась,
+# а не константу. Розходження дефолтів тепер ловить check_corpus_path_declarations.py.
+database="${KORPUS_BACKUP_SQLITE_PATH:-$root/var/runtime/corpus-v6-20260807/korpus.db}"
+object_root="${KORPUS_BACKUP_OBJECT_ROOT:-$root/var/runtime/corpus-v6-20260807/objects}"
 backup_dir="${KORPUS_BACKUP_DIR:-$root/var/backups/sqlite}"
 retention_days="${KORPUS_BACKUP_RETENTION_DAYS:-14}"
 
@@ -72,9 +79,17 @@ finally:
     connection.close()
 PY
 
-if [[ -d "$object_root" ]]; then
-  cp -r "$object_root" "$work/objects"
-fi
+# ВИМІРЯНО 02.09.2026. Тут стояло `if [[ -d "$object_root" ]]; then … fi`: коли теки
+# немає, об'єкти МОВЧКИ не потрапляли в архів. Дефолт при цьому вказував на неіснуючий
+# var/objects-ml, тож мовчазний пропуск був не крайнім випадком, а НОРМОЮ. Доказовий
+# прогін дав архів на 229 МБ без жодного з 256 об'єктів (42 МБ), і маніфест цього не
+# каже — повний і неповний бекап не відрізняються. Неправильне значення не відрізняється
+# від відсутнього, тому пропуск став ВІДМОВОЮ: хто справді не має сховища об'єктів,
+# наводить KORPUS_BACKUP_OBJECT_ROOT на порожню теку — це дія, а не дефолт.
+[[ -d "$object_root" ]] || { echo "no object store at $object_root" >&2; exit 66; }
+cp -r "$object_root" "$work/objects"
+objects_count="$(find "$work/objects" -type f | wc -l | tr -d ' ')"
+echo "objects: $objects_count" >&2
 
 # Deterministic member order and no timestamps: two backups of an unchanged corpus
 # produce the same plaintext, so a manifest digest that moves means the corpus moved.

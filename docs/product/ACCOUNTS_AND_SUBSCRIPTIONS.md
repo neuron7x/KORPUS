@@ -77,7 +77,10 @@
 | Обрізаний список називає обрив; повний — мовчить | `test_conversations.py::test_a_truncated_list_says_it_was_truncated`, `test_an_exact_page_does_not_claim_there_is_more` |
 | Перевірка ліміту читає 1 рядок, а не 500 | `test_conversations.py::test_the_message_limit_is_checked_without_reading_the_whole_conversation` |
 
-Мутаційний каталог: **226 мутантів, 226 вбито** (`var/mutation-report.json`), з них 14 —
+Мутаційний каталог: **усі мутанти вбито** — гейт вимагає
+`killed == valid_mutants == len(MUTANTS)` (`var/mutation-report.json`). Число тут
+навмисно не вкарбоване: 02.09.2026 стояло «226 мутантів, 226 вбито», тоді як у
+названому файлі було 574/574. З них 14 —
 ACT-001 (`M130`–`M143`). Два з них пережили перший прогін і показали справжні прогалини:
 `past_due` тестувався лише через `incomplete`, а `model_disabled` — лише проти
 вендорського URL. Обидві прогалини закриті тестами, а не переписуванням мутанта.

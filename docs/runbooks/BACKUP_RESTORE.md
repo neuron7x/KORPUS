@@ -53,14 +53,26 @@ Run the drill on a clean database after every schema change and on the declared 
 
 `serve-public` runs on SQLite, not PostgreSQL. The `pg_dump` path above covers the
 deployment KORPUS is *designed* for; this covers the one it is *running*, and losing the
-file is not a recovery-time incident but a repeat of the five-hour import. These commands
-are executable as written.
+file is not a recovery-time incident but a repeat of the five-hour import.
+
+**ВИМІРЯНО 2026-09-02.** Ці команди НЕ були executable as written, і фраза стояла тут
+попри це. `KORPUS_BACKUP_SQLITE_PATH` вказував на `$PWD/var/korpus-ml.db` — файла з
+таким іменем немає, а коли він був, журнал вироків від 30.08 каже, що він «лишився
+ПОРОЖНІМ (4 КБ)». Той самий хибний дефолт стояв і в `scripts/backup_sqlite.sh:24`, тож
+`make backup-sqlite` виходив із `rc=66 no database at …`, теки `var/backups/sqlite/` не
+існувало, і **бекапу живого корпусу на 276 МБ не робилось жодного разу**.
+
+Полагоджено обидва місця, і прогоном доведено: архів 229 МБ, відновлено, і відновлена
+база звірена ПРЕДМЕТОМ, а не розміром — 256 документів, 256 версій, 31464 прольоти й
+однаковий хеш усіх `source_hash`. Розходження дефолтів тепер ловить
+`make corpus-path-declarations` усередині `validate`.
 
 Back up — a consistent snapshot while the site is still answering (WAL mode):
 
 ```bash
-export KORPUS_BACKUP_SQLITE_PATH="$PWD/var/korpus-ml.db"
-export KORPUS_BACKUP_OBJECT_ROOT="$PWD/var/objects-ml"
+# Обидва шляхи — дефолти скрипта; тут вони названі, щоб рецепт читався сам собою.
+export KORPUS_BACKUP_SQLITE_PATH="$PWD/var/runtime/corpus-v6-20260807/korpus.db"
+export KORPUS_BACKUP_OBJECT_ROOT="$PWD/var/runtime/corpus-v6-20260807/objects"
 export KORPUS_BACKUP_ENCRYPTION_KEY_FILE="$HOME/.local/state/korpus-public/backup.key"
 export KORPUS_BACKUP_KEY_ID=ops
 export KORPUS_BACKUP_DIR="$HOME/korpus-backups"     # OUTSIDE the repo tree

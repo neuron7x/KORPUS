@@ -41,6 +41,82 @@ class Mutant:
 
 MUTANTS = (
     Mutant(
+        "M627_DEAD_REFERENCE_ACCEPTED",
+        "scripts/check_document_references.py",
+        "                if not _resolves(reference, tracked, root):",
+        "                if False:",
+        (
+            "apps/api/tests/test_document_references.py::test_observe_finds_a_dead_reference_in_a_fixture_tree",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M628_UNDESCRIBED_TREE_READS_AS_PASS",
+        "scripts/check_document_references.py",
+        '            "status": "UNKNOWN",\n            "scanned": scanned,\n            "dead": [],',
+        '            "status": "PASS",\n            "scanned": scanned,\n            "dead": [],',
+        (
+            "apps/api/tests/test_document_references.py::test_a_tree_without_a_description_is_unknown_not_pass",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M629_SUFFIX_WITHOUT_A_FOLDER_BOUNDARY",
+        "scripts/check_document_references.py",
+        '    tail = "/" + reference',
+        "    tail = reference",
+        ("apps/api/tests/test_document_references.py::test_abbreviations_resolve_by_path_suffix",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M622_ORPHAN_DEFAULT_ACCEPTED",
+        "scripts/check_corpus_path_declarations.py",
+        "        if not backing:",
+        "        if False:",
+        ("apps/api/tests/test_corpus_path_declarations.py::test_an_unbacked_default_is_a_failure",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M623_SELF_COUNTS_AS_CORROBORATION",
+        "scripts/check_corpus_path_declarations.py",
+        "        backing = [w for w in support.get(path, []) if w not in places]",
+        "        backing = list(support.get(path, []))",
+        (
+            "apps/api/tests/test_corpus_path_declarations.py::test_a_default_cannot_corroborate_itself",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M624_EMPTY_SET_READS_AS_PASS",
+        "scripts/check_corpus_path_declarations.py",
+        '            "status": "UNKNOWN",',
+        '            "status": "PASS",',
+        (
+            "apps/api/tests/test_corpus_path_declarations.py::test_no_defaults_at_all_is_unknown_not_pass",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M625_PLAIN_ASSIGNMENT_READS_AS_DEFAULT",
+        "scripts/check_corpus_path_declarations.py",
+        '            if keyword.arg == "default":',
+        "            if True:",
+        (
+            "apps/api/tests/test_corpus_path_declarations.py::test_only_argparse_defaults_count_as_declarations",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M626_CHECKER_ITSELF_UNCHECKED",
+        "scripts/verify_selftest_coverage.py",
+        '    invoked = f"{SELF} --selftest" in makefile',
+        "    invoked = True",
+        (
+            "apps/api/tests/test_selftest_coverage_self.py::test_the_checker_notices_its_own_line_is_gone",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M01_CLEARANCE_INVERSION",
         "apps/api/src/korpus/application/policy.py",
         "if identity.clearance < document.access_tier:",

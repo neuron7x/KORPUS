@@ -17,6 +17,7 @@ systemd зі скриптом розгортання. Гейт сам знахо
 from __future__ import annotations
 
 import importlib.util
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -76,10 +77,43 @@ def test_a_selftest_that_hangs_is_a_failure_not_a_wait() -> None:
     assert "TimeoutExpired" in source and '"verdict": "FAIL"' in source
 
 
-def test_the_gate_excludes_itself_from_the_run() -> None:
-    """Інакше воно рекурсивно запускало б себе на кожному прогоні."""
-    source = SCRIPT.read_text(encoding="utf-8")
-    assert 'if s != "scripts/verify_selftest_coverage.py"' in source
+def declaring_module():
+    """Модуль гейта, завантажений з файла: імпортувати `scripts/` як пакет не можна."""
+    spec = importlib.util.spec_from_file_location("selftest_coverage_gate", SCRIPT)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_the_gate_excludes_itself_from_the_run(tmp_path: Path) -> None:
+    """Інакше воно рекурсивно запускало б себе на кожному прогоні.
+
+    ПЕРЕПИСАНО 02.09.2026. Перша версія звіряла НАПИСАННЯ:
+    `assert 'if s != "scripts/verify_selftest_coverage.py"' in source`. Тест на текст
+    зелений, поки збігається рядок, і хибніє від перейменування, яке нічого не змінює —
+    саме це й сталось, коли шлях став константою `SELF`. Гірше зворотне: поведінку можна
+    зламати, лишивши рядок на місці, і текстовий тест лишиться зеленим.
+
+    Тепер судиться ПОВЕДІНКА: гейт мусить БАЧИТИ себе серед тих, хто оголошує
+    `--selftest`, і НЕ запускати себе.
+    """
+    out = tmp_path / "coverage.json"
+    completed = subprocess.run(
+        [sys.executable, str(SCRIPT), "--out", str(out)],
+        capture_output=True,
+        text=True,
+        check=False,
+        cwd=ROOT,
+    )
+    assert completed.returncode == 0, completed.stdout[-2000:] + completed.stderr[-2000:]
+    report = json.loads(out.read_text(encoding="utf-8"))
+    declared = declaring_module().declaring(ROOT)
+    assert "scripts/verify_selftest_coverage.py" in declared, "гейт мусить бачити себе"
+    assert report["declared"] == len(declared) - 1, "виключити мусить рівно себе, і нікого більше"
+    assert all(
+        item["script"] != "scripts/verify_selftest_coverage.py" for item in report["results"]
+    )
 
 
 def test_the_gate_runs_green_on_the_real_tree() -> None:

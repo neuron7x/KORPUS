@@ -198,7 +198,9 @@ def measure(
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--database", type=Path, default=ROOT / "var/korpus-doctrine.db")
+    parser.add_argument(
+        "--database", type=Path, default=ROOT / "var/runtime/corpus-v6-20260807/korpus.db"
+    )
     parser.add_argument("--endpoint", default="http://127.0.0.1:11434/api/embed")
     parser.add_argument("--model", default="qwen3-embedding:0.6b")
     parser.add_argument("--dimensions", type=int, default=1024)

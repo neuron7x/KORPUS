@@ -48,13 +48,16 @@ Current parity check: PASS for version `6.3.0` / tag declaration `v6.3.0`. The G
 ## B — Source manifest vs distribution manifest
 
 ### Old responsibility
-`REPOSITORY_MANIFEST.json` conflated committed source with package-only evidence objects. It declared 580 files while the delivered Git source contained 550 tracked files.
+`REPOSITORY_MANIFEST.json` (з того часу ВИДАЛЕНО з дерева) conflated committed source with package-only evidence objects. It declared 580 files while the delivered Git source contained 550 tracked files.
 
 ### New responsibility
 Two explicit schemas exist:
 
-- `korpus.source-manifest.v1` — committed source snapshot;
-- `korpus.distribution-manifest.v1` — exact final archive contents.
+- `korpus.source-manifest.v2` — committed source snapshot;
+- `korpus.distribution-manifest.v2` — exact final archive contents.
+  (ВИПРАВЛЕНО 02.09.2026: обидві значились як `.v1`; у `SOURCE_MANIFEST.json` і
+  `DISTRIBUTION_MANIFEST.json` стоїть `.v2`. Ім'я схеми — це те, за чим споживач
+  вирішує, чи вміє він розібрати документ.)
 
 `verify_source_manifest.py` verifies source parity. `verify_package.py` verifies the archive against its distribution manifest including path set, byte size and SHA-256.
 

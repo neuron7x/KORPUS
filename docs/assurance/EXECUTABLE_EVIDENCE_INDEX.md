@@ -1,9 +1,23 @@
 # Executable evidence index v1
 
-- Source Python modules: **137**
-- Test modules: **175**
-- Test functions statically discovered: **1237**
-- Direct test→source import edges: **359**
+> ## ⛔ ЗАМОРОЖЕНА ВЕРСІЯ v1. Живий індекс — `reports/EXECUTABLE_EVIDENCE_INDEX_CURRENT.json`.
+> Позначено 02.09.2026.
+>
+> Схема v2 перегенеровується і прив'язана до дайджесту дерева; цей файл — рукописна копія
+> v1, яку не перегенеровує ніщо. Розбіжність не косметична:
+>
+> | | тут (v1) | живий індекс (v2) |
+> |---|---|---|
+> | source Python modules | 137 | **309** |
+> | test modules | 175 | **395** (тобто 220 тестових модулів поза цим переліком) |
+> | test functions | 1237 | **2972** |
+>
+> Гірше за числа — **117 із 175 дайджестів SHA-256 у цьому файлі не відкривають свій файл**
+> (плюс 108 хибних `Lines:` і 42 хибних `Tests:`). Мертвих ШЛЯХІВ при цьому нуль: файли на
+> місці, розійшовся їхній вміст. Дайджест, який не збігається, — не слабший доказ, а
+> НЕДІЙСНИЙ: він стверджує байти, яких немає.
+>
+> Файл лишається як запис версії v1. Для трасування користуйтесь JSON.
 
 This is a static traceability index. It does not claim a test proves every imported module behavior; it makes the executable surface reviewable and byte-addressable.
 

@@ -17,6 +17,7 @@ from korpus.domain.models import (
     ReviewTransition,
     VersionCreate,
 )
+from korpus.infrastructure.corpus_snapshot import SqlCorpusSnapshotReader
 from korpus.infrastructure.runtime import create_object_store, create_repository
 
 #: The demonstration order's stated publication date. Fixed, so two bootstraps of the
@@ -29,6 +30,11 @@ def main() -> None:
     policy = PolicyEngine()
     repository = create_repository(settings, policy)
     repository.initialize()
+    # Читач знімка кріпиться до репозиторію САМ у своєму `__init__`, і без нього
+    # `release_token` нижче кидає ReleaseIdentityUnavailable. Виміряно 02.09.2026:
+    # через це `make sqlite-recovery-drill` не запускався взагалі — тобто прилад, що
+    # доводить RTO/RPO, був зламаний, а RTO/RPO — відкрита підстава недопуску 2.9.
+    SqlCorpusSnapshotReader(repository).initialize(create_schema=True)
     store = create_object_store(settings)
     actor = Identity(
         subject="bootstrap",

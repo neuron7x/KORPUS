@@ -21,7 +21,13 @@ A test is valuable only when it kills a plausible defect. KORPUS therefore uses 
 
 ## Current executable gates
 
-- 11 hand-designed critical mutants must all be killed.
+- Every mutant in the hand-designed catalogue must be killed: the gate requires
+  `killed == valid_mutants == len(MUTANTS)`, and a second number
+  (`mutation_score_over_catalogue`) divides by the WHOLE catalogue so an inapplicable
+  mutant shows up in the score itself. The count is deliberately not repeated here —
+  it was `11` while the catalogue held several hundred, and a second declaration of a
+  growing number drifts again. Source: `scripts/run_mutation_tests.py`, guarded by the
+  `mutants` dimension of `config/operations/release-surface.json`.
 - Frozen assurance cases must pass with zero access leakage, citation failures, or determinism failures.
 - Branch-aware coverage is reported, but never accepted as sufficient evidence.
 - Candidate generation must not call the full-corpus listing path.

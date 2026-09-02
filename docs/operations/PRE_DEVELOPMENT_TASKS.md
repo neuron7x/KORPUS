@@ -23,9 +23,10 @@ novelty.
 5. Run repository, API, quality, web, evaluation, migration, and operational gates
    locally; bind results to the current `main` commit rather than inherited candidate
    evidence from another release line.
-6. Reconcile release identity: `v0.1.1` is the collaboration baseline while bundled
-   candidate evidence names `v6.7.0` and reports stale release binding. Produce fresh
-   evidence or keep the candidate evidence explicitly historical.
+6. ~~Reconcile release identity~~ — **ЗАКРИТО 02.09.2026.** Розбіжності більше немає:
+   `scripts/check_release_identity.py` дає `"valid": true` на `v0.9.7`, усі перевірки
+   зелені. Завдання описувало стан, який вимір спростував, і стояло у списку
+   ВІДКРИТИХ — читач планував би роботу, вже зроблену.
 7. Run the PostgreSQL/pgvector suite and container/runtime checks on a capable host;
    SQLite-only success does not close dialect or infrastructure risk.
 

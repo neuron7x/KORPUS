@@ -286,17 +286,18 @@ def test_a_target_that_does_more_than_a_selftest_is_not_covered_for_free() -> No
 
 def test_the_selftest_shortcut_needs_the_selftest_gate_to_be_covered() -> None:
     """Якщо `selftest-coverage` випаде з `validate`, знижка мусить зникнути разом із ним."""
-    text = (ROOT / "Makefile").read_text(encoding="utf-8")
-    without = text.replace(
-        "validate: public-env-parity gate-closure selftest-coverage",
-        "validate: public-env-parity gate-closure",
+    # Якір — ТОКЕН, не префікс рядка. Виміряно 02.09.2026: перша версія вирізала
+    # дослівне "validate: public-env-parity gate-closure selftest-coverage", і коли між
+    # `gate-closure` та `selftest-coverage` стала нова ціль, `replace` став НІЧИМ. Тест
+    # тоді падає, і це щастя: він міг би так само мовчки перестати щось перевіряти.
+    lines = (ROOT / "Makefile").read_text(encoding="utf-8").splitlines()
+    index = next(i for i, line in enumerate(lines) if line.startswith("validate:"))
+    assert "selftest-coverage" in lines[index], (
+        "ціль мусить бути в `validate`, інакше вирізати нічого"
     )
-    assert (
-        "selftest-coverage"
-        not in without.splitlines()[
-            next(i for i, line in enumerate(without.splitlines()) if line.startswith("validate:"))
-        ]
-    )
+    lines[index] = " ".join(t for t in lines[index].split() if t != "selftest-coverage")
+    without = "\n".join(lines) + "\n"
+    assert "selftest-coverage" not in without.splitlines()[index]
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
     edges, declared, scripts = GATE.parse_graph(without)
     findings = GATE.assess(edges, declared, registry, scripts, without)

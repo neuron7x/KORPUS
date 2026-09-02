@@ -41,7 +41,7 @@ Web/PWA
     → навчальні й документні модулі
     → аудит і телеметрія
 
-PostgreSQL + pgvector | S3-сховище | Redis | OpenTelemetry
+PostgreSQL + pgvector | S3-сховище (MinIO) | ClamAV | OpenTelemetry
                                       ↓
                          змінні LLM/OCR/STT-провайдери
 ```
@@ -102,7 +102,11 @@ Retrieval і generation оцінюються окремо. Базові крит
 - виконуваний FastAPI API;
 - dependency-free offline-capable PWA;
 - JSON-контракти документа та відповіді;
-- Docker Compose для PostgreSQL/pgvector, Redis, MinIO й OpenTelemetry;
+- Docker Compose для PostgreSQL/pgvector, MinIO, ClamAV й OpenTelemetry;
+  (ВИПРАВЛЕНО 02.09.2026: тут значився Redis. Його немає ні в `docker-compose.yml`,
+  ні в конфізі, ні в коді — сервіси рівно `postgres, migrate, minio, minio-init,
+  otel-collector, clamav, api, worker, web`. Читач бачив у топології складник,
+  якого не існує, і планував би роботу навколо нього);
 - агентні політики;
 - протоколи ingestion, відповіді, інтеграцій, релізу та приймання;
 - модель даних, загроз, спостережуваності та відновлення;

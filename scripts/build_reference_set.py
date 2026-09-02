@@ -300,7 +300,9 @@ def _adversarial_cases() -> list[dict[str, Any]]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--database", type=Path, default=ROOT / "var/korpus-ml.db")
+    parser.add_argument(
+        "--database", type=Path, default=ROOT / "var/runtime/corpus-v6-20260807/korpus.db"
+    )
     parser.add_argument("--out", type=Path, default=ROOT / "evals/datasets/reference.jsonl")
     parser.add_argument("--per-stratum", type=int, default=3)
     parser.add_argument("--refusals", type=int, default=12)

@@ -24,7 +24,14 @@ KORPUS does not require a `.fig` file as the authoritative design source. The ex
 ## Viewport proof set
 
 - 390 × 844 — compact mobile.
-- 834 × 1112 — tablet.
+- 768 × 1024 — tablet.
 - 1440 × 1000 — desktop.
 
 Browser screenshot automation is an evidence layer, not the design source. Where the execution environment blocks Chromium navigation, the candidate remains without pixel-regression promotion evidence rather than fabricating screenshots.
+
+
+> **ВИПРАВЛЕНО 02.09.2026.** Ширина планшета значилась як `834 × 1112`. SSOT, названий
+> цими ж документами — `apps/web/design/viewports.json` — дає `proofViewports`
+> 320×700 / 390×844 / **768×1024** / 1440×1000. Ширини 834 в коді немає взагалі.
+> Окремо: `proofViewports` не читає ЖОДЕН виконуваний файл, тож і SSOT тут поки що
+> оголошення, а не гейт.

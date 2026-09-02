@@ -137,6 +137,15 @@ repository:validate:
     # від тихого скорочення того, що міряють.
     - PYTHONPATH=apps/api/src python scripts/check_release_surface.py
     - PYTHONPATH=apps/api/src python scripts/check_release_surface.py --selftest
+    # Дефолт, який не існує, означає, що безаргументна дорога інструмента МЕРТВА.
+    # Виміряно 02.09.2026: три дефолти вели на неіснуючий var/korpus-ml.db, і один із
+    # них — бекап живого корпусу на 276 МБ, який через це не робився ЖОДНОГО РАЗУ.
+    - PYTHONPATH=apps/api/src python scripts/check_corpus_path_declarations.py
+    - PYTHONPATH=apps/api/src python scripts/check_corpus_path_declarations.py --selftest
+    # Документ, що називає файл, якого немає. Ловить клас, у якому числа подавались
+    # як виміри від інструментів, що не існували в жодній гілці.
+    - PYTHONPATH=apps/api/src python scripts/check_document_references.py
+    - PYTHONPATH=apps/api/src python scripts/check_document_references.py --selftest
     - python scripts/verify_verdict_ledger.py
     - PYTHONPATH=apps/api/src python scripts/validate_remote_digest.py
     - PYTHONPATH=apps/api/src python scripts/validate_document_probe.py

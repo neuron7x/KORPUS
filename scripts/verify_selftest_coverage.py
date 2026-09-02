@@ -50,6 +50,33 @@ def declaring(root: Path = ROOT) -> list[str]:
     return found
 
 
+#: Єдиний скрипт поза власною гарантією: запустити свій `--selftest` усередині себе
+#: означало б нескінченну рекурсію.
+SELF = "scripts/verify_selftest_coverage.py"
+
+
+def _self_is_covered(root: Path = ROOT) -> dict[str, Any]:
+    """Хто ж перевіряє перевіряльника.
+
+    Виняток для себе законний, але він лишає гарантію неповною рівно на один скрипт, і
+    покривається вона ОДНИМ рядком рецепта `selftest-coverage`. Прибери той рядок — і
+    `--selftest` цього гейта не бігатиме НІДЕ, мовчки, а звіт і далі казатиме «жодної
+    пропущеної»: виключений зі знаменника не з'явиться серед пропущених. Тому наявність
+    того рядка — теж перевірка, а не домовленість.
+    """
+    makefile = (root / "Makefile").read_text(encoding="utf-8", errors="ignore")
+    invoked = f"{SELF} --selftest" in makefile
+    return {
+        "check": "the_checker_itself_is_checked",
+        "verdict": "PASS" if invoked else "FAIL",
+        "detail": (
+            f"рецепт запускає `{SELF} --selftest`"
+            if invoked
+            else f"НІХТО не запускає `{SELF} --selftest`: єдиний виняток лишився без покриття"
+        ),
+    }
+
+
 def run_one(script: str, root: Path = ROOT, python: str = sys.executable) -> dict[str, Any]:
     """Один запуск. Таймаут — теж відмова: самоперевірка, що висить, нічого не доводить."""
     try:
@@ -181,9 +208,9 @@ def main() -> int:
     if arguments.selftest:
         return selftest()
 
-    expected = [s for s in declaring(arguments.root) if s != "scripts/verify_selftest_coverage.py"]
+    expected = [s for s in declaring(arguments.root) if s != SELF]
     results = [run_one(script, arguments.root) for script in expected]
-    findings = assess(results, expected)
+    findings = [*assess(results, expected), _self_is_covered(arguments.root)]
     overall = verdict(findings)
     report = {
         "schema": SCHEMA,
