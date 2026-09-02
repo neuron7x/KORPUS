@@ -5709,6 +5709,28 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M648_RELEASE_VERIFY_USES_A_MISSING_CHECKOUT_VENV",
+        "scripts/run_release_verify.py",
+        '    return ["make", target, f"PY={executable}"]',
+        '    return ["make", target]',
+        (
+            "apps/api/tests/test_release_verify_runner.py::"
+            "test_make_steps_bind_the_current_interpreter_without_splitting_spaces",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M649_RELEASE_VERIFY_ALIAS_LEAVES_THE_ACTIVE_VENV",
+        "scripts/run_release_verify.py",
+        "        alias.symlink_to(Path(sys.prefix), target_is_directory=True)",
+        "        alias.symlink_to(executable.resolve().parent.parent, target_is_directory=True)",
+        (
+            "apps/api/tests/test_release_verify_runner.py::"
+            "test_no_space_alias_preserves_the_active_virtual_environment",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M470_AN_UNUSABLE_VALUE_IS_TOLERATED",
         "scripts/check_public_env_parity.py",
         '        name for name, value in unit.items() if value.startswith("{") and not _parses_as_json(value)',

@@ -1,31 +1,5 @@
 #!/usr/bin/env python3
-"""Одна команда, що доводить готовність — або називає, чого бракує, і виходить ненулем.
-
-Порядок тут не за смаком. Він ВИВЕДЕНИЙ прогонами 02.09.2026, і кожен крок стоїть там,
-де стоїть, через конкретну спійману помилку:
-
-1. Дерево мусить бути чисте ДО початку. Вимір на дереві, що рухається, дає числа про
-   різні дерева: `postgres_adversarial_suite` дав FALSE рівно тому, що я правив джерело
-   під час прогону, і два провали були `source_manifest` та `module_budget`, а не безпека.
-
-2. `evidence-refresh` перший. Маніфест будується з ВІДСТЕЖЕНИХ файлів, тож новий файл,
-   ще не закомічений, у нього не потрапляє — і тест паритету червоніє на кроці, який до
-   цього не має стосунку.
-
-3. Виробники, потім СПОЖИВАЧ. `operational-gate` хешує звіти виробників, тож поставлений
-   перед ними він судить файли, яких уже немає. Тричі за один вечір це дало три різні
-   червоні з однією причиною.
-
-4. Зовнішні гейти ПІСЛЯ того, як джерело остаточне. Будь-яка правка розв'язує їхню
-   прив'язку: `live_postgres_rls` став unbound саме так, і це правильна робота контуру.
-
-5. Після коміту доказу HEAD зсувається, і щойно знятий лан стає неприв'язаним. Нерухома
-   точка сходиться: `operational-gate` і `lane-report` лишають дерево чистим, тож
-   повторний прогін ЦИХ ДВОХ замикає цикл без нового коміту.
-
-Код виходу: 0 лише коли вирок ACCEPTED. Усе інше — ненуль, бо «не виміряно» і «виміряно
-й зламано» однаково не є готовністю.
-"""
+"""Виконати впорядкований release-lane зі сталою тотожністю дерева."""
 
 from __future__ import annotations
 
@@ -33,7 +7,9 @@ import argparse
 import json
 import subprocess
 import sys
+import tempfile
 import time
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -71,17 +47,34 @@ EXTERNAL: tuple[tuple[str, str], ...] = (
 CLOSURE: tuple[str, ...] = ("operational-gate", "lane-report")
 
 
+def make_command(target: str, executable: str) -> list[str]:
+    return ["make", target, f"PY={executable}"]
+
+
+@contextmanager
+def interpreter_for_make() -> Any:
+    executable = Path(sys.executable)
+    if not any(char.isspace() for char in str(executable)):
+        yield str(executable)
+        return
+    with tempfile.TemporaryDirectory(prefix="korpus-venv-") as directory:
+        alias = Path(directory) / "venv"
+        alias.symlink_to(Path(sys.prefix), target_is_directory=True)
+        yield str(alias / "bin" / executable.name)
+
+
 def run(target: str, timeout: float) -> dict[str, Any]:
     started = time.monotonic()
     try:
-        done = subprocess.run(
-            ["make", target],
-            cwd=str(ROOT),
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            check=False,
-        )
+        with interpreter_for_make() as executable:
+            done = subprocess.run(
+                make_command(target, executable),
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                check=False,
+            )
     except subprocess.TimeoutExpired:
         return {"target": target, "state": "TIMED_OUT", "code": None, "seconds": timeout}
     return {

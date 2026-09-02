@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1785,
-  "root_sha256": "dffb584f1ca8a5c5eadea098a39f6d1cbc1689b6388e6202af3982c61ff61ddb",
+  "file_count": 1786,
+  "root_sha256": "1793f46ee151deccf3e6b28c9c25ddeeec94e5b2e8f691c9ce225bdbb76be472",
   "files": [
     {
       "path": ".dockerignore",
@@ -4419,6 +4419,12 @@
       "path": "apps/api/tests/test_release_truth_hard_predicates.py",
       "bytes": 3282,
       "sha256": "bf0cf805d9173ed3ce4df31ed4dbec7d4dcf4a03b243def758318ba462f2c612",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_release_verify_runner.py",
+      "bytes": 1125,
+      "sha256": "fe5a6d89b03f62df5db4a27bdfa90c01f062b2f81d3e0bce3eeeb1b0b2f58a08",
       "mode": "0644"
     },
     {
@@ -10153,8 +10159,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 304051,
-      "sha256": "12198c4d246c53972ac74303ca2ea5a55704298546aabd575b9c37a41c1ab2cb",
+      "bytes": 304940,
+      "sha256": "02e272f4a273328661cd637feb9fab0adeaa8f983dbf7a5388e80a62b35586b3",
       "mode": "0755"
     },
     {
@@ -10255,8 +10261,8 @@
     },
     {
       "path": "scripts/run_release_verify.py",
-      "bytes": 9845,
-      "sha256": "a92ffb08fff7bf99d057efb6d82151004bd092cfa38335e785d8754590aa2349",
+      "bytes": 8285,
+      "sha256": "4ba4e92682a02ff86e6229411a5e6f6ca3b822d6a911a4ac0ad36c1131ae18e4",
       "mode": "0755"
     },
     {
