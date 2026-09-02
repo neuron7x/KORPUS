@@ -1,5 +1,9 @@
 # KORPUS production-hardening reference basis — 2026-08-16
 
+This is a scoped control-mapping note. The complete canonical bibliography is
+`config/assurance/ASSURANCE_SOURCE_REGISTRY_2026.json`, rendered at
+`docs/research/BIBLIOGRAPHY_2026.md`.
+
 This document records the external engineering and evaluation basis mapped by `config/assurance/standards-control-map.v1.json`. A reference motivates a requirement; it is **not** evidence that KORPUS satisfies that requirement. Local satisfaction requires executable, source-bound evidence. Requirements that inherently need a production-like environment, current external database, trusted builder, or independent evaluator remain external and fail closed when absent.
 
 ## Normative / final references

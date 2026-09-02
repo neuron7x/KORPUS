@@ -1,5 +1,9 @@
 # KORPUS production-hardening reference basis — 2026-08-16
 
+This is a scoped architecture note. The complete canonical bibliography is
+`config/assurance/ASSURANCE_SOURCE_REGISTRY_2026.json`, rendered at
+`docs/research/BIBLIOGRAPHY_2026.md`.
+
 This file records the external engineering basis for controls implemented in this tree.
 A citation here is not evidence that KORPUS satisfies a standard. Satisfaction is carried
 only by executable local evidence and, where required, independently generated evidence.

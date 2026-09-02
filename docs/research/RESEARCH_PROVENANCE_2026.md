@@ -1,5 +1,9 @@
 # Research provenance and design consequences
 
+This is a historical design-consequence record. The complete canonical bibliography is
+`config/assurance/ASSURANCE_SOURCE_REGISTRY_2026.json`, rendered at
+`docs/research/BIBLIOGRAPHY_2026.md`.
+
 Reviewed: 2026-08-01. Sources below are primary research papers or first-party research/engineering publications. Authority is not inherited from institution names; every adopted idea is mapped to an executable design consequence.
 
 ## Stanford CRFM — HELM and AIR-Bench
