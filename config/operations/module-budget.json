@@ -1775,10 +1775,10 @@
       "reason": "v6.8.2 assurance-boundary hardening: initial ceiling for recomputed production-report verification"
     },
     "apps/api/src/korpus/application/provenance.py": {
-      "lines": 265,
+      "lines": 300,
       "max_complexity": 11,
       "max_function_args": 2,
-      "max_function_lines": 26,
+      "max_function_lines": 41,
       "max_nesting": 3,
       "proof_lines": 0
     },
@@ -4952,7 +4952,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 6287,
+      "lines": 6311,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -9437,6 +9437,39 @@
       "reason": "Чотири мутанти проти самого верифікатора: нуль мутантів як доказ, вижилі як норма, ACCEPTED при непорожньому unknown, код виходу, що зливає UNKNOWN із PASS.",
       "to": {
         "lines": 6287
+      }
+    },
+    {
+      "from": {
+        "lines": 265
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/application/provenance.py",
+      "reason": "Друге джерело переліку відстежених шляхів: SOURCE_MANIFEST.json. Без git фільтр вимикався МОВЧКИ, і той самий вміст давав різні дайджести в контейнері й на хості — контейнер бачив на девять файлів більше, серед них незатрековані секрети.",
+      "to": {
+        "lines": 300
+      }
+    },
+    {
+      "from": {
+        "lines": 6287
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Два мутанти на запасне джерело: мовчазне розширення обсягу без git і непридатний маніфест, прочитаний як порожня множина відстежених.",
+      "to": {
+        "lines": 6311
+      }
+    },
+    {
+      "from": {
+        "max_function_lines": 26
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/application/provenance.py",
+      "reason": "Докстрінг  називає ХИБНУ засновку, яку він містив, і вимір, що її спростував: та сама функція дала d92c01de у контейнері й 20475f9e на хості, різниця — девять незатрекованих секретів. Без цього запису наступний прибере запасне джерело як зайве.",
+      "to": {
+        "max_function_lines": 41
       }
     }
   ],

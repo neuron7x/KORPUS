@@ -18,6 +18,7 @@ Executable behavior, public contracts, deployment behavior and release-control d
 from __future__ import annotations
 
 import hashlib
+import json
 import subprocess
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
@@ -53,8 +54,22 @@ def _tracked_paths(root: Path) -> frozenset[str] | None:
     green here and red in a clean clone of the same revision. Several hours went into
     chasing that as a moving tree.
 
-    Where Git is unavailable the filesystem walk is the only answer there is, and an archive
-    has no untracked files by construction, so the fallback is sound.
+    ЗАСНОВКА, ЩО БУЛА ТУТ, ХИБНА ДЛЯ ЗМОНТОВАНОГО ДЕРЕВА. Тут стояло: «де Git недоступний,
+    обхід файлової системи — єдина відповідь, а архів не має незатрекованих файлів за
+    побудовою, тож запасний шлях надійний». Для розпакованого архіву це так. Для робочого
+    дерева, змонтованого в контейнер БЕЗ git, — ні: незатрековані файли там є.
+
+    Виміряно 02.09.2026. Гейт точного середовища зобов'язаний бігти в продакшенному
+    образі, а в ньому git відсутній за побудовою. Та сама функція на тому самому дереві
+    дала `d92c01de…` у контейнері й `20475f9e…` на хості: контейнер побачив на дев'ять
+    файлів більше — `infra/secrets/*.txt`, незатрековані, у відкритому вигляді. Фільтр
+    вимикався МОВЧКИ, обсяг виміру мінявся, і предикат `exact_python_3_12_13_environment`
+    був недосяжний СТРУКТУРНО, а не через брак роботи.
+
+    Тому друге джерело того самого переліку: `SOURCE_MANIFEST.json`. Він породжений із
+    git, лежить у дереві й у розповсюдженні, і дає ту саму множину без самого git. Коли
+    немає ні git, ні маніфеста, повертається None — і виклик вище відмовляє, бо обсяг
+    невідомий, а не «дорівнює всьому».
     """
     try:
         listing = subprocess.run(
@@ -62,12 +77,37 @@ def _tracked_paths(root: Path) -> frozenset[str] | None:
             capture_output=True,
             check=False,
         )
-    except (OSError, ValueError):  # pragma: no cover - git absent from the image
+    except (OSError, ValueError):  # git відсутній в образі — далі маніфест
+        listing = None
+    if listing is not None and listing.returncode == 0:
+        names = listing.stdout.decode("utf-8", "surrogateescape").split("\0")
+        tracked = frozenset(name for name in names if name)
+        if tracked:
+            return tracked
+    return _manifest_paths(root)
+
+
+def _manifest_paths(root: Path) -> frozenset[str] | None:
+    """Той самий перелік відстежених шляхів, узятий із `SOURCE_MANIFEST.json`.
+
+    Маніфест виключає сам себе (`manifest_self_excluded`), і це правильно: він не сміє
+    входити у власний дайджест. Тому список звідси на один шлях коротший за `git
+    ls-files`, і саме тому маніфест — ДРУГЕ джерело, а не перше.
+    """
+    path = root / "SOURCE_MANIFEST.json"
+    if not path.is_file():
         return None
-    if listing.returncode != 0:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
         return None
-    names = listing.stdout.decode("utf-8", "surrogateescape").split("\0")
-    return frozenset(name for name in names if name) or None
+    entries = payload.get("files")
+    if not isinstance(entries, list):
+        return None
+    names = frozenset(
+        str(item["path"]) for item in entries if isinstance(item, dict) and item.get("path")
+    )
+    return names or None
 
 
 def _digest_candidates(root: Path, sources: Iterable[str]) -> list[Path]:

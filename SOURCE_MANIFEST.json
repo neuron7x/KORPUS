@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1757,
-  "root_sha256": "da1c7a3c49097d650c1017527b0956c69d05489ef0c4952b098cee7c063a9ba4",
+  "root_sha256": "b9529ebfe203d40ab60ceb85298e66a885a6956ffdeacffe82ede3fe6f27c30a",
   "files": [
     {
       "path": ".dockerignore",
@@ -1549,8 +1549,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/provenance.py",
-      "bytes": 11398,
-      "sha256": "0a9d431b459dca42bc5d5cee4abba849f9e5783521759931b42656739fda6bdd",
+      "bytes": 14293,
+      "sha256": "359925f6e1b688ef7182ef25a5fff07b5cbf099fc11c0261fdde998e101e7b24",
       "mode": "0644"
     },
     {
@@ -7171,8 +7171,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 488622,
-      "sha256": "bc012b18fc663e59c0b517b8216ef67bed2ee475c7f29878470cce6659a5c57b",
+      "bytes": 490351,
+      "sha256": "f43e3dab5474720bb2abba2ab8f03c596579f522cd10fb11c40d9ac2803d2748",
       "mode": "0644"
     },
     {
@@ -9997,8 +9997,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 287238,
-      "sha256": "f163cdd6a3d11611ec55d4c5ddb3df43820e5aa81b61681229c4fc5d41544516",
+      "bytes": 288499,
+      "sha256": "965703380a9fd144ba9e8fb8b5b21340b66d4b9e36119fe5df3d6c3b7ef33bcf",
       "mode": "0755"
     },
     {

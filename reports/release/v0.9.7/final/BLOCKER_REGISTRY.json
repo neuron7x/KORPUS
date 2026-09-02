@@ -1,8 +1,8 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-02T10:59:31.862715+00:00",
+  "generated_at": "2026-09-02T11:21:36.292688+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "20475f9ea284f8190f2b23845ba68db4c504f3d198454d60698d66c559a85c97",
+  "source_tree_sha256": "60ff90324d1cd1fd5b839f2a100bb4f7a2489fa390a9170299d723d7ee51461d",
   "items": [
     {
       "id": "external_independent_redteam",
@@ -24,11 +24,11 @@
     },
     {
       "id": "live_postgres_rls",
-      "state": "CLOSED_ANCHORED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
+      "externally_satisfied": false,
       "required_proof_class": "REAL_POSTGRESQL"
     },
     {
@@ -132,11 +132,10 @@
     }
   ],
   "counts": {
-    "CLOSED_ANCHORED": 1,
-    "EXTERNAL_REQUIRED": 13
+    "EXTERNAL_REQUIRED": 14
   },
   "internal_executable_unresolved": 0,
-  "production_external_or_runtime_unresolved": 13,
+  "production_external_or_runtime_unresolved": 14,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true
 }

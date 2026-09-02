@@ -5959,6 +5959,30 @@ MUTANTS = (
             "test_unknown_and_problem_leave_by_different_exit_codes",
         ),
     ),
+    Mutant(
+        # Повернення до мовчазного fail-open: без git обсяг виміру ставав «усе дерево»,
+        # і той самий вміст давав різні числа в контейнері й на хості.
+        "M620_WITHOUT_GIT_THE_DIGEST_SILENTLY_WIDENS_ITS_SCOPE",
+        "apps/api/src/korpus/application/provenance.py",
+        "    return _manifest_paths(root)",
+        "    return None",
+        (
+            "apps/api/tests/test_provenance_without_git.py::"
+            "test_an_untracked_file_does_not_enter_the_digest_when_git_is_absent",
+        ),
+    ),
+    Mutant(
+        # Непридатний маніфест, прочитаний як ПОРОЖНЯ множина відстежених: тоді фільтр
+        # виключає геть усе, і дайджест стає числом ні про що.
+        "M621_AN_UNUSABLE_MANIFEST_BECOMES_AN_EMPTY_TRACKED_SET",
+        "apps/api/src/korpus/application/provenance.py",
+        "    return names or None",
+        "    return names",
+        (
+            "apps/api/tests/test_provenance_without_git.py::"
+            "test_an_unusable_manifest_is_not_read_as_an_empty_tracked_set",
+        ),
+    ),
 )
 
 
