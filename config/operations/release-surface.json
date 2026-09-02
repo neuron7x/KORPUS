@@ -1,0 +1,109 @@
+{
+  "dimensions": {
+    "answer_axes": {
+      "members": [
+        "audit_attribution",
+        "boundary_foreign",
+        "boundary_own",
+        "citation_traceability",
+        "declared_actionability",
+        "declared_coverage",
+        "derived_link_support",
+        "dormant_subsystems",
+        "evidence_bases",
+        "mutation",
+        "paraphrase",
+        "reference",
+        "span_sentence_start",
+        "span_source_fidelity",
+        "subject",
+        "subject_inflection"
+      ]
+    },
+    "budgeted_modules": {
+      "count": 590
+    },
+    "hard_predicates": {
+      "members": [
+        "exact_python_3_12_13_environment",
+        "external_independent_redteam",
+        "independent_tevv",
+        "live_postgres_rls",
+        "live_vulnerability_scanners",
+        "pec_canary_revision_admission",
+        "pec_human_production_authority",
+        "production_like_load",
+        "production_like_tevv_environment",
+        "real_domain_corpus_tevv",
+        "trusted_hosted_builder",
+        "trusted_load_attestation",
+        "trusted_recovery_attestation",
+        "trusted_release_signing"
+      ]
+    },
+    "lane_validate_targets": {
+      "members": [
+        "assurance-model-check",
+        "cache-in-tree",
+        "catalog-uri-uniqueness",
+        "content-signals",
+        "current-truth-verify",
+        "dependency-locks",
+        "desired-state",
+        "doctrine-catalog",
+        "document-probe",
+        "evidence-freshness",
+        "evidence-refusal",
+        "file-modes",
+        "gate-closure",
+        "github-actions-validate",
+        "handoff-verify",
+        "import-cycles",
+        "module-budget",
+        "mutation-report-freshness",
+        "openapi",
+        "production-hard-predicates",
+        "public-env-parity",
+        "publication-mirrors",
+        "refusal-retryability",
+        "release-identity",
+        "release-surface",
+        "remote-digest",
+        "requirements-register",
+        "selftest-coverage",
+        "source-manifest-verify",
+        "standards-control-map",
+        "supply-chain-inventory",
+        "verdict-ledger"
+      ]
+    },
+    "liveness_gates": {
+      "members": [
+        "audit-integrity",
+        "content-signals",
+        "derived-source-links",
+        "doctrine-catalog",
+        "evidence-bases",
+        "handoff-verify",
+        "module-budget",
+        "source-manifest-verify",
+        "span-hygiene",
+        "validate-infrastructure",
+        "validate-kubernetes",
+        "validate-repository",
+        "verdict-ledger"
+      ]
+    },
+    "liveness_poisons": {
+      "count": 36
+    },
+    "mutants": {
+      "count": 568
+    },
+    "scripts_declaring_selftest": {
+      "count": 42
+    }
+  },
+  "removed": [],
+  "schema": "korpus.release-surface.v1"
+}

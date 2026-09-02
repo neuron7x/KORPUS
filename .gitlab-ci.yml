@@ -133,6 +133,10 @@ repository:validate:
     # цьому кроці парність зі мною й спіткнулась, і спіймала за годину.
     - PYTHONPATH=apps/api/src python scripts/check_evidence_freshness.py
     - PYTHONPATH=apps/api/src python scripts/check_evidence_freshness.py --selftest
+    # Знаменник: гейт у Makefile без джоби не спрацьовує на пуші, а цей боронить саме
+    # від тихого скорочення того, що міряють.
+    - PYTHONPATH=apps/api/src python scripts/check_release_surface.py
+    - PYTHONPATH=apps/api/src python scripts/check_release_surface.py --selftest
     - python scripts/verify_verdict_ledger.py
     - PYTHONPATH=apps/api/src python scripts/validate_remote_digest.py
     - PYTHONPATH=apps/api/src python scripts/validate_document_probe.py

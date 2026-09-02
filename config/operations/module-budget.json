@@ -3583,6 +3583,14 @@
       "proof_lines": 0,
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
+    "scripts/check_release_surface.py": {
+      "lines": 177,
+      "max_complexity": 12,
+      "max_function_args": 3,
+      "max_function_lines": 31,
+      "max_nesting": 3,
+      "proof_lines": 56
+    },
     "scripts/check_serving_freshness.py": {
       "lines": 176,
       "max_complexity": 10,
@@ -4944,7 +4952,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 6211,
+      "lines": 6244,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -9396,6 +9404,17 @@
       "reason": "Чотири мутанти на прив’язку лану до HEAD: прив’язка, що завжди тримає; звіт без тотожності, прочитаний як доказ; розбіжність, віддана як UNKNOWN; бігун, що перестав знімати тотожність. Без останнього перевірка недоказова за побудовою.",
       "to": {
         "lines": 6211
+      }
+    },
+    {
+      "from": {
+        "lines": 6211
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Три мутанти на захист знаменника: скорочення, віддане як PASS; зниклий член, невидимий за іменем (лічильник ловить лише чисте скорочення); прибирання без причини, прийняте як назване рішення.",
+      "to": {
+        "lines": 6244
       }
     }
   ],

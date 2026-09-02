@@ -5883,6 +5883,39 @@ MUTANTS = (
             "test_the_runner_records_the_identity_it_measured",
         ),
     ),
+    Mutant(
+        # Скорочення поверхні, віддане як PASS. Це і є той тихий шлях до зеленого:
+        # прибрати те, що міряють, замість того щоб полагодити те, що міряється.
+        "M613_A_SHRUNKEN_RELEASE_SURFACE_REPORTS_PASS",
+        "scripts/check_release_surface.py",
+        '        "status": "FAIL" if shrunk else "PASS",',
+        '        "status": "PASS",',
+        ("apps/api/tests/test_release_surface.py",),
+    ),
+    Mutant(
+        # Зниклий член, невидимий за іменем. Лічильник тоді ловить лише чисте
+        # скорочення, а заміна однієї осі іншою проходить при тій самій кількості.
+        "M614_A_MEMBER_THAT_VANISHED_BY_NAME_IS_NOT_NOTICED",
+        "scripts/check_release_surface.py",
+        "        gone = sorted(before - now - _excused(surface, dimension))",
+        "        gone = []",
+        (
+            "apps/api/tests/test_release_surface.py::"
+            "test_a_swap_that_keeps_the_count_is_still_a_shrinkage",
+        ),
+    ),
+    Mutant(
+        # Прибирання без причини, прийняте як назване. Тоді `removed` перестає бути
+        # рішенням і стає списком, куди дописують, щоб стало зелено.
+        "M615_A_REMOVAL_WITHOUT_A_REASON_COUNTS_AS_NAMED",
+        "scripts/check_release_surface.py",
+        '        and item.get("reason")',
+        "        and True",
+        (
+            "apps/api/tests/test_release_surface.py::"
+            "test_a_removal_without_a_reason_is_not_a_decision",
+        ),
+    ),
 )
 
 
