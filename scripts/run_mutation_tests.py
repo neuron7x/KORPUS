@@ -5520,6 +5520,25 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M677_A_SKIPPED_RELEASE_STEP_READS_AS_A_PASS",
+        "scripts/run_release_verify.py",
+        '    if any(result["state"] == SKIPPED for result in results):\n        return "INCOMPLETE"',
+        '    if False:\n        return "INCOMPLETE"',
+        (
+            "apps/api/tests/test_release_verify_runner.py::"
+            "test_a_skipped_step_never_reads_as_a_pass",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M678_A_FAILED_STEP_IS_HIDDEN_BY_A_SKIPPED_ONE",
+        "scripts/run_release_verify.py",
+        '    if any(result["state"] not in {"PASSED", SKIPPED} for result in results):\n        return "FAIL"',
+        '    if False:\n        return "FAIL"',
+        ("apps/api/tests/test_release_verify_runner.py::test_a_failure_outranks_a_skip",),
+        full_copy=True,
+    ),
+    Mutant(
         "M676_THE_RESOLVED_COMMAND_ALIASES_THE_REGISTRY_ENTRY",
         "scripts/check_deployment_debt.py",
         "    command: list[str] = list(value)",

@@ -22,6 +22,11 @@ from korpus.application.provenance import compute_source_digest  # noqa: E402
 STEPS: tuple[tuple[str, str], ...] = (
     ("evidence-refresh", "маніфест описує це дерево"),
     ("api-test", "виробник"),
+    # `assemble-assurance` вимагає var/quality-report.json, і виробляє його ЛИШЕ
+    # `api-lint`. Без нього лан проходив тільки там, де файл лишився від чужого
+    # прогону: у чистому дереві він падав на збірці доказу, а `check` містить
+    # api-lint і про розбіжність двох переліків не питав ніхто. Виміряно 03.09.2026.
+    ("api-lint", "виробник"),
     ("mutation", "виробник"),
     ("eval", "виробник"),
     ("migration-gate", "виробник"),
@@ -42,6 +47,20 @@ EXTERNAL: tuple[tuple[str, str], ...] = (
     ("production-exact-environment-image", "точний інтерпретатор у продакшенному образі"),
     ("production-hard-predicates", "перелік того, що ще зовні"),
 )
+
+#: Кроки, чий доказ виробляє ЛИШЕ зовнішній лан. `assemble-assurance` вимагає
+#: `var/recovery-report.json`, а цілі, яка його виробляє, у дереві немає:
+#: `scripts/measure_recovery.py` кличе лише `.gitlab-ci.yml`, і `assurance.py` каже про
+#: це прямо — «a local assembly without docker cannot reach PASS — deliberately».
+#: Поки вони стояли в загальному переліку, лан із --skip-external спинявся на восьмому
+#: кроці, а на дереві з давнім `var/recovery-report.json` — проходив: вердикт залежав
+#: від вмісту var/, не від виміру. Пропуск дістав власне слово й ніколи не дає PASS.
+EXTERNAL_EVIDENCE: frozenset[str] = frozenset({"assemble-assurance", "snapshot"})
+
+SKIPPED = "SKIPPED_REQUIRES_EXTERNAL"
+
+#: Вирок, коли лан спинився: жодне число далі не про це дерево.
+NOT_REACHED: dict[str, Any] = {"verdict": "NOT_REACHED", "problems": [], "unknown": []}
 
 #: Після коміту доказу HEAD зсувається. Ці двоє лишають дерево чистим, тож замикають цикл.
 CLOSURE: tuple[str, ...] = ("operational-gate", "lane-report")
@@ -112,11 +131,32 @@ def verdict() -> dict[str, Any]:
         return {"verdict": "UNREADABLE", "problems": [done.stderr.strip()[:300]], "unknown": []}
 
 
+def status(final_verdict: object, results: list[dict[str, Any]]) -> str:
+    """PASS лише коли ВСЕ виконано і прийнято; пропуск дає INCOMPLETE, не PASS."""
+    if any(result["state"] not in {"PASSED", SKIPPED} for result in results):
+        return "FAIL"
+    if any(result["state"] == SKIPPED for result in results):
+        return "INCOMPLETE"
+    return "PASS" if final_verdict == "ACCEPTED" else "FAIL"
+
+
 def sequence(with_external: bool, timeout: float) -> tuple[list[dict[str, Any]], str | None]:
     """Кроки до першої відмови. Спинятись треба: далі числа були б про інше дерево."""
     results: list[dict[str, Any]] = []
     planned = [*STEPS, *(EXTERNAL if with_external else ())]
     for target, role in planned:
+        if not with_external and target in EXTERNAL_EVIDENCE:
+            results.append(
+                {
+                    "target": target,
+                    "state": SKIPPED,
+                    "code": None,
+                    "seconds": 0.0,
+                    "role": role,
+                    "why": "доказ виробляє лише зовнішній лан; пропуск не є проходженням",
+                }
+            )
+            continue
         outcome = run(target, timeout)
         outcome["role"] = role
         results.append(outcome)
@@ -167,9 +207,7 @@ def main() -> int:
         print(json.dumps(moved, ensure_ascii=False, indent=2))
         return 3
 
-    final = (
-        verdict() if stopped is None else {"verdict": "NOT_REACHED", "problems": [], "unknown": []}
-    )
+    final = verdict() if stopped is None else dict(NOT_REACHED)
     after = git("rev-parse", "HEAD")
     report: dict[str, Any] = {
         "schema": "korpus.release-verify.v1",
@@ -186,7 +224,8 @@ def main() -> int:
         "tree_dirty_after": len(
             [line for line in git("status", "--porcelain").splitlines() if line]
         ),
-        "status": "PASS" if final.get("verdict") == "ACCEPTED" else "FAIL",
+        "skipped": [r["target"] for r in results if r["state"] == SKIPPED],
+        "status": status(final.get("verdict"), results),
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

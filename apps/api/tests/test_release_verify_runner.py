@@ -70,3 +70,39 @@ def test_a_spaced_interpreter_gets_an_alias_into_the_SAME_environment(
     assert completed.stdout.strip() == str(Path(sys.prefix).resolve()), (
         "псевдонім вивів із активного venv"
     )
+
+
+def _steps(*states: str) -> list[dict[str, object]]:
+    return [{"target": f"t{index}", "state": state} for index, state in enumerate(states)]
+
+
+def test_a_skipped_step_never_reads_as_a_pass() -> None:
+    """Пропуск — третій стан, і зливати його з проходженням не можна.
+
+    `assemble-assurance` вимагає доказу, який виробляє лише зовнішній лан, тож із
+    --skip-external він не може пройти за побудовою. Поки станів було два, лан або
+    спинявся на ньому назавжди, або — на дереві з давнім `var/recovery-report.json` —
+    проходив, і вердикт залежав від вмісту var/, а не від виміру.
+    """
+    assert RUNNER.status("ACCEPTED", _steps("PASSED", "PASSED")) == "PASS"
+    assert RUNNER.status("ACCEPTED", _steps("PASSED", RUNNER.SKIPPED)) == "INCOMPLETE"
+
+
+def test_a_failure_outranks_a_skip() -> None:
+    """FAIL перебиває все: інакше пропуск ховав би падіння сусіднього кроку."""
+    assert RUNNER.status("ACCEPTED", _steps("FAILED", RUNNER.SKIPPED)) == "FAIL"
+    assert RUNNER.status("ACCEPTED", _steps("TIMED_OUT", "PASSED")) == "FAIL"
+
+
+def test_a_rejected_verdict_is_not_saved_by_a_full_run() -> None:
+    """Усі кроки зелені й вирок відхилено — це FAIL, а не PASS через кроки."""
+    assert RUNNER.status("REJECTED", _steps("PASSED", "PASSED")) == "FAIL"
+
+
+def test_external_evidence_steps_are_named_not_guessed() -> None:
+    """Перелік кроків, чий доказ зовнішній, мусить бути ОГОЛОШЕНИЙ і несуперечливий."""
+    declared = {target for target, _ in RUNNER.STEPS}
+    assert declared >= RUNNER.EXTERNAL_EVIDENCE, (
+        "оголошено зовнішнім крок, якого в лані немає — реєстр розійшовся з ланом"
+    )
+    assert "assemble-assurance" in RUNNER.EXTERNAL_EVIDENCE
