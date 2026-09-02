@@ -109,6 +109,16 @@ def main() -> None:
             "worker-loop",
         ],
     )
+    # Стеля вже оголошена сервером (`jwt_max_lifetime_minutes`) і перевіряється в
+    # `issue_token`; тут лише важіль. Без нього кожен токен жив рівно 60 хвилин, і
+    # сесія агента вмирала посеред роботи — 401 посеред міркування читається як
+    # «корпус мовчить», хоч це просто протермінований підпис.
+    parser.add_argument(
+        "--lifetime-minutes",
+        type=int,
+        default=60,
+        help="Термін дії токена; стеля — jwt_max_lifetime_minutes сервера.",
+    )
     parser.add_argument("--worker-id")
     parser.add_argument("--idle-seconds", type=float, default=1.0)
     args = parser.parse_args()
@@ -162,7 +172,7 @@ def main() -> None:
                     ).release_id
                 )
             else:
-                print(issue_token(identity, settings))
+                print(issue_token(identity, settings, args.lifetime_minutes))
             return
 
         queue = SqlIngestionJobQueue(repository.engine)

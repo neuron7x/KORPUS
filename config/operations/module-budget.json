@@ -2177,10 +2177,10 @@
       "reason": "v0.8.2 canonical URL-origin predicate lowers branch complexity"
     },
     "apps/api/src/korpus/cli.py": {
-      "lines": 230,
+      "lines": 242,
       "max_complexity": 19,
       "max_function_args": 4,
-      "max_function_lines": 126,
+      "max_function_lines": 140,
       "max_nesting": 4,
       "proof_lines": 0
     },
@@ -2915,10 +2915,10 @@
       "reason": "КОРПУС як інструмент агента (MCP по stdio, без нової залежності). Шар ТОНКИЙ навмисно: у процесі агента немає ні журналу, ні прив'язки RLS, тож другий шлях відповіді там був би відповіддю без сліду й без межі. Єдине похідне число — ЗАПАС над порогом, який публікує сам API: виміряно на живому, що «Яка столиця Бразилії?» дістає `answered` із покриттям РІВНО 0.5 при межі 0.5, тобто `status` чужого питання від свого не відрізняє."
     },
     "apps/api/src/korpus/mcp/transport.py": {
-      "lines": 78,
+      "lines": 100,
       "max_complexity": 8,
       "max_function_args": 4,
-      "max_function_lines": 24,
+      "max_function_lines": 34,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "КОРПУС як інструмент агента (MCP по stdio, без нової залежності). Шар ТОНКИЙ навмисно: у процесі агента немає ні журналу, ні прив'язки RLS, тож другий шлях відповіді там був би відповіддю без сліду й без межі. Єдине похідне число — ЗАПАС над порогом, який публікує сам API: виміряно на живому, що «Яка столиця Бразилії?» дістає `answered` із покриттям РІВНО 0.5 при межі 0.5, тобто `status` чужого питання від свого не відрізняє."
@@ -4928,7 +4928,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5950,
+      "lines": 5975,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -9132,8 +9132,45 @@
       "to": {
         "lines": 5950
       }
+    },
+    {
+      "from": {
+        "lines": 230,
+        "max_function_lines": 126
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/cli.py",
+      "reason": "`--lifetime-minutes`: стеля вже оголошена сервером (`jwt_max_lifetime_minutes`), тут лише важіль. Без нього кожен токен жив рівно 60 хвилин, і сесія агента вмирала посеред роботи — 401 посеред міркування читається як «корпус мовчить».",
+      "to": {
+        "lines": 242,
+        "max_function_lines": 140
+      }
+    },
+    {
+      "from": {
+        "lines": 78,
+        "max_function_lines": 24
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/mcp/transport.py",
+      "reason": "Перелік винятків HTTP-шару не вичерпний, і виміряно це на власній помилці: не-ASCII токен дає `UnicodeEncodeError` уже при складанні заголовка, поза всіма гілками обробки. Наслідок був не відмовою, а СМЕРТЮ сервера. Плюс перевірка токена при побудові: інакше кожен інструмент падав би окремо, а причина «заголовок не кодується latin-1» не назвала б, що сталось.",
+      "to": {
+        "lines": 100,
+        "max_function_lines": 34
+      }
+    },
+    {
+      "from": {
+        "lines": 5950
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "M591–M592: токен, який не може бути JWT; термін дії, що не доходить до видавця.",
+      "to": {
+        "lines": 5975
+      }
     }
   ],
-  "recorded_at": "2026-09-01",
+  "recorded_at": "2026-09-02",
   "schema_version": 1
 }

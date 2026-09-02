@@ -5617,6 +5617,31 @@ MUTANTS = (
             "test_a_transport_failure_is_not_reported_as_absent_grounds",
         ),
     ),
+    Mutant(
+        # Токен, який не може бути JWT, клав ВЕСЬ сервер `UnicodeEncodeError`ом
+        # при складанні заголовка — агент лишався без причини й без з'єднання.
+        "M591_A_TOKEN_THAT_CANNOT_BE_A_JWT_IS_ACCEPTED",
+        "apps/api/src/korpus/mcp/transport.py",
+        '            raise ValueError("korpus api token must be ASCII: a JWT cannot contain '
+        'other bytes")',
+        "            pass",
+        (
+            "apps/api/tests/test_mcp_server.py::"
+            "test_a_token_that_cannot_be_a_jwt_is_refused_before_any_call",
+        ),
+    ),
+    Mutant(
+        # Термін дії, що не доходить до видавця, лишає кожен токен на годині —
+        # і сесія агента вмирає посеред роботи 401'м, схожим на мовчання корпусу.
+        "M592_THE_TOKEN_LIFETIME_NEVER_REACHES_THE_ISSUER",
+        "apps/api/src/korpus/cli.py",
+        "                print(issue_token(identity, settings, args.lifetime_minutes))",
+        "                print(issue_token(identity, settings, 60))",
+        (
+            "apps/api/tests/test_boundary_coverage_v5.py::"
+            "test_cli_read_commands_close_all_resources",
+        ),
+    ),
 )
 
 

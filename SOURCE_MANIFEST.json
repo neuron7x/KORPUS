@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1745,
-  "root_sha256": "218eb76f3dea8eef5f9e6d4b020f1503e4dfa42eb8408a693c0290e3d899dd95",
+  "root_sha256": "e16c4f1e0580edeea54639216c7d3455fbfeba980388105613082659f6856894",
   "files": [
     {
       "path": ".dockerignore",
@@ -1825,8 +1825,8 @@
     },
     {
       "path": "apps/api/src/korpus/cli.py",
-      "bytes": 9500,
-      "sha256": "9935fe820b608ae6eae1aebc61a7834c683c0ca3668ae7aa6cbda0a51451da4c",
+      "bytes": 10229,
+      "sha256": "11ece950a5ac9a16e8f8a90a19dd85f9d751fea5848ca5d3efae4336606c4c13",
       "mode": "0644"
     },
     {
@@ -2329,8 +2329,8 @@
     },
     {
       "path": "apps/api/src/korpus/mcp/transport.py",
-      "bytes": 3715,
-      "sha256": "95707acb9c8632118e6dd729fa533027c08e7233a3e71c7849bacb1af0d943ae",
+      "bytes": 5389,
+      "sha256": "df3aff85e4921ad896e7ae07cb06982aaaa64722f08d78f55e4009b32b1dd8a5",
       "mode": "0644"
     },
     {
@@ -2791,8 +2791,8 @@
     },
     {
       "path": "apps/api/tests/test_boundary_coverage_v5.py",
-      "bytes": 20527,
-      "sha256": "afe27a008d2f90f572ef424252b73c8472f0755672f7906052df877d95f3e80a",
+      "bytes": 21657,
+      "sha256": "f5cb11fc2f83b37acb24b6e9e0aa8fa6f81b28b2bb64b1dd4ff9c92cc51ad167",
       "mode": "0644"
     },
     {
@@ -3691,8 +3691,8 @@
     },
     {
       "path": "apps/api/tests/test_mcp_server.py",
-      "bytes": 9762,
-      "sha256": "8bef5913486ad8888bb8934515fc6659ad2753241b6191474949f5da26b572e7",
+      "bytes": 11992,
+      "sha256": "c152be4db809d0166130a67b816ca3ef379b4a0ef8a64496fe1901719747eba6",
       "mode": "0644"
     },
     {
@@ -7129,8 +7129,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 470706,
-      "sha256": "207d95fde40dde65f83a3085888bb6d4d0deff02c2da3e41cbfbd50697512dc2",
+      "bytes": 472569,
+      "sha256": "3d4d954cdbac28f34a53430be4f4a71e4f2f996de0f3df64e1eed25280371036",
       "mode": "0644"
     },
     {
@@ -9925,8 +9925,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 267914,
-      "sha256": "07e162a37546b98861a3bdca3a859f73ab11200a30ce0e56df1599fe84322966",
+      "bytes": 269269,
+      "sha256": "44e269e167f6f479bfd27b72b79f7c8dd006d26221fe0bf17ee2c1cce9ee1baf",
       "mode": "0755"
     },
     {

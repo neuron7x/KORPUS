@@ -447,11 +447,34 @@ def test_cli_read_commands_close_all_resources(
     assert capsys.readouterr().out.strip() == "d" * 64
     assert repository.closed and content.closed and quarantine.closed
 
-    cli, repository, content, quarantine = _run_cli(monkeypatch, ["issue-token"])
-    monkeypatch.setattr(cli, "issue_token", lambda identity, settings: "signed-token")
+    # Термін дії передається ДАЛІ, а не лишається на дефолті. Без цього кожен
+    # токен жив рівно 60 хвилин, і сесія агента вмирала посеред роботи: 401
+    # посеред міркування читається як «корпус мовчить», хоч це протермінований
+    # підпис. Стеля лишається сервером — `issue_token` її й перевіряє.
+    seen: list[int] = []
+    cli, repository, content, quarantine = _run_cli(
+        monkeypatch, ["issue-token", "--lifetime-minutes", "480"]
+    )
+    monkeypatch.setattr(
+        cli,
+        "issue_token",
+        lambda identity, settings, minutes: seen.append(minutes) or "signed-token",
+    )
     cli.main()
     assert capsys.readouterr().out.strip() == "signed-token"
+    assert seen == [480], "термін дії не дійшов до видавця токена"
     assert repository.closed and content.closed and quarantine.closed
+
+    default = []
+    cli, repository, content, quarantine = _run_cli(monkeypatch, ["issue-token"])
+    monkeypatch.setattr(
+        cli,
+        "issue_token",
+        lambda identity, settings, minutes: default.append(minutes) or "signed-token",
+    )
+    cli.main()
+    capsys.readouterr()
+    assert default == [60], "дефолт мусить лишитись годиною"
 
 
 def test_cli_reconciliation_and_worker_boundaries(

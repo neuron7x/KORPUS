@@ -40,6 +40,18 @@ class KorpusApi:
     token: str
     timeout_seconds: float = 30.0
 
+    def __post_init__(self) -> None:
+        """JWT — це ASCII за побудовою (base64url через крапки).
+
+        Перевірка тут, а не при першому виклику: інакше кожен інструмент падав би
+        окремо, а причина — «заголовок не кодується latin-1» — не назвала б, що
+        насправді сталось із токеном.
+        """
+        if not self.token.isascii():
+            raise ValueError("korpus api token must be ASCII: a JWT cannot contain other bytes")
+        if not self.token.strip():
+            raise ValueError("korpus api token is empty")
+
     def _request(self, method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
         url = f"{self.base_url.rstrip('/')}{path}"
         body = None if payload is None else json.dumps(payload).encode("utf-8")
@@ -59,6 +71,17 @@ class KorpusApi:
             raise TransportFailure(f"korpus api unreachable: {error}", retryable=True) from error
         except json.JSONDecodeError as error:
             raise TransportFailure("korpus api returned non-JSON", retryable=False) from error
+        except Exception as error:
+            # Перелік винятків HTTP-шару не вичерпний, і виміряно це на власній
+            # помилці: токен із не-ASCII символами дає `UnicodeEncodeError` уже
+            # при складанні заголовка, поза всіма гілками вище. Наслідок був не
+            # відмовою, а СМЕРТЮ сервера — агент втрачав з'єднання й не отримував
+            # жодної причини. Названа відмова гірша за влучний перелік винятків
+            # рівно нічим, а неназвана смерть — гірша за все.
+            raise TransportFailure(
+                f"korpus api request could not be made: {type(error).__name__}: {error}",
+                retryable=False,
+            ) from error
 
     def bootstrap(self) -> dict[str, Any]:
         return dict(self._request("GET", "/v1/client/bootstrap"))

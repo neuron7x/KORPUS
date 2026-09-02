@@ -218,3 +218,40 @@ def test_every_declared_tool_is_callable() -> None:
         if tool["name"] == "korpus_quote":
             arguments = {"span_id": "span-1"}
         assert call_tool(server, tool["name"], arguments)
+
+
+def test_a_token_that_cannot_be_a_jwt_is_refused_before_any_call() -> None:
+    """Виміряно на власній помилці: не-ASCII токен клав ВЕСЬ сервер.
+
+    `UnicodeEncodeError` виникав при складанні заголовка — поза всіма гілками
+    обробки транспорту, — тож агент не діставав відмови, він втрачав з'єднання.
+    Перевірка тут, а не при першому виклику: інакше кожен інструмент падав би
+    окремо, а причина «заголовок не кодується latin-1» не назвала б, що сталось.
+    """
+    from korpus.mcp.transport import KorpusApi
+
+    with pytest.raises(ValueError, match="must be ASCII"):
+        KorpusApi(base_url="http://127.0.0.1:8000", token="битий.токен.тут")
+    with pytest.raises(ValueError, match="empty"):
+        KorpusApi(base_url="http://127.0.0.1:8000", token="   ")
+    # Дуал: звичайний токен мусить прийматись, інакше перевірка боронить від усього.
+    assert KorpusApi(base_url="http://127.0.0.1:8000", token="aaa.bbb.ccc").token
+
+
+def test_no_http_layer_exception_can_kill_the_serving_loop() -> None:
+    """Перелік винятків HTTP-шару не вичерпний, і саме на цьому сервер і помер.
+
+    Названа відмова гірша за влучний перелік винятків рівно нічим; неназвана
+    смерть — гірша за все, бо агент лишається без причини й без з'єднання.
+    """
+    from korpus.mcp.transport import KorpusApi, TransportFailure
+
+    api = KorpusApi(base_url="http://127.0.0.1:9", token="aaa.bbb.ccc")
+
+    class _Exploding(dict):
+        def __getitem__(self, key: object) -> object:
+            raise RuntimeError("щось геть несподіване")
+
+    with pytest.raises(TransportFailure) as raised:
+        api._request("POST", "/v1/answers", _Exploding())
+    assert raised.value.retryable in {True, False}
