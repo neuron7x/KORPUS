@@ -5517,7 +5517,7 @@ MUTANTS = (
     Mutant(
         "M630_THE_DEBT_REGISTRY_BINDS_TO_A_CHECKOUT_VENV",
         "scripts/check_deployment_debt.py",
-        "    if command[0] == PYTHON_TOKEN:",
+        '    if command[0] == "{python}":',
         "    if False:",
         (
             "apps/api/tests/test_deployment_debt.py::"
@@ -5672,6 +5672,39 @@ MUTANTS = (
         (
             "apps/api/tests/test_branch_integration.py::"
             "test_an_active_worktree_branch_is_not_misreported_as_stranded",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M645_DEPLOYMENT_DEBT_MEASURES_THE_FEATURE_WORKTREE_AS_RUNTIME",
+        "scripts/check_deployment_debt.py",
+        '    return [part.replace("{runtime_root}", str(runtime_root)) for part in command]',
+        '    return [part.replace("{runtime_root}", str(ROOT)) for part in command]',
+        (
+            "apps/api/tests/test_deployment_debt.py::"
+            "test_runtime_paths_bind_to_the_declared_runtime_root",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M646_MAKE_DEBT_GATE_USES_A_MISSING_CHECKOUT_VENV",
+        "scripts/check_deployment_debt.py",
+        '    if command[0] == "make" and not any(part.startswith("PY=") for part in command[1:]):',
+        "    if False:",
+        (
+            "apps/api/tests/test_deployment_debt.py::"
+            "test_make_commands_use_the_current_worktree_interpreter",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M647_MAKE_SPLITS_AN_INTERPRETER_PATH_WITH_SPACES",
+        "scripts/check_deployment_debt.py",
+        '        command.append(f"PY={shlex.quote(sys.executable)}")',
+        '        command.append(f"PY={sys.executable}")',
+        (
+            "apps/api/tests/test_deployment_debt.py::"
+            "test_make_commands_use_the_current_worktree_interpreter",
         ),
         full_copy=True,
     ),

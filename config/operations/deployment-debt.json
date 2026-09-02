@@ -7,14 +7,14 @@
         "{python}",
         "scripts/validate_span_hygiene.py",
         "--database",
-        "var/runtime/corpus-v6-20260807/korpus.db",
+        "{runtime_root}/var/runtime/corpus-v6-20260807/korpus.db",
         "--json"
       ],
       "metric": "spans_dirty",
       "on": "2026-08-31",
       "reason": "89 брудних прольотів із 31464 придатних: 76 escaped_markup і 13 chrome, зосереджені у сторонніх публікаціях (тематична сторінка НАТО — 50). Червоний ще до 31.08 і не червонив нічого, бо ціль не була досяжна з жодного входу. Прийнято зі стелею замість мовчання.",
       "selftest_command": [
-        "apps/api/.venv/bin/python",
+        "{python}",
         "scripts/validate_span_hygiene.py",
         "--selftest"
       ],

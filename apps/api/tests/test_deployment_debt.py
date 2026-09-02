@@ -73,7 +73,29 @@ def test_registry_python_commands_are_portable_between_worktrees() -> None:
         entry["command"] for entry in registry["accepted"] if entry["command"][0] == "{python}"
     ]
     assert python_commands
-    assert all(DEBT.resolve_command(command)[0] == sys.executable for command in python_commands)
+    assert all(
+        DEBT.resolve_command(command, ROOT)[0] == sys.executable for command in python_commands
+    )
+
+
+def test_runtime_paths_bind_to_the_declared_runtime_root(tmp_path: Path) -> None:
+    command = DEBT.resolve_command(["tool", "{runtime_root}/var/corpus.db"], tmp_path)
+    assert command == ["tool", str(tmp_path / "var/corpus.db")]
+    assert DEBT.resolve_command(["tool", "{runtime_root}/var/corpus.db"]) is None
+
+
+def test_make_commands_use_the_current_worktree_interpreter() -> None:
+    command = DEBT.resolve_command(["make", "production-assurance-verify"])
+    assert command == [
+        "make",
+        "production-assurance-verify",
+        f"PY={DEBT.shlex.quote(sys.executable)}",
+    ]
+
+
+def test_runtime_root_comes_from_the_canonical_state_registry() -> None:
+    registry = json.loads((ROOT / "config/operations/canonical-state.json").read_text())
+    assert DEBT.declared_runtime_root() == Path(registry["canonical_root"])
 
 
 def test_missing_gate_binary_is_unknown_instead_of_crashing() -> None:

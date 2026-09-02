@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1785,
-  "root_sha256": "fbb2d65e71e19ded2888af8579c41a4ad0f8a9ac3387b92988dc44a88295d343",
+  "root_sha256": "dffb584f1ca8a5c5eadea098a39f6d1cbc1689b6388e6202af3982c61ff61ddb",
   "files": [
     {
       "path": ".dockerignore",
@@ -3115,8 +3115,8 @@
     },
     {
       "path": "apps/api/tests/test_deployment_debt.py",
-      "bytes": 6695,
-      "sha256": "d7bcd9d6a21a9de3137d8f70ad77cf793bd5751f7265b04da21888b7c6f49691",
+      "bytes": 7556,
+      "sha256": "918043cbe906d49adc5e982aebbaeb79e6520ab70b3eb365d45192e2d826a53d",
       "mode": "0644"
     },
     {
@@ -7225,8 +7225,8 @@
     },
     {
       "path": "config/operations/deployment-debt.json",
-      "bytes": 2963,
-      "sha256": "2eff48c5d7d8f46932e385da3d052f8796051fe35a26e0a8391b47a6dcaaced4",
+      "bytes": 2961,
+      "sha256": "32df734b11844e859120e1b09ad86c05fbd378c6031b7990a0d91acfd74ec86e",
       "mode": "0644"
     },
     {
@@ -9055,8 +9055,8 @@
     },
     {
       "path": "scripts/check_deployment_debt.py",
-      "bytes": 9542,
-      "sha256": "0b7eb3b16d5aa2a12440debafab8bf8cd34a4bacf6d0ccfcd4334cb52d912f02",
+      "bytes": 8969,
+      "sha256": "ea9308a4bc050faf189643706de24c6204a083c25dc1537d290f55a54f8d873f",
       "mode": "0755"
     },
     {
@@ -10153,8 +10153,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 302727,
-      "sha256": "e6a5faf6549591a4e27c25f86140b3c99ce0fb1247a6b8a7fe5ea600102a6a62",
+      "bytes": 304051,
+      "sha256": "12198c4d246c53972ac74303ca2ea5a55704298546aabd575b9c37a41c1ab2cb",
       "mode": "0755"
     },
     {

@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
-"""Ратчет прийнятого боргу розгортання.
-
-Гейти живого корпусу не можуть входити до перевірки дерева без розгортання. Реєстр
-дає кожному такому боргу виміряну стелю: погіршення — FAIL, рівність — PASS,
-поліпшення — PASS із вимогою знизити стелю. Непрочитане лишається UNKNOWN.
-
-"""
+"""Ратчет прийнятого боргу розгортання."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -19,21 +14,9 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 REGISTRY = ROOT / "config/operations/deployment-debt.json"
 SCHEMA = "korpus.deployment-debt.v1"
-PYTHON_TOKEN = "{python}"
 
 
 def metric_at(report: dict[str, Any], path: str, kind: str = "number") -> int | None:
-    """Число за шляхом виду `spans_dirty` або `by_kind.chrome`.
-
-    `None` — не «нуль», а «не виміряно»: звіт без цього поля нічого не доводить, і
-    зарахувати його в нуль означало б оголосити борг закритим тим, що його не міряли.
-
-    `kind="length"` міряє ДОВЖИНУ переліку за шляхом. Потрібно там, де звіт називає
-    відмови поіменно й не рахує їх: `production-assurance-verify` віддає
-    `failures: [...]`, і без цього стелю на «скільки саме» не можна було б поставити,
-    хоча саме вона перетворює врядувальну відмовку на число, яке помітить і
-    погіршення, і покращення.
-    """
     node: Any = report
     for part in path.split("."):
         if not isinstance(node, dict) or part not in node:
@@ -55,11 +38,8 @@ def judge(entry: dict[str, Any], report: dict[str, Any] | None) -> dict[str, Any
         report, str(entry.get("metric", "")), str(entry.get("metric_kind", "number"))
     )
     if measured is None:
-        return {
-            "target": target,
-            "verdict": "UNKNOWN",
-            "detail": f"метрику {entry.get('metric')!r} у звіті не знайдено",
-        }
+        detail = f"метрику {entry.get('metric')!r} у звіті не знайдено"
+        return {"target": target, "verdict": "UNKNOWN", "detail": detail}
     if measured > ceiling:
         return {
             "target": target,
@@ -95,19 +75,28 @@ def verdict(results: list[dict[str, Any]]) -> str:
     return "UNKNOWN" if "UNKNOWN" in verdicts else "PASS"
 
 
-def resolve_command(value: object) -> list[str] | None:
-    """Resolve the interpreter without binding the registry to one checkout's venv."""
+def resolve_command(value: object, runtime_root: Path | None = None) -> list[str] | None:
     if not isinstance(value, list) or not value or not all(isinstance(part, str) for part in value):
         return None
     command = list(value)
-    if command[0] == PYTHON_TOKEN:
+    command = _bind_runtime_root(command, runtime_root)
+    if command is None:
+        return None
+    if command[0] == "{python}":
         command[0] = sys.executable
+    if command[0] == "make" and not any(part.startswith("PY=") for part in command[1:]):
+        command.append(f"PY={shlex.quote(sys.executable)}")
     return command
 
 
-def run_entry(entry: dict[str, Any]) -> dict[str, Any] | None:
-    """Виконати гейт і взяти його звіт. Ненульовий код — очікуваний: борг же прийнятий."""
-    command = resolve_command(entry.get("command"))
+def _bind_runtime_root(command: list[str], runtime_root: Path | None) -> list[str] | None:
+    if runtime_root is None:
+        return None if any("{runtime_root}" in part for part in command) else command
+    return [part.replace("{runtime_root}", str(runtime_root)) for part in command]
+
+
+def run_entry(entry: dict[str, Any], runtime_root: Path | None = None) -> dict[str, Any] | None:
+    command = resolve_command(entry.get("command"), runtime_root)
     if command is None:
         return None
     try:
@@ -123,6 +112,15 @@ def run_entry(entry: dict[str, Any]) -> dict[str, Any] | None:
     except json.JSONDecodeError:
         return None
     return parsed if isinstance(parsed, dict) else None
+
+
+def declared_runtime_root() -> Path | None:
+    try:
+        state = ROOT / "config/operations/canonical-state.json"
+        value = json.loads(state.read_text(encoding="utf-8"))["canonical_root"]
+    except (OSError, json.JSONDecodeError, KeyError):
+        return None
+    return Path(value) if isinstance(value, str) and value else None
 
 
 def selftest() -> int:
@@ -191,6 +189,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--registry", type=Path, default=REGISTRY)
     parser.add_argument("--out", type=Path, default=ROOT / "var/deployment-debt.json")
+    parser.add_argument("--runtime-root", type=Path, default=declared_runtime_root())
     parser.add_argument("--selftest", action="store_true")
     arguments = parser.parse_args()
     if arguments.selftest:
@@ -206,7 +205,7 @@ def main() -> int:
         print(json.dumps({"schema": SCHEMA, "status": "UNKNOWN", "reason": "реєстр порожній"}))
         return 2
 
-    results = [judge(entry, run_entry(entry)) for entry in entries]
+    results = [judge(entry, run_entry(entry, arguments.runtime_root)) for entry in entries]
     overall = verdict(results)
     report = {"schema": SCHEMA, "status": overall, "results": results}
     arguments.out.parent.mkdir(parents=True, exist_ok=True)
