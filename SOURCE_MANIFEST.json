@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1791,
-  "root_sha256": "f934256d6ae4bc9844faa9734d0129786484f309e29089f93a29cdfb8026cae4",
+  "file_count": 1792,
+  "root_sha256": "d13acbe1370042ed3c99fee61c25dc5e6bf5799492cdf9a35b836c4a1606843c",
   "files": [
     {
       "path": ".dockerignore",
@@ -201,6 +201,12 @@
       "path": "KORPUS_ENGINEERING_CLOSURE/00_SCOPE/baseline_state.json",
       "bytes": 898,
       "sha256": "0d65727015b9414af671cfabb17371abec86b13c54ba9e7de286d36d50dd6673",
+      "mode": "0644"
+    },
+    {
+      "path": "KORPUS_ENGINEERING_CLOSURE/02_DEBT/correction_KD-017.json",
+      "bytes": 3141,
+      "sha256": "a44953dab346633aaf2189f38f698e65742318ded739621b8a10dc4c2d09721b",
       "mode": "0644"
     },
     {
