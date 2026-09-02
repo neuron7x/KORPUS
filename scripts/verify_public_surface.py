@@ -83,13 +83,38 @@ CONSOLE_ASSETS = (
 #: може мати їх ніколи. Вони мусять упиратися в МЕЖУ, бо відмова застосунку тут
 #: запізнюється — FastAPI читає тіло до виконання залежностей, тож завантаження вже
 #: лежить на диску, коли `policy.require` каже «ні».
-EDGE_DENIED_ROUTES = (
+#: Записові маршрути в тій формі, у якій їх пише клієнт.
+_DENIED_CANONICAL = (
     ("POST", "/api/v1/documents/ingest"),
     ("POST", "/api/v1/ingestion-jobs/documents"),
     ("POST", "/api/v1/documents/1/versions/ingest"),
     ("POST", "/api/v1/document-versions/1/review"),
     ("POST", "/api/v1/document-versions/1/rescission"),
     ("GET", "/api/v1/admin/accounts"),
+)
+
+
+def _capitalised(route: str) -> str:
+    """Той самий шлях, у якому перший сегмент після `/v1/` починається з великої літери."""
+    head, _, tail = route.partition("/api/v1/")
+    if not tail:
+        return route
+    first, slash, rest = tail.partition("/")
+    return f"{head}/api/v1/{first[:1].upper()}{first[1:]}{slash}{rest}"
+
+
+#: ВИМІРЯНО 02.09.2026. Проба ходила ЛИШЕ в канонічному написанні — тобто рівно в тій
+#: формі, яку межа й так спиняла, і тому не рухала змінну, про яку твердила. Межа була
+#: `location ~` (РЕГІСТРОЗАЛЕЖНЕ), тоді як той самий файл нижче вживає `~*` для статики:
+#: автор знав про різницю й застосував нечутливість до менш важливого правила. Запит із
+#: інтернету це підтвердив: `/api/v1/documents/ingest` -> 404 від nginx (146 байт), а
+#: `/api/v1/Documents/ingest` -> 404 із заголовком `x-request-id` (22 байти), тобто
+#: ДІЙШОВ до застосунку. Межа, яку обходить одна велика літера, не є межею — і проба,
+#: що ходить лише туди, де вже зачинено, не є пробою.
+EDGE_DENIED_ROUTES = _DENIED_CANONICAL + tuple(
+    (method, _capitalised(route))
+    for method, route in _DENIED_CANONICAL
+    if _capitalised(route) != route
 )
 
 #: Межа мусить сказати «нема», не «не можна»: 404 не підтверджує існування маршруту.

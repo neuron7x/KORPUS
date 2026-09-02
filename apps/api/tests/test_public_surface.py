@@ -148,11 +148,21 @@ def test_write_routes_stop_at_the_edge_and_audit_deliberately_does_not() -> None
     тіла. `/v1/audit/*` — навпаки: панель трасування читача їх кличе, і чесна
     відповідь — 403 від ролі. Межа, що закриє й їх, підмінить відмову на «нема».
     """
+    # Якір приймає обидві форми оператора. 02.09.2026 межу зробили РЕГІСТРОНЕЧУТЛИВОЮ
+    # (`~*` замість `~`), і дослівний якір `location ~ ^/api/` перестав збігатися — тест
+    # упав із голим `StopIteration`, який не називає ані предмета, ані причини. Тут
+    # судиться СКЛАД переліку; чутливість оператора — предмет окремого тесту
+    # `test_edge_boundary_case_folding.py`, і змішувати їх означало б, що падіння одного
+    # читається як інше.
     denial = next(
-        line
-        for line in EDGE_TEMPLATE.read_text(encoding="utf-8").splitlines()
-        if line.lstrip().startswith("location ~ ^/api/")
+        (
+            line
+            for line in EDGE_TEMPLATE.read_text(encoding="utf-8").splitlines()
+            if line.lstrip().startswith(("location ~ ^/api/", "location ~* ^/api/"))
+        ),
+        None,
     )
+    assert denial is not None, "у шаблоні межі немає правила `location ~[*] ^/api/`"
     for route in ("documents/ingest", "ingestion-jobs", "review", "rescission", "admin/"):
         assert route in denial, f"межа перестала спиняти {route}"
     assert "audit" not in denial, "межа почала підміняти відмову ролі на 404 для audit"
