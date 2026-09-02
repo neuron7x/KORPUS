@@ -65,11 +65,24 @@ def test_an_empty_catalogue_is_not_success() -> None:
 def test_the_shipped_catalogue_declares_a_verdict() -> None:
     """Негативний контроль до всього файла: поле мусить бути В АРТЕФАКТІ, не лише у функції.
 
-    Перевірки вище звіряють `summarize`. Але претензію підпирає ФАЙЛ, і якщо запис на
-    диск колись перестане нести це поле, кожне твердження вище лишиться зеленим.
+    Перевірки вище звіряють `summarize`. Але претензію CLM-MUTATION підпирає ФАЙЛ, і якщо
+    запис на диск колись перестане нести це поле, кожне твердження вище лишиться зеленим.
+
+    Шлях узятий той САМИЙ, який називає журнал претензій. Спершу тут стояв
+    `reports/MUTATION_REPORT.json` — і це була помилка того ж роду, що й уся ця правка:
+    той файл кладе `snapshot_assurance`, а `make mutation` його не торкається, тож
+    твердження описувало б не той артефакт, який цитує претензія.
     """
     import json
 
-    report = json.loads((ROOT / "reports/MUTATION_REPORT.json").read_text(encoding="utf-8"))
-    assert "status" in report, "звіт на диску не оголошує вироку"
+    from korpus.application.release_claims import claim_ledger
+
+    cited = {
+        claim["evidence"]
+        for claim in claim_ledger(ROOT, "0" * 64, "v0.9.7")["claims"]
+        if claim["id"] == "CLM-MUTATION"
+    }
+    assert cited == {"reports/MUTATION_FULL_CATALOGUE_CURRENT.json"}, cited
+    report = json.loads((ROOT / cited.pop()).read_text(encoding="utf-8"))
+    assert "status" in report, "артефакт, який цитує претензія, не оголошує вироку"
     assert report["status"] in {"PASS", "FAIL"}
