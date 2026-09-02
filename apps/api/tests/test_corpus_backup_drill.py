@@ -167,5 +167,75 @@ def test_a_tampered_backup_is_refused_before_it_is_decrypted(
     )
 
 
+def test_a_backup_signed_with_another_key_is_refused(
+    tmp_path: Path, environment: dict[str, str]
+) -> None:
+    """Якір довіри відновлення — ПІДПИС, а не поле в самому маніфесті.
+
+    `restore_sqlite.sh` передає `--expected-key-id` значення, ЩОЙНО ПРОЧИТАНЕ з того
+    самого маніфеста, який перевіряє. Само по собі це твердження не несе інформації:
+    очікуване й перевірюване з одного джерела не можуть розійтися.
+
+    Записано 02.09.2026 після завищеної попередньої знахідки. Ця перевірка існує, щоб
+    сказати, чому кругове поле НЕ є дірою: `canonical_bytes` виключає лише сам
+    `manifest_hmac_sha256`, отже `key_id` ПОКРИТИЙ підписом, і маніфест із чужим
+    ідентифікатором ключа не має валідного HMAC під ключем відновлення.
+
+    Тому предмет цього твердження — підпис, а не поле. Маніфест, підписаний ІНШИМ
+    ключем, мусить бути відхилений, і бази на диску після цього бути не мусить.
+    """
+    database = tmp_path / "korpus.db"
+    _corpus(database)
+    backup = _run(BACKUP, [], {**environment, "KORPUS_BACKUP_SQLITE_PATH": str(database)})
+
+    foreign = tmp_path / "foreign.key"
+    foreign.write_bytes(b"\xa5" * 32)
+    hostile = {**environment, "KORPUS_BACKUP_ENCRYPTION_KEY_FILE": str(foreign)}
+
+    completed = subprocess.run(
+        ["bash", str(RESTORE), backup, str(tmp_path / "restored-foreign")],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=hostile,
+        cwd=ROOT,
+        timeout=300,
+    )
+
+    assert completed.returncode != 0, "відновлення чужим ключем не відхилено"
+    assert not (tmp_path / "restored-foreign/korpus.db").exists(), "чужий ключ лишив базу на диску"
+
+
+def test_the_manifest_signature_covers_the_key_identifier(
+    tmp_path: Path, environment: dict[str, str]
+) -> None:
+    """Позитивний бік того самого твердження, доведений розрахунком, а не запуском.
+
+    Якби `key_id` не входив у підписані байти, кругове `--expected-key-id` справді було б
+    дірою: маніфест із перейменованим ключем проходив би. Перевіряється тут, бо саме на
+    цьому тримається попереднє твердження.
+    """
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import backup_manifest
+
+    key = b"k" * 32
+    payload = {
+        "schema": backup_manifest.SCHEMA,
+        "encrypted": True,
+        "cipher": "AES-256-GCM",
+        "file": "b.tar.enc",
+        "key_id": "korpus-2026-09",
+        "sha256": "a" * 64,
+        "plaintext_sha256": "b" * 64,
+        "bytes": 10,
+        "plaintext_bytes": 10,
+    }
+    signature = backup_manifest.sign(payload, key)
+    renamed = {**payload, "key_id": "korpus-ATTACKER"}
+    assert backup_manifest.sign(renamed, key) != signature, (
+        "підпис не покриває key_id: кругова перевірка стає дірою"
+    )
+
+
 if sys.platform not in {"linux", "darwin"}:  # pragma: no cover - the scripts are POSIX
     pytest.skip("shell drill", allow_module_level=True)

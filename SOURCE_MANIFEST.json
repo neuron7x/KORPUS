@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1790,
-  "root_sha256": "db78ef1eed9f4e1bfd50f89e2c694e9ab91e83f5ea2f2b3ba11a5ca69e7485c4",
+  "file_count": 1791,
+  "root_sha256": "f934256d6ae4bc9844faa9734d0129786484f309e29089f93a29cdfb8026cae4",
   "files": [
     {
       "path": ".dockerignore",
@@ -3013,8 +3013,8 @@
     },
     {
       "path": "apps/api/tests/test_corpus_backup_drill.py",
-      "bytes": 6452,
-      "sha256": "b8701851670666097db1f1ca7861e48b90f52ca5e4e7a8709a7755f0d0ba621d",
+      "bytes": 10010,
+      "sha256": "b6184d4dc6a77c8946dd75bc9b32fe5aeb8abebdb2e60642d814e60cfc6bcf5e",
       "mode": "0644"
     },
     {
@@ -9093,6 +9093,12 @@
       "path": "scripts/check_dormant_subsystems.py",
       "bytes": 10836,
       "sha256": "4127f5b62c402866cf1b5a8f4e75c173500a1f02e68ba5fb9c211d4c449e56a1",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/check_edge_config_parity.py",
+      "bytes": 8601,
+      "sha256": "fbcfcf6d4a250b03f43a7c161fbafbcee174e05dcceb2bb95fa2760400a0314f",
       "mode": "0755"
     },
     {
