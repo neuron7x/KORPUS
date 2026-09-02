@@ -905,7 +905,7 @@
       "reason": "v0.9.7 architecture/UI contract synchronization; exact initial measured ceiling"
     },
     "apps/api/src/korpus/application/composition.py": {
-      "lines": 400,
+      "lines": 406,
       "max_complexity": 13,
       "max_function_args": 4,
       "max_function_lines": 44,
@@ -2590,7 +2590,7 @@
       "reason": "LiqPay bounded exact callback arithmetic"
     },
     "apps/api/src/korpus/infrastructure/model_contract.py": {
-      "lines": 100,
+      "lines": 109,
       "max_complexity": 9,
       "max_function_args": 1,
       "max_function_lines": 25,
@@ -9270,6 +9270,28 @@
       "reason": "M598: порожній прогін затирає вимір.",
       "to": {
         "lines": 6050
+      }
+    },
+    {
+      "from": {
+        "lines": 400
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/application/composition.py",
+      "reason": "Записано ВИМІРЯНУ Й ВІДХИЛЕНУ правку токенного порівняння: збіг за 4 літерами лагодить 2 хибні відмови з 2 і тримає 3 негативні контролі, але на корпусі 66 673 з 79 009 слів ділять чотирилітерний початок («пере» зливає 592 різні слова), тож у сторожі проти вигаданого слова він хибний. Без цього запису наступний, хто побачить 8 хибних відмов із 16, застосує його вдруге. Складність, вкладеність і довжина функцій не змінились — виріс лише докстрінг.",
+      "to": {
+        "lines": 406
+      }
+    },
+    {
+      "from": {
+        "lines": 100
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/infrastructure/model_contract.py",
+      "reason": "Записано перший вимір самих ПРОМТІВ на моделі: rewrite 0 придатних варіантів із 40, compose 0 допущених із 23, p50 6.65 с при дедлайні 10 с. Тести цього модуля перевіряють лише парсер канонсервованими рядками, тож без цього рядка промт лишався б єдиною недоведеною частиною контракту. Коду не додано.",
+      "to": {
+        "lines": 109
       }
     }
   ],

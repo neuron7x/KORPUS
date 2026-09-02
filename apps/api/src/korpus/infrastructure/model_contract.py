@@ -3,6 +3,15 @@
 The model has two bounded jobs in KORPUS: suggest search phrases and arrange already
 admitted extractive sentences. Provider adapters share these instructions and strict
 parsers so switching vendors cannot silently change the authority granted to a model.
+
+ВИМІРЯНО 02.09.2026 на qwen2.5:3b справжніми промтами й парсерами — тести перевіряють
+лише ПАРСЕР канонсервованими рядками й про промт не кажуть нічого. Rewrite: 0 придатних
+варіантів із 40 питань; абляція однієї змінної називає причину — правило «поверни
+порожній список» модель бере як вихід і бере завжди (0/12 із ним, 7/12 без). Знімати
+його не можна без заміни: без нього та сама модель вигадує терміни й раз віддала
+літерал «...» із прикладу формату. Compose: допущено 0 з 23 справжніх витягів, p50
+6.65 с при дедлайні 10 с (5 із 23 не встигають), сторож при цьому живий — 4 підробки з
+4 відхилено. Числа про 3B; переноситься лише висновок про ФОРМУ промту.
 """
 
 from __future__ import annotations

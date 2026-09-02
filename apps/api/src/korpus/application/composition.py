@@ -165,7 +165,22 @@ def _content_tokens(text: str) -> list[str]:
 
 
 def _refuse_uncarried_clauses(text: str, passages: Sequence[str]) -> None:
-    """Refuse unless every proposition in the line is carried whole by ONE citation."""
+    """Refuse unless every proposition in the line is carried whole by ONE citation.
+
+    Порівняння ДОСЛІВНЕ й має виміряну ціну: цитата несе «командира», чесний переказ
+    пише «командир», і відмова каже «корпус не містить» про слово, яке корпус містить.
+    02.09.2026: із 16 відмов «немає слова» вісім саме такі, і той самий шар читає
+    `korpus_verify` — тобто хибне твердження про світ віддається агентові.
+
+    Очевидна правка ВИМІРЯНА Й ВІДХИЛЕНА. Збіг за початком слова (4 літери, як у
+    `declared_subject.MIN_PREFIX`) лагодить обидва хибні випадки й не ламає трьох
+    негативних контролів — але контролі надто малі, щоб побачити ціну: на корпусі
+    66 673 з 79 009 слів ділять чотирилітерний початок з іншим словом («пере» зливає
+    592 різні слова, «раді» — 245). Правило пустило б у відповідь слово, якого джерело
+    не каже, у сторожі, що існує рівно проти цього. Потрібна морфологія, замкнена щодо
+    парадигми, зі СВОЇМ набором; доти хибна відмова — свідомо прийнятий борг, бо коштує
+    гіршого вступного рядка, а протилежна помилка коштувала б невірної норми.
+    """
     vocabularies = [set(_tokens(passage)) for passage in passages]
     pooled: set[str] = set().union(*vocabularies) if vocabularies else set()
     for clause in _CLAUSE.split(text):

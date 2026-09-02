@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1745,
-  "root_sha256": "169bed1d7b5a816bbeb4336e92e636c1e8efaef8a94939724745ed8b9d53ebf8",
+  "file_count": 1746,
+  "root_sha256": "1097252d11a96df8b8ab7c0c4011919038d7c9b5bc8c8c6dec188d35f67b265f",
   "files": [
     {
       "path": ".dockerignore",
@@ -955,8 +955,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/composition.py",
-      "bytes": 17849,
-      "sha256": "ec41f7d6ec1e7f2ce4540d08a0caceb0373917543581e713c644d4ed0d544444",
+      "bytes": 19564,
+      "sha256": "1ffa0550a3e06515daa32b0d9b98d036e27c1a3ddea6cec343045ad3f035e6c0",
       "mode": "0644"
     },
     {
@@ -2107,8 +2107,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/model_contract.py",
-      "bytes": 4653,
-      "sha256": "dcab818d74060d8f92f345ff1c83477c21242c0c1493442a4945f6bc57662632",
+      "bytes": 5792,
+      "sha256": "60de02b8db7e721e2b67da97a6067e11b4b181bfbc772467cee730a560563ed8",
       "mode": "0644"
     },
     {
@@ -2317,8 +2317,8 @@
     },
     {
       "path": "apps/api/src/korpus/mcp/server.py",
-      "bytes": 14013,
-      "sha256": "33fa7cd4c2e3d8bf154e39d6351328ce17a75a8f2def15803d5221d5d8224c2f",
+      "bytes": 14519,
+      "sha256": "5e22487a1130631c0dbe634d74b70748951e5c12d575ed2c9b3d96e3e7313bd0",
       "mode": "0644"
     },
     {
@@ -7129,8 +7129,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 479146,
-      "sha256": "95a0f5a3230780bceb5d882821271f3187d527a6aae83fd70df42d53e695e6b0",
+      "bytes": 480893,
+      "sha256": "1bb9fee304091dbde9f30453b1eba995bd5878e0dede02a5bfeef3b0c4ec9f86",
       "mode": "0644"
     },
     {
@@ -7629,6 +7629,12 @@
       "path": "docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json",
       "bytes": 80988,
       "sha256": "b1952e4f3771dee8b79a99fdee41f870ffece4978b65452bf570dd9b42c007fa",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/audit/closure/TREE_CONSOLIDATION_2026-09-02.md",
+      "bytes": 4733,
+      "sha256": "d53caff07b984c2bb8eda84fa3f11424638c0393722ea50f32ba2a171e6891e3",
       "mode": "0644"
     },
     {
