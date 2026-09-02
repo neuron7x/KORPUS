@@ -102,6 +102,13 @@ def test_the_real_registry_is_green_on_the_real_repository() -> None:
     assert GATE.verdict(findings) == "PASS", findings
 
 
+def test_the_gate_reads_the_single_canonical_declaration() -> None:
+    registry = _registry()
+    assert GATE._declared_canonical(registry, ROOT) == CANON
+    registry["canonical_branch_declared_in"] = "config/operations/other.json"
+    assert GATE._declared_canonical(registry, ROOT) is None
+
+
 def test_the_migration_collision_is_recorded_as_the_blocker() -> None:
     """Блокер не текстовий, і саме тому його треба записати словами.
 
@@ -113,15 +120,26 @@ def test_the_migration_collision_is_recorded_as_the_blocker() -> None:
         assert number in blocker["detail"], number
 
 
-def test_every_local_branch_is_already_inside_the_canonical_one() -> None:
-    """Проти РЕАЛЬНОСТІ: локально рятувати нічого, уся розбіжність — на origin."""
+def test_every_inactive_local_branch_is_already_inside_the_canonical_one() -> None:
+    """Проти РЕАЛЬНОСТІ: активну роботу не плутати із покинутим backlog."""
     canonical = CANON
+    active = GATE.active_worktree_branches(ROOT)
     for ref in GATE.refs(ROOT):
-        if ref.startswith(("origin/", "gitlab/")) or ref == canonical:
+        if ref.startswith(("origin/", "gitlab/")) or ref == canonical or ref in active:
             continue
         if ref == "work/serving-surface":
             continue
         assert GATE.unique_commits(canonical, ref, ROOT) == 0, ref
+
+
+def test_an_active_worktree_branch_is_not_misreported_as_stranded(monkeypatch: Any) -> None:
+    monkeypatch.setattr(GATE, "refs", lambda _root: ["main", "feature/live", "origin/old"])
+    monkeypatch.setattr(GATE, "active_worktree_branches", lambda _root: {"main", "feature/live"})
+    monkeypatch.setattr(GATE, "unique_commits", lambda *_args, **_kwargs: 1)
+    monkeypatch.setattr(GATE, "merges_cleanly", lambda *_args, **_kwargs: False)
+    observed = GATE.observe("main", ROOT)
+    assert set(observed["diverged"]) == {"origin/old"}
+    assert "feature/live" in observed["active_worktree_branches"]
 
 
 def test_unknown_is_never_a_pass() -> None:

@@ -1,33 +1,5 @@
 #!/usr/bin/env python3
-"""Що саме означає «канонічне».
-
-Виміряно 01.09.2026, і це та сама форма, що вчора мало слово «зелено»: кандидатів на
-канон ТРИ, вони розходяться, і жодна перевірка цього не бачить.
-
-    локальна гілка work/converge-semantic   уся робота дня
-    main                                    ПОЗАДУ на 124 коміти (30.08 20:54)
-    gitlab/work/converge-semantic           ПОЗАДУ на 105 комітів
-
-Три факти роблять це не косметикою.
-
-ПЕРШИЙ. `.gitlab-ci.yml` вмикає розгортання продакшену правилом
-`$CI_COMMIT_BRANCH == "main"`. Тобто продакшен прив'язаний до гілки, яка описує систему
-позавчорашнього дня, і ніщо про це не каже.
-
-ДРУГИЙ. Опублікована на GitLab голова збігалася з тимчасовим worktree мертвої сесії у
-`/tmp/.../scratchpad/`. Тобто опубліковане прийшло не з канону, і це теж було невидиме.
-
-ТРЕТІЙ. Серед віддалених є той, якого рішення власника не передбачало. Віддалений — це
-поверхня публікації; неоголошена поверхня публікації нічим не краща за неоголошену базу
-доказів.
-
-Гейт не вирішує, що канонічне. Він вимагає, щоб це було НАЗВАНО в одному місці, і міряє
-відставання решти від названого — з ратчетом, бо «позаду на 124» мусить зменшуватись, а
-не консервуватись.
-
-    verify_canonical_state.py
-    verify_canonical_state.py --selftest
-"""
+"""Перевірити канонічний checkout і виконувані ролі віддалених поверхонь."""
 
 from __future__ import annotations
 
@@ -42,6 +14,9 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 REGISTRY = ROOT / "config/operations/canonical-state.json"
 SCHEMA = "korpus.canonical-state.v1"
+MIRROR = "mirror"
+INTEGRATION_SOURCE = "integration-source"
+INTEGRATION_REGISTRY = "config/operations/branch-integration.json"
 
 
 # ----------------------------------------------------------------- спостереження (I/O)
@@ -307,20 +282,29 @@ def _check_publications(
         else _finding("publication_ghost", "PASS", "жодного запису про неіснуючий віддалений")
     )
 
-    for name in sorted(by_name):
-        if name in ghosts:
-            continue
-        entry = by_name[name]
-        url = observation["remotes"].get(name)
-        if entry.get("url") and url != entry["url"]:
-            found.append(
-                _finding(
-                    f"publication_url:{name}",
-                    "FAIL",
-                    f"{name} вказує на {url}, а названо {entry['url']}",
-                )
+    for name in sorted(set(by_name) - set(ghosts)):
+        found.extend(_publication_findings(name, by_name[name], observation, measured))
+    return found
+
+
+def _publication_findings(
+    name: str,
+    entry: dict[str, Any],
+    observation: dict[str, Any],
+    measured: dict[str, Any],
+) -> list[dict[str, str]]:
+    found = [_publication_role(name, entry)]
+    url = observation["remotes"].get(name)
+    if entry.get("url") and url != entry["url"]:
+        found.append(
+            _finding(
+                f"publication_url:{name}",
+                "FAIL",
+                f"{name} вказує на {url}, а названо {entry['url']}",
             )
-            continue
+        )
+        return found
+    if entry.get("role") == MIRROR:
         found.append(
             _staleness(
                 f"publication_staleness:{name}",
@@ -332,17 +316,20 @@ def _check_publications(
     return found
 
 
+def _publication_role(name: str, entry: dict[str, Any]) -> dict[str, str]:
+    role = entry.get("role")
+    if role == MIRROR:
+        valid = isinstance(entry.get("tracks"), str) and isinstance(entry.get("max_days"), int)
+    elif role == INTEGRATION_SOURCE:
+        valid = entry.get("governed_by") == INTEGRATION_REGISTRY
+    else:
+        return _finding(f"publication_role:{name}", "FAIL", f"невідома роль: {role}")
+    detail = f"роль {role} має виконуваний контракт" if valid else f"роль {role} без контракту"
+    return _finding(f"publication_role:{name}", "PASS" if valid else "FAIL", detail)
+
+
 def _check_worktrees(observation: dict[str, Any], registry: dict[str, Any]) -> dict[str, str]:
-    """Скільки ПОСТІЙНИХ дерев тримає репозиторій.
-
-    Тимчасові worktree сесій приходять і йдуть; ратчет на їх кількість вимагав би
-    правити реєстр щоразу, коли чиясь сесія закінчилась, — і швидко став би шумом,
-    який перестають читати. Тому вони рахуються окремо, як спостереження.
-
-    Постійні — інша річ: кожен тримає посилання на коміти й може мовчки стати джерелом
-    того, що опублікують. Виміряно 01.09.2026: голова, опублікована на GitLab,
-    збігалася з тимчасовим деревом мертвої сесії у `/tmp/.../scratchpad/`.
-    """
+    """Ратчетити постійні дерева; ігнорувати задекларовані тимчасові префікси."""
     transient = tuple(registry.get("transient_worktree_prefixes") or ())
     persistent = [
         path
@@ -413,6 +400,8 @@ def measure(
     publications = registry.get("publications") or []
     behind_map: dict[str, int | None] = {}
     for item in publications:
+        if item.get("role") != MIRROR:
+            continue
         name, branch = item.get("remote"), item.get("tracks") or canonical
         if isinstance(name, str) and isinstance(branch, str):
             behind_map[name] = behind(f"{name}/{branch}", str(canonical), root=root)
@@ -423,7 +412,7 @@ def measure(
             canonical_at,
         )
         for item in publications
-        if isinstance(item.get("remote"), str)
+        if item.get("role") == MIRROR and isinstance(item.get("remote"), str)
     }
     return {
         "trunk_behind": behind(str(trunk.get("branch")), str(canonical), root=root),
@@ -438,6 +427,7 @@ def measure(
 
 
 def selftest() -> int:
+    mirror = {"role": MIRROR, "tracks": "main", "max_days": 2}
     observation: dict[str, Any] = {
         "head_branch": "work/converge-semantic",
         "branches": ["main", "work/converge-semantic"],
@@ -449,7 +439,7 @@ def selftest() -> int:
         "canonical_branch": "work/converge-semantic",
         "canonical_root": "/canon",
         "trunk": {"branch": "main", "max_days": 2},
-        "publications": [{"remote": "gitlab", "url": "git@gitlab.com:x/y.git", "max_days": 2}],
+        "publications": [{"remote": "gitlab", "url": "git@gitlab.com:x/y.git", **mirror}],
         "max_worktrees": 2,
         "transient_worktree_prefixes": ["/tmp/claude-"],
     }
@@ -460,7 +450,6 @@ def selftest() -> int:
         "publication_behind": {"gitlab": 105},
         "publication_days": {"gitlab": 1.4},
     }
-
     cases: list[tuple[str, dict[str, Any], dict[str, Any], dict[str, Any], str]] = [
         ("усе названо й на стелі", observation, measured, registry, "PASS"),
         (

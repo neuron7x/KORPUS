@@ -44,12 +44,13 @@ def _registry() -> dict[str, Any]:
 
 def _observation() -> dict[str, Any]:
     registry = _registry()
+    publications = {item["remote"]: item for item in registry["publications"]}
     return {
         "head_branch": CANON,
         "branches": ["main", CANON],
         "remotes": {
-            "gitlab": registry["publications"][0]["url"],
-            "origin": "git@github.com:x/y.git",
+            "gitlab": publications["gitlab"]["url"],
+            "origin": publications["origin"]["url"],
         },
         "worktrees": [registry["canonical_root"], "/home/neuro7/.korpus-worktrees/a"],
         "root": registry["canonical_root"],
@@ -159,15 +160,51 @@ def test_a_remote_pointing_somewhere_else_than_declared_is_refused() -> None:
     assert _finding(findings, "publication_url:gitlab")["verdict"] == "FAIL"
 
 
-def test_the_undecided_remote_is_named_and_stays_red_until_decided() -> None:
-    """`origin` існує й відповідає; це суперечить записаному рішенню про канон.
-
-    Гейт не вирішує сам: він каже про це щоразу, доки власник не вирішить.
-    """
+def test_origin_is_an_integration_source_governed_by_the_branch_registry() -> None:
     findings = GATE.assess(_observation(), _measured(), _registry())
-    pending = _finding(findings, "publication_role_decided")
-    assert pending["verdict"] == "FAIL" and "origin" in pending["detail"]
-    assert any(item["remote"] == "origin" for item in _registry()["awaiting_decision"])
+    assert _finding(findings, "publication_role_decided")["verdict"] == "PASS"
+    assert _finding(findings, "publication_role:origin")["verdict"] == "PASS"
+    assert not any(item["check"] == "publication_staleness:origin" for item in findings)
+
+
+def test_the_undecided_remote_is_named_and_stays_red_until_decided() -> None:
+    registry = _registry()
+    origin = next(item for item in registry["publications"] if item["remote"] == "origin")
+    registry["publications"].remove(origin)
+    registry["awaiting_decision"] = [origin]
+    findings = GATE.assess(_observation(), _measured(), registry)
+    assert _finding(findings, "publication_role_decided")["verdict"] == "FAIL"
+
+
+def test_an_integration_source_without_branch_governance_is_refused() -> None:
+    registry = _registry()
+    origin = next(item for item in registry["publications"] if item["remote"] == "origin")
+    origin.pop("governed_by")
+    findings = GATE.assess(_observation(), _measured(), registry)
+    assert _finding(findings, "publication_role:origin")["verdict"] == "FAIL"
+
+
+def test_an_unknown_publication_role_is_refused() -> None:
+    registry = _registry()
+    registry["publications"][0]["role"] = "decorative"
+    findings = GATE.assess(_observation(), _measured(), registry)
+    assert _finding(findings, "publication_role:gitlab")["verdict"] == "FAIL"
+
+
+def test_measurement_never_treats_an_integration_source_as_a_mirror(monkeypatch: Any) -> None:
+    refs: list[str] = []
+
+    def remember(ref: str, *_args: Any, **_kwargs: Any) -> int:
+        refs.append(ref)
+        return 0
+
+    monkeypatch.setattr(GATE, "behind", remember)
+    monkeypatch.setattr(GATE, "committed_at", remember)
+    monkeypatch.setattr(GATE, "is_ancestor", remember)
+    measured = GATE.measure(_observation(), _registry())
+    assert set(measured["publication_behind"]) == {"gitlab"}
+    assert set(measured["publication_days"]) == {"gitlab"}
+    assert not any(ref.startswith("origin/") for ref in refs)
 
 
 def test_a_worktree_that_is_not_the_canonical_root_cannot_judge_the_checkout() -> None:

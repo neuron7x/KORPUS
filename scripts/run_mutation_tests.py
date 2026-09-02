@@ -5591,6 +5591,91 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M637_AN_INTEGRATION_SOURCE_IS_JUDGED_AS_A_MIRROR",
+        "scripts/verify_canonical_state.py",
+        '    if entry.get("role") == MIRROR:\n        found.append(',
+        '    if entry.get("role") in (MIRROR, INTEGRATION_SOURCE):\n        found.append(',
+        (
+            "apps/api/tests/test_canonical_state.py::"
+            "test_origin_is_an_integration_source_governed_by_the_branch_registry",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M638_AN_INTEGRATION_SOURCE_NEED_NOT_NAME_ITS_GOVERNOR",
+        "scripts/verify_canonical_state.py",
+        '        valid = entry.get("governed_by") == INTEGRATION_REGISTRY',
+        "        valid = True",
+        (
+            "apps/api/tests/test_canonical_state.py::"
+            "test_an_integration_source_without_branch_governance_is_refused",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M639_AN_UNKNOWN_PUBLICATION_ROLE_IS_ACCEPTED",
+        "scripts/verify_canonical_state.py",
+        '        return _finding(f"publication_role:{name}", "FAIL", f"невідома роль: {role}")',
+        '        return _finding(f"publication_role:{name}", "PASS", f"невідома роль: {role}")',
+        ("apps/api/tests/test_canonical_state.py::test_an_unknown_publication_role_is_refused",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M640_MEASUREMENT_FETCHES_INTEGRATION_BRANCHES_AS_A_MIRROR",
+        "scripts/verify_canonical_state.py",
+        '        if item.get("role") != MIRROR:\n            continue',
+        "        if False:\n            continue",
+        (
+            "apps/api/tests/test_canonical_state.py::"
+            "test_measurement_never_treats_an_integration_source_as_a_mirror",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M641_MEASUREMENT_DATES_INTEGRATION_BRANCHES_AS_A_MIRROR",
+        "scripts/verify_canonical_state.py",
+        '        if item.get("role") == MIRROR and isinstance(item.get("remote"), str)',
+        '        if isinstance(item.get("remote"), str)',
+        (
+            "apps/api/tests/test_canonical_state.py::"
+            "test_measurement_never_treats_an_integration_source_as_a_mirror",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M642_BRANCH_INTEGRATION_READS_A_SECOND_CANONICAL_DECLARATION",
+        "scripts/verify_branch_integration.py",
+        "        return canonical_branch(root)",
+        '        return registry.get("canonical_branch")',
+        (
+            "apps/api/tests/test_branch_integration.py::"
+            "test_the_gate_reads_the_single_canonical_declaration",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M643_BRANCH_INTEGRATION_IGNORES_THE_DECLARATION_POINTER",
+        "scripts/verify_branch_integration.py",
+        '    if registry.get("canonical_branch_declared_in") != CANONICAL_DECLARATION:',
+        "    if False:",
+        (
+            "apps/api/tests/test_branch_integration.py::"
+            "test_the_gate_reads_the_single_canonical_declaration",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M644_AN_ACTIVE_WORKTREE_IS_MISREPORTED_AS_STRANDED",
+        "scripts/verify_branch_integration.py",
+        "        if ref == canonical or ref in active:",
+        "        if ref == canonical:",
+        (
+            "apps/api/tests/test_branch_integration.py::"
+            "test_an_active_worktree_branch_is_not_misreported_as_stranded",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M470_AN_UNUSABLE_VALUE_IS_TOLERATED",
         "scripts/check_public_env_parity.py",
         '        name for name, value in unit.items() if value.startswith("{") and not _parses_as_json(value)',

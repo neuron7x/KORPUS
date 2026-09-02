@@ -1,33 +1,5 @@
 #!/usr/bin/env python3
-"""Одна канонічна гілка — або названий перелік того, що поза нею.
-
-Виміряно 01.09.2026. Гілок із власними комітами — 25; після мержу чистої лишилось 24.
-Локальні всі до одної мають НУЛЬ унікальних комітів: `main`, чотири `fix/issue-*`,
-дзеркала на GitLab — усе вже всередині канонічної. Уся відокремлена робота лежить на
-`origin` і датована 13–19 серпня.
-
-І вона НЕ застаріла. П'ять спроможностей існують там і в каноні відсутні цілком:
-`temporal_corpus_snapshot`, `approval_provenance`, `nonforgeable_rls`,
-`rls_binding_backend_identity`, `answer_snapshot` — разом 79 файлів, з них 57 під
-`apps/api`. Тобто це не дубль зробленого, а зроблене й загублене.
-
-Чому це не зливається автоматично, і причина не текстова. Обидві лінії пронумерували
-міграції ОДНАКОВО з різним вмістом:
-
-    0016  канон learning_course_graph   ·  github temporal_corpus_snapshot
-    0017  канон learning_mastery        ·  github approval_provenance_boundary
-    0018  канон operational_competencies·  github nonforgeable_rls_identity
-
-Git такого конфлікту не бачить — файли різні. Побачить alembic, і вже після мержу.
-Тому «змерджити все зелене автоматично» дає рівно одну гілку, а решта мусить бути
-НАЗВАНА: що саме везе, скільки конфліктних файлів, і що закриє.
-
-Гейт не зливає нічого. Він відмовляє, коли гілка з власними комітами не названа, і коли
-запис описує гілку, яка вже влита або зникла.
-
-    verify_branch_integration.py
-    verify_branch_integration.py --selftest
-"""
+"""Звірити всі розбіжні гілки з поіменним реєстром інтеграції."""
 
 from __future__ import annotations
 
@@ -41,6 +13,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 REGISTRY = ROOT / "config/operations/branch-integration.json"
 SCHEMA = "korpus.branch-integration.v1"
+CANONICAL_DECLARATION = "config/operations/canonical-state.json"
 
 
 # ----------------------------------------------------------------- спостереження (I/O)
@@ -58,6 +31,14 @@ def refs(root: Path = ROOT) -> list[str]:
         "for-each-ref", "--format=%(refname:short)", "refs/heads", "refs/remotes", root=root
     )
     return sorted({name for name in (listed or "").split() if not name.endswith("/HEAD")})
+
+
+def active_worktree_branches(root: Path = ROOT) -> set[str]:
+    listed = _git("worktree", "list", "--porcelain", root=root)
+    prefix = "branch refs/heads/"
+    return {
+        line.removeprefix(prefix) for line in (listed or "").splitlines() if line.startswith(prefix)
+    }
 
 
 def unique_commits(canonical: str, ref: str, root: Path = ROOT) -> int | None:
@@ -87,14 +68,15 @@ def observe(canonical: str, root: Path = ROOT) -> dict[str, Any]:
     зайвий вимір коштував би часу на кожній гілці-предку.
     """
     found: dict[str, Any] = {}
+    active = active_worktree_branches(root)
     for ref in refs(root):
-        if ref == canonical:
+        if ref == canonical or ref in active:
             continue
         count = unique_commits(canonical, ref, root=root)
         if not count:
             continue
         found[ref] = {"unique": count, "clean": merges_cleanly(canonical, ref, root=root)}
-    return {"canonical": canonical, "diverged": found}
+    return {"canonical": canonical, "active_worktree_branches": sorted(active), "diverged": found}
 
 
 # --------------------------------------------------------------------- судження (чисте)
@@ -188,6 +170,18 @@ def verdict(findings: list[dict[str, str]]) -> str:
     return "UNKNOWN" if "UNKNOWN" in verdicts else "PASS"
 
 
+def _declared_canonical(registry: dict[str, Any], root: Path) -> str | None:
+    if registry.get("canonical_branch_declared_in") != CANONICAL_DECLARATION:
+        return None
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from canonical_declaration import CanonicalDeclarationMissing, canonical_branch
+
+    try:
+        return canonical_branch(root)
+    except CanonicalDeclarationMissing:
+        return None
+
+
 # ------------------------------------------------------------------ негативні контролі
 
 
@@ -267,7 +261,7 @@ def main() -> int:
         print(json.dumps({"schema": SCHEMA, "status": "UNKNOWN", "reason": "реєстр не прочитано"}))
         return 2
 
-    canonical = registry.get("canonical_branch")
+    canonical = _declared_canonical(registry, arguments.root)
     if not isinstance(canonical, str):
         print(
             json.dumps(
