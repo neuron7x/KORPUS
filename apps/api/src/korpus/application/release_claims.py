@@ -5,6 +5,37 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from korpus.application.provenance import PROVENANCE_KEY
+
+
+def _binding(payload: dict[str, Any]) -> tuple[str | None, bool]:
+    """Прив'язка доказу до дерева: з ВЕРХНЬОГО рівня або з канонічного конверта.
+
+    Повертає `(дайджест | None, розбіжність)`.
+
+    Перша редакція цієї перевірки читала лише верхній рівень і оголосила
+    `reports/MUTATION_FULL_CATALOGUE_CURRENT.json` неприв'язаним. Він прив'язаний: його
+    дайджест лежить у `provenance.source_digest` — у конверті, який ставить
+    `korpus.application.provenance.stamp` і читає `read_provenance`, і який у цьому дереві
+    є СТАНДАРТОМ, а не винятком.
+
+    Це та сама вада, заради якої писалась ця функція, лише дзеркальна: там ВІДСУТНІСТЬ
+    читалась як згода, тут НАЯВНІСТЬ читалась як відсутність. Хибна відмова коштує
+    стільки ж, скільки хибне підтвердження, і помічається гірше — бо виглядає обережно.
+
+    Розбіжність між двома джерелами повертається окремим прапорцем, а не мовчазним
+    вибором сильнішого: два оголошення одного факту, які розійшлись, — це стан, про який
+    треба сказати, а не залагодити. `or` тут дав би застарілість замість розбіжності.
+    """
+    top = payload.get("source_tree_sha256", payload.get("source_digest"))
+    envelope = payload.get(PROVENANCE_KEY)
+    inner = envelope.get("source_digest") if isinstance(envelope, dict) else None
+    top = top if isinstance(top, str) else None
+    inner = inner if isinstance(inner, str) else None
+    if top is not None and inner is not None and top != inner:
+        return None, True
+    return (top if top is not None else inner), False
+
 
 def _claim_status(root: Path, evidence: str, source_digest: str, release: str) -> str:
     path = root / evidence
@@ -23,7 +54,10 @@ def _claim_status(root: Path, evidence: str, source_digest: str, release: str) -
         return "INVALID_EVIDENCE"
     if "release" in payload and payload.get("release") != release:
         return "STALE_EVIDENCE"
-    bound = payload.get("source_tree_sha256", payload.get("source_digest"))
+    bound, divergent = _binding(payload)
+    if divergent:
+        # Два оголошення однієї прив'язки розійшлись. Слабше не перемагає мовчки.
+        return "DIVERGENT_BINDING"
     if bound is None:
         # Доказ БЕЗ прив'язки не є доказом про це дерево. Раніше умова була
         # `bound is not None and bound != source_digest`, тож відсутність прив'язки

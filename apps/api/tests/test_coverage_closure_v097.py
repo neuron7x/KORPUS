@@ -239,6 +239,45 @@ def test_release_claim_status_branches(
     assert _claim_status(tmp_path, relative, SHA, "v0.9.7") == expected
 
 
+def test_binding_is_read_from_the_canonical_provenance_envelope(tmp_path: Path) -> None:
+    """Прив'язка в конверті `provenance` — це прив'язка, а не її відсутність.
+
+    Перша редакція `_claim_status` читала лише верхній рівень і оголосила
+    `reports/MUTATION_FULL_CATALOGUE_CURRENT.json` неприв'язаним. Він прив'язаний: його
+    дайджест стоїть у `provenance.source_digest`, куди його ставить
+    `korpus.application.provenance.stamp`. Хибна ВІДМОВА коштує стільки ж, скільки хибне
+    підтвердження, і помічається гірше, бо виглядає обережно.
+    """
+    relative = "evidence.json"
+    (tmp_path / relative).write_text(
+        json.dumps({"provenance": {"source_digest": SHA}, "status": "PASS"}), encoding="utf-8"
+    )
+    assert _claim_status(tmp_path, relative, SHA, "v0.9.7") == "SUPPORTED"
+
+    stale = "stale.json"
+    (tmp_path / stale).write_text(
+        json.dumps({"provenance": {"source_digest": "c" * 64}, "status": "PASS"}), encoding="utf-8"
+    )
+    assert _claim_status(tmp_path, stale, SHA, "v0.9.7") == "STALE_EVIDENCE"
+
+
+def test_two_bindings_that_disagree_are_neither_current_nor_stale(tmp_path: Path) -> None:
+    """Дві прив'язки одного артефакта, що розійшлись, — окремий стан.
+
+    `or` між ними обрав би одну мовчки й назвав би результат застарілістю. Артефакт, який
+    сам собі суперечить, не є ні поточним, ні застарілим: він не дає прив'язки взагалі,
+    і це треба сказати, а не залагодити.
+    """
+    relative = "divergent.json"
+    (tmp_path / relative).write_text(
+        json.dumps(
+            {"source_tree_sha256": SHA, "provenance": {"source_digest": "d" * 64}, "status": "PASS"}
+        ),
+        encoding="utf-8",
+    )
+    assert _claim_status(tmp_path, relative, SHA, "v0.9.7") == "DIVERGENT_BINDING"
+
+
 def test_absence_never_supports_a_claim() -> None:
     """Негативний контроль до трьох правок вище, зібраний в одне твердження.
 

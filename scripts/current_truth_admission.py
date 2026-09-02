@@ -16,7 +16,20 @@ def _current_json(path: Path, release: str, digest: str) -> bool:
         return False
     if "release" in payload and payload.get("release") != release:
         return False
-    bound = payload.get("source_tree_sha256", payload.get("source_digest"))
+    # Прив'язка читається З ОБОХ місць: верхній рівень і канонічний конверт
+    # `provenance`, який ставить `korpus.application.provenance.stamp`. Читач, що знає
+    # лише верхній рівень, оголошує неприв'язаним усе, що прив'язане конвертом —
+    # а конверт у цьому дереві стандарт, не виняток.
+    top = payload.get("source_tree_sha256", payload.get("source_digest"))
+    envelope = payload.get("provenance")
+    inner = envelope.get("source_digest") if isinstance(envelope, dict) else None
+    top = top if isinstance(top, str) else None
+    inner = inner if isinstance(inner, str) else None
+    if top is not None and inner is not None and top != inner:
+        # Дві прив'язки розійшлись: це не «поточне» й не «застаріле», а стан, у якому
+        # артефакт сам собі суперечить. Згоди тут немає, тож і зарахування немає.
+        return False
+    bound = top if top is not None else inner
     # Відсутність прив'язки — це «не знаю», а не «поточне». Раніше тут стояло
     # `bound is None or bound == digest`, тож артефакт без прив'язки зараховувався як
     # такий, що описує це дерево. Разом із `release_claims` це давало ланцюг, де
