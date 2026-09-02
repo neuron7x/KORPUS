@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1751,
-  "root_sha256": "4464a14c64d6d59e33868d3b8dee49baad70157447922f105b4e342c3946f345",
+  "file_count": 1752,
+  "root_sha256": "191dffbc30330be63259b4129dc7bacc768a85b2ac5ab0f81301e9ebc860efc5",
   "files": [
     {
       "path": ".dockerignore",
@@ -4827,6 +4827,12 @@
       "path": "apps/api/tests/test_v5_security_kernel.py",
       "bytes": 24585,
       "sha256": "875e24c922bda3bb1132139c4d05cf16376c7e7f7006d62e5981e3a13140e8fd",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_validate_recipe_liveness_coverage.py",
+      "bytes": 4724,
+      "sha256": "785e885022017933dfccaf8641d3d46be45799c84e085402ab3da96912bb2185",
       "mode": "0644"
     },
     {
