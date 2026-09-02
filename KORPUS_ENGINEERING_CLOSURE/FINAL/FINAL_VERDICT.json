@@ -1,0 +1,43 @@
+{
+  "schema": "korpus.closure.final.v1",
+  "protocol": "EERP-06 / TECO-01",
+  "canonical_branch": "main",
+  "commit": "0a9ce98b991edb95e3d6f56ddd64c3bbf49f878d",
+  "source_digest": "5f0246e99097301a699b451cb0af2c350f84ab185d762cde13c73ff2cd3a539c",
+  "gate_matrix": {
+    "G0 Scope integrity": "PASS",
+    "G1 Exact source state": "PASS",
+    "G2 Clean worktree": "PASS",
+    "G3 Architecture contract": "FAIL — контракту напряму імпортів так і не існує (WS-09 не виконано)",
+    "G4 Correctness/regression": "FAIL — api-test 3854/3856; 2 червоні від паралельної гілки",
+    "G5 Evaluator validity": "PARTIAL — знаменники очікувань виведені (2/30, 15/30); L4-L6 рівнів оцінки не побудовано",
+    "G6 Falsification integrity": "PARTIAL — 2 нові гейти з негативними контролями; аудит оракулів (WS-06) не виконано",
+    "G7 Mutation denominator": "PASS — 585/585, invalid 0, score_over_catalogue 1.0, якір M257 відновлено",
+    "G8 Database/backend fidelity": "PARTIAL — ланцюг доведено на точній копії, 44/44 RLS; жива база лишається на 0018",
+    "G9 Runtime identity": "PASS — serving-freshness PASS, процес у власному cgroup",
+    "G10 Observability sufficiency": "FAIL — наповненість метрик досі доведена лише статично (WS-16 не виконано)",
+    "G11 Security perimeter": "FAIL — край досі роздає location ~ і /metrics без токена (WS-03 не виконано)",
+    "G12 Reliability/recovery": "FAIL — restore_sqlite звіряє маніфест сам із собою (WS-10 не виконано)",
+    "G13 Supply-chain provenance": "UNKNOWN — не переміряно в цьому транші",
+    "G14 Documentation/state consistency": "FAIL — 106 із 173 документів без прив'язки (WS-15 не виконано)",
+    "G15 Clean reproduction": "NOT_RUN — verify-clean-clone у нічному лані, до якого лан не дійшов",
+    "G16 Independent verification": "EXTERNAL_AUTHORITY_REQUIRED — виконавець не може засвідчити себе (LAW 10)",
+    "G17 Governance authorization": "EXTERNAL_AUTHORITY_REQUIRED — 9 реєстрів довірених підписантів порожні"
+  },
+  "hard_zero_conditions": {
+    "BlockingUnknown": 1,
+    "CriticalFail": 4,
+    "CriticalStaleEvidence": 0,
+    "CriticalUnboundEvidence": 0,
+    "StateMismatch": 0,
+    "InvalidCriticalMutant": 0,
+    "SurvivingCriticalMutant": 0,
+    "SilentMandatoryGate": 0,
+    "UntestedCriticalGate": "49 із 64 без вироку про живість",
+    "ServingIdentityMismatch": 0,
+    "UnresolvedCriticalSecurityBoundary": 3
+  },
+  "production_authority": false,
+  "verdict": "FAIL — PRODUCTION AUTHORITY NOT GRANTED",
+  "verdict_reason": "Програма TECO-01 виконана ЧАСТКОВО. Закрито 5 із 16 робочих потоків (WS-01, WS-02, WS-04, WS-05, WS-07 у частині інженерного ризику). Одинадцять лишаються невиконаними, серед них три з жорстких нульових умов: периметр безпеки, спостережність рантайму і відтворення з нуля. Видавати авторитет на цій підставі означало б робити рівно те, що протокол забороняє."
+}
