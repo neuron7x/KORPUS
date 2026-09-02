@@ -197,11 +197,27 @@ def test_metamorphic_eval_binding_and_issue_failures(monkeypatch: pytest.MonkeyP
     ("content", "suffix", "expected"),
     [
         (None, ".json", "PENDING_EVIDENCE"),
-        ("text", ".md", "SUPPORTED"),
+        # ВІДСУТНІСТЬ — НЕ ПІДТРИМКА. Три рядки нижче були трьома дорогами, якими
+        # претензія ставала SUPPORTED, не діставши жодного доказу «за». Виміряно
+        # 02.09.2026: після правки журнал релізу показав нуль підтриманих претензій
+        # замість двох — і це справжній стан, а не регрес.
+        #
+        # 1. Файл, якого ця функція не вміє прочитати. Раніше -> SUPPORTED без
+        #    прочитаного байта.
+        ("text", ".md", "UNDECLARED_EVIDENCE"),
         ("{", ".json", "INVALID_EVIDENCE"),
         ("[]", ".json", "INVALID_EVIDENCE"),
         (json.dumps({"release": "old"}), ".json", "STALE_EVIDENCE"),
+        # 2. JSON БЕЗ прив'язки. Раніше умова `bound is not None and bound != digest`
+        #    пропускала його повз перевірку застарілості цілком.
+        (json.dumps({"release": "v0.9.7", "status": "PASS"}), ".json", "UNBOUND_EVIDENCE"),
         (json.dumps({"release": "v0.9.7", "source_digest": "b" * 64}), ".json", "STALE_EVIDENCE"),
+        # 3. JSON без поля вироку. Раніше `None` лежав у тому самому кортежі, що й "PASS".
+        (
+            json.dumps({"release": "v0.9.7", "source_digest": SHA}),
+            ".json",
+            "UNDECLARED_EVIDENCE",
+        ),
         (
             json.dumps({"release": "v0.9.7", "source_digest": SHA, "status": "PASS"}),
             ".json",
@@ -221,6 +237,29 @@ def test_release_claim_status_branches(
     if content is not None:
         (tmp_path / relative).write_text(content, encoding="utf-8")
     assert _claim_status(tmp_path, relative, SHA, "v0.9.7") == expected
+
+
+def test_absence_never_supports_a_claim() -> None:
+    """Негативний контроль до трьох правок вище, зібраний в одне твердження.
+
+    Параметризація вище перевіряє кожну дорогу окремо, і саме тому вона не помітила б,
+    якби `_claim_status` знову почав вважати ЯКУСЬ форму відсутності підтримкою: кожен
+    рядок дивиться лише на свій випадок. Тут питання поставлене цілим: ЖОДНА з форм
+    відсутності не сміє дати SUPPORTED.
+    """
+    import tempfile
+
+    absences = {
+        "нечитаний суфікс": ("evidence.md", "text"),
+        "без прив'язки": ("evidence.json", json.dumps({"release": "v0.9.7", "status": "PASS"})),
+        "без вироку": ("evidence.json", json.dumps({"release": "v0.9.7", "source_digest": SHA})),
+    }
+    for label, (relative, content) in absences.items():
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            (root / relative).write_text(content, encoding="utf-8")
+            status = _claim_status(root, relative, SHA, "v0.9.7")
+            assert status != "SUPPORTED", f"{label}: відсутність прочиталась як підтримка"
 
 
 class _Repo:

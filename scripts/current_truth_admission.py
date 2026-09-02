@@ -17,7 +17,11 @@ def _current_json(path: Path, release: str, digest: str) -> bool:
     if "release" in payload and payload.get("release") != release:
         return False
     bound = payload.get("source_tree_sha256", payload.get("source_digest"))
-    return bound is None or bound == digest
+    # Відсутність прив'язки — це «не знаю», а не «поточне». Раніше тут стояло
+    # `bound is None or bound == digest`, тож артефакт без прив'язки зараховувався як
+    # такий, що описує це дерево. Разом із `release_claims` це давало ланцюг, де
+    # ВІДСУТНІСТЬ читалась як згода на ОБОХ кінцях.
+    return bound is not None and bound == digest
 
 
 def claim_admission_checks(root: Path, release: str, digest: str) -> dict[str, bool]:
@@ -37,9 +41,17 @@ def claim_admission_checks(root: Path, release: str, digest: str) -> dict[str, b
             target.suffix == ".json" and not _current_json(target, release, digest)
         ):
             unresolved += 1
+    # `all([])` істинне: нуль підтриманих претензій задовольняв би обидві перевірки
+    # тривіально. Порожній перелік — це UNKNOWN, а не досконалість.
+    supported = sum(
+        1
+        for claim in load_object(ledger).get("claims", ())
+        if isinstance(claim, dict) and str(claim.get("status", "")).startswith("SUPPORTED")
+    )
     return {
-        "CLAIM_LEDGER.supported_evidence_resolves": unresolved == 0,
-        "CLAIM_LEDGER.supported_unresolved_zero": unresolved == 0,
+        "CLAIM_LEDGER.supported_evidence_resolves": supported > 0 and unresolved == 0,
+        "CLAIM_LEDGER.supported_unresolved_zero": supported > 0 and unresolved == 0,
+        "CLAIM_LEDGER.has_supported_claims": supported > 0,
     }
 
 

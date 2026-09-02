@@ -11,7 +11,10 @@ def _claim_status(root: Path, evidence: str, source_digest: str, release: str) -
     if not path.is_file():
         return "PENDING_EVIDENCE"
     if path.suffix != ".json":
-        return "SUPPORTED"
+        # Файл, якого ця функція не вміє прочитати, не є доказом «за». Раніше тут стояло
+        # `return "SUPPORTED"` — тобто претензія ставала підтриманою, НЕ ПРОЧИТАВШИ
+        # жодного байта. Доведено побудовою 02.09.2026: порожній `.txt` давав SUPPORTED.
+        return "UNDECLARED_EVIDENCE"
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
@@ -21,12 +24,21 @@ def _claim_status(root: Path, evidence: str, source_digest: str, release: str) -
     if "release" in payload and payload.get("release") != release:
         return "STALE_EVIDENCE"
     bound = payload.get("source_tree_sha256", payload.get("source_digest"))
-    if bound is not None and bound != source_digest:
+    if bound is None:
+        # Доказ БЕЗ прив'язки не є доказом про це дерево. Раніше умова була
+        # `bound is not None and bound != source_digest`, тож відсутність прив'язки
+        # проходила повз перевірку застарілості цілком.
+        return "UNBOUND_EVIDENCE"
+    if bound != source_digest:
         return "STALE_EVIDENCE"
     semantic = payload.get("status", payload.get("verdict"))
+    if semantic is None:
+        # Артефакт, який не оголошує вироку, не виносить його мовчки. Раніше `None`
+        # стояв у тому самому кортежі, що й "PASS".
+        return "UNDECLARED_EVIDENCE"
     return (
         "SUPPORTED"
-        if semantic in (None, "PASS", "PASS_WITH_EXTERNAL_BLOCKERS")
+        if semantic in ("PASS", "PASS_WITH_EXTERNAL_BLOCKERS")
         else "REFUTED_BY_EVIDENCE"
     )
 
