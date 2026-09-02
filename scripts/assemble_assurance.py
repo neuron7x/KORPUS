@@ -32,6 +32,11 @@ REPORTS = {
 # not as a crash listing a path. The verdict is FAIL either way — that is the point.
 OPTIONAL_REPORTS = {"recovery": VAR / "recovery-report.json"}
 
+#: Звіт, який читають споживачі: `snapshot_assurance`, `verify_handoff_contract` і
+#: `run_engineering_production_gate`. Саме він несе ЯРЛИКОВАНІ дайджести, тож ім'я
+#: належить цьому виробнику — CI кличе його й одразу за ним `snapshot_assurance.py`.
+OUTPUT = VAR / "research-assurance-report.json"
+
 
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -129,7 +134,7 @@ def main() -> int:
             "Passing software gates is not corpus, cyber, regulatory or military authorization.",
         ],
     }
-    output = VAR / "research-assurance-report.json"
+    output = OUTPUT
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     summary = {
         "status": report["status"],

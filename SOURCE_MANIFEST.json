@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1793,
-  "root_sha256": "026192e55f7e5ff2cb4ff137c7dd323484594f158ca53ab4234b1c670feade7b",
+  "root_sha256": "3af1e4c829c7f7e397ca72537be5d36249f389f6d6052bcaea493cd512f75fb6",
   "files": [
     {
       "path": ".dockerignore",
@@ -127,8 +127,8 @@
     },
     {
       "path": ".gitleaks-baseline.json",
-      "bytes": 18879,
-      "sha256": "3c1192755778e3623c78b28cf36740bf457f57f25685946b979d82c49223e481",
+      "bytes": 37274,
+      "sha256": "605fb1f1823121075ceffc7ee1d352432f0cdf36a3f8470f7e3a9c41ddd2ab6a",
       "mode": "0644"
     },
     {
@@ -685,8 +685,8 @@
     },
     {
       "path": "apps/api/requirements.runtime.lock",
-      "bytes": 6006,
-      "sha256": "9c6541e111184db619e8957725039268a7048ac208e3eeaa35137e2dabcd213d",
+      "bytes": 6694,
+      "sha256": "8603c8af3d3e6fba9f7778716e3d8f79bbc57752196c8c45c362ca27d5be2003",
       "mode": "0644"
     },
     {
@@ -3475,8 +3475,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 140252,
-      "sha256": "650dbb29a816bdeecc06132037b791c55c5a4dbda7e46eee0fad6382141f88e0",
+      "bytes": 143360,
+      "sha256": "aa32cebbbf4a84419616ee61117d85658b4acc6a7c8b3dfaec7e983cdb309496",
       "mode": "0644"
     },
     {
@@ -7280,7 +7280,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "ba006b0999c5d4155ed9025ff7c81f1ea1b554391d7dcaa32f339bd02384a886",
+      "sha256": "b0f979a63a456731d957c0046b56c8570e89fdf0cb8a08da17f27d48b6bea2bb",
       "mode": "0644"
     },
     {
@@ -7315,8 +7315,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 538053,
-      "sha256": "8dda658d0c465ade431655cb5c2e2207c55a26e28a4794ec27a47615007bffb4",
+      "bytes": 541004,
+      "sha256": "8f3b373b02dff9986f62452680c64b55e65ecb64a9d27d70dc4001b6faff5a33",
       "mode": "0644"
     },
     {
@@ -8881,8 +8881,8 @@
     },
     {
       "path": "scripts/assemble_assurance.py",
-      "bytes": 6259,
-      "sha256": "2873fc5015c8d52b8470916e2e8241c56f6fd75252e6a7647f0be3b9318b018d",
+      "bytes": 6633,
+      "sha256": "78ca46e877af17385ca3f525a05eabe16f189199d17a8e561bcdfe947ea5cc17",
       "mode": "0755"
     },
     {
@@ -10315,8 +10315,8 @@
     },
     {
       "path": "scripts/run_research_assurance.py",
-      "bytes": 6882,
-      "sha256": "f821c3cb546bebcf59262d1c18ac66efba2feab4cdc0215c486ccc7973a8f248",
+      "bytes": 7916,
+      "sha256": "45e02b134b3b65a243f84a75a004e4bf52fcf707c25b15c0dbe25351d147bd17",
       "mode": "0755"
     },
     {

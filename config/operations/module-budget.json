@@ -5145,12 +5145,13 @@
       "reason": "ACT-010: external environment trust injection while preserving the prior line ceiling; complexity ratchet tightened"
     },
     "scripts/run_research_assurance.py": {
-      "lines": 186,
+      "lines": 198,
       "max_complexity": 19,
       "max_function_args": 3,
       "max_function_lines": 137,
       "max_nesting": 2,
-      "proof_lines": 0
+      "proof_lines": 0,
+      "reason": "03.09.2026: скрипт дістав ВЛАСНЕ ім'я вихідного файла. Доти він писав var/research-assurance-report.json — той самий шлях, що й assemble_assurance.py, але без ярликованих дайджестів, які читають snapshot_assurance, verify_handoff_contract і run_engineering_production_gate. Хто біг останній, той і визначав, чи доказ прив'язаний; а відмова handoff-verify радила `make assurance`, тобто саме той прогін, що затирав потрібний їй доказ. +12 рядків — це константа OUTPUT і запис ПРО причину, поруч із нею."
     },
     "scripts/run_scale_probe.py": {
       "lines": 162,
@@ -9958,6 +9959,28 @@
         "lines": 6481
       },
       "reason": "Якір M257 перенацілено після рефакторингу `_declared_consistent` -> `_declared_agreement`: мутант став INVALID і мовчки покинув би знаменник каталогу. Не перенацілити означало б, що `mutation_score` лишається 1.0 при каталозі, що всихає — рівно та вада, проти якої існує `mutation_score_over_catalogue`."
+    },
+    {
+      "on": "2026-09-03",
+      "path": "scripts/run_release_verify.py",
+      "from": {
+        "lines": 205
+      },
+      "to": {
+        "lines": 237
+      },
+      "reason": "Лан дістав ТРЕТІЙ стан кроку. Кроки, чий доказ виробляє лише зовнішній лан (assemble-assurance, snapshot), оголошені поіменно й позначаються SKIPPED_REQUIRES_EXTERNAL; підсумок при пропуску не буває PASS, а INCOMPLETE. Доти станів було два, тож із --skip-external лан спинявся на assemble-assurance, і шість наступних кроків не виконувались жодного разу; на дереві ж із давнім var/recovery-report.json той самий прогін проходив — вердикт залежав від вмісту var/, не від виміру. +32 рядки: status(), гілка пропуску, EXTERNAL_EVIDENCE. Стеля довжини функцій НЕ рухалась: main лишився під 67."
+    },
+    {
+      "on": "2026-09-03",
+      "path": "scripts/run_research_assurance.py",
+      "from": {
+        "lines": 186
+      },
+      "to": {
+        "lines": 198
+      },
+      "reason": "Скрипт дістав ВЛАСНЕ ім'я вихідного файла. Доти він писав var/research-assurance-report.json — той самий шлях, що й assemble_assurance.py, але без ярликованих дайджестів (digest_scope, evidence_source_sha256, tracked_tree_scope, tracked_tree_sha256), які читають snapshot_assurance, verify_handoff_contract і run_engineering_production_gate. Хто біг останній, той і визначав, чи доказ прив'язаний; при цьому відмова handoff-verify радила `make assurance` — саме той прогін, що затирав потрібний їй доказ, тож виконання поради гарантувало відмову. +12 рядків: константа OUTPUT і запис про причину."
     }
   ],
   "recorded_at": "2026-09-02",

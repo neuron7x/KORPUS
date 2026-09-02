@@ -2,11 +2,11 @@
   "schema": "korpus.dependency-lock-verification.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "630f872b24f194b9c52ca2f4823fcc7f4bfc6d82db9bb8addd1dcb116b35483e",
+  "source_tree_sha256": "32841c37bfc5f9942f50b219ad0702297a2ca52a0b2851ca184857f0e5f6ed83",
   "python": {
     "runtime_packages": 55,
     "dev_closure_packages": 71,
-    "runtime_lock_sha256": "9c6541e111184db619e8957725039268a7048ac208e3eeaa35137e2dabcd213d",
+    "runtime_lock_sha256": "8603c8af3d3e6fba9f7778716e3d8f79bbc57752196c8c45c362ca27d5be2003",
     "dev_lock_sha256": "9d5ed9851ad4d01ac350ec48576f9fb70345770e0198bd7f9963f109b063f134",
     "direct_runtime_dependencies": 16,
     "direct_dev_dependencies": 6,
@@ -298,7 +298,7 @@
           "ecosystem": "PyPI",
           "name": "pypdf"
         },
-        "version": "6.15.0"
+        "version": "6.16.1"
       },
       {
         "package": {

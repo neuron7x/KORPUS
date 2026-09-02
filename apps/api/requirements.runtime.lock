@@ -77,10 +77,16 @@ pydantic-settings==2.14.2 \
 PyJWT==2.13.0 \
     --hash=sha256:66adcc2aff09b3f1bbd95fc1e1577df8ac8723c978552fd43304c8a290ac5728
 # CVE-2026-71870 / CVE-2026-71852: crafted font maps and widths could force
-# excessive memory or CPU consumption during extraction. 6.15.0 is the first
-# patched release; keep the minimal security upgrade to bound compatibility risk.
-pypdf==6.15.0 \
-    --hash=sha256:14e001d6504822cb1ca9c7ed9a69bccb320f59b320730f55af804361abe4d5ee
+# excessive memory or CPU consumption during extraction. 6.15.0 was the first
+# patched release for those two.
+# CVE-2026-84309 / CVE-2026-84310 / CVE-2026-84311, виявлені pip-audit 03.09.2026 на
+# цьому дереві: нескінченний цикл у `TreeObject.insert_child`, розкладання на outlines
+# із глибокою вкладеністю, і — той, що прямо на нашому шляху — витягання тексту
+# сторінки з великою кількістю XForm-об'єктів. Ця система витягає текст із PDF
+# доктринальних документів, тож третій CVE лежить рівно на `pdf_extraction.py`.
+# 6.16.1 закриває всі три; менший підйом (6.16.0) лишив би два з них.
+pypdf==6.16.1 \
+    --hash=sha256:63fec31c4092ae50b6729beedcb469055b60d20c834bde1c402df241f371f644
 python-dateutil==2.9.0.post0 \
     --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
 python-dotenv==1.2.2 \

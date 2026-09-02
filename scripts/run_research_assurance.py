@@ -14,6 +14,18 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 VAR = ROOT / "var"
+
+#: ВЛАСНЕ ім'я, і це не оформлення. Доти цей скрипт писав
+#: `var/research-assurance-report.json` — той самий шлях, що й `assemble_assurance.py`,
+#: але БЕЗ ярликованих дайджестів (`digest_scope`, `evidence_source_sha256`,
+#: `tracked_tree_scope`, `tracked_tree_sha256`), які читають усі споживачі. Хто біг
+#: останній, той і визначав, чи доказ прив'язаний.
+#:
+#: Найгірша форма цього: `verify_handoff_contract` у відмові радить «Run `make assurance
+#: operational-gate` against this revision» — а `make assurance` кличе саме цей скрипт і
+#: ЗАТИРАЄ доказ, якого тій відмові бракувало. Виконання поради гарантувало відмову.
+#: Тому `release_evidence: STALE` при `status: PASS` тримався роками. Виміряно 03.09.2026.
+OUTPUT = VAR / "research-assurance-run.json"
 VAR.mkdir(exist_ok=True)
 
 
@@ -166,7 +178,7 @@ def main() -> int:
             "Synthetic evaluation does not authorize real restricted corpus deployment.",
         ],
     }
-    output = VAR / "research-assurance-report.json"
+    output = OUTPUT
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     summary = {
         "status": report["status"],

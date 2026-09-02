@@ -2412,6 +2412,50 @@ def test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost(
     assert gate.main() == 0, "a report sitting exactly on its floor must still pass"
 
 
+def test_two_producers_never_write_one_report() -> None:
+    """Зіткнення ІМЕН файлів: хто біг останній, той і визначив, що прочитає споживач.
+
+    `run_research_assurance.py` і `assemble_assurance.py` писали один шлях —
+    `var/research-assurance-report.json`, — але лише другий кладе туди ярликовані
+    дайджести (`digest_scope`, `evidence_source_sha256`, `tracked_tree_scope`,
+    `tracked_tree_sha256`), які читають `snapshot_assurance`, `verify_handoff_contract`
+    і `run_engineering_production_gate`.
+
+    Найгірша форма: у відмові `verify_handoff_contract` радить «Run `make assurance`»,
+    а `make assurance` кличе перший скрипт і ЗАТИРАЄ доказ, якого тій відмові бракувало.
+    Виконання поради гарантувало саме ту відмову, на яку вона відповідала, тож
+    `release_evidence: STALE` при `status: PASS` тримався й нікого не будив.
+
+    Читається AST, а не імпорт. Перша редакція цього тесту імпортувала кожен скрипт і
+    ковтала виняток через `continue`: під отрутою вона лишилась ЗЕЛЕНОЮ, бо до другого
+    виробника не доходила. Виконання ще й залежало від того, чи попередній тест устиг
+    покласти `scripts` у `sys.path`. Розбір оголошення від порядку не залежить і нічого
+    не запускає.
+    """
+    declared: dict[str, list[str]] = {}
+    for path in sorted((ROOT / "scripts").glob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8", errors="ignore"))
+        for node in tree.body:
+            if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+                continue
+            target = node.targets[0]
+            if not isinstance(target, ast.Name) or target.id != "OUTPUT":
+                continue
+            value = node.value
+            if isinstance(value, ast.BinOp) and isinstance(value.op, ast.Div):
+                right = value.right
+                if isinstance(right, ast.Constant) and isinstance(right.value, str):
+                    declared.setdefault(right.value, []).append(path.name)
+
+    assert declared, "жоден виробник не оголосив OUTPUT — правило міряло б порожню множину"
+    assert {"assemble_assurance.py", "run_research_assurance.py"} <= {
+        name for names in declared.values() for name in names
+    }, "виробник перестав оголошувати OUTPUT — правило його більше не бачить"
+
+    shared = {target: names for target, names in declared.items() if len(names) > 1}
+    assert not shared, f"один шлях, кілька виробників: {shared}"
+
+
 def test_the_assurance_producer_pairs_every_digest_with_its_own_ruler() -> None:
     """Ярлик мусить називати ту лінійку, яка дала число — і це вимір, не написання.
 
