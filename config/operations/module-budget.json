@@ -3521,6 +3521,14 @@
       "proof_lines": 0,
       "reason": "OPS-004: observe on the running host, compare against the committed manifest, refuse an observation too old to describe the environment, and own the output path"
     },
+    "scripts/check_evidence_freshness.py": {
+      "lines": 160,
+      "max_complexity": 8,
+      "max_function_args": 3,
+      "max_function_lines": 37,
+      "max_nesting": 3,
+      "proof_lines": 37
+    },
     "scripts/check_file_modes.py": {
       "lines": 127,
       "max_complexity": 8,
@@ -4928,7 +4936,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 6091,
+      "lines": 6127,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -9325,6 +9333,17 @@
       "reason": "Чотири мутанти на нову межу ризику. Один із них несе доведення ЕКВІВАЛЕНТНОСТІ попередньої спроби (`low` замість `high` після 200 половинок — той самий float, 6e-61 при кроці 2e-16), щоб наступний прогін не шукав неіснуючої діри в тестах.",
       "to": {
         "lines": 6091
+      }
+    },
+    {
+      "from": {
+        "lines": 6091
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Три мутанти на перевірку свіжості доказів: виробник, що завжди свіжий; споживач, сліпий до зсуву власних входів; звіт без походження, прочитаний як свіжий. Перевірка без них була б черговим оголошенням про себе саму.",
+      "to": {
+        "lines": 6127
       }
     }
   ],

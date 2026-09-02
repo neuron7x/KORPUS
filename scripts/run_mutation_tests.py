@@ -5763,6 +5763,42 @@ MUTANTS = (
             "test_the_deployment_gate_reads_the_exact_bound_and_not_the_loose_one",
         ),
     ),
+    Mutant(
+        # Виробник, що завжди свіжий. Перевірка лишається зеленою рівно в тому стані,
+        # заради якого існує, — і мовчить про дерево, якого звіт не міряв.
+        "M603_A_STALE_PRODUCER_REPORTS_AS_FRESH",
+        "scripts/check_evidence_freshness.py",
+        '    return ("СВІЖИЙ" if claimed == expected else "ПРО ІНШЕ ДЕРЕВО"), claimed[:16]',
+        '    return "СВІЖИЙ", claimed[:16]',
+        (
+            "apps/api/tests/test_evidence_freshness.py::"
+            "test_a_producer_that_measured_another_tree_is_named_with_its_target",
+        ),
+    ),
+    Mutant(
+        # Споживач, сліпий до зсуву власних входів: джерело те саме, судив інші байти.
+        # Саме цю причину `snapshot` називає словами про «інший файл».
+        "M604_A_CONSUMER_IGNORES_THAT_ITS_INPUTS_MOVED",
+        "scripts/check_evidence_freshness.py",
+        '    return ("СВІЖИЙ" if not moved else "СУДИВ ІНШІ ФАЙЛИ"), sorted(moved)',
+        '    return "СВІЖИЙ", sorted(moved)',
+        (
+            "apps/api/tests/test_evidence_freshness.py::"
+            "test_a_consumer_is_stale_when_an_input_moved_even_though_the_tree_did_not",
+        ),
+    ),
+    Mutant(
+        # UNKNOWN, прочитаний як PASS: звіт без походження не каже, про яке він дерево,
+        # і саме тому не сміє рахуватись свіжим.
+        "M605_EVIDENCE_WITHOUT_PROVENANCE_COUNTS_AS_FRESH",
+        "scripts/check_evidence_freshness.py",
+        '        return "БЕЗ ПОХОДЖЕННЯ", ""',
+        '        return "СВІЖИЙ", ""',
+        (
+            "apps/api/tests/test_evidence_freshness.py::"
+            "test_a_report_without_provenance_is_not_read_as_fresh",
+        ),
+    ),
 )
 
 
