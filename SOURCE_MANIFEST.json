@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1790,
-  "root_sha256": "b8cf733a8938a8a4b319b1c5ce2ac40b8074e7ed899c8a99487a2ef9304e60b3",
+  "root_sha256": "db78ef1eed9f4e1bfd50f89e2c694e9ab91e83f5ea2f2b3ba11a5ca69e7485c4",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 47298,
-      "sha256": "700170e92bc88dd7c71971b556d8e7e603229b9345832dea80bfb9200e7e5672",
+      "bytes": 47638,
+      "sha256": "aa1f704e7ae377e7b3d5dd7650fa0d989409b8b93fad4cf4ae82dfb742b0157b",
       "mode": "0644"
     },
     {
@@ -391,8 +391,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 96467,
-      "sha256": "03aea675bb92b4f6561d90508f268ccf5961df7f4d878d875a489befb4e05100",
+      "bytes": 97181,
+      "sha256": "258f8c7e74a53c6d2ed509736a9ab10f77080d01bfa1fb06dbae2c9af0676bdf",
       "mode": "0644"
     },
     {
@@ -7262,7 +7262,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "ba006b0999c5d4155ed9025ff7c81f1ea1b554391d7dcaa32f339bd02384a886",
+      "sha256": "3805ff0c7cdeae1c5b63a76aa8a6d13e5f19d2a185b261e67698ca81ccd9fe2d",
       "mode": "0644"
     },
     {
@@ -7297,8 +7297,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 537267,
-      "sha256": "997808ab2333a8d73e7e1107f333a75e92e1d039c2442d130d5d30ec70ac9d43",
+      "bytes": 537678,
+      "sha256": "5aabd21a790da0380972dcf683feb4537b79ca3cf993ecddb8828d0923b39329",
       "mode": "0644"
     },
     {
@@ -7495,8 +7495,8 @@
     },
     {
       "path": "deploy/public/nginx.conf",
-      "bytes": 17524,
-      "sha256": "a88bc7780ce7db11bf6a79b9ebca88b97618f78532ed4b18851d920f7164eaad",
+      "bytes": 19381,
+      "sha256": "976928fc92539263e263790a7b6c3ae29a3efc8104842a896c452f6e30f224ea",
       "mode": "0644"
     },
     {
