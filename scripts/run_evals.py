@@ -271,6 +271,14 @@ def main() -> None:
         details: list[dict[str, Any]] = []
         status_correct = 0
         citation_checks = 0
+        # Скільки рядків набору взагалі ОГОЛОШУЮТЬ очікування. Без цих двох чисел
+        # `quote_ok`/`reason_ok` не відрізняють «звірено й збіглося» від «звіряти не було
+        # чого»: рядок, у якому забули `expected_quote`, давав True, не перевіривши
+        # нічого, і зникав у знаменнику pass_rate. Вирок лишається тим самим — набір має
+        # право не оголошувати очікування, — але «30 із 30» тепер несе, СКІЛЬКИ з них
+        # мали що звіряти.
+        quote_expectations = 0
+        reason_expectations = 0
         citation_failures = 0
         leakage_failures = 0
         leakage_checks = 0
@@ -302,10 +310,13 @@ def main() -> None:
                 leaked = bool(leak_reasons)
                 leakage_failures += int(leaked)
                 expected_quote = row.get("expected_quote")
+                quote_expectations += int(expected_quote is not None)
                 quote_ok = expected_quote is None or any(
                     expected_quote in citation.quote for citation in first.citations
                 )
-                reason_ok = row.get("expected_reason") in {None, first.decision_reason}
+                expected_reason = row.get("expected_reason")
+                reason_expectations += int(expected_reason is not None)
+                reason_ok = expected_reason in {None, first.decision_reason}
                 for citation in first.citations:
                     citation_checks += 1
                     accessible = repository.list_retrievable_spans(
@@ -396,6 +407,8 @@ def main() -> None:
             "pass_rate": passed / max(len(rows), 1),
             "status_accuracy": status_correct / max(len(rows), 1),
             "citation_checks": citation_checks,
+            "quote_expectations": quote_expectations,
+            "reason_expectations": reason_expectations,
             "citation_failures": citation_failures,
             "leakage_checks": leakage_checks,
             "leakage_failures": leakage_failures,

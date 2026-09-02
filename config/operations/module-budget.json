@@ -2097,13 +2097,13 @@
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
     },
     "apps/api/src/korpus/application/tevv_evidence.py": {
-      "lines": 124,
+      "lines": 148,
       "max_complexity": 9,
       "max_function_args": 2,
       "max_function_lines": 29,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "Exact ceiling after worst-cohort production TEVV admission"
+      "reason": "WS-05: знаменник надлишкової звірки виведено назовні. `all(...)` зводив «звірено 9 із 9» і «звірено 0 із 9» до одного True, і читач не міг їх розрізнити. Вирок НЕ змінено: метрики перераховуються з журналу, тож журнал без оголошених агрегатів підпертий самим журналом, а не відсутністю — перша редакція правки помилилась саме в цей бік і вимагала оголошення."
     },
     "apps/api/src/korpus/application/tevv_gold_binding.py": {
       "lines": 38,
@@ -4899,13 +4899,13 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_evals.py": {
-      "lines": 435,
+      "lines": 445,
       "max_complexity": 22,
       "max_function_args": 11,
-      "max_function_lines": 282,
+      "max_function_lines": 292,
       "max_nesting": 4,
       "proof_lines": 0,
-      "reason": "v0.6.1: evaluation harness now binds explicit claim, tested system, budget, independence and validity-hazard contract; local fixture cannot self-authorize production"
+      "reason": "WS-05: два лічильники очікувань набору. `quote_ok`/`reason_ok` не відрізняли «звірено й збіглося» від «звіряти не було чого»: рядок без `expected_reason` давав True, не перевіривши нічого. Виміряно 02.09.2026 одразу після правки: очікувану ПРИЧИНУ оголошують 2 рядки з 30, очікувану цитату — 15. Вирок 30/30 лишається, але тепер несе, скільки з них мали що звіряти."
     },
     "scripts/run_exact_environment_gate.py": {
       "lines": 120,
@@ -5003,7 +5003,7 @@
       "max_function_lines": 53,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "Каталог мутантів є даними й росте з кожним новим предикатом; складність і форма виконувального рушія залишаються обмеженими окремо."
+      "reason": "Каталог мутантів є даними й росте з кожним новим предикатом; складність і форма виконувального рушія залишаються обмеженими окремо. Стеля рядків знята саме тут і саме тому: 6459 -> 6481 на боці main був черговий підйом стелі заради нового мутанта, тобто ратчет, який штрафує за додавання негативних контролів. Складність, довжина функцій, аргументи й вкладеність лишаються під стелею — реєстр, що виростив гілку, вже не реєстр."
     },
     "scripts/run_operational_gate.py": {
       "lines": 42,
@@ -5583,13 +5583,13 @@
       "reason": "v0.1.1: clean-source handoff validation is separated from post-test release evidence; missing evidence remains unavailable, partial/stale evidence is refused | 2026-08-29 +3 lines: release_evidence is now asserted on. UNAVAILABLE and STALE were both printed beside status: PASS and never checked, so the first target of `make validate` was green with the release evidence absent entirely and green with it describing a different tree."
     },
     "scripts/verify_installed_units.py": {
-      "lines": 174,
+      "lines": 216,
       "max_complexity": 9,
       "max_function_args": 3,
       "max_function_lines": 55,
       "max_nesting": 2,
       "proof_lines": 56,
-      "reason": "Новий гейт: чи те, що ВСТАНОВЛЕНО на машині, є тим, що описує дерево. Виміряно 01.09.2026 — встановлений korpus-public-api.service має EnvironmentFile=, а шаблон у дереві самооголошений, тож public-env-parity звіряв дві копії, жодна з яких не виконується. Стеля — виміряне значення дня. Мутанти M535–M537."
+      "reason": "Гейт паритету дивиться на КОЖЕН шаблон юніта в дереві, а не на перелік із одного інсталятора. Виміряно 02.09.2026: покривались два юніти, а встановлений `korpus-routine@.service` виявився зовсім іншим юнітом під тим самим іменем (`ExecStart=%h/.claude/routines/run.sh %i` проти `scripts/run_isolated_routine.py`). Гейт мовчав, бо цього імені не було в його переліку. Переліку більше немає: другий перелік розійшовся б із першим саме тоді, коли хтось додасть юніт. Плюс `substitution_agrees_with_installers` — гейт мусить підставляти корінь так само, як інсталятори, інакше червонітиме з власної причини."
     },
     "scripts/verify_observability_contract.py": {
       "lines": 76,
@@ -5738,6 +5738,15 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/check_unit_exec_arguments.py": {
+      "lines": 169,
+      "max_complexity": 10,
+      "max_function_args": 3,
+      "max_function_lines": 42,
+      "max_nesting": 3,
+      "proof_lines": 44,
+      "reason": "новий гейт: цілість аргументів у юнітах systemd; початковий точний вимір і є стелею ратчета"
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -9891,6 +9900,63 @@
         "max_function_args": 4
       },
       "reason": "WO-01, другий кінець ланцюга: `bound is None or bound == digest` зараховував артефакт без прив'язки як поточний, а `all([])` робив нуль підтриманих претензій достатнім. Додано читання конверта `provenance`, окремий стан для двох прив'язок, що розійшлись, і предикат has_supported_claims. Зростання часткове компенсоване: `claim_admission_checks` читав журнал ДВІЧІ (два читання одного файла можуть дати різний вміст), тепер один раз, і його складність упала з 14 до нижчої за `_current_json`. Четвертий аргумент — у `_evidence_resolves(root, claim, release, digest)`: видiлення цієї перевірки і є тим, що збило складність `claim_admission_checks`; згорнути її параметри в об'єкт означало б завести тип заради числа в бюджеті."
+    },
+    {
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "from": {
+        "lines": 6459
+      },
+      "to": {
+        "lines": 6476
+      },
+      "reason": "Каталог мутацій ОГОЛОШУЄ власний вирок. Виміряно 02.09.2026: `release_claims` прив'язав його правильно і все одно дав UNDECLARED_EVIDENCE, бо поля вироку не було — його доводилось виводити з `mutation_score`. Читач, що виводить вирок сам, тримає знання про предмет у собі й розходиться з ним мовчки, щойно предмет зміниться. Вирок рахується з переліків survived/invalid/errors і з `mutation_score_over_catalogue`, а порожній перелік результатів дає FAIL: `all([])` істинне, а нуль мутантів означає, що каталог не бігав."
+    },
+    {
+      "on": "2026-09-02",
+      "path": "scripts/verify_installed_units.py",
+      "from": {
+        "lines": 174
+      },
+      "to": {
+        "lines": 216
+      },
+      "reason": "Гейт паритету дивиться на КОЖЕН шаблон юніта в дереві, а не на перелік із одного інсталятора. Виміряно 02.09.2026: покривались два юніти, а встановлений `korpus-routine@.service` виявився зовсім іншим юнітом під тим самим іменем (`ExecStart=%h/.claude/routines/run.sh %i` проти `scripts/run_isolated_routine.py`). Гейт мовчав, бо цього імені не було в його переліку. Переліку більше немає: другий перелік розійшовся б із першим саме тоді, коли хтось додасть юніт. Плюс `substitution_agrees_with_installers` — гейт мусить підставляти корінь так само, як інсталятори, інакше червонітиме з власної причини."
+    },
+    {
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/application/tevv_evidence.py",
+      "from": {
+        "lines": 124
+      },
+      "to": {
+        "lines": 148
+      },
+      "reason": "WS-05: знаменник надлишкової звірки виведено назовні. `all(...)` зводив «звірено 9 із 9» і «звірено 0 із 9» до одного True, і читач не міг їх розрізнити. Вирок НЕ змінено: метрики перераховуються з журналу, тож журнал без оголошених агрегатів підпертий самим журналом, а не відсутністю — перша редакція правки помилилась саме в цей бік і вимагала оголошення."
+    },
+    {
+      "on": "2026-09-02",
+      "path": "scripts/run_evals.py",
+      "from": {
+        "lines": 435,
+        "max_function_lines": 282
+      },
+      "to": {
+        "lines": 445,
+        "max_function_lines": 292
+      },
+      "reason": "WS-05: два лічильники очікувань набору. `quote_ok`/`reason_ok` не відрізняли «звірено й збіглося» від «звіряти не було чого»: рядок без `expected_reason` давав True, не перевіривши нічого. Виміряно 02.09.2026 одразу після правки: очікувану ПРИЧИНУ оголошують 2 рядки з 30, очікувану цитату — 15. Вирок 30/30 лишається, але тепер несе, скільки з них мали що звіряти."
+    },
+    {
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "from": {
+        "lines": 6476
+      },
+      "to": {
+        "lines": 6481
+      },
+      "reason": "Якір M257 перенацілено після рефакторингу `_declared_consistent` -> `_declared_agreement`: мутант став INVALID і мовчки покинув би знаменник каталогу. Не перенацілити означало б, що `mutation_score` лишається 1.0 при каталозі, що всихає — рівно та вада, проти якої існує `mutation_score_over_catalogue`."
     }
   ],
   "recorded_at": "2026-09-02",

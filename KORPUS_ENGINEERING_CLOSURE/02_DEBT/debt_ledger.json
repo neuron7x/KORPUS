@@ -1,0 +1,75 @@
+{
+  "schema": "korpus.closure.debt.v1",
+  "protocol": "EERP-06 / TECO-01",
+  "commit": "0a9ce98b991edb95e3d6f56ddd64c3bbf49f878d",
+  "source_digest": "5f0246e99097301a…",
+  "baseline_denominator": {
+    "debt_total": 31,
+    "high": 13,
+    "workstreams": 16,
+    "source": "CARP-01"
+  },
+  "closed_this_program": {
+    "KD-001": "нічний лан не виконувався жодного разу -> юніт виправлено, лан ВИКОНУЄТЬСЯ (5 хв 35 с CPU, дійшов до третьої цілі)",
+    "KD-002": "11 цілей на мертвому лані -> лан живий; додано гейт unit-exec-arguments у validate і в CI",
+    "KD-003": "процес не від свого юніта -> cgroup korpus-public-api.service, NRestarts 0",
+    "KD-004": "дрейф обслуговування без лану -> serving-freshness ПЕРШИМ у check-deployment, вирок PASS",
+    "KD-012": "незакомічені правки семантики відсутності -> закомічено, попередній транш",
+    "KD-013": "докази не прив'язані до дерева -> нерухома точка 5f0246e9 == 5f0246e9",
+    "KD-018": "except -> return True: НЕ закрито (2 місця лишаються)"
+  },
+  "newly_discovered": [
+    {
+      "id": "KD-032",
+      "severity": "MEDIUM",
+      "title": "встановлений korpus-routine@.service — ЗОВСІМ інший юніт під тим самим іменем",
+      "detail": "ExecStart=%h/.claude/routines/run.sh %i проти scripts/run_isolated_routine.py у дереві; зіткнення імен між шаблонами репозиторію і власними юнітами харнеса",
+      "found_by": "розширений гейт паритету (вузький його не бачив)",
+      "status": "CONFIRMED"
+    },
+    {
+      "id": "KD-033",
+      "severity": "HIGH",
+      "title": "korpus-routine@.service мав ту саму ваду нелапкованого шляху",
+      "detail": "@KORPUS_ROOT@ підставлявся двічі в позицію аргументу; юніт зламався б так само, як нічний лан",
+      "found_by": "пошук КЛАСУ, а не одного рядка",
+      "status": "CLOSED"
+    },
+    {
+      "id": "KD-034",
+      "severity": "HIGH",
+      "title": "проєкція оточення робила канонічний юніт незапускним",
+      "detail": "KORPUS_AUDIT_VERIFICATION_KEY_FILES=\"{...}\" — зовнішні лапки з'їдали внутрішні, JSON переставав бути JSON, pydantic_settings падав, юніт ніколи не стартував. Саме тому процес підіймали в обхід.",
+      "found_by": "спроба підняти процес юнітом",
+      "status": "CLOSED"
+    },
+    {
+      "id": "KD-035",
+      "severity": "MEDIUM",
+      "title": "файл секрета postgres_admin_password порожній (0 байтів), а роль має пароль",
+      "detail": "оголошене джерело облікових даних розійшлося з дійсними; TCP вимагає scram-sha-256, тож живу базу не змігрувати без втручання власника",
+      "found_by": "WS-07",
+      "status": "CONFIRMED"
+    },
+    {
+      "id": "KD-036",
+      "severity": "MEDIUM",
+      "title": "вирок оцінки 30/30 несений рядками без предмета звірки",
+      "detail": "reason_expectations 2 із 30, quote_expectations 15 із 30 — виміряно після виведення знаменника",
+      "found_by": "WS-05",
+      "status": "MEASURED_AND_EXPOSED"
+    },
+    {
+      "id": "KD-037",
+      "severity": "MEDIUM",
+      "title": "якір мутанта M257 зсунувся рефакторингом і мутант став INVALID",
+      "detail": "mutation_score лишався 1.0 при каталозі 585 -> 584 валідних; спіймано mutation_score_over_catalogue 0.98969",
+      "status": "CLOSED"
+    }
+  ],
+  "live_denominator": {
+    "debt_total": 37,
+    "newly_discovered": 6
+  },
+  "note": "Знаменник РОЗШИРЕНО, не приховано (LAW 9). Три з шести нових знахідок закриті в тому ж транші."
+}

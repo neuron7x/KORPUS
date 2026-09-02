@@ -764,7 +764,7 @@ public-health:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: public-env-parity gate-closure corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates
+validate: unit-exec-arguments public-env-parity gate-closure corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates
 	python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py
@@ -917,6 +917,16 @@ selftest-coverage:
 ## самооголошений — тобто гейт паритету звіряв дві копії, жодна з яких не виконується.
 ## Стоїть ОСТАННІМ у нічному лані свідомо: відмова тут правдива, але вона не сміє
 ## засліпити все, що вимірюється до неї.
+# Шлях у позиції аргументу юніта мусить дожити до execve одним аргументом.
+# Виміряно 02.09.2026: `korpus-nightly-gates.service` падав із кодом 2 від встановлення,
+# бо `-C @KORPUS_ROOT@` без лапок ділився за пробілами канонічного кореня. Це один із
+# ЧОТИРЬОХ коренів замикання гейтів, і 11 перевірочних цілей мали охоплення лише через
+# нього. Перевірка розбирає рядок правилами systemd, а не шукає лапки: «є лапки» —
+# твердження про написання, а тут питання про поведінку.
+unit-exec-arguments:
+	$(PY) scripts/check_unit_exec_arguments.py --selftest
+	$(PY) scripts/check_unit_exec_arguments.py --out var/unit-exec-arguments.json
+
 installed-units-verify:
 	$(PY) scripts/verify_installed_units.py --selftest
 	$(PY) scripts/verify_installed_units.py
@@ -1123,7 +1133,11 @@ nightly-evidence:
 	$(MAKE) snapshot PY=$(PY)
 	$(MAKE) evidence-refresh PY=$(PY)
 
-check-deployment: runtime-corpus-audit corpus-integrity audit-verify deployment-debt evidence-stores
+# `serving-freshness` ПЕРШИМ у цьому лані. Чотири осі профілю відповідей міряються
+# запитом до живого процесу, тож вони описують ПРОЦЕС, а не дерево. Гейт існував із
+# власним негативним контролем і не входив у жоден лан: виміряно 02.09.2026, він був
+# передумовою лише `answer-quality`, який теж не входив нікуди.
+check-deployment: serving-freshness runtime-corpus-audit corpus-integrity audit-verify deployment-debt evidence-stores
 
 deployment-debt:
 	$(PY) scripts/check_deployment_debt.py

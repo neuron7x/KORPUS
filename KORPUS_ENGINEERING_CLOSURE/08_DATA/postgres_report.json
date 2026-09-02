@@ -1,0 +1,37 @@
+{
+  "schema": "korpus.closure.postgres.v1",
+  "work_order": "WS-07",
+  "measured_at_utc": "2026-09-02T19:55:00Z",
+  "method": "pg_dump -Fc живої бази -> pg_restore у ізольований контейнер -> alembic upgrade head -> prepare_postgres_role -> pytest -m postgres",
+  "live_database": {
+    "container": "korpus-postgres-1",
+    "database": "korpus",
+    "revision_before": "0018_operational_competencies",
+    "alembic_version_width_before": 32,
+    "public_tables_before": 35,
+    "network": "korpus_backend (портів назовні не публікує)"
+  },
+  "isolated_copy": {
+    "container": "korpus-mig-probe (прибрано після виміру)",
+    "restored_from": "pg_dump -Fc, 567590064 байт",
+    "restore_warnings": 36,
+    "revision_after": "0022_approval_provenance_boundary",
+    "revision_length": 33,
+    "alembic_version_width_after": 128,
+    "public_tables_after": 37,
+    "rls_policies": 24,
+    "rls_forced_tables": ["document_compartments","document_versions","documents","evidence_spans","ingestion_jobs","span_embeddings"],
+    "data_preserved": {"documents": 256, "document_versions": 256, "audit_events": 1925}
+  },
+  "chain_executed": ["0019_temporal_corpus_snapshot","0020_rls_identity_boundary","0021_alembic_version_width","0022_approval_provenance_boundary"],
+  "postgres_suite": {"selected": "-m postgres", "passed": 44, "failed": 0,
+    "roles": ["korpus_app","korpus_authz","korpus_review"],
+    "note": "прогін під korpus_app, не під postgres: перший прогін адміністратором дав 3 хибні падіння RLS і емпірично підтвердив KD-024"},
+  "engineering_risk": "CLOSED — ланцюг доведено на ТОЧНІЙ копії живих даних, включно з міграцією ширини й повним набором RLS",
+  "live_application_status": "EXTERNAL_AUTHORITY_REQUIRED",
+  "live_application_blocker": {
+    "reason": "жива база вимагає scram-sha-256 по TCP; облікових даних адміністратора я не маю і не видобував",
+    "why_offline_sql_is_not_a_substitute": "0019_temporal_corpus_snapshot містить Python-логіку міграції даних (bind.execute, дедуплікація по рядках). `alembic upgrade --sql` згенерував би лише DDL і мовчки пропустив би цю частину — це була б підміна доказу, а не еквівалент.",
+    "human_trigger": "EERP-06 §XL: external credentials"
+  }
+}

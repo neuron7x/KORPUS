@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1787,
-  "root_sha256": "8290ba56b46f1483c7dad3b4fd6d1e116cc10364858534161ca24ae825e845e7",
+  "file_count": 1793,
+  "root_sha256": "3dfcabdfbfc44f7dd402ec8382c787ded0fd44b0f7e14b9ffb252f0dc8fee9ec",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 46728,
-      "sha256": "924af6d3bb8375b0944591a6f7b5b9ded6db4673e79cad13b1a1eff7139c87e4",
+      "bytes": 47298,
+      "sha256": "700170e92bc88dd7c71971b556d8e7e603229b9345832dea80bfb9200e7e5672",
       "mode": "0644"
     },
     {
@@ -195,6 +195,30 @@
       "path": "GITLAB_IMPORT.md",
       "bytes": 548,
       "sha256": "f1d878e1ec9d07911f1a2607003fae9dc2c7df6e8406c5eea0572a5fd58e75b5",
+      "mode": "0644"
+    },
+    {
+      "path": "KORPUS_ENGINEERING_CLOSURE/00_SCOPE/baseline_state.json",
+      "bytes": 898,
+      "sha256": "0d65727015b9414af671cfabb17371abec86b13c54ba9e7de286d36d50dd6673",
+      "mode": "0644"
+    },
+    {
+      "path": "KORPUS_ENGINEERING_CLOSURE/02_DEBT/debt_ledger.json",
+      "bytes": 4503,
+      "sha256": "36ccfb25e757beed098853e86ba199ce50788ef44dc74e1dea19210ac10c726a",
+      "mode": "0644"
+    },
+    {
+      "path": "KORPUS_ENGINEERING_CLOSURE/08_DATA/postgres_report.json",
+      "bytes": 2625,
+      "sha256": "7ba8f9f5ffd0002ccb85509df6e4ea641c6839fbd1ee91a27d53c81303afc431",
+      "mode": "0644"
+    },
+    {
+      "path": "KORPUS_ENGINEERING_CLOSURE/FINAL/FINAL_VERDICT.json",
+      "bytes": 3690,
+      "sha256": "93ba664c89095b00815c7f8023398a570b6771707c1c43cbf74238974aac9b4f",
       "mode": "0644"
     },
     {
@@ -367,8 +391,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 95082,
-      "sha256": "08359e249712bb8de53d71acc1bceb49a298243f016d51cbaf4d4a177786688e",
+      "bytes": 96596,
+      "sha256": "08dec5506dd60bd4743414e75a913c1513fd23456519681d25fd52dfc5ce98fc",
       "mode": "0644"
     },
     {
@@ -1765,8 +1789,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/tevv_evidence.py",
-      "bytes": 4949,
-      "sha256": "5a395cd47e08023c36d6d750df3213e36f6631771943a9f964b497c8172ec2d2",
+      "bytes": 6961,
+      "sha256": "fa2ff88f28e3560039f33f6dbe0f4fbada9b45fb83d46539014d8adf54a7772b",
       "mode": "0644"
     },
     {
@@ -3825,6 +3849,12 @@
       "path": "apps/api/tests/test_mutation_probe_safety.py",
       "bytes": 5068,
       "sha256": "669587856edd6c97c77e3e15d99bedb61c25684350d81a70d495ccc628468281",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_mutation_report_declares_its_verdict.py",
+      "bytes": 4846,
+      "sha256": "6da54b493cf3c1be4649f916334586761f7fb88320d60c41ba2318046d1e5c4b",
       "mode": "0644"
     },
     {
@@ -7250,7 +7280,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "260fc0cd456c1f90c470d87ea6f6fc271bb1b95c4a068de0a9f6b783806a0bcc",
+      "sha256": "ba006b0999c5d4155ed9025ff7c81f1ea1b554391d7dcaa32f339bd02384a886",
       "mode": "0644"
     },
     {
@@ -7285,8 +7315,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 530231,
-      "sha256": "74ee3f138757bf7ea3f3a55e0774c8ce25e8ae4c7f474eca5fcd8c00efa6c727",
+      "bytes": 537194,
+      "sha256": "4828faba9274a85a07038860a15dc71ed4f3ab59b63a372f58a5b45c8f8d6e82",
       "mode": "0644"
     },
     {
@@ -7357,8 +7387,8 @@
     },
     {
       "path": "deploy/agents/korpus-nightly-gates.service",
-      "bytes": 1316,
-      "sha256": "ee17976c251c30ed6adcb72e2cbeef37051fb8e2427636f464342149a03a8df8",
+      "bytes": 1916,
+      "sha256": "f3aa415752f9b6d288c2d96bb7f391c7f4ebf9768a817b364e33d7be9b35f116",
       "mode": "0644"
     },
     {
@@ -7369,8 +7399,8 @@
     },
     {
       "path": "deploy/agents/korpus-routine@.service",
-      "bytes": 547,
-      "sha256": "1e56c98aa45b892aede68dd5b12b6ce9fa94fe96165d1270e38e7b70c9ec277a",
+      "bytes": 676,
+      "sha256": "11c45db4493705eb2f440d3063cca947a2c81d2fa3bcdb9631970b90850ac84f",
       "mode": "0644"
     },
     {
@@ -9144,6 +9174,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/check_unit_exec_arguments.py",
+      "bytes": 10071,
+      "sha256": "a76321a41210561131aea7c4e3d4de1668fd11031a8ae93817daa24b8b8eabcf",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/compare_retrieval_configs.py",
       "bytes": 7306,
       "sha256": "1d3404136191756b73b0dc2cfd512607991c3787ca3c37e2db71bc2738e32a89",
@@ -10093,8 +10129,8 @@
     },
     {
       "path": "scripts/run_evals.py",
-      "bytes": 17413,
-      "sha256": "da12b95d67a2512650408fb6fdf106635968e2504b7366c2c267c37dc5455c02",
+      "bytes": 18511,
+      "sha256": "15e21ec381285bb63e2301bd629d823ed7726952393315d8935997b9610e32e5",
       "mode": "0644"
     },
     {
@@ -10165,8 +10201,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 306675,
-      "sha256": "977d837be315ab18e226eb9a573206d8981da3d19c8f1762d5a861fcb4a1bba6",
+      "bytes": 308476,
+      "sha256": "635228fa5e78b296f6ad03d85a5bcbb0ee6cf59d3a05e9aca7cb7169b682e510",
       "mode": "0755"
     },
     {
@@ -10615,8 +10651,8 @@
     },
     {
       "path": "scripts/verify_installed_units.py",
-      "bytes": 10328,
-      "sha256": "3ab58828fa8ebf656aff2ea0ec4ba75a2bf86c4f61e090978c717e3831da775a",
+      "bytes": 12824,
+      "sha256": "dbbb27d27dc46605bb1644351c9155d211c2d50e990719aa89c4a41b6c58c5e5",
       "mode": "0755"
     },
     {
