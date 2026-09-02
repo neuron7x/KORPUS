@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1788,
-  "root_sha256": "ad20efd7c280e19deb3bbeeb237c91ac3f333489857192459a2a6b9a7dea2be1",
+  "file_count": 1790,
+  "root_sha256": "b8cf733a8938a8a4b319b1c5ce2ac40b8074e7ed899c8a99487a2ef9304e60b3",
   "files": [
     {
       "path": ".dockerignore",
@@ -204,9 +204,21 @@
       "mode": "0644"
     },
     {
+      "path": "KORPUS_ENGINEERING_CLOSURE/02_DEBT/debt_ledger.json",
+      "bytes": 4503,
+      "sha256": "36ccfb25e757beed098853e86ba199ce50788ef44dc74e1dea19210ac10c726a",
+      "mode": "0644"
+    },
+    {
       "path": "KORPUS_ENGINEERING_CLOSURE/08_DATA/postgres_report.json",
       "bytes": 2625,
       "sha256": "7ba8f9f5ffd0002ccb85509df6e4ea641c6839fbd1ee91a27d53c81303afc431",
+      "mode": "0644"
+    },
+    {
+      "path": "KORPUS_ENGINEERING_CLOSURE/FINAL/FINAL_VERDICT.json",
+      "bytes": 3690,
+      "sha256": "93ba664c89095b00815c7f8023398a570b6771707c1c43cbf74238974aac9b4f",
       "mode": "0644"
     },
     {
