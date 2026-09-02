@@ -73,10 +73,39 @@ For empirical rate `p̂=k/n`:
 
 For `n=0`, KORPUS returns `[0,1]`.
 
-### 3.4 Provenance
+### 3.4 Clopper–Pearson exact upper bound — **the one that carries the guarantee**
 
-- W. Hoeffding, *Probability Inequalities for Sums of Bounded Random Variables*, JASA 58(301), 1963, DOI `10.1080/01621459.1963.10500830`.
-- NIST/SEMATECH binomial confidence-limit documentation gives the Wilson-derived score-limit formula and contrasts it with the simple normal approximation.
+`clopper_pearson_upper_bound(errors, samples, delta, *, hypotheses=1)`
+(`statistical_bounds.py:125`). The smallest `p` whose lower binomial tail does not exceed
+`δ/H`, located by bisection over
+
+`Pr[X ≤ k | n, p] = Σ_{i=0..k} C(n,i) p^i (1-p)^{n-i}`.
+
+For `k = n` the bound is `1.0`. The `δ/H` term is the same union-bound correction as §3.2.
+
+> **ВИПРАВЛЕНО 2026-09-02.** До цієї дати розділ 3 оголошував себе канонічним описом
+> `statistical_bounds.py` і описував **три з чотирьох** його меж, пропускаючи саме ту,
+> яку викликає рантайм: `calibration.py:11` імпортує `clopper_pearson_upper_bound`, і
+> `upper_error_bound` рахує ризик прийнятої відповіді ним. Тобто специфікація не містила
+> межі, що несе гарантію, і це перше, що перевірив би статистичний рецензент.
+>
+> Розмежування, якого бракувало: **Вілсон і Гефдінг лишаються в модулі й у цьому
+> документі, але жоден із них не несе гарантії вибіркового прогнозування.** Вілсон —
+> наближений score-інтервал для звітності; Гефдінг — дійсна, але консервативна межа для
+> обмежених величин, що не використовує відомий біноміальний розподіл. Для скінченної
+> вибірки з малим `n` і `k = 0` придатна лише точна межа.
+
+### 3.5 Provenance
+
+- C. J. Clopper, E. S. Pearson, *The Use of Confidence or Fiducial Limits Illustrated in the Case of the Binomial*, **Biometrika 26(4), 1934, 404–413**. — §3.4, чинна межа ризику.
+- W. Hoeffding, *Probability Inequalities for Sums of Bounded Random Variables*, JASA 58(301), **1963, 13–30**, DOI `10.1080/01621459.1963.10500830`. — §3.2, §3.3.
+- E. B. Wilson, *Probable Inference, the Law of Succession, and Statistical Inference*, JASA 22(158), **1927, 209–212**. — §3.1, звітність, не гарантія.
+- NIST/SEMATECH *e-Handbook of Statistical Methods*, §7.2.4 «Confidence intervals for a proportion» — Wilson-derived score-limit formula проти простого нормального наближення.
+
+> Сторінки Гефдінга й повні описи Вілсона додано 02.09.2026: два документи дерева несли
+> **різні часткові** описи одного джерела (тут — DOI без сторінок, у
+> `docs/assurance/FORMAL_PASSPORT.md` — сторінки без DOI). Часткові описи одного джерела
+> в двох місцях — той самий клас, що дві тотожності одного предмета.
 
 ## 4. Retrieval mathematics
 

@@ -241,9 +241,30 @@ class Settings(BaseSettings):
     embedding_timeout_seconds: float = Field(default=5.0, gt=0, le=30)
     embedding_max_attempts: int = Field(default=3, ge=1, le=8)
     embedding_max_response_bytes: int = Field(default=2 * 1024 * 1024, ge=1024, le=20 * 1024 * 1024)
+    #: Сторінковий кеш SQLite, МіБ. Дефолт самого SQLite — 2 МіБ на базу будь-якого
+    #: розміру; обслуговуваний корпус важить 276 МіБ, тож сторінки виштовхувались
+    #: постійно. ВИМІРЯНО 02.09.2026 на живому корпусі, чергуванням наборів, n=30:
+    #: середнє 58.67 -> 51.23 мс, p95 66.88 -> 52.98 мс разом із mmap нижче.
+    sqlite_cache_mib: int = Field(default=64, ge=2, le=4096)
+    #: Відображення бази в пам'ять, МіБ. Дефолт SQLite — 0, тобто вимкнено: кожна
+    #: сторінка копіюється в буфер. Нуль лишається допустимим значенням для оточень,
+    #: де відображення небажане.
+    sqlite_mmap_mib: int = Field(default=256, ge=0, le=8192)
     retrieval_cache_entries: int = Field(default=512, ge=1, le=100_000)
     retrieval_cache_ttl_seconds: float = Field(default=30.0, gt=0, le=3600)
     max_concurrent_answers: int = Field(default=16, ge=1, le=4096)
+    #: Скільки одночасних відповідей може тримати ОДИН суб'єкт. `None` означає дефолт
+    #: допуску — половину ємності: жоден орендар не забирає сервіс цілком.
+    #:
+    #: ВИМІРЯНО 02.09.2026 з наявного `var/load-probe.json`: у фазі сплеску (паралелізм
+    #: 24) відхилено **406 із 758** запитів, УСІ з причиною `subject_share_exhausted`, і
+    #: ЖОДНОГО через глобальну ємність. На публічній межі всі відвідувачі приходять під
+    #: одним суб'єктом (`answering.py:49` бере `identity.subject`), тож «половина
+    #: ємності» — це стеля на весь інтернет, а не ізоляція між орендарями.
+    #:
+    #: Дефолт лишається половиною НАВМИСНО: ізоляція правильна там, де суб'єктів багато.
+    #: Розгортання з одним суб'єктом оголошує стелю явно — це РІШЕННЯ, а не дефолт.
+    max_answers_per_subject: int | None = Field(default=None, ge=1, le=4096)
     max_concurrent_ingestions: int = Field(default=2, ge=1, le=128)
     ingestion_mode: str = "synchronous"
     ingestion_job_max_attempts: int = Field(default=3, ge=1, le=20)

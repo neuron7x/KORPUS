@@ -146,6 +146,16 @@ repository:validate:
     # як виміри від інструментів, що не існували в жодній гілці.
     - PYTHONPATH=apps/api/src python scripts/check_document_references.py
     - PYTHONPATH=apps/api/src python scripts/check_document_references.py --selftest
+    # Вбудований безпековий гейт: до 02.09.2026 він не бігав у ЖОДНОМУ лані, хоч
+    # проходить без аргументів. Його детектор слабкого гешу глушився прапорцем
+    # `usedforsecurity=False` — твердженням коду про себе — саме там, де SHA-1 рахує
+    # підпис платіжного колбека.
+    - PYTHONPATH=apps/api/src:. python scripts/run_builtin_security_gate.py --out var/builtin-security-gate.json
+    # Бібліографія: один реєстр, два ДЕТЕРМІНОВАНО відрендерені подання. Гейт червоніє,
+    # якщо котресь із них розійшлося з реєстром. Ціль була в `validate` і не була в CI —
+    # спіймано дзеркалом `test_every_validate_target_runs_in_the_pipeline`.
+    - PYTHONPATH=apps/api/src python scripts/verify_bibliography.py
+    - PYTHONPATH=apps/api/src python scripts/verify_bibliography.py --selftest
     - python scripts/verify_verdict_ledger.py
     - PYTHONPATH=apps/api/src python scripts/validate_remote_digest.py
     - PYTHONPATH=apps/api/src python scripts/validate_document_probe.py

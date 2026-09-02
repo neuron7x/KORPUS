@@ -41,6 +41,33 @@ class Mutant:
 
 MUTANTS = (
     Mutant(
+        "M630_FOLD_SKIPS_NEW_WINNERS",
+        "apps/api/src/korpus/application/retrieval.py",
+        "        for other in selected[seen:]:",
+        "        for other in selected[:0]:",
+        (
+            "apps/api/tests/test_diversify_incremental_identity.py::test_lazy_folding_equals_the_naive_recomputation",
+        ),
+    ),
+    Mutant(
+        "M631_FOLD_KEEPS_LAST_NOT_MAX",
+        "apps/api/src/korpus/application/retrieval.py",
+        "            if overlap > value:\n                value = overlap",
+        "            if True:\n                value = overlap",
+        (
+            "apps/api/tests/test_diversify_incremental_identity.py::test_lazy_folding_equals_the_naive_recomputation",
+        ),
+    ),
+    Mutant(
+        "M632_FOLD_MARK_BEFORE_FOLDING",
+        "apps/api/src/korpus/application/retrieval.py",
+        "        seen = folded.get(key, 0)",
+        "        seen = len(selected)",
+        (
+            "apps/api/tests/test_diversify_incremental_identity.py::test_lazy_folding_equals_the_naive_recomputation",
+        ),
+    ),
+    Mutant(
         "M627_DEAD_REFERENCE_ACCEPTED",
         "scripts/check_document_references.py",
         "                if not _resolves(reference, tracked, root):",

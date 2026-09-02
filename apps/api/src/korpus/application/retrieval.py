@@ -163,6 +163,41 @@ def diversify_evidence(
         if diversity_lambda < 1.0
         else {}
     )
+    # Надлишковість ЗГОРТАЄТЬСЯ ЛІНИВО, а не перераховується з нуля щораунду.
+    #
+    # Тотожність значень алгебраїчна, не наближена: `max(S ∪ {x}) = max(max(S), x)`.
+    # Максимум асоціативний, а `jaccard` — частка двох цілих, тож додавань, які могли б
+    # накопичити похибку, немає ЗОВСІМ. Порожній `selected` дає 0.0 — те саме, що
+    # `default=0.0` у попередній редакції. Тотожність доведена диференційно: вихід
+    # збігається поелементно, разом із рангами й порядком.
+    #
+    # ЧОМУ ЛІНИВО, А НЕ НАПЕРЕД. Перша редакція рефакторингу оновлювала кеш для ВСІХ
+    # кандидатів після кожного раунду і на справжніх прольотах дала: широкий випадок
+    # 227.44 -> 125.08 мс, але вузький 62.52 -> 72.09 мс, тобто ГІРШЕ. Причина: при
+    # `per_version_cap=1` і одній версії цикл обривається після першого раунду, старий
+    # код майже не рахував jaccard, а нова редакція встигала оновити 255 кандидатів
+    # намарно. Оптимізація, що погіршує один із трьох випадків, не є оптимізацією.
+    #
+    # Ліниве згортання робить рівно ту роботу, яку хтось питає: кожен кандидат згортає
+    # лише тих переможців, яких ще не бачив, і лише коли його оцінюють.
+    folded: dict[str, int] = {}
+    redundancy: dict[str, float] = {}
+
+    def marginal_redundancy(item: RetrievedEvidence) -> float:
+        key = str(item.span.id)
+        seen = folded.get(key, 0)
+        if seen == len(selected):
+            return redundancy.get(key, 0.0)
+        value = redundancy.get(key, 0.0)
+        item_grams = grams[key]
+        for other in selected[seen:]:
+            overlap = jaccard(item_grams, grams[str(other.span.id)])
+            if overlap > value:
+                value = overlap
+        redundancy[key] = value
+        folded[key] = len(selected)
+        return value
+
     while remaining and len(selected) < limit:
         admissible = [
             item for item in remaining if version_counts[str(item.version.id)] < per_version_cap
@@ -174,14 +209,9 @@ def diversify_evidence(
             if diversity_lambda == 1.0:
                 mmr = item.score
             else:
-                redundancy = max(
-                    (
-                        jaccard(grams[str(item.span.id)], grams[str(other.span.id)])
-                        for other in selected
-                    ),
-                    default=0.0,
+                mmr = diversity_lambda * item.score - (1 - diversity_lambda) * marginal_redundancy(
+                    item
                 )
-                mmr = diversity_lambda * item.score - (1 - diversity_lambda) * redundancy
             return (
                 subject_rank(item, subject_documents),
                 authority_tier(item, priors, tier_floor),

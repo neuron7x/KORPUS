@@ -1923,10 +1923,10 @@
       "proof_lines": 0
     },
     "apps/api/src/korpus/application/retrieval.py": {
-      "lines": 310,
-      "max_complexity": 15,
+      "lines": 340,
+      "max_complexity": 16,
       "max_function_args": 13,
-      "max_function_lines": 84,
+      "max_function_lines": 114,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Клас оголошеного предмета став ГРАДУЙОВАНИМ: довжина збігу замість членства. «Командир» є підрядком «Безпосередні командири», тож бінарний клас ставив узагальнення поруч із конкретним і віддавав перемогу релевантності. Порядок уже обчислювався в `subjects_in_question` і губився при перетворенні на множину. Виміряно: `subject` 0.8352 → 0.9451. Заразом прибрано ДРУГЕ означення того самого поняття — `retrieval_hybrid` мав власну копію логіки поруч із `declared_subject`."
@@ -2185,7 +2185,7 @@
       "reason": "the composition root: the only module that names both an application port and an infrastructure adapter, so neither layer has to"
     },
     "apps/api/src/korpus/config.py": {
-      "lines": 475,
+      "lines": 492,
       "max_complexity": 4,
       "max_function_args": 2,
       "max_function_lines": 20,
@@ -2564,7 +2564,7 @@
       "reason": "ACT-LRN-003 exact ceiling after objective competency edge insertion"
     },
     "apps/api/src/korpus/infrastructure/liqpay.py": {
-      "lines": 204,
+      "lines": 208,
       "max_complexity": 10,
       "max_function_args": 6,
       "max_function_lines": 44,
@@ -2686,10 +2686,10 @@
       "reason": "PEC v1 initial ratchet: low-cardinality observability primitive measured at first integration; ceiling may only move down"
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1215,
+      "lines": 1237,
       "max_complexity": 13,
-      "max_function_args": 15,
-      "max_function_lines": 84,
+      "max_function_args": 17,
+      "max_function_lines": 88,
       "max_nesting": 4,
       "proof_lines": 0,
       "reason": "Raised 1067 -> 1086 on 2026-08-28 for NonRetryableWriteError: a review transition that found the version in another state was converted to a retryable ConcurrentWriteError, so the retry loop spent its whole budget on a conflict that cannot resolve and the caller received 'transaction retry budget exhausted' through the 409 body instead of 'version state changed concurrently'. Earlier entry: _is_contention, SQLSTATE 40001/40P01 instead of a substring PostgreSQL never emits."
@@ -2766,7 +2766,7 @@
       "proof_lines": 0
     },
     "apps/api/src/korpus/infrastructure/runtime.py": {
-      "lines": 90,
+      "lines": 89,
       "max_complexity": 3,
       "max_function_args": 2,
       "max_function_lines": 34,
@@ -4809,10 +4809,10 @@
       "reason": "Вимір межі домену на живому сервісі: скільки своїх питань система тягне і скільки чужих впускає. Стеля з виміру на день додавання плюс запас на третю страту."
     },
     "scripts/run_builtin_security_gate.py": {
-      "lines": 211,
-      "max_complexity": 12,
+      "lines": 271,
+      "max_complexity": 15,
       "max_function_args": 2,
-      "max_function_lines": 29,
+      "max_function_lines": 36,
       "max_nesting": 4,
       "proof_lines": 0,
       "reason": "zero-install security floor: high-confidence dangerous primitive and hardcoded-secret checks; external scanners remain mandatory"
@@ -4961,7 +4961,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 6387,
+      "lines": 6414,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -5444,7 +5444,7 @@
       "max_function_args": 4,
       "max_function_lines": 43,
       "max_nesting": 3,
-      "proof_lines": 25,
+      "proof_lines": 33,
       "reason": "Новий канонічний бібліографічний гейт, виміряний 2026-09-02: перевіряє 59 джерел, 18 доменів, DOI/URL/метадані, епістемічні межі та точність двох детермінованих рендерів; вісім негативних контролів доводять fail-closed поведінку."
     },
     "scripts/verify_branch_consolidation.py": {
@@ -5616,7 +5616,7 @@
       "reason": "v0.9.7: verifier binds every gate to the current source and release; measured implementation is the ratchet ceiling"
     },
     "scripts/verify_public_surface.py": {
-      "lines": 506,
+      "lines": 531,
       "max_complexity": 11,
       "max_function_args": 6,
       "max_function_lines": 54,
@@ -9601,6 +9601,117 @@
       "to": {
         "lines": 106,
         "max_function_lines": 75
+      }
+    },
+    {
+      "from": {
+        "lines": 204
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/infrastructure/liqpay.py",
+      "reason": "Знято ХИБНЕ `usedforsecurity=False` над `hashlib.sha1`, що рахує ПІДПИС колбека LiqPay: прапорець стверджував «не для безпеки» про підпис і глушив власний детектор дерева саме там, де він мав спрацювати. Ужиток лишається (його вимагає чужий протокол), але тепер НАЗВАНИЙ у config/operations/security-acceptances.json.",
+      "to": {
+        "lines": 208
+      }
+    },
+    {
+      "from": {
+        "lines": 211,
+        "max_complexity": 12,
+        "max_function_lines": 29
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_builtin_security_gate.py",
+      "reason": "Дві зміни. (1) `usedforsecurity=False` більше не виправдовує слабкий геш усередині функції, названої для підпису: прапорець — це твердження КОДУ ПРО СЕБЕ, і гейт, що приймає неперевірене твердження від власного суб'єкта, гейтом не є. Звідси плюс до складності: правило тепер знає охопну функцію. (2) Реєстр прийняттів із контролем МЕРТВИХ записів — той самий негативний контроль, що `dead_exemption` у гейті замикання. Обидва контролі доведено запуском: без причини FAIL, мертвий запис FAIL.",
+      "to": {
+        "lines": 271,
+        "max_complexity": 15,
+        "max_function_lines": 36
+      }
+    },
+    {
+      "from": {
+        "lines": 506
+      },
+      "on": "2026-09-02",
+      "path": "scripts/verify_public_surface.py",
+      "reason": "Проба записових маршрутів ходила ЛИШЕ в канонічному написанні — тобто рівно в тій формі, яку межа й так спиняла, і тому не рухала змінну, про яку твердила. Межа була `location ~` (регістрозалежна), і запит із інтернету це підтвердив: `/api/v1/Documents/ingest` віддав 404 З заголовком `x-request-id`, тобто ДІЙШОВ до застосунку, тоді як канонічний шлях спинявся на nginx. Перелік проб 6 -> 12.",
+      "to": {
+        "lines": 531
+      }
+    },
+    {
+      "from": {
+        "proof_lines": 25
+      },
+      "on": "2026-09-02",
+      "path": "scripts/verify_bibliography.py",
+      "reason": "Поле `negative_controls` було вкарбоване як `8 if args.selftest else 0` — константа в одязі виміру. Число було правильним у момент написання й саме тому небезпечним: воно є ДРУГИМ оголошенням того, що код і так рахує, і при дев'ятій мутації збрехало б мовчки. Тепер `selftest` повертає кількість проб разом із вижилими. Сигнал, який ніколи не бував іншим, не є виміром.",
+      "to": {
+        "proof_lines": 33
+      }
+    },
+    {
+      "from": {
+        "lines": 475
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/config.py",
+      "reason": "ОПТИМІЗАЦІЯ З ВИМІРОМ. (1) Прагми SQLite стали НАЗВАНИМИ параметрами: кеш сторінок був 2 МіБ на базу в 276 МіБ, відображення в пам'ять вимкнене, temp_store у файл — усе це дефолти самого SQLite для бази будь-якого розміру. Виміряно на живому корпусі чергуванням наборів A,B,A,B і новим з'єднанням на кожен прогін: середнє 58.67 -> 51.23 мс (-12.7 %), p95 66.88 -> 52.98 мс (-20.8 %), n=30 на набір. (2) `max_answers_per_subject` став явним: наявний var/load-probe.json показував 406 із 758 відмов сплеску з причиною `subject_share_exhausted` і ЖОДНОЇ через глобальну ємність — тобто стеля була не на сервісі, а на частці одного суб'єкта, під яким на публічній межі приходять усі. `synchronous` і серіалізація ланцюга аудиту НЕ чіпались: перше — довговічність, друге — цілісність, і обидва належать власникові системи, не оптимізації.",
+      "to": {
+        "lines": 492
+      }
+    },
+    {
+      "from": {
+        "lines": 1215,
+        "max_function_args": 15,
+        "max_function_lines": 84
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/infrastructure/repository.py",
+      "reason": "ОПТИМІЗАЦІЯ З ВИМІРОМ. (1) Прагми SQLite стали НАЗВАНИМИ параметрами: кеш сторінок був 2 МіБ на базу в 276 МіБ, відображення в пам'ять вимкнене, temp_store у файл — усе це дефолти самого SQLite для бази будь-якого розміру. Виміряно на живому корпусі чергуванням наборів A,B,A,B і новим з'єднанням на кожен прогін: середнє 58.67 -> 51.23 мс (-12.7 %), p95 66.88 -> 52.98 мс (-20.8 %), n=30 на набір. (2) `max_answers_per_subject` став явним: наявний var/load-probe.json показував 406 із 758 відмов сплеску з причиною `subject_share_exhausted` і ЖОДНОЇ через глобальну ємність — тобто стеля була не на сервісі, а на частці одного суб'єкта, під яким на публічній межі приходять усі. `synchronous` і серіалізація ланцюга аудиту НЕ чіпались: перше — довговічність, друге — цілісність, і обидва належать власникові системи, не оптимізації.",
+      "to": {
+        "lines": 1237,
+        "max_function_args": 17,
+        "max_function_lines": 88
+      }
+    },
+    {
+      "from": {
+        "lines": 90
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/infrastructure/runtime.py",
+      "reason": "ОПТИМІЗАЦІЯ З ВИМІРОМ. (1) Прагми SQLite стали НАЗВАНИМИ параметрами: кеш сторінок був 2 МіБ на базу в 276 МіБ, відображення в пам'ять вимкнене, temp_store у файл — усе це дефолти самого SQLite для бази будь-якого розміру. Виміряно на живому корпусі чергуванням наборів A,B,A,B і новим з'єднанням на кожен прогін: середнє 58.67 -> 51.23 мс (-12.7 %), p95 66.88 -> 52.98 мс (-20.8 %), n=30 на набір. (2) `max_answers_per_subject` став явним: наявний var/load-probe.json показував 406 із 758 відмов сплеску з причиною `subject_share_exhausted` і ЖОДНОЇ через глобальну ємність — тобто стеля була не на сервісі, а на частці одного суб'єкта, під яким на публічній межі приходять усі. `synchronous` і серіалізація ланцюга аудиту НЕ чіпались: перше — довговічність, друге — цілісність, і обидва належать власникові системи, не оптимізації.",
+      "to": {
+        "lines": 89
+      }
+    },
+    {
+      "from": {
+        "lines": 310,
+        "max_complexity": 15,
+        "max_function_lines": 84
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/application/retrieval.py",
+      "reason": "РЕФАКТОРИНГ БЕЗ ЗМІНИ ЛОГІКИ, доведений диференційно. Надлишковість MMR згортається ЛІНИВО замість перерахунку з нуля щораунду. Підстава алгебраїчна: max(S ∪ {x}) = max(max(S), x); максимум асоціативний, jaccard — частка двох цілих, тож похибці округлення взятися нізвідки, і вимагається ТОТОЖНІСТЬ, а не близькість. Доведено проти еталонної наївної реалізації на 10 комбінаціях версій і стель, плюс вихід поелементно збігся на справжніх прольотах корпусу. ВИМІРЯНО (256 кандидатів, limit=8): 1 версія 62.52->61.52 мс, 10 версій 134.48->83.48 (-37.9 %), 20 версій 227.44->103.52 (-54.5 %); жоден випадок не погіршився. Проміжна редакція, що згортала НАПЕРЕД, давала -45 % на широкому й +15 % на вузькому — знята, бо оптимізація, що погіршує випадок, оптимізацією не є. Зростання рядків — це докстрінг із виміром і три негативні контролі (мутанти M630-M632, усі вбиті).",
+      "to": {
+        "lines": 340,
+        "max_complexity": 16,
+        "max_function_lines": 114
+      }
+    },
+    {
+      "from": {
+        "lines": 6387
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "РЕФАКТОРИНГ БЕЗ ЗМІНИ ЛОГІКИ, доведений диференційно. Надлишковість MMR згортається ЛІНИВО замість перерахунку з нуля щораунду. Підстава алгебраїчна: max(S ∪ {x}) = max(max(S), x); максимум асоціативний, jaccard — частка двох цілих, тож похибці округлення взятися нізвідки, і вимагається ТОТОЖНІСТЬ, а не близькість. Доведено проти еталонної наївної реалізації на 10 комбінаціях версій і стель, плюс вихід поелементно збігся на справжніх прольотах корпусу. ВИМІРЯНО (256 кандидатів, limit=8): 1 версія 62.52->61.52 мс, 10 версій 134.48->83.48 (-37.9 %), 20 версій 227.44->103.52 (-54.5 %); жоден випадок не погіршився. Проміжна редакція, що згортала НАПЕРЕД, давала -45 % на широкому й +15 % на вузькому — знята, бо оптимізація, що погіршує випадок, оптимізацією не є. Зростання рядків — це докстрінг із виміром і три негативні контролі (мутанти M630-M632, усі вбиті).",
+      "to": {
+        "lines": 6414
       }
     }
   ],

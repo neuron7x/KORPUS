@@ -149,7 +149,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             selected.retrieval_cache_entries, selected.retrieval_cache_ttl_seconds
         )
         app.state.admission = AdmissionController(
-            selected.max_concurrent_answers, selected.admission_wait_ms / 1000
+            selected.max_concurrent_answers,
+            selected.admission_wait_ms / 1000,
+            per_subject_limit=selected.max_answers_per_subject,
         )
         app.state.ingestion_admission = AdmissionController(
             selected.max_concurrent_ingestions, selected.ingestion_wait_ms / 1000

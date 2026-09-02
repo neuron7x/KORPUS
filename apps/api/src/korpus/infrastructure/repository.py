@@ -176,7 +176,15 @@ class SqlRepository:
         # every positional argument after it, and `FileAuditAnchorStore` was handed
         # another `FileAuditAnchorStore` as its path.
         audit_keyring: AuditKeyRing | None = None,
+        #: Прагми SQLite як НАЗВАНІ параметри. Дефолти тут — виміряні значення (див.
+        #: `_configure_sqlite`), а не смак: 2 МіБ кешу на базу в 276 МіБ і вимкнене
+        #: відображення в пам'ять — дефолти самого SQLite, узяті для бази будь-якого
+        #: розміру. Нуль у `sqlite_mmap_mib` лишається допустимим.
+        sqlite_cache_mib: int = 64,
+        sqlite_mmap_mib: int = 256,
     ) -> None:
+        self._sqlite_cache_mib = max(2, int(sqlite_cache_mib))
+        self._sqlite_mmap_mib = max(0, int(sqlite_mmap_mib))
         engine_options: dict[str, Any] = {"future": True, "pool_pre_ping": True}
         if database_url.startswith("sqlite"):
             engine_options["connect_args"] = {
@@ -238,12 +246,32 @@ class SqlRepository:
             return None
         return create_engine(url, **options)
 
-    @staticmethod
-    def _configure_sqlite(dbapi_connection: Any, connection_record: Any) -> None:
+    def _configure_sqlite(self, dbapi_connection: Any, connection_record: Any) -> None:
+        """Прагми з'єднання. Три з них — НАЗВАНІ параметри, не магічні константи.
+
+        ВИМІРЯНО 02.09.2026 на обслуговуваному корпусі (276 МіБ, 31464 прольоти),
+        чергуванням наборів A,B,A,B — щоб дрейф машини ліг на обидва однаково — і з
+        новим з'єднанням на кожен прогін, інакше кеш попереднього виміряв би сам себе:
+
+            baseline  n=30  середнє 58.67 мс  p95 66.88 мс
+            tuned     n=30  середнє 51.23 мс  p95 52.98 мс   (-12.7 % / -20.8 %)
+
+        Число описує читання ФОРМИ СКАНУ на цій машині й цьому корпусі; воно не
+        переноситься ані на іншу форму запиту, ані на інше залізо.
+
+        `synchronous` НЕ чіпається навмисно. Це параметр ДОВГОВІЧНОСТІ, а не швидкості:
+        журнал аудиту — хеш-ланцюг, і рішення послабити його запис належить власникові
+        системи, не тому, хто оптимізує. Так само не чіпається серіалізація дописування:
+        хеш N+1 залежить від N, тобто це не вада, а цілісність, і прискорити її можна
+        лише груповим комітом — окремою зміною з окремим доказом.
+        """
         del connection_record
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute(f"PRAGMA cache_size=-{self._sqlite_cache_mib * 1024}")
+        cursor.execute(f"PRAGMA mmap_size={self._sqlite_mmap_mib * 1024 * 1024}")
+        cursor.execute("PRAGMA temp_store=MEMORY")
         cursor.close()
 
     def initialize(self, *, create_schema: bool = True) -> None:

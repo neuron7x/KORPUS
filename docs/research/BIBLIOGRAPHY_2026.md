@@ -13,24 +13,24 @@ External technical, scientific, operational, legal, and assurance references tha
 
 ## Coverage
 
-- `abstention_calibration` — 2 sources
+- `abstention_calibration` — 7 sources
 - `adaptive_compute` — 4 sources
 - `ai_governance` — 8 sources
 - `authorization_identity` — 9 sources
 - `data_durability` — 3 sources
-- `evaluation_tevv` — 11 sources
+- `evaluation_tevv` — 14 sources
 - `human_factors` — 5 sources
 - `legal_information_governance` — 3 sources
 - `military_assurance` — 4 sources
 - `neuroscience_basis` — 2 sources
 - `observability_reliability` — 4 sources
 - `provenance_integrity` — 9 sources
-- `rag_citations` — 3 sources
+- `rag_citations` — 4 sources
 - `rag_foundations` — 6 sources
 - `rag_security` — 5 sources
 - `runtime_deployment` — 5 sources
 - `secure_development` — 11 sources
-- `testing_reproducibility` — 6 sources
+- `testing_reproducibility` — 10 sources
 
 ## Bibliography
 
@@ -144,6 +144,26 @@ Use: Retention and write-once storage threat modeling.
 
 Boundary: Configuration and governance mode require production-side evidence.
 
+### BEER-VACUITY-1997
+
+Ilan Beer; Shoham Ben-David; Cindy Eisner; Yoav Rodeh (1997). *Efficient Detection of Vacuity in Temporal Model Checking*. CAV / Springer LNCS 1254. [https://link.springer.com/chapter/10.1007/3-540-63166-6_28](https://link.springer.com/chapter/10.1007/3-540-63166-6_28).
+
+Status: `research`; type: `peer-reviewed-research`; domains: `testing_reproducibility`, `evaluation_tevv`.
+
+Use: Поняття ВАКУЇТЕТУ: формула істинна з причини, не пов'язаної з предметом. Підстава для UNTESTED ≠ PASS у вироку живучості гейта.
+
+Boundary: Сформульовано для темпоральної логіки; перенесення на гейти — аналогія, названа як така.
+
+### BUDD-ANGLUIN-EQUIVALENCE-1982
+
+Timothy A. Budd; Dana Angluin (1982). *Two Notions of Correctness and Their Relation to Testing*. Springer, Acta Informatica. [https://link.springer.com/article/10.1007/BF00625279](https://link.springer.com/article/10.1007/BF00625279).
+
+Status: `research`; type: `peer-reviewed-research`; domains: `testing_reproducibility`.
+
+Use: Нерозв'язність еквівалентності мутанта. Підстава §4.3 FORMAL_PASSPORT: вижилий мутант НЕ є доказом дефекту, а мутаційний бал не підлягає максимізації як ціль.
+
+Boundary: Результат про нерозв'язність у загальному випадку; не забороняє ручного доведення еквівалентності конкретного мутанта.
+
 ### C2PA-2.4
 
 Coalition for Content Provenance and Authenticity (2026). *C2PA Technical Specification, version 2.4*. Coalition for Content Provenance and Authenticity. [https://spec.c2pa.org/specifications/specifications/2.4/specs/C2PA_Specification.html](https://spec.c2pa.org/specifications/specifications/2.4/specs/C2PA_Specification.html).
@@ -164,6 +184,26 @@ Use: Model, human-systems, systems-integration, and operational T&E decompositio
 
 Boundary: Public framework is not an operational authorization or completed independent T&E.
 
+### CHOW-REJECT-1970
+
+C. K. Chow (1970). *On Optimum Recognition Error and Reject Tradeoff*. IEEE Transactions on Information Theory. [https://ieeexplore.ieee.org/document/1054406](https://ieeexplore.ieee.org/document/1054406).
+
+Status: `research`; type: `peer-reviewed-research`; domains: `abstention_calibration`.
+
+Use: Класичний компроміс «помилка проти відмови» — попередник сучасного вибіркового прогнозування.
+
+Boundary: Припускає відомі апостеріорні ймовірності, яких у цій системі немає.
+
+### CLOPPER-PEARSON-1934
+
+C. J. Clopper; E. S. Pearson (1934). *The Use of Confidence or Fiducial Limits Illustrated in the Case of the Binomial*. Oxford University Press, Biometrika. [https://academic.oup.com/biomet/article/26/4/404/291538](https://academic.oup.com/biomet/article/26/4/404/291538).
+
+Status: `research`; type: `peer-reviewed-research`; domains: `abstention_calibration`, `evaluation_tevv`.
+
+Use: ТОЧНА біноміальна верхня межа. Реалізовано як clopper_pearson_upper_bound і викликано з calibration.upper_error_bound: це межа, що несе гарантію ризику прийнятої відповіді.
+
+Boundary: Консервативна за побудовою; ширина інтервалу не є оцінкою істинної частоти помилок.
+
 ### DEEPMIND-FSF-3.1
 
 Google DeepMind (2026). *Frontier Safety Framework 3.1*. Google DeepMind. [https://deepmind.google/frontier-safety/](https://deepmind.google/frontier-safety/).
@@ -173,6 +213,26 @@ Status: `current`; type: `industry-methodology`; domains: `ai_governance`, `eval
 Use: Capability-level, early-warning evaluation, and proportional-mitigation concepts.
 
 Boundary: A frontier-model framework does not define KORPUS deployment readiness.
+
+### DEMILLO-MUTATION-1978
+
+Richard A. DeMillo; Richard J. Lipton; Frederick G. Sayward (1978). *Hints on Test Data Selection: Help for the Practicing Programmer*. IEEE Computer Society. [https://ieeexplore.ieee.org/document/1646911](https://ieeexplore.ieee.org/document/1646911).
+
+Status: `research`; type: `peer-reviewed-research`; domains: `testing_reproducibility`.
+
+Use: Первинне формулювання мутаційного тестування й гіпотези компетентного програміста; підстава для того, що каталог мутантів рукотворний, а не згенерований.
+
+Boundary: Не дає підстав трактувати мутаційний бал як міру якості системи.
+
+### GEIFMAN-SELECTIVE-2017
+
+Yonatan Geifman; Ran El-Yaniv (2017). *Selective Classification for Deep Neural Networks*. NeurIPS. [https://papers.nips.cc/paper_files/paper/2017/hash/4a8423d5e91fda00bb7e46540e2b0cf1-Abstract.html](https://papers.nips.cc/paper_files/paper/2017/hash/4a8423d5e91fda00bb7e46540e2b0cf1-Abstract.html).
+
+Status: `research`; type: `peer-reviewed-research`; domains: `abstention_calibration`.
+
+Use: Каркас «покриття проти ризику»; підстава трактувати УТРИМАННЯ як першокласний вихід, а не відмову системи.
+
+Boundary: Сформульовано для класифікації; перенесення на породження відповіді з цитатами — аналогія.
 
 ### GOOGLE-SRE-ERROR-BUDGET
 
@@ -214,6 +274,16 @@ Use: Appropriate reliance and calibrated operator trust.
 
 Boundary: Design guidance does not itself demonstrate calibrated reliance.
 
+### HOEFFDING-INEQUALITY-1963
+
+Wassily Hoeffding (1963). *Probability Inequalities for Sums of Bounded Random Variables*. American Statistical Association, JASA. [https://www.tandfonline.com/doi/abs/10.1080/01621459.1963.10500830](https://www.tandfonline.com/doi/abs/10.1080/01621459.1963.10500830). DOI: `10.1080/01621459.1963.10500830`.
+
+Status: `research`; type: `peer-reviewed-research`; domains: `abstention_calibration`.
+
+Use: Дійсна межа для обмежених величин; вживається для двобічного інтервалу невизначеності. ЗАМІНЕНА на Клоппера-Пірсона там, де розподіл відомий біноміальний.
+
+Boundary: Консервативна для біноміального випадку: не використовує відомий розподіл.
+
 ### ICLR-SELF-RAG-2024
 
 Akari Asai; Zeqiu Wu; Yizhong Wang; Avirup Sil; Hannaneh Hajishirzi (2024). *Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection*. International Conference on Learning Representations. [https://openreview.net/forum?id=hSyW5go0v8](https://openreview.net/forum?id=hSyW5go0v8).
@@ -253,6 +323,16 @@ Status: `stable`; type: `specification`; domains: `provenance_integrity`, `secur
 Use: Attestation statement and software-supply-chain layout semantics.
 
 Boundary: A structurally valid statement does not make its signer trusted.
+
+### JARVELIN-NDCG-2002
+
+Kalervo Järvelin; Jaana Kekäläinen (2002). *Cumulated Gain-Based Evaluation of IR Techniques*. ACM Transactions on Information Systems. [https://dl.acm.org/doi/10.1145/582415.582418](https://dl.acm.org/doi/10.1145/582415.582418). DOI: `10.1145/582415.582418`.
+
+Status: `research`; type: `peer-reviewed-research`; domains: `evaluation_tevv`, `rag_citations`.
+
+Use: nDCG і межі бінарної релевантності. Підстава §5.2: Recall@k має СТРУКТУРНУ стелю min(1, k/N), і значення нижче неї не є вадою пошуку.
+
+Boundary: Не задає порогів придатності; стеля — властивість метрики, не системи.
 
 ### K8S-NETWORK-POLICY
 
@@ -474,6 +554,16 @@ Use: LLM application threat taxonomy including prompt injection and supply-chain
 
 Boundary: A threat list is not a complete system threat model or penetration result.
 
+### PETROVIC-GOOGLE-MUTATION-2018
+
+Goran Petrović; Marko Ivanković (2018). *State of Mutation Testing at Google*. ACM/IEEE ICSE-SEIP. [https://research.google/pubs/state-of-mutation-testing-at-google/](https://research.google/pubs/state-of-mutation-testing-at-google/).
+
+Status: `research`; type: `peer-reviewed-research`; domains: `testing_reproducibility`.
+
+Use: Промислова відмова від мутаційного балу як показника; підстава для двох чисел (score та score_over_catalogue) замість одного.
+
+Boundary: Досвід одного постачальника; не є твердженням про придатність методу деінде.
+
 ### PMLR-CALIBRATION-2017
 
 Chuan Guo; Geoff Pleiss; Yu Sun; Kilian Q. Weinberger (2017). *On Calibration of Modern Neural Networks*. Proceedings of Machine Learning Research. [https://proceedings.mlr.press/v70/guo17a.html](https://proceedings.mlr.press/v70/guo17a.html).
@@ -623,3 +713,13 @@ Status: `recommendation`; type: `standard`; domains: `provenance_integrity`, `ra
 Use: Entity, activity, agent, derivation, and attribution provenance vocabulary.
 
 Boundary: KORPUS uses its own binding schema and does not claim PROV-O interoperability.
+
+### WILSON-SCORE-1927
+
+Edwin B. Wilson (1927). *Probable Inference, the Law of Succession, and Statistical Inference*. American Statistical Association, JASA. [https://www.tandfonline.com/doi/abs/10.1080/01621459.1927.10502953](https://www.tandfonline.com/doi/abs/10.1080/01621459.1927.10502953).
+
+Status: `research`; type: `peer-reviewed-research`; domains: `abstention_calibration`.
+
+Use: Наближений score-інтервал для ЗВІТНОСТІ. Названо ВІДКИНУТИМ для гарантій: він не дає покриття ≥ 1−δ при малих n.
+
+Boundary: Не є точним інтервалом; використання його як гарантії було б помилкою класу.

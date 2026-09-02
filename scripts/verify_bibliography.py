@@ -304,7 +304,15 @@ def verify_rendered(root: Path, data: JsonMap) -> list[str]:
     return failures
 
 
-def selftest(data: JsonMap, root: Path) -> list[str]:
+def selftest(data: JsonMap, root: Path) -> tuple[list[str], int]:
+    """Повертає вижилі проби І ЇХНЮ КІЛЬКІСТЬ.
+
+    ВИМІРЯНО 02.09.2026: звіт ніс поле `negative_controls: 8 if args.selftest else 0` —
+    константу в одязі виміру. Число було правильним у момент написання й саме тому
+    небезпечним: додай дев'яту мутацію, і поле збреше МОВЧКИ, бо воно є ДРУГИМ
+    оголошенням того, що код і так рахує. Сигнал, який ніколи не бував іншим, не є
+    виміром.
+    """
     probes: list[tuple[str, JsonMap]] = []
     mutations: dict[str, Callable[[JsonMap], object]] = {
         "duplicate_id": lambda value: value["sources"].append(copy.deepcopy(value["sources"][0])),
@@ -328,7 +336,7 @@ def selftest(data: JsonMap, root: Path) -> list[str]:
     stale["sources"][0]["title"] += " mutated"
     if not verify_rendered(root, stale):
         survivors.append("stale_render")
-    return survivors
+    return survivors, len(probes) + 1
 
 
 def main() -> int:
@@ -346,9 +354,9 @@ def main() -> int:
         (root / BIBTEX).write_text(render_bibtex(data), encoding="utf-8")
     if not failures:
         failures.extend(verify_rendered(root, data))
-    killed = []
+    controls = 0
     if args.selftest and not failures:
-        killed = selftest(data, root)
+        killed, controls = selftest(data, root)
         if killed:
             failures.extend(f"selftest_survivor:{name}" for name in killed)
     result = {
@@ -356,7 +364,7 @@ def main() -> int:
         "status": "PASS" if not failures else "FAIL",
         "sources": len(data.get("sources", [])),
         "domains": len(data.get("required_domains", [])),
-        "negative_controls": 8 if args.selftest else 0,
+        "negative_controls": controls,
         "failures": failures,
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))

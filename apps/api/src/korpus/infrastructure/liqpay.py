@@ -56,7 +56,11 @@ class LiqPayBillingProvider:
     def _digest(self, value: bytes) -> bytes:
         if self._algorithm == "sha3_256":
             return hashlib.sha3_256(value).digest()
-        return hashlib.sha1(value, usedforsecurity=False).digest()
+        # `usedforsecurity=False` тут стояло й було ХИБНИМ: цей геш рахує ПІДПИС.
+        # Прапорець глушив власний детектор дерева саме там, де він мав спрацювати.
+        # Ужиток лишається — його вимагає протокол LiqPay — але тепер він НАЗВАНИЙ
+        # у config/operations/security-acceptances.json, з причиною і датою.
+        return hashlib.sha1(value).digest()
 
     def sign_data(self, data: str) -> str:
         material = f"{self._private_key}{data}{self._private_key}".encode()

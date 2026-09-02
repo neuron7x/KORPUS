@@ -43,6 +43,8 @@ def create_repository(settings: Settings, policy: PolicyEngine | None = None) ->
         # Іменована, бо вставка поруч із ключем зсунула б позиційні аргументи — це вже
         # ставалось і віддало `FileAuditAnchorStore` самому собі як шлях.
         audit_keyring=settings.resolved_audit_keyring(),
+        sqlite_cache_mib=settings.sqlite_cache_mib,
+        sqlite_mmap_mib=settings.sqlite_mmap_mib,
         **extra,  # type: ignore[arg-type]
     )
 

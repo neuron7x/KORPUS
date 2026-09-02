@@ -21,7 +21,7 @@
       ]
     },
     "budgeted_modules": {
-      "count": 592
+      "count": 593
     },
     "hard_predicates": {
       "members": [
@@ -44,6 +44,8 @@
     "lane_validate_targets": {
       "members": [
         "assurance-model-check",
+        "bibliography-check",
+        "builtin-security",
         "cache-in-tree",
         "catalog-uri-uniqueness",
         "content-signals",
@@ -105,10 +107,10 @@
       "count": 41
     },
     "mutants": {
-      "count": 582
+      "count": 585
     },
     "scripts_declaring_selftest": {
-      "count": 44
+      "count": 45
     }
   },
   "removed": [
