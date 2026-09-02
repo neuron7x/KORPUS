@@ -5515,6 +5515,60 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M630_THE_DEBT_REGISTRY_BINDS_TO_A_CHECKOUT_VENV",
+        "scripts/check_deployment_debt.py",
+        "    if command[0] == PYTHON_TOKEN:",
+        "    if False:",
+        (
+            "apps/api/tests/test_deployment_debt.py::"
+            "test_registry_python_commands_are_portable_between_worktrees",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M631_A_MISSING_GATE_BINARY_CRASHES_THE_DEBT_AUDIT",
+        "scripts/check_deployment_debt.py",
+        "    try:\n"
+        "        completed = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=False)\n"
+        "    except OSError:\n"
+        "        return None",
+        "    completed = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=False)",
+        (
+            "apps/api/tests/test_deployment_debt.py::"
+            "test_missing_gate_binary_is_unknown_instead_of_crashing",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M632_A_NON_STRING_COMMAND_PART_REACHES_SUBPROCESS",
+        "scripts/check_deployment_debt.py",
+        "    if not isinstance(value, list) or not value or not all(isinstance(part, str) for part in value):",
+        "    if not isinstance(value, list) or not value:",
+        ("apps/api/tests/test_deployment_debt.py::test_non_string_command_parts_are_not_executed",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M633_SYSTEMD_API_RESTART_BYPASSES_CORPUS_ADMISSION",
+        "deploy/public/korpus-public-api.service",
+        'ExecCondition="@KORPUS_ROOT@/apps/api/.venv/bin/python"',
+        '# ExecCondition removed="@KORPUS_ROOT@/apps/api/.venv/bin/python"',
+        (
+            "apps/api/tests/test_public_runtime_units.py::test_api_unit_is_loopback_only_and_bounded",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M634_SYSTEMD_WORKER_RESTART_BYPASSES_CORPUS_ADMISSION",
+        "deploy/public/korpus-worker.service",
+        'ExecCondition="@KORPUS_ROOT@/apps/api/.venv/bin/python"',
+        '# ExecCondition removed="@KORPUS_ROOT@/apps/api/.venv/bin/python"',
+        (
+            "apps/api/tests/test_public_runtime_units.py::"
+            "test_worker_unit_supervises_and_bounds_the_ingestion_loop",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M470_AN_UNUSABLE_VALUE_IS_TOLERATED",
         "scripts/check_public_env_parity.py",
         '        name for name, value in unit.items() if value.startswith("{") and not _parses_as_json(value)',

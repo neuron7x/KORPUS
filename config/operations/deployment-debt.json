@@ -4,7 +4,7 @@
       "ceiling": 89,
       "closes_when": "джерела з розміткою будуть перезняті або виключені з цитування",
       "command": [
-        "apps/api/.venv/bin/python",
+        "{python}",
         "scripts/validate_span_hygiene.py",
         "--database",
         "var/runtime/corpus-v6-20260807/korpus.db",

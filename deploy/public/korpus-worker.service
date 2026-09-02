@@ -17,6 +17,7 @@ Environment=KORPUS_JWT_ISSUER=korpus-public
 Environment=KORPUS_JWT_AUDIENCE=korpus
 Environment=KORPUS_JWT_MAX_LIFETIME_MINUTES=1440
 Environment="PYTHONPATH=@KORPUS_ROOT@/apps/api/src"
+ExecCondition="@KORPUS_ROOT@/apps/api/.venv/bin/python" "@KORPUS_ROOT@/scripts/audit_runtime_corpus.py" --database "@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/korpus.db" --object-root "@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/objects" --out "@KORPUS_ROOT@/var/public/runtime-corpus-audit-worker.json"
 ExecStart="@KORPUS_ROOT@/apps/api/.venv/bin/python" -m korpus.cli worker-loop --idle-seconds 1
 Restart=on-failure
 RestartSec=5

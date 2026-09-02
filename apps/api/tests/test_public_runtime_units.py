@@ -24,6 +24,13 @@ def test_api_unit_is_loopback_only_and_bounded() -> None:
     assert "MemoryHigh=2G" in unit
     assert "MemoryMax=3G" in unit
     assert "Restart=on-failure" in unit
+    assert (
+        f'ExecCondition="{ROOT}/apps/api/.venv/bin/python" '
+        f'"{ROOT}/scripts/audit_runtime_corpus.py" '
+        f'--database "{ROOT}/var/runtime/corpus-v6-20260807/korpus.db" '
+        f'--object-root "{ROOT}/var/runtime/corpus-v6-20260807/objects" '
+        f'--out "{ROOT}/var/public/runtime-corpus-audit-api.json"'
+    ) in unit
 
 
 def test_worker_unit_supervises_and_bounds_the_ingestion_loop() -> None:
@@ -38,6 +45,13 @@ def test_worker_unit_supervises_and_bounds_the_ingestion_loop() -> None:
     assert "Restart=on-failure" in unit
     assert "Nice=5" in unit
     assert "IOSchedulingPriority=7" in unit
+    assert (
+        f'ExecCondition="{ROOT}/apps/api/.venv/bin/python" '
+        f'"{ROOT}/scripts/audit_runtime_corpus.py" '
+        f'--database "{ROOT}/var/runtime/corpus-v6-20260807/korpus.db" '
+        f'--object-root "{ROOT}/var/runtime/corpus-v6-20260807/objects" '
+        f'--out "{ROOT}/var/public/runtime-corpus-audit-worker.json"'
+    ) in unit
 
 
 def test_units_use_secret_file_and_do_not_allow_resource_control_overrides() -> None:

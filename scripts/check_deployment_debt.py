@@ -1,24 +1,10 @@
 #!/usr/bin/env python3
-"""Червоне, яке прийняли, мусить мати стелю — інакше воно просто червоне.
+"""Ратчет прийнятого боргу розгортання.
 
-Частина гейтів міряє не дерево, а РОЗГОРТАННЯ: обслуговуваний корпус, його журнал,
-його прольоти. Вони не можуть стояти в `make check`, бо той мусить проходити там, де
-ні корпусу, ні сервісу немає, — і саме тому вони не стояли ніде. `span-hygiene` був
-червоний ще до 31.08.2026 і не червонив нічого.
+Гейти живого корпусу не можуть входити до перевірки дерева без розгортання. Реєстр
+дає кожному такому боргу виміряну стелю: погіршення — FAIL, рівність — PASS,
+поліпшення — PASS із вимогою знизити стелю. Непрочитане лишається UNKNOWN.
 
-Підключити його як є означало б зробити щоденний гейт червоним для всіх; лишити
-мовчки означає вдавати, що діри немає. Третій стан: борг ПРИЙНЯТИЙ, названий і має
-СТЕЛЮ, а гейт відмовляє на погіршенні.
-
-    гірше за стелю   → FAIL, із числом і різницею
-    рівно стеля      → PASS
-    краще за стелю   → PASS, і стелю треба ЗНИЗИТИ — гейт каже, на скільки
-
-Останнє важливе: ратчет, який не помічає покращення, з часом перетворюється на
-дозвіл. Тому поліпшення тут не мовчазне — воно вимагає запису, як і підняття.
-
-    check_deployment_debt.py
-    check_deployment_debt.py --selftest
 """
 
 from __future__ import annotations
@@ -33,6 +19,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 REGISTRY = ROOT / "config/operations/deployment-debt.json"
 SCHEMA = "korpus.deployment-debt.v1"
+PYTHON_TOKEN = "{python}"
 
 
 def metric_at(report: dict[str, Any], path: str, kind: str = "number") -> int | None:
@@ -108,12 +95,25 @@ def verdict(results: list[dict[str, Any]]) -> str:
     return "UNKNOWN" if "UNKNOWN" in verdicts else "PASS"
 
 
+def resolve_command(value: object) -> list[str] | None:
+    """Resolve the interpreter without binding the registry to one checkout's venv."""
+    if not isinstance(value, list) or not value or not all(isinstance(part, str) for part in value):
+        return None
+    command = list(value)
+    if command[0] == PYTHON_TOKEN:
+        command[0] = sys.executable
+    return command
+
+
 def run_entry(entry: dict[str, Any]) -> dict[str, Any] | None:
     """Виконати гейт і взяти його звіт. Ненульовий код — очікуваний: борг же прийнятий."""
-    command = entry.get("command")
-    if not isinstance(command, list) or not command:
+    command = resolve_command(entry.get("command"))
+    if command is None:
         return None
-    completed = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=False)
+    try:
+        completed = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=False)
+    except OSError:
+        return None
     text = completed.stdout
     start = text.find("{")
     if start < 0:

@@ -1,9 +1,4 @@
 {
-  "line_exempt": {
-    "apps/api/src/korpus/infrastructure_requirements.py": "A register of requirements is data. It grows by one entry every time the system states another property about itself, which is the behaviour the ratchet exists to encourage. Complexity stays capped.",
-    "apps/api/src/korpus/repository_requirements.py": "A register of requirements is data; it grows by one entry per property the system states about itself. Complexity stays capped.",
-    "scripts/run_mutation_tests.py": "The mutant catalogue is data. It grows by roughly ten lines every time a predicate gains a mutant, which is exactly the behaviour this ratchet exists to encourage. Complexity stays capped: a registry that grew a branch is no longer a registry."
-  },
   "lowered": [
     {
       "new_modules": [
@@ -2881,7 +2876,7 @@
       "max_function_args": 5,
       "max_function_lines": 94,
       "max_nesting": 1,
-      "reason": " | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
+      "reason": "Реєстр вимог росте на один запис із кожною новою властивістю системи; складність і форма функцій залишаються обмеженими окремо."
     },
     "apps/api/src/korpus/kubernetes_requirements.py": {
       "lines": null,
@@ -3000,12 +2995,13 @@
       "reason": "v0.6.1: canonical distribution artifact identity is now single-sourced with release version/tag"
     },
     "apps/api/src/korpus/repository_requirements.py": {
-      "lines": 413,
+      "lines": null,
       "max_complexity": 11,
       "max_function_args": 4,
       "max_function_lines": 39,
       "max_nesting": 3,
-      "proof_lines": 0
+      "proof_lines": 0,
+      "reason": "Реєстр вимог росте на один запис із кожною новою властивістю репозиторію; складність і форма функцій залишаються обмеженими окремо."
     },
     "apps/api/src/korpus/runtime_config_policy.py": {
       "lines": 18,
@@ -5001,13 +4997,13 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 6459,
+      "lines": null,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "+73 рядки за M483–M486: відмова як прогалина покриття, вибране як оголошене, найчастіший термін замість найрідшого, службові слова як свідчення."
+      "reason": "Каталог мутантів є даними й росте з кожним новим предикатом; складність і форма виконувального рушія залишаються обмеженими окремо."
     },
     "scripts/run_operational_gate.py": {
       "lines": 42,

@@ -41,6 +41,7 @@ Environment=KORPUS_AUDIT_HMAC_KEY_FILE=%h/.local/state/korpus-public/audit-key.t
 Environment=KORPUS_AUDIT_KEY_ID=korpus-public-2026-08-31
 Environment="KORPUS_AUDIT_VERIFICATION_KEY_FILES={\"legacy-unversioned\":\"%h/.local/state/korpus-public/audit-key-legacy-unversioned.txt\",\"serve-public-inline-2026-08\":\"%h/.local/state/korpus-public/audit-key-serve-public-inline.txt\"}"
 Environment="PYTHONPATH=@KORPUS_ROOT@/apps/api/src"
+ExecCondition="@KORPUS_ROOT@/apps/api/.venv/bin/python" "@KORPUS_ROOT@/scripts/audit_runtime_corpus.py" --database "@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/korpus.db" --object-root "@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/objects" --out "@KORPUS_ROOT@/var/public/runtime-corpus-audit-api.json"
 ExecStart="@KORPUS_ROOT@/apps/api/.venv/bin/python" -m uvicorn korpus.main:app --host 127.0.0.1 --port 8000 --log-level warning --workers 2
 Restart=on-failure
 RestartSec=5

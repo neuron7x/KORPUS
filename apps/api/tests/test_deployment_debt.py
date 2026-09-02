@@ -67,6 +67,23 @@ def test_every_registered_debt_names_a_reason_a_ceiling_and_a_way_out() -> None:
         assert isinstance(entry["command"], list) and entry["command"]
 
 
+def test_registry_python_commands_are_portable_between_worktrees() -> None:
+    registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    python_commands = [
+        entry["command"] for entry in registry["accepted"] if entry["command"][0] == "{python}"
+    ]
+    assert python_commands
+    assert all(DEBT.resolve_command(command)[0] == sys.executable for command in python_commands)
+
+
+def test_missing_gate_binary_is_unknown_instead_of_crashing() -> None:
+    assert DEBT.run_entry({"command": ["korpus-command-that-does-not-exist"]}) is None
+
+
+def test_non_string_command_parts_are_not_executed() -> None:
+    assert DEBT.resolve_command([sys.executable, 7]) is None
+
+
 def test_the_span_hygiene_ceiling_is_the_measured_number() -> None:
     """Стеля — виміряне значення дня, не кругле й не із запасом."""
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
