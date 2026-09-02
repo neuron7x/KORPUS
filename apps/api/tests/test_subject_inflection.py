@@ -15,6 +15,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "scripts"))
 
@@ -108,3 +110,37 @@ def test_the_set_on_disk_is_readable_as_the_measurer_reads_it() -> None:
     lines = INFLECTION_SET.read_text(encoding="utf-8").splitlines()
 
     assert [json.loads(line) for line in lines if line.strip()] == inflection_pairs(INFLECTION_SET)
+
+
+def test_an_empty_run_may_not_overwrite_a_measured_report(tmp_path) -> None:
+    """Доказ знищується не хибним числом, а тим, що порожній результат займає місце.
+
+    Виміряно 02.09.2026 на власній помилці: `make subject-precision` не мав чим
+    передати токен, тож проти автентифікованого розгортання всі 92 предмети стали
+    `unreachable`. Звіт чесно сказав UNKNOWN — і цим ЗАТЕР звіт із `top1: 0.967`.
+    Вісь одразу впала в UNMEASURED, і виглядало це як регрес якості.
+
+    «Транспортна відмова не є вимірюванням» у цьому дереві вже записано, але
+    боронило воно ЧИСЛО — нуль замість «не міряли». Файл воно не боронило.
+    """
+    import json
+
+    from benchmark_subject_precision import refuse_to_overwrite_a_measurement
+
+    out = tmp_path / "subject-precision.json"
+    out.write_text(json.dumps({"top1_subject_precision": 0.967}), encoding="utf-8")
+
+    with pytest.raises(SystemExit, match="жоден із 92"):
+        refuse_to_overwrite_a_measurement(out, unreachable=92, total=92)
+
+    # Дуал 1: ЧАСТКОВА недосяжність проходить — вона лишається в звіті числом,
+    # і саме так її видно. Заборонена рівно повна.
+    refuse_to_overwrite_a_measurement(out, unreachable=91, total=92)
+
+    # Дуал 2: якщо попереднього виміру немає, порожній прогін має право записатись —
+    # інакше перший прогін у чистому дереві був би неможливий.
+    empty = tmp_path / "fresh.json"
+    refuse_to_overwrite_a_measurement(empty, unreachable=92, total=92)
+    unmeasured = tmp_path / "unknown.json"
+    unmeasured.write_text(json.dumps({"status": "UNKNOWN"}), encoding="utf-8")
+    refuse_to_overwrite_a_measurement(unmeasured, unreachable=92, total=92)

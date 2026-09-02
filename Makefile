@@ -812,14 +812,17 @@ repair-span-markup:
 ## — головне, що ця система має показувати замість обіцянок: чи відповідь про того,
 ## кого спитали. Базова лінія 31.08.2026: top1 = 0.000 на 92 оголошених предметах,
 ## і впевненість ПЕРЕВЕРНУТА — на хибних відповідях покриття вище, ніж на правильних.
+# TOKEN обов'язковий проти автентифікованого розгортання. Без нього кожен випадок
+# стає `unreachable`, звіт чесно каже UNKNOWN — і цим ЗАТИРАЄ виміряний звіт.
+# Виміряно 02.09.2026 на власній помилці: 92 з 92 недосяжні, `top1: 0.967` зникло.
 subject-precision:
 	$(PY) scripts/benchmark_subject_precision.py --selftest
-	@test -n "$(BASE)" || { echo "вжиток: make subject-precision BASE=http://127.0.0.1:8000 [DATABASE=...]" >&2; exit 64; }
-	$(PY) scripts/benchmark_subject_precision.py --base "$(BASE)" --database "$(or $(DATABASE),$(SERVED_CORPUS))"
+	@test -n "$(BASE)" || { echo "вжиток: make subject-precision BASE=http://127.0.0.1:8000 TOKEN=... [DATABASE=...]" >&2; exit 64; }
+	$(PY) scripts/benchmark_subject_precision.py --base "$(BASE)" $(if $(TOKEN),--token "$(TOKEN)") --database "$(or $(DATABASE),$(SERVED_CORPUS))"
 # Друга форма питання. Еталон питає НАЗИВНИМ, бо роль береться із заголовка як є;
 # людина питає РОДОВИМ. Виміряно 01.09.2026: називний 14/14, родовий 1/14 — тобто
 # перше число правдиве про свій розподіл входу й мовчить про той, який справді буде.
-	$(PY) scripts/benchmark_subject_precision.py --base "$(BASE)" --inflected \
+	$(PY) scripts/benchmark_subject_precision.py --base "$(BASE)" $(if $(TOKEN),--token "$(TOKEN)") --inflected \
 	  --out var/subject-inflection.json
 
 ## Скільки баз доказів існує — і чи та, яку подають, є тією, яку назвали. Виміряно

@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1745,
-  "root_sha256": "c288e884e25c39a2fe1b65a6fa83015775089fff7688ede71b6d14a002c30363",
+  "root_sha256": "169bed1d7b5a816bbeb4336e92e636c1e8efaef8a94939724745ed8b9d53ebf8",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 87828,
-      "sha256": "317866306b61e5c57470ec4442b8fcabc14ede1aab8d7fa68218680fb84983f2",
+      "bytes": 88296,
+      "sha256": "c1863aefd2f461e4421541aa2cb3ebfe7f4b2ad4812412398e8fd93f54d9aba2",
       "mode": "0644"
     },
     {
@@ -4645,8 +4645,8 @@
     },
     {
       "path": "apps/api/tests/test_subject_inflection.py",
-      "bytes": 5247,
-      "sha256": "14227cc012c71c60d2edc3ccbc30fc05c2356a452ad1bffb5c3e47c09f03527d",
+      "bytes": 7479,
+      "sha256": "af3724948f8a34e73f7958512b8d7ae5d2b064aed38db200450ab68fbde48439",
       "mode": "0644"
     },
     {
@@ -7129,8 +7129,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 478063,
-      "sha256": "0fb09a68bd30777b83a78113ee77781f896f7ee5636ad0990522b5a726b31d1c",
+      "bytes": 479146,
+      "sha256": "95a0f5a3230780bceb5d882821271f3187d527a6aae83fd70df42d53e695e6b0",
       "mode": "0644"
     },
     {
@@ -8725,8 +8725,8 @@
     },
     {
       "path": "scripts/benchmark_subject_precision.py",
-      "bytes": 20256,
-      "sha256": "695b73a3db20ae9cb467d2d1cf7835c3e810b0350f230f704056ca0843d1646f",
+      "bytes": 22805,
+      "sha256": "03a8ab707ca1d8ec7788ebe076147d8c244bc871de91c1e4b59663a2b3daeeb3",
       "mode": "0755"
     },
     {
@@ -9925,8 +9925,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 272678,
-      "sha256": "11e3ed31b431f163bb76590d2d07decfd0a82adb3f77ba5b4a00474646fd01e7",
+      "bytes": 273404,
+      "sha256": "af52efb1b918c32d61f4617d6593449b2e67e0b2a9f13d7c58743b1d1e497352",
       "mode": "0755"
     },
     {

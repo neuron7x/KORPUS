@@ -5703,6 +5703,19 @@ MUTANTS = (
             "test_a_development_report_cannot_satisfy_the_production_predicate",
         ),
     ),
+    Mutant(
+        # Доказ знищується не хибним числом, а тим, що порожній результат займає
+        # його місце. «Транспортна відмова не є вимірюванням» боронило ЧИСЛО;
+        # файл воно не боронило.
+        "M598_AN_EMPTY_RUN_OVERWRITES_A_MEASUREMENT",
+        "scripts/benchmark_subject_precision.py",
+        "    if total <= 0 or unreachable < total or not out.is_file():\n        return",
+        "    if True:\n        return",
+        (
+            "apps/api/tests/test_subject_inflection.py::"
+            "test_an_empty_run_may_not_overwrite_a_measured_report",
+        ),
+    ),
 )
 
 

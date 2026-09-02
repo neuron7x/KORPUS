@@ -175,6 +175,11 @@ def run_inflected(arguments: argparse.Namespace) -> int:
         "set": str(arguments.inflection_set.relative_to(ROOT)),
     }
     arguments.out.parent.mkdir(parents=True, exist_ok=True)
+    refuse_to_overwrite_a_measurement(
+        arguments.out,
+        int(report.get("unreachable") or 0),
+        int(report.get("cases") or report.get("declared_subjects") or 0),
+    )
     arguments.out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(
         json.dumps(
@@ -327,6 +332,40 @@ def selftest() -> int:
     return 0 if passed == len(checks) else 1
 
 
+def refuse_to_overwrite_a_measurement(out: Path, unreachable: int, total: int) -> None:
+    """Прогін, у якому НІЩО не відповіло, не сміє затерти прогін, у якому відповіло.
+
+    Виміряно на власній помилці 02.09.2026: `make subject-precision` не має чим
+    передати токен, тож проти автентифікованого розгортання всі 92 предмети стали
+    `unreachable`. Звіт чесно сказав `UNKNOWN` — і цим ЗАТЕР звіт, у якому було
+    `top1: 0.967`. Вісь одразу впала в UNMEASURED, і виглядало це як регрес якості.
+
+    Транспортна відмова не є вимірюванням — це вже записано в цьому дереві. Але
+    записаного мало: воно боронило ЧИСЛО (нуль замість «не міряли») і не боронило
+    ФАЙЛ. Тут закривається друге: доказ знищується не хибним числом, а тим, що
+    порожній результат займає місце наявного.
+
+    Часткова недосяжність проходить: вона лишається в звіті числом, і саме так її
+    видно. Забороняється рівно повна.
+    """
+    if total <= 0 or unreachable < total or not out.is_file():
+        return
+    try:
+        previous = json.loads(out.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return
+    measured = previous.get("top1_subject_precision") is not None or (
+        previous.get("status") == "MEASURED"
+    )
+    if not measured:
+        return
+    raise SystemExit(
+        f"відмова: жоден із {total} випадків не відповів, а {out.name} містить "
+        "виміряний результат. Порожній прогін не заміщає вимір — перевір токен "
+        "(--token) і доступність бази."
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", default="http://127.0.0.1:8000")
@@ -386,6 +425,11 @@ def main() -> int:
         ][:8],
     }
     arguments.out.parent.mkdir(parents=True, exist_ok=True)
+    refuse_to_overwrite_a_measurement(
+        arguments.out,
+        int(report.get("unreachable") or 0),
+        int(report.get("cases") or report.get("declared_subjects") or 0),
+    )
     arguments.out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(
         json.dumps({k: v for k, v in report.items() if k != "worst"}, ensure_ascii=False, indent=2)
