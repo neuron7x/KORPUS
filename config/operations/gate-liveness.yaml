@@ -123,23 +123,21 @@ gates:
   keep:
   - .git
   poisons:
-  - name: звіт оголошує чужу область вимірювання
+  - name: несучий дайджест не той, що в дереві
     kind: replace
     target: reports/RESEARCH_ASSURANCE_REPORT.json
-    find: '"digest_scope": "tracked_tree"'
-    payload: '"digest_scope": "evidence_paths"'
-  - name: digest у звіті не той, що в дереві
+    find: '"tracked_tree_sha256": "'
+    payload: '"tracked_tree_sha256": "0'
+  - name: звіт називає чужу область над несучим числом
     kind: replace
     target: reports/RESEARCH_ASSURANCE_REPORT.json
-    find: "\"provenance\": \"ASSEMBLED_FROM_INDIVIDUALLY_EXECUTED_LOCAL_GATES\",\n  \"source_tree_sha256\"\
-      : \""
-    payload: "\"provenance\": \"ASSEMBLED_FROM_INDIVIDUALLY_EXECUTED_LOCAL_GATES\",\n  \"source_tree_sha256\"\
-      : \"0000"
-  - name: незаявлена область перестає бути окремим станом
+    find: '"tracked_tree_scope": "tracked_tree"'
+    payload: '"tracked_tree_scope": "evidence_paths"'
+  - name: несуче поле зникло — лишилась лише незіставна область
     kind: replace
     target: reports/RESEARCH_ASSURANCE_REPORT.json
-    find: '"digest_scope": "tracked_tree",'
-    payload: ''
+    find: '"tracked_tree_sha256":'
+    payload: '"unused_tree_sha256":'
 - name: module-budget
   run:
   - env
@@ -186,12 +184,16 @@ gates:
   - name: бюджет зник — новий модуль лишається невиміряним
     kind: delete
     target: config/operations/module-budget.json
-  - name: selftest виріс — це доказ, а не код, гейт мусить ПРИЙНЯТИ
+  - name: модуль СКОРОТИВСЯ — гейт мусить ПРИЙНЯТИ
     kind: replace
     target: scripts/validate_remote_digest.py
-    find: 'def selftest() -> int:'
-    payload: "def selftest() -> int:\n    _p0 = _p1 = _p2 = _p3 = _p4 = _p5 = _p6 = _p7 = _p8 = _p9 =\
-      \ 0\n    _q0 = _q1 = _q2 = _q3 = _q4 = _q5 = _q6 = _q7 = _q8 = _q9 = 0"
+    find: '
+
+
+      ROOT = Path(__file__).resolve().parents[1]'
+    payload: '
+
+      ROOT = Path(__file__).resolve().parents[1]'
     equivalent: true
 - name: verdict-ledger
   run:

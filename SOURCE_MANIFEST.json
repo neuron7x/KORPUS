@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1756,
-  "root_sha256": "3bc8eafdb32e467cdf84e78d3a4fbf7138923fca233fb7465ce592da32f27acd",
+  "root_sha256": "a35bdd01340f849bf1f7aa971e707fca9a109de9b2efa424a50ceeaa9af017fb",
   "files": [
     {
       "path": ".dockerignore",
@@ -7159,8 +7159,8 @@
     },
     {
       "path": "config/operations/gate-liveness.yaml",
-      "bytes": 14442,
-      "sha256": "2fa72b6abcb6d1ec7b8771def97e9aedb3ca15a387d2035d1bf31de18a213e6a",
+      "bytes": 14224,
+      "sha256": "cac78847adddafbd9a4af05e1db723c7fdf25e2d74862314523becb61f927cad",
       "mode": "0644"
     },
     {
