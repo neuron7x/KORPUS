@@ -520,10 +520,10 @@
       "proof_lines": 0
     },
     "apps/api/src/korpus/api/answering.py": {
-      "lines": 70,
+      "lines": 76,
       "max_complexity": 3,
       "max_function_args": 5,
-      "max_function_lines": 29,
+      "max_function_lines": 31,
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "the one place an answer is produced under the concurrency bound"
@@ -1954,10 +1954,10 @@
       "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
     "apps/api/src/korpus/application/retrieval_hybrid.py": {
-      "lines": 176,
+      "lines": 185,
       "max_complexity": 13,
       "max_function_args": 25,
-      "max_function_lines": 96,
+      "max_function_lines": 104,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Клас оголошеного предмета став ГРАДУЙОВАНИМ: довжина збігу замість членства. «Командир» є підрядком «Безпосередні командири», тож бінарний клас ставив узагальнення поруч із конкретним і віддавав перемогу релевантності. Порядок уже обчислювався в `subjects_in_question` і губився при перетворенні на множину. Виміряно: `subject` 0.8352 → 0.9451. Заразом прибрано ДРУГЕ означення того самого поняття — `retrieval_hybrid` мав власну копію логіки поруч із `declared_subject`."
@@ -1970,6 +1970,15 @@
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/retrieval_metrics_context.py": {
+      "lines": 47,
+      "max_complexity": 2,
+      "max_function_args": 2,
+      "max_function_lines": 5,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Спостерігач набору кандидатів. Гістограма `korpus_retrieval_candidates` була ОГОЛОШЕНА і не наповнювалась жодним рядком дерева, тож три конкурентні пояснення хвостової затримки — промах кеша, черга за GIL, розростання набору — давали ОДНАКОВІ спостереження. Порожній ряд у Prometheus не відрізняється від системи без навантаження. Форма списана з `pec_metrics_context`, а не вигадана заново: другий механізм для того самого завдання розійшовся б із першим."
     },
     "apps/api/src/korpus/application/risk.py": {
       "lines": 100,
@@ -2629,10 +2638,10 @@
       "proof_lines": 0
     },
     "apps/api/src/korpus/infrastructure/observability.py": {
-      "lines": 207,
+      "lines": 227,
       "max_complexity": 3,
       "max_function_args": 5,
-      "max_function_lines": 86,
+      "max_function_lines": 95,
       "max_nesting": 2,
       "proof_lines": 0
     },
@@ -3516,6 +3525,15 @@
       "max_nesting": 1,
       "proof_lines": 0
     },
+    "scripts/check_declared_metrics_are_observed.py": {
+      "lines": 190,
+      "max_complexity": 13,
+      "max_function_args": 3,
+      "max_function_lines": 38,
+      "max_nesting": 5,
+      "proof_lines": 22,
+      "reason": "Гейт: оголошення метрики є ОБІЦЯНКОЮ спостереження. На кожну оголошену мусить бути рядок, що її наповнює, або запис у реєстрі з причиною й датою. Розв'язує ПСЕВДОНІМИ (`self.X = self.Y`) — на першому ж прогоні гейт дав хибну тривогу на `admission_active`, який наповнюється під іменем `answer_admission_active`; пошук за ІМЕНЕМ не є пошуком за ПРЕДМЕТОМ, і хибне спрацювання коштувало б «виправлення» незламаного. Шість негативних контролів, включно з мертвим виправданням."
+    },
     "scripts/check_deployment_debt.py": {
       "lines": 163,
       "max_complexity": 9,
@@ -3667,11 +3685,11 @@
       "reason": "Гейт звіряє записану голову журналу; ідентичність корпусу її БІЛЬШЕ НЕ містить. Перша версія включала — і живий сервер, що пише подію на кожну відповідь, робив усі звіти про корпус несвіжими за секунди. Свіжість звіту мусить залежати від того, ПРО ЩО він."
     },
     "scripts/corpus_release.py": {
-      "lines": 205,
-      "max_complexity": 5,
+      "lines": 236,
+      "max_complexity": 7,
       "max_function_args": 3,
-      "max_function_lines": 36,
-      "max_nesting": 1,
+      "max_function_lines": 55,
+      "max_nesting": 2,
       "proof_lines": 0,
       "reason": "freezes and signs what the corpus contained, so a citation can be traced to its release"
     },
@@ -4930,11 +4948,11 @@
       "reason": "Issue #42: repository-wide lease and disposable worktree enforcement for unattended agents; exact initial measured ceiling."
     },
     "scripts/run_lane.py": {
-      "lines": 192,
-      "max_complexity": 10,
+      "lines": 210,
+      "max_complexity": 7,
       "max_function_args": 5,
-      "max_function_lines": 45,
-      "max_nesting": 3,
+      "max_function_lines": 34,
+      "max_nesting": 2,
       "proof_lines": 32,
       "reason": "Що лан ВИМІРЯВ, а що просто не встиг. `make` спиняється на першій відмові, тож ціль після червоної не боронить нічого й виглядає так само, як зелена. `make -k` дає два стани й не має третього: ціль, до якої не дійшли, у ньому не відрізняється від відсутньої. Тут перелік заповнюється NOT_RUN ДО прогону, тож обвал самого бігуна лишає невиконані видимими. Виміряно на першому ж прогоні: `validate` називав ОДНУ проблему, бігун показав ТРИ."
     },
@@ -4983,7 +5001,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 6414,
+      "lines": 6459,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -9745,6 +9763,107 @@
       "reason": "ЗАКРИТТЯ СТРУКТУРНОГО БОРГУ, внесеного оптимізацією MMR. Згортання надлишковості винесено з `diversify_evidence` в іменовану фабрику `_marginal_redundancy_fold`. Наслідок для складності — ЗАТЯГУВАННЯ, а не послаблення: складність 16 -> 13 і рядки функції 114 -> 76, тобто НИЖЧЕ, ніж було ДО оптимізації (15 і 84). Зростають лише рядки модуля, і це докстрінг, що несе вимір і причину відкидання двох попередніх форм. ВЛАСНИК: цей прохід. УМОВА ЗАКРИТТЯ: не потрібна — борг уже закритий, лишається лише вартість документації.",
       "to": {
         "lines": 358
+      }
+    },
+    {
+      "from": {
+        "lines": 70,
+        "max_function_lines": 29
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/api/answering.py",
+      "reason": "Спостерігач набору кандидатів причеплено поруч із PEC-спостерігачем — тим самим взірцем, а не новим механізмом. Шість рядків: імпорт, установлення й зняття контексту. Без цього гістограма `korpus_retrieval_candidates` лишалась би оголошеною й порожньою, а гіпотези про хвостову затримку — нерозрізненними. ВЛАСНИК: цей прохід. УМОВА ЗАКРИТТЯ: не потрібна — це не борг, а вимірювальна поверхня, якої бракувало.",
+      "to": {
+        "lines": 76,
+        "max_function_lines": 31
+      }
+    },
+    {
+      "from": {
+        "lines": 176,
+        "max_function_lines": 96
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/application/retrieval_hybrid.py",
+      "reason": "СПОСТЕРЕЖНІСТЬ ПЕРЕД ОПТИМІЗАЦІЄЮ. Гістограма `korpus_retrieval_candidates` була оголошена й не наповнювалась ЖОДНИМ рядком дерева, тож три конкурентні пояснення хвостової затримки — промах кеша, черга за GIL, розростання набору кандидатів — давали ОДНАКОВІ спостереження, і умова ідентифікованості не виконувалась. Додано наповнення й ДРУГИЙ ряд `korpus_retrieval_distinct_versions`: без нього «кандидатів побільшало» не відрізняється від «кандидати стали різнішими» — дві різні причини з однаковим наслідком у латентності. Зростання — це рядки з поясненням і сама метрика, не логіка. ВЛАСНИК: цей прохід. УМОВА ЗАКРИТТЯ: не потрібна — це вимірювальна поверхня, якої бракувало, а не борг.",
+      "to": {
+        "lines": 185,
+        "max_function_lines": 104
+      }
+    },
+    {
+      "from": {
+        "lines": 207,
+        "max_function_lines": 86
+      },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/infrastructure/observability.py",
+      "reason": "СПОСТЕРЕЖНІСТЬ ПЕРЕД ОПТИМІЗАЦІЄЮ. Гістограма `korpus_retrieval_candidates` була оголошена й не наповнювалась ЖОДНИМ рядком дерева, тож три конкурентні пояснення хвостової затримки — промах кеша, черга за GIL, розростання набору кандидатів — давали ОДНАКОВІ спостереження, і умова ідентифікованості не виконувалась. Додано наповнення й ДРУГИЙ ряд `korpus_retrieval_distinct_versions`: без нього «кандидатів побільшало» не відрізняється від «кандидати стали різнішими» — дві різні причини з однаковим наслідком у латентності. Зростання — це рядки з поясненням і сама метрика, не логіка. ВЛАСНИК: цей прохід. УМОВА ЗАКРИТТЯ: не потрібна — це вимірювальна поверхня, якої бракувало, а не борг.",
+      "to": {
+        "lines": 227,
+        "max_function_lines": 95
+      }
+    },
+    {
+      "from": {
+        "lines": 6414
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Пісочниця копіює ВІДСТЕЖЕНЕ дерево, а не вміст робочої теки. Виміряно 02.09.2026, і вимір коштував ПОВНОГО прогону мутацій: `copytree` упав на файлі, який існував у мить перелічення й зник до копіювання — `config/corpus/attachments/__wordy_404__.html`, тимчасовий файл, що його пише `test_doctrine_catalog.py:958` УСЕРЕДИНУ ДЕРЕВА. Будь-яка побічна активність валила мутації цілком, і причина не мала стосунку до предмета виміру. Обсяг теж був хибний: 5063 файли обходом ФС проти 2595 відстежених. ЦЕ НЕ ПРИСКОРЕННЯ — виміряно 104 -> 165 мс (+58 %), тобто +7 с на прогін у ~25 хвилин; обмін названо явно. Чотири негативні контролі: наявність відстеженого, відсутність артефактів прогону, тимчасовий файл не валить копію, недоступний або порожній git — ВІДМОВА, а не тихий обхід ФС.",
+      "to": {
+        "lines": 6459
+      }
+    },
+    {
+      "from": {
+        "lines": 173,
+        "max_complexity": 9,
+        "max_function_lines": 25,
+        "max_nesting": 3
+      },
+      "on": "2026-09-02",
+      "path": "scripts/check_declared_metrics_are_observed.py",
+      "reason": "АТАКА НА ВЛАСНИЙ ГЕЙТ. Перша редакція шукала наповнення метрики РЕГЕКСОМ ПО СИРОМУ ТЕКСТУ, тож згадка в докстрінгу або в закоментованому рядку зараховувалась як наповнення. Доведено побудовою: дерево, де єдині входження — рядок докстрінга й закоментований виклик, дало вирок PASS. Гейт, що існує ЗАРАДИ доведення наповнення, був зелений там, де метрику не наповнює жоден виконуваний рядок. Сусідня declared() уже несла коментар «розбором, не регексом по тексту» — закон був записаний і не поширився на функцію поруч. Переведено на розбір дерева; додано два негативні контролі саме на пошук, разом 8.",
+      "to": {
+        "lines": 190,
+        "max_complexity": 13,
+        "max_function_lines": 38,
+        "max_nesting": 5
+      }
+    },
+    {
+      "from": {
+        "lines": 192,
+        "max_complexity": 10,
+        "max_function_lines": 45,
+        "max_nesting": 3
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_lane.py",
+      "reason": "РЕБРА З РЕЦЕПТА. Виміряно 02.09.2026: check-nightly, corpus-axes і nightly-evidence давали НУЛЬ цілей, бо складаються з викликів make в рецепті, а не з передумов. Тобто інструмент, чиє єдине призначення — показати третій стан NOT_RUN, був сліпий саме до лану, що несе всі 16 осей відповіді, і порожній перелік читався б як «лан порожній» замість «я його не бачу». verify_gate_closure.parse_graph читає ці ребра з 31.08 і має на них негативний контроль — закон був записаний в одному інструменті й не поширився на сусідній. Тепер 14 / 1 / 8 цілей відповідно.",
+      "to": {
+        "lines": 210,
+        "max_complexity": 7,
+        "max_function_lines": 34,
+        "max_nesting": 2
+      }
+    },
+    {
+      "from": {
+        "lines": 205,
+        "max_complexity": 5,
+        "max_function_lines": 36,
+        "max_nesting": 1
+      },
+      "on": "2026-09-02",
+      "path": "scripts/corpus_release.py",
+      "reason": "UNKNOWN ВІДОКРЕМЛЕНО ВІД PASS. Виміряно ЗАПУСКОМ: verify без --database віддавав status PASS і rc=0 на маніфесті з фальшивим content_digest і порожнім переліком — бо вирок читав дефолт True для ключа, якого при пропущеній звірці не було взагалі; у звіті поля теж не було, тож читач не відрізняв «звірено й збіглося» від «не звіряли». Дослівно вада 31.08 у другому інструменті. Три стани доведено запуском: зламаний підпис -> FAIL rc=1, цілий підпис без бази -> UNKNOWN rc=2, з базою -> PASS/FAIL. FAIL ПЕРЕБИВАЄ UNKNOWN: перша редакція виправлення ставила UNKNOWN першим і затуляла зламаний підпис — порядок станів теж треба було перевірити, а не припустити.",
+      "to": {
+        "lines": 236,
+        "max_complexity": 7,
+        "max_function_lines": 55,
+        "max_nesting": 2
       }
     }
   ],

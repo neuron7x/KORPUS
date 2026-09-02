@@ -27,6 +27,10 @@ from korpus.api.overload_http import overload_http_exception
 from korpus.application.answer_query import ExtractiveAnswerService
 from korpus.application.pec_metrics_context import reset_pec_observer, set_pec_observer
 from korpus.application.resilience import AdmissionController, OverloadedError
+from korpus.application.retrieval_metrics_context import (
+    reset_retrieval_observer,
+    set_retrieval_observer,
+)
 from korpus.domain.models import Answer, Identity, QueryRequest
 from korpus.infrastructure.observability import Observability
 
@@ -45,6 +49,7 @@ def bounded_answer(
     upward under exactly the load it exists to report on.
     """
     pec_token = set_pec_observer(observability.pec.observe)
+    retrieval_token = set_retrieval_observer(observability.observe_retrieval_candidates)
     try:
         with admission.acquire(identity.subject):
             observability.answer_admission_active.set(admission.snapshot().active)
@@ -52,6 +57,7 @@ def bounded_answer(
                 answer = service.execute(identity, query)
     finally:
         reset_pec_observer(pec_token)
+        reset_retrieval_observer(retrieval_token)
         observability.answer_admission_active.set(admission.snapshot().active)
 
     from korpus.application.risk import classify_query_risk

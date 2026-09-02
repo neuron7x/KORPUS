@@ -82,11 +82,29 @@ def lane_targets(makefile: Path, lane: str) -> list[str]:
     попереджає, але передумови для нас однакові, а мовчазне злиття двох правил
     приховало б, що ціль оголошена двічі.
     """
+    text = makefile.read_text(encoding="utf-8")
     pattern = re.compile(rf"^{re.escape(lane)}:([^=\n]*)$", re.MULTILINE)
-    found = pattern.search(makefile.read_text(encoding="utf-8"))
+    found = pattern.search(text)
     if found is None:
         raise SystemExit(f"у Makefile немає правила {lane}:")
-    return [item for item in found.group(1).split() if not item.startswith(("$", "#"))]
+    targets = [item for item in found.group(1).split() if not item.startswith(("$", "#"))]
+    # РЕБРА З РЕЦЕПТА. Лан може складатися не з передумов, а з викликів `$(MAKE) ціль`,
+    # і саме так зроблені `check-nightly`, `corpus-axes` та `nightly-evidence`.
+    #
+    # ВИМІРЯНО 02.09.2026: для всіх трьох ця функція повертала НУЛЬ цілей. Тобто
+    # інструмент, чиє єдине призначення — показати третій стан `NOT_RUN`, був сліпий
+    # саме до лану, що несе всі 16 осей відповіді. Порожній перелік читався б як
+    # «лан порожній», а не як «я його не бачу».
+    #
+    # `verify_gate_closure.parse_graph` читає ці ребра з 31.08 і має на них негативний
+    # контроль. Закон був записаний в одному інструменті й не поширився на сусідній —
+    # один раз записаний закон сам не поширюється.
+    body = text[found.end() :]
+    recipe = body[: body.find("\n\n")] if "\n\n" in body else body
+    for name in re.findall(r"^\t\s*\$\(MAKE\)\s+([A-Za-z][\w.-]*)", recipe, re.MULTILINE):
+        if name not in targets:
+            targets.append(name)
+    return targets
 
 
 def run_target(target: str, timeout: float, make: str = "make") -> dict[str, Any]:

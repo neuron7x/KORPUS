@@ -95,3 +95,37 @@ def test_the_runner_records_the_identity_it_measured():
     identity = module.tree_identity(ROOT)
     assert len(identity["source_commit"]) == 40, "коміт не знято"
     assert len(identity["source_digest"]) == 64, "дайджест не знято"
+
+
+def test_the_runner_sees_targets_reached_through_the_recipe():
+    """Лан може складатися не з передумов, а з `$(MAKE) ціль` у рецепті.
+
+    ВИМІРЯНО 02.09.2026: `check-nightly`, `corpus-axes` і `nightly-evidence` давали
+    НУЛЬ цілей. Тобто інструмент, чиє єдине призначення — показати третій стан
+    `NOT_RUN`, був сліпий саме до лану, що несе всі 16 осей відповіді. Порожній перелік
+    читався б як «лан порожній», а не як «я його не бачу».
+
+    `verify_gate_closure.parse_graph` читає ці ребра з 31.08 і має на них негативний
+    контроль. Закон був записаний в одному інструменті й не поширився на сусідній.
+    """
+    import importlib.util
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[3]
+    if str(root / "scripts") not in sys.path:
+        sys.path.insert(0, str(root / "scripts"))
+    spec = importlib.util.spec_from_file_location("lane_runner", root / "scripts/run_lane.py")
+    assert spec and spec.loader
+    runner = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = runner
+    spec.loader.exec_module(runner)
+
+    makefile = root / "Makefile"
+    for lane in ("check-nightly", "nightly-evidence"):
+        assert runner.lane_targets(makefile, lane), (
+            f"{lane}: бігун знову не бачить цілей, досяжних через рецепт"
+        )
+    # Негативний контроль на сам розбір: передумови й ребра рецепта — різні джерела,
+    # і жодне з них не сміє поглинути інше.
+    assert len(runner.lane_targets(makefile, "validate")) > 30, "передумови зникли"

@@ -156,6 +156,11 @@ repository:validate:
     # спіймано дзеркалом `test_every_validate_target_runs_in_the_pipeline`.
     - PYTHONPATH=apps/api/src python scripts/verify_bibliography.py
     - PYTHONPATH=apps/api/src python scripts/verify_bibliography.py --selftest
+    # Оголошена метрика, яку ніхто не наповнює: порожній ряд у Prometheus і система
+    # без навантаження виглядають однаково, тож конкурентні пояснення затримки не
+    # розрізняються жодним спостереженням.
+    - PYTHONPATH=apps/api/src python scripts/check_declared_metrics_are_observed.py
+    - PYTHONPATH=apps/api/src python scripts/check_declared_metrics_are_observed.py --selftest
     - python scripts/verify_verdict_ledger.py
     - PYTHONPATH=apps/api/src python scripts/validate_remote_digest.py
     - PYTHONPATH=apps/api/src python scripts/validate_document_probe.py

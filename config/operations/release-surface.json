@@ -21,7 +21,7 @@
       ]
     },
     "budgeted_modules": {
-      "count": 594
+      "count": 596
     },
     "hard_predicates": {
       "members": [
@@ -51,6 +51,7 @@
         "content-signals",
         "corpus-path-declarations",
         "current-truth-verify",
+        "declared-metrics",
         "dependency-locks",
         "desired-state",
         "doctrine-catalog",
@@ -110,7 +111,7 @@
       "count": 585
     },
     "scripts_declaring_selftest": {
-      "count": 46
+      "count": 47
     }
   },
   "removed": [

@@ -67,6 +67,15 @@ class Observability:
             buckets=(0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512),
             registry=self.registry,
         )
+        #: Різних версій серед кандидатів. Саме це число крутить складність відбору,
+        #: і без нього «кандидатів побільшало» не відрізняється від «кандидати стали
+        #: різнішими» — дві різні причини з однаковим наслідком у латентності.
+        self.retrieval_distinct_versions = Histogram(
+            "korpus_retrieval_distinct_versions",
+            "Distinct document versions among authorized candidates.",
+            buckets=(0, 1, 2, 4, 8, 16, 32, 64, 128),
+            registry=self.registry,
+        )
         self.admission_active = Gauge(
             "korpus_admission_active",
             "Currently active answer operations.",
@@ -169,6 +178,17 @@ class Observability:
         status_class = f"{status_code // 100}xx"
         self.http_requests.labels(method=method, route=route, status_class=status_class).inc()
         self.http_latency.labels(method=method, route=route).observe(duration_seconds)
+
+    def observe_retrieval_candidates(self, candidates: int, distinct_versions: int) -> None:
+        """Скільки кандидатів дав пошук і скільки серед них різних версій.
+
+        Гістограма `korpus_retrieval_candidates` була оголошена
+        і не наповнювалась ЖОДНИМ рядком дерева: порожній ряд у Prometheus не
+        відрізняється від системи без навантаження, тож «розростання набору кандидатів»
+        не можна було ні підтвердити, ні відкинути як пояснення хвостової затримки.
+        """
+        self.retrieval_candidates.observe(candidates)
+        self.retrieval_distinct_versions.observe(distinct_versions)
 
     def observe_answer(self, status: str, reason: str, risk: str) -> None:
         self.answers.labels(status=status, reason=reason, risk=risk).inc()

@@ -17,6 +17,7 @@ from korpus.application.retrieval_math import (
     ScoredCandidate,
     score_candidates,
 )
+from korpus.application.retrieval_metrics_context import emit_retrieval_observation
 from korpus.domain.models import (
     AuthorityClass,
     DocumentRecord,
@@ -165,8 +166,16 @@ def execute_hybrid_search_impl(
     subject_documents = declared_subject_documents(
         text, [SimpleNamespace(document=document) for _, document, _ in candidates]
     )
+    ranked = materialize_evidence(candidates, components, authority_priors)
+    # РОЗРІЗНЮВАЧ, а не прикраса. Гістограма `korpus_retrieval_candidates` була
+    # оголошена й ніколи не наповнювалась, тож «розростання набору кандидатів» не
+    # відрізнялося від «промаху кеша» і від «черги за GIL» ЖОДНИМ спостереженням.
+    # Друге число — різних версій — теж не прикраса: саме різноманітність крутить
+    # складність відбору, і без неї «кандидатів побільшало» не відрізняється від
+    # «кандидати стали різнішими».
+    emit_retrieval_observation(len(ranked), len({str(item.version.id) for item in ranked}))
     return diversify(
-        materialize_evidence(candidates, components, authority_priors),
+        ranked,
         limit=limit,
         diversity_lambda=diversity_lambda,
         authority_relevance_floor=authority_relevance_floor,

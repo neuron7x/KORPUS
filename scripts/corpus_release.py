@@ -172,9 +172,40 @@ def verify(arguments: argparse.Namespace) -> int:
         result["database_release"] = current["corpus_release"]
         result["versions_now"] = current["versions"]
         result["versions_in_manifest"] = manifest.get("versions")
-    result["status"] = "PASS" if intact and result.get("matches_database", True) else "FAIL"
+    # `result.get("matches_database", True)` віддавало PASS, коли звірки НЕ БУЛО.
+    # Виміряно 02.09.2026 ЗАПУСКОМ: `verify --manifest m.json --key-file key.txt` на
+    # маніфесті з фальшивим `content_digest` і порожнім переліком дав `status: PASS`,
+    # rc=0 — бо HMAC цілий, а корпус ніхто не дивився. У звіті поля `matches_database`
+    # при цьому НЕ БУЛО ВЗАГАЛІ, тож читач не відрізняв «звірено й збіглося» від
+    # «не звіряли».
+    #
+    # Це дослівно вада 31.08: бекап цілий, розшифровується і містить ІНШИЙ корпус.
+    # Цілість підпису доводить, що маніфест не підроблено, і НІЧОГО не доводить про те,
+    # чи він описує наявний корпус. UNKNOWN не є PASS.
+    #
+    # FAIL ПЕРЕБИВАЄ UNKNOWN. Перша редакція цього виправлення ставила UNKNOWN першим і
+    # затуляла зламаний підпис станом «не звіряли»: доведено власним прогоном, де
+    # `signature_intact: false` віддавав UNKNOWN замість FAIL. Порядок станів — теж
+    # частина вироку, і його треба було перевірити, а не припустити.
+    if not intact:
+        result["matches_database"] = (
+            None if arguments.database is None else result.get("matches_database")
+        )
+        result["status"] = "FAIL"
+    elif arguments.database is None:
+        result["matches_database"] = None
+        result["status"] = "UNKNOWN"
+        result["interpretation"] = (
+            "Підпис маніфеста перевірено; ВІДПОВІДНІСТЬ КОРПУСУ не перевірено, бо базу "
+            "не названо. Передайте --database, щоб дістати вирок про предмет, а не лише "
+            "про цілість опису."
+        )
+    else:
+        result["status"] = "PASS" if intact and result["matches_database"] else "FAIL"
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 0 if result["status"] == "PASS" else 1
+    # Коди виходу розрізняють ТРИ стани: невиміряне не сміє приходити агрегаторові як
+    # виміряне й відхилене, і тим паче як виміряне й прийняте.
+    return {"PASS": 0, "FAIL": 1, "UNKNOWN": 2}[str(result["status"])]
 
 
 def main() -> int:

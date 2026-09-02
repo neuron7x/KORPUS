@@ -12,6 +12,7 @@ import argparse
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
@@ -6089,19 +6090,63 @@ MUTANTS = (
 )
 
 
+#: Незатрековане, без якого пісочниця не збереться. `git ls-files` не показує їх, бо
+#: вони або ігноровані, або породжені, але мутант без них не запуститься.
+_SANDBOX_EXTRAS = ("apps/api/pytest.ini", "pytest.ini", "setup.cfg", "conftest.py")
+
+
 def copy_repository(destination: Path) -> None:
-    ignored = shutil.ignore_patterns(
-        ".git",
-        ".pytest_cache",
-        "__pycache__",
-        ".coverage",
-        "var",
-        "dist",
-        "node_modules",
-        ".venv",
-        "LINEAGE",
+    """Копіює ВІДСТЕЖЕНЕ дерево, а не вміст робочої теки.
+
+    ВИМІРЯНО 02.09.2026, і вимір коштував повного прогону мутацій. `shutil.copytree`
+    падав так:
+
+        shutil.Error: [Errno 2] No such file or directory:
+            'config/corpus/attachments/__wordy_404__.html'
+
+    Файл існував у мить перелічення й зник до копіювання. Створює його
+    `apps/api/tests/test_doctrine_catalog.py:958` — тест пише ТИМЧАСОВИЙ ФАЙЛ
+    УСЕРЕДИНУ ДЕРЕВА і прибирає його. Отже будь-яка побічна активність — паралельний
+    прогін тестів, обірваний тест, що не встиг прибрати за собою, — валить мутації
+    цілком, і причина не має жодного стосунку до предмета виміру.
+
+    Обхід файлової системи був хибний і за ОБСЯГОМ. Виміряно на цьому дереві:
+        обхід ФС (без .git/.venv/node_modules)  5063 файли
+        `git ls-files`                          2595 файлів
+    Зайві 2468 — артефакти прогонів, кеші й звіти, яких мутант не читає ніколи.
+
+    ЦЕ НЕ ПРИСКОРЕННЯ, і казати інакше було б хибним твердженням. Виміряно:
+        обхід ФС      104 мс
+        відстежене    165 мс   (+58 %)
+    Менше файлів, але 2595 окремих `copy2` дорожчі за оптимізований обхід дерева.
+    На повний каталог це +7 с при прогоні на ~25 хвилин, тобто 0.5 %.
+
+    Обмін названо явно: 7 секунд на прогін проти ЦІЛОГО прогону, який щойно втрачено
+    через один тимчасовий файл. Робити з цього твердження про швидкодію було б рівно
+    тією вадою, проти якої написаний увесь цей харнес.
+
+    Це той самий закон, що вже записаний у `provenance._tracked_paths`: **обхід
+    файлової системи не є властивістю коміту**. Пісочниця мусить містити СИСТЕМУ, а не
+    сміття робочої теки. Якщо git недоступний — відмова, а не тихий обхід ФС: невідомий
+    обсяг не дорівнює всьому.
+    """
+    listing = subprocess.run(
+        ["git", "-C", str(ROOT), "ls-files", "-z"],
+        capture_output=True,
+        check=False,
     )
-    shutil.copytree(ROOT, destination, ignore=ignored, dirs_exist_ok=True)
+    if listing.returncode != 0:
+        raise RuntimeError("git ls-files недоступний: обсяг пісочниці невідомий, і це відмова")
+    names = [name for name in listing.stdout.decode("utf-8", "surrogateescape").split("\0") if name]
+    if not names:
+        raise RuntimeError("git ls-files порожній: порожній обсяг не дорівнює цілому дереву")
+    for relative in [*names, *_SANDBOX_EXTRAS]:
+        source = ROOT / relative
+        if not source.is_file():
+            continue
+        target = destination / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
 
 
 MUTATION_ORCHESTRATION_ENV = frozenset({"KORPUS_MUTATION_JOBS", "KORPUS_MUTATION_SHARDS"})
