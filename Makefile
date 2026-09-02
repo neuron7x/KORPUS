@@ -311,9 +311,18 @@ relink-derived:
 	$(PY) scripts/relink_derived_articles.py --database "$(DATABASE)" $(if $(OBJECT_ROOT),--object-root "$(OBJECT_ROOT)") $(if $(APPLY),--apply)
 	$(PY) scripts/validate_derived_source_links.py --database "$(DATABASE)" $(if $(OBJECT_ROOT),--object-root "$(OBJECT_ROOT)")
 
+# Проби живучості біжать у КОПІЇ дерева, а `.venv` у копію не потрапляє ніколи
+# (DEFAULT_IGNORE самого харнеса), тож інтерпретатор мусить бути поза копією — і саме
+# тому в конфігу колись з'явився абсолютний шлях. Він указував на venv ІНШОГО дерева
+# («Ядро основний проект Корпус»), тринадцять разів, у комітованому файлі: у CI чи в
+# будь-якому іншому чекауті гейт не запустився б узагалі, а тут міряв копії цього
+# дерева інтерпретатором сусіднього. Оголошення лишається одне; шлях підставляється
+# у момент запуску, тому розійтись із дійсністю йому нема де.
 gate-liveness:
+	mkdir -p var
+	$(PY) -c 'import pathlib,sys; s=pathlib.Path("config/operations/gate-liveness.yaml").read_text(encoding="utf-8"); pathlib.Path("var/gate-liveness.rendered.yaml").write_text(s.replace("{python}", sys.executable), encoding="utf-8")'
 	PYTHONPATH=$(HOME)/neuron7x-verdict/src $(PY) -m neuron7x_verdict.cli gates \
-		--config config/operations/gate-liveness.yaml --root . \
+		--config var/gate-liveness.rendered.yaml --root . \
 		$(if $(ONLY),--only "$(ONLY)") $(if $(OUT),--json "$(OUT)")
 
 # Прочитати кожне джерело каталогу один раз і записати, що саме прочитано. Потребує

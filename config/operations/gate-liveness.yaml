@@ -3,7 +3,7 @@ gates:
   run:
   - env
   - PYTHONPATH=apps/api/src
-  - /home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python
+  - {python}
   - scripts/validate_doctrine_catalog.py
   timeout: 600
   ignore:
@@ -36,7 +36,7 @@ gates:
     payload: '"sources_disabled": ['
 - name: content-signals
   run:
-  - /home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python
+  - {python}
   - scripts/validate_content_signals.py
   timeout: 600
   ignore:
@@ -109,7 +109,7 @@ gates:
   run:
   - env
   - PYTHONPATH=apps/api/src
-  - /home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python
+  - {python}
   - scripts/verify_handoff_contract.py
   - --require-bound
   timeout: 900
@@ -142,7 +142,7 @@ gates:
   run:
   - env
   - PYTHONPATH=apps/api/src
-  - /home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python
+  - {python}
   - scripts/check_module_budget.py
   timeout: 600
   ignore:
@@ -199,7 +199,7 @@ gates:
   run:
   - env
   - PYTHONPATH=apps/api/src
-  - /home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python
+  - {python}
   - scripts/verify_verdict_ledger.py
   timeout: 600
   ignore:
@@ -223,8 +223,8 @@ gates:
   run:
   - sh
   - -c
-  - '''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/build_liveness_fixture.py
-    >/dev/null && ''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/validate_derived_source_links.py
+  - '''{python}'' scripts/build_liveness_fixture.py
+    >/dev/null && ''{python}'' scripts/validate_derived_source_links.py
     --database var/liveness-fixture/korpus.db --object-root var/liveness-fixture/objects --out /dev/null'
   timeout: 300
   ignore:
@@ -257,8 +257,8 @@ gates:
   run:
   - sh
   - -c
-  - '''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/build_liveness_fixture.py
-    >/dev/null && ''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/validate_span_hygiene.py
+  - '''{python}'' scripts/build_liveness_fixture.py
+    >/dev/null && ''{python}'' scripts/validate_span_hygiene.py
     --database var/liveness-fixture/korpus.db'
   timeout: 300
   ignore:
@@ -281,8 +281,8 @@ gates:
   run:
   - sh
   - -c
-  - '''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/build_liveness_fixture.py
-    >/dev/null && ''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/measure_audit_integrity.py
+  - '''{python}'' scripts/build_liveness_fixture.py
+    >/dev/null && ''{python}'' scripts/measure_audit_integrity.py
     --database var/liveness-fixture/korpus.db --key fixture-2026-08=var/liveness-fixture/audit-key.txt
     --min-attribution 1.0 --out /dev/null'
   timeout: 300
@@ -313,8 +313,8 @@ gates:
   run:
   - sh
   - -c
-  - '''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/build_liveness_fixture.py
-    >/dev/null && ''/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python'' scripts/measure_evidence_bases.py
+  - '''{python}'' scripts/build_liveness_fixture.py
+    >/dev/null && ''{python}'' scripts/measure_evidence_bases.py
     --registry evals/fixtures/liveness/sources/evidence-bases.json --proc-root var/liveness-fixture/proc
     --out /dev/null'
   timeout: 300

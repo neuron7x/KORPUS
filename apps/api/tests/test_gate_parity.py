@@ -2412,6 +2412,35 @@ def test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost(
     assert gate.main() == 0, "a report sitting exactly on its floor must still pass"
 
 
+def test_no_committed_config_names_a_path_outside_this_checkout() -> None:
+    """Комітований конфіг, що вказує на чуже дерево, працює рівно на одній машині.
+
+    `config/operations/gate-liveness.yaml` тринадцять разів називав
+    `/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python` —
+    інтерпретатор ІНШОГО чекауту. Наслідків два, і обидва тихі: у CI або в будь-якому
+    іншому дереві гейт живучості не запустився б узагалі, а тут він міряв копії цього
+    дерева інтерпретатором сусіднього. Абсолютний шлях там був не помилкою неуважності:
+    проби біжать у копії, куди `.venv` не потрапляє ніколи. Тому шлях лишився потрібним,
+    але підставляється в момент запуску, а в оголошенні стоїть `{python}`.
+    """
+    # Дозволене звіряється ПРЕФІКСОМ, не входженням. Перша редакція питала
+    # `"/bin/" in шлях`, і `/home/.../apps/api/.venv/bin/python` проходив як системний:
+    # під власним негативним контролем тест лишався зеленим. Підрядок «десь усередині»
+    # не є твердженням про те, звідки шлях починається.
+    allowed = ("/bin/", "/usr/", "/etc/", "/dev/", "/proc/", "/opt/", "/tmp/")
+    offenders: list[str] = []
+    for path in sorted((ROOT / "config").rglob("*.yaml")):
+        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            candidate = line.strip().removeprefix("- ").strip().strip("\"'")
+            if not candidate.startswith("/") or "/" not in candidate[1:]:
+                continue
+            if candidate.startswith(str(ROOT)) or candidate.startswith(allowed):
+                continue
+            offenders.append(f"{path.relative_to(ROOT)}:{number}: {candidate}")
+
+    assert not offenders, f"конфіг називає шлях поза цим чекаутом: {offenders}"
+
+
 def test_two_producers_never_write_one_report() -> None:
     """Зіткнення ІМЕН файлів: хто біг останній, той і визначив, що прочитає споживач.
 
