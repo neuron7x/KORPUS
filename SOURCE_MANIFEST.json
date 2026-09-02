@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1758,
-  "root_sha256": "bc535e7f8958549c3418567c27d303ba6ab3e2b52cd22ddfaa3d21f743b0877d",
+  "file_count": 1759,
+  "root_sha256": "795b6ad10a51afe27ca75231ff0b17f5d92c467f666150f8440c423ac492f73b",
   "files": [
     {
       "path": ".dockerignore",
@@ -7165,8 +7165,8 @@
     },
     {
       "path": "config/operations/gate-closure.json",
-      "bytes": 8253,
-      "sha256": "14037315cc0472a292deaee532cb574d3a5b1bc391313257ce2b2099f27f3d8e",
+      "bytes": 9540,
+      "sha256": "9bf3260046cf1b137972f7628115a504ffc3efd16fb2961076adf1024e07eb59",
       "mode": "0644"
     },
     {
@@ -10101,6 +10101,12 @@
       "path": "scripts/run_release_mutation_microcampaign.py",
       "bytes": 8044,
       "sha256": "7101d305b7eac271242cc2610764bcb3583d9e7eac9375b5d4aa37575e29eece",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/run_release_verify.py",
+      "bytes": 8548,
+      "sha256": "3c8411d8164203320599ec402df0b81e574d1e4171c5d8998f188bc4fb0c8b60",
       "mode": "0755"
     },
     {
