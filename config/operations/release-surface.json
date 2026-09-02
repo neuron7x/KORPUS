@@ -21,7 +21,7 @@
       ]
     },
     "budgeted_modules": {
-      "count": 591
+      "count": 590
     },
     "hard_predicates": {
       "members": [
@@ -104,6 +104,13 @@
       "count": 42
     }
   },
-  "removed": [],
+  "removed": [
+    {
+      "dimension": "budgeted_modules",
+      "member": "apps/api/src/korpus/application/evidence_digest.py",
+      "on": "2026-09-02",
+      "reason": "Осиротілий дублікат поверхні провенансу: модуль не імпортував НІХТО, але він оголошував ВЛАСНИЙ EVIDENCE_SOURCE_PATHS (13 шляхів проти 20 у живому) і власний compute_source_digest із тією самою сигнатурою. Імпорт не того модуля дав би дайджест над ІНШОЮ поверхнею під тим самим іменем. Слабша з двох тотожностей одного предмета видаляється, а не узгоджується."
+    }
+  ],
   "schema": "korpus.release-surface.v1"
 }

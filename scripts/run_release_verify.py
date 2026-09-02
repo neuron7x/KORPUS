@@ -38,6 +38,9 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+
+from korpus.application.provenance import compute_source_digest  # noqa: E402
 
 #: (ціль, роль). Роль пояснює, чому крок стоїть саме тут, і читається у звіті.
 STEPS: tuple[tuple[str, str], ...] = (
@@ -149,11 +152,27 @@ def main() -> int:
         print(json.dumps(refusal, ensure_ascii=False, indent=2))
         return 2
 
+    # Тотожність ПРЕДМЕТА до й після. Вимір, що змінює те, що міряє, не є виміром:
+    # виміряно 02.09.2026 — усі 15 артефактів прогону лягли в `reports/`, і НУЛЬ із них
+    # у обсязі джерела. Це властивість, а не випадковість, тож вона мусить перевірятись
+    # щоразу, а не бути спостереженням, зробленим одного разу.
+    source_before = compute_source_digest(ROOT)
     if args.closure_only:
         results = [run(target, args.timeout) for target in CLOSURE]
         stopped = next((r["target"] for r in results if r["state"] != "PASSED"), None)
     else:
         results, stopped = sequence(not args.skip_external, args.timeout)
+    source_after = compute_source_digest(ROOT)
+    if source_after != source_before:
+        moved: dict[str, Any] = {
+            "status": "INVALID",
+            "reason": "джерело змінилось ПІД ЧАС виміру — числа нижче про різні дерева",
+            "source_before": source_before,
+            "source_after": source_after,
+            "steps": results,
+        }
+        print(json.dumps(moved, ensure_ascii=False, indent=2))
+        return 3
 
     final = (
         verdict() if stopped is None else {"verdict": "NOT_REACHED", "problems": [], "unknown": []}
@@ -164,6 +183,8 @@ def main() -> int:
         "head_before": head,
         "head_after": after,
         "head_moved": head != after,
+        "source_digest": source_before,
+        "source_unmoved_during_run": True,
         "steps": results,
         "stopped_at": stopped,
         "verdict": final.get("verdict"),

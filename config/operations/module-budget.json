@@ -1114,15 +1114,6 @@
       "proof_lines": 0,
       "reason": "Сигнатури розширені до `Mapping[str, int] | frozenset[str]`: клас предмета став градуйованим, і виклики, які носять лише членство, лишаються чинними."
     },
-    "apps/api/src/korpus/application/evidence_digest.py": {
-      "lines": 91,
-      "max_complexity": 6,
-      "max_function_args": 2,
-      "max_function_lines": 20,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "Портовано знімок корпусу з GitHub-лінії 01.09.2026: одна відповідь читає ОДИН стан корпусу, а не кілька незалежних читань під датою `as_of`. `corpus_state_epoch` дає монотонний маркер, `evidence_sealing` прив'язує схвалення до конкретного набору доказів, і журнал відповіді несе `corpus_snapshot` поруч із `corpus_release`."
-    },
     "apps/api/src/korpus/application/evidence_fusion.py": {
       "lines": 141,
       "max_complexity": 6,
@@ -5082,10 +5073,10 @@
       "reason": "v0.5.0: sandboxed release-critical mutation destruction campaign; exact baseline ceiling"
     },
     "scripts/run_release_verify.py": {
-      "lines": 184,
+      "lines": 205,
       "max_complexity": 12,
       "max_function_args": 2,
-      "max_function_lines": 49,
+      "max_function_lines": 67,
       "max_nesting": 3,
       "proof_lines": 0
     },
@@ -9478,6 +9469,19 @@
       "reason": "Докстрінг  називає ХИБНУ засновку, яку він містив, і вимір, що її спростував: та сама функція дала d92c01de у контейнері й 20475f9e на хості, різниця — девять незатрекованих секретів. Без цього запису наступний прибере запасне джерело як зайве.",
       "to": {
         "max_function_lines": 41
+      }
+    },
+    {
+      "from": {
+        "lines": 184,
+        "max_function_lines": 49
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_release_verify.py",
+      "reason": "P0-02: знімок тотожності ПРЕДМЕТА до й після прогону. Вимір, що змінює те, що міряє, не є виміром; розбіжність дає status INVALID і код виходу 3. Виміряно, що всі 15 артефактів прогону лягають у reports/ і НУЛЬ у обсязі джерела — але спостереження, зроблене один раз, не є властивістю, тож воно стало перевіркою.",
+      "to": {
+        "lines": 205,
+        "max_function_lines": 67
       }
     }
   ],
