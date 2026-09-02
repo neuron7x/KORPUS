@@ -1,0 +1,10 @@
+{
+  "valid": true,
+  "files": 1787,
+  "root_sha256": "5595ad93aa3abd66ecef70a7daadfd5d2755e80078e8bb3f0b5d084931796fb7",
+  "failures": [],
+  "schema": "korpus.source-manifest-verification.v1",
+  "status": "PASS",
+  "release": "v0.9.7",
+  "source_tree_sha256": "1fe4128fb5da5337ebeaee5fad3211090bfb5293eb7db31da511af428d318b92"
+}

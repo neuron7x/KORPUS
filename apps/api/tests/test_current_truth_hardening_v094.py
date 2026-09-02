@@ -84,3 +84,9 @@ def test_release_claims_use_portable_mutation_evidence(tmp_path: Path) -> None:
     mutation = next(claim for claim in ledger["claims"] if claim["id"] == "CLM-MUTATION")
     assert mutation["evidence"] == "reports/MUTATION_FULL_CATALOGUE_CURRENT.json"
     assert not mutation["evidence"].startswith("var/")
+
+
+def test_source_integrity_claim_uses_a_bound_verification_report(tmp_path: Path) -> None:
+    ledger = claim_ledger(tmp_path, "a" * 64, "v9")
+    source = next(claim for claim in ledger["claims"] if claim["id"] == "CLM-SOURCE-INTEGRITY")
+    assert source["evidence"] == "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json"

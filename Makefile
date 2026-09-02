@@ -1293,9 +1293,10 @@ release-truth: production-hard-predicates
 evidence-refresh:
 	$(MAKE) dependency-locks PY=$(PY)
 	$(MAKE) standards-control-map PY=$(PY)
-	$(MAKE) release-truth PY=$(PY)
 	PYTHONPATH=scripts $(PY) scripts/generate_manifest.py --kind source
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/sync_package_build_identity.py
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_source_manifest.py --out reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json
+	$(MAKE) release-truth PY=$(PY)
 	$(MAKE) current-truth-verify PY=$(PY)
 
 current-truth-verify:

@@ -5731,6 +5731,39 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M650_SOURCE_INTEGRITY_CLAIM_READS_AN_UNBOUND_MANIFEST",
+        "apps/api/src/korpus/application/release_claims.py",
+        '            "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json",',
+        '            "SOURCE_MANIFEST.json",',
+        (
+            "apps/api/tests/test_current_truth_hardening_v094.py::"
+            "test_source_integrity_claim_uses_a_bound_verification_report",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M651_INVALID_SOURCE_MANIFEST_REPORTS_PASS",
+        "scripts/verify_source_manifest.py",
+        '    payload["status"] = "PASS" if payload["valid"] else "FAIL"',
+        '    payload["status"] = "PASS"',
+        (
+            "apps/api/tests/test_source_manifest_evidence.py::"
+            "test_invalid_manifest_never_emits_a_supported_report",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M652_CLAIMS_RENDER_BEFORE_SOURCE_MANIFEST_VERIFICATION",
+        "Makefile",
+        "\tPYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_source_manifest.py --out reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json\n",
+        "",
+        (
+            "apps/api/tests/test_source_manifest_evidence.py::"
+            "test_evidence_refresh_verifies_the_manifest_before_rendering_claims",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M470_AN_UNUSABLE_VALUE_IS_TOLERATED",
         "scripts/check_public_env_parity.py",
         '        name for name, value in unit.items() if value.startswith("{") and not _parses_as_json(value)',

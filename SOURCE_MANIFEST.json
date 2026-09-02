@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1786,
-  "root_sha256": "1793f46ee151deccf3e6b28c9c25ddeeec94e5b2e8f691c9ce225bdbb76be472",
+  "file_count": 1787,
+  "root_sha256": "5595ad93aa3abd66ecef70a7daadfd5d2755e80078e8bb3f0b5d084931796fb7",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 94953,
-      "sha256": "49003f503b605446557218fe2c83e91794b69d643d898ed575f297354cfb7e15",
+      "bytes": 95082,
+      "sha256": "08359e249712bb8de53d71acc1bceb49a298243f016d51cbaf4d4a177786688e",
       "mode": "0644"
     },
     {
@@ -1597,8 +1597,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/release_claims.py",
-      "bytes": 6576,
-      "sha256": "95ebc761fec9cc2ddea60db7a1f74051aee4cfe00e38eaa244b7eb84bc201fea",
+      "bytes": 6605,
+      "sha256": "01fd185607942c4e8be1e7059c22b04a7078445ce9d8d7603e4d08fd2ad42491",
       "mode": "0644"
     },
     {
@@ -3061,8 +3061,8 @@
     },
     {
       "path": "apps/api/tests/test_current_truth_hardening_v094.py",
-      "bytes": 3591,
-      "sha256": "0500ec1d17f3e21fced3718c35470c55144a91bbb115c1c330056b89da3c2fe9",
+      "bytes": 3916,
+      "sha256": "7b4d646d2fd6e90266cb08704e4a168ad64ef0c373c6724a7a2adc24967d9e99",
       "mode": "0644"
     },
     {
@@ -4719,6 +4719,12 @@
       "path": "apps/api/tests/test_source_content_probe.py",
       "bytes": 4532,
       "sha256": "d82f5c54bd58efd6b628d4a5854d3fb91f8df1a9de5c881743935fc47a368bbf",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_source_manifest_evidence.py",
+      "bytes": 1340,
+      "sha256": "6ef92dcf7363e2c0af71c5141d135392f3bc91f4565cc253dd20a18786255ea7",
       "mode": "0644"
     },
     {
@@ -10159,8 +10165,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 304940,
-      "sha256": "02e272f4a273328661cd637feb9fab0adeaa8f983dbf7a5388e80a62b35586b3",
+      "bytes": 306259,
+      "sha256": "6662e22016fd4314e745377023a2c7d0ea260a2e5acfa2c4592fdb27a78c4404",
       "mode": "0755"
     },
     {
@@ -10681,8 +10687,8 @@
     },
     {
       "path": "scripts/verify_source_manifest.py",
-      "bytes": 3467,
-      "sha256": "8b962114aad033b80ac4d10ed641de6208e60d9d854caa79500f3de8307b98ca",
+      "bytes": 2989,
+      "sha256": "1f42818edc13808b6b5931b648f64d8d0c26ec1f8f1b7e4949fd46871a01bd15",
       "mode": "0755"
     },
     {

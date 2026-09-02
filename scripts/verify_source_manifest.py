@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
-from __future__ import annotations
-
 import argparse
 import json
 import sys
 from pathlib import Path
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "apps/api/src")]
+from korpus.application.provenance import compute_source_digest
 from manifest_lib.integrity import manifest_failures, mode_string, record_failures
 from manifest_paths import source_paths
-
-ROOT = Path(__file__).resolve().parents[1]
+from release_identity import release_tag
 
 
 def verify(root: Path) -> dict[str, object]:
@@ -26,17 +23,9 @@ def verify(root: Path) -> dict[str, object]:
     if not isinstance(records, list):
         return {"valid": False, "failures": ["invalid source manifest records"]}
     by_path = {str(record.get("path")): record for record in records if isinstance(record, dict)}
-    # Path parity has to come from the tree, not from the manifest. Falling back to
-    # `sorted(by_path)` compared the manifest with itself: in an unpacked archive — the one
-    # place this check is the only thing standing between a reader and an injected file —
-    # `scripts/backdoor.py` added to the tree passed with valid: true, because the manifest
-    # did not list it and the manifest was the authority. Measured 2026-08-29.
     authoritative = [p.as_posix() for p in source_paths(root)]
     failures = manifest_failures(manifest, records)
     if sorted(by_path) != authoritative:
-        # `missing=` read as "missing from the tree" and named the exact opposite: files
-        # that ARE in the tree and are not described. On an unpacked archive that is the
-        # injected-file case, and the word pointed the reader away from it.
         failures.append(
             "path parity mismatch "
             f"in_tree_not_in_manifest={sorted(set(authoritative) - set(by_path))} "
@@ -47,10 +36,6 @@ def verify(root: Path) -> dict[str, object]:
         if not file.is_file():
             failures.append(f"missing source file: {relative}")
         elif record is None:
-            # The parity line above already names this file. Running record_failures on an
-            # empty record produced `source mode mismatch: None expected=None actual=0644`
-            # once per unlisted file — a wall of messages naming no path, in front of the
-            # one line that did. Measured on a copy carrying 29 uncommitted files.
             continue
         else:
             failures.extend(
@@ -65,11 +50,25 @@ def verify(root: Path) -> dict[str, object]:
     }
 
 
+def bound_report(root: Path) -> dict[str, object]:
+    payload = verify(root)
+    payload["schema"] = "korpus.source-manifest-verification.v1"
+    payload["status"] = "PASS" if payload["valid"] else "FAIL"
+    payload["release"] = release_tag(root)
+    payload["source_tree_sha256"] = compute_source_digest(root)
+    return payload
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument("--out", type=Path)
     args = parser.parse_args()
-    payload = verify(args.root.resolve())
+    root = args.root.resolve()
+    payload = bound_report(root)
+    if args.out:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(payload, indent=2))
     return 0 if payload["valid"] else 1
 

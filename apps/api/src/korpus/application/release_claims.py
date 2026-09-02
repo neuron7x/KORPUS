@@ -82,7 +82,7 @@ def claim_ledger(root: Path, source_digest: str, release: str) -> dict[str, Any]
         (
             "CLM-SOURCE-INTEGRITY",
             "Current source manifest is the release source boundary.",
-            "SOURCE_MANIFEST.json",
+            "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json",
         ),
         (
             "CLM-REGRESSION",
