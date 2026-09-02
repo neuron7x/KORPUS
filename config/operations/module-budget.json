@@ -4891,7 +4891,7 @@
       "reason": "Issue #42: repository-wide lease and disposable worktree enforcement for unattended agents; exact initial measured ceiling."
     },
     "scripts/run_lane.py": {
-      "lines": 200,
+      "lines": 192,
       "max_complexity": 10,
       "max_function_args": 5,
       "max_function_lines": 45,
@@ -4944,7 +4944,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 6163,
+      "lines": 6211,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -5414,7 +5414,7 @@
       "proof_lines": 0
     },
     "scripts/verify_branch_consolidation.py": {
-      "lines": 335,
+      "lines": 366,
       "max_complexity": 15,
       "max_function_args": 6,
       "max_function_lines": 55,
@@ -9363,6 +9363,39 @@
       "reason": "Три мутанти на водій ранжування: провал добору, що ПІДНІМАЄ оцінку; зникла стеля мітки; запит без релевантного кандидата, знятий з обліку. Перший із них — найтихіший спосіб дістати гарне число з поламаної системи.",
       "to": {
         "lines": 6163
+      }
+    },
+    {
+      "from": {
+        "lines": 200
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_lane.py",
+      "reason": "Прив'язка звіту лану до ТОТОЖНОСТІ дерева замість годинника: коміт плюс контентний дайджест, знятий ДО першої цілі, і прапорець руху джерела під час прогону. Прогін, що почався до коміту й скінчився після, за часом виглядав свіжим; розбіжність тепер FAIL, не UNKNOWN.",
+      "to": {
+        "lines": 191
+      }
+    },
+    {
+      "from": {
+        "lines": 335
+      },
+      "on": "2026-09-02",
+      "path": "scripts/verify_branch_consolidation.py",
+      "reason": "Прив'язка звіту лану до ТОТОЖНОСТІ дерева замість годинника: коміт плюс контентний дайджест, знятий ДО першої цілі, і прапорець руху джерела під час прогону. Прогін, що почався до коміту й скінчився після, за часом виглядав свіжим; розбіжність тепер FAIL, не UNKNOWN.",
+      "to": {
+        "lines": 366
+      }
+    },
+    {
+      "from": {
+        "lines": 6163
+      },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Чотири мутанти на прив’язку лану до HEAD: прив’язка, що завжди тримає; звіт без тотожності, прочитаний як доказ; розбіжність, віддана як UNKNOWN; бігун, що перестав знімати тотожність. Без останнього перевірка недоказова за побудовою.",
+      "to": {
+        "lines": 6211
       }
     }
   ],

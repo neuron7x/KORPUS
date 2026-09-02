@@ -46,9 +46,33 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+
+from korpus.application.provenance import compute_source_digest  # noqa: E402
+
 MAKEFILE = ROOT / "Makefile"
 
 PASSED, FAILED, TIMED_OUT, NOT_RUN = "PASSED", "FAILED", "TIMED_OUT", "NOT_RUN"
+
+
+def tree_identity(root: Path = ROOT) -> dict[str, str]:
+    """Тотожність дерева, про яке буде звіт: коміт І вміст.
+
+    Двоє, бо ловлять різне. Коміт каже, ЯКА ревізія; дайджест ловить брудне дерево, де
+    коміт той самий, а файли інші. Читач звіту не має способу дізнатись жодне з двох, якщо
+    їх туди не покласти, — і саме тому попередня прив'язка була годинником.
+    """
+    head = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    return {
+        "source_commit": head.stdout.strip() if head.returncode == 0 else "",
+        "source_digest": compute_source_digest(root),
+    }
 
 
 def lane_targets(makefile: Path, lane: str) -> list[str]:
@@ -119,6 +143,11 @@ def execute(
     targets = lane_targets(makefile or MAKEFILE, lane)
     if not targets:
         raise SystemExit(f"лан {lane} не має передумов — це відмова, а не результат")
+    # Тотожність дерева знімається ДО першої цілі: звіт має сказати, ЩО він міряв, а не
+    # лише коли. Прив'язка часом («звіт старший за коміт») пропускає прогін, що почався
+    # до коміту й скінчився після нього, і нічого не каже про вміст. Виміряно 02.09.2026:
+    # рівно на цьому вирок читав лан, знятий на іншому дереві, і називав це UNKNOWN.
+    identity = tree_identity()
     # Заповнюється ДО прогону. Обвал бігуна тоді лишає невиконані видимими; перелік,
     # що дописується по ходу, зробив би їх невідрізненними від неоголошених.
     results: dict[str, dict[str, Any]] = {
@@ -128,6 +157,13 @@ def execute(
         results[name] = run_target(name, timeout, make)
         report = summarise(results, lane)
         report["ran_at"] = datetime.now(UTC).isoformat()
+        report.update(identity)
+        # Цілі лану самі пишуть у дерево (маніфести, звіти), тож рух вмісту під час
+        # прогону — норма. Ненормальний рух ДЖЕРЕЛА: тоді половина лану про одне дерево,
+        # половина про інше, і жодна половина не названа.
+        report["source_moved_during_run"] = (
+            tree_identity()["source_commit"] != (identity["source_commit"])
+        )
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     return report

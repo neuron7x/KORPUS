@@ -5835,6 +5835,54 @@ MUTANTS = (
             "test_a_query_whose_pool_holds_nothing_relevant_is_counted_not_dropped",
         ),
     ),
+    Mutant(
+        # Прив'язка, що завжди тримає. Вирок читає лан із іншого дерева і каже ACCEPTED —
+        # рівно той failure mode, заради якого перевірка й з'явилась.
+        "M609_A_LANE_FROM_ANOTHER_TREE_READS_AS_BOUND",
+        "scripts/verify_branch_consolidation.py",
+        '        return f"лан знято на {claimed_commit[:7]}, HEAD {head_commit[:7]} — це різні дерева"',
+        "        return None",
+        (
+            "apps/api/tests/test_lane_head_binding.py::"
+            "test_every_way_of_being_about_another_tree_is_named",
+        ),
+    ),
+    Mutant(
+        # Звіт без тотожності, прочитаний як доказ. Доводити свіжість мусить звіт, а не
+        # той, хто його читає; мовчання тут — не згода.
+        "M610_A_LANE_THAT_NAMES_NO_TREE_IS_ACCEPTED",
+        "scripts/verify_branch_consolidation.py",
+        '        return "звіт лану не називає дерева, яке міряв — перезніми лан"',
+        "        return None",
+        (
+            "apps/api/tests/test_lane_head_binding.py::"
+            "test_every_way_of_being_about_another_tree_is_named",
+        ),
+    ),
+    Mutant(
+        # Розбіжність тотожності, віддана як UNKNOWN. «Не виміряно» і «виміряно ІНШЕ» —
+        # протилежні твердження, і друге не сміє виглядати як перше.
+        "M611_A_MISBOUND_LANE_DEGRADES_TO_UNKNOWN",
+        "scripts/verify_branch_consolidation.py",
+        '        return [f"лан не прив\'язаний до HEAD: {binding}"], []',
+        '        return [], [f"лан не прив\'язаний до HEAD: {binding}"]',
+        (
+            "apps/api/tests/test_lane_head_binding.py::"
+            "test_an_unbound_lane_is_a_problem_not_an_unknown",
+        ),
+    ),
+    Mutant(
+        # Бігун, що не знімає тотожності. Тоді прив'язка вище недоказова за побудовою:
+        # перевіряти нічого, і все проходить.
+        "M612_THE_LANE_RUNNER_STOPS_RECORDING_WHAT_IT_MEASURED",
+        "scripts/run_lane.py",
+        '        "source_digest": compute_source_digest(root),',
+        '        "source_digest": "",',
+        (
+            "apps/api/tests/test_lane_head_binding.py::"
+            "test_the_runner_records_the_identity_it_measured",
+        ),
+    ),
 )
 
 

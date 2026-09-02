@@ -55,6 +55,9 @@ def _repo_root(start: Path) -> Path:
 
 
 ROOT = _repo_root(Path(__file__).resolve().parent)
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+
+from korpus.application.provenance import compute_source_digest  # noqa: E402
 
 
 def git(*args: str) -> str:
@@ -126,9 +129,9 @@ def _report(path: Path) -> dict[str, Any] | None:
 def report_is_stale(ran_at: str, head_epoch: int) -> bool:
     """Звіт, знятий РАНІШЕ за поточний HEAD, описує інше дерево.
 
-    Нечитний або відсутній штамп — теж застарілий: доводити свіжість мусить звіт, а не
-    той, хто його читає. Перша версія цього інструмента взагалі не питала віку й сказала
-    ACCEPTED на домерджевому звіті, коли лан мав три червоні.
+    Лишено як ГРУБИЙ фільтр і як сумісність зі звітами без тотожності. Первинна перевірка
+    тепер `lane_binding_failure`: годинник каже КОЛИ, а не ЩО, і прогін, що почався до
+    коміту й скінчився після нього, за часом виглядає свіжим.
     """
     try:
         moment = int(datetime.fromisoformat(ran_at).timestamp())
@@ -137,11 +140,36 @@ def report_is_stale(ran_at: str, head_epoch: int) -> bool:
     return moment < head_epoch
 
 
-def _lane_findings(lane: dict[str, Any] | None, stale: bool) -> tuple[list[str], list[str]]:
+def lane_binding_failure(lane: dict[str, Any], head_commit: str, tree_digest: str) -> str | None:
+    """Чому цей звіт НЕ про це дерево — або None, якщо він саме про нього.
+
+    Звіт, що не називає свого дерева, недоказовий: довести свіжість мусить він, а не той,
+    хто його читає. Тому відсутня тотожність — така сама відмова, як розбіжна, і обидві
+    йдуть у `problems`, а не в `unknown`. Виміряно 02.09.2026: вирок читав лан із іншого
+    дерева і називав це UNKNOWN, тобто «не виміряно», хоча виміряно було ІНШЕ.
+    """
+    claimed_commit = str(lane.get("source_commit") or "")
+    claimed_digest = str(lane.get("source_digest") or "")
+    if not claimed_commit or not claimed_digest:
+        return "звіт лану не називає дерева, яке міряв — перезніми лан"
+    if lane.get("source_moved_during_run"):
+        return "джерело зрушило ПІД ЧАС лану — половина звіту про інше дерево"
+    if claimed_commit != head_commit:
+        return f"лан знято на {claimed_commit[:7]}, HEAD {head_commit[:7]} — це різні дерева"
+    if claimed_digest != tree_digest:
+        return "лан знято на тому ж коміті, але з іншим вмістом — дерево було брудне"
+    return None
+
+
+def _lane_findings(
+    lane: dict[str, Any] | None, stale: bool, binding: str | None
+) -> tuple[list[str], list[str]]:
     if lane is None:
         return [], ["немає var/lane-validate.json — лан не ганяли, отже нічого не доведено"]
+    if binding is not None:
+        return [f"лан не прив'язаний до HEAD: {binding}"], []
     if stale:
-        return [], ["звіт лану СТАРШИЙ за HEAD — він про інше дерево, прожени лан заново"]
+        return ["звіт лану СТАРШИЙ за HEAD — він про інше дерево, прожени лан заново"], []
     if lane.get("not_run") or lane.get("failed"):
         return [f"лан: впало {lane.get('failed')}, НЕ ЗАПУСКАЛОСЬ {lane.get('not_run')}"], []
     return [], []
@@ -249,14 +277,17 @@ def gather(canonical: str, prefix: str) -> dict[str, Any]:
     lost = files_lost(canonical, snapshot) if snapshot in tags else []
     heads = alembic_heads()
     head_time = int(git("log", "-1", "--format=%ct", canonical) or 0)
+    head_commit = git("rev-parse", canonical) or ""
+    tree_digest = compute_source_digest(ROOT)
     lane = _report(ROOT / "var/lane-validate.json")
     lane_stale = lane is not None and report_is_stale(str(lane.get("ran_at", "")), head_time)
+    lane_binding = lane_binding_failure(lane, head_commit, tree_digest) if lane else None
 
     gone = unreachable(tags)
     problems: list[str] = _tree_findings(tags, prefix, snapshot, gone, lost, heads)
     unknown: list[str] = []
     for source in (
-        _lane_findings(lane, lane_stale),
+        _lane_findings(lane, lane_stale, lane_binding),
         _axes_findings(_produce_axes()),
         _mutation_findings(_report(ROOT / "reports/MUTATION_REPORT.json")),
     ):
