@@ -49,7 +49,8 @@ from typing import Any
 #: став джерелом того, що контролює.
 def _repo_root(start: Path) -> Path:
     for candidate in (start, *start.parents):
-        if (candidate / ".git").exists():
+        registry = candidate / "config/operations/canonical-state.json"
+        if (candidate / ".git").exists() or registry.is_file():
             return candidate
     return start
 

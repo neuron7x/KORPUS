@@ -5541,13 +5541,13 @@
       "reason": "Новий канонічний бібліографічний гейт, виміряний 2026-09-02: перевіряє 59 джерел, 18 доменів, DOI/URL/метадані, епістемічні межі та точність двох детермінованих рендерів; вісім негативних контролів доводять fail-closed поведінку."
     },
     "scripts/verify_branch_consolidation.py": {
-      "lines": 397,
+      "lines": 398,
       "max_complexity": 15,
       "max_function_args": 6,
       "max_function_lines": 58,
       "max_nesting": 3,
       "proof_lines": 17,
-      "reason": "Вирок названий ОБСЯГОМ: `BRANCH_CONSOLIDATION_ACCEPTED` замість голого `ACCEPTED`, плюс поля `scope` і `production_authority: false`. Рецензія 03.09.2026: голе слово поруч із `production_authorized: false` в іншому звіті того самого дерева переноситься на право випуску, якого ця перевірка не встановлює."
+      "reason": "Вирок названий ОБСЯГОМ: `BRANCH_CONSOLIDATION_ACCEPTED` замість голого `ACCEPTED`, плюс поля `scope` і `production_authority: false`. 03.09.2026: +1 рядок для кореня відновленого FULL_SSOT без `.git`; інакше selftest шукав config під `scripts/` і package restoration падав."
     },
     "scripts/verify_branch_integration.py": {
       "lines": 236,
@@ -10343,6 +10343,17 @@
         "lines": 195,
         "max_complexity": 6,
         "max_function_lines": 95
+      }
+    },
+    {
+      "from": {
+        "lines": 397
+      },
+      "on": "2026-09-03",
+      "path": "scripts/verify_branch_consolidation.py",
+      "reason": "Відновлений FULL_SSOT навмисно не містить `.git`, але `validate` запускає selftest сторожа зведення. +1 рядок розпізнає корінь за канонічним реєстром; M688 доводить, що без цього restore-gate падає до перевірки предмета.",
+      "to": {
+        "lines": 398
       }
     }
   ],

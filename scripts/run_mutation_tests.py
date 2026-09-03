@@ -5638,6 +5638,17 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M688_EXTRACTED_PACKAGE_ROOT_REQUIRES_GIT_METADATA",
+        "scripts/verify_branch_consolidation.py",
+        '        if (candidate / ".git").exists() or registry.is_file():',
+        '        if (candidate / ".git").exists():',
+        (
+            "apps/api/tests/test_branch_consolidation.py::"
+            "test_an_extracted_distribution_has_a_project_root_without_git",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M676_THE_RESOLVED_COMMAND_ALIASES_THE_REGISTRY_ENTRY",
         "scripts/check_deployment_debt.py",
         "    command: list[str] = list(value)",

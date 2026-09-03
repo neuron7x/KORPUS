@@ -20,7 +20,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from verify_branch_consolidation import _literal, alembic_heads  # noqa: E402
+from verify_branch_consolidation import _literal, _repo_root, alembic_heads  # noqa: E402
+
+
+def test_an_extracted_distribution_has_a_project_root_without_git(tmp_path: Path) -> None:
+    root = tmp_path / "restored"
+    scripts = root / "scripts"
+    registry = root / "config/operations/canonical-state.json"
+    scripts.mkdir(parents=True)
+    registry.parent.mkdir(parents=True)
+    registry.write_text("{}", encoding="utf-8")
+
+    assert _repo_root(scripts) == root
 
 
 def test_a_revision_is_read_from_its_assignment() -> None:
