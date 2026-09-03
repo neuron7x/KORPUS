@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import ast
+import json
 import os
 from pathlib import Path
 
@@ -44,6 +45,48 @@ def migration_head() -> str:
     return heads[0]
 
 
+def _bind_rls_context(connection) -> None:  # type: ignore[no-untyped-def]
+    """Покласти контекст перевірника через брокера — той самий шлях, що й у рантаймі."""
+    authz_url = os.environ.get("KORPUS_AUTHZ_DATABASE_URL")
+    if not authz_url:
+        raise SystemExit(
+            "KORPUS_AUTHZ_DATABASE_URL is required: RLS context is bound by the broker "
+            "role, and without it the verifier sees nothing and blames the backup"
+        )
+    target = connection.execute(
+        text(
+            "SELECT pg_catalog.pg_backend_pid() AS backend_pid, "
+            "pg_catalog.txid_current() AS transaction_id, session_user::text AS session_login"
+        )
+    ).one()
+    parameters = {
+        "backend_pid": int(target.backend_pid),
+        "transaction_id": int(target.transaction_id),
+        "session_login": str(target.session_login),
+        "subject": "restore-verifier",
+        "clearance": 3,
+        "corpora": json.dumps(["public", "restricted-demo"], separators=(",", ":")),
+        "classifications": json.dumps(["internal", "public", "restricted"], separators=(",", ":")),
+        "compartments": json.dumps([], separators=(",", ":")),
+        "roles": json.dumps(["admin", "user"], separators=(",", ":")),
+    }
+    broker_engine = create_engine(authz_url, pool_pre_ping=True)
+    try:
+        with broker_engine.begin() as broker:
+            broker.execute(
+                text(
+                    "SELECT public.korpus_bind_rls_context("
+                    ":backend_pid, :transaction_id, CAST(:session_login AS name), "
+                    "CAST(:subject AS text), :clearance, "
+                    "CAST(:corpora AS jsonb), CAST(:classifications AS jsonb), "
+                    "CAST(:compartments AS jsonb), CAST(:roles AS jsonb))"
+                ),
+                parameters,
+            )
+    finally:
+        broker_engine.dispose()
+
+
 url = os.environ["KORPUS_POSTGRES_TEST_URL"]
 expected_revision = migration_head()
 engine = create_engine(url, pool_pre_ping=True)
@@ -56,13 +99,17 @@ with engine.begin() as connection:
     # RLS must fail closed with no request identity.
     if connection.execute(text("SELECT count(*) FROM documents")).scalar_one() != 0:
         raise SystemExit("restored RLS leaked documents without identity")
-    connection.execute(text("SELECT set_config('korpus.subject', 'restore-verifier', true)"))
-    connection.execute(text("SELECT set_config('korpus.roles', 'admin,user', true)"))
-    connection.execute(text("SELECT set_config('korpus.clearance', '3', true)"))
-    connection.execute(text("SELECT set_config('korpus.corpora', 'public,restricted-demo', true)"))
-    connection.execute(
-        text("SELECT set_config('korpus.classifications', 'public,internal,restricted', true)")
-    )
+    # Контекст в'яжеться БРОКЕРОМ, як це робить рантайм, а не `set_config`. GUC був
+    # протоколом до 0020: після нього політики читають `korpus_rls_*()`, а ті беруть
+    # рядок із таблиці `korpus_rls_context` по ключу (backend_pid, txid, session_user),
+    # покласти який може лише `korpus_bind_rls_context` і лише роль `korpus_authz`.
+    #
+    # Виміряно 04.09.2026 на живій базі схеми 0022: політик, що читають
+    # `current_setting`, НУЛЬ; політик, що читають `korpus_rls_*()`, двадцять. Тобто
+    # `set_config` не в'язав нічого, допуск лишався -1, ролі порожні, політики
+    # закривали все — і скрипт звинувачував БЕКАП у тому, чого не міг побачити сам.
+    # Відмова приходила фактом і звучала впевнено; переміряти її було нікому.
+    _bind_rls_context(connection)
     # `count(*) >= 2` passed for as long as the pytest run before it happened to leave
     # rows behind, and failed on 2026-08-05 when the suite cleaned up after itself —
     # with a correct backup and a correct restore. The drill now seeds its own rows and

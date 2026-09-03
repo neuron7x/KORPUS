@@ -18,41 +18,38 @@
     "frozen": false,
     "note": "Стан кандидата в ОДНОМУ місці. Заморожування (VERIFIED → RELEASE_CANDIDATE) записує сюди тотожність і час; після нього знаменник обов'язкових гейтів не росте. Ці поля читають замінники SI-5, SI-6, SI-8 — переліку-копії немає ніде.",
     "deployment_topology": {
-      "id": "compose-postgres-v1",
+      "id": "pilot-systemd-postgres-v1",
       "chosen_on": "2026-09-03",
       "chosen_from": [
         "config/assurance/production-v1.json: external_requirements.postgres_backend = postgresql",
         "docker-compose.yml: services.api → postgresql+psycopg://…@postgres:5432/korpus",
         "config/assurance/production-hard-predicates-v1.json: live_postgres_rls, клас REAL_POSTGRESQL"
       ],
-      "why": "Топологія взята з ОГОЛОШЕНОЇ конфігурації, а не з того, що історично працювало на машині розробника. Профіль впевненості продакшену вимагає PostgreSQL; саме його міряють `production-postgres-security` і `production-exact-environment-image`. Попередня редакція цього блоку (03.09, перша спроба) називала топологією loopback+SQLite — це був висновок із СПОСТЕРЕЖЕННЯ за живим процесом, і він суперечив оголошеному контракту.",
+      "why": "Бекенд канонічний — PostgreSQL, як вимагає профіль впевненості продакшену. Наглядач процесу для пілоту — systemd-юніт користувача, і це не смак: топологія мусить бути ЗАСВІДЧУВАНОЮ. Наявний вимірювач класу середовища вміє питати `systemctl --user show` про активність юніта і його головний процес; про контейнери він не вміє нічого. Оголосити топологією compose означало б лишити три предикати (`production_like_tevv_environment`, `production_like_load`, `trusted_recovery_attestation`) назавжди НЕВИМІРЯНИМИ — а невиміряне не є пройденим. Compose лишається еталонною формою повного продакшену.",
       "api": {
-        "kind": "container",
-        "compose_service": "api",
-        "image": "docker-compose.yml services.api (build apps/api/Dockerfile)"
-      },
-      "worker": {
-        "kind": "container",
-        "compose_service": "worker"
+        "kind": "systemd-user-unit",
+        "unit": "korpus-pilot-api.service",
+        "declared_in": "deploy/pilot/korpus-pilot-api.service",
+        "command": "uvicorn korpus.main:app --host 127.0.0.1 --port 8030 --workers 2",
+        "environment_file": "~/.local/state/korpus-pilot/api.env",
+        "schema_mode": "migrations"
       },
       "database": {
         "backend": "postgresql",
-        "compose_service": "postgres",
-        "image": "pgvector/pgvector:0.8.5-pg17-trixie (digest-pinned у docker-compose.yml)",
-        "url_shape": "postgresql+psycopg://korpus_app@postgres:5432/korpus"
-      },
-      "object_store": {
-        "kind": "container",
-        "compose_service": "minio"
-      },
-      "observability": {
-        "kind": "container",
-        "compose_service": "otel-collector"
+        "container": "korpus-pilot-pg",
+        "image": "pgvector/pgvector:0.8.5-pg17-trixie@sha256:69573b32242ca232f65871d4cb916ba7210a372b9bd74068204c1a9a57bada4f",
+        "bind": "127.0.0.1:55440",
+        "roles": [
+          "korpus_app (не суперкористувач, без BYPASSRLS)",
+          "korpus_authz",
+          "korpus_review"
+        ]
       },
       "not_in_this_release": [
         "gcp-cloud-run",
         "kubernetes-runtime",
         "pec-hosted-human-cohort",
+        "docker-compose-full-stack",
         "loopback-sqlite-public-deployment"
       ],
       "not_in_this_release_note": "Kubernetes і GCP лишаються під СТАТИЧНОЮ перевіркою контракту (`validate_kubernetes.py`, `gcp:production-contract`), але не є дорогою обслуговування цього релізу. Loopback-розгортання на SQLite оголошує себе `KORPUS_ENVIRONMENT=local` у власному юніті `deploy/public/korpus-public-api.service` — це локальний/спадковий рантайм, не продакшен.",
@@ -63,7 +60,8 @@
         "database": "var/runtime/corpus-v6-20260807/korpus.db",
         "read_only_for_agents": true,
         "guard": "PRODUCTION_GUARD: жодного навантаження, запису чи хаос-експерименту проти цієї бази без явного дозволу власника. Інцидент 03.09.2026 (пошкодження файла, причина НЕ встановлена) стався саме тут; форензика збережена в var/incident-2026-09-03/, відновлення підтверджене."
-      }
+      },
+      "revised_on": "2026-09-04"
     },
     "mandatory_gate_set": [
       "evidence-refresh",
@@ -94,7 +92,9 @@
       "validate",
       "api-test"
     ],
-    "required_serving_units": [],
+    "required_serving_units": [
+      "korpus-pilot-api.service"
+    ],
     "identity": {
       "candidate_commit": null,
       "source_digest": null,
@@ -134,7 +134,7 @@
         "gcp:production-contract": "перевіряє контракт GCP; топологія цього релізу — loopback"
       }
     },
-    "required_serving_units_note": "Порожньо навмисно й тимчасово: канонічна топологія — контейнерна, і її вимірює `topology_environment_class` за іншою ознакою, ніж systemd-юніт. Порожній перелік НЕ дає класу продакшену: вимірювач віддає LOCAL_DEV, коли юнітів не оголошено.",
+    "required_serving_units_note": "Юніт, який МУСИТЬ обслуговувати пілот. Вимірювач класу середовища відмовляє, поки він не активний і поки його головний процес не серед тих, що відповідають.",
     "private_pilot": {
       "scope": "PRIVATE_PILOT",
       "max_users": 10,

@@ -1,7 +1,7 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "5c0975b108509af23b7634abf0a9c196f3546da4d84d4bd3798c92ed36dd93e3",
+  "source_tree_sha256": "931d25ae996216607f4354d894bf591a98c38544d137050449b7ed666c68e5d4",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
@@ -71,6 +71,8 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
+        "postgres_adversarial_suite",
+        "metadata:backend",
         "gate_source_bound"
       ],
       "waived_external_checks": []
@@ -155,8 +157,8 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "load_source_bound",
-        "load_environment",
+        "load_slo_steady_p95",
+        "load_slo_no_subject_throttle_rated",
         "gate_source_bound"
       ],
       "waived_external_checks": []
@@ -173,7 +175,6 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "load_source_bound",
         "gate_source_bound"
       ],
       "waived_external_checks": [
@@ -193,7 +194,6 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "recovery_environment",
         "gate_source_bound"
       ],
       "waived_external_checks": [

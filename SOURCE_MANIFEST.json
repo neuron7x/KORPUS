@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1806,
-  "root_sha256": "13992aeb47855b2f6bc05f993ef426f27bb4dd2b9f8c09e173962b03218f2994",
+  "file_count": 1807,
+  "root_sha256": "2ede1de2718bfcf7345d21f3b0276527cf6519bf50d25b4701f9b875914b6acf",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 53759,
-      "sha256": "b8739983b9488cd3f712c13a1a027d176136cf22099b6dc601cd3efed4b38ce6",
+      "bytes": 54282,
+      "sha256": "a1aabe8ffbd110bc13176ff5396aa77bbb7672bdc66490cedfb0f326d8ba8e8b",
       "mode": "0644"
     },
     {
@@ -439,8 +439,8 @@
     },
     {
       "path": "RELEASE_ENVELOPE.json",
-      "bytes": 10807,
-      "sha256": "f613283e2f99d5bb68451846d012b2bbcdf526008fd2923b9c3c6f88684c3810",
+      "bytes": 11140,
+      "sha256": "ee023c7cdad97450f5c25b2e49b58e45bb40b6fe9dedb69ffd21b01792c7edad",
       "mode": "0644"
     },
     {
@@ -7316,7 +7316,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "70a8493c210efd2e501c6a35cb1844ae201a0b210f8b20787e0f8bcb021cbadb",
+      "sha256": "0597316a19cf128bad7ce324c34fa2992b78ed9f3037a75e4da939eb7d1236db",
       "mode": "0644"
     },
     {
@@ -7351,8 +7351,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 582825,
-      "sha256": "7f730600ff20814bbed6125a6a2fce9abe502cd1ceb02f4772b5dc6b4900098c",
+      "bytes": 585019,
+      "sha256": "33b2c61eb692b418b24d1bf92181c7ec8a9261b727bc9f806cc4815777a9019f",
       "mode": "0644"
     },
     {
@@ -7515,6 +7515,12 @@
       "path": "deploy/kubernetes/overlays/production/kustomization.yaml",
       "bytes": 507,
       "sha256": "05c05536298180f9834bdffe250b52b08ad3728296a33648991a091c45cecb4d",
+      "mode": "0644"
+    },
+    {
+      "path": "deploy/pilot/korpus-pilot-api.service",
+      "bytes": 2323,
+      "sha256": "2565d7de15f147378ac5b3e3381b30736b031508a5edf0b842da430fd1ebd565",
       "mode": "0644"
     },
     {
@@ -10759,8 +10765,8 @@
     },
     {
       "path": "scripts/verify_postgres_restore.py",
-      "bytes": 3955,
-      "sha256": "a6709554d836878d79395610106867a72e1efbcc7b38d337f3270728908fd173",
+      "bytes": 6591,
+      "sha256": "f4ac34ca8e169b21c31be05b3d9e1a8d8cece1285135bb7d3c91515db50fc174",
       "mode": "0755"
     },
     {

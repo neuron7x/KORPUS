@@ -307,6 +307,11 @@ api:assurance:
       # `api:assurance` уперше в історії виконався, упав на M341 — і доказ, який
       # назвав би причину, згинув разом із контейнером.
       - var/mutation-shard-*.log
+      # Лог несе лише ПІДСУМОК: `run_mutation_tests.py` вирізає `results` з того, що
+      # друкує. Повний запис із `returncode`, `reason: pytest_exit_N` і `output_tail`
+      # лежить у звіті шарда — без нього причина ERROR не виїжджає з раннера, і
+      # наступний прогін скаже те саме ім'я мутанта й жодного слова більше.
+      - var/mutation-shards/*.json
 
 # The drills. Each one breaks something on purpose, or loads the system until it refuses,
 # and leaves a report. They are separate from api:assurance because they take a running

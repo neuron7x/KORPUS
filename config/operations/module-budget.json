@@ -5702,12 +5702,13 @@
       "proof_lines": 0
     },
     "scripts/verify_postgres_restore.py": {
-      "lines": 83,
+      "lines": 130,
       "max_complexity": 13,
-      "max_function_args": 0,
-      "max_function_lines": 29,
+      "max_function_args": 1,
+      "max_function_lines": 40,
       "max_nesting": 4,
-      "proof_lines": 0
+      "proof_lines": 0,
+      "reason": "04.09.2026, ремонт хибної ВІДМОВИ обов'язкового кроку CI: перевірник відновлення в'язав контекст RLS через `set_config`, тобто протоколом, який схема 0022 більше не читає. Виміряно на живій базі: політик, що читають `current_setting`, НУЛЬ; політик, що читають `korpus_rls_*()`, двадцять. Допуск лишався -1, політики закривали все, і скрипт звинувачував БЕКАП у тому, чого не міг побачити сам. Тепер контекст кладе БРОКЕР `korpus_bind_rls_context` під роллю `korpus_authz` — той самий шлях, що й у рантаймі. Перевірено запуском на відновленій пілотній базі: PASS."
     },
     "scripts/verify_production_assurance.py": {
       "lines": 82,
@@ -10493,6 +10494,21 @@
         "lines": 275,
         "max_complexity": 13,
         "max_function_lines": 76
+      }
+    },
+    {
+      "from": {
+        "lines": 83,
+        "max_function_args": 0,
+        "max_function_lines": 29
+      },
+      "on": "2026-09-04",
+      "path": "scripts/verify_postgres_restore.py",
+      "reason": "04.09.2026, ремонт хибної ВІДМОВИ обов'язкового кроку CI: перевірник відновлення в'язав контекст RLS через `set_config`, тобто протоколом, який схема 0022 більше не читає. Виміряно на живій базі: політик, що читають `current_setting`, НУЛЬ; політик, що читають `korpus_rls_*()`, двадцять. Допуск лишався -1, політики закривали все, і скрипт звинувачував БЕКАП у тому, чого не міг побачити сам. Тепер контекст кладе БРОКЕР `korpus_bind_rls_context` під роллю `korpus_authz` — той самий шлях, що й у рантаймі. Перевірено запуском на відновленій пілотній базі: PASS.",
+      "to": {
+        "lines": 130,
+        "max_function_args": 1,
+        "max_function_lines": 40
       }
     }
   ],
