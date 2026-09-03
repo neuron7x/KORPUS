@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1797,
-  "root_sha256": "582da7ff552459fd67e31e66aed6646072990c86022484d09b698671308b4ced",
+  "file_count": 1799,
+  "root_sha256": "73b843178a29c45a895a92ee60e8970ce8e6aa5ccfd853a78165351c4e99941d",
   "files": [
     {
       "path": ".dockerignore",
@@ -3621,6 +3621,12 @@
       "path": "apps/api/tests/test_handoff_contract.py",
       "bytes": 5657,
       "sha256": "b02ec34cb2872881ba906f9546cfcb2064dde9fecdc8959cfe97819a5189b815",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_handoff_liveness_probe.py",
+      "bytes": 1349,
+      "sha256": "90afc988ee9816ffdaa27b32a3cfc5209c90518cee83673a838e34caaf93c0dc",
       "mode": "0644"
     },
     {
@@ -7327,8 +7333,8 @@
     },
     {
       "path": "config/operations/gate-liveness.yaml",
-      "bytes": 16079,
-      "sha256": "8312933b12bd6c32d6544676d38091acc4fa1c7b031519cdfb7258c441c1954a",
+      "bytes": 16062,
+      "sha256": "5f1e07a8c3307a9adfdb93af4b3897bd0ae2d98ed4e63875e5048b7b231ec73e",
       "mode": "0644"
     },
     {
@@ -10170,6 +10176,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/run_handoff_liveness_probe.py",
+      "bytes": 2387,
+      "sha256": "ffbbabeb30fe24a13fd0808569bd7ec9a48f7bab97ad8c9ae64c7f25a39a445f",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/run_inference_security_gate.py",
       "bytes": 6299,
       "sha256": "af3a11444fb2a887bec3cf33c76059025107774ea861c2edbd998212634d6d5e",
@@ -10225,8 +10237,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 310961,
-      "sha256": "be5524e6a5929356385a339af4373567cddf3150331ff139745f122ddc790bfb",
+      "bytes": 312098,
+      "sha256": "1ff2da2cafe81f984827baa22822137a4d4fe7a429cfcf98b4b991d5327ee550",
       "mode": "0755"
     },
     {
