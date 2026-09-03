@@ -9,6 +9,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 
+from assemble_production_assurance import DEFAULT_GATES  # noqa: E402
 from korpus.application.production_hard_predicates import (  # noqa: E402
     evaluate_hard_predicates,
     load_hard_predicate_profile,
@@ -17,16 +18,14 @@ from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
 PROFILE = ROOT / "config/assurance/production-hard-predicates-v1.json"
+
+#: Мапа гейт→файл ОДНА на дерево. Тут лежала друга копія, і вона збігалася з першою
+#: випадково: обидві треба було правити разом, а перевірки, що вони збігаються, не було.
+#: `final_release` існує лише тут — його не оцінює модель продакшену, тому він додається,
+#: а не дублюється.
 GATE_FILES = {
-    "redteam": "redteam-gate.json",
-    "supply_chain": "supply_chain-gate.json",
-    "postgres_security": "postgres_security-gate.json",
-    "tevv": "tevv-gate.json",
-    "reliability": "reliability-gate.json",
-    "exact_environment": "exact_environment-gate.json",
+    **DEFAULT_GATES,
     "final_release": "final_release-gate.json",
-    "pec_authority": "pec_authority-gate.json",
-    "pec_canary": "pec_canary-gate.json",
 }
 
 

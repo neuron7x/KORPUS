@@ -18,7 +18,7 @@
     "pec_canary"
   ],
   "external_requirements": {
-    "redteam_evidence_class": "INTERNAL_ADVERSARIAL_CAMPAIGN",
+    "redteam_evidence_class": "INTERNAL_ADVERSARIAL",
     "redteam_attestation_verified": false,
     "redteam_trusted_signer_required": false,
     "tevv_environment_classes": [
@@ -29,7 +29,8 @@
     "tevv_trusted_assessor_required": false,
     "postgres_backend": "postgresql",
     "supply_chain_completeness": "COMPLETE",
-    "mutation_scope": "FULL_CATALOGUE"
+    "mutation_scope": "FULL_CATALOGUE",
+    "redteam_evidence_class_note": "Рядок мусить збігатися з тим, який пише виробник доказу (`run_pytest_campaign.py` → `evidence_class: INTERNAL_ADVERSARIAL`). Вигаданий клас у політиці дав би вічний FAIL про розбіжність, якої немає у світі."
   },
   "interpretation": "All listed predicates are conjunctive. Missing, stale or weaker-class evidence fails closed. External independence is replaced by executable internal evidence, never by nothing: the internal adversarial campaign and the real-domain TEVV are blocking.",
   "governance_authority": "config/governance/assurance-model.json",

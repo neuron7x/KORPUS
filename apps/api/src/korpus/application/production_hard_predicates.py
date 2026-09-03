@@ -80,10 +80,18 @@ class PredicateRequirement:
 _REQUIREMENTS: dict[str, PredicateRequirement] = {
     "external_independent_redteam": PredicateRequirement(
         "redteam",
+        # Перевірки ВНУТРІШНЬОЇ змагальної кампанії — того доказу, який реліз справді
+        # має. Перелік зовнішнього валідатора (`report_present`, `preregistered`,
+        # `findings_structured`, …) описував артефакт зовнішнього оцінювача; його немає
+        # кому видати, і всі ці імена лишились у waived_external, а не зникли.
+        ("campaign_executed", "pytest_passed", "attack_families_declared"),
+        (("status", "PASS"),),
         (
             "report_present",
-            "source_bound",
-            "release_bound",
+            "attestation_present",
+            "attestation_verified",
+            "trusted_signer",
+            "independent_class",
             "preregistered",
             "test_cases_structured",
             "required_attack_families_covered",
@@ -91,8 +99,6 @@ _REQUIREMENTS: dict[str, PredicateRequirement] = {
             "blocking_findings_closed",
             "declared_status_consistent",
         ),
-        (("status", "PASS"),),
-        ("attestation_present", "attestation_verified", "trusted_signer", "independent_class"),
     ),
     "live_vulnerability_scanners": PredicateRequirement(
         "supply_chain",

@@ -27,11 +27,11 @@ def test_production_assurance_requires_every_gate_and_declared_evidence_class() 
     дослівно тією самою — змінилось лише те, ЯКИЙ клас оголошений.
     """
     gates = {gate: _gate(gate) for gate in PROFILE["required_gates"]}
-    gates["redteam"]["evidence_class"] = "INTERNAL_ADVERSARIAL_CAMPAIGN"
+    gates["redteam"]["evidence_class"] = PROFILE["external_requirements"]["redteam_evidence_class"]
     gates["redteam"]["attestation_verified"] = False
     gates["redteam"]["trusted_signer"] = False
     gates["tevv"]["environment_class"] = "PRODUCTION_LIKE"
-    gates["tevv"]["independent_class"] = "INTERNAL_STRUCTURALLY_SEPARATED"
+    gates["tevv"]["independent_class"] = PROFILE["external_requirements"]["tevv_independent_class"]
     gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": False}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"
@@ -45,7 +45,7 @@ def test_redteam_of_the_wrong_class_cannot_promote_production() -> None:
     gates = {gate: _gate(gate) for gate in PROFILE["required_gates"]}
     gates["redteam"]["evidence_class"] = "INTERNAL"
     gates["tevv"]["environment_class"] = "PRODUCTION"
-    gates["tevv"]["independent_class"] = "INTERNAL_STRUCTURALLY_SEPARATED"
+    gates["tevv"]["independent_class"] = PROFILE["external_requirements"]["tevv_independent_class"]
     gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": False}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"
@@ -57,11 +57,11 @@ def test_redteam_of_the_wrong_class_cannot_promote_production() -> None:
 
 def test_stale_gate_digest_is_rejected_even_if_it_says_pass() -> None:
     gates = {gate: _gate(gate) for gate in PROFILE["required_gates"]}
-    gates["redteam"]["evidence_class"] = "INTERNAL_ADVERSARIAL_CAMPAIGN"
+    gates["redteam"]["evidence_class"] = PROFILE["external_requirements"]["redteam_evidence_class"]
     gates["redteam"]["attestation_verified"] = False
     gates["redteam"]["trusted_signer"] = False
     gates["tevv"]["environment_class"] = "PRODUCTION"
-    gates["tevv"]["independent_class"] = "INTERNAL_STRUCTURALLY_SEPARATED"
+    gates["tevv"]["independent_class"] = PROFILE["external_requirements"]["tevv_independent_class"]
     gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": False}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"
@@ -73,11 +73,11 @@ def test_stale_gate_digest_is_rejected_even_if_it_says_pass() -> None:
 
 def _sound_gates() -> dict[str, dict[str, object]]:
     gates = {gate: _gate(gate) for gate in PROFILE["required_gates"]}
-    gates["redteam"]["evidence_class"] = "INTERNAL_ADVERSARIAL_CAMPAIGN"
+    gates["redteam"]["evidence_class"] = PROFILE["external_requirements"]["redteam_evidence_class"]
     gates["redteam"]["attestation_verified"] = False
     gates["redteam"]["trusted_signer"] = False
     gates["tevv"]["environment_class"] = "PRODUCTION"
-    gates["tevv"]["independent_class"] = "INTERNAL_STRUCTURALLY_SEPARATED"
+    gates["tevv"]["independent_class"] = PROFILE["external_requirements"]["tevv_independent_class"]
     gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": False}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"

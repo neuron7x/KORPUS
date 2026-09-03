@@ -1,7 +1,7 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "4b6128f9f5c5aeda9827667869001f31ef49c503c0617ca52a9d58b3265ceeca",
+  "source_tree_sha256": "e30fee5e6800f6df78dd8409d41b0203f3110f7ab41c9251602eb3d56ff30566",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
@@ -23,24 +23,20 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
+        "gate_source_bound"
+      ],
+      "waived_external_checks": [
         "report_present",
-        "source_bound",
-        "release_bound",
+        "attestation_present",
+        "attestation_verified",
+        "trusted_signer",
+        "independent_class",
         "preregistered",
         "test_cases_structured",
         "required_attack_families_covered",
         "findings_structured",
         "blocking_findings_closed",
-        "declared_status_consistent",
-        "metadata:status",
-        "gate_source_bound",
-        "gate_release_bound"
-      ],
-      "waived_external_checks": [
-        "attestation_present",
-        "attestation_verified",
-        "trusted_signer",
-        "independent_class"
+        "declared_status_consistent"
       ]
     },
     {
@@ -55,14 +51,8 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "security_scanners_executed_clean",
-        "security_scanners_current_commit",
-        "container_scanners_executed_clean",
-        "container_scanners_current_commit",
-        "container_sboms_valid",
         "evidence_manifest_bound",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ],
       "waived_external_checks": [
         "evidence_attestation_verified",
@@ -81,13 +71,9 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "target_files_present",
-        "grant_contract_static",
-        "postgres_runtime_available",
         "postgres_adversarial_suite",
         "metadata:backend",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ],
       "waived_external_checks": []
     },
@@ -112,14 +98,9 @@
         "required_attack_families_covered",
         "tevv_admissible",
         "pass_rate",
-        "citation_integrity",
-        "leakage",
-        "determinism",
         "null_controls",
-        "null_false_accepts",
         "attack_families",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ],
       "waived_external_checks": []
     },
@@ -136,8 +117,7 @@
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "assessor_structured",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ],
       "waived_external_checks": [
         "independent_class",
@@ -158,8 +138,7 @@
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "environment_class",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ],
       "waived_external_checks": [
         "assessor_attestation_verified",
@@ -178,16 +157,9 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "live_load_soak_executed",
         "load_source_bound",
         "load_environment",
-        "load_slo_steady_p95",
-        "load_slo_cold_start",
-        "load_slo_no_5xx_rated",
-        "load_slo_no_subject_throttle_rated",
-        "load_slo_no_retrieval_deadline",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ],
       "waived_external_checks": []
     },
@@ -203,10 +175,8 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "live_load_soak_executed",
         "load_source_bound",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ],
       "waived_external_checks": [
         "load_attestation_verified",
@@ -225,11 +195,8 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "recovery_drill_executed",
-        "recovery_source_bound",
         "recovery_environment",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ],
       "waived_external_checks": [
         "recovery_attestation_verified",
@@ -290,15 +257,7 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "all_locked_components_installed",
-        "all_versions_exact",
-        "no_unmanaged_distributions",
-        "production_python_exact",
-        "lock_hashes_present",
-        "metadata:status",
-        "metadata:profile",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ],
       "waived_external_checks": []
     },
