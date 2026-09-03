@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1795,
-  "root_sha256": "094d145fe20b92fd8f1cab28286392128e6b9ac381f25b343b3da80247d8bb7e",
+  "file_count": 1796,
+  "root_sha256": "059f6da5a1901ba6bec8c65ecea260e7823f7c66d2565a0681bd60a230cd9471",
   "files": [
     {
       "path": ".dockerignore",
@@ -219,6 +219,12 @@
       "path": "KORPUS_ENGINEERING_CLOSURE/08_DATA/postgres_report.json",
       "bytes": 2625,
       "sha256": "7ba8f9f5ffd0002ccb85509df6e4ea641c6839fbd1ee91a27d53c81303afc431",
+      "mode": "0644"
+    },
+    {
+      "path": "KORPUS_ENGINEERING_CLOSURE/15_GOVERNANCE/concurrent_write_conflict_2026-09-03.json",
+      "bytes": 2336,
+      "sha256": "19191e3f28e4f2c5a9170bc49b7b14ab256d7a3c7a3d8b17eefbb11b93a0fcda",
       "mode": "0644"
     },
     {
