@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1805,
-  "root_sha256": "56d98b91e5116b7556cf4effe144f8a24f7e9cdb8ee64bc07d4b709847da87eb",
+  "root_sha256": "609bd415a5d5845f87519aec7c7122f519259ab43f20926ac9467ee578673f60",
   "files": [
     {
       "path": ".dockerignore",
@@ -439,8 +439,8 @@
     },
     {
       "path": "RELEASE_ENVELOPE.json",
-      "bytes": 7197,
-      "sha256": "7d76896a1c8ce789ee57b9cad9fe07afd3c4748e9f64107bec60be469dfe8d99",
+      "bytes": 10807,
+      "sha256": "f613283e2f99d5bb68451846d012b2bbcdf526008fd2923b9c3c6f88684c3810",
       "mode": "0644"
     },
     {

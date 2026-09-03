@@ -134,6 +134,65 @@
         "gcp:production-contract": "перевіряє контракт GCP; топологія цього релізу — loopback"
       }
     },
-    "required_serving_units_note": "Порожньо навмисно й тимчасово: канонічна топологія — контейнерна, і її вимірює `topology_environment_class` за іншою ознакою, ніж systemd-юніт. Порожній перелік НЕ дає класу продакшену: вимірювач віддає LOCAL_DEV, коли юнітів не оголошено."
+    "required_serving_units_note": "Порожньо навмисно й тимчасово: канонічна топологія — контейнерна, і її вимірює `topology_environment_class` за іншою ознакою, ніж systemd-юніт. Порожній перелік НЕ дає класу продакшену: вимірювач віддає LOCAL_DEV, коли юнітів не оголошено.",
+    "private_pilot": {
+      "scope": "PRIVATE_PILOT",
+      "max_users": 10,
+      "invite_only": true,
+      "public_registration": false,
+      "why_bounded": "Мета пілоту — довести дорогу розгортання й критичні інваріанти на РЕАЛЬНІЙ взаємодії з найменшим радіусом ураження, а не відкрити систему світу. Пілот НЕ підтверджує право системи ухвалювати рішення самостійно.",
+      "authentication": {
+        "mode": "jwt",
+        "issuer": "korpus-public",
+        "audience": "korpus",
+        "max_lifetime_minutes": 1440,
+        "token_minting": "scripts/mint_review_token.py — ключ у власника, агент його не має"
+      },
+      "authorization": {
+        "claims": [
+          "roles",
+          "clearance",
+          "corpora"
+        ],
+        "database": "PostgreSQL RLS; застосунковий логін БЕЗ BYPASSRLS, claim'и кладе окремий брокер korpus_authz",
+        "approval_boundary": "затвердження версій недоступне застосунковому логіну (тригер 0022)"
+      },
+      "limits": {
+        "concurrent_answers": "KORPUS_MAX_CONCURRENT_ANSWERS (частка на предмет; надлишок → 429)",
+        "expected_pilot_concurrency": "3–10 користувачів, не інтернет-масштаб"
+      },
+      "observability": {
+        "health": "GET /health",
+        "metrics": "GET /metrics (prometheus)",
+        "serving_identity": "make serving-freshness — чи обслуговує оголошений юніт поточний код",
+        "audit": "scripts/verify_audit.py — ланцюг і якір",
+        "answer_profile": "make corpus-axes — предмет, стриманість, довідка, парафраз"
+      },
+      "stop_conditions": [
+        "обхід авторизації",
+        "розкриття через межу (крос-користувач, крос-відсік)",
+        "пошкодження бази або корпусу",
+        "повторювані необроблені 5xx",
+        "обслуговується НЕ той кандидат",
+        "зламана прив'язка цитат до доказу",
+        "критична відмова журналу аудиту",
+        "невідновна проблема схеми чи даних"
+      ],
+      "non_stop_conditions": [
+        "косметична вада інтерфейсу",
+        "рідкісний некритичний крайній випадок",
+        "запит на нову можливість"
+      ],
+      "rollback": {
+        "artifact": "reports/POSTGRES_PILOT_EVIDENCE.json — виміряні RTO 7,53 с",
+        "procedure": [
+          "1. systemctl --user stop korpus-public-api.service (або зупинити контейнер API)",
+          "2. pg_restore -d <нова база> <останній дамп>  # перевірено: 5,41 с, ланцюг аудиту дійсний",
+          "3. переключити KORPUS_DATABASE_URL на відновлену базу",
+          "4. підняти сервіс і перевірити make serving-freshness + scripts/verify_audit.py"
+        ],
+        "previous_candidate": "лишається в git; відкат коду — git checkout <попередній SHA> + перезбірка"
+      }
+    }
   }
 }
