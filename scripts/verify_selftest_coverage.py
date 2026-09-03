@@ -199,6 +199,14 @@ def selftest() -> int:
     return 1 if bad else 0
 
 
+def _head(root: Path) -> str:
+    """Прив'язка звіту до дерева: без неї звіт про вчорашній HEAD задовольняв би
+    замінник SI-4 моделі впевненості сьогодні."""
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=False
+    ).stdout.strip()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT)
@@ -215,6 +223,7 @@ def main() -> int:
     report = {
         "schema": SCHEMA,
         "status": overall,
+        "commit": _head(arguments.root),
         "declared": len(expected),
         "findings": findings,
         "results": results,

@@ -2,7 +2,7 @@
   "schema": "korpus.production-assurance.v1",
   "status": "FAIL",
   "release": "v0.9.7",
-  "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
+  "source_tree_sha256": "2d8f86b15b5ae3b6b500f2de03ec6f2155d0454691160b30fe9b9506ac325136",
   "profile": "config/assurance/production-v1.json",
   "profile_sha256": "c1a1ccbfad28bd69eb90580ac8560dfaa521a131b7ef0080c08925f224214909",
   "checks": {
@@ -12,7 +12,7 @@
     "engineering.release_bound": true,
     "tevv.present": true,
     "tevv.pass": false,
-    "tevv.source_bound": true,
+    "tevv.source_bound": false,
     "tevv.release_bound": true,
     "observability.present": true,
     "observability.pass": true,
@@ -28,11 +28,11 @@
     "authorization.release_bound": true,
     "redteam.present": true,
     "redteam.pass": false,
-    "redteam.source_bound": true,
+    "redteam.source_bound": false,
     "redteam.release_bound": true,
     "reliability.present": true,
     "reliability.pass": false,
-    "reliability.source_bound": true,
+    "reliability.source_bound": false,
     "reliability.release_bound": true,
     "inference_security.present": true,
     "inference_security.pass": true,
@@ -47,7 +47,7 @@
     "supply_chain.source_bound": false,
     "supply_chain.release_bound": true,
     "exact_environment.present": true,
-    "exact_environment.pass": false,
+    "exact_environment.pass": true,
     "exact_environment.source_bound": true,
     "exact_environment.release_bound": true,
     "mutation.present": true,
@@ -74,11 +74,13 @@
   },
   "failures": [
     "tevv.pass",
+    "tevv.source_bound",
     "redteam.pass",
+    "redteam.source_bound",
     "reliability.pass",
+    "reliability.source_bound",
     "supply_chain.pass",
     "supply_chain.source_bound",
-    "exact_environment.pass",
     "pec_authority.present",
     "pec_authority.pass",
     "pec_authority.source_bound",
@@ -95,25 +97,25 @@
     "supply_chain.complete"
   ],
   "gate_sha256": {
-    "engineering": "58e717202a3c15049ec0af09b38d3e4444bf59754957896ce6cee5ee46db6fb6",
-    "tevv": "4834867beefd7080752b4e7e859409d5410f1c017bfdb4a4ebb27bf8d01170e2",
-    "observability": "94cf00b00307373f135e81f074020baca8e6443e7613864dd6567719102b4a6f",
-    "state_contracts": "753e6d241319dfba7ed746b238c4a9b6c0e41eecd3ee55853a724315925f74bf",
-    "authorization": "cc2ab345003667d37339af64ec623e1853b6cfff2630888859f9a3435cbeeaaa",
+    "engineering": "7694d3823967256deb85b3508def5719bf62c05c2fbd03630e914582398a0c14",
+    "tevv": "00e5a8ec2197cc69fc4b62f1e8cb9640844f05f1b011afd7ab3305f70a9af4c4",
+    "observability": "ce0d274f8872566a2148a562d2b170998760bffba701732e013e4427928f771c",
+    "state_contracts": "ea85c5ff5b8b1094d05e008d103c7b7e3076710859c587478a435cb2419bb93d",
+    "authorization": "c099bbaba5493b9c1041e7751231ad0de3486ffc205ff630e89bd40ab997abad",
     "redteam": "4f4b3bd39c7252623d60e1c145e0b340707ec4c0c638f85e40500477b37255d8",
     "reliability": "4632f00ef3d86a61b2ba0adabfeb742691babce9ecc0f0273f3fb7c7b6e73d30",
-    "inference_security": "6acf50cd7e83a0627eb9e0d190d7fcbe8e542fb81c667ca0c7c392e4c95e4ba1",
-    "postgres_security": "02d712e832cf892e7a576d7df8b3fc82d518b0652633b1686d3caa2da8917d45",
+    "inference_security": "6e36900e8cf8593c10acc72aed0701c1e53bca355cd2d562e9bbb90b6336177d",
+    "postgres_security": "4ebada85b5d0c6dcaff21b69a296e0b3935003473a01931e7f042674b3613438",
     "supply_chain": "5d0f8ae9c0315c7e441ff7d9d1e63f31d65272928a5a48eb4ef7d27b0c876223",
-    "exact_environment": "3b0b5476e2cf874750397b01f2f97452b0e5eecb1ce959ecd95e9297aa5fa1fa",
-    "mutation": "2e1867c861e1b8ea029a0f2511518149159aeac8c2140f9778e8ef53bbb112ef"
+    "exact_environment": "2e5f623a7758a97e28e2a483097a26e514c811b6de9e5d53c3ea925eb15d54dd",
+    "mutation": "ea3e13bcba9cb2883a05e043b1063dd5c3c6e8fac1ab1db8f4de2d9053a59c35"
   },
   "gates": {
     "engineering": {
       "schema": "korpus.production-gate.v1",
       "gate_id": "engineering",
       "status": "PASS",
-      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
+      "source_tree_sha256": "2d8f86b15b5ae3b6b500f2de03ec6f2155d0454691160b30fe9b9506ac325136",
       "release": "v0.9.7",
       "checks": {
         "report_present": true,
@@ -128,7 +130,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "tevv",
       "status": "FAIL",
-      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
+      "source_tree_sha256": "78d3d2334ac542d9c53e53b070c5dd87ba324a765b34645ead4c2f65380ab524",
       "release": "v0.9.7",
       "checks": {
         "evidence_schema": false,
@@ -227,7 +229,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "observability",
       "status": "PASS",
-      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
+      "source_tree_sha256": "2d8f86b15b5ae3b6b500f2de03ec6f2155d0454691160b30fe9b9506ac325136",
       "release": "v0.9.7",
       "checks": {
         "no_identity_or_user_text_labels": true,
@@ -253,11 +255,13 @@
         ],
         "retrieval_latency": [],
         "retrieval_candidates": [],
+        "retrieval_distinct_versions": [],
         "admission_active": [],
         "answer_admission_active": [],
         "ingestion_admission_active": [],
         "audit_anchor_pending": [],
         "audit_anchor_oldest_seconds": [],
+        "audit_anchor_gap_events": [],
         "audit_anchor_reconcile_failures": [
           "error_class"
         ],
@@ -273,7 +277,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "state_contracts",
       "status": "PASS",
-      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
+      "source_tree_sha256": "2d8f86b15b5ae3b6b500f2de03ec6f2155d0454691160b30fe9b9506ac325136",
       "release": "v0.9.7",
       "checks": {
         "review_total": true,
@@ -365,7 +369,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "authorization",
       "status": "PASS",
-      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
+      "source_tree_sha256": "2d8f86b15b5ae3b6b500f2de03ec6f2155d0454691160b30fe9b9506ac325136",
       "release": "v0.9.7",
       "checks": {
         "matrix_matches_role_contract": true,
@@ -624,7 +628,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "inference_security",
       "status": "PASS",
-      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
+      "source_tree_sha256": "2d8f86b15b5ae3b6b500f2de03ec6f2155d0454691160b30fe9b9506ac325136",
       "release": "v0.9.7",
       "checks": {
         "profile_gate_id": true,
@@ -669,19 +673,19 @@
       ],
       "pytest_exit_code": 0,
       "pytest": {
-        "tests": 70,
+        "tests": 78,
         "failures": 0,
         "errors": 0,
         "skipped": 0
       },
-      "junit_sha256": "7a7e5b07ed6b7b14d9aa9d91b7024915c207bfa0ac572bf323fd333b1a678639",
-      "output_tail": "......................................................................   [100%]\n"
+      "junit_sha256": "808a0e9158c1842d30a0f6b87493729193e170c94e5eae11a3e74af309b41e48",
+      "output_tail": "........................................................................ [ 92%]\n......                                                                   [100%]\n"
     },
     "postgres_security": {
       "schema": "korpus.production-gate.v1",
       "gate_id": "postgres_security",
       "status": "PASS",
-      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
+      "source_tree_sha256": "2d8f86b15b5ae3b6b500f2de03ec6f2155d0454691160b30fe9b9506ac325136",
       "release": "v0.9.7",
       "checks": {
         "target_files_present": true,
@@ -696,10 +700,15 @@
         "apps/api/tests/test_postgres_role_grants.py",
         "apps/api/tests/test_repository_access_refusals.py",
         "apps/api/tests/test_tenancy_threats.py",
-        "apps/api/tests/test_audit.py"
+        "apps/api/tests/test_audit.py",
+        "apps/api/tests/test_postgres_rls_claim_forgery.py",
+        "apps/api/tests/test_postgres_rls_policy_state.py",
+        "apps/api/tests/test_postgres_role_reprovision_boundary.py",
+        "apps/api/tests/test_postgres_approval_provenance.py",
+        "apps/api/tests/test_postgres_integration.py"
       ],
       "runtime_exit_code": 0,
-      "runtime_tail": "........................................................................ [  2%]\n........................................................................ [  4%]\n........................................................................ [  6%]\n........................................................................ [  8%]\n........................................................................ [ 11%]\n........................................................................ [ 13%]\n........................................................................ [ 15%]\n........................................................................ [ 17%]\n........................................................................ [ 19%]\n........................................................................ [ 22%]\n........................................................................ [ 24%]\n........................................................................ [ 26%]\n........................................................................ [ 28%]\n........................................................................ [ 31%]\n........................................................................ [ 33%]\n........................................................................ [ 35%]\n........................................................................ [ 37%]\n........................................................................ [ 39%]\n........................................................................ [ 42%]\n........................................................................ [ 44%]\n........................................................................ [ 46%]\n........................................................................ [ 48%]\n........................................................................ [ 51%]\n........................................................................ [ 53%]\n........................................................................ [ 55%]\n........................................................................ [ 57%]\n........................................................................ [ 59%]\n........................................................................ [ 62%]\n........................................................................ [ 64%]\n........................................................................ [ 66%]\n........................................................................ [ 68%]\n........................................................................ [ 71%]\n........................................................................ [ 73%]\n........................................................................ [ 75%]\n........................................................................ [ 77%]\n........................................................................ [ 79%]\n........................................................................ [ 82%]\n........................................................................ [ 84%]\n........................................................................ [ 86%]\n........................................................................ [ 88%]\n........................................................................ [ 90%]\n........................................................................ [ 93%]\n........................................................................ [ 95%]\n........................................................................ [ 97%]\n........................................................................ [ 99%]\n....                                                                     [100%]\n=============================== warnings summary ===============================\ntests/test_package_zip_safety.py::test_duplicate_name_is_rejected\n  /usr/lib/python3.12/zipfile/__init__.py:1620: UserWarning: Duplicate name: 'same.txt'\n    return self._open_to_write(zinfo, force_zip64=force_zip64)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n3244 passed, 1 warning in 161.09s (0:02:41)\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade  -> 0001_initial, research-grade controlled-corpus schema\nINFO  [alembic.runtime.migration] Running upgrade 0001_initial -> 0002_db_defense_and_vectors, database defense-in-depth and semantic index substrate\nINFO  [alembic.runtime.migration] Running upgrade 0002_db_defense_and_vectors -> 0003_infrastructure_hardening, infrastructure hardening, schema invariants, and complete corpus RLS\nINFO  [alembic.runtime.migration] Running upgrade 0003_infrastructure_hardening -> 0004_compartmented_authorization, compartmented need-to-know authorization\nINFO  [alembic.runtime.migration] Running upgrade 0004_compartmented_authorization -> 0005_durable_ingestion_jobs, durable ingestion job queue\nINFO  [alembic.runtime.migration] Running upgrade 0005_durable_ingestion_jobs -> 0006_source_authenticity, detached source authenticity metadata\nINFO  [alembic.runtime.migration] Running upgrade 0006_source_authenticity -> 0007_near_duplicate_governance, near-duplicate fingerprint and reviewer acknowledgement\nINFO  [alembic.runtime.migration] Running upgrade 0007_near_duplicate_governance -> 0008_extraction_quality_gov, deterministic extraction quality findings and reviewer acknowledgement\nINFO  [alembic.runtime.migration] Running upgrade 0008_extraction_quality_gov -> 0009_reviewer_credentials, content-addressed reviewer credentials for governed transitions\nINFO  [alembic.runtime.migration] Running upgrade 0009_reviewer_credentials -> 0010_revision_identity, a version is identified by its revision, not by its bytes\nINFO  [alembic.runtime.migration] Running upgrade 0010_revision_identity -> 0011_audit_key_id, an audit event records which key signed it\nINFO  [alembic.runtime.migration] Running upgrade 0011_audit_key_id -> 0012_tenancy, accounts, plans, subscriptions, billing events, conversations and messages\nINFO  [alembic.runtime.migration] Running upgrade 0012_tenancy -> 0013_message_verdict, a stored answer remembers whether it was one\nINFO  [alembic.runtime.migration] Running upgrade 0013_message_verdict -> 0014_subscription_last_event, a subscription remembers when its last applied event occurred\nINFO  [alembic.runtime.migration] Running upgrade 0014_subscription_last_event -> 0015_plan_pricing, sellable plan pricing\nINFO  [alembic.runtime.migration] Running upgrade 0015_plan_pricing -> 0016_learning_course_graph, persist immutable evidence-bound learning course graph\nINFO  [alembic.runtime.migration] Running upgrade 0016_learning_course_graph -> 0017_learning_mastery, persist evidence-bound learner mastery projection\nINFO  [alembic.runtime.migration] Running upgrade 0017_learning_mastery -> 0018_operational_competencies, persist operational competency framework revisions\n",
+      "runtime_tail": "....................................................... [  9%]\n........................................................................ [ 10%]\n........................................................................ [ 12%]\n........................................................................ [ 14%]\n........................................................................ [ 16%]\n........................................................................ [ 18%]\n........................................................................ [ 20%]\n........................................................................ [ 21%]\n........................................................................ [ 23%]\n........................................................................ [ 25%]\n........................................................................ [ 27%]\n........................................................................ [ 29%]\n........................................................................ [ 31%]\n........................................................................ [ 32%]\n........................................................................ [ 34%]\n........................................................................ [ 36%]\n........................................................................ [ 38%]\n........................................................................ [ 40%]\n........................................................................ [ 42%]\n........................................................................ [ 43%]\n........................................................................ [ 45%]\n........................................................................ [ 47%]\n........................................................................ [ 49%]\n........................................................................ [ 51%]\n........................................................................ [ 53%]\n........................................................................ [ 54%]\n........................................................................ [ 56%]\n........................................................................ [ 58%]\n........................................................................ [ 60%]\n........................................................................ [ 62%]\n........................................................................ [ 64%]\n........................................................................ [ 65%]\n........................................................................ [ 67%]\n........................................................................ [ 69%]\n........................................................................ [ 71%]\n........................................................................ [ 73%]\n........................................................................ [ 75%]\n........................................................................ [ 76%]\n........................................................................ [ 78%]\n........................................................................ [ 80%]\n........................................................................ [ 82%]\n........................................................................ [ 84%]\n........................................................................ [ 85%]\n........................................................................ [ 87%]\n........................................................................ [ 89%]\n........................................................................ [ 91%]\n........................................................................ [ 93%]\n........................................................................ [ 95%]\n........................................................................ [ 96%]\n........................................................................ [ 98%]\n................................................                         [100%]\n=============================== warnings summary ===============================\ntests/test_package_zip_safety.py::test_duplicate_name_is_rejected\n  /usr/lib/python3.12/zipfile/__init__.py:1620: UserWarning: Duplicate name: 'same.txt'\n    return self._open_to_write(zinfo, force_zip64=force_zip64)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n3936 passed, 1 warning in 264.15s (0:04:24)\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade  -> 0001_initial, research-grade controlled-corpus schema\nINFO  [alembic.runtime.migration] Running upgrade 0001_initial -> 0002_db_defense_and_vectors, database defense-in-depth and semantic index substrate\nINFO  [alembic.runtime.migration] Running upgrade 0002_db_defense_and_vectors -> 0003_infrastructure_hardening, infrastructure hardening, schema invariants, and complete corpus RLS\nINFO  [alembic.runtime.migration] Running upgrade 0003_infrastructure_hardening -> 0004_compartmented_authorization, compartmented need-to-know authorization\nINFO  [alembic.runtime.migration] Running upgrade 0004_compartmented_authorization -> 0005_durable_ingestion_jobs, durable ingestion job queue\nINFO  [alembic.runtime.migration] Running upgrade 0005_durable_ingestion_jobs -> 0006_source_authenticity, detached source authenticity metadata\nINFO  [alembic.runtime.migration] Running upgrade 0006_source_authenticity -> 0007_near_duplicate_governance, near-duplicate fingerprint and reviewer acknowledgement\nINFO  [alembic.runtime.migration] Running upgrade 0007_near_duplicate_governance -> 0008_extraction_quality_gov, deterministic extraction quality findings and reviewer acknowledgement\nINFO  [alembic.runtime.migration] Running upgrade 0008_extraction_quality_gov -> 0009_reviewer_credentials, content-addressed reviewer credentials for governed transitions\nINFO  [alembic.runtime.migration] Running upgrade 0009_reviewer_credentials -> 0010_revision_identity, a version is identified by its revision, not by its bytes\nINFO  [alembic.runtime.migration] Running upgrade 0010_revision_identity -> 0011_audit_key_id, an audit event records which key signed it\nINFO  [alembic.runtime.migration] Running upgrade 0011_audit_key_id -> 0012_tenancy, accounts, plans, subscriptions, billing events, conversations and messages\nINFO  [alembic.runtime.migration] Running upgrade 0012_tenancy -> 0013_message_verdict, a stored answer remembers whether it was one\nINFO  [alembic.runtime.migration] Running upgrade 0013_message_verdict -> 0014_subscription_last_event, a subscription remembers when its last applied event occurred\nINFO  [alembic.runtime.migration] Running upgrade 0014_subscription_last_event -> 0015_plan_pricing, sellable plan pricing\nINFO  [alembic.runtime.migration] Running upgrade 0015_plan_pricing -> 0016_learning_course_graph, persist immutable evidence-bound learning course graph\nINFO  [alembic.runtime.migration] Running upgrade 0016_learning_course_graph -> 0017_learning_mastery, persist evidence-bound learner mastery projection\nINFO  [alembic.runtime.migration] Running upgrade 0017_learning_mastery -> 0018_operational_competencies, persist operational competency framework revisions\nINFO  [alembic.runtime.migration] Running upgrade 0018_operational_competencies -> 0019_temporal_corpus_snapshot, temporal corpus snapshot identity\nINFO  [alembic.runtime.migration] Running upgrade 0019_temporal_corpus_snapshot -> 0020_rls_identity_boundary, non-forgeable PostgreSQL RLS identity boundary.\nINFO  [alembic.runtime.migration] Running upgrade 0020_rls_identity_boundary -> 0021_alembic_version_width, widen alembic_version so a descriptive revision id is not a schema error\nINFO  [alembic.runtime.migration] Running upgrade 0021_alembic_version_width -> 0022_approval_provenance_boundary, approval provenance privilege boundary\n",
       "static_tail": "...                                                                      [100%]\n"
     },
     "supply_chain": {
@@ -734,20 +743,18 @@
     "exact_environment": {
       "schema": "korpus.production-gate.v1",
       "gate_id": "exact_environment",
-      "status": "FAIL",
-      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
+      "status": "PASS",
+      "source_tree_sha256": "2d8f86b15b5ae3b6b500f2de03ec6f2155d0454691160b30fe9b9506ac325136",
       "release": "v0.9.7",
       "checks": {
         "all_locked_components_installed": true,
         "all_versions_exact": true,
         "no_unmanaged_distributions": true,
-        "production_python_exact": false,
         "lock_hashes_present": true
       },
-      "failures": [
-        "production_python_exact"
-      ],
-      "evidence_class": "EXACT_CURRENT_INTERPRETER",
+      "failures": [],
+      "evidence_class": "DEVELOPMENT_INTERPRETER",
+      "profile": "development",
       "python": "3.12.3",
       "required_python": "3.12.13",
       "implementation": "CPython",
@@ -760,7 +767,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "mutation",
       "status": "PASS",
-      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
+      "source_tree_sha256": "2d8f86b15b5ae3b6b500f2de03ec6f2155d0454691160b30fe9b9506ac325136",
       "release": "v0.9.7",
       "checks": {
         "report_present": true,
@@ -774,9 +781,9 @@
       "failures": [],
       "scope": "FULL_CATALOGUE",
       "evidence_class": "EXECUTED_FIRST_ORDER_MUTATION",
-      "mutants": 385,
-      "valid_mutants": 385,
-      "killed": 385
+      "mutants": 613,
+      "valid_mutants": 613,
+      "killed": 613
     },
     "pec_authority": {},
     "pec_canary": {}

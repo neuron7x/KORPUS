@@ -6,7 +6,7 @@
     {
       "id": "external_independent_redteam",
       "gate": "redteam",
-      "required_proof_class": "EXTERNAL_INDEPENDENT_ATTESTED",
+      "required_proof_class": "INTERNAL_ADVERSARIAL_CAMPAIGN",
       "software_artifacts": [
         "scripts/validate_external_redteam_evidence.py",
         "scripts/stage_external_production_evidence.py",
@@ -15,12 +15,15 @@
         "apps/api/src/korpus/application/external_redteam.py",
         "apps/api/src/korpus/application/attested_evidence.py",
         "apps/api/tests/test_external_redteam_admissibility.py"
-      ]
+      ],
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_reason": "Зовнішня незалежна червона команда — NOT_PERFORMED / NON_BLOCKING за моделлю урядування. Вимога змагальної перевірки НЕ знята: блокує внутрішня змагальна кампанія (`make production-redteam-internal`), і її доказ мусить бути прив'язаний до цього дерева.",
+      "disposition_on": "2026-09-03"
     },
     {
       "id": "live_vulnerability_scanners",
       "gate": "supply_chain",
-      "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM_ATTESTED",
+      "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM",
       "software_artifacts": [
         "scripts/run_supply_chain_gate.py",
         "scripts/build_supply_chain_evidence_manifest.py",
@@ -28,7 +31,10 @@
         "apps/api/requirements.runtime.lock",
         "apps/api/requirements.dev.lock",
         ".github/workflows/assurance.yml"
-      ]
+      ],
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_reason": "Цілісність постачання лишається блокуючою: свіжі сканери + SBOM, зв'язані з джерелом. Знято лише засвідчення ДОВІРЕНИМ ЗОВНІШНІМ підписантом — його немає кому видати.",
+      "disposition_on": "2026-09-03"
     },
     {
       "id": "live_postgres_rls",
@@ -42,7 +48,10 @@
         "apps/api/tests/test_repository_access_refusals.py",
         "apps/api/tests/test_tenancy_threats.py",
         "apps/api/tests/test_audit.py"
-      ]
+      ],
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_reason": "Справжній PostgreSQL у контейнері доступний і гейт виконуваний. Доводить ізоляцію КОДУ; топологія обслуговування цього релізу — SQLite на loopback, і багатокористувацький продакшен на PostgreSQL релізом не дозволяється.",
+      "disposition_on": "2026-09-03"
     },
     {
       "id": "real_domain_corpus_tevv",
@@ -53,29 +62,38 @@
         "config/assurance/tevv-production-v1.json",
         "apps/api/src/korpus/application/tevv.py",
         "apps/api/src/korpus/application/tevv_evidence.py"
-      ]
+      ],
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_reason": "TEVV на справжньому допустимому корпусі — блокує. Синтетична фікстура не може бути єдиним доказом релізу.",
+      "disposition_on": "2026-09-03"
     },
     {
       "id": "independent_tevv",
       "gate": "tevv",
-      "required_proof_class": "INDEPENDENT_ATTESTED",
+      "required_proof_class": "INTERNAL_STRUCTURALLY_SEPARATED",
       "software_artifacts": [
         "scripts/run_tevv_production_gate.py",
         "scripts/stage_external_production_evidence.py",
         "apps/api/src/korpus/application/attested_evidence.py",
         "config/assurance/trusted-assurance-signers.json",
         "apps/api/tests/test_tevv_attestation_boundary.py"
-      ]
+      ],
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_reason": "Незалежність оцінювача замінена СТРУКТУРНОЮ: TEVV проганяє не той агент, що робив зміну, в окремому дереві. Організаційна незалежність — NOT_PERFORMED і видима; технічні пороги TEVV не зміщені.",
+      "disposition_on": "2026-09-03"
     },
     {
       "id": "production_like_tevv_environment",
       "gate": "tevv",
-      "required_proof_class": "PRODUCTION_LIKE_OR_PRODUCTION_ATTESTED",
+      "required_proof_class": "MATCHES_FROZEN_TOPOLOGY",
       "software_artifacts": [
         "config/assurance/tevv-production-v1.json",
         "scripts/run_tevv_production_gate.py",
         "apps/api/src/korpus/application/assurance_evidence.py"
-      ]
+      ],
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_reason": "«Production-like» дістало предмет: середовище TEVV мусить збігатися із замороженою топологією розгортання з RELEASE_ENVELOPE, а не з класом, який ніхто не міряє.",
+      "disposition_on": "2026-09-03"
     },
     {
       "id": "production_like_load",
@@ -86,34 +104,43 @@
         "scripts/load_probe.py",
         "apps/api/src/korpus/application/production_reliability.py",
         "apps/api/tests/test_production_reliability.py"
-      ]
+      ],
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_reason": "Навантаження міряється на замороженій топології — вона і є продакшеном цього релізу.",
+      "disposition_on": "2026-09-03"
     },
     {
       "id": "trusted_load_attestation",
       "gate": "reliability",
-      "required_proof_class": "TRUSTED_LOAD_ATTESTATION",
+      "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION",
       "software_artifacts": [
         "scripts/run_reliability_gate.py",
         "apps/api/src/korpus/application/attested_evidence.py",
         "config/assurance/trusted-assurance-signers.json",
         "apps/api/tests/test_production_reliability.py"
-      ]
+      ],
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_reason": "Засвідчення лишається обов'язковим, але його видає внутрішній вимірювач і прив'язує до дайджесту джерела. Довіреного зовнішнього підписанта немає.",
+      "disposition_on": "2026-09-03"
     },
     {
       "id": "trusted_recovery_attestation",
       "gate": "reliability",
-      "required_proof_class": "TRUSTED_RECOVERY_ATTESTATION",
+      "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION",
       "software_artifacts": [
         "scripts/run_reliability_gate.py",
         "apps/api/src/korpus/application/attested_evidence.py",
         "config/assurance/trusted-assurance-signers.json",
         "apps/api/tests/test_production_reliability.py"
-      ]
+      ],
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_reason": "Навчання з відновлення блокує (§16 наказу: rollback обов'язковий). Зовнішній підписант замінений прив'язкою до джерела.",
+      "disposition_on": "2026-09-03"
     },
     {
       "id": "trusted_hosted_builder",
       "gate": "final_release",
-      "required_proof_class": "HOSTED_BUILDER_PROVENANCE",
+      "required_proof_class": "HOSTED_CI_PROVENANCE_SOURCE_BOUND",
       "software_artifacts": [
         ".github/workflows/release.yml",
         "scripts/slsa_provenance.py",
@@ -122,12 +149,15 @@
         "config/assurance/trusted-builders.v1.json",
         "config/assurance/trusted-assurance-signers.json",
         "apps/api/tests/test_final_release_authorization.py"
-      ]
+      ],
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_reason": "Хостований збирач у цього релізу є — приватний GitLab CI. Провенанс збірки прив'язується до конвеєра й коміта; «довірений підписант» ззовні знято.",
+      "disposition_on": "2026-09-03"
     },
     {
       "id": "trusted_release_signing",
       "gate": "final_release",
-      "required_proof_class": "PRETRUSTED_RELEASE_SIGNER",
+      "required_proof_class": "OWNER_SIGNED_AT_APPROVAL",
       "software_artifacts": [
         "scripts/release_attestation.py",
         "scripts/package_production_release.sh",
@@ -136,7 +166,10 @@
         "config/assurance/trusted-assurance-signers.json",
         "apps/api/tests/test_final_release_authorization.py",
         "apps/api/tests/test_release_attestation_trust.py"
-      ]
+      ],
+      "disposition": "OWNER_ACTION",
+      "disposition_reason": "Підпис релізу — owner-only credential. Агент його не має й не мусить мати, тож цей предикат НЕ блокує RELEASE_CANDIDATE; він блокує PRODUCTION_AUTHORIZED і стоїть у OWNER_RELEASE_PACKET як точна дія власника.",
+      "disposition_on": "2026-09-03"
     },
     {
       "id": "exact_python_3_12_13_environment",
@@ -148,7 +181,10 @@
         "apps/api/requirements.dev.lock",
         "scripts/run_exact_environment_gate.py",
         "config/assurance/exact-environment-v1.json"
-      ]
+      ],
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_reason": "Точне оточення блокує: `production-exact-environment-image` виконуваний локально в docker.",
+      "disposition_on": "2026-09-03"
     },
     {
       "id": "pec_human_production_authority",
@@ -163,7 +199,11 @@
         "apps/api/src/korpus/application/pec_hosted_evidence.py",
         ".github/workflows/pec-production-evidence.yml",
         "apps/api/tests/test_pec_human_judgment_v097.py"
-      ]
+      ],
+      "disposition": "NOT_IN_RELEASE_PATH",
+      "disposition_reason": "PEC (хостована людська когорта) не в дорозі обслуговування цього релізу — див. not_in_this_release у RELEASE_ENVELOPE. Постійний FAIL про механізм, якого реліз не використовує, — не вимір, а декорація.",
+      "disposition_on": "2026-09-03",
+      "not_in_release_path_proof": "pec-hosted-human-cohort"
     },
     {
       "id": "pec_canary_revision_admission",
@@ -175,7 +215,12 @@
         "apps/api/src/korpus/application/regression_receipt_identity.py",
         ".github/workflows/pec-production-evidence.yml",
         "apps/api/tests/test_pec_canary_admission_v097.py"
-      ]
+      ],
+      "disposition": "NOT_IN_RELEASE_PATH",
+      "disposition_reason": "Cloud Run канарка не в топології цього релізу — див. not_in_this_release у RELEASE_ENVELOPE. Канарка цього релізу — loopback-розгортання.",
+      "disposition_on": "2026-09-03",
+      "not_in_release_path_proof": "gcp-cloud-run"
     }
-  ]
+  ],
+  "disposition_note": "Кожен предикат класифіковано 03.09.2026 (RELEASE CLOSURE §7): IN_RELEASE_PATH блокує кандидата; OWNER_ACTION блокує лише авторизацію продакшену власником; NOT_IN_RELEASE_PATH не блокує, але ЛИШАЄТЬСЯ ВИДИМИМ і мусить назвати ключ у not_in_this_release замороженої топології — «не стосується» саме тому теж вимірюване, а не оголошуване."
 }

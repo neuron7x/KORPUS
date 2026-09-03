@@ -1,8 +1,8 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-03T06:18:39.810731+00:00",
+  "generated_at": "2026-09-03T12:21:30.053094+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "1f325796ed06e13f1ba6d5085414fcbce71a3a44467177a9b11e8bf677dabcf2",
+  "source_tree_sha256": "7cef7190d8de0c6a17576fbb62c133d650f031becaecae60bfcfe3f29e2942cc",
   "items": [
     {
       "id": "external_independent_redteam",
@@ -11,7 +11,7 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
-      "required_proof_class": "EXTERNAL_INDEPENDENT_ATTESTED"
+      "required_proof_class": "INTERNAL_ADVERSARIAL_CAMPAIGN"
     },
     {
       "id": "live_vulnerability_scanners",
@@ -20,7 +20,7 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
-      "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM_ATTESTED"
+      "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM"
     },
     {
       "id": "live_postgres_rls",
@@ -47,7 +47,7 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
-      "required_proof_class": "INDEPENDENT_ATTESTED"
+      "required_proof_class": "INTERNAL_STRUCTURALLY_SEPARATED"
     },
     {
       "id": "production_like_tevv_environment",
@@ -56,7 +56,7 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
-      "required_proof_class": "PRODUCTION_LIKE_OR_PRODUCTION_ATTESTED"
+      "required_proof_class": "MATCHES_FROZEN_TOPOLOGY"
     },
     {
       "id": "production_like_load",
@@ -74,7 +74,7 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
-      "required_proof_class": "TRUSTED_LOAD_ATTESTATION"
+      "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
     {
       "id": "trusted_recovery_attestation",
@@ -83,7 +83,7 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
-      "required_proof_class": "TRUSTED_RECOVERY_ATTESTATION"
+      "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
     {
       "id": "trusted_hosted_builder",
@@ -92,7 +92,7 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
-      "required_proof_class": "HOSTED_BUILDER_PROVENANCE"
+      "required_proof_class": "HOSTED_CI_PROVENANCE_SOURCE_BOUND"
     },
     {
       "id": "trusted_release_signing",
@@ -101,7 +101,7 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
-      "required_proof_class": "PRETRUSTED_RELEASE_SIGNER"
+      "required_proof_class": "OWNER_SIGNED_AT_APPROVAL"
     },
     {
       "id": "exact_python_3_12_13_environment",

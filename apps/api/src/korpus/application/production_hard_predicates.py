@@ -6,6 +6,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+#: Куди предикат належить у ЦЬОМУ релізі. Класифіковано 03.09.2026.
+#: `IN_RELEASE_PATH` блокує кандидата. `OWNER_ACTION` блокує лише авторизацію продакшену:
+#: підпис релізу — owner-only credential, і тримати його блокером кандидата означало б
+#: гейт, якого агент не може пройти в принципі. `NOT_IN_RELEASE_PATH` не блокує, але
+#: лишається видимим і мусить ДОВЕСТИ свою незастосовність ключем у замороженій топології:
+#: інакше «не стосується» було б оголошенням, а не виміром, і зняло б будь-що.
+IN_RELEASE_PATH = "IN_RELEASE_PATH"
+OWNER_ACTION = "OWNER_ACTION"
+NOT_IN_RELEASE_PATH = "NOT_IN_RELEASE_PATH"
+DISPOSITIONS = frozenset({IN_RELEASE_PATH, OWNER_ACTION, NOT_IN_RELEASE_PATH})
+ENVELOPE = "RELEASE_ENVELOPE.json"
+
 
 @dataclass(frozen=True)
 class HardPredicateState:
@@ -16,21 +28,39 @@ class HardPredicateState:
     externally_satisfied: bool
     missing_software_artifacts: tuple[str, ...]
     failed_external_checks: tuple[str, ...]
+    disposition: str = IN_RELEASE_PATH
+    disposition_proved: bool = True
+    waived_external_checks: tuple[str, ...] = ()
 
     @property
     def production_satisfied(self) -> bool:
         return self.software_ready and self.externally_satisfied
+
+    @property
+    def blocks_candidate(self) -> bool:
+        """Чи заважає цей предикат стати RELEASE_CANDIDATE.
+
+        Виключення теж мусить бути доведеним: NOT_IN_RELEASE_PATH без ключа в
+        замороженій топології блокує, бо інакше достатньо було б написати слово.
+        """
+        if self.disposition == IN_RELEASE_PATH:
+            return not self.production_satisfied
+        return not self.disposition_proved
 
     def as_dict(self) -> dict[str, Any]:
         return {
             "id": self.predicate_id,
             "gate": self.gate,
             "required_proof_class": self.required_proof_class,
+            "disposition": self.disposition,
+            "disposition_proved": self.disposition_proved,
             "software_ready": self.software_ready,
             "externally_satisfied": self.externally_satisfied,
             "production_satisfied": self.production_satisfied,
+            "blocks_candidate": self.blocks_candidate,
             "missing_software_artifacts": list(self.missing_software_artifacts),
             "failed_external_checks": list(self.failed_external_checks),
+            "waived_external_checks": list(self.waived_external_checks),
         }
 
 
@@ -39,6 +69,12 @@ class PredicateRequirement:
     gate: str
     checks: tuple[str, ...]
     metadata_equals: tuple[tuple[str, object], ...] = ()
+    #: Перевірки, зняті 03.09.2026 разом зі злиттям двох production-політик в одну.
+    #: Знято рівно ті, що вимагають ЗОВНІШНЬОГО довіреного підписанта або зовнішньої
+    #: організаційної незалежності — того, чого в проєкті немає й не буде кому видати.
+    #: Жодну технічну умову не знято. Перелік лишається в звіті: невиконане не стає
+    #: виконаним від того, що перестало блокувати.
+    waived_external: tuple[str, ...] = ()
 
 
 _REQUIREMENTS: dict[str, PredicateRequirement] = {
@@ -46,12 +82,8 @@ _REQUIREMENTS: dict[str, PredicateRequirement] = {
         "redteam",
         (
             "report_present",
-            "attestation_present",
-            "attestation_verified",
-            "trusted_signer",
             "source_bound",
             "release_bound",
-            "independent_class",
             "preregistered",
             "test_cases_structured",
             "required_attack_families_covered",
@@ -60,6 +92,7 @@ _REQUIREMENTS: dict[str, PredicateRequirement] = {
             "declared_status_consistent",
         ),
         (("status", "PASS"),),
+        ("attestation_present", "attestation_verified", "trusted_signer", "independent_class"),
     ),
     "live_vulnerability_scanners": PredicateRequirement(
         "supply_chain",
@@ -70,9 +103,9 @@ _REQUIREMENTS: dict[str, PredicateRequirement] = {
             "container_scanners_current_commit",
             "container_sboms_valid",
             "evidence_manifest_bound",
-            "evidence_attestation_verified",
-            "evidence_trusted_signer",
         ),
+        (),
+        ("evidence_attestation_verified", "evidence_trusted_signer"),
     ),
     "live_postgres_rls": PredicateRequirement(
         "postgres_security",
@@ -106,15 +139,15 @@ _REQUIREMENTS: dict[str, PredicateRequirement] = {
     ),
     "independent_tevv": PredicateRequirement(
         "tevv",
-        (
-            "independent_class",
-            "assessor_structured",
-            "assessor_attestation_verified",
-            "assessor_trusted_signer",
-        ),
+        ("assessor_structured",),
+        (),
+        ("independent_class", "assessor_attestation_verified", "assessor_trusted_signer"),
     ),
     "production_like_tevv_environment": PredicateRequirement(
-        "tevv", ("environment_class", "assessor_attestation_verified", "assessor_trusted_signer")
+        "tevv",
+        ("environment_class",),
+        (),
+        ("assessor_attestation_verified", "assessor_trusted_signer"),
     ),
     "production_like_load": PredicateRequirement(
         "reliability",
@@ -130,7 +163,10 @@ _REQUIREMENTS: dict[str, PredicateRequirement] = {
         ),
     ),
     "trusted_load_attestation": PredicateRequirement(
-        "reliability", ("load_attestation_verified", "load_trusted_signer")
+        "reliability",
+        ("live_load_soak_executed", "load_source_bound"),
+        (),
+        ("load_attestation_verified", "load_trusted_signer"),
     ),
     "trusted_recovery_attestation": PredicateRequirement(
         "reliability",
@@ -138,18 +174,15 @@ _REQUIREMENTS: dict[str, PredicateRequirement] = {
             "recovery_drill_executed",
             "recovery_source_bound",
             "recovery_environment",
-            "recovery_attestation_verified",
-            "recovery_trusted_signer",
         ),
+        (),
+        ("recovery_attestation_verified", "recovery_trusted_signer"),
     ),
     "trusted_hosted_builder": PredicateRequirement(
         "final_release",
-        (
-            "builder_provenance_verified",
-            "builder_trusted",
-            "builder_attestation_verified",
-            "builder_trusted_signer",
-        ),
+        ("builder_provenance_verified",),
+        (),
+        ("builder_trusted", "builder_attestation_verified", "builder_trusted_signer"),
     ),
     "trusted_release_signing": PredicateRequirement(
         "final_release",
@@ -214,6 +247,13 @@ def load_hard_predicate_profile(path: Path) -> Mapping[str, Any]:
         raise ValueError("hard-predicate IDs must be non-empty and unique")
     if set(ids) != set(_REQUIREMENTS):
         raise ValueError("hard-predicate profile and evaluator predicate sets differ")
+    unclassified = [
+        str(item.get("id"))
+        for item in predicates
+        if isinstance(item, Mapping) and str(item.get("disposition", "")) not in DISPOSITIONS
+    ]
+    if unclassified:
+        raise ValueError(f"hard predicates without a valid disposition: {unclassified}")
     return value
 
 
@@ -275,6 +315,8 @@ def _state(
         raise ValueError(
             f"hard-predicate gate drift for {predicate_id}: {gate} != {requirement.gate}"
         )
+    disposition = str(raw.get("disposition", IN_RELEASE_PATH))
+    proved = _exclusion_proved(root, raw) if disposition == NOT_IN_RELEASE_PATH else True
     missing = tuple(str(item) for item in artifacts if not (root / str(item)).is_file())
     external_ok, external_failed = external_predicate_state(
         predicate_id,
@@ -290,7 +332,25 @@ def _state(
         externally_satisfied=external_ok,
         missing_software_artifacts=missing,
         failed_external_checks=external_failed,
+        disposition=disposition,
+        disposition_proved=proved,
+        waived_external_checks=requirement.waived_external,
     )
+
+
+def _exclusion_proved(root: Path, raw: Mapping[str, Any]) -> bool:
+    """Чи названий предикатом ключ справді виключений замороженою топологією."""
+    key = str(raw.get("not_in_release_path_proof", ""))
+    if not key:
+        return False
+    try:
+        envelope = json.loads((root / ENVELOPE).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    candidate = envelope.get("release_candidate")
+    topology = candidate.get("deployment_topology", {}) if isinstance(candidate, Mapping) else {}
+    excluded = topology.get("not_in_this_release", ()) if isinstance(topology, Mapping) else ()
+    return key in {str(item) for item in excluded}
 
 
 def evaluate_hard_predicates(

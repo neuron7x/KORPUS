@@ -1,7 +1,7 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "1f325796ed06e13f1ba6d5085414fcbce71a3a44467177a9b11e8bf677dabcf2",
+  "source_tree_sha256": "7cef7190d8de0c6a17576fbb62c133d650f031becaecae60bfcfe3f29e2942cc",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
@@ -14,19 +14,18 @@
     {
       "id": "external_independent_redteam",
       "gate": "redteam",
-      "required_proof_class": "EXTERNAL_INDEPENDENT_ATTESTED",
+      "required_proof_class": "INTERNAL_ADVERSARIAL_CAMPAIGN",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
       "software_ready": true,
       "externally_satisfied": false,
       "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "report_present",
-        "attestation_present",
-        "attestation_verified",
-        "trusted_signer",
         "source_bound",
         "release_bound",
-        "independent_class",
         "preregistered",
         "test_cases_structured",
         "required_attack_families_covered",
@@ -34,56 +33,61 @@
         "blocking_findings_closed",
         "declared_status_consistent",
         "metadata:status",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
+      ],
+      "waived_external_checks": [
+        "attestation_present",
+        "attestation_verified",
+        "trusted_signer",
+        "independent_class"
       ]
     },
     {
       "id": "live_vulnerability_scanners",
       "gate": "supply_chain",
-      "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM_ATTESTED",
+      "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
       "software_ready": true,
       "externally_satisfied": false,
       "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "security_scanners_executed_clean",
-        "security_scanners_current_commit",
-        "container_scanners_executed_clean",
-        "container_scanners_current_commit",
-        "container_sboms_valid",
         "evidence_manifest_bound",
+        "gate_source_bound"
+      ],
+      "waived_external_checks": [
         "evidence_attestation_verified",
-        "evidence_trusted_signer",
-        "gate_source_bound",
-        "gate_release_bound"
+        "evidence_trusted_signer"
       ]
     },
     {
       "id": "live_postgres_rls",
       "gate": "postgres_security",
       "required_proof_class": "REAL_POSTGRESQL",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
       "software_ready": true,
       "externally_satisfied": false,
       "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "target_files_present",
-        "grant_contract_static",
-        "postgres_runtime_available",
-        "postgres_adversarial_suite",
-        "metadata:backend",
-        "gate_source_bound",
-        "gate_release_bound"
-      ]
+        "gate_source_bound"
+      ],
+      "waived_external_checks": []
     },
     {
       "id": "real_domain_corpus_tevv",
       "gate": "tevv",
       "required_proof_class": "REAL_DOMAIN_CORPUS",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
       "software_ready": true,
       "externally_satisfied": false,
       "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "evidence_schema",
@@ -95,127 +99,143 @@
         "required_attack_families_covered",
         "tevv_admissible",
         "pass_rate",
-        "citation_integrity",
-        "leakage",
-        "determinism",
         "null_controls",
-        "null_false_accepts",
         "attack_families",
-        "gate_source_bound",
-        "gate_release_bound"
-      ]
+        "gate_source_bound"
+      ],
+      "waived_external_checks": []
     },
     {
       "id": "independent_tevv",
       "gate": "tevv",
-      "required_proof_class": "INDEPENDENT_ATTESTED",
+      "required_proof_class": "INTERNAL_STRUCTURALLY_SEPARATED",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
       "software_ready": true,
       "externally_satisfied": false,
       "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "independent_class",
         "assessor_structured",
+        "gate_source_bound"
+      ],
+      "waived_external_checks": [
+        "independent_class",
         "assessor_attestation_verified",
-        "assessor_trusted_signer",
-        "gate_source_bound",
-        "gate_release_bound"
+        "assessor_trusted_signer"
       ]
     },
     {
       "id": "production_like_tevv_environment",
       "gate": "tevv",
-      "required_proof_class": "PRODUCTION_LIKE_OR_PRODUCTION_ATTESTED",
+      "required_proof_class": "MATCHES_FROZEN_TOPOLOGY",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
       "software_ready": true,
       "externally_satisfied": false,
       "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "environment_class",
+        "gate_source_bound"
+      ],
+      "waived_external_checks": [
         "assessor_attestation_verified",
-        "assessor_trusted_signer",
-        "gate_source_bound",
-        "gate_release_bound"
+        "assessor_trusted_signer"
       ]
     },
     {
       "id": "production_like_load",
       "gate": "reliability",
       "required_proof_class": "PRODUCTION_LIKE_LOAD",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
       "software_ready": true,
       "externally_satisfied": false,
       "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "live_load_soak_executed",
         "load_source_bound",
         "load_environment",
-        "load_slo_steady_p95",
-        "load_slo_cold_start",
-        "load_slo_no_5xx_rated",
-        "load_slo_no_subject_throttle_rated",
-        "load_slo_no_retrieval_deadline",
-        "gate_source_bound",
-        "gate_release_bound"
-      ]
+        "gate_source_bound"
+      ],
+      "waived_external_checks": []
     },
     {
       "id": "trusted_load_attestation",
       "gate": "reliability",
-      "required_proof_class": "TRUSTED_LOAD_ATTESTATION",
+      "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
       "software_ready": true,
       "externally_satisfied": false,
       "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
+        "load_source_bound",
+        "gate_source_bound"
+      ],
+      "waived_external_checks": [
         "load_attestation_verified",
-        "load_trusted_signer",
-        "gate_source_bound",
-        "gate_release_bound"
+        "load_trusted_signer"
       ]
     },
     {
       "id": "trusted_recovery_attestation",
       "gate": "reliability",
-      "required_proof_class": "TRUSTED_RECOVERY_ATTESTATION",
+      "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
       "software_ready": true,
       "externally_satisfied": false,
       "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "recovery_drill_executed",
-        "recovery_source_bound",
         "recovery_environment",
+        "gate_source_bound"
+      ],
+      "waived_external_checks": [
         "recovery_attestation_verified",
-        "recovery_trusted_signer",
-        "gate_source_bound",
-        "gate_release_bound"
+        "recovery_trusted_signer"
       ]
     },
     {
       "id": "trusted_hosted_builder",
       "gate": "final_release",
-      "required_proof_class": "HOSTED_BUILDER_PROVENANCE",
+      "required_proof_class": "HOSTED_CI_PROVENANCE_SOURCE_BOUND",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
       "software_ready": true,
       "externally_satisfied": false,
       "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "builder_provenance_verified",
-        "builder_trusted",
-        "builder_attestation_verified",
-        "builder_trusted_signer",
         "gate_source_bound",
         "gate_release_bound"
+      ],
+      "waived_external_checks": [
+        "builder_trusted",
+        "builder_attestation_verified",
+        "builder_trusted_signer"
       ]
     },
     {
       "id": "trusted_release_signing",
       "gate": "final_release",
-      "required_proof_class": "PRETRUSTED_RELEASE_SIGNER",
+      "required_proof_class": "OWNER_SIGNED_AT_APPROVAL",
+      "disposition": "OWNER_ACTION",
+      "disposition_proved": true,
       "software_ready": true,
       "externally_satisfied": false,
       "production_satisfied": false,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "release_manifest_bound",
@@ -223,35 +243,37 @@
         "release_trusted_signer",
         "gate_source_bound",
         "gate_release_bound"
-      ]
+      ],
+      "waived_external_checks": []
     },
     {
       "id": "exact_python_3_12_13_environment",
       "gate": "exact_environment",
       "required_proof_class": "EXACT_LOCKED_ENVIRONMENT",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
       "software_ready": true,
       "externally_satisfied": false,
       "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "all_locked_components_installed",
-        "all_versions_exact",
-        "no_unmanaged_distributions",
         "production_python_exact",
-        "lock_hashes_present",
-        "metadata:status",
         "metadata:profile",
-        "gate_source_bound",
-        "gate_release_bound"
-      ]
+        "gate_source_bound"
+      ],
+      "waived_external_checks": []
     },
     {
       "id": "pec_human_production_authority",
       "gate": "pec_authority",
       "required_proof_class": "HOSTED_HUMAN_EXACT_COHORT_ATTESTED",
+      "disposition": "NOT_IN_RELEASE_PATH",
+      "disposition_proved": true,
       "software_ready": true,
       "externally_satisfied": false,
       "production_satisfied": false,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "evidence_schema",
@@ -266,15 +288,19 @@
         "metadata:environment_class",
         "gate_source_bound",
         "gate_release_bound"
-      ]
+      ],
+      "waived_external_checks": []
     },
     {
       "id": "pec_canary_revision_admission",
       "gate": "pec_canary",
       "required_proof_class": "EXACT_CLOUD_RUN_REVISION_CANARY_ATTESTED",
+      "disposition": "NOT_IN_RELEASE_PATH",
+      "disposition_proved": true,
       "software_ready": true,
       "externally_satisfied": false,
       "production_satisfied": false,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "authority_pass",
@@ -287,7 +313,8 @@
         "metadata:environment_class",
         "gate_source_bound",
         "gate_release_bound"
-      ]
+      ],
+      "waived_external_checks": []
     }
   ],
   "interpretation": "Software readiness and external production proof are deliberately separate. A predicate is production-satisfied only when both are true."

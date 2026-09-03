@@ -104,7 +104,9 @@ _SCRIPT = re.compile(r"(scripts/[A-Za-z0-9_./-]+\.(?:py|sh))")
 #: автор списку не передбачив, мовчки ставало несемантичним. Список ВИНЯТКІВ помиляється
 #: у безпечний бік — незнайомий аргумент робить цілі різними, і найгірше, що станеться,
 #: це зайвий запис у реєстрі прогалин.
-_NON_SEMANTIC = frozenset({"--out", "--output", "--root", "--report", "--outfile"})
+_NON_SEMANTIC = frozenset(
+    {"--out", "--output", "--root", "--report", "--outfile", "--osv-out", "--json"}
+)
 
 #: Змінні оточення, які має кожен рецепт і які нічого не кажуть про предмет.
 _AMBIENT_ENV = frozenset({"PYTHONPATH", "PYTHON", "PY", "MAKEFLAGS"})
@@ -113,6 +115,12 @@ _ENV_ASSIGNMENT = re.compile(r"^(?P<name>[A-Z][A-Z0-9_]*)=")
 
 #: `$(VAR)`, `${VAR}`, `$$(cat …)` — предмет, поданий у момент виклику.
 _SUBSTITUTION = re.compile(r"\$+[({][^)}]*[)}]")
+
+#: Перенаправлення оболонки: `> var/x.json`, `2>/dev/null`, `>> лог`. Куди ллється
+#: stdout — не предмет перевірки, так само як `--out`. Виміряно 03.09.2026 дзеркалом
+#: CI: `model_check_assurance.py > var/…` у Makefile і той самий скрипт без
+#: перенаправлення в CI рахувались РІЗНИМИ командами через оформлення виводу.
+_REDIRECT = re.compile(r"\s\d?>>?\s*\S+")
 
 
 def normalise_invocation(script: str, tail: str) -> str:
@@ -135,7 +143,11 @@ def normalise_invocation(script: str, tail: str) -> str:
     # Підстановки вирізаються ЦІЛКОМ, до розбиття на токени: `$$(cat dist/LATEST)` — це
     # три токени, і фільтр «токен починається з $» лишав би хвіст `dist/LATEST)`, тобто
     # робив би дві цілі різними через оформлення підстановки, а не через предмет.
-    tokens = _SUBSTITUTION.sub(" ", tail).split()
+    # `$(if $(OUT),--out "$(OUT)")` — вкладені дужки. Регулярний вираз підстановки
+    # спиняється на ПЕРШІЙ `)` і лишав хвіст `,--out "$(OUT)")` як «аргументи». Усе під
+    # `$(if …)` / `$(or …)` необов'язкове за побудовою і предметом бути не може, тож
+    # спершу прибирається воно (з рахунком дужок), а вже потім прості підстановки.
+    tokens = _SUBSTITUTION.sub(" ", _REDIRECT.sub(" ", _strip_optional(tail))).split()
     kept: list[str] = []
     skip = False
     for token in tokens:
@@ -174,6 +186,15 @@ def _invocation(line: str, match: re.Match[str]) -> str:
         if index >= 0:
             tail = tail[:index]
     return normalise_invocation(match.group(1), tail)
+
+
+def invocations(line: str) -> list[str]:
+    """Усі канонічні тотожності запусків у рядку — рецепта make чи скрипта CI.
+
+    Публічна форма `_invocation`, бо ту саму тотожність мусить рахувати дзеркало CI
+    (`verify_ci_mirror.py`): два обчислення однієї тотожності розійшлись би мовчки.
+    """
+    return [_invocation(line, match) for match in _SCRIPT.finditer(line)]
 
 
 def parse_graph(text: str) -> tuple[dict[str, set[str]], list[str], dict[str, set[str]]]:
@@ -529,7 +550,7 @@ def verdict(findings: list[dict[str, str]]) -> str:
 
 #: Скільки пар звіряє `_identity_selftest`. Підсумок, який не рахує власних випадків,
 #: звітує про менше, ніж перевіряє.
-_IDENTITY_CASES = 8
+_IDENTITY_CASES = 10
 
 
 def _identity_selftest() -> list[str]:
@@ -540,7 +561,12 @@ def _identity_selftest() -> list[str]:
     список винятків не могла тихо звузитись назад.
     """
     problems: list[str] = []
-    same_subject = [("--out a.json", "--out b.json"), ("--a --b", "--b --a")]
+    same_subject = [
+        ("--out a.json", "--out b.json"),
+        ("--a --b", "--b --a"),
+        ("--a > var/x.json", "--a"),
+        ('--a $(if $(OUT),--out "$(OUT)")', "--a"),
+    ]
     other_subject = [
         ("--mode safe", "--mode unsafe"),
         ("--backend sqlite", "--backend postgres"),

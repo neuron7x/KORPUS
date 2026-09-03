@@ -70,6 +70,13 @@ repository:validate:
     # is invisible from the API side, because a form refusing something the server would
     # accept is never reported by anyone.
     - python scripts/generate_web_contract.py --check
+    # Виміряно 03.09.2026 дзеркалом CI: локальний `validate` перевіряв транспортний
+    # контракт, конвеєр — ні. Одна з одинадцяти розбіжностей, єдина, що була дірою.
+    - python scripts/generate_transport_contract.py --check
+    # Дзеркало лану: кожна команда `make validate` / `make check` мусить бути тут ТІЄЮ
+    # САМОЮ командою. Джерело — цей файл, прочитаний як YAML; копія переліку розійшлась би.
+    - python scripts/verify_ci_mirror.py --selftest
+    - python scripts/verify_ci_mirror.py
     # OPS-004 on the only environment this job can observe: its own checkout. It proves
     # the comparator runs and that the manifest describes this tree. It is NOT evidence
     # about a cluster — that observation has to be taken on the running host, and it
@@ -92,6 +99,10 @@ repository:validate:
     # замикання гейтів.
     # Паритет розгорнутого краю перевіряється лише самоперевіркою: у раннері немає
     # контейнера краю, і вирок там був би UNKNOWN. Здатність гейта ЛОВИТИ — є.
+    # Модель впевненості: структурна незалежність замість організаційної. У раннері
+    # немає рантайму, тож частина замінників дасть NOT_MEASURED; здатність гейта
+    # ловити самопідпис — є, і саме її перевіряє самоперевірка.
+    - python scripts/verify_assurance_model.py --selftest
     - python scripts/check_edge_config_parity.py --selftest
     - python scripts/check_unit_exec_arguments.py --selftest
     - python scripts/check_unit_exec_arguments.py

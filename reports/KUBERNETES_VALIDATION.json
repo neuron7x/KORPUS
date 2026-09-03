@@ -17,6 +17,6 @@
     "schema_version": 1,
     "source_digest": "3727689d40b00728406db1cca0c3ecf1afdcb9bc5f3177af1e4478c44c52d967",
     "generator": "scripts/validate_kubernetes.py",
-    "generated_at": "2026-09-03T01:11:49+00:00"
+    "generated_at": "2026-09-03T02:12:22+00:00"
   }
 }

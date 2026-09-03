@@ -1738,22 +1738,22 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "apps/api/src/korpus/application/production_assurance_external.py": {
-      "lines": 38,
-      "max_complexity": 4,
+      "lines": 40,
+      "max_complexity": 2,
       "max_function_args": 2,
-      "max_function_lines": 32,
+      "max_function_lines": 34,
       "max_nesting": 0,
       "proof_lines": 0,
-      "reason": "isolates external production trust predicates from gate aggregation | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
+      "reason": "03.09.2026: клас незалежності TEVV порівнюється з ОГОЛОШЕНИМ у профілі, а не з вкарбованим у код рядком EXTERNAL_INDEPENDENT — саме вкарбованість давала двом несумісним політикам жити поруч; +коментар про це."
     },
     "apps/api/src/korpus/application/production_hard_predicates.py": {
-      "lines": 315,
-      "max_complexity": 9,
+      "lines": 371,
+      "max_complexity": 12,
       "max_function_args": 5,
-      "max_function_lines": 34,
+      "max_function_lines": 39,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "v0.9.7: every external predicate now requires exact source/release gate binding; measured implementation is the ratchet ceiling | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
+      "reason": "03.09.2026 (RELEASE CLOSURE §7): кожен предикат несе disposition — IN_RELEASE_PATH блокує кандидата, OWNER_ACTION лише авторизацію власником, NOT_IN_RELEASE_PATH мусить ДОВЕСТИ незастосовність ключем у замороженій топології; перевірки, що вимагали зовнішнього довіреного підписанта, перенесені у waived_external і лишились ВИДИМИМИ у звіті. Зростання — це класифікація й доказ виключення, а не нова логіка."
     },
     "apps/api/src/korpus/application/production_reliability.py": {
       "lines": 57,
@@ -3442,13 +3442,13 @@
       "proof_lines": 0
     },
     "scripts/canonical_declaration.py": {
-      "lines": 45,
+      "lines": 70,
       "max_complexity": 4,
       "max_function_args": 1,
-      "max_function_lines": 20,
+      "max_function_lines": 24,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "Ім'я канонічної гілки жило в ЧОТИРЬОХ оголошеннях; після переїзду канону на `main` три лишились на `work/converge-semantic`, і кожне тихо судило про інший предмет. Тепер джерело одне — `canonical-state.json` через `scripts/canonical_declaration.py`, і читач ВІДМОВЛЯЄ замість дефолту. Плюс борг відставання стовбура закрито записом, а гейт відтепер відмовляє реєстрові, що оголошує стовбур тією самою гілкою, що й канон: такі перевірки тотожно істинні."
+      "reason": "03.09.2026: `workspace_kind` — чи це канонічне робоче дерево, чи чекаут конвеєра. Читає refs/heads, а не `git branch`: другий друкує псевдорядок «(HEAD detached at …)», і відчеплений клон виглядав би деревом із гілкою — саме цей рядок стояв у падінні конвеєра 02.09.2026. Три перевірки канону падали в CI не тому, що канон зламався, а тому, що їхнього ПРЕДМЕТА в чекауті немає."
     },
     "scripts/capture_source_evidence.py": {
       "lines": 979,
@@ -3558,6 +3558,15 @@
       "proof_lines": 33,
       "reason": "Підсистеми, які СПЛЯТЬ — оголошено, а не залишено без нагляду. 27 із 35 таблиць бази порожні; найбільша група (навчальний шар, 1516 рядків коду й 1036 тестів) не імпортується жодним маршрутом API. Досяжність міряється ГРАФОМ ІМПОРТІВ, бо перелік у конфізі був би другим оголошенням того самого факту. Гейт двобічний: той, що ловить лише пробудження, не помітить тихого видалення."
     },
+    "scripts/check_edge_config_parity.py": {
+      "lines": 139,
+      "max_complexity": 7,
+      "max_function_args": 2,
+      "max_function_lines": 31,
+      "max_nesting": 2,
+      "proof_lines": 37,
+      "reason": "новий гейт: паритет розгорнутого краю з шаблоном дерева; початковий точний вимір і є стелею ратчета"
+    },
     "scripts/check_environment_drift.py": {
       "lines": 132,
       "max_complexity": 8,
@@ -3638,13 +3647,22 @@
       "proof_lines": 56
     },
     "scripts/check_serving_freshness.py": {
-      "lines": 176,
-      "max_complexity": 10,
-      "max_function_args": 2,
-      "max_function_lines": 40,
+      "lines": 263,
+      "max_complexity": 11,
+      "max_function_args": 3,
+      "max_function_lines": 47,
       "max_nesting": 3,
-      "proof_lines": 43,
-      "reason": "Чи процес, який відповідає читачеві, виконує те саме дерево, що лежить у git. Звіт із застарілим КОРПУСОМ ловиться ідентичністю входів; звіт із застарілим ПРОЦЕСОМ не ловиться нічим — корпус той самий, вимірювач той самий, вік малий, а відповідав інший код. Виявлення з оточення живих процесів, не з переліку в конфізі: перелік був би другим оголошенням того самого факту."
+      "proof_lines": 75,
+      "reason": "03.09.2026: клас середовища за ВИМІРОМ, а не за прапорцем — PRODUCTION_LIKE лише коли оголошені юніти активні, несуть поточний код і слухають міряний порт. Порожній перелік юнітів і дерево без коду віддають LOCAL_DEV: `all([])` істинне, а проти нуля будь-який процес виглядає свіжим. +4 негативні контролі."
+    },
+    "scripts/check_unit_exec_arguments.py": {
+      "lines": 169,
+      "max_complexity": 10,
+      "max_function_args": 3,
+      "max_function_lines": 42,
+      "max_nesting": 3,
+      "proof_lines": 44,
+      "reason": "новий гейт: цілість аргументів у юнітах systemd; початковий точний вимір і є стелею ратчета"
     },
     "scripts/compare_retrieval_configs.py": {
       "lines": 138,
@@ -3856,6 +3874,15 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "a snapshot of a Drive folder with provenance; fetching is not ingestion"
+    },
+    "scripts/freeze_release_candidate.py": {
+      "lines": 224,
+      "max_complexity": 13,
+      "max_function_args": 2,
+      "max_function_lines": 33,
+      "max_nesting": 2,
+      "proof_lines": 66,
+      "reason": "нова ціль 03.09.2026 (RELEASE CLOSURE §8): вхід у наявну машину станів релізу. Обчислює тотожність кандидата (коміт, дайджест джерела, дайджест профілю, дайджест замка залежностей, голова міграцій, тотожність корпусу) і відмовляє, поки бодай одна умова не ВИМІРЯНА. 6 негативних контролів; початковий точний вимір і є стелею."
     },
     "scripts/full_ssot_packager.py": {
       "lines": 149,
@@ -4269,13 +4296,13 @@
       "reason": "registered 2026-08-29: shared ISO-date parser, extracted after an equivalent-input probe found three gates rejecting a valid datetime and accepting compact and week-numbered forms"
     },
     "scripts/load_probe.py": {
-      "lines": 182,
+      "lines": 204,
       "max_complexity": 6,
       "max_function_args": 4,
-      "max_function_lines": 67,
+      "max_function_lines": 80,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "mixed-workload load/spike/soak against a running deployment; numbers carry their conditions"
+      "reason": "03.09.2026: прапорець `--environment-class` може лише ПОСЛАБИТИ клас; PRODUCTION_LIKE віддає вимір топології. Доти прогін на дев-машині ставав доказом про продакшен одним аргументом. Звіт несе і запит, і підставу виміру."
     },
     "scripts/load_probe_lib/metrics.py": {
       "lines": 57,
@@ -4349,13 +4376,13 @@
       "proof_lines": 40
     },
     "scripts/measure_recovery.py": {
-      "lines": 183,
-      "max_complexity": 5,
+      "lines": 195,
+      "max_complexity": 6,
       "max_function_args": 2,
-      "max_function_lines": 84,
+      "max_function_lines": 95,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": " | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
+      "reason": "03.09.2026: те саме для навчання з відновлення — `KORPUS_RECOVERY_ENVIRONMENT_CLASS` лише послаблює, PRODUCTION_LIKE віддає вимір оголошеної топології."
     },
     "scripts/measure_semantic_separation.py": {
       "lines": 233,
@@ -4718,6 +4745,15 @@
       "max_nesting": 2,
       "proof_lines": 49,
       "reason": "registered 2026-08-29 при першому вимірі. Причина існування: 3 з 8 джерел, заблокованих як «URI не резолвиться, документа за ним немає», віддають PDF просто зараз (17.8 МБ, 145.8 МБ, 1.9 МБ), і ще 3 віддають КАРТКУ замість документа. Відмова, яку ніхто не переміряв, стоїть як факт. | 2026-08-30: 260→275. Вимір паралельної сесії показав, що вісь РОЗМІРУ картки й документи не розділяє: 92 захоплені документи 41 609…145 793 253 Б проти 6 карток 41 553…42 459, max(картки) < min(документи) = False. Поріг перейменовано з CARD_CEILING_BYTES на NOT_A_CARD_ABOVE_BYTES — він стеля «завелике, щоб бути карткою» (4.7× над найбільшою карткою), а не розділювач; тримається все на тому, що %PDF- перевіряється РАНІШЕ. Три проби ловлять майбутнє спрощення умови до розміру з обох боків діапазону."
+    },
+    "scripts/record_ci_run.py": {
+      "lines": 162,
+      "max_complexity": 12,
+      "max_function_args": 5,
+      "max_function_lines": 51,
+      "max_nesting": 2,
+      "proof_lines": 66,
+      "reason": "новий вимірювач 03.09.2026: дзеркало лану доводить структуру, а не запуск. Питає хостований GitLab про конвеєр ДЛЯ ТОЧНОГО коміта; відсутність конвеєра — NOT_MEASURED, не FAIL. 6 негативних контролів, серед них «порожній перелік вимог не проходить», бо all([]) істинне. Початковий точний вимір і є стелею."
     },
     "scripts/recut_span_boundaries.py": {
       "lines": 203,
@@ -5478,6 +5514,15 @@
       "proof_lines": 59,
       "reason": "Точна виміряна початкова стеля. Ловить ЕКРАНОВАНУ розмітку в цитовних прольотах: `&lt;p>` не є текстом документа ні в якій доктрині, це залишок подвійного кодування. Правило звужене після двох хибних спроб, які позначали справжню доктрину сміттям."
     },
+    "scripts/verify_assurance_model.py": {
+      "lines": 927,
+      "max_complexity": 17,
+      "max_function_args": 3,
+      "max_function_lines": 50,
+      "max_nesting": 2,
+      "proof_lines": 93,
+      "reason": "03.09.2026, третя редакція (RELEASE CLOSURE §3–§4): SI-5 вимагає непорожнього й цілого знаменника та збігу релізу; SI-6 звіряє набір цілей чистого клону з замороженим у конверті; SI-7 розділено на структуру (дзеркало) і ПОДІЮ (прогін на точному коміті), непроведений прогін — NOT_MEASURED; SI-8 вимагає процесів > 0 і присутності оголошених юнітів, бо absence(stale) не є current; додано вартовий проти повернення двох несумісних production-політик. Довжина зросла через таблицю з 41 отрути й 5 випадків згоди політик — вона і є доказом. Доповнено того ж дня: стеля очікувань ≠ ARMED читається з дерева, яке судять, тож проба створює свою умову, а не успадковує її від середовища; +1 отрута «очікуваний провал понад стелею»."
+    },
     "scripts/verify_audit.py": {
       "lines": 9,
       "max_complexity": 0,
@@ -5522,6 +5567,15 @@
       "proof_lines": 149,
       "reason": "Новий гейт: що саме означає «канонічне». Виміряно 01.09.2026 — кандидатів ТРИ (локальна гілка, main, опубліковане на GitLab), розходяться на 105–125 комітів, жодна перевірка не бачила; продакшенне правило CI вказує на застарілий main. Стеля — виміряне значення дня. Мутанти M538–M543."
     },
+    "scripts/verify_ci_mirror.py": {
+      "lines": 397,
+      "max_complexity": 11,
+      "max_function_args": 4,
+      "max_function_lines": 51,
+      "max_nesting": 4,
+      "proof_lines": 12,
+      "reason": "новий гейт 03.09.2026: дзеркало лану читає `.gitlab-ci.yml` як YAML і вимагає для кожної команди `validate`/`check` тієї самої команди в CI; 15 негативних контролів; початковий точний вимір і є стелею"
+    },
     "scripts/verify_current_truth.py": {
       "lines": 59,
       "max_complexity": 4,
@@ -5559,13 +5613,13 @@
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
     },
     "scripts/verify_gate_closure.py": {
-      "lines": 608,
+      "lines": 634,
       "max_complexity": 17,
       "max_function_args": 5,
       "max_function_lines": 77,
       "max_nesting": 4,
       "proof_lines": 129,
-      "reason": "Тотожність команди стала КАНОНІЧНОЮ. Перша редакція мала білий список семантичних прапорців, і рецензія слушно показала, що він пропускає `--mode unsafe`, `--backend postgres`, `--threshold 100` — усе, чого автор списку не передбачив, мовчки ставало несемантичним. Тепер семантичним є ВСЕ, крім названих винятків (`--out`, `--root`, `--report`), а порядок аргументів нормалізується. Вісім пар негативного контролю; повернення білого списку валить п'ять із них. Плюс вирізання підстановок ЦІЛКОМ: `$$(cat dist/LATEST)` — три токени, і фільтр «токен починається з $» лишав хвіст `dist/LATEST)`, роблячи дві цілі різними через оформлення підстановки, а не через предмет. Спіймано тестом, який стеріг рішення, ухвалене раніше й правильно."
+      "reason": "03.09.2026: тотожність команди прибирає перенаправлення оболонки та `$(if …)`/`$(or …)` з рахунком дужок (дзеркало CI показало `model_check_assurance.py > var/…` і `verify_current_truth.py ) ,--out` як «різні» команди через оформлення); публічний `invocations()` для дзеркала CI; 10 пар негативного контролю тотожності"
     },
     "scripts/verify_gcp_production.py": {
       "lines": 37,
@@ -5690,13 +5744,13 @@
       "proof_lines": 0
     },
     "scripts/verify_selftest_coverage.py": {
-      "lines": 186,
+      "lines": 195,
       "max_complexity": 8,
       "max_function_args": 3,
       "max_function_lines": 35,
       "max_nesting": 2,
       "proof_lines": 50,
-      "reason": "Новий гейт: негативний контроль, який не бігає, негативним контролем не є. Виміряно 01.09.2026 — 31 скрипт оголошує --selftest, 22 не виконувались жодною дорогою. Гейт сам знаходить і сам запускає, щоб перелік не став другим оголошенням того самого факту. Стеля — виміряне значення дня. Мутанти M519, M520, M530."
+      "reason": "03.09.2026: звіт несе `commit` — прив'язка для замінника SI-4 моделі впевненості; +9 рядків на помічник `_head` з докстрінгом"
     },
     "scripts/verify_source_manifest.py": {
       "lines": 78,
@@ -5750,24 +5804,6 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
-    },
-    "scripts/check_unit_exec_arguments.py": {
-      "lines": 169,
-      "max_complexity": 10,
-      "max_function_args": 3,
-      "max_function_lines": 42,
-      "max_nesting": 3,
-      "proof_lines": 44,
-      "reason": "новий гейт: цілість аргументів у юнітах systemd; початковий точний вимір і є стелею ратчета"
-    },
-    "scripts/check_edge_config_parity.py": {
-      "lines": 139,
-      "max_complexity": 7,
-      "max_function_args": 2,
-      "max_function_lines": 31,
-      "max_nesting": 2,
-      "proof_lines": 37,
-      "reason": "новий гейт: паритет розгорнутого краю з шаблоном дерева; початковий точний вимір і є стелею ратчета"
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -9893,202 +9929,423 @@
       }
     },
     {
-      "on": "2026-09-02",
-      "path": "apps/api/src/korpus/application/release_claims.py",
       "from": {
         "lines": 93,
         "max_complexity": 10
       },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/application/release_claims.py",
+      "reason": "WO-01: відсутність доказу перестала читатись як підтримка. Три дороги давали SUPPORTED без доказу «за» (нечитаний суфікс, JSON без прив'язки, JSON без вироку), і кожна тепер має власний стан. Плюс `_binding`: прив'язка читається і з верхнього рівня, і з канонічного конверта `provenance` — перша редакція знала лише верхній рівень і хибно оголосила каталог мутацій неприв'язаним. Складність 12 — це САМЕ ті нові стани: кожна гілка є окремим вироком, і злиття будь-яких двох повернуло б клас вади, заради якого правка писалась.",
       "to": {
         "lines": 139,
         "max_complexity": 12
-      },
-      "reason": "WO-01: відсутність доказу перестала читатись як підтримка. Три дороги давали SUPPORTED без доказу «за» (нечитаний суфікс, JSON без прив'язки, JSON без вироку), і кожна тепер має власний стан. Плюс `_binding`: прив'язка читається і з верхнього рівня, і з канонічного конверта `provenance` — перша редакція знала лише верхній рівень і хибно оголосила каталог мутацій неприв'язаним. Складність 12 — це САМЕ ті нові стани: кожна гілка є окремим вироком, і злиття будь-яких двох повернуло б клас вади, заради якого правка писалась."
+      }
     },
     {
-      "on": "2026-09-02",
-      "path": "scripts/current_truth_admission.py",
       "from": {
         "lines": 63,
         "max_complexity": 10,
-        "max_function_lines": 21,
-        "max_function_args": 3
+        "max_function_args": 3,
+        "max_function_lines": 21
       },
+      "on": "2026-09-02",
+      "path": "scripts/current_truth_admission.py",
+      "reason": "WO-01, другий кінець ланцюга: `bound is None or bound == digest` зараховував артефакт без прив'язки як поточний, а `all([])` робив нуль підтриманих претензій достатнім. Додано читання конверта `provenance`, окремий стан для двох прив'язок, що розійшлись, і предикат has_supported_claims. Зростання часткове компенсоване: `claim_admission_checks` читав журнал ДВІЧІ (два читання одного файла можуть дати різний вміст), тепер один раз, і його складність упала з 14 до нижчої за `_current_json`. Четвертий аргумент — у `_evidence_resolves(root, claim, release, digest)`: видiлення цієї перевірки і є тим, що збило складність `claim_admission_checks`; згорнути її параметри в об'єкт означало б завести тип заради числа в бюджеті.",
       "to": {
         "lines": 91,
         "max_complexity": 11,
-        "max_function_lines": 26,
-        "max_function_args": 4
-      },
-      "reason": "WO-01, другий кінець ланцюга: `bound is None or bound == digest` зараховував артефакт без прив'язки як поточний, а `all([])` робив нуль підтриманих претензій достатнім. Додано читання конверта `provenance`, окремий стан для двох прив'язок, що розійшлись, і предикат has_supported_claims. Зростання часткове компенсоване: `claim_admission_checks` читав журнал ДВІЧІ (два читання одного файла можуть дати різний вміст), тепер один раз, і його складність упала з 14 до нижчої за `_current_json`. Четвертий аргумент — у `_evidence_resolves(root, claim, release, digest)`: видiлення цієї перевірки і є тим, що збило складність `claim_admission_checks`; згорнути її параметри в об'єкт означало б завести тип заради числа в бюджеті."
+        "max_function_args": 4,
+        "max_function_lines": 26
+      }
     },
     {
-      "on": "2026-09-02",
-      "path": "scripts/run_mutation_tests.py",
       "from": {
         "lines": 6459
       },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Каталог мутацій ОГОЛОШУЄ власний вирок. Виміряно 02.09.2026: `release_claims` прив'язав його правильно і все одно дав UNDECLARED_EVIDENCE, бо поля вироку не було — його доводилось виводити з `mutation_score`. Читач, що виводить вирок сам, тримає знання про предмет у собі й розходиться з ним мовчки, щойно предмет зміниться. Вирок рахується з переліків survived/invalid/errors і з `mutation_score_over_catalogue`, а порожній перелік результатів дає FAIL: `all([])` істинне, а нуль мутантів означає, що каталог не бігав.",
       "to": {
         "lines": 6476
-      },
-      "reason": "Каталог мутацій ОГОЛОШУЄ власний вирок. Виміряно 02.09.2026: `release_claims` прив'язав його правильно і все одно дав UNDECLARED_EVIDENCE, бо поля вироку не було — його доводилось виводити з `mutation_score`. Читач, що виводить вирок сам, тримає знання про предмет у собі й розходиться з ним мовчки, щойно предмет зміниться. Вирок рахується з переліків survived/invalid/errors і з `mutation_score_over_catalogue`, а порожній перелік результатів дає FAIL: `all([])` істинне, а нуль мутантів означає, що каталог не бігав."
+      }
     },
     {
-      "on": "2026-09-02",
-      "path": "scripts/verify_installed_units.py",
       "from": {
         "lines": 174
       },
+      "on": "2026-09-02",
+      "path": "scripts/verify_installed_units.py",
+      "reason": "Гейт паритету дивиться на КОЖЕН шаблон юніта в дереві, а не на перелік із одного інсталятора. Виміряно 02.09.2026: покривались два юніти, а встановлений `korpus-routine@.service` виявився зовсім іншим юнітом під тим самим іменем (`ExecStart=%h/.claude/routines/run.sh %i` проти `scripts/run_isolated_routine.py`). Гейт мовчав, бо цього імені не було в його переліку. Переліку більше немає: другий перелік розійшовся б із першим саме тоді, коли хтось додасть юніт. Плюс `substitution_agrees_with_installers` — гейт мусить підставляти корінь так само, як інсталятори, інакше червонітиме з власної причини.",
       "to": {
         "lines": 216
-      },
-      "reason": "Гейт паритету дивиться на КОЖЕН шаблон юніта в дереві, а не на перелік із одного інсталятора. Виміряно 02.09.2026: покривались два юніти, а встановлений `korpus-routine@.service` виявився зовсім іншим юнітом під тим самим іменем (`ExecStart=%h/.claude/routines/run.sh %i` проти `scripts/run_isolated_routine.py`). Гейт мовчав, бо цього імені не було в його переліку. Переліку більше немає: другий перелік розійшовся б із першим саме тоді, коли хтось додасть юніт. Плюс `substitution_agrees_with_installers` — гейт мусить підставляти корінь так само, як інсталятори, інакше червонітиме з власної причини."
+      }
     },
     {
-      "on": "2026-09-02",
-      "path": "apps/api/src/korpus/application/tevv_evidence.py",
       "from": {
         "lines": 124
       },
+      "on": "2026-09-02",
+      "path": "apps/api/src/korpus/application/tevv_evidence.py",
+      "reason": "WS-05: знаменник надлишкової звірки виведено назовні. `all(...)` зводив «звірено 9 із 9» і «звірено 0 із 9» до одного True, і читач не міг їх розрізнити. Вирок НЕ змінено: метрики перераховуються з журналу, тож журнал без оголошених агрегатів підпертий самим журналом, а не відсутністю — перша редакція правки помилилась саме в цей бік і вимагала оголошення.",
       "to": {
         "lines": 148
-      },
-      "reason": "WS-05: знаменник надлишкової звірки виведено назовні. `all(...)` зводив «звірено 9 із 9» і «звірено 0 із 9» до одного True, і читач не міг їх розрізнити. Вирок НЕ змінено: метрики перераховуються з журналу, тож журнал без оголошених агрегатів підпертий самим журналом, а не відсутністю — перша редакція правки помилилась саме в цей бік і вимагала оголошення."
+      }
     },
     {
-      "on": "2026-09-02",
-      "path": "scripts/run_evals.py",
       "from": {
         "lines": 435,
         "max_function_lines": 282
       },
+      "on": "2026-09-02",
+      "path": "scripts/run_evals.py",
+      "reason": "WS-05: два лічильники очікувань набору. `quote_ok`/`reason_ok` не відрізняли «звірено й збіглося» від «звіряти не було чого»: рядок без `expected_reason` давав True, не перевіривши нічого. Виміряно 02.09.2026 одразу після правки: очікувану ПРИЧИНУ оголошують 2 рядки з 30, очікувану цитату — 15. Вирок 30/30 лишається, але тепер несе, скільки з них мали що звіряти.",
       "to": {
         "lines": 445,
         "max_function_lines": 292
-      },
-      "reason": "WS-05: два лічильники очікувань набору. `quote_ok`/`reason_ok` не відрізняли «звірено й збіглося» від «звіряти не було чого»: рядок без `expected_reason` давав True, не перевіривши нічого. Виміряно 02.09.2026 одразу після правки: очікувану ПРИЧИНУ оголошують 2 рядки з 30, очікувану цитату — 15. Вирок 30/30 лишається, але тепер несе, скільки з них мали що звіряти."
+      }
     },
     {
-      "on": "2026-09-02",
-      "path": "scripts/run_mutation_tests.py",
       "from": {
         "lines": 6476
       },
+      "on": "2026-09-02",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Якір M257 перенацілено після рефакторингу `_declared_consistent` -> `_declared_agreement`: мутант став INVALID і мовчки покинув би знаменник каталогу. Не перенацілити означало б, що `mutation_score` лишається 1.0 при каталозі, що всихає — рівно та вада, проти якої існує `mutation_score_over_catalogue`.",
       "to": {
         "lines": 6481
-      },
-      "reason": "Якір M257 перенацілено після рефакторингу `_declared_consistent` -> `_declared_agreement`: мутант став INVALID і мовчки покинув би знаменник каталогу. Не перенацілити означало б, що `mutation_score` лишається 1.0 при каталозі, що всихає — рівно та вада, проти якої існує `mutation_score_over_catalogue`."
+      }
     },
     {
-      "on": "2026-09-03",
-      "path": "scripts/run_release_verify.py",
       "from": {
         "lines": 205
       },
+      "on": "2026-09-03",
+      "path": "scripts/run_release_verify.py",
+      "reason": "Лан дістав ТРЕТІЙ стан кроку. Кроки, чий доказ виробляє лише зовнішній лан (assemble-assurance, snapshot), оголошені поіменно й позначаються SKIPPED_REQUIRES_EXTERNAL; підсумок при пропуску не буває PASS, а INCOMPLETE. Доти станів було два, тож із --skip-external лан спинявся на assemble-assurance, і шість наступних кроків не виконувались жодного разу; на дереві ж із давнім var/recovery-report.json той самий прогін проходив — вердикт залежав від вмісту var/, не від виміру. +32 рядки: status(), гілка пропуску, EXTERNAL_EVIDENCE. Стеля довжини функцій НЕ рухалась: main лишився під 67.",
       "to": {
         "lines": 237
-      },
-      "reason": "Лан дістав ТРЕТІЙ стан кроку. Кроки, чий доказ виробляє лише зовнішній лан (assemble-assurance, snapshot), оголошені поіменно й позначаються SKIPPED_REQUIRES_EXTERNAL; підсумок при пропуску не буває PASS, а INCOMPLETE. Доти станів було два, тож із --skip-external лан спинявся на assemble-assurance, і шість наступних кроків не виконувались жодного разу; на дереві ж із давнім var/recovery-report.json той самий прогін проходив — вердикт залежав від вмісту var/, не від виміру. +32 рядки: status(), гілка пропуску, EXTERNAL_EVIDENCE. Стеля довжини функцій НЕ рухалась: main лишився під 67."
+      }
     },
     {
-      "on": "2026-09-03",
-      "path": "scripts/run_research_assurance.py",
       "from": {
         "lines": 186
       },
+      "on": "2026-09-03",
+      "path": "scripts/run_research_assurance.py",
+      "reason": "Скрипт дістав ВЛАСНЕ ім'я вихідного файла. Доти він писав var/research-assurance-report.json — той самий шлях, що й assemble_assurance.py, але без ярликованих дайджестів (digest_scope, evidence_source_sha256, tracked_tree_scope, tracked_tree_sha256), які читають snapshot_assurance, verify_handoff_contract і run_engineering_production_gate. Хто біг останній, той і визначав, чи доказ прив'язаний; при цьому відмова handoff-verify радила `make assurance` — саме той прогін, що затирав потрібний їй доказ, тож виконання поради гарантувало відмову. +12 рядків: константа OUTPUT і запис про причину.",
       "to": {
         "lines": 198
-      },
-      "reason": "Скрипт дістав ВЛАСНЕ ім'я вихідного файла. Доти він писав var/research-assurance-report.json — той самий шлях, що й assemble_assurance.py, але без ярликованих дайджестів (digest_scope, evidence_source_sha256, tracked_tree_scope, tracked_tree_sha256), які читають snapshot_assurance, verify_handoff_contract і run_engineering_production_gate. Хто біг останній, той і визначав, чи доказ прив'язаний; при цьому відмова handoff-verify радила `make assurance` — саме той прогін, що затирав потрібний їй доказ, тож виконання поради гарантувало відмову. +12 рядків: константа OUTPUT і запис про причину."
+      }
     },
     {
-      "on": "2026-09-03",
-      "path": "scripts/assemble_assurance.py",
       "from": {
         "lines": 150
       },
+      "on": "2026-09-03",
+      "path": "scripts/assemble_assurance.py",
+      "reason": "03.09.2026: чотири поля дайджестів винесено у функцію `source_identity()`. Перевірка «ярлик = та лінійка, що дала число» читала ГОТОВИЙ звіт, а звіт тут не збирається без postgres-дрилу — тож вона ПРОПУСКАЛАСЬ, і розбіжність ярликів жила під захистом pytest.skip. Функція викликається без жодного артефакта, отже перевірка бігає завжди; мутанти M679/M680 killed. +12 рядків — сама функція з докстрінгом.",
       "to": {
         "lines": 162
-      },
-      "reason": "03.09.2026: чотири поля дайджестів винесено у функцію `source_identity()`. Перевірка «ярлик = та лінійка, що дала число» читала ГОТОВИЙ звіт, а звіт тут не збирається без postgres-дрилу — тож вона ПРОПУСКАЛАСЬ, і розбіжність ярликів жила під захистом pytest.skip. Функція викликається без жодного артефакта, отже перевірка бігає завжди; мутанти M679/M680 killed. +12 рядків — сама функція з докстрінгом."
+      }
     },
     {
-      "on": "2026-09-03",
-      "path": "scripts/check_answer_axes.py",
       "from": {
         "lines": 225,
         "max_function_lines": 43,
         "proof_lines": 49
       },
+      "on": "2026-09-03",
+      "path": "scripts/check_answer_axes.py",
+      "reason": "Правило ДОПИСУВАНОГО журналу замінило рівність голів. Виміряно 03.09.2026: сторож дав UNKNOWN сім прогонів поспіль, бо живий сервер пише подію на кожну відповідь, а вісь трактувала голову як тотожність предмета — правильно для дайджеста корпусу, хибно для журналу, що лише дописується. Три стани замість одного: голова та сама · префікс цілий і хвіст під відомими ключами (звіт дійсний ПРО СВІЙ ВІДТИНОК, хвіст виходить числом) · подія під ключем поза `keys_offered` або переписаний префікс (ратчет спрацьовує). Плюс `--require-full-journal-coverage` для релізного рівня і чотири отрути по даних, кожна з яких доведена запуском проти отруєного правила.",
       "to": {
         "lines": 369,
         "max_function_lines": 52,
         "proof_lines": 54
-      },
-      "reason": "Правило ДОПИСУВАНОГО журналу замінило рівність голів. Виміряно 03.09.2026: сторож дав UNKNOWN сім прогонів поспіль, бо живий сервер пише подію на кожну відповідь, а вісь трактувала голову як тотожність предмета — правильно для дайджеста корпусу, хибно для журналу, що лише дописується. Три стани замість одного: голова та сама · префікс цілий і хвіст під відомими ключами (звіт дійсний ПРО СВІЙ ВІДТИНОК, хвіст виходить числом) · подія під ключем поза `keys_offered` або переписаний префікс (ратчет спрацьовує). Плюс `--require-full-journal-coverage` для релізного рівня і чотири отрути по даних, кожна з яких доведена запуском проти отруєного правила."
+      }
     },
     {
-      "on": "2026-09-03",
-      "path": "scripts/verify_gate_closure.py",
       "from": {
         "lines": 496
       },
+      "on": "2026-09-03",
+      "path": "scripts/verify_gate_closure.py",
+      "reason": "Тотожність запуску перестала бути самим лише ІМЕНЕМ скрипта. Виміряно 02.09.2026: `handoff-verify-bound` зараховувалась виконаною через `handoff-verify`, який запускає той самий файл БЕЗ `--require-bound` — без того єдиного предиката, заради якого друга ціль існує. Тепер у тотожність входять прапорці, що міняють ПРЕДМЕТ (`--require*`, `--strict*`, `--full*`, `--deep*`, `--bound*`, `--exact*`), і не входять `--out` та шляхи: два запуски, що пишуть у різні файли, перевіряють одне й те саме.",
       "to": {
         "lines": 521
-      },
-      "reason": "Тотожність запуску перестала бути самим лише ІМЕНЕМ скрипта. Виміряно 02.09.2026: `handoff-verify-bound` зараховувалась виконаною через `handoff-verify`, який запускає той самий файл БЕЗ `--require-bound` — без того єдиного предиката, заради якого друга ціль існує. Тепер у тотожність входять прапорці, що міняють ПРЕДМЕТ (`--require*`, `--strict*`, `--full*`, `--deep*`, `--bound*`, `--exact*`), і не входять `--out` та шляхи: два запуски, що пишуть у різні файли, перевіряють одне й те саме."
+      }
     },
     {
-      "on": "2026-09-03",
-      "path": "scripts/check_answer_axes.py",
       "from": {
         "lines": 369,
         "max_function_lines": 52
       },
+      "on": "2026-09-03",
+      "path": "scripts/check_answer_axes.py",
+      "reason": "Рецензія 03.09.2026 показала, що перевірка префікса нічого не доводила: `event_hash` — це HMAC, і без ключів ланцюг не перерахувати, а я шукав лише НАЯВНІСТЬ рядка з таким хешем. Побудовано атаку: змінити `payload_json` давньої події, лишивши старий `event_hash` — перевірка казала «свіжо». Тепер звіряється ЗЧЕПЛЕННЯ префікса (ловить вставку, видалення, переставляння) і межа названа полем `prefix_integrity=LINKAGE_ONLY_NO_KEYS_HERE`; хвіст під відомим ярликом названо `unverified_tail_events`, бо ярлик не є підписом. Сім отрут по даних, таблицею на рівні модуля. СКЛАДНІСТЬ і ВКЛАДЕНІСТЬ функції впали (13->11, 4->3, 110->62 рядки); зросла довжина модуля — через саму таблицю отрут, яка і є доказом.",
       "to": {
         "lines": 462,
         "max_function_lines": 62
-      },
-      "reason": "Рецензія 03.09.2026 показала, що перевірка префікса нічого не доводила: `event_hash` — це HMAC, і без ключів ланцюг не перерахувати, а я шукав лише НАЯВНІСТЬ рядка з таким хешем. Побудовано атаку: змінити `payload_json` давньої події, лишивши старий `event_hash` — перевірка казала «свіжо». Тепер звіряється ЗЧЕПЛЕННЯ префікса (ловить вставку, видалення, переставляння) і межа названа полем `prefix_integrity=LINKAGE_ONLY_NO_KEYS_HERE`; хвіст під відомим ярликом названо `unverified_tail_events`, бо ярлик не є підписом. Сім отрут по даних, таблицею на рівні модуля. СКЛАДНІСТЬ і ВКЛАДЕНІСТЬ функції впали (13->11, 4->3, 110->62 рядки); зросла довжина модуля — через саму таблицю отрут, яка і є доказом."
+      }
     },
     {
-      "on": "2026-09-03",
-      "path": "scripts/verify_gate_closure.py",
       "from": {
         "lines": 521,
         "proof_lines": 124
       },
+      "on": "2026-09-03",
+      "path": "scripts/verify_gate_closure.py",
+      "reason": "Тотожність команди стала КАНОНІЧНОЮ. Перша редакція мала білий список семантичних прапорців, і рецензія слушно показала, що він пропускає `--mode unsafe`, `--backend postgres`, `--threshold 100` — усе, чого автор списку не передбачив, мовчки ставало несемантичним. Тепер семантичним є ВСЕ, крім названих винятків (`--out`, `--root`, `--report`), а порядок аргументів нормалізується. Вісім пар негативного контролю; повернення білого списку валить п'ять із них.",
       "to": {
         "lines": 590,
         "proof_lines": 129
-      },
-      "reason": "Тотожність команди стала КАНОНІЧНОЮ. Перша редакція мала білий список семантичних прапорців, і рецензія слушно показала, що він пропускає `--mode unsafe`, `--backend postgres`, `--threshold 100` — усе, чого автор списку не передбачив, мовчки ставало несемантичним. Тепер семантичним є ВСЕ, крім названих винятків (`--out`, `--root`, `--report`), а порядок аргументів нормалізується. Вісім пар негативного контролю; повернення білого списку валить п'ять із них."
+      }
     },
     {
-      "on": "2026-09-03",
-      "path": "scripts/verify_gate_closure.py",
       "from": {
         "lines": 590
       },
+      "on": "2026-09-03",
+      "path": "scripts/verify_gate_closure.py",
+      "reason": "Тотожність команди стала КАНОНІЧНОЮ. Перша редакція мала білий список семантичних прапорців, і рецензія слушно показала, що він пропускає `--mode unsafe`, `--backend postgres`, `--threshold 100` — усе, чого автор списку не передбачив, мовчки ставало несемантичним. Тепер семантичним є ВСЕ, крім названих винятків (`--out`, `--root`, `--report`), а порядок аргументів нормалізується. Вісім пар негативного контролю; повернення білого списку валить п'ять із них. Плюс вирізання підстановок ЦІЛКОМ: `$$(cat dist/LATEST)` — три токени, і фільтр «токен починається з $» лишав хвіст `dist/LATEST)`, роблячи дві цілі різними через оформлення підстановки, а не через предмет. Спіймано тестом, який стеріг рішення, ухвалене раніше й правильно.",
       "to": {
         "lines": 608
-      },
-      "reason": "Тотожність команди стала КАНОНІЧНОЮ. Перша редакція мала білий список семантичних прапорців, і рецензія слушно показала, що він пропускає `--mode unsafe`, `--backend postgres`, `--threshold 100` — усе, чого автор списку не передбачив, мовчки ставало несемантичним. Тепер семантичним є ВСЕ, крім названих винятків (`--out`, `--root`, `--report`), а порядок аргументів нормалізується. Вісім пар негативного контролю; повернення білого списку валить п'ять із них. Плюс вирізання підстановок ЦІЛКОМ: `$$(cat dist/LATEST)` — три токени, і фільтр «токен починається з $» лишав хвіст `dist/LATEST)`, роблячи дві цілі різними через оформлення підстановки, а не через предмет. Спіймано тестом, який стеріг рішення, ухвалене раніше й правильно."
+      }
     },
     {
-      "on": "2026-09-03",
-      "path": "scripts/verify_branch_consolidation.py",
       "from": {
         "lines": 387,
         "max_function_lines": 55
       },
+      "on": "2026-09-03",
+      "path": "scripts/verify_branch_consolidation.py",
+      "reason": "Вирок названий ОБСЯГОМ: `BRANCH_CONSOLIDATION_ACCEPTED` замість голого `ACCEPTED`, плюс поля `scope` і `production_authority: false`. Рецензія 03.09.2026: голе слово поруч із `production_authorized: false` в іншому звіті того самого дерева переноситься на право випуску, якого ця перевірка не встановлює.",
       "to": {
         "lines": 397,
         "max_function_lines": 58
+      }
+    },
+    {
+      "from": {},
+      "on": "2026-09-03",
+      "path": "scripts/verify_ci_mirror.py",
+      "reason": "новий гейт 03.09.2026: дзеркало лану читає `.gitlab-ci.yml` як YAML і вимагає для кожної команди `validate`/`check` тієї самої команди в CI; 15 негативних контролів; початковий точний вимір і є стелею",
+      "to": {
+        "lines": 397,
+        "max_complexity": 11,
+        "max_function_args": 4,
+        "max_function_lines": 51,
+        "max_nesting": 4,
+        "proof_lines": 12
+      }
+    },
+    {
+      "from": {
+        "lines": 253,
+        "max_complexity": 14,
+        "max_function_args": 1,
+        "max_function_lines": 42,
+        "max_nesting": 3,
+        "proof_lines": 55
       },
-      "reason": "Вирок названий ОБСЯГОМ: `BRANCH_CONSOLIDATION_ACCEPTED` замість голого `ACCEPTED`, плюс поля `scope` і `production_authority: false`. Рецензія 03.09.2026: голе слово поруч із `production_authorized: false` в іншому звіті того самого дерева переноситься на право випуску, якого ця перевірка не встановлює."
+      "on": "2026-09-03",
+      "path": "scripts/verify_assurance_model.py",
+      "reason": "03.09.2026, друга редакція: прив'язка кожного замінника до commit/source_digest (три отрути незалежної верифікації проходили гейт: клон про чужий коміт, засвідчення від виконавця, живість з вигаданим гейтом), стан SATISFIED_BY_DECLARATION для SI-1/SI-2, покриття гейтів живості й стеля очікувань ≠ ARMED. Довжина зросла через таблицю з 24 отрут, яка і є доказом; `bound` має 3 параметри (звіт, тотожність, назва предмета) — менше означало б глобальний стан.",
+      "to": {
+        "lines": 585,
+        "max_complexity": 12,
+        "max_function_args": 3,
+        "max_function_lines": 48,
+        "max_nesting": 2,
+        "proof_lines": 28
+      }
+    },
+    {
+      "from": {
+        "lines": 608
+      },
+      "on": "2026-09-03",
+      "path": "scripts/verify_gate_closure.py",
+      "reason": "03.09.2026: тотожність команди прибирає перенаправлення оболонки та `$(if …)`/`$(or …)` з рахунком дужок (дзеркало CI показало `model_check_assurance.py > var/…` і `verify_current_truth.py ) ,--out` як «різні» команди через оформлення); публічний `invocations()` для дзеркала CI; 10 пар негативного контролю тотожності",
+      "to": {
+        "lines": 634
+      }
+    },
+    {
+      "from": {
+        "lines": 186
+      },
+      "on": "2026-09-03",
+      "path": "scripts/verify_selftest_coverage.py",
+      "reason": "03.09.2026: звіт несе `commit` — прив'язка для замінника SI-4 моделі впевненості; +9 рядків на помічник `_head` з докстрінгом",
+      "to": {
+        "lines": 195
+      }
+    },
+    {
+      "from": {
+        "lines": 585,
+        "max_complexity": 12,
+        "max_function_lines": 48,
+        "proof_lines": 28
+      },
+      "on": "2026-09-03",
+      "path": "scripts/verify_assurance_model.py",
+      "reason": "03.09.2026, третя редакція (RELEASE CLOSURE §3–§4): SI-5 вимагає непорожнього й цілого знаменника та збігу релізу; SI-6 звіряє набір цілей чистого клону з замороженим у конверті; SI-7 розділено на структуру (дзеркало) і ПОДІЮ (прогін на точному коміті), непроведений прогін — NOT_MEASURED; SI-8 вимагає процесів > 0 і присутності оголошених юнітів, бо absence(stale) не є current; додано вартовий проти повернення двох несумісних production-політик. Довжина зросла через таблицю з 41 отрути й 5 випадків згоди політик — вона і є доказом.",
+      "to": {
+        "lines": 905,
+        "max_complexity": 17,
+        "max_function_lines": 50,
+        "proof_lines": 89
+      }
+    },
+    {
+      "from": {
+        "lines": 176,
+        "max_complexity": 10,
+        "max_function_args": 2,
+        "proof_lines": 43
+      },
+      "on": "2026-09-03",
+      "path": "scripts/check_serving_freshness.py",
+      "reason": "03.09.2026: звіт міряє ОГОЛОШЕНІ юніти топології, а не лише «якісь процеси» — нуль потрібних юнітів і один випадковий процес давали ставку 1.0 і зелено. +3 негативні контролі; `adjudicate` дістав третій параметр (юніти), бо читати їх усередині означало б глобальний стан.",
+      "to": {
+        "lines": 208,
+        "max_complexity": 11,
+        "max_function_args": 3,
+        "proof_lines": 70
+      }
+    },
+    {
+      "from": {
+        "lines": 0
+      },
+      "on": "2026-09-03",
+      "path": "scripts/record_ci_run.py",
+      "reason": "новий вимірювач 03.09.2026: дзеркало лану доводить структуру, а не запуск. Питає хостований GitLab про конвеєр ДЛЯ ТОЧНОГО коміта; відсутність конвеєра — NOT_MEASURED, не FAIL. 6 негативних контролів, серед них «порожній перелік вимог не проходить», бо all([]) істинне. Початковий точний вимір і є стелею.",
+      "to": {
+        "lines": 162
+      }
+    },
+    {
+      "from": {
+        "lines": 905,
+        "proof_lines": 89
+      },
+      "on": "2026-09-03",
+      "path": "scripts/verify_assurance_model.py",
+      "reason": "03.09.2026, третя редакція (RELEASE CLOSURE §3–§4): SI-5 вимагає непорожнього й цілого знаменника та збігу релізу; SI-6 звіряє набір цілей чистого клону з замороженим у конверті; SI-7 розділено на структуру (дзеркало) і ПОДІЮ (прогін на точному коміті), непроведений прогін — NOT_MEASURED; SI-8 вимагає процесів > 0 і присутності оголошених юнітів, бо absence(stale) не є current; додано вартовий проти повернення двох несумісних production-політик. Довжина зросла через таблицю з 41 отрути й 5 випадків згоди політик — вона і є доказом. Доповнено того ж дня: стеля очікувань ≠ ARMED читається з дерева, яке судять, тож проба створює свою умову, а не успадковує її від середовища; +1 отрута «очікуваний провал понад стелею».",
+      "to": {
+        "lines": 927,
+        "proof_lines": 92
+      }
+    },
+    {
+      "from": {
+        "lines": 315,
+        "max_complexity": 9,
+        "max_function_lines": 34
+      },
+      "on": "2026-09-03",
+      "path": "apps/api/src/korpus/application/production_hard_predicates.py",
+      "reason": "03.09.2026 (RELEASE CLOSURE §7): кожен предикат несе disposition — IN_RELEASE_PATH блокує кандидата, OWNER_ACTION лише авторизацію власником, NOT_IN_RELEASE_PATH мусить ДОВЕСТИ незастосовність ключем у замороженій топології; перевірки, що вимагали зовнішнього довіреного підписанта, перенесені у waived_external і лишились ВИДИМИМИ у звіті. Зростання — це класифікація й доказ виключення, а не нова логіка.",
+      "to": {
+        "lines": 371,
+        "max_complexity": 12,
+        "max_function_lines": 39
+      }
+    },
+    {
+      "from": {
+        "lines": 38,
+        "max_function_lines": 32
+      },
+      "on": "2026-09-03",
+      "path": "apps/api/src/korpus/application/production_assurance_external.py",
+      "reason": "03.09.2026: клас незалежності TEVV порівнюється з ОГОЛОШЕНИМ у профілі, а не з вкарбованим у код рядком EXTERNAL_INDEPENDENT — саме вкарбованість давала двом несумісним політикам жити поруч; +коментар про це.",
+      "to": {
+        "lines": 40,
+        "max_function_lines": 34
+      }
+    },
+    {
+      "from": {
+        "proof_lines": 92
+      },
+      "on": "2026-09-03",
+      "path": "scripts/verify_assurance_model.py",
+      "reason": "03.09.2026, третя редакція (RELEASE CLOSURE §3–§4): SI-5 вимагає непорожнього й цілого знаменника та збігу релізу; SI-6 звіряє набір цілей чистого клону з замороженим у конверті; SI-7 розділено на структуру (дзеркало) і ПОДІЮ (прогін на точному коміті), непроведений прогін — NOT_MEASURED; SI-8 вимагає процесів > 0 і присутності оголошених юнітів, бо absence(stale) не є current; додано вартовий проти повернення двох несумісних production-політик. Довжина зросла через таблицю з 41 отрути й 5 випадків згоди політик — вона і є доказом. Доповнено того ж дня: стеля очікувань ≠ ARMED читається з дерева, яке судять, тож проба створює свою умову, а не успадковує її від середовища; +1 отрута «очікуваний провал понад стелею».",
+      "to": {
+        "proof_lines": 93
+      }
+    },
+    {
+      "from": {
+        "lines": 0
+      },
+      "on": "2026-09-03",
+      "path": "scripts/freeze_release_candidate.py",
+      "reason": "нова ціль 03.09.2026 (RELEASE CLOSURE §8): вхід у наявну машину станів релізу. Обчислює тотожність кандидата (коміт, дайджест джерела, дайджест профілю, дайджест замка залежностей, голова міграцій, тотожність корпусу) і відмовляє, поки бодай одна умова не ВИМІРЯНА. 6 негативних контролів; початковий точний вимір і є стелею.",
+      "to": {
+        "lines": 224
+      }
+    },
+    {
+      "from": {
+        "lines": 45,
+        "max_function_lines": 20
+      },
+      "on": "2026-09-03",
+      "path": "scripts/canonical_declaration.py",
+      "reason": "03.09.2026: `workspace_kind` — чи це канонічне робоче дерево, чи чекаут конвеєра. Читає refs/heads, а не `git branch`: другий друкує псевдорядок «(HEAD detached at …)», і відчеплений клон виглядав би деревом із гілкою — саме цей рядок стояв у падінні конвеєра 02.09.2026. Три перевірки канону падали в CI не тому, що канон зламався, а тому, що їхнього ПРЕДМЕТА в чекауті немає.",
+      "to": {
+        "lines": 70,
+        "max_function_lines": 24
+      }
+    },
+    {
+      "from": {
+        "lines": 208,
+        "max_function_lines": 36,
+        "proof_lines": 70
+      },
+      "on": "2026-09-03",
+      "path": "scripts/check_serving_freshness.py",
+      "reason": "03.09.2026: клас середовища за ВИМІРОМ, а не за прапорцем — PRODUCTION_LIKE лише коли оголошені юніти активні, несуть поточний код і слухають міряний порт. Порожній перелік юнітів і дерево без коду віддають LOCAL_DEV: `all([])` істинне, а проти нуля будь-який процес виглядає свіжим. +4 негативні контролі.",
+      "to": {
+        "lines": 263,
+        "max_function_lines": 47,
+        "proof_lines": 75
+      }
+    },
+    {
+      "from": {
+        "lines": 182,
+        "max_function_lines": 67
+      },
+      "on": "2026-09-03",
+      "path": "scripts/load_probe.py",
+      "reason": "03.09.2026: прапорець `--environment-class` може лише ПОСЛАБИТИ клас; PRODUCTION_LIKE віддає вимір топології. Доти прогін на дев-машині ставав доказом про продакшен одним аргументом. Звіт несе і запит, і підставу виміру.",
+      "to": {
+        "lines": 204,
+        "max_function_lines": 80
+      }
+    },
+    {
+      "from": {
+        "lines": 183,
+        "max_complexity": 5,
+        "max_function_lines": 84
+      },
+      "on": "2026-09-03",
+      "path": "scripts/measure_recovery.py",
+      "reason": "03.09.2026: те саме для навчання з відновлення — `KORPUS_RECOVERY_ENVIRONMENT_CLASS` лише послаблює, PRODUCTION_LIKE віддає вимір оголошеної топології.",
+      "to": {
+        "lines": 195,
+        "max_complexity": 6,
+        "max_function_lines": 95
+      }
     }
   ],
-  "recorded_at": "2026-09-02",
+  "recorded_at": "2026-09-03",
   "schema_version": 1
 }

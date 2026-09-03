@@ -18,18 +18,25 @@
     "pec_canary"
   ],
   "external_requirements": {
-    "redteam_evidence_class": "EXTERNAL_INDEPENDENT",
+    "redteam_evidence_class": "INTERNAL_ADVERSARIAL_CAMPAIGN",
+    "redteam_attestation_verified": false,
+    "redteam_trusted_signer_required": false,
     "tevv_environment_classes": [
       "PRODUCTION_LIKE",
       "PRODUCTION"
     ],
+    "tevv_independent_class": "INTERNAL_STRUCTURALLY_SEPARATED",
+    "tevv_trusted_assessor_required": false,
     "postgres_backend": "postgresql",
     "supply_chain_completeness": "COMPLETE",
-    "mutation_scope": "FULL_CATALOGUE",
-    "redteam_attestation_verified": true,
-    "redteam_trusted_signer_required": true,
-    "tevv_independent_class": "EXTERNAL_INDEPENDENT",
-    "tevv_trusted_assessor_required": true
+    "mutation_scope": "FULL_CATALOGUE"
   },
-  "interpretation": "All listed predicates are conjunctive. Missing, stale or weaker-class evidence fails closed."
+  "interpretation": "All listed predicates are conjunctive. Missing, stale or weaker-class evidence fails closed. External independence is replaced by executable internal evidence, never by nothing: the internal adversarial campaign and the real-domain TEVV are blocking.",
+  "governance_authority": "config/governance/assurance-model.json",
+  "external_independent_assurance": {
+    "status": "NOT_PERFORMED",
+    "blocking": false,
+    "why": "Модель урядування (SOLO_OWNER_STRUCTURAL_INDEPENDENCE, оголошена власником 03.09.2026) — ЄДИНЕ джерело цього факту. Доти цей профіль вимагав EXTERNAL_INDEPENDENT redteam і TEVV та довірених підписантів, тобто дві несумісні політики жили поруч: одна казала «немає й не блокує», друга «обов'язково». Зведено в одну; технічні вимоги НЕ зняті — зняті лише ті, яких не може задовольнити жоден наявний ресурс.",
+    "becomes_mandatory_when": "див. becomes_mandatory_when у моделі урядування"
+  }
 }

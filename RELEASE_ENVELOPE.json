@@ -12,5 +12,112 @@
     "artifact": "KORPUS_v0.9.6_PEC_RESEARCH_GENERALIZATION_HARDENED_FULL_SSOT_CANONICAL_2026-08-22.zip",
     "sha256": "964ae44b0fa0e38f18a930808a28d62ae80506a28cd65c4625e0ca97bdb5dc20",
     "storage": "USER_PROVIDED_CANONICAL_PREDECESSOR"
+  },
+  "release_candidate": {
+    "state": "VERIFIED",
+    "frozen": false,
+    "note": "Стан кандидата в ОДНОМУ місці. Заморожування (VERIFIED → RELEASE_CANDIDATE) записує сюди тотожність і час; після нього знаменник обов'язкових гейтів не росте. Ці поля читають замінники SI-5, SI-6, SI-8 — переліку-копії немає ніде.",
+    "deployment_topology": {
+      "id": "loopback-canary-v1",
+      "chosen_on": "2026-09-03",
+      "why": "Топологія ОДНА, і вона виміряна, а не обрана за смаком: саме ці процеси обслуговують читача. Kubernetes, Cloud Run і compose-сервіс `api` у цьому релізі не в дорозі обслуговування, тож доводити їх — означало б тримати гейти, червоні за побудовою.",
+      "api": {
+        "kind": "systemd-user-unit",
+        "unit": "korpus-public-api.service",
+        "command": "uvicorn korpus.main:app --host 127.0.0.1 --port 8000 --workers 2",
+        "environment_file": "~/.local/state/korpus-public/api.env"
+      },
+      "edge": {
+        "kind": "docker-container",
+        "name": "korpus-public-edge",
+        "exposure": "loopback"
+      },
+      "database": {
+        "backend": "sqlite",
+        "why": "Корпус, який обслуговується, лежить у SQLite: 1616 документів і 116 229 прольотів. Перенесення в PostgreSQL — міграція даних, а не крок закриття релізу, і робити її заради зеленого гейта означало б ризикнути єдиною копією."
+      },
+      "postgresql": {
+        "in_serving_path": false,
+        "gate_stays_blocking": true,
+        "why": "Вимога справжньої СУБД не знята: `production-postgres-security` далі блокує й далі виконується на справжньому PostgreSQL у контейнері. Але він доводить ізоляцію КОДУ, а не властивість розгортання, яке обслуговує. Багатокористувацький продакшен на PostgreSQL цим релізом НЕ дозволяється."
+      },
+      "not_in_this_release": [
+        "kubernetes",
+        "gcp-cloud-run",
+        "docker-compose-api-service",
+        "pec-hosted-human-cohort"
+      ]
+    },
+    "mandatory_gate_set": [
+      "evidence-refresh",
+      "api-test",
+      "api-lint",
+      "mutation",
+      "eval",
+      "migration-gate",
+      "scale",
+      "operational-gate",
+      "assemble-assurance",
+      "snapshot",
+      "validate",
+      "gate-liveness",
+      "release-surface",
+      "lane-report",
+      "corpus-axes",
+      "production-postgres-security",
+      "production-exact-environment-image",
+      "production-hard-predicates"
+    ],
+    "clean_clone_targets": [
+      "eval",
+      "migration-gate",
+      "scale",
+      "mutation",
+      "operational-gate",
+      "validate",
+      "api-test"
+    ],
+    "required_serving_units": [
+      "korpus-public-api.service"
+    ],
+    "identity": {
+      "candidate_commit": null,
+      "source_digest": null,
+      "production_profile_digest": null,
+      "dependency_lock_digest": null,
+      "schema_revision": null,
+      "corpus_identity": null,
+      "frozen_at": null
+    },
+    "ci": {
+      "host": "gitlab.com",
+      "project": "neuron7x/korpus-platform",
+      "visibility": "private",
+      "why_not_github": "Дзеркало на github.com/neuron7x/KORPUS ПУБЛІЧНЕ. Кандидат туди не штовхається з цього лану: публікація — рішення власника, не крок закриття релізу.",
+      "required_jobs": [
+        "repository:validate",
+        "api:test",
+        "api:quality",
+        "web:test",
+        "api:assurance",
+        "api:drills",
+        "audit:closure",
+        "api:postgres-and-restore",
+        "secret:scan",
+        "python:audit",
+        "infrastructure:scan",
+        "security:summary",
+        "source:sbom",
+        "container:build",
+        "container:scan",
+        "container:sbom",
+        "source:package"
+      ],
+      "excluded_jobs": {
+        "production:release": "ручний джоб релізу — його виконує власник, не лан",
+        "gcp:deploy-production": "GCP не в дорозі обслуговування цього релізу",
+        "gcp:production-contract": "перевіряє контракт GCP; топологія цього релізу — loopback"
+      }
+    }
   }
 }
