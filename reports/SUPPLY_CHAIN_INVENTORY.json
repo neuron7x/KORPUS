@@ -6,7 +6,7 @@
   "lockfiles": [
     {
       "path": "apps/api/requirements.runtime.lock",
-      "sha256": "9c6541e111184db619e8957725039268a7048ac208e3eeaa35137e2dabcd213d"
+      "sha256": "8603c8af3d3e6fba9f7778716e3d8f79bbc57752196c8c45c362ca27d5be2003"
     },
     {
       "path": "apps/api/requirements.dev.lock",
@@ -721,8 +721,8 @@
     {
       "type": "library",
       "name": "pypdf",
-      "version": "6.15.0",
-      "purl": "pkg:pypi/pypdf@6.15.0",
+      "version": "6.16.1",
+      "purl": "pkg:pypi/pypdf@6.16.1",
       "license": "BSD-3-Clause",
       "license_status": "DECLARED_BY_INSTALLED_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
       "license_evidence": null,
