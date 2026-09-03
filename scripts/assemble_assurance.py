@@ -38,6 +38,22 @@ OPTIONAL_REPORTS = {"recovery": VAR / "recovery-report.json"}
 OUTPUT = VAR / "research-assurance-report.json"
 
 
+def source_identity() -> dict[str, str]:
+    """Чотири поля: два числа, кожне зі своїм ярликом.
+
+    Винесено з тіла звіту не заради краси. Перевірка відповідності «ярлик = та лінійка,
+    що дала число» читала ГОТОВИЙ звіт, а звіт тут не збирається без postgres-дрилу —
+    тож вона пропускалась, і саме тому розбіжність ярликів жила в дереві непоміченою.
+    Функція викликається без жодного артефакта, отже перевірка бігає завжди.
+    """
+    return {
+        "digest_scope": EVIDENCE_DIGEST_SCOPE,
+        "evidence_source_sha256": compute_source_digest(ROOT),
+        "tracked_tree_scope": DIGEST_SCOPE,
+        "tracked_tree_sha256": source_tree_digest(),
+    }
+
+
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -100,10 +116,7 @@ def main() -> int:
         # Обидві лінійки потрібні, тож замість вибору переможця зникає ЗІТКНЕННЯ
         # ІМЕН: кожне число має власне поле й власний ярлик, і кожен споживач
         # читає те, що міряє сам.
-        "digest_scope": EVIDENCE_DIGEST_SCOPE,
-        "evidence_source_sha256": compute_source_digest(ROOT),
-        "tracked_tree_scope": DIGEST_SCOPE,
-        "tracked_tree_sha256": source_tree_digest(),
+        **source_identity(),
         "checks": checks,
         "pytest": {
             key: suite.attrib.get(key, "0")

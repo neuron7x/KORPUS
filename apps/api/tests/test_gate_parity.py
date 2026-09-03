@@ -2412,6 +2412,78 @@ def test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost(
     assert gate.main() == 0, "a report sitting exactly on its floor must still pass"
 
 
+#: Тека, у якій РОЗГОРНУТО обслуговуваний примірник, — це факт про машину, і назвати
+#: його десь треба. Виняток названий поіменно з причиною, а не через ширше правило:
+#: `canonical_root` читають `check_deployment_debt` і `verify_branch_integration`, щоб
+#: міряти РОЗГОРТАННЯ, а не чекаут, і без нього обидва міряли б не те дерево.
+CONFIG_PATHS_OUTSIDE_THE_CHECKOUT = {
+    "config/operations/canonical-state.json": "canonical_root — шлях РОЗГОРНУТОГО примірника",
+}
+
+#: Кореневі теки FHS. Абсолютний шлях, чий перший сегмент сюди не входить, — не шлях
+#: файлової системи: `/spec/template/spec/containers/0/image` у kustomize-патчі це
+#: JSON-вказівник, і рахувати його чужим шляхом означало б зробити гейт шумом.
+FILESYSTEM_ROOTS = frozenset(
+    {
+        "home",
+        "usr",
+        "etc",
+        "var",
+        "opt",
+        "srv",
+        "mnt",
+        "media",
+        "root",
+        "tmp",
+        "bin",
+        "sbin",
+        "lib",
+        "lib64",
+        "dev",
+        "proc",
+        "sys",
+        "run",
+        "boot",
+    }
+)
+SYSTEM_PREFIXES = (
+    "/bin/",
+    "/sbin/",
+    "/usr/",
+    "/etc/",
+    "/dev/",
+    "/proc/",
+    "/sys/",
+    "/run/",
+    "/opt/",
+    "/tmp/",
+    "/var/",
+    "/lib/",
+    "/lib64/",
+)
+#: Шлях може стояти БУДЬ-ДЕ в рядку. Перша редакція вимагала, щоб рядок ним починався,
+#: і з тринадцяти входжень бачила дев'ять: чотири сиділи в продовженні `sh -c` після
+#: `>/dev/null && ''`. Гейт був зелений при присутньому дефекті, заради якого написаний,
+#: і показав це незалежний верифікатор отрутою, а не читанням. Порівняння дільниць
+#: тут не годиться ще й тому, що канонічна тека містить ПРОБІЛИ: збіг обривається на
+#: `/home/neuro7/Desktop/`, і цього досить — питання не «який шлях», а «чи він поза деревом».
+_ABSOLUTE_PATH = re.compile(r"(?<![\w~.\-:/])/[A-Za-z0-9_.\-]+(?:/[A-Za-z0-9_.\-]*)+")
+
+
+def paths_outside_the_checkout(text: str) -> list[tuple[int, str]]:
+    """Абсолютні шляхи в `text`, які не в цьому чекауті й не системні."""
+    found: list[tuple[int, str]] = []
+    for number, line in enumerate(text.splitlines(), 1):
+        for match in _ABSOLUTE_PATH.finditer(line):
+            candidate = match.group(0)
+            if candidate.split("/")[1] not in FILESYSTEM_ROOTS:
+                continue
+            if candidate.startswith(str(ROOT)) or candidate.startswith(SYSTEM_PREFIXES):
+                continue
+            found.append((number, candidate))
+    return found
+
+
 def test_no_committed_config_names_a_path_outside_this_checkout() -> None:
     """Комітований конфіг, що вказує на чуже дерево, працює рівно на одній машині.
 
@@ -2419,26 +2491,172 @@ def test_no_committed_config_names_a_path_outside_this_checkout() -> None:
     `/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python` —
     інтерпретатор ІНШОГО чекауту. Наслідків два, і обидва тихі: у CI або в будь-якому
     іншому дереві гейт живучості не запустився б узагалі, а тут він міряв копії цього
-    дерева інтерпретатором сусіднього. Абсолютний шлях там був не помилкою неуважності:
-    проби біжать у копії, куди `.venv` не потрапляє ніколи. Тому шлях лишився потрібним,
+    дерева інтерпретатором сусіднього. Абсолютний шлях там був не неуважністю: проби
+    біжать у копії, куди `.venv` не потрапляє ніколи, тож шлях лишився потрібним —
     але підставляється в момент запуску, а в оголошенні стоїть `{python}`.
+
+    Охоплено ВЕСЬ `config/`, не один тип файлів: попередня редакція дивилась лише на
+    `*.yaml`, тобто на один файл із трьохсот чотирнадцяти.
     """
-    # Дозволене звіряється ПРЕФІКСОМ, не входженням. Перша редакція питала
-    # `"/bin/" in шлях`, і `/home/.../apps/api/.venv/bin/python` проходив як системний:
-    # під власним негативним контролем тест лишався зеленим. Підрядок «десь усередині»
-    # не є твердженням про те, звідки шлях починається.
-    allowed = ("/bin/", "/usr/", "/etc/", "/dev/", "/proc/", "/opt/", "/tmp/")
     offenders: list[str] = []
-    for path in sorted((ROOT / "config").rglob("*.yaml")):
-        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-            candidate = line.strip().removeprefix("- ").strip().strip("\"'")
-            if not candidate.startswith("/") or "/" not in candidate[1:]:
-                continue
-            if candidate.startswith(str(ROOT)) or candidate.startswith(allowed):
-                continue
-            offenders.append(f"{path.relative_to(ROOT)}:{number}: {candidate}")
+    for path in sorted((ROOT / "config").rglob("*")):
+        if not path.is_file() or path.suffix not in {".yaml", ".yml", ".json", ".toml"}:
+            continue
+        relative = str(path.relative_to(ROOT))
+        if relative in CONFIG_PATHS_OUTSIDE_THE_CHECKOUT:
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        offenders.extend(f"{relative}:{n}: {c}" for n, c in paths_outside_the_checkout(text))
 
     assert not offenders, f"конфіг називає шлях поза цим чекаутом: {offenders}"
+
+
+def test_the_config_rule_sees_a_path_that_is_not_at_the_start_of_a_line() -> None:
+    """Постійний контроль на форму, яку перша редакція не бачила.
+
+    Правило вимагало, щоб рядок ПОЧИНАВСЯ зі шляху, і з тринадцяти входжень бачило
+    дев'ять: чотири сиділи в продовженні `sh -c` після `>/dev/null && ''`. Гейт був
+    зелений при присутньому дефекті, заради якого написаний; показав це незалежний
+    верифікатор отрутою. Разова отрута не є контролем — тому вона тут.
+    """
+    foreign = "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python"
+
+    assert paths_outside_the_checkout(f"  - {foreign} scripts/x.py"), "проста форма"
+    assert paths_outside_the_checkout(f"    >/dev/null && ''{foreign}'' scripts/y.py"), (
+        "шлях у продовженні рядка — саме та форма, якої правило не бачило"
+    )
+    assert paths_outside_the_checkout(f'    "canonical": "{foreign}"'), "шлях у JSON-значенні"
+
+    # І негативний бік: правило не сміє червоніти на тому, що шляхом не є.
+    assert not paths_outside_the_checkout("  - {python}")
+    assert not paths_outside_the_checkout("  - /spec/template/spec/containers/0/image"), (
+        "JSON-вказівник у kustomize-патчі не є шляхом файлової системи"
+    )
+    assert not paths_outside_the_checkout("    cmd: foo >/dev/null 2>&1")
+    assert not paths_outside_the_checkout("    url: https://zakon.rada.gov.ua/laws/show/550-14")
+    assert not paths_outside_the_checkout(f"  - {ROOT}/apps/api/.venv/bin/python"), (
+        "шлях У ЦЬОМУ чекауті — не порушення"
+    )
+
+
+def test_the_producer_rule_reads_the_write_not_the_declaration() -> None:
+    """Постійний контроль: гейт, що читає ОГОЛОШЕННЯ, зелений у стані, проти якого існує.
+
+    Верифікатор поклав першу редакцію за хвилину: лишити модульний `OUTPUT` чесним і
+    написати `output = VAR / "чужий.json"` усередині функції. Правило дивилось на
+    константу й нічого не бачило.
+    """
+    source = (
+        'VAR = ROOT / "var"\n'
+        'OUTPUT = VAR / "honest.json"\n'
+        "def main():\n"
+        '    output = VAR / "usurped.json"\n'
+        '    output.write_text("x")\n'
+    )
+    written, _ = _written_paths(ast.parse(source))
+    assert written == {"var/usurped.json"}, (
+        "правило мусить називати те, у що ПИШУТЬ, а не те, що оголошено"
+    )
+
+    # Перевизначення тієї самої змінної: читається найближче ПОПЕРЕДНЄ присвоєння.
+    reassigned = (
+        'VAR = ROOT / "var"\n'
+        'REPORTS = ROOT / "reports"\n'
+        "def main():\n"
+        '    path = VAR / "read-me.json"\n'
+        "    path.read_text()\n"
+        '    path = REPORTS / "write-me.json"\n'
+        '    path.write_text("x")\n'
+    )
+    written, _ = _written_paths(ast.parse(reassigned))
+    assert written == {"reports/write-me.json"}, "читач не сміє рахуватись виробником"
+
+
+def test_the_exemption_list_still_earns_every_entry() -> None:
+    """Виняток, ширший за факт, — це прощення, а не реєстр.
+
+    Запис, під яким уже немає чужого шляху, мовчки прикриває наступний, що там з'явиться.
+    """
+    stale = [
+        relative
+        for relative in CONFIG_PATHS_OUTSIDE_THE_CHECKOUT
+        if not paths_outside_the_checkout((ROOT / relative).read_text(encoding="utf-8"))
+    ]
+    assert not stale, f"виняток більше не потрібен — прибрати: {stale}"
+
+
+#: Звіти, які СПРАВДІ мають більш ніж одного виробника, з причиною на кожен. Порожній
+#: реєстр кращий за широке правило: запис тут коштує рядка, а пропущена колізія коштує
+#: того, що споживач читає доказ від іншого виробника й не має як це помітити.
+SHARED_REPORTS_WITH_A_REASON: dict[str, str] = {
+    "config/corpus/doctrine_catalog_2026.json": (
+        "РЕЄСТР, не звіт: `probe_source_content.py` міряє, що джерело віддає, а "
+        "`recheck_blocked_sources.py` перемірює відмови. Обидва читають-змінюють-пишуть "
+        "той самий каталог, і це доглядання одного реєстру, а не два виробники одного "
+        "доказу: жоден із них не заміняє чужі поля своїми."
+    ),
+}
+
+
+def _written_paths(tree: ast.AST) -> tuple[set[str], bool]:
+    """Шляхи, у які модуль ПИШЕ, і чи лишився хоч один нерозв'язаним.
+
+    Читається запис, а не оголошення. Перша редакція дивилась на модульну константу
+    `OUTPUT`, і незалежний верифікатор поклав її за хвилину: досить лишити `OUTPUT`
+    чесним і написати `output = VAR / "чужий-звіт.json"` усередині функції — гейт
+    зелений, колізія в дереві ([[gate-reads-own-declaration]] в чистому вигляді).
+
+    Розв'язується ПОВНИЙ шлях, не саме ім'я файла: три скрипти пишуть `manifest.json`
+    у три різні теки, і рівність базових імен назвала б це колізією.
+    """
+    # Присвоєння беруться з НОМЕРОМ рядка, і кожне читання бере найближче ПОПЕРЕДНЄ.
+    # Інакше `snapshot_assurance.py` виглядав би другим виробником звіту забезпечення:
+    # він читає `VAR / "research-assurance-report.json"`, а потім ПЕРЕПРИСВОЮЄ ту саму
+    # змінну на `REPORTS / "RESEARCH_ASSURANCE_REPORT.json"` і пише вже туди. Правило,
+    # що бере перше присвоєння, назвало б читача виробником.
+    assigned: dict[str, list[tuple[int, ast.expr]]] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            target = node.targets[0]
+            if isinstance(target, ast.Name):
+                assigned.setdefault(target.id, []).append((node.lineno, node.value))
+
+    def resolve(expression: ast.expr, at: int, depth: int = 0) -> str | None:
+        if depth > 6:
+            return None
+        if isinstance(expression, ast.Constant) and isinstance(expression.value, str):
+            return expression.value
+        if isinstance(expression, ast.Name):
+            if expression.id == "ROOT":
+                return ""
+            earlier = [
+                (line, value) for line, value in assigned.get(expression.id, []) if line <= at
+            ]
+            if not earlier:
+                return None
+            line, value = max(earlier, key=lambda pair: pair[0])
+            return resolve(value, line, depth + 1)
+        if isinstance(expression, ast.BinOp) and isinstance(expression.op, ast.Div):
+            left = resolve(expression.left, at, depth + 1)
+            right = resolve(expression.right, at, depth + 1)
+            if left is None or right is None:
+                return None
+            return f"{left}/{right}".lstrip("/")
+        return None
+
+    written: set[str] = set()
+    unresolved = False
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+            continue
+        if node.func.attr not in {"write_text", "write_bytes"}:
+            continue
+        target = resolve(node.func.value, node.lineno)
+        if target is None:
+            unresolved = True
+        else:
+            written.add(target)
+    return written, unresolved
 
 
 def test_two_producers_never_write_one_report() -> None:
@@ -2455,34 +2673,42 @@ def test_two_producers_never_write_one_report() -> None:
     Виконання поради гарантувало саме ту відмову, на яку вона відповідала, тож
     `release_evidence: STALE` при `status: PASS` тримався й нікого не будив.
 
-    Читається AST, а не імпорт. Перша редакція цього тесту імпортувала кожен скрипт і
-    ковтала виняток через `continue`: під отрутою вона лишилась ЗЕЛЕНОЮ, бо до другого
-    виробника не доходила. Виконання ще й залежало від того, чи попередній тест устиг
-    покласти `scripts` у `sys.path`. Розбір оголошення від порядку не залежить і нічого
-    не запускає.
+    Читається AST, а не імпорт: редакція з імпортом ковтала виняток через `continue`
+    і під отрутою лишалась зеленою, ще й залежала від того, чи встиг попередній тест
+    покласти `scripts` у `sys.path`.
     """
-    declared: dict[str, list[str]] = {}
+    writers: dict[str, set[str]] = {}
     for path in sorted((ROOT / "scripts").glob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8", errors="ignore"))
-        for node in tree.body:
-            if not isinstance(node, ast.Assign) or len(node.targets) != 1:
-                continue
-            target = node.targets[0]
-            if not isinstance(target, ast.Name) or target.id != "OUTPUT":
-                continue
-            value = node.value
-            if isinstance(value, ast.BinOp) and isinstance(value.op, ast.Div):
-                right = value.right
-                if isinstance(right, ast.Constant) and isinstance(right.value, str):
-                    declared.setdefault(right.value, []).append(path.name)
+        written, _ = _written_paths(tree)
+        for name in written:
+            if name.endswith(".json"):
+                writers.setdefault(name, set()).add(path.name)
 
-    assert declared, "жоден виробник не оголосив OUTPUT — правило міряло б порожню множину"
-    assert {"assemble_assurance.py", "run_research_assurance.py"} <= {
-        name for names in declared.values() for name in names
-    }, "виробник перестав оголошувати OUTPUT — правило його більше не бачить"
+    assert writers, "жоден скрипт не пише .json — правило міряло б порожню множину"
+    assert "var/research-assurance-report.json" in writers, (
+        "виробник звіту забезпечення зник із виміру — правило його більше не бачить"
+    )
 
-    shared = {target: names for target, names in declared.items() if len(names) > 1}
-    assert not shared, f"один шлях, кілька виробників: {shared}"
+    shared = {
+        name: sorted(who)
+        for name, who in writers.items()
+        if len(who) > 1 and name not in SHARED_REPORTS_WITH_A_REASON
+    }
+    assert not shared, f"один звіт, кілька виробників: {shared}"
+
+
+def test_the_shared_report_registry_still_earns_every_entry() -> None:
+    """Виняток, під яким уже немає двох виробників, прикриє наступного, що з'явиться."""
+    writers: dict[str, set[str]] = {}
+    for path in sorted((ROOT / "scripts").glob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8", errors="ignore"))
+        written, _ = _written_paths(tree)
+        for name in written:
+            writers.setdefault(name, set()).add(path.name)
+
+    stale = [name for name in SHARED_REPORTS_WITH_A_REASON if len(writers.get(name, set())) <= 1]
+    assert not stale, f"виняток більше не потрібен — прибрати: {stale}"
 
 
 def test_the_assurance_producer_pairs_every_digest_with_its_own_ruler() -> None:
@@ -2501,15 +2727,24 @@ def test_the_assurance_producer_pairs_every_digest_with_its_own_ruler() -> None:
     Тому тут звіряється ВІДПОВІДНІСТЬ на виробленому звіті: кожне число дорівнює
     тому, що дає названа ним лінійка.
     """
+    import importlib.util
+
     sys.path.insert(0, str(ROOT / "scripts"))
     from korpus.application.provenance import DIGEST_SCOPE as EVIDENCE_SCOPE
     from korpus.application.provenance import compute_source_digest
     from source_digest import DIGEST_SCOPE, source_tree_digest
 
-    report_path = ROOT / "var/research-assurance-report.json"
-    if not report_path.is_file():
-        pytest.skip("assurance report is not assembled in this tree")
-    report = json.loads(report_path.read_text(encoding="utf-8"))
+    # Питається ВИРОБНИК, не залишений ним файл. Доти тест читав
+    # `var/research-assurance-report.json`, якого без postgres-дрилу в дереві не буває, —
+    # тож пропускався, і розбіжність ярликів жила під захистом `pytest.skip`. Перевірка,
+    # що не бігає, нічого не боронить; тепер вона бігає в кожному прогоні.
+    specification = importlib.util.spec_from_file_location(
+        "assemble_assurance_probe", ROOT / "scripts/assemble_assurance.py"
+    )
+    assert specification and specification.loader
+    producer = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(producer)
+    report = producer.source_identity()
 
     # Ярлики — завжди: це властивість ВИРОБНИКА, і від стану дерева не залежить.
     assert report.get("digest_scope") == EVIDENCE_SCOPE

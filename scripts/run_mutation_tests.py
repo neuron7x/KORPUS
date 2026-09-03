@@ -5539,6 +5539,28 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M679_THE_ASSURANCE_DIGEST_CARRIES_THE_WRONG_RULER",
+        "scripts/assemble_assurance.py",
+        '        "digest_scope": EVIDENCE_DIGEST_SCOPE,',
+        '        "digest_scope": DIGEST_SCOPE,',
+        (
+            "apps/api/tests/test_gate_parity.py::"
+            "test_the_assurance_producer_pairs_every_digest_with_its_own_ruler",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M680_THE_TRACKED_TREE_NUMBER_COMES_FROM_THE_OTHER_RULER",
+        "scripts/assemble_assurance.py",
+        '        "tracked_tree_sha256": source_tree_digest(),',
+        '        "tracked_tree_sha256": compute_source_digest(ROOT),',
+        (
+            "apps/api/tests/test_gate_parity.py::"
+            "test_the_assurance_producer_pairs_every_digest_with_its_own_ruler",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M676_THE_RESOLVED_COMMAND_ALIASES_THE_REGISTRY_ENTRY",
         "scripts/check_deployment_debt.py",
         "    command: list[str] = list(value)",

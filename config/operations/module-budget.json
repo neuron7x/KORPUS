@@ -3229,12 +3229,13 @@
       "reason": "ACT-007: aggregate pinned CI scanner execution markers; initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/assemble_assurance.py": {
-      "lines": 150,
+      "lines": 162,
       "max_complexity": 12,
       "max_function_args": 1,
       "max_function_lines": 106,
       "max_nesting": 1,
-      "proof_lines": 0
+      "proof_lines": 0,
+      "reason": "03.09.2026: чотири поля дайджестів винесено у функцію `source_identity()`. Перевірка «ярлик = та лінійка, що дала число» читала ГОТОВИЙ звіт, а звіт тут не збирається без postgres-дрилу — тож вона ПРОПУСКАЛАСЬ, і розбіжність ярликів жила під захистом pytest.skip. Функція викликається без жодного артефакта, отже перевірка бігає завжди; мутанти M679/M680 killed. +12 рядків — сама функція з докстрінгом."
     },
     "scripts/assemble_production_assurance.py": {
       "lines": 105,
@@ -9981,6 +9982,17 @@
         "lines": 198
       },
       "reason": "Скрипт дістав ВЛАСНЕ ім'я вихідного файла. Доти він писав var/research-assurance-report.json — той самий шлях, що й assemble_assurance.py, але без ярликованих дайджестів (digest_scope, evidence_source_sha256, tracked_tree_scope, tracked_tree_sha256), які читають snapshot_assurance, verify_handoff_contract і run_engineering_production_gate. Хто біг останній, той і визначав, чи доказ прив'язаний; при цьому відмова handoff-verify радила `make assurance` — саме той прогін, що затирав потрібний їй доказ, тож виконання поради гарантувало відмову. +12 рядків: константа OUTPUT і запис про причину."
+    },
+    {
+      "on": "2026-09-03",
+      "path": "scripts/assemble_assurance.py",
+      "from": {
+        "lines": 150
+      },
+      "to": {
+        "lines": 162
+      },
+      "reason": "03.09.2026: чотири поля дайджестів винесено у функцію `source_identity()`. Перевірка «ярлик = та лінійка, що дала число» читала ГОТОВИЙ звіт, а звіт тут не збирається без postgres-дрилу — тож вона ПРОПУСКАЛАСЬ, і розбіжність ярликів жила під захистом pytest.skip. Функція викликається без жодного артефакта, отже перевірка бігає завжди; мутанти M679/M680 killed. +12 рядків — сама функція з докстрінгом."
     }
   ],
   "recorded_at": "2026-09-02",
