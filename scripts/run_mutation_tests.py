@@ -5662,6 +5662,17 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M690_FULL_SSOT_REQUIRES_A_PRECREATED_OUTPUT_DIRECTORY",
+        "scripts/full_ssot_packager.py",
+        "    archive.parent.mkdir(parents=True, exist_ok=True)\n",
+        "",
+        (
+            "apps/api/tests/test_full_ssot_packager.py::"
+            "test_zip_tree_creates_the_declared_output_directory",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M676_THE_RESOLVED_COMMAND_ALIASES_THE_REGISTRY_ENTRY",
         "scripts/check_deployment_debt.py",
         "    command: list[str] = list(value)",

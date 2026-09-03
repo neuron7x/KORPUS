@@ -72,6 +72,7 @@ def _copy(root: Path, stage: Path, paths: Iterable[Path]) -> None:
 
 
 def _zip_tree(stage: Path, archive: Path) -> None:
+    archive.parent.mkdir(parents=True, exist_ok=True)
     files = sorted(
         (p for p in stage.rglob("*") if p.is_file()), key=lambda p: p.relative_to(stage).as_posix()
     )

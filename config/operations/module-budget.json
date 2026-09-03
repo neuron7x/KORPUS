@@ -3885,13 +3885,13 @@
       "reason": "нова ціль 03.09.2026 (RELEASE CLOSURE §8): вхід у наявну машину станів релізу. Обчислює тотожність кандидата (коміт, дайджест джерела, дайджест профілю, дайджест замка залежностей, голова міграцій, тотожність корпусу) і відмовляє, поки бодай одна умова не ВИМІРЯНА. 6 негативних контролів; початковий точний вимір і є стелею."
     },
     "scripts/full_ssot_packager.py": {
-      "lines": 164,
+      "lines": 165,
       "max_complexity": 6,
       "max_function_args": 3,
       "max_function_lines": 35,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "03.09.2026: tracked-tree allowlist + explicit untracked web-dist boundary; ignored host `.coverage` previously entered the archive and made identical HEADs produce different artifacts."
+      "reason": "03.09.2026: tracked-tree allowlist + explicit untracked web-dist boundary; ignored host `.coverage` previously entered the archive. +1 рядок: declared OUT сам створює відсутню батьківську теку."
     },
     "scripts/gcp/canary_metrics.py": {
       "lines": 253,
@@ -10366,6 +10366,17 @@
       "reason": "FULL_SSOT сканував увесь worktree й включив ignored `.coverage` з локальними шляхами. +15 рядків обмежують склад tracked tree та єдиним явним untracked-винятком `apps/web/dist`; M689 вбиває повернення до необмеженого сканування.",
       "to": {
         "lines": 164
+      }
+    },
+    {
+      "from": {
+        "lines": 164
+      },
+      "on": "2026-09-03",
+      "path": "scripts/full_ssot_packager.py",
+      "reason": "`make full-ssot-package OUT=dist/...` падав FileNotFoundError на чистому дереві без dist. +1 рядок створює лише точного батька оголошеного артефакту; M690 охороняє контракт.",
+      "to": {
+        "lines": 165
       }
     }
   ],

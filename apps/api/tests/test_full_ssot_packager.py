@@ -53,6 +53,19 @@ def test_deterministic_zip_roundtrip_preserves_executable_mode(tmp_path: Path) -
     assert stat.S_IMODE((extracted / "scripts/run.sh").stat().st_mode) == 0o755
 
 
+def test_zip_tree_creates_the_declared_output_directory(tmp_path: Path) -> None:
+    from scripts.full_ssot_packager import _zip_tree
+
+    stage = tmp_path / "stage"
+    stage.mkdir()
+    (stage / "source.txt").write_text("source", encoding="utf-8")
+    archive = tmp_path / "absent" / "nested" / "artifact.zip"
+
+    _zip_tree(stage, archive)
+
+    assert archive.is_file()
+
+
 def test_safe_extractor_refuses_unsafe_archive_before_write(tmp_path: Path) -> None:
     import zipfile
 
