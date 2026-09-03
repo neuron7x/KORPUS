@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1806,
-  "root_sha256": "74232ed0684cbeb7a5e57214a85d3b81eabb946b660237441ca49225ed014d9a",
+  "root_sha256": "f8adc4b7890ba1af4429c59041175236e66b52d601db932c93a9e875201ebcd6",
   "files": [
     {
       "path": ".dockerignore",
@@ -2683,8 +2683,8 @@
     },
     {
       "path": "apps/api/tests/test_answer_axes_composition.py",
-      "bytes": 4711,
-      "sha256": "5d8e02da62dd976ddd98f58bdfe071b1635d350f9dbdeee13060346350f96d5a",
+      "bytes": 4973,
+      "sha256": "3614d2d00e66a7530c5206006178fd0b99fa9d18808567a60c3f1885cda888e3",
       "mode": "0644"
     },
     {
@@ -7357,8 +7357,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 570087,
-      "sha256": "873f0287ab84bcdc9ee504caf607884fc59510cfcff68d7075d60c74a6ebb971",
+      "bytes": 569774,
+      "sha256": "af61ceeb047edb03dafe7fc3be31212c0cd197fbda0380caf84c387a948417a8",
       "mode": "0644"
     },
     {
@@ -9103,8 +9103,8 @@
     },
     {
       "path": "scripts/check_answer_axes.py",
-      "bytes": 27870,
-      "sha256": "62f9da9526a755d31feedbac07b61c6c9e9ae90f06e5089480f9e5f34dc456d2",
+      "bytes": 27991,
+      "sha256": "9b7efd3c6b934da37f802e098a297f1e459816636e54bff5ff2fda4f0b330abe",
       "mode": "0755"
     },
     {
@@ -10267,8 +10267,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 315241,
-      "sha256": "265fd339980d1e62c3700280323bbfe80d47f1bead1e4ea2c4fbee55dfb3fbf6",
+      "bytes": 315614,
+      "sha256": "9955251273a6fce94ada04835573baa4027af49a64dbeb3959f378e165a4330b",
       "mode": "0755"
     },
     {
