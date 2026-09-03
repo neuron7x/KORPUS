@@ -90,6 +90,9 @@ repository:validate:
     # Виміряно 02.09.2026: нічний лан не виконувався ЖОДНОГО разу, бо `-C @KORPUS_ROOT@`
     # без лапок ділився за пробілами канонічного кореня, і це один із чотирьох коренів
     # замикання гейтів.
+    # Паритет розгорнутого краю перевіряється лише самоперевіркою: у раннері немає
+    # контейнера краю, і вирок там був би UNKNOWN. Здатність гейта ЛОВИТИ — є.
+    - python scripts/check_edge_config_parity.py --selftest
     - python scripts/check_unit_exec_arguments.py --selftest
     - python scripts/check_unit_exec_arguments.py
     - python scripts/check_public_env_parity.py

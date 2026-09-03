@@ -1,0 +1,32 @@
+{
+  "schema": "korpus.closure.correction.v1",
+  "corrects": "KD-017",
+  "original_claim": "Відновлення SQLite звіряє маніфест зі значенням, узятим із самого маніфеста — підмінений маніфест зі своїм key_id пройде.",
+  "original_severity": "MEDIUM",
+  "verdict_on_original": "ЗАВИЩЕНО",
+  "why": "Перша половина твердження вірна: `restore_sqlite.sh:31` справді бере --expected-key-id із того самого маніфеста. Друга — хибна. `backup_manifest.canonical_bytes` виключає з підписаних байтів ЛИШЕ `manifest_hmac_sha256`, отже `key_id` покритий HMAC. Маніфест із чужим ідентифікатором ключа не має валідного підпису під ключем відновлення, і `verify` відхиляє його на рядку 90.",
+  "evidence": [
+    "scripts/backup_manifest.py:24 — canonical_bytes виключає лише manifest_hmac_sha256",
+    "розрахунок: sign(payload, key) != sign({**payload, key_id: 'ATTACKER'}, key) -> True",
+    "scripts/restore_sqlite.sh:27-31 — verify викликається з --key-file ДО розшифрування"
+  ],
+  "corrected_finding": {
+    "id": "KD-017-R",
+    "severity": "LOW",
+    "title": "`--expected-key-id` у restore_sqlite.sh не несе інформації",
+    "detail": "Аргумент надлишковий: очікуване й перевірюване з одного джерела не можуть розійтися. Він не є дірою, бо справжній якір — підпис. Але як твердження він порожній, і читач сценарію може прийняти його за незалежну перевірку.",
+    "status": "CONFIRMED_AS_REDUNDANT_NOT_INSECURE"
+  },
+  "durable_prevention_added": [
+    "test_a_backup_signed_with_another_key_is_refused — відновлення чужим ключем відхилено, бази на диску не лишилось",
+    "test_the_manifest_signature_covers_the_key_identifier — підпис покриває key_id; якби не покривав, кругова перевірка справді стала б дірою"
+  ],
+  "recovery_drill_measured": {
+    "target": "make sqlite-recovery-drill",
+    "rto_seconds": 0.736, "restore_seconds": 0.734, "verify_seconds": 0.001,
+    "rpo_seconds": 0.404, "lost_events": 0, "lost_documents": 5,
+    "environment_class": "CI_FIXTURE",
+    "own_interpretation": "evidence that the drill runs and that the numbers are collected, not evidence about operational recovery: no RTO or RPO objective has been declared by anyone entitled to declare one"
+  },
+  "note": "Виправлення власної знахідки записане, а не тихо прибране: завищена знахідка коштує стільки ж, скільки пропущена, і псує знаменник у той самий бік."
+}

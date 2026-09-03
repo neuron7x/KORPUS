@@ -5750,6 +5750,15 @@
       "max_nesting": 3,
       "proof_lines": 44,
       "reason": "новий гейт: цілість аргументів у юнітах systemd; початковий точний вимір і є стелею ратчета"
+    },
+    "scripts/check_edge_config_parity.py": {
+      "lines": 139,
+      "max_complexity": 7,
+      "max_function_args": 2,
+      "max_function_lines": 31,
+      "max_nesting": 2,
+      "proof_lines": 37,
+      "reason": "новий гейт: паритет розгорнутого краю з шаблоном дерева; початковий точний вимір і є стелею ратчета"
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

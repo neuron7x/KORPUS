@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1793,
-  "root_sha256": "5f60ef9a105b6c9c77eb3df7a7b5e812e16231363481544291956d3c8a71a6a5",
+  "file_count": 1795,
+  "root_sha256": "53af580848001a92f94a54fad6822a7f2df1b7f00b58c75a630fe0db41aae944",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 47298,
-      "sha256": "700170e92bc88dd7c71971b556d8e7e603229b9345832dea80bfb9200e7e5672",
+      "bytes": 47638,
+      "sha256": "aa1f704e7ae377e7b3d5dd7650fa0d989409b8b93fad4cf4ae82dfb742b0157b",
       "mode": "0644"
     },
     {
@@ -204,6 +204,12 @@
       "mode": "0644"
     },
     {
+      "path": "KORPUS_ENGINEERING_CLOSURE/02_DEBT/correction_KD-017.json",
+      "bytes": 3141,
+      "sha256": "a44953dab346633aaf2189f38f698e65742318ded739621b8a10dc4c2d09721b",
+      "mode": "0644"
+    },
+    {
       "path": "KORPUS_ENGINEERING_CLOSURE/02_DEBT/debt_ledger.json",
       "bytes": 4503,
       "sha256": "36ccfb25e757beed098853e86ba199ce50788ef44dc74e1dea19210ac10c726a",
@@ -217,8 +223,8 @@
     },
     {
       "path": "KORPUS_ENGINEERING_CLOSURE/FINAL/FINAL_VERDICT.json",
-      "bytes": 3690,
-      "sha256": "93ba664c89095b00815c7f8023398a570b6771707c1c43cbf74238974aac9b4f",
+      "bytes": 3979,
+      "sha256": "3a66e002512976eefb1d2d5d1f1d689d91bf7008963eae3e36215f9d700f33b7",
       "mode": "0644"
     },
     {
@@ -391,8 +397,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 97824,
-      "sha256": "b42f9e62056debc1b88fed32cfb5612e04dffb3ad29cd17bedcceced9154e765",
+      "bytes": 98538,
+      "sha256": "eaec114e312461e504de33387acad738b19cf1a00c03239fbd21804c6d7a156e",
       "mode": "0644"
     },
     {
@@ -3013,8 +3019,8 @@
     },
     {
       "path": "apps/api/tests/test_corpus_backup_drill.py",
-      "bytes": 6566,
-      "sha256": "3ef64b7ff8bf9131aef65b2c2d80f92a9e11f38f1a1c2fabdd0efc0536e40850",
+      "bytes": 10124,
+      "sha256": "53fc1fdbd9bd0d9b5f4310b8d69572d6748893dca53723284caec64de1791dca",
       "mode": "0644"
     },
     {
@@ -7280,7 +7286,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "b0f979a63a456731d957c0046b56c8570e89fdf0cb8a08da17f27d48b6bea2bb",
+      "sha256": "c2f87b745f5bd70edb125fff07009346d817ea1cd98d91d742a4f9372100bad2",
       "mode": "0644"
     },
     {
@@ -7315,8 +7321,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 542569,
-      "sha256": "f8f6d1bb211478fe903c996187222e0038de84954ba81617bfc7e2d87106ee41",
+      "bytes": 542980,
+      "sha256": "13f49137d6506355ab316c3b3ad0f68de533eec931a806bc8e872dd8aac19a21",
       "mode": "0644"
     },
     {
@@ -7513,8 +7519,8 @@
     },
     {
       "path": "deploy/public/nginx.conf",
-      "bytes": 17524,
-      "sha256": "a88bc7780ce7db11bf6a79b9ebca88b97618f78532ed4b18851d920f7164eaad",
+      "bytes": 19381,
+      "sha256": "976928fc92539263e263790a7b6c3ae29a3efc8104842a896c452f6e30f224ea",
       "mode": "0644"
     },
     {
@@ -9111,6 +9117,12 @@
       "path": "scripts/check_dormant_subsystems.py",
       "bytes": 10836,
       "sha256": "4127f5b62c402866cf1b5a8f4e75c173500a1f02e68ba5fb9c211d4c449e56a1",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/check_edge_config_parity.py",
+      "bytes": 8601,
+      "sha256": "fbcfcf6d4a250b03f43a7c161fbafbcee174e05dcceb2bb95fa2760400a0314f",
       "mode": "0755"
     },
     {

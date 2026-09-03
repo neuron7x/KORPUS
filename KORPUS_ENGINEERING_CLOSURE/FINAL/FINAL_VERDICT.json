@@ -2,8 +2,8 @@
   "schema": "korpus.closure.final.v1",
   "protocol": "EERP-06 / TECO-01",
   "canonical_branch": "main",
-  "commit": "0a9ce98b991edb95e3d6f56ddd64c3bbf49f878d",
-  "source_digest": "5f0246e99097301a699b451cb0af2c350f84ab185d762cde13c73ff2cd3a539c",
+  "commit": "43c400d3f30ab7250c0a1dcb6bbcb286a982a9c6",
+  "source_digest": "5637e7af098bfa56…",
   "gate_matrix": {
     "G0 Scope integrity": "PASS",
     "G1 Exact source state": "PASS",
@@ -16,8 +16,8 @@
     "G8 Database/backend fidelity": "PARTIAL — ланцюг доведено на точній копії, 44/44 RLS; жива база лишається на 0018",
     "G9 Runtime identity": "PASS — serving-freshness PASS, процес у власному cgroup",
     "G10 Observability sufficiency": "FAIL — наповненість метрик досі доведена лише статично (WS-16 не виконано)",
-    "G11 Security perimeter": "FAIL — край досі роздає location ~ і /metrics без токена (WS-03 не виконано)",
-    "G12 Reliability/recovery": "FAIL — restore_sqlite звіряє маніфест сам із собою (WS-10 не виконано)",
+    "G11 Security perimeter": "PARTIAL — межа краю розгорнута й гейтована, телеметрія закрита; мапи OWASP ASVS 5.0 не побудовано",
+    "G12 Reliability/recovery": "PARTIAL — навчання SQLite виміряне (RTO 0.736 с, RPO 0.404 с), чужий ключ відхиляється; навчання PostgreSQL не проганялось, цілі RTO/RPO не оголошені вповноваженою особою",
     "G13 Supply-chain provenance": "UNKNOWN — не переміряно в цьому транші",
     "G14 Documentation/state consistency": "FAIL — 106 із 173 документів без прив'язки (WS-15 не виконано)",
     "G15 Clean reproduction": "NOT_RUN — verify-clean-clone у нічному лані, до якого лан не дійшов",
@@ -35,9 +35,29 @@
     "SilentMandatoryGate": 0,
     "UntestedCriticalGate": "49 із 64 без вироку про живість",
     "ServingIdentityMismatch": 0,
-    "UnresolvedCriticalSecurityBoundary": 3
+    "UnresolvedCriticalSecurityBoundary": 0
   },
   "production_authority": false,
   "verdict": "FAIL — PRODUCTION AUTHORITY NOT GRANTED",
-  "verdict_reason": "Програма TECO-01 виконана ЧАСТКОВО. Закрито 5 із 16 робочих потоків (WS-01, WS-02, WS-04, WS-05, WS-07 у частині інженерного ризику). Одинадцять лишаються невиконаними, серед них три з жорстких нульових умов: периметр безпеки, спостережність рантайму і відтворення з нуля. Видавати авторитет на цій підставі означало б робити рівно те, що протокол забороняє."
+  "verdict_reason": "Закрито 7 із 16 потоків. Дев'ять лишаються, серед них дві жорсткі нульові умови: спостережність рантайму (G10) і відтворення з нуля (G15). Периметр безпеки з жорсткої нульової умови знято: межа розгорнута, перевірена розрізнячем і закрита гейтом.",
+  "workstreams_closed": [
+    "WS-01",
+    "WS-02",
+    "WS-03",
+    "WS-04",
+    "WS-05",
+    "WS-07 (інженерна частина)",
+    "WS-10"
+  ],
+  "workstreams_remaining": [
+    "WS-06",
+    "WS-08",
+    "WS-09",
+    "WS-11",
+    "WS-12",
+    "WS-13",
+    "WS-14",
+    "WS-15",
+    "WS-16"
+  ]
 }

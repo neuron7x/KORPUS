@@ -932,6 +932,14 @@ selftest-coverage:
 # ЧОТИРЬОХ коренів замикання гейтів, і 11 перевірочних цілей мали охоплення лише через
 # нього. Перевірка розбирає рядок правилами systemd, а не шукає лапки: «є лапки» —
 # твердження про написання, а тут питання про поведінку.
+# Конфіг, який РОЗДАЄ край, проти шаблона в дереві. Виміряно 02.09.2026: виправлення
+# межі записових маршрутів лежало в дереві разом із доказом обходу, а контейнер роздавав
+# старий рендер — межа була виправлена й обходилась у бою добу. Порівняння з маскуванням
+# токена: секрет у перевірку не потрапляє.
+edge-config-parity:
+	$(PY) scripts/check_edge_config_parity.py --selftest
+	$(PY) scripts/check_edge_config_parity.py --out var/edge-config-parity.json
+
 unit-exec-arguments:
 	$(PY) scripts/check_unit_exec_arguments.py --selftest
 	$(PY) scripts/check_unit_exec_arguments.py --out var/unit-exec-arguments.json
@@ -1146,7 +1154,7 @@ nightly-evidence:
 # запитом до живого процесу, тож вони описують ПРОЦЕС, а не дерево. Гейт існував із
 # власним негативним контролем і не входив у жоден лан: виміряно 02.09.2026, він був
 # передумовою лише `answer-quality`, який теж не входив нікуди.
-check-deployment: serving-freshness runtime-corpus-audit corpus-integrity audit-verify deployment-debt evidence-stores
+check-deployment: serving-freshness edge-config-parity runtime-corpus-audit corpus-integrity audit-verify deployment-debt evidence-stores
 
 deployment-debt:
 	$(PY) scripts/check_deployment_debt.py
