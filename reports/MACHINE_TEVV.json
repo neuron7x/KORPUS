@@ -1,0 +1,62 @@
+{
+  "schema": "korpus.machine-tevv.v1",
+  "ran_at": "2026-09-03T20:42:00.363924+00:00",
+  "source_digest": "25e42e77820c1e5b5b29039e9f9028145c6ceca84a0ef077de63e24534117275",
+  "commit": "b432d6325918146842927997aedd27760d1674df",
+  "scope": "МАШИННО-ПЕРЕВІРНА частина TEVV: очікуване виводиться з фактів корпусу й системи. Судження предметної людини сюди НЕ входить і не імітується.",
+  "human_domain_part": {
+    "status": "HUMAN_DOMAIN_REVIEW_REQUIRED",
+    "why": "Профіль вимагає ≥200 запитів із розміткою ДВОМА анотаторами, ≥40 сліпих холдаут-запитів, узгодженість Cohen's kappa ≥0.6 і суддю, який не є жодним з анотаторів. Два контексти LLM не є двома незалежними предметними анотаторами.",
+    "policy": "apps/api/src/korpus/application/gold_annotation.py"
+  },
+  "classes": [
+    {
+      "class": "supported_retrieval",
+      "question": "чи система відповідає там, де відповідь у корпусі є",
+      "report": "var/pilot/reference-eval-pg.json",
+      "value": 0.9367088607594937,
+      "floor": 0.92,
+      "bound_from": "config/operations/answer-axes.json:reference.floor",
+      "state": "PASS"
+    },
+    {
+      "class": "abstention_out_of_domain",
+      "question": "чи система мовчить там, де відповіді в корпусі немає",
+      "report": "var/pilot/boundary-eval-pg.json",
+      "value": 0.2,
+      "ceiling": 0.25,
+      "bound_from": "config/operations/answer-quality-ratchet: стеля чужих питань",
+      "state": "PASS"
+    },
+    {
+      "class": "in_domain_answer_rate",
+      "question": "чи система не мовчить там, де мусить відповісти",
+      "report": "var/pilot/boundary-eval-pg.json",
+      "value": 0.95,
+      "floor": 0.9,
+      "bound_from": "config/operations/answer-quality-ratchet: підлога своїх питань",
+      "state": "PASS"
+    },
+    {
+      "class": "subject_disambiguation",
+      "question": "чи відповідь про того, кого спитали",
+      "report": "var/pilot/subject-precision-pg.json",
+      "value": 0.956,
+      "floor": 0.956,
+      "bound_from": "config/operations/answer-axes.json:subject.floor",
+      "state": "PASS"
+    },
+    {
+      "class": "citation_identity",
+      "question": "чи цитата належить джерелу, яке названо",
+      "report": "var/pilot/subject-precision-pg.json",
+      "value": 1.0,
+      "floor": 1.0,
+      "bound_from": "вимір 01.09.2026: 1.0000, нижче не приймалось",
+      "state": "PASS"
+    }
+  ],
+  "status": "PASS",
+  "unmeasured": [],
+  "failed": []
+}
