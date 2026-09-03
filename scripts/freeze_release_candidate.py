@@ -116,7 +116,6 @@ def corpus_identity(envelope: dict[str, Any]) -> dict[str, Any]:
 def blockers(root: Path = ROOT) -> list[str]:
     """Кожна умова заморозки, яка НЕ виконана. Порожній перелік — не за замовчуванням."""
     problems: list[str] = []
-    head = _git("rev-parse", "HEAD")
     if [line for line in _git("status", "--porcelain").splitlines() if line]:
         problems.append("дерево брудне: заморожувалось би не те, що перевірялось")
 
@@ -124,12 +123,7 @@ def blockers(root: Path = ROOT) -> list[str]:
     if not lane:
         problems.append("звіту лану релізу немає — заморозка без прогону")
     else:
-        if str(lane.get("status")) != "PASS":
-            problems.append(
-                f"лан релізу: {lane.get('status')} (спинився на {lane.get('stopped_at')})"
-            )
-        if str(lane.get("head_after") or lane.get("head_before")) != head:
-            problems.append(f"лан про {str(lane.get('head_before'))[:8]}, HEAD {head[:8]}")
+        problems.extend(_lane_problems(lane, root))
 
     model = _json(root / "var/assurance-model-independence.json")
     if not model:
@@ -144,6 +138,39 @@ def blockers(root: Path = ROOT) -> list[str]:
     blocking = [str(item.get("id")) for item in states if item.get("blocks_candidate")]
     if blocking:
         problems.append(f"предикати блокують кандидата: {blocking}")
+    return problems
+
+
+def _lane_problems(lane: dict[str, Any], root: Path) -> list[str]:
+    """Чому звіт лану НЕ кредитує заморозку. Порожній перелік — не за замовчуванням.
+
+    Прив'язка за ДАЙДЖЕСТОМ ДЖЕРЕЛА, а не за комітом. Коміт доказу чіпає лише
+    `reports/` і `var/`, яких немає в обсязі дайджесту, тож лан, знятий до нього,
+    описує ТЕ САМЕ джерело. Вимога збігу комітів означала б вимогу лану, після якого
+    нічого не комітили, — а докази комітити треба.
+
+    Обсяг звіту перевіряється окремо. `run_release_verify.py --closure-only` пише ТОЙ
+    САМИЙ файл із тими самими полями `status`/`stopped_at`, але лише про дві цілі; без
+    цієї умови заморозка прийняла б замикання за повний лан. Названо незалежною
+    верифікацією 03.09.2026: сьогодні цей шлях ховають інші блокери, і саме тому його
+    треба закрити ДО того, як їх не стане.
+    """
+    problems: list[str] = []
+    if str(lane.get("status")) != "PASS":
+        problems.append(f"лан релізу: {lane.get('status')} (спинився на {lane.get('stopped_at')})")
+    carried = str(lane.get("source_digest") or "")
+    current = compute_source_digest(root)
+    if not carried:
+        problems.append("звіт лану не несе дайджесту джерела — не прив'язаний до кандидата")
+    elif carried != current:
+        problems.append(f"лан про джерело {carried[:8]}, дерево {current[:8]}")
+    candidate = (_json(root / ENVELOPE) or {}).get("release_candidate", {})
+    mandatory = {str(name) for name in candidate.get("mandatory_gate_set") or []}
+    measured = {str(step.get("target")) for step in lane.get("steps") or []}
+    if not mandatory:
+        problems.append("конверт не називає обов'язкового набору цілей")
+    elif mandatory - measured:
+        problems.append(f"звіт лану не покриває обов'язкових цілей: {sorted(mandatory - measured)}")
     return problems
 
 
@@ -188,23 +215,41 @@ def selftest() -> int:
     import tempfile
 
     failures: list[str] = []
-    head = _git("rev-parse", "HEAD")
     cases: list[tuple[str, dict[str, Any], str]] = [
         ("лану немає", {}, "звіту лану релізу немає"),
         (
-            "лан про чужий коміт",
-            {"var/release-verify.json": {"status": "PASS", "head_before": "b" * 40}},
-            "лан про",
+            "лан про чуже джерело",
+            {"var/release-verify.json": {"status": "PASS", "source_digest": "b" * 64}},
+            "лан про джерело",
+        ),
+        (
+            "замикання замість повного лану — не покриває обов'язкових цілей",
+            {
+                "var/release-verify.json": {
+                    "status": "PASS",
+                    "source_digest": compute_source_digest(ROOT),
+                    "steps": [{"target": "operational-gate"}, {"target": "lane-report"}],
+                },
+                "RELEASE_ENVELOPE.json": {
+                    "release_candidate": {"mandatory_gate_set": ["api-test", "validate"]}
+                },
+            },
+            "не покриває обов'язкових цілей",
+        ),
+        (
+            "лан без дайджесту джерела",
+            {"var/release-verify.json": {"status": "PASS", "steps": []}},
+            "не несе дайджесту джерела",
         ),
         (
             "лан не PASS",
-            {"var/release-verify.json": {"status": "FAIL", "head_before": head}},
+            {"var/release-verify.json": {"status": "FAIL"}},
             "лан релізу: FAIL",
         ),
         (
             "модель впевненості не PASS",
             {
-                "var/release-verify.json": {"status": "PASS", "head_before": head},
+                "var/release-verify.json": {"status": "PASS"},
                 "var/assurance-model-independence.json": {
                     "status": "FAIL",
                     "unmet_blocking_substitutes": ["SI-5"],
@@ -215,7 +260,7 @@ def selftest() -> int:
         (
             "предикат блокує",
             {
-                "var/release-verify.json": {"status": "PASS", "head_before": head},
+                "var/release-verify.json": {"status": "PASS"},
                 "var/assurance-model-independence.json": {"status": "PASS"},
                 "reports/PRODUCTION_HARD_PREDICATES.json": {
                     "states": [{"id": "live_postgres_rls", "blocks_candidate": True}]

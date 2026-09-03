@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1805,
-  "root_sha256": "3cb294d3528b19623aa7dbcec45f6816f1221661521f8598b60943f457861b99",
+  "root_sha256": "9a01258a56cf675bfa2428310d624c08dc75bf23e73788c66dcdb170c7808ed2",
   "files": [
     {
       "path": ".dockerignore",
@@ -7316,7 +7316,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "e42e8b139a1833c950585f2eb5af679e4369cac23f82460493bf5bee16e7af3e",
+      "sha256": "05adc92e320e7249e78276721e1ec8c35479498b0d0006f727ef892fe96612e4",
       "mode": "0644"
     },
     {
@@ -7351,8 +7351,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 571611,
-      "sha256": "5bbfb17d45e68bcb58f20309c592ff56bdb9ee0b5b583d4d8bb35314d8f447b7",
+      "bytes": 573522,
+      "sha256": "23a9ee5a0a2ed7e07169d9c9fdb188a67027eafaab66b12c80b0e3dba5adaab1",
       "mode": "0644"
     },
     {
@@ -9379,8 +9379,8 @@
     },
     {
       "path": "scripts/freeze_release_candidate.py",
-      "bytes": 12468,
-      "sha256": "486fe64de2ed907b87739b27d4e0cbe661e4641c8ed5edfe8c6d1efba8d1aa9d",
+      "bytes": 15400,
+      "sha256": "115cf903fcf3492af5e48db6cc493500d028cdf8b847c3e8be228cd9d80a69fe",
       "mode": "0755"
     },
     {
