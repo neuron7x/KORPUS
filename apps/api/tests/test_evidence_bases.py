@@ -21,6 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "scripts"))
 
+import measure_evidence_bases as evidence_bases  # noqa: E402
 from measure_evidence_bases import (  # noqa: E402
     _fixture,
     adjudicate,
@@ -131,3 +132,14 @@ def test_the_fingerprint_does_not_carry_the_password() -> None:
 
     assert "s3cr3t" not in printed
     assert printed == "postgres:postgres@172.18.0.2:5432/korpus"
+
+
+def test_relative_evidence_base_paths_bind_to_the_runtime_root(
+    tmp_path: Path, monkeypatch,
+) -> None:
+    monkeypatch.setattr(evidence_bases, "DATA_ROOT", tmp_path)
+
+    assert evidence_bases._data_path("var/runtime/korpus.db") == (
+        tmp_path / "var/runtime/korpus.db"
+    )
+    assert evidence_bases._data_path(tmp_path / "absolute.db") == tmp_path / "absolute.db"

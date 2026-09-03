@@ -106,3 +106,6 @@ def test_external_evidence_steps_are_named_not_guessed() -> None:
         "оголошено зовнішнім крок, якого в лані немає — реєстр розійшовся з ланом"
     )
     assert "assemble-assurance" in RUNNER.EXTERNAL_EVIDENCE
+    assert "corpus-axes" in RUNNER.EXTERNAL_EVIDENCE, (
+        "шість осей потребують живого API; відсутні звіти не можна назвати внутрішнім FAIL"
+    )

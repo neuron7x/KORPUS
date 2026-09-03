@@ -5594,6 +5594,50 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M684_MAKE_CORPUS_PATH_FALLS_BACK_TO_THE_FEATURE_WORKTREE",
+        "Makefile",
+        "SERVED_CORPUS ?= $(CANONICAL_ROOT)/var/runtime/corpus-v6-20260807/korpus.db",
+        "SERVED_CORPUS ?= var/runtime/corpus-v6-20260807/korpus.db",
+        (
+            "apps/api/tests/test_make_runtime_paths.py::"
+            "test_make_runtime_paths_are_rooted_in_the_canonical_declaration",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M685_MAKE_OBJECT_PATH_FALLS_BACK_TO_THE_FEATURE_WORKTREE",
+        "Makefile",
+        "SERVED_OBJECTS ?= $(CANONICAL_ROOT)/var/runtime/corpus-v6-20260807/objects",
+        "SERVED_OBJECTS ?= var/runtime/corpus-v6-20260807/objects",
+        (
+            "apps/api/tests/test_make_runtime_paths.py::"
+            "test_make_runtime_paths_are_rooted_in_the_canonical_declaration",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M686_EVIDENCE_BASES_IGNORE_THE_DECLARED_RUNTIME_ROOT",
+        "scripts/measure_evidence_bases.py",
+        "    return DATA_ROOT / str(value)",
+        "    return ROOT / str(value)",
+        (
+            "apps/api/tests/test_evidence_bases.py::"
+            "test_relative_evidence_base_paths_bind_to_the_runtime_root",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M687_LIVE_CORPUS_AXES_ARE_MISREPORTED_AS_INTERNAL",
+        "scripts/run_release_verify.py",
+        '    {"assemble-assurance", "snapshot", "corpus-axes"}\n',
+        '    {"assemble-assurance", "snapshot"}\n',
+        (
+            "apps/api/tests/test_release_verify_runner.py::"
+            "test_external_evidence_steps_are_named_not_guessed",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M676_THE_RESOLVED_COMMAND_ALIASES_THE_REGISTRY_ENTRY",
         "scripts/check_deployment_debt.py",
         "    command: list[str] = list(value)",

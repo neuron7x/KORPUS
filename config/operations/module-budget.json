@@ -5137,13 +5137,13 @@
       "reason": "v0.5.0: sandboxed release-critical mutation destruction campaign; exact baseline ceiling"
     },
     "scripts/run_release_verify.py": {
-      "lines": 237,
+      "lines": 236,
       "max_complexity": 12,
       "max_function_args": 2,
       "max_function_lines": 67,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": "03.09.2026: лан дістав ТРЕТІЙ стан кроку. Кроки, чий доказ виробляє лише зовнішній лан, оголошені поіменно й позначаються SKIPPED_REQUIRES_EXTERNAL, а підсумок при пропуску не буває PASS. Доти станів було два, тож лан із --skip-external спинявся на assemble-assurance, і шість наступних кроків не виконувались жодного разу; на дереві ж із давнім var/recovery-report.json той самий прогін проходив. +32 рядки — це `status()`, гілка пропуску й оголошення EXTERNAL_EVIDENCE. Стеля довжини функцій НЕ рухалась: `main` лишився під 67."
+      "reason": "03.09.2026: лан дістав ТРЕТІЙ стан кроку. Кроки, чий доказ виробляє лише зовнішній лан, оголошені поіменно й позначаються SKIPPED_REQUIRES_EXTERNAL, а підсумок при пропуску не буває PASS. Доти станів було два, тож лан із --skip-external спинявся на assemble-assurance, і шість наступних кроків не виконувались жодного разу; на дереві ж із давнім var/recovery-report.json той самий прогін проходив. +32 рядки — це `status()`, гілка пропуску й оголошення EXTERNAL_EVIDENCE. Стеля довжини функцій НЕ рухалась: `main` лишився під 67. | 03.09.2026: стелю рядків знижено 237 → 236 після стискання пояснення зовнішніх кроків."
     },
     "scripts/run_reliability_gate.py": {
       "lines": 78,
