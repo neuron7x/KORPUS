@@ -5649,6 +5649,19 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M689_FULL_SSOT_INCLUDES_UNTRACKED_HOST_STATE",
+        "scripts/full_ssot_packager.py",
+        "                tracked_paths is None\n"
+        "                or path.relative_to(root) in tracked_paths\n"
+        "                or path.relative_to(root).parts[:3] == WEB_DISTRIBUTION\n",
+        "                True\n",
+        (
+            "apps/api/tests/test_full_ssot_packager.py::"
+            "test_full_ssot_admits_only_tracked_files_plus_the_built_web",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M676_THE_RESOLVED_COMMAND_ALIASES_THE_REGISTRY_ENTRY",
         "scripts/check_deployment_debt.py",
         "    command: list[str] = list(value)",

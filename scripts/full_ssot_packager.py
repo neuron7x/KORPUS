@@ -25,8 +25,9 @@ RUNTIME_PARTS = {
     ".mypy_cache",
     ".ruff_cache",
 }
-TOP_LEVEL_EXCLUDED = {"dist", "var"}
+TOP_LEVEL_EXCLUDED = {".coverage", ".DS_Store", ".env", "dist", "var"}
 REGENERATED = {"DISTRIBUTION_MANIFEST.json", "FULL_SSOT_PACKAGE_RECEIPT.json"}
+WEB_DISTRIBUTION = ("apps", "web", "dist")
 
 
 def included(relative: Path) -> bool:
@@ -39,11 +40,25 @@ def included(relative: Path) -> bool:
 
 
 def project_files(root: Path) -> list[Path]:
+    tracked = subprocess.run(
+        ["git", "-C", str(root), "ls-files", "-z"], capture_output=True, check=False
+    )
+    tracked_paths = (
+        {Path(value) for value in tracked.stdout.decode().split("\0") if value}
+        if tracked.returncode == 0
+        else None
+    )
     return sorted(
         (
             path.relative_to(root)
             for path in root.rglob("*")
-            if path.is_file() and included(path.relative_to(root))
+            if path.is_file()
+            and included(path.relative_to(root))
+            and (
+                tracked_paths is None
+                or path.relative_to(root) in tracked_paths
+                or path.relative_to(root).parts[:3] == WEB_DISTRIBUTION
+            )
         ),
         key=Path.as_posix,
     )
