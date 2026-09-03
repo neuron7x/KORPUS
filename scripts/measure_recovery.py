@@ -21,6 +21,7 @@ from sqlalchemy.engine import Engine
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 sys.path.insert(0, str(ROOT / "scripts"))
+from check_serving_freshness import topology_environment_class  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
@@ -133,7 +134,16 @@ def main() -> int:
     newest_restored = _latest_protected_write(restored)
     rpo_seconds = _interval(newest, newest_restored)
 
-    environment_class = os.getenv("KORPUS_RECOVERY_ENVIRONMENT_CLASS", "CI_FIXTURE")
+    # Той самий інваріант, що й у навантаженні: PRODUCTION_LIKE віддає ВИМІР оголошеної
+    # топології, змінна може лише послабити. Інакше `KORPUS_RECOVERY_ENVIRONMENT_CLASS=
+    # PRODUCTION` робив би навчання на порожньому дереві доказом про продакшен.
+    requested = os.getenv("KORPUS_RECOVERY_ENVIRONMENT_CLASS", "CI_FIXTURE")
+    measured = topology_environment_class(ROOT)
+    environment_class = (
+        requested
+        if requested not in {"PRODUCTION_LIKE", "PRODUCTION"}
+        else measured["environment_class"]
+    )
     report = {
         "schema_version": 2,
         "status": "PASS",
@@ -141,6 +151,8 @@ def main() -> int:
         if environment_class == "CI_FIXTURE"
         else environment_class.lower().replace("_", "-"),
         "environment_class": environment_class,
+        "environment_class_requested": requested,
+        "environment_class_basis": measured["basis"],
         "source_tree_sha256": compute_source_digest(ROOT),
         "release": release_tag(),
         "rto_seconds": round(restore_seconds + verify_seconds, 3),

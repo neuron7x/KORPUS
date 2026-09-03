@@ -121,6 +121,30 @@ def test_internal_campaign_cannot_call_itself_external_independent() -> None:
     assert not verdict.passed
 
 
+def test_redteam_claiming_an_external_attestation_the_policy_denies_is_rejected() -> None:
+    """Гейт не сміє СТВЕРДЖУВАТИ засвідчення, якого політика не визнає.
+
+    Після злиття політик 03.09.2026 профіль каже: зовнішнього засвідчення не було
+    (`redteam_attestation_verified: false`). Небезпека перевернулась разом із політикою:
+    раніше шкодило «не засвідчено, а треба», тепер — «засвідчено, хоча нема кому». Без
+    цієї перевірки умова ставала вакуумною, і мутант, що робить її `True`, виживав.
+    """
+    gates = _sound_gates()
+    gates["redteam"]["attestation_verified"] = True
+    verdict = evaluate_production_assurance(PROFILE, gates, source_digest="s", release="v")
+    assert "redteam.attestation_verified" in verdict.failures
+    assert not verdict.passed
+
+
+def test_redteam_claiming_a_trusted_signer_the_policy_denies_is_rejected() -> None:
+    """Той самий інваріант для підписанта: довіреного зовнішнього підписанта немає."""
+    gates = _sound_gates()
+    gates["redteam"]["trusted_signer"] = True
+    verdict = evaluate_production_assurance(PROFILE, gates, source_digest="s", release="v")
+    assert "redteam.trusted_signer" in verdict.failures
+    assert not verdict.passed
+
+
 def test_tevv_claiming_a_trusted_external_assessor_is_rejected() -> None:
     """Дзеркальний бік: оцінювач, названий довіреним ззовні, коли такого немає."""
     gates = _sound_gates()

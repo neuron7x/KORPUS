@@ -3647,13 +3647,13 @@
       "proof_lines": 56
     },
     "scripts/check_serving_freshness.py": {
-      "lines": 208,
+      "lines": 263,
       "max_complexity": 11,
       "max_function_args": 3,
-      "max_function_lines": 36,
+      "max_function_lines": 47,
       "max_nesting": 3,
-      "proof_lines": 70,
-      "reason": "03.09.2026: звіт міряє ОГОЛОШЕНІ юніти топології, а не лише «якісь процеси» — нуль потрібних юнітів і один випадковий процес давали ставку 1.0 і зелено. +3 негативні контролі; `adjudicate` дістав третій параметр (юніти), бо читати їх усередині означало б глобальний стан."
+      "proof_lines": 75,
+      "reason": "03.09.2026: клас середовища за ВИМІРОМ, а не за прапорцем — PRODUCTION_LIKE лише коли оголошені юніти активні, несуть поточний код і слухають міряний порт. Порожній перелік юнітів і дерево без коду віддають LOCAL_DEV: `all([])` істинне, а проти нуля будь-який процес виглядає свіжим. +4 негативні контролі."
     },
     "scripts/check_unit_exec_arguments.py": {
       "lines": 169,
@@ -4296,13 +4296,13 @@
       "reason": "registered 2026-08-29: shared ISO-date parser, extracted after an equivalent-input probe found three gates rejecting a valid datetime and accepting compact and week-numbered forms"
     },
     "scripts/load_probe.py": {
-      "lines": 182,
+      "lines": 204,
       "max_complexity": 6,
       "max_function_args": 4,
-      "max_function_lines": 67,
+      "max_function_lines": 80,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "mixed-workload load/spike/soak against a running deployment; numbers carry their conditions"
+      "reason": "03.09.2026: прапорець `--environment-class` може лише ПОСЛАБИТИ клас; PRODUCTION_LIKE віддає вимір топології. Доти прогін на дев-машині ставав доказом про продакшен одним аргументом. Звіт несе і запит, і підставу виміру."
     },
     "scripts/load_probe_lib/metrics.py": {
       "lines": 57,
@@ -4376,13 +4376,13 @@
       "proof_lines": 40
     },
     "scripts/measure_recovery.py": {
-      "lines": 183,
-      "max_complexity": 5,
+      "lines": 195,
+      "max_complexity": 6,
       "max_function_args": 2,
-      "max_function_lines": 84,
+      "max_function_lines": 95,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": " | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
+      "reason": "03.09.2026: те саме для навчання з відновлення — `KORPUS_RECOVERY_ENVIRONMENT_CLASS` лише послаблює, PRODUCTION_LIKE віддає вимір оголошеної топології."
     },
     "scripts/measure_semantic_separation.py": {
       "lines": 233,
@@ -10291,6 +10291,49 @@
       "to": {
         "lines": 70,
         "max_function_lines": 24
+      }
+    },
+    {
+      "from": {
+        "lines": 208,
+        "max_function_lines": 36,
+        "proof_lines": 70
+      },
+      "on": "2026-09-03",
+      "path": "scripts/check_serving_freshness.py",
+      "reason": "03.09.2026: клас середовища за ВИМІРОМ, а не за прапорцем — PRODUCTION_LIKE лише коли оголошені юніти активні, несуть поточний код і слухають міряний порт. Порожній перелік юнітів і дерево без коду віддають LOCAL_DEV: `all([])` істинне, а проти нуля будь-який процес виглядає свіжим. +4 негативні контролі.",
+      "to": {
+        "lines": 263,
+        "max_function_lines": 47,
+        "proof_lines": 75
+      }
+    },
+    {
+      "from": {
+        "lines": 182,
+        "max_function_lines": 67
+      },
+      "on": "2026-09-03",
+      "path": "scripts/load_probe.py",
+      "reason": "03.09.2026: прапорець `--environment-class` може лише ПОСЛАБИТИ клас; PRODUCTION_LIKE віддає вимір топології. Доти прогін на дев-машині ставав доказом про продакшен одним аргументом. Звіт несе і запит, і підставу виміру.",
+      "to": {
+        "lines": 204,
+        "max_function_lines": 80
+      }
+    },
+    {
+      "from": {
+        "lines": 183,
+        "max_complexity": 5,
+        "max_function_lines": 84
+      },
+      "on": "2026-09-03",
+      "path": "scripts/measure_recovery.py",
+      "reason": "03.09.2026: те саме для навчання з відновлення — `KORPUS_RECOVERY_ENVIRONMENT_CLASS` лише послаблює, PRODUCTION_LIKE віддає вимір оголошеної топології.",
+      "to": {
+        "lines": 195,
+        "max_complexity": 6,
+        "max_function_lines": 95
       }
     }
   ],

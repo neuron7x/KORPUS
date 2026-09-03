@@ -22,6 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 sys.path.insert(0, str(ROOT / "scripts"))
+from check_serving_freshness import topology_environment_class  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from load_probe_lib.metrics import Outcome, refusal_reason  # noqa: E402
 from release_identity import release_tag  # noqa: E402
@@ -109,6 +110,14 @@ def _phase(base: str, concurrency: int, seconds: float, timeout: float) -> Outco
     return outcome
 
 
+def _port_of(base: str) -> int | None:
+    """Порт із базового URL, або None. Без нього вимір не знав би, що саме він міряв."""
+    from urllib.parse import urlparse
+
+    parsed = urlparse(base if "//" in base else f"//{base}")
+    return parsed.port
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--base", default="http://127.0.0.1:8081/api")
@@ -143,11 +152,24 @@ def main() -> int:
     spike = _phase(arguments.base, arguments.spike, arguments.seconds, arguments.timeout)
     soak = _phase(arguments.base, arguments.concurrency, arguments.soak_seconds, arguments.timeout)
 
+    # Клас середовища НЕ призначається прапорцем угору. Прапорець може лише послабити
+    # (CI_FIXTURE), а PRODUCTION_LIKE віддає вимір: чи справді обслуговує оголошена
+    # топологія. Доти `--environment-class PRODUCTION` робив прогін на дев-машині
+    # доказом про продакшен, і жодна перевірка не питала, чи там щось працює.
+    measured = topology_environment_class(ROOT, port=_port_of(arguments.base))
+    requested = arguments.environment_class
+    environment_class = (
+        requested
+        if requested not in {"PRODUCTION_LIKE", "PRODUCTION"}
+        else measured["environment_class"]
+    )
     report = {
         "schema_version": 2,
         "measured_at": datetime.now(UTC).isoformat(),
         "base": arguments.base,
-        "environment_class": arguments.environment_class,
+        "environment_class": environment_class,
+        "environment_class_requested": requested,
+        "environment_class_basis": measured["basis"],
         "source_tree_sha256": arguments.source_tree_sha256 or compute_source_digest(ROOT),
         "release": arguments.release or release_tag(),
         "cold_first_request": {

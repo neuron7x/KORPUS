@@ -3010,7 +3010,7 @@ MUTANTS = (
         '        "redteam.attestation_verified": bool(redteam.get("attestation_verified"))\n        is bool(external.get("redteam_attestation_verified")),',
         '        "redteam.attestation_verified": True,',
         (
-            "apps/api/tests/test_production_assurance.py::test_internal_campaign_cannot_call_itself_external_independent",
+            "apps/api/tests/test_production_assurance.py::test_redteam_claiming_an_external_attestation_the_policy_denies_is_rejected",
         ),
     ),
     Mutant(
@@ -3019,7 +3019,7 @@ MUTANTS = (
         '        "redteam.trusted_signer": bool(redteam.get("trusted_signer"))\n        is bool(external.get("redteam_trusted_signer_required")),',
         '        "redteam.trusted_signer": True,',
         (
-            "apps/api/tests/test_production_assurance.py::test_internal_campaign_cannot_call_itself_external_independent",
+            "apps/api/tests/test_production_assurance.py::test_redteam_claiming_a_trusted_signer_the_policy_denies_is_rejected",
         ),
     ),
     Mutant(

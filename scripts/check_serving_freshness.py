@@ -134,6 +134,61 @@ def serving_processes(proc: Path = Path("/proc")) -> list[dict[str, Any]]:
     return found
 
 
+#: Класи середовища, які кредитують доказ надійності. Слабші (LOCAL_DEV, CI_FIXTURE)
+#: не кредитують нічого — і саме тому їх не можна ПРИЗНАЧИТИ прапорцем.
+PRODUCTION_LIKE = "PRODUCTION_LIKE"
+LOCAL_DEV = "LOCAL_DEV"
+
+
+def topology_environment_class(root: Path = ROOT, port: int | None = None) -> dict[str, Any]:
+    """Клас середовища за ВИМІРОМ, а не за прапорцем.
+
+    Доти клас писався аргументом: `--environment-class PRODUCTION` перетворював прогін
+    на дев-машині на доказ про продакшен, і жодна перевірка не питала, чи там узагалі
+    щось із оголошеної топології працює. Тепер PRODUCTION_LIKE віддається лише тоді,
+    коли ОГОЛОШЕНІ юніти активні, обслуговують поточний код і слухають той порт, який
+    міряють. Усе інше — LOCAL_DEV, і причина називається словами.
+    """
+    units = required_units(root)
+    if not units:
+        # Порожній перелік юнітів задовольняв би «жоден оголошений юніт не мовчить»
+        # тривіально: `all([])` істинне. Дерево без оголошеної топології не є
+        # продакшеном цього релізу — воно взагалі не є його предметом.
+        return {
+            "environment_class": LOCAL_DEV,
+            "basis": "топологія не оголошує юнітів, які мусять обслуговувати",
+        }
+    newest = newest_source(root)
+    if not newest[0]:
+        return {
+            "environment_class": LOCAL_DEV,
+            "basis": "у дереві немає коду: проти нуля будь-який процес виглядає свіжим",
+        }
+    report = adjudicate(serving_processes(), newest, unit_states(units))
+    ports = {item.get("port") for item in report.get("detail", [])}
+    if report["status"] != "MEASURED":
+        return {"environment_class": LOCAL_DEV, "basis": "жоден процес не обслуговує"}
+    if report["units_not_serving"]:
+        return {
+            "environment_class": LOCAL_DEV,
+            "basis": f"оголошені юніти не обслуговують: {report['units_not_serving']}",
+        }
+    if report["rate"] != 1.0:
+        return {
+            "environment_class": LOCAL_DEV,
+            "basis": f"процеси, старші за код: {report['stale']}",
+        }
+    if port is not None and port not in ports:
+        return {
+            "environment_class": LOCAL_DEV,
+            "basis": f"міряний порт {port} не серед портів топології {sorted(p for p in ports if p)}",
+        }
+    return {
+        "environment_class": PRODUCTION_LIKE,
+        "basis": f"оголошені юніти активні й несуть поточний код; порти {sorted(p for p in ports if p)}",
+    }
+
+
 def adjudicate(
     processes: list[dict[str, Any]],
     newest: tuple[float, str],
@@ -224,6 +279,11 @@ def selftest() -> int:
                 [{"unit": "u.service", "active": "active", "main_pid": "999"}],
             )["units_not_serving"],
             ["u.service"],
+        ),
+        (
+            "клас середовища не призначається прапорцем: без процесів це LOCAL_DEV",
+            topology_environment_class(Path("/nonexistent-tree"))["environment_class"],
+            LOCAL_DEV,
         ),
         (
             "активний юніт, його ж процес — претензій нема",
