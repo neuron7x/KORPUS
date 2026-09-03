@@ -54,7 +54,10 @@ def _evidence() -> tuple[dict, bytes]:
         "source_tree_sha256": compute_source_digest(ROOT),
         "release": release_tag(),
         "environment_class": "PRODUCTION_LIKE",
-        "evidence_class": "EXTERNAL_INDEPENDENT",
+        # Клас доказу читається з профілю, а не дублюється тут: 03.09.2026 профіль
+        # перейшов на INTERNAL_STRUCTURALLY_SEPARATED, і вкарбований рядок перевіряв би
+        # політику, якої вже немає.
+        "evidence_class": profile["required_evidence_class"],
         "model_id": "embedding-model-v1",
         "configuration_sha256": "c" * 64,
         "assessor": {

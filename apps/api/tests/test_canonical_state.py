@@ -23,6 +23,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/verify_canonical_state.py"
 REGISTRY = ROOT / "config/operations/canonical-state.json"
@@ -32,7 +34,11 @@ GATE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(GATE)
 
 sys.path.insert(0, str(ROOT / "scripts"))
-from canonical_declaration import canonical_branch  # noqa: E402
+from canonical_declaration import (  # noqa: E402
+    EPHEMERAL_CHECKOUT,
+    canonical_branch,
+    workspace_kind,
+)
 
 #: Тест, що вписує відповідь константою, перевіряє не оголошення, а свою копію.
 CANON = canonical_branch(ROOT)
@@ -283,7 +289,16 @@ def test_a_vanished_trunk_block_is_refused_unless_the_debt_was_closed() -> None:
 
 
 def test_the_real_repository_still_has_the_declared_branch_and_remotes() -> None:
-    """Проти РЕАЛЬНОСТІ, не синтетики."""
+    """Проти РЕАЛЬНОСТІ, не синтетики.
+
+    Реальність тут — канонічне робоче дерево. У чекауті конвеєра немає ні локальних
+    гілок, ні названих віддалених, тож твердження було б про предмет, якого там немає.
+    """
+    if workspace_kind(ROOT) == EPHEMERAL_CHECKOUT:
+        pytest.skip(
+            "чекаут конвеєра: ні локальних гілок, ні названих віддалених — предмета "
+            "твердження в цьому дереві немає"
+        )
     observation = GATE.observe(ROOT)
     registry = _registry()
     assert registry["canonical_branch"] in observation["branches"]

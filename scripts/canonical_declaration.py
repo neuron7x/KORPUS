@@ -13,9 +13,41 @@ ACCEPTED про дзеркало, застигле на комітах тому,
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 
 REGISTRY = Path("config/operations/canonical-state.json")
+
+#: Робоче дерево з іменованими гілками — те, про яке оголошення взагалі щось каже.
+CANONICAL_WORKSPACE = "CANONICAL_WORKSPACE"
+#: Чекаут конвеєра: відчеплена голова, гілок немає. Тут ПРЕДМЕТА оголошення немає.
+EPHEMERAL_CHECKOUT = "EPHEMERAL_CHECKOUT"
+
+
+def workspace_kind(root: Path) -> str:
+    """Яке це дерево — за ФАКТОМ, не за змінною оточення.
+
+    Виміряно 02.09.2026 в конвеєрі: три перевірки канону впали не тому, що канон
+    зламався, а тому, що GitLab робить чекаут на відчепленій голові без жодної
+    локальної гілки. Твердження «оголошена гілка існує в цьому репозиторії» там не
+    хибне — воно ПРО ІНШИЙ ПРЕДМЕТ, якого в чекауті немає.
+
+    Ознака одна й перевіряється, а не вгадується: чи має репозиторій ГІЛКИ під
+    `refs/heads`. Змінна `CI_*` сказала б, ДЕ ми, а не ЩО в дереві; дерево з гілками
+    лишається канонічним і всередині конвеєра, і перевірки там мусять виконатись.
+
+    Береться `for-each-ref`, а не `git branch`: другий друкує ще й псевдорядок
+    «(HEAD detached at …)», і клон із відчепленою головою виглядав би через нього як
+    дерево з гілкою. Саме цей рядок стояв у падінні конвеєра 02.09.2026:
+    `assert 'main' in ['(HEAD', 'detached', 'at', '9a0dfc5)']`.
+    """
+    done = subprocess.run(
+        ["git", "-C", str(root), "for-each-ref", "--format=%(refname:short)", "refs/heads"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return CANONICAL_WORKSPACE if done.stdout.split() else EPHEMERAL_CHECKOUT
 
 
 class CanonicalDeclarationMissing(RuntimeError):

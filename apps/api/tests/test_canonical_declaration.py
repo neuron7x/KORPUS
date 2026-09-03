@@ -17,9 +17,18 @@ import pytest
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "scripts"))
 from canonical_declaration import (  # noqa: E402
+    EPHEMERAL_CHECKOUT,
     REGISTRY,
     CanonicalDeclarationMissing,
     canonical_branch,
+    workspace_kind,
+)
+
+#: Причина пропуску пишеться словами й ОДИН раз: пропуск без причини читається як успіх.
+NO_SUBJECT = (
+    "чекаут конвеєра: відчеплена голова без локальних гілок. Оголошення про канонічне "
+    "робоче дерево тут не хибне — його ПРЕДМЕТА в цьому чекауті немає, і перевірка "
+    "виконується там, де предмет є"
 )
 
 
@@ -32,6 +41,8 @@ def test_the_named_branch_actually_exists_in_this_repository() -> None:
     """Оголошення, яке нічого не називає в реальності, гірше за відсутнє."""
     import subprocess
 
+    if workspace_kind(ROOT) == EPHEMERAL_CHECKOUT:
+        pytest.skip(NO_SUBJECT)
     branches = subprocess.run(
         ["git", "-C", str(ROOT), "branch", "--format=%(refname:short)"],
         capture_output=True,

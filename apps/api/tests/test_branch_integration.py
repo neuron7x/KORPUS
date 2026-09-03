@@ -21,6 +21,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/verify_branch_integration.py"
 REGISTRY = ROOT / "config/operations/branch-integration.json"
@@ -30,7 +32,11 @@ GATE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(GATE)
 
 sys.path.insert(0, str(ROOT / "scripts"))
-from canonical_declaration import canonical_branch  # noqa: E402
+from canonical_declaration import (  # noqa: E402
+    EPHEMERAL_CHECKOUT,
+    canonical_branch,
+    workspace_kind,
+)
 
 #: Ім'я канону НЕ вписане тут константою: чотири копії цього рядка вже розійшлись,
 #: і кожна тихо судила про інший предмет.
@@ -98,6 +104,11 @@ def test_a_cleanly_merging_branch_may_not_linger_without_a_reason() -> None:
 
 
 def test_the_real_registry_is_green_on_the_real_repository() -> None:
+    if workspace_kind(ROOT) == EPHEMERAL_CHECKOUT:
+        pytest.skip(
+            "чекаут конвеєра: гілок для зведення тут немає — реєстр описує канонічне "
+            "робоче дерево, і вимір робиться там"
+        )
     findings = GATE.assess(GATE.observe(CANON, ROOT), _registry())
     assert GATE.verdict(findings) == "PASS", findings
 

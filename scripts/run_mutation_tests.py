@@ -2956,7 +2956,7 @@ MUTANTS = (
         '        == external.get("redteam_evidence_class"),',
         '        != external.get("redteam_evidence_class"),',
         (
-            "apps/api/tests/test_production_assurance.py::test_internal_redteam_cannot_promote_production",
+            "apps/api/tests/test_production_assurance.py::test_redteam_of_the_wrong_class_cannot_promote_production",
         ),
     ),
     Mutant(
@@ -3007,19 +3007,19 @@ MUTANTS = (
     Mutant(
         "M217_EXTERNAL_REDTEAM_ATTESTATION_BYPASSED",
         "apps/api/src/korpus/application/production_assurance_external.py",
-        '        "redteam.attestation_verified": redteam.get("attestation_verified")\n        is external.get("redteam_attestation_verified"),',
+        '        "redteam.attestation_verified": bool(redteam.get("attestation_verified"))\n        is bool(external.get("redteam_attestation_verified")),',
         '        "redteam.attestation_verified": True,',
         (
-            "apps/api/tests/test_production_assurance.py::test_self_declared_external_redteam_without_trusted_attestation_is_rejected",
+            "apps/api/tests/test_production_assurance.py::test_internal_campaign_cannot_call_itself_external_independent",
         ),
     ),
     Mutant(
         "M218_UNTRUSTED_REDTEAM_SIGNER_ACCEPTED",
         "apps/api/src/korpus/application/production_assurance_external.py",
-        '        "redteam.trusted_signer": redteam.get("trusted_signer")\n        is external.get("redteam_trusted_signer_required"),',
+        '        "redteam.trusted_signer": bool(redteam.get("trusted_signer"))\n        is bool(external.get("redteam_trusted_signer_required")),',
         '        "redteam.trusted_signer": True,',
         (
-            "apps/api/tests/test_production_assurance.py::test_self_declared_external_redteam_without_trusted_attestation_is_rejected",
+            "apps/api/tests/test_production_assurance.py::test_internal_campaign_cannot_call_itself_external_independent",
         ),
     ),
     Mutant(

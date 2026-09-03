@@ -3,38 +3,28 @@ from __future__ import annotations
 import hashlib
 import json
 from copy import deepcopy
+from pathlib import Path
 
 from korpus.application.production_assurance import evaluate_production_assurance
 from korpus.application.production_report_verification import verify_production_report
 
+ROOT = Path(__file__).resolve().parents[3]
+PROFILE = ROOT / "config/assurance/production-v1.json"
+
 
 def _profile() -> dict[str, object]:
+    """Профіль читається з дерева, а не переписується сюди.
+
+    Тут лежала КОПІЯ політики: перелік обов'язкових гейтів і класи зовнішніх вимог,
+    вписані в тест. 03.09.2026 профіль змінився (дві політики зведено в одну), а копія
+    лишилась на EXTERNAL_INDEPENDENT — і тест перевіряв політику, якої вже немає, тоді
+    як діяла інша. Друге оголошення того самого факту розходиться мовчки; тому його тут
+    більше немає.
+    """
+    payload = json.loads(PROFILE.read_text(encoding="utf-8"))
     return {
-        "required_gates": [
-            "engineering",
-            "tevv",
-            "observability",
-            "state_contracts",
-            "authorization",
-            "redteam",
-            "reliability",
-            "inference_security",
-            "postgres_security",
-            "supply_chain",
-            "exact_environment",
-            "mutation",
-        ],
-        "external_requirements": {
-            "redteam_evidence_class": "EXTERNAL_INDEPENDENT",
-            "redteam_attestation_verified": True,
-            "redteam_trusted_signer_required": True,
-            "tevv_environment_classes": ["PRODUCTION_LIKE", "PRODUCTION"],
-            "tevv_independent_class": "EXTERNAL_INDEPENDENT",
-            "tevv_trusted_assessor_required": True,
-            "postgres_backend": "postgresql",
-            "supply_chain_completeness": "COMPLETE",
-            "mutation_scope": "FULL_CATALOGUE",
-        },
+        "required_gates": payload["required_gates"],
+        "external_requirements": payload["external_requirements"],
     }
 
 
@@ -50,15 +40,19 @@ def _sound_gates(source: str, release: str) -> dict[str, dict[str, object]]:
             "checks": {},
             "failures": [],
         }
+    # Класи доказу — ті, що ОГОЛОШЕНІ профілем після злиття двох політик 03.09.2026.
+    # Фікстура, яка лишилась би на EXTERNAL_INDEPENDENT, перевіряла б політику, якої
+    # більше немає, і мовчала б про ту, яка діє.
     gates["redteam"].update(
         {
-            "evidence_class": "EXTERNAL_INDEPENDENT",
-            "attestation_verified": True,
-            "trusted_signer": True,
+            "evidence_class": "INTERNAL_ADVERSARIAL_CAMPAIGN",
+            "attestation_verified": False,
+            "trusted_signer": False,
         }
     )
     gates["tevv"]["environment_class"] = "PRODUCTION_LIKE"
-    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": True}
+    gates["tevv"]["independent_class"] = "INTERNAL_STRUCTURALLY_SEPARATED"
+    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": False}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"
     gates["mutation"]["scope"] = "FULL_CATALOGUE"
