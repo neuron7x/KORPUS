@@ -1,7 +1,7 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "3727689d40b00728406db1cca0c3ecf1afdcb9bc5f3177af1e4478c44c52d967",
+  "source_tree_sha256": "ecb38e7e0be54bad1ede658e19919ecacf4c432f8e5ca0591398a87c32a49d9e",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
@@ -155,7 +155,6 @@
       "production_satisfied": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "recovery_source_bound",
         "recovery_environment",
         "recovery_attestation_verified",
         "recovery_trusted_signer",
