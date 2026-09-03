@@ -23,7 +23,11 @@ DEFAULT_GATES = {
     "observability": "observability-gate.json",
     "state_contracts": "state-contracts-gate.json",
     "authorization": "authorization-gate.json",
-    "redteam": "redteam-gate.json",
+    # Доказ червоної команди цього релізу — ВНУТРІШНЯ змагальна кампанія: зовнішнього
+    # незалежного оцінювача немає (модель урядування, 03.09.2026), і `redteam-gate.json`
+    # лишається порожнім назавжди. Читати його означало б тримати гейт, якого ніхто не
+    # може пройти. Клас доказу видно в самому артефакті: INTERNAL_ADVERSARIAL.
+    "redteam": "redteam_internal-gate.json",
     "reliability": "reliability-gate.json",
     "inference_security": "inference_security-gate.json",
     "postgres_security": "postgres_security-gate.json",

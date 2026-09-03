@@ -9,7 +9,10 @@ from korpus.application.production_assurance import evaluate_production_assuranc
 from korpus.application.production_report_verification import verify_production_report
 
 ROOT = Path(__file__).resolve().parents[3]
-PROFILE = ROOT / "config/assurance/production-v1.json"
+PROFILE_PATH = ROOT / "config/assurance/production-v1.json"
+#: Класи доказу читаються звідси, а не переписуються в фікстуру: вкарбований рядок
+#: розходиться з виробником мовчки, і саме так тест перевіряв би політику, якої немає.
+PROFILE = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
 
 
 def _profile() -> dict[str, object]:
@@ -21,7 +24,7 @@ def _profile() -> dict[str, object]:
     як діяла інша. Друге оголошення того самого факту розходиться мовчки; тому його тут
     більше немає.
     """
-    payload = json.loads(PROFILE.read_text(encoding="utf-8"))
+    payload = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
     return {
         "required_gates": payload["required_gates"],
         "external_requirements": payload["external_requirements"],
@@ -45,13 +48,13 @@ def _sound_gates(source: str, release: str) -> dict[str, dict[str, object]]:
     # більше немає, і мовчала б про ту, яка діє.
     gates["redteam"].update(
         {
-            "evidence_class": "INTERNAL_ADVERSARIAL_CAMPAIGN",
+            "evidence_class": PROFILE["external_requirements"]["redteam_evidence_class"],
             "attestation_verified": False,
             "trusted_signer": False,
         }
     )
     gates["tevv"]["environment_class"] = "PRODUCTION_LIKE"
-    gates["tevv"]["independent_class"] = "INTERNAL_STRUCTURALLY_SEPARATED"
+    gates["tevv"]["independent_class"] = PROFILE["external_requirements"]["tevv_independent_class"]
     gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": False}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"

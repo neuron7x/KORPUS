@@ -94,6 +94,14 @@ def _latest_protected_write(engine: Engine) -> datetime | None:
         return _moment(connection.execute(text(statement)).scalar_one_or_none())
 
 
+def _database_path(url: str) -> str | None:
+    """Файл бази з URL SQLite, або None для інших рушіїв: у них предмет не файл."""
+    marker = "sqlite:///"
+    if not url.startswith(marker):
+        return None
+    return "/" + url[len(marker) :].lstrip("/")
+
+
 def main() -> int:
     source_url = os.environ["KORPUS_RECOVERY_SOURCE_URL"]
     restored_url = os.environ["KORPUS_RECOVERY_RESTORED_URL"]
@@ -138,7 +146,9 @@ def main() -> int:
     # топології, змінна може лише послабити. Інакше `KORPUS_RECOVERY_ENVIRONMENT_CLASS=
     # PRODUCTION` робив би навчання на порожньому дереві доказом про продакшен.
     requested = os.getenv("KORPUS_RECOVERY_ENVIRONMENT_CLASS", "CI_FIXTURE")
-    measured = topology_environment_class(ROOT)
+    # Предмет виміру — база, яку навчання справді торкалось. Без цього прогін на копії
+    # отримував би клас продакшену лише за те, що поруч живий сервіс.
+    measured = topology_environment_class(ROOT, database=_database_path(source_url))
     environment_class = (
         requested
         if requested not in {"PRODUCTION_LIKE", "PRODUCTION"}

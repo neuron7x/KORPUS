@@ -1,7 +1,7 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "7cef7190d8de0c6a17576fbb62c133d650f031becaecae60bfcfe3f29e2942cc",
+  "source_tree_sha256": "e30fee5e6800f6df78dd8409d41b0203f3110f7ab41c9251602eb3d56ff30566",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
@@ -23,23 +23,20 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
+        "gate_source_bound"
+      ],
+      "waived_external_checks": [
         "report_present",
-        "source_bound",
-        "release_bound",
+        "attestation_present",
+        "attestation_verified",
+        "trusted_signer",
+        "independent_class",
         "preregistered",
         "test_cases_structured",
         "required_attack_families_covered",
         "findings_structured",
         "blocking_findings_closed",
-        "declared_status_consistent",
-        "metadata:status",
-        "gate_source_bound"
-      ],
-      "waived_external_checks": [
-        "attestation_present",
-        "attestation_verified",
-        "trusted_signer",
-        "independent_class"
+        "declared_status_consistent"
       ]
     },
     {
@@ -74,6 +71,8 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
+        "postgres_adversarial_suite",
+        "metadata:backend",
         "gate_source_bound"
       ],
       "waived_external_checks": []
@@ -258,8 +257,6 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "production_python_exact",
-        "metadata:profile",
         "gate_source_bound"
       ],
       "waived_external_checks": []

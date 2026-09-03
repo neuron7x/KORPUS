@@ -1,0 +1,34 @@
+{
+  "schema": "korpus.resume-state.v1",
+  "not_a_release_gate": "Стан продовження для наступного екземпляра моделі після обриву постачальника. НЕ є доказом релізу і НЕ входить у жоден гейт.",
+  "written_at": "2026-09-03",
+  "current_commit": "24e12eeb936b9e11f33b93b6185c8985a9ae511b",
+  "dirty_state": 10,
+  "source_digest": "236cf98c6a443b8c87075e731d0b75d7c762df04026910320e1e0d5d9feda8c7",
+  "runtime_identity": {
+    "local_legacy": "korpus-public-api.service (loopback, sqlite, KORPUS_ENVIRONMENT=local)",
+    "canonical_production": "compose-postgres-v1 — НЕ ПІДНЯТИЙ на момент запису"
+  },
+  "database_backend": "postgresql (канонічний, з оголошеної конфігурації)",
+  "schema_revision": "0022_approval_provenance_boundary",
+  "corpus_identity": {
+    "local_legacy_sqlite": "var/runtime/corpus-v6-20260807/korpus.db — відновлено з бекапу 03:33, 256 документів, 31464 прольоти, integrity ok",
+    "canonical_postgres": "НЕ ІМПОРТОВАНО — відкрита робота релізу"
+  },
+  "last_completed_release_step": "§8 канонічний бекенд визначено (CASE A: PostgreSQL); топологія в конверті виправлена",
+  "open_p0": [
+    {
+      "id": "P0-2026-09-03-sqlite-corruption",
+      "subject": "локальний/спадковий loopback-рантайм на SQLite",
+      "root_cause": "UNKNOWN",
+      "disposition": "CASE A: SQLite поза замороженою дорогою продакшену → інцидент задокументовано, форензику збережено, реліз НЕ блокує"
+    }
+  ],
+  "open_meta_p0": [],
+  "deferred_n_plus_1": [
+    "Makefile не лапкує $(PY): абсолютний шлях із пробілом мовчки не виконається",
+    "20 стель модулів можна опустити (improvements_to_record)",
+    "`ONLY=` у gate-liveness виправлено; решта звужень доказу не перевірена"
+  ],
+  "next_exact_action": "перебазувати бюджет модулів без автопідняття (§11), оновити маніфест, атомарний коміт, повний лан релізу"
+}

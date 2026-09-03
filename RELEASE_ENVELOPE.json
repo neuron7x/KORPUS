@@ -18,35 +18,52 @@
     "frozen": false,
     "note": "Стан кандидата в ОДНОМУ місці. Заморожування (VERIFIED → RELEASE_CANDIDATE) записує сюди тотожність і час; після нього знаменник обов'язкових гейтів не росте. Ці поля читають замінники SI-5, SI-6, SI-8 — переліку-копії немає ніде.",
     "deployment_topology": {
-      "id": "loopback-canary-v1",
+      "id": "compose-postgres-v1",
       "chosen_on": "2026-09-03",
-      "why": "Топологія ОДНА, і вона виміряна, а не обрана за смаком: саме ці процеси обслуговують читача. Kubernetes, Cloud Run і compose-сервіс `api` у цьому релізі не в дорозі обслуговування, тож доводити їх — означало б тримати гейти, червоні за побудовою.",
+      "chosen_from": [
+        "config/assurance/production-v1.json: external_requirements.postgres_backend = postgresql",
+        "docker-compose.yml: services.api → postgresql+psycopg://…@postgres:5432/korpus",
+        "config/assurance/production-hard-predicates-v1.json: live_postgres_rls, клас REAL_POSTGRESQL"
+      ],
+      "why": "Топологія взята з ОГОЛОШЕНОЇ конфігурації, а не з того, що історично працювало на машині розробника. Профіль впевненості продакшену вимагає PostgreSQL; саме його міряють `production-postgres-security` і `production-exact-environment-image`. Попередня редакція цього блоку (03.09, перша спроба) називала топологією loopback+SQLite — це був висновок із СПОСТЕРЕЖЕННЯ за живим процесом, і він суперечив оголошеному контракту.",
       "api": {
-        "kind": "systemd-user-unit",
-        "unit": "korpus-public-api.service",
-        "command": "uvicorn korpus.main:app --host 127.0.0.1 --port 8000 --workers 2",
-        "environment_file": "~/.local/state/korpus-public/api.env"
+        "kind": "container",
+        "compose_service": "api",
+        "image": "docker-compose.yml services.api (build apps/api/Dockerfile)"
       },
-      "edge": {
-        "kind": "docker-container",
-        "name": "korpus-public-edge",
-        "exposure": "loopback"
+      "worker": {
+        "kind": "container",
+        "compose_service": "worker"
       },
       "database": {
-        "backend": "sqlite",
-        "why": "Корпус, який обслуговується, лежить у SQLite: 1616 документів і 116 229 прольотів. Перенесення в PostgreSQL — міграція даних, а не крок закриття релізу, і робити її заради зеленого гейта означало б ризикнути єдиною копією."
+        "backend": "postgresql",
+        "compose_service": "postgres",
+        "image": "pgvector/pgvector:0.8.5-pg17-trixie (digest-pinned у docker-compose.yml)",
+        "url_shape": "postgresql+psycopg://korpus_app@postgres:5432/korpus"
       },
-      "postgresql": {
-        "in_serving_path": false,
-        "gate_stays_blocking": true,
-        "why": "Вимога справжньої СУБД не знята: `production-postgres-security` далі блокує й далі виконується на справжньому PostgreSQL у контейнері. Але він доводить ізоляцію КОДУ, а не властивість розгортання, яке обслуговує. Багатокористувацький продакшен на PostgreSQL цим релізом НЕ дозволяється."
+      "object_store": {
+        "kind": "container",
+        "compose_service": "minio"
+      },
+      "observability": {
+        "kind": "container",
+        "compose_service": "otel-collector"
       },
       "not_in_this_release": [
-        "kubernetes",
         "gcp-cloud-run",
-        "docker-compose-api-service",
-        "pec-hosted-human-cohort"
-      ]
+        "kubernetes-runtime",
+        "pec-hosted-human-cohort",
+        "loopback-sqlite-public-deployment"
+      ],
+      "not_in_this_release_note": "Kubernetes і GCP лишаються під СТАТИЧНОЮ перевіркою контракту (`validate_kubernetes.py`, `gcp:production-contract`), але не є дорогою обслуговування цього релізу. Loopback-розгортання на SQLite оголошує себе `KORPUS_ENVIRONMENT=local` у власному юніті `deploy/public/korpus-public-api.service` — це локальний/спадковий рантайм, не продакшен.",
+      "local_legacy_runtime": {
+        "id": "loopback-sqlite-local",
+        "declared_in": "deploy/public/korpus-public-api.service",
+        "environment": "local",
+        "database": "var/runtime/corpus-v6-20260807/korpus.db",
+        "read_only_for_agents": true,
+        "guard": "PRODUCTION_GUARD: жодного навантаження, запису чи хаос-експерименту проти цієї бази без явного дозволу власника. Інцидент 03.09.2026 (пошкодження файла, причина НЕ встановлена) стався саме тут; форензика збережена в var/incident-2026-09-03/, відновлення підтверджене."
+      }
     },
     "mandatory_gate_set": [
       "evidence-refresh",
@@ -77,9 +94,7 @@
       "validate",
       "api-test"
     ],
-    "required_serving_units": [
-      "korpus-public-api.service"
-    ],
+    "required_serving_units": [],
     "identity": {
       "candidate_commit": null,
       "source_digest": null,
@@ -118,6 +133,7 @@
         "gcp:deploy-production": "GCP не в дорозі обслуговування цього релізу",
         "gcp:production-contract": "перевіряє контракт GCP; топологія цього релізу — loopback"
       }
-    }
+    },
+    "required_serving_units_note": "Порожньо навмисно й тимчасово: канонічна топологія — контейнерна, і її вимірює `topology_environment_class` за іншою ознакою, ніж systemd-юніт. Порожній перелік НЕ дає класу продакшену: вимірювач віддає LOCAL_DEV, коли юнітів не оголошено."
   }
 }

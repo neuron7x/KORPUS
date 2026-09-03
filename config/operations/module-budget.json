@@ -495,6 +495,16 @@
         "max_complexity": 13,
         "max_function_lines": 76
       }
+    },
+    {
+      "from": {
+        "max_function_lines": 47
+      },
+      "on": "2026-09-03",
+      "path": "scripts/check_serving_freshness.py",
+      "to": {
+        "max_function_lines": 36
+      }
     }
   ],
   "modules": {
@@ -1747,13 +1757,13 @@
       "reason": "03.09.2026: клас незалежності TEVV порівнюється з ОГОЛОШЕНИМ у профілі, а не з вкарбованим у код рядком EXTERNAL_INDEPENDENT — саме вкарбованість давала двом несумісним політикам жити поруч; +коментар про це."
     },
     "apps/api/src/korpus/application/production_hard_predicates.py": {
-      "lines": 371,
+      "lines": 377,
       "max_complexity": 12,
       "max_function_args": 5,
       "max_function_lines": 39,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "03.09.2026 (RELEASE CLOSURE §7): кожен предикат несе disposition — IN_RELEASE_PATH блокує кандидата, OWNER_ACTION лише авторизацію власником, NOT_IN_RELEASE_PATH мусить ДОВЕСТИ незастосовність ключем у замороженій топології; перевірки, що вимагали зовнішнього довіреного підписанта, перенесені у waived_external і лишились ВИДИМИМИ у звіті. Зростання — це класифікація й доказ виключення, а не нова логіка."
+      "reason": "03.09.2026: предикат червоної команди читає перевірки ВНУТРІШНЬОЇ кампанії (`campaign_executed`, `pytest_passed`, `attack_families_declared`); одинадцять імен зовнішнього валідатора перенесено у waived_external, а не викинуто — перелік лишається видимим у кожному звіті. +6 рядків."
     },
     "apps/api/src/korpus/application/production_reliability.py": {
       "lines": 57,
@@ -3238,13 +3248,13 @@
       "reason": "03.09.2026: чотири поля дайджестів винесено у функцію `source_identity()`. Перевірка «ярлик = та лінійка, що дала число» читала ГОТОВИЙ звіт, а звіт тут не збирається без postgres-дрилу — тож вона ПРОПУСКАЛАСЬ, і розбіжність ярликів жила під захистом pytest.skip. Функція викликається без жодного артефакта, отже перевірка бігає завжди; мутанти M679/M680 killed. +12 рядків — сама функція з докстрінгом."
     },
     "scripts/assemble_production_assurance.py": {
-      "lines": 105,
+      "lines": 109,
       "max_complexity": 5,
       "max_function_args": 1,
       "max_function_lines": 57,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
+      "reason": "03.09.2026: мапа гейт→файл стала ЄДИНОЮ на дерево, і `redteam` показує на внутрішню кампанію. +4 рядки — причина цієї заміни, записана там, де вона діє."
     },
     "scripts/attribute_audit_keys.py": {
       "lines": 159,
@@ -3647,13 +3657,13 @@
       "proof_lines": 56
     },
     "scripts/check_serving_freshness.py": {
-      "lines": 263,
-      "max_complexity": 11,
+      "lines": 281,
+      "max_complexity": 13,
       "max_function_args": 3,
-      "max_function_lines": 47,
+      "max_function_lines": 36,
       "max_nesting": 3,
-      "proof_lines": 75,
-      "reason": "03.09.2026: клас середовища за ВИМІРОМ, а не за прапорцем — PRODUCTION_LIKE лише коли оголошені юніти активні, несуть поточний код і слухають міряний порт. Порожній перелік юнітів і дерево без коду віддають LOCAL_DEV: `all([])` істинне, а проти нуля будь-який процес виглядає свіжим. +4 негативні контролі."
+      "proof_lines": 82,
+      "reason": "03.09.2026, ремонт META-P0: вимір на КОПІЇ бази отримував клас продакшену лише за те, що поруч живий сервіс. Предмет виміру (порт, база) тепер входить в умову. Функцію РОЗІБРАНО — `_not_production_like` віддає причину, обгортка лише вирок: довжина найдовшої функції 66→36. Складність 13 — це кількість самих правил (сім умов), а не заплутаність; далі розбирати означало б ховати перелік у таблицю лямбд. Рядки доказу 75→82: три нові негативні контролі."
     },
     "scripts/check_unit_exec_arguments.py": {
       "lines": 169,
@@ -4376,13 +4386,13 @@
       "proof_lines": 40
     },
     "scripts/measure_recovery.py": {
-      "lines": 195,
+      "lines": 205,
       "max_complexity": 6,
       "max_function_args": 2,
-      "max_function_lines": 95,
+      "max_function_lines": 97,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": "03.09.2026: те саме для навчання з відновлення — `KORPUS_RECOVERY_ENVIRONMENT_CLASS` лише послаблює, PRODUCTION_LIKE віддає вимір оголошеної топології."
+      "reason": "03.09.2026, ремонт META-P0: навчання називає ПРЕДМЕТ, який воно міряло (`_database_path`), інакше прогін на копії отримував клас продакшену. +10 рядків."
     },
     "scripts/measure_semantic_separation.py": {
       "lines": 233,
@@ -10334,6 +10344,56 @@
         "lines": 195,
         "max_complexity": 6,
         "max_function_lines": 95
+      }
+    },
+    {
+      "from": {
+        "lines": 263,
+        "max_complexity": 11,
+        "proof_lines": 75
+      },
+      "on": "2026-09-03",
+      "path": "scripts/check_serving_freshness.py",
+      "reason": "03.09.2026, ремонт META-P0: вимір на КОПІЇ бази отримував клас продакшену лише за те, що поруч живий сервіс. Предмет виміру (порт, база) тепер входить в умову. Функцію РОЗІБРАНО — `_not_production_like` віддає причину, обгортка лише вирок: довжина найдовшої функції 66→36. Складність 13 — це кількість самих правил (сім умов), а не заплутаність; далі розбирати означало б ховати перелік у таблицю лямбд. Рядки доказу 75→82: три нові негативні контролі.",
+      "to": {
+        "lines": 281,
+        "max_complexity": 13,
+        "proof_lines": 82
+      }
+    },
+    {
+      "from": {
+        "lines": 371
+      },
+      "on": "2026-09-03",
+      "path": "apps/api/src/korpus/application/production_hard_predicates.py",
+      "reason": "03.09.2026: предикат червоної команди читає перевірки ВНУТРІШНЬОЇ кампанії (`campaign_executed`, `pytest_passed`, `attack_families_declared`); одинадцять імен зовнішнього валідатора перенесено у waived_external, а не викинуто — перелік лишається видимим у кожному звіті. +6 рядків.",
+      "to": {
+        "lines": 377
+      }
+    },
+    {
+      "from": {
+        "lines": 105
+      },
+      "on": "2026-09-03",
+      "path": "scripts/assemble_production_assurance.py",
+      "reason": "03.09.2026: мапа гейт→файл стала ЄДИНОЮ на дерево, і `redteam` показує на внутрішню кампанію. +4 рядки — причина цієї заміни, записана там, де вона діє.",
+      "to": {
+        "lines": 109
+      }
+    },
+    {
+      "from": {
+        "lines": 195,
+        "max_function_lines": 95
+      },
+      "on": "2026-09-03",
+      "path": "scripts/measure_recovery.py",
+      "reason": "03.09.2026, ремонт META-P0: навчання називає ПРЕДМЕТ, який воно міряло (`_database_path`), інакше прогін на копії отримував клас продакшену. +10 рядків.",
+      "to": {
+        "lines": 205,
+        "max_function_lines": 97
       }
     }
   ],
