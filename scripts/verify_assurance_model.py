@@ -502,6 +502,41 @@ def policy_agreement(root: Path) -> list[str]:
     return problems
 
 
+def _at(block: Any, *path: str) -> str:
+    """Значення за шляхом, як РЯДОК; будь-який обрив шляху дає порожній рядок."""
+    for key in path:
+        block = block.get(key) if isinstance(block, dict) else None
+    return str(block) if isinstance(block, str) else ""
+
+
+def topology_agreement(root: Path) -> list[str]:
+    """Топологія обслуговування оголошена ДВІЧІ — конверт і профіль мусять збігтися.
+
+    Виміряно 04.09.2026: профіль твердих предикатів казав «топологія обслуговування
+    цього релізу — SQLite на loopback», а конверт уже цілий день називав
+    `pilot-systemd-postgres-v1` на PostgreSQL. Розбіжність жила в ПРОЗІ, якої не міряв
+    ніхто, і саме тому пережила зміну рішення. Тут вона стає станом.
+    """
+    candidate = _candidate(root)
+    topology = candidate.get("deployment_topology")
+    profile = _json(root / PRODUCTION_PROFILE)
+    if not isinstance(topology, dict) or not profile:
+        return []
+    problems: list[str] = []
+    declared = _at(topology, "database", "backend")
+    required = _at(profile, "external_requirements", "postgres_backend")
+    if required and declared != required:
+        problems.append(f"конверт обслуговує на {declared!r}, профіль вимагає {required!r}")
+    excluded = [str(item) for item in topology.get("not_in_this_release") or []]
+    if _at(topology, "id") in excluded:
+        problems.append(f"топологія {_at(topology, 'id')!r} названа й обраною, і виключеною")
+    unit = _at(topology, "api", "unit")
+    serving = [str(item) for item in candidate.get("required_serving_units") or []]
+    if unit and serving and unit not in serving:
+        problems.append(f"юніт топології {unit!r} не серед обов'язкових {serving}")
+    return problems
+
+
 def _envelope(root: Path) -> dict[str, Any]:
     return _json(root / ENVELOPE) or {}
 
@@ -539,7 +574,7 @@ def assess(root: Path = ROOT, who: Identity | None = None) -> dict[str, Any]:
         }
     unmet = sorted(k for k, v in substitutes.items() if v["blocking"] and v["state"] not in MET)
     declared = sorted(k for k, v in substitutes.items() if v["state"] == SATISFIED_BY_DECLARATION)
-    disagreement = policy_agreement(root)
+    disagreement = policy_agreement(root) + topology_agreement(root)
     return {
         "schema": "korpus.assurance-model.v1",
         "ran_at": datetime.now(UTC).isoformat(),
@@ -976,6 +1011,44 @@ def selftest() -> int:
             _write(sub, "config/governance/assurance-model.json", payload["model"])
             _write(sub, PRODUCTION_PROFILE, payload["profile"])
             problems = policy_agreement(sub)
+            if bool(problems) != expect_problem:
+                failures.append(f"{name}: {problems}, очікувалось problem={expect_problem}")
+
+    # Топологія оголошена двічі. Кожен випадок СТВОРЮЄ свою розбіжність у власному
+    # дереві — успадкувати її від робочого дерева означало б міряти сьогоднішній стан,
+    # а не здатність проби почервоніти.
+    def _topology(**changes: Any) -> dict[str, Any]:
+        block: dict[str, Any] = {
+            "deployment_topology": {
+                "id": "t1",
+                "database": {"backend": "postgresql"},
+                "api": {"unit": "u.service"},
+                "not_in_this_release": ["compose"],
+            },
+            "required_serving_units": ["u.service"],
+        }
+        block["deployment_topology"].update(changes)
+        return {"release_candidate": block}
+
+    topology_cases = [
+        ("конверт і профіль згодні", _topology(), False),
+        ("бекенд конверта інший", _topology(database={"backend": "sqlite"}), True),
+        ("топологія і обрана, і виключена", _topology(not_in_this_release=["t1"]), True),
+        ("юніт топології не обслуговує", _topology(api={"unit": "other.service"}), True),
+    ]
+    with tempfile.TemporaryDirectory() as raw:
+        for index, (name, envelope, expect_problem) in enumerate(topology_cases):
+            sub = Path(raw) / f"topology-{index}"
+            _write(sub, ENVELOPE, envelope)
+            # Профіль мусить НАЗИВАТИ бекенд, інакше проба інертна: перший її варіант
+            # брав `_PROFILE_OK`, де `postgres_backend` немає, і «інший бекенд» давав
+            # порожній перелік — фікстура не могла задати змінну, яку перевіряє.
+            _write(
+                sub,
+                PRODUCTION_PROFILE,
+                {**_PROFILE_OK, "external_requirements": {**_OK_REQUIREMENTS, "postgres_backend": "postgresql"}},
+            )
+            problems = topology_agreement(sub)
             if bool(problems) != expect_problem:
                 failures.append(f"{name}: {problems}, очікувалось problem={expect_problem}")
 

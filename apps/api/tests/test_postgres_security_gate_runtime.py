@@ -20,7 +20,7 @@ def test_runtime_binds_shell_suite_to_the_current_interpreter(monkeypatch) -> No
 
     def fake_run(root, command, timeout, *, environment=None):
         captured.update(root=root, command=command, timeout=timeout, environment=environment)
-        return subprocess.CompletedProcess(command, 0, "passed", "")
+        return subprocess.CompletedProcess(command, 0, "passed", "alembic noise")
 
     monkeypatch.setenv("KORPUS_TEST_DATABASE_URL", "postgresql://available")
     monkeypatch.setitem(PROCESS_GLOBALS, "run", fake_run)
@@ -29,7 +29,12 @@ def test_runtime_binds_shell_suite_to_the_current_interpreter(monkeypatch) -> No
 
     assert available is True
     assert exit_code == 0
-    assert tail == "passed"
+    # Хвіст більше не є склейкою двох труб: причина відмови приходить у stdout, а
+    # stderr топить її журналом міграцій. Обидві мусять доїхати ПІДПИСАНИМИ — доти цей
+    # тест закріплював саме ту форму, яка причину й губила.
+    assert "passed" in tail
+    assert "alembic noise" in tail
+    assert tail.index("passed") < tail.index("alembic noise")
     assert captured["environment"] == {"PYTHON": sys.executable}
 
 

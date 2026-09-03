@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1807,
-  "root_sha256": "16b07258ac73d2e20f7b584af5b63d9ee7c04d8288a8777c0043a09228d9f6eb",
+  "file_count": 1808,
+  "root_sha256": "bcf6aaa4880082cdfd2e7cd1630f7711099385d3e5e71e509a0029b510709920",
   "files": [
     {
       "path": ".dockerignore",
@@ -409,8 +409,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 107926,
-      "sha256": "0a448b0260567d734342f7a1d7efd75a0d2f0002fc2bc70fbe0b19639cb865d9",
+      "bytes": 108630,
+      "sha256": "c7866dc7058dfe139debfb04501ff39fdecce8108b798b55d4a23c09db4a4490",
       "mode": "0644"
     },
     {
@@ -439,8 +439,8 @@
     },
     {
       "path": "RELEASE_ENVELOPE.json",
-      "bytes": 12345,
-      "sha256": "3a251f2728486674a7f549f3493737f410d15623746f91166d96ec6f28ea5f2c",
+      "bytes": 14269,
+      "sha256": "25d737dbc0c921d6e5848d5754fdbd1504299d49423b375b597b8e7a3a7f4fd2",
       "mode": "0644"
     },
     {
@@ -4231,8 +4231,8 @@
     },
     {
       "path": "apps/api/tests/test_postgres_security_gate_runtime.py",
-      "bytes": 2010,
-      "sha256": "a89fbd3789959278552127bb53065067eb7aeef28653a9063bfb5beb83d9273f",
+      "bytes": 2510,
+      "sha256": "c3fe66211555dda00e981565af7f66b728659cb414dd0abb5f5f2fd4eab4d174",
       "mode": "0644"
     },
     {
@@ -5581,8 +5581,8 @@
     },
     {
       "path": "config/assurance/production-hard-predicates-v1.json",
-      "bytes": 13092,
-      "sha256": "9568551f7d0ed4a1fa0ce3db1f8a41adb3c3dbaf14171f7ae8ec37fecf236cb2",
+      "bytes": 13560,
+      "sha256": "d4aecaf00f0ca1099f04ac0a833813922339bb319ef4f7024b29f7c8c10370d2",
       "mode": "0644"
     },
     {
@@ -7351,8 +7351,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 586959,
-      "sha256": "7700b2d0aa3ae4bb9cb1c8352a8527a0967b937773dea3a1e9cf2cb97bae10eb",
+      "bytes": 591562,
+      "sha256": "206f1563e4d1ae139614109d2ece74192b98650efa8c67b61bdbc34091af43f7",
       "mode": "0644"
     },
     {
@@ -9780,6 +9780,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/measure_pilot_posture.py",
+      "bytes": 8704,
+      "sha256": "963cbbec9204935b98831805bfa2c00a8a13b7e2e4fac95b9a6017990f8b2018",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/measure_ranking_quality.py",
       "bytes": 13670,
       "sha256": "babbe3eab6deaef328341e373fef67a6cd9c509d024be989c0630da6eb88aad9",
@@ -9967,9 +9973,9 @@
     },
     {
       "path": "scripts/postgres_gate_process.py",
-      "bytes": 1122,
-      "sha256": "dcd5ca44dc5de1de8801455bbf4d42ad1b8e97696666596b21308ae7626a8464",
-      "mode": "0644"
+      "bytes": 3938,
+      "sha256": "91e4a4868ae2395d7e1b0630d5fdac9df421a8b49f61a0aeaebd9cd18ee548b6",
+      "mode": "0755"
     },
     {
       "path": "scripts/postgres_role_hardening.py",
@@ -10639,8 +10645,8 @@
     },
     {
       "path": "scripts/verify_assurance_model.py",
-      "bytes": 47738,
-      "sha256": "8d1dea9150a906a04ae070b3acc338860357878a41f7f19a43d31d6748b58566",
+      "bytes": 52214,
+      "sha256": "983613b5ff849a0e7ddb1d1c94ebe9e94a79df92fd384ede9263eddbd081bdb0",
       "mode": "0755"
     },
     {
