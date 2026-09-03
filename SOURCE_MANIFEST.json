@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1803,
-  "root_sha256": "43f9fedd709fbc7164bb7111700aec8e45c278d430c0873eb2c1db8abe9aa97d",
+  "file_count": 1806,
+  "root_sha256": "7d921bab11623c43137c3dbf3a4fbbb7c8d39eb80733d2670df590dd872d473f",
   "files": [
     {
       "path": ".dockerignore",
@@ -409,8 +409,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 106497,
-      "sha256": "11ba010319561ac2197d8c78d89d019956fff175f0133b03a39279cda87cb353",
+      "bytes": 106761,
+      "sha256": "36afe9c5fe7330c69cd4e841725feb579bdc42a3ccd22939f48852d2645d3b8e",
       "mode": "0644"
     },
     {
@@ -3349,8 +3349,8 @@
     },
     {
       "path": "apps/api/tests/test_evidence_bases.py",
-      "bytes": 5899,
-      "sha256": "b0ad986a836c6296d5dde46fb64d23143fa138f67a064504d15382a26f688316",
+      "bytes": 6346,
+      "sha256": "13b4cd805472d865e1730e0964e21f4261cb55e3719eb642fd78d85e90b05365",
       "mode": "0644"
     },
     {
@@ -3624,6 +3624,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_handoff_liveness_probe.py",
+      "bytes": 1349,
+      "sha256": "90afc988ee9816ffdaa27b32a3cfc5209c90518cee83673a838e34caaf93c0dc",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_health.py",
       "bytes": 2366,
       "sha256": "473a07ff8b9279f67468fe58209c6e649cec6088862811626bc41d0aa08cbcb1",
@@ -3765,6 +3771,12 @@
       "path": "apps/api/tests/test_local_production_preflight.py",
       "bytes": 3423,
       "sha256": "c5dc46a074b4d22d99e6cf63ee7970ff6aed06ae87c44d2cd98ff235d30e85fd",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_make_runtime_paths.py",
+      "bytes": 1162,
+      "sha256": "8d3bfb366097289a3ec9bf093832e30d1a418584dbd525a25b2730ef28074c9d",
       "mode": "0644"
     },
     {
@@ -4471,8 +4483,8 @@
     },
     {
       "path": "apps/api/tests/test_release_verify_runner.py",
-      "bytes": 5640,
-      "sha256": "d0d6b044d7c0520130062540261d04e823b4b9618574bdb32df1f9ed0b71f6d8",
+      "bytes": 5856,
+      "sha256": "91c7635d4b69e3982734cd459b377b19960a6ad06b6054b016254e36d6fb28ce",
       "mode": "0644"
     },
     {
@@ -7339,14 +7351,14 @@
     },
     {
       "path": "config/operations/gate-liveness.yaml",
-      "bytes": 18197,
-      "sha256": "de4f7156f470f33d0f45e0d98c50bb723bdb696f8710f8961162a04eafb33586",
+      "bytes": 18180,
+      "sha256": "ce11568cacaf2c90c353b49bb55d12b9099d0a078649b77a12065075d8abf258",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 567959,
-      "sha256": "13bec72dae7fdbb4ac997c643d6793efdae689e2f35e61448f12331cb6a5c613",
+      "bytes": 568365,
+      "sha256": "1a3c444844061d0149605022ad61e034fc43d34cbf7231cfcce515183c02e656",
       "mode": "0644"
     },
     {
@@ -9751,8 +9763,8 @@
     },
     {
       "path": "scripts/measure_evidence_bases.py",
-      "bytes": 26626,
-      "sha256": "d258deafa2e708beeae4ece41c659943ba809a76b876e59f882da48b9a1fcbf8",
+      "bytes": 26774,
+      "sha256": "0764ad01ff75bc1d7725faaf1bafc45381ee60188799e6a010ab09685ae4ecbc",
       "mode": "0755"
     },
     {
@@ -10194,6 +10206,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/run_handoff_liveness_probe.py",
+      "bytes": 2384,
+      "sha256": "6bbaad6b4ea7cdec5d9f066031c364e525c148fb77612a6c7887f89bc0c4daeb",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/run_inference_security_gate.py",
       "bytes": 6299,
       "sha256": "af3a11444fb2a887bec3cf33c76059025107774ea861c2edbd998212634d6d5e",
@@ -10249,8 +10267,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 310988,
-      "sha256": "831be986fc6b5dde8beb6e8ca0927565f03b2621684a99fef1c3438aec52c762",
+      "bytes": 313893,
+      "sha256": "080811bfed4ca5b0432bf42ef61b74242a362d21d22fdde16ae95185e458f1ad",
       "mode": "0755"
     },
     {
@@ -10351,8 +10369,8 @@
     },
     {
       "path": "scripts/run_release_verify.py",
-      "bytes": 10918,
-      "sha256": "78e43520805e7b82f3668d4960b350bd7f0ecf504288c1453db8b2870b886626",
+      "bytes": 10571,
+      "sha256": "0c2fb8c6db1c6a416b9d5392a34352c10a6791599dcc5e50d9813d519cd62e4a",
       "mode": "0755"
     },
     {
