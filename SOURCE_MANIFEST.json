@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1805,
-  "root_sha256": "9a01258a56cf675bfa2428310d624c08dc75bf23e73788c66dcdb170c7808ed2",
+  "root_sha256": "5dfbe9794c2b65bad917c82f0583d2af59ec7bed9a00a30988e5f79df19d55d6",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 49467,
-      "sha256": "3b6c1aa90090efbe794165a801e58bb74a13cd93b73bc2d665cc3ba3f4bb0448",
+      "bytes": 52463,
+      "sha256": "f418c49d99194ff28af21ed399fc4a4f16fface9ee7101507ed18bfcf2e559a6",
       "mode": "0644"
     },
     {
@@ -7316,7 +7316,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "05adc92e320e7249e78276721e1ec8c35479498b0d0006f727ef892fe96612e4",
+      "sha256": "c609f0be1f367c2c23d28da6a53ac2058c7eb24358198e56af118d5fb2260288",
       "mode": "0644"
     },
     {
@@ -7351,8 +7351,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 573522,
-      "sha256": "23a9ee5a0a2ed7e07169d9c9fdb188a67027eafaab66b12c80b0e3dba5adaab1",
+      "bytes": 576030,
+      "sha256": "7de04c068bbd3a60a89ce50ebe48274198f3c1712271dbe8baf6d31e2dfb884b",
       "mode": "0644"
     },
     {
@@ -9379,8 +9379,8 @@
     },
     {
       "path": "scripts/freeze_release_candidate.py",
-      "bytes": 15400,
-      "sha256": "115cf903fcf3492af5e48db6cc493500d028cdf8b847c3e8be228cd9d80a69fe",
+      "bytes": 16731,
+      "sha256": "557c65b6e35defe3fe9c46d9eb29f579f266f34bb23cc4d3e3861d3b359656b7",
       "mode": "0755"
     },
     {

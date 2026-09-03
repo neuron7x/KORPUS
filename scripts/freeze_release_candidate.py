@@ -164,7 +164,12 @@ def _lane_problems(lane: dict[str, Any], root: Path) -> list[str]:
         problems.append("звіт лану не несе дайджесту джерела — не прив'язаний до кандидата")
     elif carried != current:
         problems.append(f"лан про джерело {carried[:8]}, дерево {current[:8]}")
-    candidate = (_json(root / ENVELOPE) or {}).get("release_candidate", {})
+    # Шлях відносний НАВМИСНО. `ENVELOPE` — абсолютний, а в pathlib `root / <абсолютний>`
+    # дорівнює абсолютному: корінь ігнорується, і негативний контроль читав би СПРАВЖНІЙ
+    # конверт репозиторію замість свого. Проба, яка не керує змінною, яку називає, не є
+    # пробою: випадок «замикання замість повного лану» був зелений із хибної причини —
+    # він порівнювався з реальними вісімнадцятьма цілями, а не зі своїми двома.
+    candidate = (_json(root / "RELEASE_ENVELOPE.json") or {}).get("release_candidate", {})
     mandatory = {str(name) for name in candidate.get("mandatory_gate_set") or []}
     measured = {str(step.get("target")) for step in lane.get("steps") or []}
     if not mandatory:
@@ -235,6 +240,18 @@ def selftest() -> int:
                 },
             },
             "не покриває обов'язкових цілей",
+        ),
+        (
+            "конверт без обов'язкового набору — тепер ДОСЯЖНО",
+            {
+                "var/release-verify.json": {
+                    "status": "PASS",
+                    "source_digest": compute_source_digest(ROOT),
+                    "steps": [{"target": "api-test"}],
+                },
+                "RELEASE_ENVELOPE.json": {"release_candidate": {"mandatory_gate_set": []}},
+            },
+            "конверт не називає обов'язкового набору цілей",
         ),
         (
             "лан без дайджесту джерела",
