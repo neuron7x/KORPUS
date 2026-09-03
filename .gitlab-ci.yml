@@ -301,6 +301,12 @@ api:assurance:
       - var/migration-report.json
       - var/scale-report.json
       - var/operational-gate.json
+      # Без цього ERROR мутанта не має ПРИЧИНИ: `run_mutant` рахує `returncode` і
+      # `output_tail`, вони лягають у журнал шарда, а `tail -80` на відмові друкує
+      # лише підсумок, де є саме ім'я мутанта й нічого більше. Виміряно 03.09.2026:
+      # `api:assurance` уперше в історії виконався, упав на M341 — і доказ, який
+      # назвав би причину, згинув разом із контейнером.
+      - var/mutation-shard-*.log
 
 # The drills. Each one breaks something on purpose, or loads the system until it refuses,
 # and leaves a report. They are separate from api:assurance because they take a running
@@ -370,8 +376,24 @@ api:postgres-and-restore:
     KORPUS_POSTGRES_ADMIN_URL: postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_test
     KORPUS_POSTGRES_APP_ROLE: korpus_app
     KORPUS_POSTGRES_APP_PASSWORD: korpus-app-test-password
+    # Окремі логіни RLS. Застосунок ВІДМОВЛЯЄТЬСЯ стартувати на PostgreSQL без
+    # окремої особи авторизації — інакше claim'и RLS писав би той самий логін, якого
+    # RLS обмежує. Локальний `scripts/run_postgres_suite.sh` створює всі три ролі; ця
+    # джоба створювала лише застосункову, і саме тому її перший в історії прогін
+    # (03.09.2026) упав із «PostgreSQL RLS requires a separate authz database identity».
+    KORPUS_POSTGRES_AUTHZ_ROLE: korpus_authz
+    KORPUS_POSTGRES_AUTHZ_PASSWORD: korpus-authz-test-password
+    KORPUS_POSTGRES_REVIEW_ROLE: korpus_review
+    KORPUS_POSTGRES_REVIEW_PASSWORD: korpus-review-test-password
+    KORPUS_AUTHZ_DATABASE_URL: postgresql+psycopg://korpus_authz:korpus-authz-test-password@postgres:5432/korpus_test
+    KORPUS_REVIEW_DATABASE_URL: postgresql+psycopg://korpus_review:korpus-review-test-password@postgres:5432/korpus_test
     KORPUS_POSTGRES_TEST_URL: postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test
-    KORPUS_DATABASE_URL: postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_test
+    # Типовий URL джоби — РОЛЬ ЗАСТОСУНКУ, не суперкористувач. Доти тут стояв
+    # `postgres` із `rolsuper=t`, тобто з обійденим RLS: усе, що читає налаштування
+    # (а не фікстуру тестів), ходило б у базу повз ту межу, яку ця джоба нібито
+    # доводить. Кроки, яким справді потрібні права власника — міграції, створення
+    # ролей, засів фікстури відновлення, — беруть `KORPUS_POSTGRES_ADMIN_URL` явно.
+    KORPUS_DATABASE_URL: postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test
     KORPUS_BACKUP_DATABASE_URL: postgresql://postgres:postgres-test-password@postgres:5432/korpus_test
     KORPUS_BACKUP_DIR: "$CI_PROJECT_DIR/var/backups"
     KORPUS_BACKUP_ENCRYPTION_KEY_FILE: "$CI_PROJECT_DIR/var/backup-encryption.key"
@@ -388,8 +410,8 @@ api:postgres-and-restore:
     - python -m pip check
     - python scripts/wait_for_database.py
   script:
-    - cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_db_defense_and_vectors && python -m alembic -c alembic.ini upgrade head && cd ../..
-    - python scripts/prepare_postgres_role.py
+    - KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" bash -c 'cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_db_defense_and_vectors && python -m alembic -c alembic.ini upgrade head'
+    - KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" python scripts/prepare_postgres_role.py
     # The whole suite against the migrated database, not only the postgres-marked test.
     # Every closure in this tree was proved on SQLite; the first run of this line found
     # a schema revision pin the code had outgrown, an audit verdict that called a
@@ -408,7 +430,7 @@ api:postgres-and-restore:
     # The drill seeds its own corpus. It used to back up whatever the pytest run above
     # had left behind, which was two rows until the suite started cleaning up after
     # itself — then a correct backup and a correct restore failed verification.
-    - KORPUS_RECOVERY_SEED_URL="$KORPUS_DATABASE_URL" python scripts/seed_recovery_fixture.py
+    - KORPUS_RECOVERY_SEED_URL="$KORPUS_POSTGRES_ADMIN_URL" python scripts/seed_recovery_fixture.py
     - backup_path="$(scripts/backup_postgres.sh)"
     - psql 'postgresql://postgres:postgres-test-password@postgres:5432/postgres' -v ON_ERROR_STOP=1 -c 'DROP DATABASE IF EXISTS korpus_restore' -c 'CREATE DATABASE korpus_restore'
     - export KORPUS_RESTORE_DATABASE_URL='postgresql://postgres:postgres-test-password@postgres:5432/korpus_restore'
@@ -416,13 +438,17 @@ api:postgres-and-restore:
     # them a restore loses nothing however broken it is. These rows are expected to be
     # absent from the restored copy, and the drill fails if it cannot write them —
     # a silently skipped seed would report the same zero as a perfect restore.
-    - KORPUS_RECOVERY_PHASE=after-backup KORPUS_RECOVERY_SEED_URL="$KORPUS_DATABASE_URL" python scripts/seed_recovery_fixture.py
+    - KORPUS_RECOVERY_PHASE=after-backup KORPUS_RECOVERY_SEED_URL="$KORPUS_POSTGRES_ADMIN_URL" python scripts/seed_recovery_fixture.py
     - restore_started=$(date +%s.%N)
     - scripts/restore_postgres.sh "$backup_path"
     - export KORPUS_RECOVERY_RESTORE_SECONDS="$(python3 -c "import sys;print(float(sys.argv[2])-float(sys.argv[1]))" "$restore_started" "$(date +%s.%N)")"
     - export KORPUS_DATABASE_URL='postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_restore'
     - python scripts/prepare_postgres_role.py
     - export KORPUS_POSTGRES_TEST_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore'
+    # Ті самі три особи, але вже у ВІДНОВЛЕНІЙ базі: без них перевірка відновлення
+    # говорила б із застосунком, який не може піднятись.
+    - export KORPUS_AUTHZ_DATABASE_URL='postgresql+psycopg://korpus_authz:korpus-authz-test-password@postgres:5432/korpus_restore'
+    - export KORPUS_REVIEW_DATABASE_URL='postgresql+psycopg://korpus_review:korpus-review-test-password@postgres:5432/korpus_restore'
     - python scripts/verify_postgres_restore.py
     # The runbook has asked for restore duration against the declared RTO since v5 and
     # nothing recorded it: a restore that took six hours passed every check here. The
