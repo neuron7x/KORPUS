@@ -1,0 +1,44 @@
+{
+  "schema": "korpus.closure.external-requirements.v1",
+  "measured_at_utc": "2026-09-03T06:00:00Z",
+  "method": "Кожну родину гейтів прогнано локально; межа встановлена ВІДМОВОЮ гейта з названим класом доказу, а не здогадом.",
+  "production_assurance": {"checks": 65, "failing_before_this_session": 30, "failing_after": 22,
+    "families_total": 14, "families_closed_this_session": 8},
+  "closed_locally": [
+    "engineering", "exact_environment", "inference_security", "observability",
+    "state_contracts", "authorization", "mutation", "postgres_security"
+  ],
+  "externally_blocked": [
+    {"family": "redteam", "evidence_class": "EXTERNAL_INDEPENDENT",
+     "blocker": "звіту незалежного red-team не існує; потрібні також attestation_verified і trusted_signer",
+     "why_not_local": "клас доказу за побудовою вимагає СТОРОННЮ сторону; виконавець не може бути своїм red-team",
+     "human_action": "замовити зовнішній red-team і внести його ключ у реєстр довірених підписантів"},
+    {"family": "tevv", "evidence_class": "independent + trusted_assessor",
+     "blocker": "0 спостережень при підлозі 200; набір оголошує «fixture run»; 95% інтервал 1.000 при стелі 0.100",
+     "why_not_local": "навіть бездоганна локальна кампанія не закриє `independent_class` і `trusted_assessor` — ледер, підписаний виконавцем, є самозасвідченням",
+     "human_action": "призначити незалежного оцінювача TEVV і внести його ключ у реєстр"},
+    {"family": "pec_authority", "evidence_class": "approver-bound",
+     "blocker": "`pec-promote` вимагає PEC_APPROVED_BY і PEC_CHANGE_ID",
+     "why_not_local": "підставити себе апрувером означало б перетворити вимогу врядування на самопідпис",
+     "human_action": "уповноважена особа затверджує просування профілю контролера"},
+    {"family": "pec_canary", "evidence_class": "approver-bound",
+     "blocker": "артефакт `pec_canary-gate.json` не існує; той самий цикл",
+     "why_not_local": "те саме", "human_action": "той самий апрувер"},
+    {"family": "supply_chain", "evidence_class": "ATTESTED_CI_SCANNERS_PLUS_CONTAINER_SBOM",
+     "blocker": "бракує api-sbom.cdx.json і web-sbom.cdx.json; плюс attestation_verified, trusted_signer",
+     "why_not_local": "syft 1.44.0 Є локально, але SBOM описував би ОБРАЗ, зібраний тут, а не той, що зібрала CI непривілейованою джобою — саме в цьому сенс гейта. Підставити локальний SBOM означало б підмінити предмет.",
+     "human_action": "прогін CI-конвеєра до стадії package + підпис довіреним ключем"},
+    {"family": "reliability", "evidence_class": "ATTESTED_LIVE_PLUS_FAULT_INJECTION_REQUIRED",
+     "blocker": "load_environment, recovery_environment, і чотири attestation/trusted_signer",
+     "why_not_local": "клас вимагає ЖИВОГО середовища з ін'єкцією відмов; локальна коробка має клас LOCAL_DEV",
+     "human_action": "прогін у продакшен-подібному середовищі + підписи"}
+  ],
+  "trusted_signer_registries": {
+    "path": "config/assurance/trusted-assurance-signers.json",
+    "state": "порожні",
+    "consequence": "щонайменше 9 перевірок недосяжні за побудовою, доки в реєстрах немає жодного ключа",
+    "note": "Ключі вносить уповноважена особа, не збірка. Це врядування, не інженерія."
+  },
+  "engineering_verdict": "Локально виконуване в родинах продакшен-гейтів ВИЧЕРПАНО.",
+  "production_authority": false
+}
