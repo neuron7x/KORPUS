@@ -82,6 +82,6 @@
     "schema_version": 1,
     "source_digest": "44d2d42bd2214ef038e56575d818d40e9b81a8455aedbd6b9b61f31486ac57ee",
     "generator": "scripts/run_migration_gate.py",
-    "generated_at": "2026-09-03T17:02:28+00:00"
+    "generated_at": "2026-09-03T17:18:43+00:00"
   }
 }
