@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1799,
-  "root_sha256": "f53c55740b8aa6142c26f0baec3b765d2c9bf6e4e8c2f760ca3c9918f28c42d8",
+  "root_sha256": "3d3b86d67ca0c0b9e5393f582ea85c440347bf130df48260f7aee6ea7a2a86bf",
   "files": [
     {
       "path": ".dockerignore",
@@ -7369,8 +7369,8 @@
     },
     {
       "path": "config/operations/release-surface.json",
-      "bytes": 3892,
-      "sha256": "db3ddd2665170fff4931b8325cb276df7682790fbf039e197a454a93afcbdbaf",
+      "bytes": 4794,
+      "sha256": "cd2e5dddc477b9d61bfb033de86f995ea562ca8aac6c8efd05f53906c1a63577",
       "mode": "0644"
     },
     {
@@ -10633,8 +10633,8 @@
     },
     {
       "path": "scripts/verify_clean_clone.sh",
-      "bytes": 2950,
-      "sha256": "f91c057bde3ad64cb0ab3f60123247418017d4b58f883a2bbc265ba2015c2182",
+      "bytes": 4583,
+      "sha256": "04fa3f1298938cfb7b075f14e24b174a3451e2d6e71ab63bca8edb7a399caf30",
       "mode": "0755"
     },
     {

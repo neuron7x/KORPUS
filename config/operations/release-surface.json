@@ -94,7 +94,7 @@
         "doctrine-catalog",
         "document-references",
         "evidence-bases",
-        "handoff-verify",
+        "handoff-verify-bound",
         "module-budget",
         "source-manifest-verify",
         "span-hygiene",
@@ -120,6 +120,12 @@
       "member": "apps/api/src/korpus/application/evidence_digest.py",
       "on": "2026-09-02",
       "reason": "Осиротілий дублікат поверхні провенансу: модуль не імпортував НІХТО, але він оголошував ВЛАСНИЙ EVIDENCE_SOURCE_PATHS (13 шляхів проти 20 у живому) і власний compute_source_digest із тією самою сигнатурою. Імпорт не того модуля дав би дайджест над ІНШОЮ поверхнею під тим самим іменем. Слабша з двох тотожностей одного предмета видаляється, а не узгоджується."
+    },
+    {
+      "dimension": "liveness_gates",
+      "member": "handoff-verify",
+      "on": "2026-09-03",
+      "reason": "ПЕРЕЙМЕНОВАНО, не прибрано. Запис живості звався `handoff-verify`, а запускав `verify_handoff_contract.py --require-bound` — рецепт ІНШОЇ цілі, `handoff-verify-bound`. Вирок ONE_WAY_FAIL стосувався зв'язаної форми, а сама `handoff-verify` (та, що лежить у лані `validate`) вироку про живість не мала ЗОВСІМ. Ім'я гейта мусить називати команду, яку він міряє. Під правильним іменем гейт ARMED 4/4. Покриття не зменшилось: те саме, що мірялось, міряється далі, тільки називається правдиво."
     }
   ],
   "schema": "korpus.release-surface.v1"

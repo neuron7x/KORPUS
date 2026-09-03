@@ -16,7 +16,22 @@ TARGET="${1:-${TMPDIR:-/tmp}/korpus-clean-clone-$$}"
 # `validate` alone leaves the tests out, and a fixture or test datum that exists only in
 # the working tree would pass it. api-test is the cheapest target that reads those files.
 # mutation stays out on purpose: eleven minutes per commit does not pay for itself here.
-TARGETS="${GATES:-validate api-test}"
+# Клон СПОЧАТКУ виробляє докази, потім їх перевіряє. `validate` містить
+# `evidence-freshness`, а в свіжому клоні `var/` порожня — усі звіти ВІДСУТНІ, і гейт
+# відмовляє правильно. Виміряно 03.09.2026: ця відмова була латентною, бо
+# `verify-clean-clone` живе в `check-nightly`, який до цієї сесії не виконувався жодного
+# разу. Питання, на яке відповідає клон, — «чи стоїть коміт САМ ПО СОБІ», і воно включає
+# «чи вміє він виробити власні докази».
+#
+# `mutation` ТЕПЕР У НАБОРІ, і це зміна попереднього рішення. Причина не в тому, що
+# одинадцять хвилин стали дешевшими: ланцюг замкнувся. `validate` містить
+# `evidence-freshness`, той вимагає свіжого `operational-gate`, а той читає
+# `var/mutation-report.json`. Виключити мутацію означало б лишити клон падати на
+# відсутньому звіті — тобто мати ціль, яка не може пройти ніколи.
+#
+# Ціна прийнятна саме тут: `verify-clean-clone` живе в `check-nightly`, лані, який і
+# створений для дорогого за побудовою. У `check` цього набору немає.
+TARGETS="${GATES:-eval migration-gate scale mutation operational-gate validate api-test}"
 
 rm -rf "$TARGET"
 git clone --quiet --no-local "$ROOT" "$TARGET"
