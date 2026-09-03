@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1806,
-  "root_sha256": "e52364f0e4fcd75dd6429eeefb3c6ddcd5a0d2703f24012a2991b377d080a778",
+  "root_sha256": "57ac5f69e44a4d115f6e049a4b147d6dd309b0a1173df787d8430bf4b67db0c6",
   "files": [
     {
       "path": ".dockerignore",
@@ -3475,8 +3475,8 @@
     },
     {
       "path": "apps/api/tests/test_full_ssot_packager.py",
-      "bytes": 1908,
-      "sha256": "b7b87b5e0a29a99928a3d7bb0e4db4f51c17de445596a1b675a50bc766ffa558",
+      "bytes": 2718,
+      "sha256": "5c269c77920aef576f145b7dba5f78aea963865090b925ca33341e4d8bdddf22",
       "mode": "0644"
     },
     {
@@ -7357,8 +7357,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 568837,
-      "sha256": "b0349b4d3ac1957561111536f78f0203b365de8d7891077cdc8274c086436567",
+      "bytes": 569584,
+      "sha256": "64ca9b89fca19c9b4d3d92617c908f7ac8c884f0fd0c8f3c673755495fe83455",
       "mode": "0644"
     },
     {
@@ -9385,8 +9385,8 @@
     },
     {
       "path": "scripts/full_ssot_packager.py",
-      "bytes": 5665,
-      "sha256": "f30769fd925f2e551f979d52390a55ecf9677989dc174034dda1a9409b128dba",
+      "bytes": 6237,
+      "sha256": "8cf6e10d5cc6dfed533db4aee1464e57e0035a6c5906192c068b846ee75fc197",
       "mode": "0644"
     },
     {
@@ -10267,8 +10267,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 314333,
-      "sha256": "2c371db05d73643ea0dcaa0c39c6660baad7e08f2d353c3ddd0e169f5fc2b043",
+      "bytes": 314867,
+      "sha256": "1183d74dc62c891f0db9f3244f40d151cb215ede795a0d0b8d740b7fb09ce55b",
       "mode": "0755"
     },
     {
