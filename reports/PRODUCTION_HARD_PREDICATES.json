@@ -1,15 +1,15 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "e30fee5e6800f6df78dd8409d41b0203f3110f7ab41c9251602eb3d56ff30566",
+  "source_tree_sha256": "e843c564df2de10be501e031bbea30918f8f9885f6670c94d703611404320cb5",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
-  "externally_satisfied": 0,
-  "production_satisfied": 0,
+  "externally_satisfied": 1,
+  "production_satisfied": 1,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 0.0,
-  "production_completion_percent": 0.0,
+  "external_completion_percent": 7.142857,
+  "production_completion_percent": 7.142857,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -71,8 +71,6 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "postgres_adversarial_suite",
-        "metadata:backend",
         "gate_source_bound"
       ],
       "waived_external_checks": []
@@ -252,13 +250,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": []
     },
     {

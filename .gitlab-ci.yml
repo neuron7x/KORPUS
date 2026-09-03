@@ -151,8 +151,6 @@ repository:validate:
     # Ширше питання за сусіда вище: не «чи цей звіт бачив каталог», а «чи ВСІ звіти
     # доказів описують це дерево». Додано разом із ціллю в `make validate` — саме на
     # цьому кроці парність зі мною й спіткнулась, і спіймала за годину.
-    - PYTHONPATH=apps/api/src python scripts/check_evidence_freshness.py
-    - PYTHONPATH=apps/api/src python scripts/check_evidence_freshness.py --selftest
     # Знаменник: гейт у Makefile без джоби не спрацьовує на пуші, а цей боронить саме
     # від тихого скорочення того, що міряють.
     - PYTHONPATH=apps/api/src python scripts/check_release_surface.py
@@ -288,6 +286,13 @@ api:assurance:
     - PYTHONPATH=apps/api/src:. python scripts/run_stress_gate.py --out var/stress-gate.json
     - PYTHONPATH=apps/api/src:. python scripts/run_plasticity_gate.py --out var/plasticity-gate.json
     - python scripts/run_operational_gate.py
+    # Свіжість доказу перевіряється ТАМ, де доказ щойно вироблено. У джобі
+    # `repository:validate` вона стояла над порожньою `var/` свіжого чекауту й
+    # відмовляла правильно, але про відсутність виробників, а не про застарілість:
+    # крок, доданий локально, у конвеєрі не виконувався жодного разу до 03.09.2026,
+    # і перший же його прогін показав, що там він не може пройти НІКОЛИ.
+    - PYTHONPATH=apps/api/src python scripts/check_evidence_freshness.py
+    - PYTHONPATH=apps/api/src python scripts/check_evidence_freshness.py --selftest
   artifacts:
     when: always
     paths:

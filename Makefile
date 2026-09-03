@@ -550,12 +550,18 @@ serving-freshness:
 	$(PY) scripts/check_serving_freshness.py --selftest
 	$(PY) scripts/check_serving_freshness.py
 
+# TOKEN передається так само, як у `subject-precision` і `reference-eval`. Без нього
+# прямий вимір проти API під `KORPUS_AUTH_MODE=jwt` отримує 401 на КОЖНЕ питання, і
+# звіт виходить UNKNOWN із нулем судженого: вимірювач не бреше, але й не вимірює.
+# Нічний прогін цього не показував, бо ходить через край, який підставляє свій токен.
 answer-quality: serving-freshness
-	PYTHONPATH=apps/api/src $(PY) scripts/run_boundary_eval.py $(if $(BASE),--base "$(BASE)")
+	PYTHONPATH=apps/api/src $(PY) scripts/run_boundary_eval.py $(if $(BASE),--base "$(BASE)") \
+	  $(if $(TOKEN),--token "$(TOKEN)")
 	$(PY) scripts/check_answer_quality_ratchet.py
 	$(PY) scripts/check_answer_quality_ratchet.py --selftest
 	$(PY) scripts/run_paraphrase_eval.py --selftest
-	PYTHONPATH=apps/api/src $(PY) scripts/run_paraphrase_eval.py $(if $(BASE),--base "$(BASE)")
+	PYTHONPATH=apps/api/src $(PY) scripts/run_paraphrase_eval.py $(if $(BASE),--base "$(BASE)") \
+	  $(if $(TOKEN),--token "$(TOKEN)")
 
 mutation-report-freshness:
 	PYTHONPATH=apps/api/src $(PY) scripts/check_mutation_report_freshness.py

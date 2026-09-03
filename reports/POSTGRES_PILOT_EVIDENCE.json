@@ -1,0 +1,103 @@
+{
+  "schema": "korpus.postgres-pilot-evidence.v1",
+  "measured_on": "2026-09-03",
+  "candidate_commit": "c087a79e8263c9749efe590784a1a3380044f22a",
+  "subject_class": "ISOLATED_PRODUCTION_COPY",
+  "why": "Канонічний бекенд продакшену — PostgreSQL (профіль впевненості, docker-compose, предикат live_postgres_rls). Корпус, що обслуговується, живе в SQLite, тож паритет треба було ВИМІРЯТИ, а не оголосити. Живої бази не торкнувся жоден запис: джерело — узгоджений знімок `VACUUM INTO`.",
+  "provisioning": {
+    "image": "pgvector/pgvector:0.8.5-pg17-trixie@sha256:69573b32242ca232f65871d4cb916ba7210a372b9bd74068204c1a9a57bada4f",
+    "server_version": "PostgreSQL 17.10",
+    "container": "korpus-pilot-pg (127.0.0.1:55440)",
+    "schema_revision": "0022_approval_provenance_boundary",
+    "migration_heads": 1,
+    "roles": [
+      "korpus_app",
+      "korpus_authz",
+      "korpus_review",
+      "korpus_app_runtime"
+    ],
+    "app_role_is_superuser": false,
+    "app_role_bypasses_rls": false,
+    "schema_mode": "migrations"
+  },
+  "structural_parity": {
+    "verdict": "PASS",
+    "rows_moved": 51646,
+    "tables": 35,
+    "documents": 256,
+    "approved_versions": 256,
+    "evidence_spans": 31464,
+    "audit_events_at_import": 9833,
+    "load_order": "карантин без печатки → прольоти → печатка → затвердження → поточність, усе зі значеннями ДЖЕРЕЛА",
+    "constraints_respected": [
+      "ck_approved_version_evidence_digest",
+      "ck_version_current_approved",
+      "korpus_refuse_approved_evidence_mutation",
+      "korpus_guard_app_version_insert"
+    ],
+    "note": "Жодного обмеження не знято. Схема кодує машину станів (карантин → печатка → затвердження → поточність), і вантаження ЙДЕ нею, беручи всі значення з джерела."
+  },
+  "retrieval_parity": {
+    "supported_answer_rate": {
+      "sqlite": 0.9367088607594937,
+      "postgresql": 0.9367088607594937,
+      "identical": true
+    },
+    "reference_cases_passed": {
+      "sqlite": 92,
+      "postgresql": 93,
+      "of": 95
+    },
+    "subject_top1": {
+      "sqlite": 0.967,
+      "postgresql": 0.956,
+      "declared_floor": 0.956,
+      "delta": -0.011,
+      "note": "PostgreSQL дає рівно підлогу 0.956 — один випадок із 91 проти SQLite. Різниця реальна: FTS5 і GIN tsvector ранжують по-різному. Запасу над підлогою НЕМАЄ, і це записано, а не згладжено."
+    },
+    "citation_subject_recall": {
+      "sqlite": 1.0,
+      "postgresql": 1.0
+    }
+  },
+  "abstention_parity": {
+    "in_corpus_rate": {
+      "sqlite": 0.95,
+      "postgresql": 0.95
+    },
+    "out_of_corpus_rate": {
+      "sqlite": 0.2,
+      "postgresql": 0.2
+    },
+    "identical": true
+  },
+  "audit": {
+    "pilot_chain_valid": true,
+    "pilot_anchor_valid": true,
+    "events": 10061,
+    "restored_chain_valid": true,
+    "note": "Ланцюг перевіряється з повним ключовим кільцем; перша спроба без нього дала хибний «розрив» на 1025 — то була вада ВИКЛИКУ, не ланцюга."
+  },
+  "backup_restore": {
+    "tool": "pg_dump/pg_restore у декларованому образі",
+    "backup_seconds": 2.12,
+    "restore_seconds": 5.41,
+    "measured_rto_seconds": 7.53,
+    "dump_bytes": 19105833,
+    "restored": {
+      "documents": 256,
+      "approved_versions": 256,
+      "evidence_spans": 31464,
+      "audit_events": 10061,
+      "schema": "0022_approval_provenance_boundary",
+      "audit_chain_valid": true
+    },
+    "gap": "`scripts/backup_postgres.sh` вимагає `pg_dump` НА ХОСТІ, а на цій машині його немає. Навчання проведено тим самим інструментом усередині декларованого образу. Залежність від хостового клієнта — названий пункт для власника, не вигадана вада."
+  },
+  "answer_path": {
+    "endpoint": "/v1/answers",
+    "http": 200,
+    "status": "answered",
+    "citations": 4
+  }
+}

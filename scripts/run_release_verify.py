@@ -128,13 +128,23 @@ def verdict() -> dict[str, Any]:
         return {"verdict": "UNREADABLE", "problems": [done.stderr.strip()[:300]], "unknown": []}
 
 
-def status(final_verdict: object, results: list[dict[str, Any]]) -> str:
-    """PASS лише коли ВСЕ виконано і прийнято; пропуск дає INCOMPLETE, не PASS."""
+def status(final: dict[str, Any], results: list[dict[str, Any]]) -> str:
+    """PASS лише коли ВСЕ виконано і прийнято; пропуск дає INCOMPLETE, не PASS.
+
+    Прийняття читається з ПОЛЯ `ACCEPTED`, яке виносить сам сторож зведення, а не зі
+    збігу рядка `verdict`. Виміряно 03.09.2026: усі вісімнадцять кроків лану пройшли,
+    а лан оголосив FAIL, бо сторож навмисно назвав свій вирок ОБСЯГОМ —
+    `BRANCH_CONSOLIDATION_ACCEPTED` замість голого `ACCEPTED`, щоб його не читали як
+    право на випуск. Споживач лишився на старому слові, тож лан не міг сказати PASS
+    ніколи, і це була відмова про КОД, якого немає.
+
+    Відсутнє поле — теж не прийняття: `NOT_REACHED` і `UNREADABLE` його не несуть.
+    """
     if any(result["state"] not in {"PASSED", SKIPPED} for result in results):
         return "FAIL"
     if any(result["state"] == SKIPPED for result in results):
         return "INCOMPLETE"
-    return "PASS" if final_verdict == "ACCEPTED" else "FAIL"
+    return "PASS" if final.get("ACCEPTED") is True else "FAIL"
 
 
 def sequence(with_external: bool, timeout: float) -> tuple[list[dict[str, Any]], str | None]:
@@ -222,7 +232,7 @@ def main() -> int:
             [line for line in git("status", "--porcelain").splitlines() if line]
         ),
         "skipped": [r["target"] for r in results if r["state"] == SKIPPED],
-        "status": status(final.get("verdict"), results),
+        "status": status(final, results),
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

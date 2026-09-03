@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1803,
-  "root_sha256": "bb29a449ff8825063a82a51a7e89133897ba932dff3984fb977decb107994ef2",
+  "file_count": 1805,
+  "root_sha256": "3cb294d3528b19623aa7dbcec45f6816f1221661521f8598b60943f457861b99",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 48809,
-      "sha256": "1f8b69be430461bcffbd74bf56f010f8b69cd89d8ecf0c5ecd1686126c83bda9",
+      "bytes": 49467,
+      "sha256": "3b6c1aa90090efbe794165a801e58bb74a13cd93b73bc2d665cc3ba3f4bb0448",
       "mode": "0644"
     },
     {
@@ -409,8 +409,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 106497,
-      "sha256": "11ba010319561ac2197d8c78d89d019956fff175f0133b03a39279cda87cb353",
+      "bytes": 107108,
+      "sha256": "da76971171ae29917ed5512e2392c5c45d256b171c824d23691c00f279589311",
       "mode": "0644"
     },
     {
@@ -439,8 +439,8 @@
     },
     {
       "path": "RELEASE_ENVELOPE.json",
-      "bytes": 7197,
-      "sha256": "7d76896a1c8ce789ee57b9cad9fe07afd3c4748e9f64107bec60be469dfe8d99",
+      "bytes": 10807,
+      "sha256": "f613283e2f99d5bb68451846d012b2bbcdf526008fd2923b9c3c6f88684c3810",
       "mode": "0644"
     },
     {
@@ -453,6 +453,12 @@
       "path": "RELEASE_V5_1.md",
       "bytes": 1101,
       "sha256": "31886a135d1dac509669f7e32c81dd276664aff8d556d2d64c45490a4ef22d74",
+      "mode": "0644"
+    },
+    {
+      "path": "RESUME_STATE.json",
+      "bytes": 2827,
+      "sha256": "666d395383d81e6703059000d5b0dbf7717cf42d3c91c390da91ceecefa3012b",
       "mode": "0644"
     },
     {
@@ -4471,8 +4477,8 @@
     },
     {
       "path": "apps/api/tests/test_release_verify_runner.py",
-      "bytes": 5640,
-      "sha256": "d0d6b044d7c0520130062540261d04e823b4b9618574bdb32df1f9ed0b71f6d8",
+      "bytes": 7157,
+      "sha256": "3cf94929abedbb3996bf059bf2d23abeaa62fc13ed5d6034d21aae11aed8bdf8",
       "mode": "0644"
     },
     {
@@ -7345,8 +7351,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 570877,
-      "sha256": "bab0064cee424210cfbb9e6e9e1d4b2b5a0ef2fb4d0eae2070decbb79d73b4d5",
+      "bytes": 571611,
+      "sha256": "5bbfb17d45e68bcb58f20309c592ff56bdb9ee0b5b583d4d8bb35314d8f447b7",
       "mode": "0644"
     },
     {
@@ -7995,6 +8001,12 @@
       "path": "docs/governance/RISK_REGISTER.md",
       "bytes": 2026,
       "sha256": "ceb717c62704b45e5c4e679fc3e342e9e2c20f4f99c6832ccecd6ba1e383713e",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/incidents/2026-09-03-sqlite-corpus-unreadable.md",
+      "bytes": 4765,
+      "sha256": "ecc60ae676437f927b59101636f4adc342245e9d1a871c9376e68ea8c329684f",
       "mode": "0644"
     },
     {
@@ -10351,8 +10363,8 @@
     },
     {
       "path": "scripts/run_release_verify.py",
-      "bytes": 10918,
-      "sha256": "78e43520805e7b82f3668d4960b350bd7f0ecf504288c1453db8b2870b886626",
+      "bytes": 11784,
+      "sha256": "f81994174aafd2a2b1ed76d638f732ca97a11f32724ce9550a3f514988ddc858",
       "mode": "0755"
     },
     {

@@ -2,33 +2,35 @@
   "schema": "korpus.resume-state.v1",
   "not_a_release_gate": "Стан продовження для наступного екземпляра моделі після обриву постачальника. НЕ є доказом релізу і НЕ входить у жоден гейт.",
   "written_at": "2026-09-03",
-  "current_commit": "24e12eeb936b9e11f33b93b6185c8985a9ae511b",
-  "dirty_state": 10,
+  "current_commit": "c087a79e8263c9749efe590784a1a3380044f22a",
+  "dirty_state": 18,
   "source_digest": "236cf98c6a443b8c87075e731d0b75d7c762df04026910320e1e0d5d9feda8c7",
   "runtime_identity": {
-    "local_legacy": "korpus-public-api.service (loopback, sqlite, KORPUS_ENVIRONMENT=local)",
-    "canonical_production": "compose-postgres-v1 — НЕ ПІДНЯТИЙ на момент запису"
+    "canonical_production": "korpus-pilot-pg (PostgreSQL 17.10) + API на 127.0.0.1:8030, схема 0022, ролі найменших привілеїв",
+    "local_legacy": "korpus-public-api.service (loopback, sqlite) — поза дорогою продакшену"
   },
   "database_backend": "postgresql (канонічний, з оголошеної конфігурації)",
   "schema_revision": "0022_approval_provenance_boundary",
   "corpus_identity": {
-    "local_legacy_sqlite": "var/runtime/corpus-v6-20260807/korpus.db — відновлено з бекапу 03:33, 256 документів, 31464 прольоти, integrity ok",
-    "canonical_postgres": "НЕ ІМПОРТОВАНО — відкрита робота релізу"
+    "canonical_postgres": "256 документів / 256 затверджених версій / 31464 прольоти / 10061 подія аудиту, ланцюг ДІЙСНИЙ",
+    "source_snapshot": "var/pilot/source.db (VACUUM INTO з обслуговуваної бази)"
   },
-  "last_completed_release_step": "§8 канонічний бекенд визначено (CASE A: PostgreSQL); топологія в конверті виправлена",
+  "last_completed_release_step": "лан c087a79e: 18/18 кроків PASSED (разом із postgres-security, exact-environment, hard-predicates); вирок лану виправлено; пілотний PostgreSQL піднято, корпус перенесено, паритет виміряно, бекап/відновлення пройдено",
   "open_p0": [
     {
       "id": "P0-2026-09-03-sqlite-corruption",
-      "subject": "локальний/спадковий loopback-рантайм на SQLite",
+      "subject": "локальний/спадковий SQLite",
       "root_cause": "UNKNOWN",
-      "disposition": "CASE A: SQLite поза замороженою дорогою продакшену → інцидент задокументовано, форензику збережено, реліз НЕ блокує"
+      "disposition": "поза замороженою дорогою продакшену (ARTICLE 11) → N+1"
     }
   ],
   "open_meta_p0": [],
   "deferred_n_plus_1": [
     "Makefile не лапкує $(PY): абсолютний шлях із пробілом мовчки не виконається",
-    "20 стель модулів можна опустити (improvements_to_record)",
-    "`ONLY=` у gate-liveness виправлено; решта звужень доказу не перевірена"
+    "20 стель модулів можна опустити",
+    "`verify_audit.py` створює індекс замість поваги до schema_mode — падає під роллю застосунку",
+    "`scripts/backup_postgres.sh` вимагає pg_dump НА ХОСТІ; у канонічній топології клієнт живе в контейнері",
+    "subject top1 на PostgreSQL рівно на підлозі 0.956 — запасу нема (FTS5 проти GIN ранжують інакше)"
   ],
-  "next_exact_action": "перебазувати бюджет модулів без автопідняття (§11), оновити маніфест, атомарний коміт, повний лан релізу"
+  "next_exact_action": "перегнати заморожений лан на новому кандидаті; далі TEVV, freeze, CI, чисте відтворення, пакет"
 }
