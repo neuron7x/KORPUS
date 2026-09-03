@@ -102,12 +102,10 @@ def test_hosted_builder_cannot_be_inferred_from_workflow_presence() -> None:
         },
     )
     assert ok is False
-    assert set(failed) == {
-        "builder_provenance_verified",
-        "builder_trusted",
-        "builder_attestation_verified",
-        "builder_trusted_signer",
-    }
+    # Три з чотирьох умов знято 03.09.2026 як такі, що вимагають ЗОВНІШНЬОГО довіреного
+    # підписанта (див. waived_external). Властивість, яку тест охороняє, лишилась та
+    # сама: присутність workflow-файла не є доказом провенансу збірки.
+    assert set(failed) == {"builder_provenance_verified"}
 
 
 def test_profile_ids_match_canonical_hard_predicate_list() -> None:

@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage installed-units-verify canonical-verify branch-integration
+.PHONY: ci-run ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage installed-units-verify canonical-verify branch-integration
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -328,17 +328,30 @@ relink-derived:
 # будь-якому іншому чекауті гейт не запустився б узагалі, а тут міряв копії цього
 # дерева інтерпретатором сусіднього. Оголошення лишається одне; шлях підставляється
 # у момент запуску, тому розійтись із дійсністю йому нема де.
+# Звуження ВМІСТУ доказу не сміє лишати йому ІМ'Я повного доказу. Виміряно 03.09.2026:
+# діагностичний `make gate-liveness ONLY=<гейт>` перезаписав `var/liveness-all.json`
+# звітом про ОДИН гейт, і файл далі виглядав як повний вимір — з полем `commit`, яке
+# рецепт бере з `git rev-parse HEAD` і яке каже, ДЕ стояло дерево, а не що виміряно.
+# Споживач (SI-3) ловить це через `declared - measured`, тобто вада фейлить закрито,
+# але коштує ходу. Тепер звужений прогін пише під власним іменем.
+gate-liveness: LIVENESS_OUT = $(or $(OUT),$(if $(ONLY),var/liveness-only.json,var/liveness-all.json))
 gate-liveness:
 	mkdir -p var
 	$(PY) -c 'import pathlib,sys; s=pathlib.Path("config/operations/gate-liveness.yaml").read_text(encoding="utf-8"); pathlib.Path("var/gate-liveness.rendered.yaml").write_text(s.replace("{python}", sys.executable), encoding="utf-8")'
+# Вирок і ПРИВ'ЯЗКА вироку — різні речі, і робить їх один рецепт у ОДНОМУ шелі.
+# Доти штамп стояв окремим рядком, тож червоний вимір спиняв make ДО нього: артефакт
+# лишався голим списком, а споживач (SI-3) казав «не прив'язано» там, де був чесний
+# червоний вирок. Відмова читалась як брак виміру. Код повернення зберігається в $$rc
+# і віддається наприкінці, тож червоний гейт лишається червоним.
+#
+# Форма звіту — мапа {schema, commit, gates}: без коміту список з одним вигаданим
+# гейтом задовольняв замінник (виміряно отрутою 03.09.2026).
 	PYTHONPATH=$(HOME)/neuron7x-verdict/src $(PY) -m neuron7x_verdict.cli gates \
 		--config var/gate-liveness.rendered.yaml --root . \
-		$(if $(ONLY),--only "$(ONLY)") --json "$(or $(OUT),var/liveness-all.json)"
-# Звіт живості прив'язується до коміту. Вимірювач віддає ГОЛИЙ список вироків, і споживач
-# (модель впевненості, SI-3) не мав як знати, про яке дерево той список. Виміряно
-# 03.09.2026 отрутою: список з одним вигаданим гейтом задовольняв замінник. Форма
-# тепер — мапа {schema, commit, gates}; старий список споживач читає як «не прив'язано».
-	$(PY) -c 'import json,pathlib,subprocess,sys; p=pathlib.Path(sys.argv[1]); d=json.loads(p.read_text(encoding="utf-8")); d=d if isinstance(d,dict) else {"schema":"korpus.gate-liveness.v1","gates":d}; d["commit"]=subprocess.run(["git","rev-parse","HEAD"],capture_output=True,text=True,check=False).stdout.strip(); p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")' "$(or $(OUT),var/liveness-all.json)"
+		$(if $(ONLY),--only "$(ONLY)") --json "$(LIVENESS_OUT)"; \
+	rc=$$?; \
+	$(PY) -c 'import json,pathlib,subprocess,sys; p=pathlib.Path(sys.argv[1]); d=json.loads(p.read_text(encoding="utf-8")); d=d if isinstance(d,dict) else {"schema":"korpus.gate-liveness.v1","gates":d}; d["commit"]=subprocess.run(["git","rev-parse","HEAD"],capture_output=True,text=True,check=False).stdout.strip(); p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")' "$(LIVENESS_OUT)"; \
+	exit $$rc
 
 # Прочитати кожне джерело каталогу один раз і записати, що саме прочитано. Потребує
 # мережі, тому не гейт. Ратчет усередині: прогін, який не опустив стелю, себе не пише.
@@ -987,6 +1000,13 @@ assurance-model-selftest:
 ci-mirror:
 	$(PY) scripts/verify_ci_mirror.py --selftest
 	$(PY) scripts/verify_ci_mirror.py
+
+# Дзеркало каже, що конвеєр запустив БИ ті самі команди. Це не запуск. Прогін на
+# точному коміті — окремий вимір, і його відсутність чесно зветься NOT_MEASURED:
+# конвеєр, який не бігав, не є пройденим, а вигаданий FAIL шукали б у коді.
+ci-run:
+	$(PY) scripts/record_ci_run.py --selftest
+	$(PY) scripts/record_ci_run.py --evidence-only
 
 assurance-model: assurance-model-selftest
 	$(PY) scripts/verify_assurance_model.py --out var/assurance-model-independence.json

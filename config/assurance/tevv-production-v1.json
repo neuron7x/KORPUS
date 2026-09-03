@@ -31,7 +31,7 @@
     "PRODUCTION"
   ],
   "evidence_schema": "korpus.tevv-evidence.v2",
-  "required_evidence_class": "EXTERNAL_INDEPENDENT",
+  "required_evidence_class": "INTERNAL_STRUCTURALLY_SEPARATED",
   "deployment_simulation_required": true,
   "evaluation_cue_blinding_required": true,
   "dependency_failure_simulation_required": true,
@@ -40,5 +40,6 @@
     "database_unavailable",
     "embedding_provider_timeout",
     "object_store_unavailable"
-  ]
+  ],
+  "evidence_class_note": "Змінено 03.09.2026 разом із production-v1: зовнішнього незалежного оцінювача немає. Жодного числового порога не зміщено — ні спостережень, ні ставки, ні нульових контролів, ні родин атак. Знято рівно одну умову: організаційну приналежність оцінювача."
 }

@@ -54,6 +54,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = ROOT / "config/governance/assurance-model.json"
+ENVELOPE = "RELEASE_ENVELOPE.json"
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
 #: Стани замінника. `NOT_SATISFIED` блокує; `NOT_MEASURED` теж блокує, бо невимірене не
@@ -218,10 +219,17 @@ def _liveness_expectations(root: Path) -> tuple[dict[str, str], dict[str, str], 
     return expected, reasons, declared
 
 
-def _expectation_problem(expected: dict[str, str], reasons: dict[str, str]) -> str | None:
+def _expectation_problem(
+    expected: dict[str, str], reasons: dict[str, str], root: Path = ROOT
+) -> str | None:
     """Очікуваний вирок береться з конфігу. Дефолт — ARMED; інше мусить нести написану
-    причину і вкладатись у стелю: «очікувано червоний» без стелі — спосіб зняти вимогу."""
-    ceiling = int(_model_field("expected_non_armed_ceiling", 0))
+    причину і вкладатись у стелю: «очікувано червоний» без стелі — спосіб зняти вимогу.
+
+    Стеля читається з ТОГО дерева, яке судять. Доти вона бралася з робочої копії навіть
+    тоді, коли предметом було чуже піддерево, — проба успадковувала умову від середовища
+    замість створювати її, і мовчки вироджувалась разом зі зміною моделі.
+    """
+    ceiling = int(_model_field("expected_non_armed_ceiling", 0, root))
     non_armed = sorted(name for name, want in expected.items() if want != "ARMED")
     if len(non_armed) > ceiling:
         return f"гейтів з очікуванням ≠ ARMED {len(non_armed)} > стелі {ceiling}"
@@ -250,7 +258,7 @@ def si3_adversarial(root: Path, who: Identity) -> Verdict:
     absent = sorted(declared - measured)
     if absent:
         return NOT_SATISFIED, f"звіт не міряє оголошених гейтів: {absent}"
-    problem = _expectation_problem(expected, reasons)
+    problem = _expectation_problem(expected, reasons, root)
     if problem is not None:
         return NOT_SATISFIED, problem
     mismatched = [
@@ -287,37 +295,118 @@ def si4_negative_controls(root: Path, who: Identity) -> Verdict:
 
 
 def si5_mutation(root: Path, who: Identity) -> Verdict:
+    """Каталог мутантів кредитує реліз лише цілим знаменником про ЦЕЙ кандидат.
+
+    Порожній каталог задовольняв би кожну умову про склад: нуль вижилих, нуль invalid,
+    ставка 1.0 над нулем результатів. Тому кількість мутантів — теж умова, а не звіт.
+    Так само реліз: звіт із чужим тегом описує іншого кандидата навіть на тому ж дереві.
+    """
     report, refusal = _status_report(
         root / "reports/MUTATION_FULL_CATALOGUE_CURRENT.json", who, "каталог мутантів"
     )
     if report is None:
         return refusal or (NOT_MEASURED, "")
+    unbound = _mutation_release(root, report)
+    if unbound is not None:
+        return unbound
+    return _mutation_denominator(report, str(report.get("release")))
+
+
+def _mutation_release(root: Path, report: dict[str, Any]) -> Verdict | None:
+    """None, якщо каталог про реліз цього кандидата."""
+    wanted = _release(root)
+    carried = str(report.get("release") or "")
+    if not carried:
+        return NOT_MEASURED, "каталог не називає релізу — не прив'язаний до кандидата"
+    if wanted and carried != wanted:
+        return NOT_SATISFIED, f"каталог про реліз {carried}, кандидат {wanted}"
+    return None
+
+
+def _mutation_denominator(report: dict[str, Any], release: str) -> Verdict:
+    """Знаменник цілий: не порожній, увесь застосовний і увесь убитий."""
     survived, invalid = report.get("survived") or [], report.get("invalid") or []
+    errors = report.get("errors") or []
+    mutants = int(report.get("mutants") or 0)
+    killed = int(report.get("killed") or 0)
+    valid = int(report.get("valid_mutants") or 0)
     over = report.get("mutation_score_over_catalogue")
-    if survived or invalid or over != 1.0:
-        return NOT_SATISFIED, f"вижили {len(survived)}, invalid {len(invalid)}, score {over}"
-    return SATISFIED, f"{report.get('killed')}/{report.get('mutants')} убито, знаменник цілий"
+    if mutants <= 0:
+        return NOT_SATISFIED, "нуль мутантів: знаменник порожній, а не цілий"
+    if valid != mutants:
+        return NOT_SATISFIED, f"каталог неповний: застосовних {valid} із {mutants}"
+    if killed != mutants:
+        return NOT_SATISFIED, f"убито {killed} із {mutants}"
+    if survived or invalid or errors or over != 1.0:
+        return NOT_SATISFIED, (
+            f"вижили {len(survived)}, invalid {len(invalid)}, помилок {len(errors)}, score {over}"
+        )
+    return SATISFIED, f"{killed}/{mutants} убито на {release}, знаменник цілий"
 
 
 def si6_clean_room(root: Path, who: Identity) -> Verdict:
+    """PASS чистого клону кредитує рівно ті цілі, які він назвав, і жодної більше.
+
+    Звіт, що каже PASS про один `api-test`, і звіт про повний заморожений набір
+    відрізняються ОДНИМ полем; без його читання перший проходив як другий.
+    """
     report, refusal = _status_report(root / "var/clean-clone.json", who, "чистий клон")
     if report is None:
         return refusal or (NOT_MEASURED, "")
     if str(report.get("status")) != "PASS":
         return NOT_SATISFIED, f"відтворення: {report.get('status')}"
-    return SATISFIED, f"кандидат {who['commit'][:8]} відтворюється з чистого клону"
+    required = set(_candidate(root).get("clean_clone_targets") or [])
+    if not required:
+        return NOT_MEASURED, "конверт релізу не називає обов'язкових цілей чистого клону"
+    measured = set(str(report.get("targets") or "").split())
+    missing = sorted(required - measured)
+    if missing:
+        return NOT_SATISFIED, f"клон не ганяв обов'язкових цілей: {missing}"
+    return SATISFIED, (
+        f"кандидат {who['commit'][:8]} відтворює {len(required)} обов'язкових цілей з клону"
+    )
 
 
 def si7_ci_hard_gates(root: Path, who: Identity) -> Verdict:
-    report, refusal = _status_report(root / "var/ci-mirror.json", who, "дзеркало CI")
-    if report is None:
+    """Дзеркало каже, що конвеєр ЗАПУСТИВ БИ ті самі команди. Це не запуск.
+
+    Дві різні властивості носили одну назву: збіг переліків (структура) і виконання
+    на кандидаті (подія). Перша тут — передумова; кредитує реліз лише друга, і лише
+    коли конвеєр бігав на ТОМУ САМОМУ коміті. Конвеєр, який не бігав, — NOT_MEASURED:
+    невимірене не є пройденим.
+    """
+    mirror, refusal = _status_report(root / "var/ci-mirror.json", who, "дзеркало CI")
+    if mirror is None:
         return refusal or (NOT_MEASURED, "")
-    if str(report.get("status")) != "PASS":
-        return NOT_SATISFIED, f"дзеркало CI: {report.get('status')}"
-    return SATISFIED, "кожна команда лану виконується в конвеєрі тією самою командою"
+    if str(mirror.get("status")) != "PASS":
+        return NOT_SATISFIED, f"дзеркало CI: {mirror.get('status')}"
+    run, refusal = _status_report(root / "var/ci-run.json", who, "прогін CI")
+    if run is None:
+        if refusal and refusal[0] == NOT_MEASURED:
+            return NOT_MEASURED, f"{refusal[1]}: конвеєр для цього кандидата ще не бігав"
+        return refusal or (NOT_MEASURED, "")
+    if str(run.get("status")) != "PASS":
+        return NOT_SATISFIED, f"прогін CI: {run.get('status')} ({run.get('pipeline')})"
+    lanes = [str(name) for name in run.get("completed_jobs") or []]
+    required = [str(name) for name in run.get("required_jobs") or []]
+    if not required:
+        return NOT_MEASURED, "звіт прогону не називає обов'язкових джобів"
+    missing = sorted(set(required) - set(lanes))
+    if missing:
+        return NOT_SATISFIED, f"обов'язкові джоби не завершені: {missing}"
+    return SATISFIED, (
+        f"конвеєр {run.get('pipeline')} пройшов {len(required)} обов'язкових джобів "
+        f"на {who['commit'][:8]}"
+    )
 
 
 def si8_runtime_evidence(root: Path, who: Identity) -> Verdict:
+    """Обслуговує ТЕ, що оголошене топологією, і несе код кандидата.
+
+    `absence(stale) => current` — не висновок, а те саме UNKNOWN іншими словами:
+    нуль процесів дає порожній перелік старих. Тому кількість процесів і присутність
+    оголошених юнітів — окремі умови, а не наслідок ставки.
+    """
     report, refusal = _status_report(
         root / "var/serving-freshness.json", who, "свіжість обслуговування"
     )
@@ -327,9 +416,17 @@ def si8_runtime_evidence(root: Path, who: Identity) -> Verdict:
         return NOT_MEASURED, (
             f"свіжість обслуговування {report.get('status')}: процесів {report.get('processes')}"
         )
+    processes = int(report.get("processes") or 0)
+    if processes <= 0:
+        return NOT_MEASURED, "нуль процесів: відсутність предмета не є згодою"
+    absent = report.get("units_not_serving")
+    if absent is None:
+        return NOT_MEASURED, "звіт не міряв оголошених юнітів — старої форми"
+    if absent:
+        return NOT_SATISFIED, f"оголошені юніти не обслуговують: {absent}"
     if report.get("stale") or report.get("rate") != 1.0:
         return NOT_SATISFIED, f"процеси, старші за код: {report.get('stale')}"
-    return SATISFIED, "процеси, що обслуговують, несуть поточний код"
+    return SATISFIED, f"{processes} процеси оголошених юнітів несуть код {who['commit'][:8]}"
 
 
 CHECKS: dict[str, Check] = {
@@ -344,9 +441,78 @@ CHECKS: dict[str, Check] = {
 }
 
 
-def _model_field(name: str, default: Any) -> Any:
-    model = _json(MODEL) or {}
+def _model_field(name: str, default: Any, root: Path = ROOT) -> Any:
+    model = _json(root / MODEL.relative_to(ROOT)) or {}
     return model.get(name, default)
+
+
+PRODUCTION_PROFILE = "config/assurance/production-v1.json"
+TEVV_PROFILE = "config/assurance/tevv-production-v1.json"
+EXTERNAL = "EXTERNAL_INDEPENDENT"
+
+
+def policy_agreement(root: Path) -> list[str]:
+    """Дві політики про одне — дефект, а не думка.
+
+    До 03.09.2026 модель урядування казала «зовнішньої незалежності немає, вона не
+    блокує», а профіль продакшену вимагав EXTERNAL_INDEPENDENT redteam і TEVV з
+    довіреним підписантом. Обидві були «діючими», і яка з них діяла — залежало від
+    того, який скрипт запустили. Тепер розбіжність називає себе сама, і В ОБИДВА
+    боки: якщо модель ЗАТЯГНЕ вимогу назад, профіль, що лишився внутрішнім, теж
+    буде розбіжністю, а не тихою поблажкою.
+    """
+    model = _json(root / MODEL.relative_to(ROOT)) if MODEL.is_absolute() else _json(MODEL)
+    model = model or {}
+    profile = _json(root / PRODUCTION_PROFILE) or {}
+    tevv = _json(root / TEVV_PROFILE) or {}
+    if not model or not profile:
+        return []
+    external = model.get("external_independent_assurance") or {}
+    blocking = bool(external.get("blocking"))
+    requirements = profile.get("external_requirements") or {}
+    demands_external = [
+        name
+        for name in ("redteam_evidence_class", "tevv_independent_class")
+        if requirements.get(name) == EXTERNAL
+    ]
+    demands_trust = [
+        name
+        for name in ("redteam_trusted_signer_required", "tevv_trusted_assessor_required")
+        if bool(requirements.get(name))
+    ]
+    tevv_external = tevv.get("required_evidence_class") == EXTERNAL
+    problems: list[str] = []
+    if not blocking:
+        if demands_external:
+            problems.append(
+                f"модель: зовнішня незалежність НЕ блокує; профіль вимагає {demands_external}"
+            )
+        if demands_trust:
+            problems.append(f"профіль вимагає довірених підписантів ззовні: {demands_trust}")
+        if tevv_external:
+            problems.append("профіль TEVV вимагає класу доказу EXTERNAL_INDEPENDENT")
+        if profile.get("governance_authority") != "config/governance/assurance-model.json":
+            problems.append("профіль не називає моделі урядування єдиним джерелом")
+    else:
+        if not demands_external:
+            problems.append(
+                "модель: зовнішня незалежність БЛОКУЄ; профіль її вже не вимагає — "
+                "затягнення моделі не дійшло до профілю"
+            )
+    return problems
+
+
+def _envelope(root: Path) -> dict[str, Any]:
+    return _json(root / ENVELOPE) or {}
+
+
+def _release(root: Path) -> str:
+    return str(_envelope(root).get("release") or "")
+
+
+def _candidate(root: Path) -> dict[str, Any]:
+    block = _envelope(root).get("release_candidate")
+    return block if isinstance(block, dict) else {}
 
 
 def assess(root: Path = ROOT, who: Identity | None = None) -> dict[str, Any]:
@@ -373,6 +539,7 @@ def assess(root: Path = ROOT, who: Identity | None = None) -> dict[str, Any]:
         }
     unmet = sorted(k for k, v in substitutes.items() if v["blocking"] and v["state"] not in MET)
     declared = sorted(k for k, v in substitutes.items() if v["state"] == SATISFIED_BY_DECLARATION)
+    disagreement = policy_agreement(root)
     return {
         "schema": "korpus.assurance-model.v1",
         "ran_at": datetime.now(UTC).isoformat(),
@@ -388,7 +555,8 @@ def assess(root: Path = ROOT, who: Identity | None = None) -> dict[str, Any]:
         "substitutes": substitutes,
         "unmet_blocking_substitutes": unmet,
         "satisfied_by_declaration_only": declared,
-        "status": "PASS" if not unmet else "FAIL",
+        "policy_disagreement": disagreement,
+        "status": "PASS" if not unmet and not disagreement else "FAIL",
         "interpretation": (
             "Структурна незалежність замінює організаційну. Заміна дійсна лише поки кожен "
             "блокуючий замінник виконаний НА ЦЬОМУ дереві; артефакт про інший коміт не "
@@ -408,6 +576,10 @@ _LIVENESS_CONFIG = (
     + "x" * 60
     + "\n"
 )
+_MODEL_FILE = "config/governance/assurance-model.json"
+#: Стеля — умова проби, а не властивість середовища: кожен випадок несе свою.
+_CEILING_ONE = {"expected_non_armed_ceiling": 1}
+_CEILING_ZERO = {"expected_non_armed_ceiling": 0}
 _SAME_SIDE = {"executor_agent": "a", "verifier_agent": "a", "candidate_commit": _WHO["commit"]}
 _FORGED = {
     "executor_agent": "opus",
@@ -434,12 +606,46 @@ _LIVENESS = "var/liveness-all.json"
 _LIVENESS_YAML = "config/operations/gate-liveness.yaml"
 _CATALOGUE = "reports/MUTATION_FULL_CATALOGUE_CURRENT.json"
 _FULL_LIVENESS = [{"gate": "g1", "verdict": "ARMED"}, {"gate": "g2", "verdict": "ONE_WAY_FAIL"}]
+_RELEASE = "v0.9.7"
+_ENVELOPE_FILE = "RELEASE_ENVELOPE.json"
+_CLEAN_CLONE_TARGETS = ["validate", "api-test"]
+_ENVELOPE = {
+    "release": _RELEASE,
+    "release_candidate": {
+        "clean_clone_targets": _CLEAN_CLONE_TARGETS,
+        "required_serving_units": ["u.service"],
+    },
+}
 _CLEAN_CATALOGUE = {
     "survived": [],
     "invalid": [],
+    "errors": [],
     "mutation_score_over_catalogue": 1.0,
     "killed": 2,
     "mutants": 2,
+    "valid_mutants": 2,
+    "release": _RELEASE,
+    "provenance": {"source_digest": _WHO["source_digest"]},
+}
+_CLEAN_CLONE = "var/clean-clone.json"
+_CI_MIRROR = "var/ci-mirror.json"
+_CI_RUN = "var/ci-run.json"
+_SERVING = "var/serving-freshness.json"
+_MIRROR_PASS = {"commit": _WHO["commit"], "status": "PASS"}
+_RUN_PASS = {
+    "commit": _WHO["commit"],
+    "status": "PASS",
+    "pipeline": "https://example/pipelines/1",
+    "required_jobs": ["repository:validate"],
+    "completed_jobs": ["repository:validate"],
+}
+_SERVING_PASS = {
+    "commit": _WHO["commit"],
+    "status": "MEASURED",
+    "processes": 2,
+    "stale": [],
+    "rate": 1.0,
+    "units_not_serving": [],
 }
 
 #: (назва, замінник, очікуваний стан, файли піддерева). Таблиця — і є доказ: три отрути
@@ -482,12 +688,6 @@ _POISONS: list[tuple[str, str, str, dict[str, Any]]] = [
         {"var/clean-clone.json": {"status": "PASS"}},
     ),
     (
-        "клон PASS про цей коміт",
-        "SI-6",
-        SATISFIED,
-        {"var/clean-clone.json": {"status": "PASS", "commit": _WHO["commit"]}},
-    ),
-    (
         "живість старої форми (список) — ОТРУТА P3",
         "SI-3",
         NOT_MEASURED,
@@ -509,6 +709,17 @@ _POISONS: list[tuple[str, str, str, dict[str, Any]]] = [
         {
             _LIVENESS: {"commit": _WHO["commit"], "gates": _FULL_LIVENESS},
             _LIVENESS_YAML: _LIVENESS_CONFIG,
+            _MODEL_FILE: _CEILING_ONE,
+        },
+    ),
+    (
+        "очікуваний провал понад стелею — відмова",
+        "SI-3",
+        NOT_SATISFIED,
+        {
+            _LIVENESS: {"commit": _WHO["commit"], "gates": _FULL_LIVENESS},
+            _LIVENESS_YAML: _LIVENESS_CONFIG,
+            _MODEL_FILE: _CEILING_ZERO,
         },
     ),
     (
@@ -553,7 +764,136 @@ _POISONS: list[tuple[str, str, str, dict[str, Any]]] = [
         "дзеркало CI FAIL блокує",
         "SI-7",
         NOT_SATISFIED,
-        {"var/ci-mirror.json": {"commit": _WHO["commit"], "status": "FAIL"}},
+        {_CI_MIRROR: {"commit": _WHO["commit"], "status": "FAIL"}},
+    ),
+    # --- знаменник мутації: склад без кількості задовольняється порожнечею
+    (
+        "порожній каталог мутантів — не цілий знаменник",
+        "SI-5",
+        NOT_SATISFIED,
+        {
+            _CATALOGUE: {
+                **_CLEAN_CATALOGUE,
+                "mutants": 0,
+                "killed": 0,
+                "valid_mutants": 0,
+                "mutation_score_over_catalogue": 1.0,
+            }
+        },
+    ),
+    (
+        "каталог неповний: частина мутантів не застосовна",
+        "SI-5",
+        NOT_SATISFIED,
+        {_CATALOGUE: {**_CLEAN_CATALOGUE, "valid_mutants": 1}},
+    ),
+    (
+        "убито менше, ніж мутантів",
+        "SI-5",
+        NOT_SATISFIED,
+        {_CATALOGUE: {**_CLEAN_CATALOGUE, "killed": 1}},
+    ),
+    (
+        "каталог про ЧУЖИЙ реліз",
+        "SI-5",
+        NOT_SATISFIED,
+        {_CATALOGUE: {**_CLEAN_CATALOGUE, "release": "v0.0.1"}, _ENVELOPE_FILE: _ENVELOPE},
+    ),
+    (
+        "каталог без релізу — не прив'язаний до кандидата",
+        "SI-5",
+        NOT_MEASURED,
+        {
+            _CATALOGUE: {k: v for k, v in _CLEAN_CATALOGUE.items() if k != "release"},
+            _ENVELOPE_FILE: _ENVELOPE,
+        },
+    ),
+    (
+        "каталог цілий і про цей реліз",
+        "SI-5",
+        SATISFIED,
+        {_CATALOGUE: _CLEAN_CATALOGUE, _ENVELOPE_FILE: _ENVELOPE},
+    ),
+    # --- чистий клон: PASS про ОДНУ ціль ≠ PASS про заморожений набір
+    (
+        "клон PASS, але ганяв не всі обов'язкові цілі",
+        "SI-6",
+        NOT_SATISFIED,
+        {
+            _CLEAN_CLONE: {**_MIRROR_PASS, "targets": "api-test"},
+            _ENVELOPE_FILE: _ENVELOPE,
+        },
+    ),
+    (
+        "клон PASS без конверта — набір цілей нема з чим звіряти",
+        "SI-6",
+        NOT_MEASURED,
+        {_CLEAN_CLONE: {**_MIRROR_PASS, "targets": "validate api-test"}},
+    ),
+    (
+        "клон PASS на повному наборі",
+        "SI-6",
+        SATISFIED,
+        {
+            _CLEAN_CLONE: {**_MIRROR_PASS, "targets": "validate api-test"},
+            _ENVELOPE_FILE: _ENVELOPE,
+        },
+    ),
+    # --- CI: дзеркало не є прогоном
+    (
+        "дзеркало PASS, а конвеєр не бігав — NOT_MEASURED",
+        "SI-7",
+        NOT_MEASURED,
+        {_CI_MIRROR: _MIRROR_PASS},
+    ),
+    (
+        "прогін CI про ЧУЖИЙ коміт",
+        "SI-7",
+        NOT_SATISFIED,
+        {_CI_MIRROR: _MIRROR_PASS, _CI_RUN: {**_RUN_PASS, "commit": _OTHER}},
+    ),
+    (
+        "прогін CI FAIL",
+        "SI-7",
+        NOT_SATISFIED,
+        {_CI_MIRROR: _MIRROR_PASS, _CI_RUN: {**_RUN_PASS, "status": "FAIL"}},
+    ),
+    (
+        "прогін CI PASS, але обов'язковий джоб не завершено",
+        "SI-7",
+        NOT_SATISFIED,
+        {_CI_MIRROR: _MIRROR_PASS, _CI_RUN: {**_RUN_PASS, "completed_jobs": []}},
+    ),
+    (
+        "прогін CI повний на цьому коміті",
+        "SI-7",
+        SATISFIED,
+        {_CI_MIRROR: _MIRROR_PASS, _CI_RUN: _RUN_PASS},
+    ),
+    # --- рантайм: відсутність предмета не є згодою
+    (
+        "звіт старої форми без виміру юнітів",
+        "SI-8",
+        NOT_MEASURED,
+        {_SERVING: {k: v for k, v in _SERVING_PASS.items() if k != "units_not_serving"}},
+    ),
+    (
+        "оголошений юніт не обслуговує",
+        "SI-8",
+        NOT_SATISFIED,
+        {_SERVING: {**_SERVING_PASS, "units_not_serving": ["u.service"]}},
+    ),
+    (
+        "процеси, старші за код",
+        "SI-8",
+        NOT_SATISFIED,
+        {_SERVING: {**_SERVING_PASS, "stale": ["1"], "rate": 0.5}},
+    ),
+    (
+        "оголошені юніти обслуговують поточний код",
+        "SI-8",
+        SATISFIED,
+        {_SERVING: _SERVING_PASS},
     ),
 ]
 
@@ -577,9 +917,74 @@ def selftest() -> int:
             state, detail = CHECKS[key](sub, _WHO)
             if state != expected:
                 failures.append(f"{name}: {state} ({detail}), очікувалось {expected}")
-    # Стеля очікувань ≠ ARMED читається з моделі; поза стелею — відмова.
-    if int(_model_field("expected_non_armed_ceiling", 0)) < 1:
-        failures.append("модель не оголошує стелі expected_non_armed_ceiling ≥ 1")
+    _MODEL_OPEN = {"external_independent_assurance": {"blocking": False}}
+    _MODEL_STRICT = {"external_independent_assurance": {"blocking": True}}
+    _OK_REQUIREMENTS: dict[str, Any] = {
+        "redteam_evidence_class": "INTERNAL_ADVERSARIAL_CAMPAIGN",
+        "tevv_independent_class": "INTERNAL_STRUCTURALLY_SEPARATED",
+    }
+    _PROFILE_OK: dict[str, Any] = {
+        "governance_authority": "config/governance/assurance-model.json",
+        "external_requirements": _OK_REQUIREMENTS,
+    }
+    _PROFILE_SPLIT = {
+        "governance_authority": "config/governance/assurance-model.json",
+        "external_requirements": {
+            "redteam_evidence_class": EXTERNAL,
+            "tevv_independent_class": EXTERNAL,
+        },
+    }
+    policy_cases: list[tuple[str, dict[str, Any], bool]] = [
+        (
+            "злита політика — розбіжностей нема",
+            {"model": _MODEL_OPEN, "profile": _PROFILE_OK},
+            False,
+        ),
+        (
+            "профіль вимагає зовнішнього, модель — ні",
+            {"model": _MODEL_OPEN, "profile": _PROFILE_SPLIT},
+            True,
+        ),
+        (
+            "профіль вимагає довіреного підписанта ззовні",
+            {
+                "model": _MODEL_OPEN,
+                "profile": {
+                    **_PROFILE_OK,
+                    "external_requirements": {
+                        **_OK_REQUIREMENTS,
+                        "redteam_trusted_signer_required": True,
+                    },
+                },
+            },
+            True,
+        ),
+        (
+            "профіль не називає джерела політики",
+            {"model": _MODEL_OPEN, "profile": {"external_requirements": {}}},
+            True,
+        ),
+        (
+            "модель затягнула вимогу, профіль лишився внутрішнім",
+            {"model": _MODEL_STRICT, "profile": _PROFILE_OK},
+            True,
+        ),
+    ]
+    with tempfile.TemporaryDirectory() as raw:
+        for index, (name, payload, expect_problem) in enumerate(policy_cases):
+            sub = Path(raw) / f"policy-{index}"
+            _write(sub, "config/governance/assurance-model.json", payload["model"])
+            _write(sub, PRODUCTION_PROFILE, payload["profile"])
+            problems = policy_agreement(sub)
+            if bool(problems) != expect_problem:
+                failures.append(f"{name}: {problems}, очікувалось problem={expect_problem}")
+
+    # Стеля очікувань ≠ ARMED мусить бути ОГОЛОШЕНА; її значення — ратчет, і нуль
+    # законний. Доти тут стояло `< 1`, тобто самоперевірка вимагала лишати місце
+    # принаймні для одного очікуваного провалу — і опустити ратчет до нуля означало б
+    # зробити гейт червоним за покращення.
+    if "expected_non_armed_ceiling" not in (_json(MODEL) or {}):
+        failures.append("модель не оголошує стелі expected_non_armed_ceiling")
     print(
         json.dumps(
             {

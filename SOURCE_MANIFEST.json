@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1801,
-  "root_sha256": "c62910487a4f8208c8f6c464ea08eedd982d1b8fd5cbaffd3ce28a17e61e9adb",
+  "root_sha256": "b1d41a388321d157fa185e1a9a22658d6314914c05d586f0166b87199beb36b9",
   "files": [
     {
       "path": ".dockerignore",
@@ -409,8 +409,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 104360,
-      "sha256": "56937106b26465bfbdb951ba4ab1480c6a59050fab5550cda2dd085ff89b9ef9",
+      "bytes": 106099,
+      "sha256": "25770cfd5c60977f27f605c2188fff54099a2397facbac917de7f32890fd1016",
       "mode": "0644"
     },
     {
@@ -439,8 +439,8 @@
     },
     {
       "path": "RELEASE_ENVELOPE.json",
-      "bytes": 762,
-      "sha256": "cdad6929f1af68e977c1c3e54fc35d0aeb23538533543c0be7d91dbdc83e299f",
+      "bytes": 5607,
+      "sha256": "e7634912c84c723d25a43aed1aff9e658382f8d9a29b31f693c5fa0011e6b3b1",
       "mode": "0644"
     },
     {
@@ -1561,14 +1561,14 @@
     },
     {
       "path": "apps/api/src/korpus/application/production_assurance_external.py",
-      "bytes": 1697,
-      "sha256": "fc617b944de52a501dbff327d2d66759cf84405250d8b2c585f61df3f76f24af",
+      "bytes": 2422,
+      "sha256": "4f5fa8d251dee63317747bee18184d3c0127aceb9b633adfb31427b61b5e31b1",
       "mode": "0644"
     },
     {
       "path": "apps/api/src/korpus/application/production_hard_predicates.py",
-      "bytes": 11085,
-      "sha256": "926986195e14e2958df580fe3c4caf448873b37b997142a025b1eae76401c7b9",
+      "bytes": 15072,
+      "sha256": "3791bd7c70b14d3069f20c88b39e27a22d910f9290739b336f4934fbabe9b33b",
       "mode": "0644"
     },
     {
@@ -4243,8 +4243,8 @@
     },
     {
       "path": "apps/api/tests/test_production_assurance.py",
-      "bytes": 6267,
-      "sha256": "5cf301be5ab9d0d6e6d216d957ba5697ae77ce616c4e84b27cc25fc0a1c390ab",
+      "bytes": 8095,
+      "sha256": "178d8ab6ba55e9cc7703b4cc481efda50263ae9d30fe5ea7b4a31da52fbb9903",
       "mode": "0644"
     },
     {
@@ -4255,8 +4255,8 @@
     },
     {
       "path": "apps/api/tests/test_production_hard_predicates.py",
-      "bytes": 9072,
-      "sha256": "091b6718629be80a9d8ef8980d5309a79dac7765cd7834c83fde5d11a638b792",
+      "bytes": 9354,
+      "sha256": "8f0dc6c880ab5a9acd29c446449e122f303cc5e5cf87e0fd4f058e42470d438f",
       "mode": "0644"
     },
     {
@@ -5575,8 +5575,8 @@
     },
     {
       "path": "config/assurance/production-hard-predicates-v1.json",
-      "bytes": 7127,
-      "sha256": "aa1a1ec7f186ee52930dc506a33843cd7b5fef9642be0d02b297068e2328e4d0",
+      "bytes": 13092,
+      "sha256": "9568551f7d0ed4a1fa0ce3db1f8a41adb3c3dbaf14171f7ae8ec37fecf236cb2",
       "mode": "0644"
     },
     {
@@ -5587,8 +5587,8 @@
     },
     {
       "path": "config/assurance/production-v1.json",
-      "bytes": 979,
-      "sha256": "c1a1ccbfad28bd69eb90580ac8560dfaa521a131b7ef0080c08925f224214909",
+      "bytes": 2108,
+      "sha256": "65854ae975abef1b866b999b06afece143d770aa6e7c1169d628aa7defd6de59",
       "mode": "0644"
     },
     {
@@ -5641,8 +5641,8 @@
     },
     {
       "path": "config/assurance/tevv-production-v1.json",
-      "bytes": 1277,
-      "sha256": "d2f04f98518fa0e682731f2f7ee114976361a0eaa7a204972672b9289aec9908",
+      "bytes": 1756,
+      "sha256": "a6649fdbf30f2620b0403067920b3cc5fff79b900ecd13db2b64b178459a202e",
       "mode": "0644"
     },
     {
@@ -7243,8 +7243,8 @@
     },
     {
       "path": "config/governance/assurance-model.json",
-      "bytes": 6999,
-      "sha256": "f3932053a12dedf02f0847d6373a3348b578b370789b9e9245dda3b156f7f97f",
+      "bytes": 7262,
+      "sha256": "ac67e123c8f0581807d79db6cee5e34ef5f8269a133dc4e68e4b1680fd131d51",
       "mode": "0644"
     },
     {
@@ -7339,14 +7339,14 @@
     },
     {
       "path": "config/operations/gate-liveness.yaml",
-      "bytes": 18024,
-      "sha256": "19062ddb4968031f592096ed1ced47b3d5d6134da3e324fb079fe350c8edb181",
+      "bytes": 18197,
+      "sha256": "de4f7156f470f33d0f45e0d98c50bb723bdb696f8710f8961162a04eafb33586",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 554361,
-      "sha256": "75afad912d27c4d161ed9690ea192d919e594306a03db99c429544caad3b999a",
+      "bytes": 563318,
+      "sha256": "4c3c23bc6ebb9f035bee9f94ea3051bc7997877790114d782b0645d291317b37",
       "mode": "0644"
     },
     {
@@ -9205,8 +9205,8 @@
     },
     {
       "path": "scripts/check_serving_freshness.py",
-      "bytes": 9840,
-      "sha256": "b7975c48445737b5d3ef6ed936bff3d2d7562651c421dc5ee371f43200680691",
+      "bytes": 13172,
+      "sha256": "6973e461d85501ab41b288431cbbaf6c1acf44e05243a36f77b312a31f5de1e0",
       "mode": "0755"
     },
     {
@@ -10603,8 +10603,8 @@
     },
     {
       "path": "scripts/verify_assurance_model.py",
-      "bytes": 29413,
-      "sha256": "ef5a4e01598714685829d0029390a96a285fb79736864d2587cc3794e50d20e1",
+      "bytes": 47738,
+      "sha256": "8d1dea9150a906a04ae070b3acc338860357878a41f7f19a43d31d6748b58566",
       "mode": "0755"
     },
     {

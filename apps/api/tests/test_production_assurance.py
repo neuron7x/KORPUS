@@ -19,13 +19,20 @@ def _gate(gate_id: str, **extra: object) -> dict[str, object]:
     }
 
 
-def test_production_assurance_requires_every_gate_and_external_evidence_class() -> None:
+def test_production_assurance_requires_every_gate_and_declared_evidence_class() -> None:
+    """Клас доказу мусить збігатися з ОГОЛОШЕНИМ у профілі — тепер внутрішнім.
+
+    03.09.2026 дві політики зведено в одну: зовнішня незалежність NOT_PERFORMED і не
+    блокує, її замінює виконуваний внутрішній доказ. Умова «клас збігається» лишилась
+    дослівно тією самою — змінилось лише те, ЯКИЙ клас оголошений.
+    """
     gates = {gate: _gate(gate) for gate in PROFILE["required_gates"]}
-    gates["redteam"]["evidence_class"] = "EXTERNAL_INDEPENDENT"
-    gates["redteam"]["attestation_verified"] = True
-    gates["redteam"]["trusted_signer"] = True
+    gates["redteam"]["evidence_class"] = "INTERNAL_ADVERSARIAL_CAMPAIGN"
+    gates["redteam"]["attestation_verified"] = False
+    gates["redteam"]["trusted_signer"] = False
     gates["tevv"]["environment_class"] = "PRODUCTION_LIKE"
-    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": True}
+    gates["tevv"]["independent_class"] = "INTERNAL_STRUCTURALLY_SEPARATED"
+    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": False}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"
     gates["mutation"]["scope"] = "FULL_CATALOGUE"
@@ -33,11 +40,13 @@ def test_production_assurance_requires_every_gate_and_external_evidence_class() 
     assert verdict.passed, verdict.failures
 
 
-def test_internal_redteam_cannot_promote_production() -> None:
+def test_redteam_of_the_wrong_class_cannot_promote_production() -> None:
+    """Будь-який клас, крім оголошеного, відхиляється — і слабший, і «сильніший»."""
     gates = {gate: _gate(gate) for gate in PROFILE["required_gates"]}
     gates["redteam"]["evidence_class"] = "INTERNAL"
     gates["tevv"]["environment_class"] = "PRODUCTION"
-    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": True}
+    gates["tevv"]["independent_class"] = "INTERNAL_STRUCTURALLY_SEPARATED"
+    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": False}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"
     gates["mutation"]["scope"] = "FULL_CATALOGUE"
@@ -48,11 +57,12 @@ def test_internal_redteam_cannot_promote_production() -> None:
 
 def test_stale_gate_digest_is_rejected_even_if_it_says_pass() -> None:
     gates = {gate: _gate(gate) for gate in PROFILE["required_gates"]}
-    gates["redteam"]["evidence_class"] = "EXTERNAL_INDEPENDENT"
-    gates["redteam"]["attestation_verified"] = True
-    gates["redteam"]["trusted_signer"] = True
+    gates["redteam"]["evidence_class"] = "INTERNAL_ADVERSARIAL_CAMPAIGN"
+    gates["redteam"]["attestation_verified"] = False
+    gates["redteam"]["trusted_signer"] = False
     gates["tevv"]["environment_class"] = "PRODUCTION"
-    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": True}
+    gates["tevv"]["independent_class"] = "INTERNAL_STRUCTURALLY_SEPARATED"
+    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": False}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"
     gates["mutation"]["scope"] = "FULL_CATALOGUE"
@@ -63,11 +73,12 @@ def test_stale_gate_digest_is_rejected_even_if_it_says_pass() -> None:
 
 def _sound_gates() -> dict[str, dict[str, object]]:
     gates = {gate: _gate(gate) for gate in PROFILE["required_gates"]}
-    gates["redteam"]["evidence_class"] = "EXTERNAL_INDEPENDENT"
-    gates["redteam"]["attestation_verified"] = True
-    gates["redteam"]["trusted_signer"] = True
+    gates["redteam"]["evidence_class"] = "INTERNAL_ADVERSARIAL_CAMPAIGN"
+    gates["redteam"]["attestation_verified"] = False
+    gates["redteam"]["trusted_signer"] = False
     gates["tevv"]["environment_class"] = "PRODUCTION"
-    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": True}
+    gates["tevv"]["independent_class"] = "INTERNAL_STRUCTURALLY_SEPARATED"
+    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": False}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"
     gates["mutation"]["scope"] = "FULL_CATALOGUE"
@@ -95,18 +106,25 @@ def test_partial_mutation_scope_cannot_promote_production() -> None:
     assert "mutation.full_catalogue" in verdict.failures
 
 
-def test_self_declared_external_redteam_without_trusted_attestation_is_rejected() -> None:
+def test_internal_campaign_cannot_call_itself_external_independent() -> None:
+    """Внутрішній доказ, названий зовнішнім, відхиляється — і це той самий інваріант.
+
+    Доти тут перевірялось, що САМООГОЛОШЕНА зовнішня команда без довіреного підпису не
+    проходить. Після злиття політик зовнішнього класу профіль не вимагає ВЗАГАЛІ, тож
+    небезпека перевернулась: тепер зловживанням є гейт, який називає внутрішню кампанію
+    EXTERNAL_INDEPENDENT. Модель урядування забороняє це дослівно.
+    """
     gates = _sound_gates()
-    gates["redteam"]["attestation_verified"] = False
-    gates["redteam"]["trusted_signer"] = False
+    gates["redteam"]["evidence_class"] = "EXTERNAL_INDEPENDENT"
     verdict = evaluate_production_assurance(PROFILE, gates, source_digest="s", release="v")
-    assert "redteam.attestation_verified" in verdict.failures
-    assert "redteam.trusted_signer" in verdict.failures
+    assert "redteam.independent" in verdict.failures
+    assert not verdict.passed
 
 
-def test_self_declared_tevv_without_trusted_independent_assessor_is_rejected() -> None:
+def test_tevv_claiming_a_trusted_external_assessor_is_rejected() -> None:
+    """Дзеркальний бік: оцінювач, названий довіреним ззовні, коли такого немає."""
     gates = _sound_gates()
-    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": False}
+    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": True}
     verdict = evaluate_production_assurance(PROFILE, gates, source_digest="s", release="v")
     assert "tevv.trusted_assessor" in verdict.failures
 

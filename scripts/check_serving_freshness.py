@@ -48,6 +48,46 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOTS = ("apps/api/src",)
 _PORT = re.compile(r"--port[= ](\d+)")
+ENVELOPE = "RELEASE_ENVELOPE.json"
+
+
+def required_units(root: Path = ROOT) -> list[str]:
+    """Юніти, які МУСЯТЬ обслуговувати, — з конверта релізу, не з переліку тут.
+
+    Наявність процесів відповідає на питання «хтось відповідає?», а не на питання
+    «відповідає ТЕ, що оголошене топологією». Без другого нуль потрібних юнітів і
+    один випадковий процес читалися б однаково: ставка 1.0 і зелено.
+    """
+    try:
+        payload = json.loads((root / ENVELOPE).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    candidate = payload.get("release_candidate")
+    if not isinstance(candidate, dict):
+        return []
+    declared = candidate.get("required_serving_units")
+    return [str(name) for name in declared] if isinstance(declared, list) else []
+
+
+def unit_states(units: list[str]) -> list[dict[str, Any]]:
+    """Стан кожного оголошеного юніта: активність і головний процес."""
+    states: list[dict[str, Any]] = []
+    for unit in units:
+        done = subprocess.run(
+            ["systemctl", "--user", "show", unit, "-p", "ActiveState", "-p", "MainPID"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        fields = dict(line.split("=", 1) for line in done.stdout.splitlines() if "=" in line)
+        states.append(
+            {
+                "unit": unit,
+                "active": fields.get("ActiveState", "unknown"),
+                "main_pid": fields.get("MainPID", "0"),
+            }
+        )
+    return states
 
 
 def newest_source(root: Path = ROOT) -> tuple[float, str]:
@@ -94,10 +134,21 @@ def serving_processes(proc: Path = Path("/proc")) -> list[dict[str, Any]]:
     return found
 
 
-def adjudicate(processes: list[dict[str, Any]], newest: tuple[float, str]) -> dict[str, Any]:
+def adjudicate(
+    processes: list[dict[str, Any]],
+    newest: tuple[float, str],
+    units: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     stamp, path = newest
     judged = [{**item, "serves_current_code": item["started_epoch"] >= stamp} for item in processes]
     fresh = sum(1 for item in judged if item["serves_current_code"])
+    running = {str(item["pid"]) for item in judged}
+    units = units or []
+    absent = [
+        item["unit"]
+        for item in units
+        if item.get("active") != "active" or str(item.get("main_pid", "0")) not in running
+    ]
     return {
         "schema": "korpus.serving-freshness.v1",
         "newest_source": path,
@@ -109,6 +160,8 @@ def adjudicate(processes: list[dict[str, Any]], newest: tuple[float, str]) -> di
         # Нуль процесів — не згода. Це відсутність предмета, і кредитувати нею вісь
         # означало б, що вимкнений сервер робить профіль зеленим.
         "status": "MEASURED" if judged else "UNKNOWN",
+        "required_units": units,
+        "units_not_serving": absent,
         "detail": judged,
         "cannot_judge": [
             "mtime рухається від `git checkout` і `touch`: «процес старший» іноді означає "
@@ -154,6 +207,33 @@ def selftest() -> int:
             adjudicate([process("77", -10)], (now, "x.py"))["stale"],
             ["77"],
         ),
+        (
+            "оголошений юніт не активний — названий",
+            adjudicate(
+                [process("1", +10)],
+                (now, "x.py"),
+                [{"unit": "u.service", "active": "failed", "main_pid": "0"}],
+            )["units_not_serving"],
+            ["u.service"],
+        ),
+        (
+            "активний юніт, але відповідає ЧУЖИЙ процес",
+            adjudicate(
+                [process("1", +10)],
+                (now, "x.py"),
+                [{"unit": "u.service", "active": "active", "main_pid": "999"}],
+            )["units_not_serving"],
+            ["u.service"],
+        ),
+        (
+            "активний юніт, його ж процес — претензій нема",
+            adjudicate(
+                [process("1", +10)],
+                (now, "x.py"),
+                [{"unit": "u.service", "active": "active", "main_pid": "1"}],
+            )["units_not_serving"],
+            [],
+        ),
     ]
     passed = 0
     for name, got, want in checks:
@@ -172,7 +252,11 @@ def main() -> int:
     arguments = parser.parse_args()
     if arguments.selftest:
         return selftest()
-    report = adjudicate(serving_processes(arguments.proc_root), newest_source())
+    report = adjudicate(
+        serving_processes(arguments.proc_root),
+        newest_source(),
+        unit_states(required_units()),
+    )
     report["ran_at"] = datetime.now(UTC).isoformat()
     # Прив'язка до дерева: споживач (модель впевненості) відкидає звіт про інший коміт.
     # Без поля звіт описував «якийсь» стан, і вчорашній вимір читався як сьогоднішній.
@@ -184,6 +268,8 @@ def main() -> int:
     arguments.out.write_text(rendered, encoding="utf-8")
     print(rendered)
     if report["status"] != "MEASURED":
+        return 2
+    if report["units_not_serving"]:
         return 2
     return 0 if report["rate"] == 1.0 else 1
 
