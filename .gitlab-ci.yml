@@ -381,10 +381,6 @@ api:postgres-and-restore:
     # RLS обмежує. Локальний `scripts/run_postgres_suite.sh` створює всі три ролі; ця
     # джоба створювала лише застосункову, і саме тому її перший в історії прогін
     # (03.09.2026) упав із «PostgreSQL RLS requires a separate authz database identity».
-    KORPUS_POSTGRES_AUTHZ_ROLE: korpus_authz
-    KORPUS_POSTGRES_AUTHZ_PASSWORD: korpus-authz-test-password
-    KORPUS_POSTGRES_REVIEW_ROLE: korpus_review
-    KORPUS_POSTGRES_REVIEW_PASSWORD: korpus-review-test-password
     KORPUS_AUTHZ_DATABASE_URL: postgresql+psycopg://korpus_authz:korpus-authz-test-password@postgres:5432/korpus_test
     KORPUS_REVIEW_DATABASE_URL: postgresql+psycopg://korpus_review:korpus-review-test-password@postgres:5432/korpus_test
     KORPUS_POSTGRES_TEST_URL: postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test
@@ -415,7 +411,11 @@ api:postgres-and-restore:
     - KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" python scripts/wait_for_database.py
   script:
     - KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" bash -c 'cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_db_defense_and_vectors && python -m alembic -c alembic.ini upgrade head'
-    - KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" python scripts/prepare_postgres_role.py
+    # Імена й паролі ролей — входи ОДНОГО кроку, а не оточення джоби. На рівні джоби
+    # вони їхали б у застосунок, який відмовляється стартувати з нерозпізнаними
+    # `KORPUS_*`: невідоме ім'я тихо лишає налаштування на дефолті, і сторож проти
+    # цього правильний. Виміряно 03.09.2026 — джоба впала з кодом 4 саме на ньому.
+    - KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" KORPUS_POSTGRES_AUTHZ_ROLE=korpus_authz KORPUS_POSTGRES_AUTHZ_PASSWORD=korpus-authz-test-password KORPUS_POSTGRES_REVIEW_ROLE=korpus_review KORPUS_POSTGRES_REVIEW_PASSWORD=korpus-review-test-password python scripts/prepare_postgres_role.py
     # The whole suite against the migrated database, not only the postgres-marked test.
     # Every closure in this tree was proved on SQLite; the first run of this line found
     # a schema revision pin the code had outgrown, an audit verdict that called a
@@ -447,7 +447,7 @@ api:postgres-and-restore:
     - scripts/restore_postgres.sh "$backup_path"
     - export KORPUS_RECOVERY_RESTORE_SECONDS="$(python3 -c "import sys;print(float(sys.argv[2])-float(sys.argv[1]))" "$restore_started" "$(date +%s.%N)")"
     - export KORPUS_DATABASE_URL='postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_restore'
-    - python scripts/prepare_postgres_role.py
+    - KORPUS_POSTGRES_AUTHZ_ROLE=korpus_authz KORPUS_POSTGRES_AUTHZ_PASSWORD=korpus-authz-test-password KORPUS_POSTGRES_REVIEW_ROLE=korpus_review KORPUS_POSTGRES_REVIEW_PASSWORD=korpus-review-test-password python scripts/prepare_postgres_role.py
     - export KORPUS_POSTGRES_TEST_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore'
     # Ті самі три особи, але вже у ВІДНОВЛЕНІЙ базі: без них перевірка відновлення
     # говорила б із застосунком, який не може піднятись.
