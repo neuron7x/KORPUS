@@ -76,6 +76,32 @@ def _steps(*states: str) -> list[dict[str, object]]:
     return [{"target": f"t{index}", "state": state} for index, state in enumerate(states)]
 
 
+def _accepted() -> dict[str, object]:
+    """Вирок сторожа зведення дослівно: обсяг у назві, машинна відповідь — у полі."""
+    return {"verdict": "BRANCH_CONSOLIDATION_ACCEPTED", "ACCEPTED": True, "problems": []}
+
+
+def _rejected() -> dict[str, object]:
+    return {"verdict": "REJECTED", "ACCEPTED": False, "problems": ["щось"]}
+
+
+def test_a_scoped_acceptance_is_still_an_acceptance() -> None:
+    """Сторож називає вирок ОБСЯГОМ; лан мусить читати поле, а не збіг рядка.
+
+    Виміряно 03.09.2026: вісімнадцять кроків із вісімнадцяти пройшли, а лан сказав
+    FAIL — споживач порівнював `verdict` з голим `ACCEPTED`, якого виробник більше не
+    пише. Відмова була про код, якого немає.
+    """
+    assert RUNNER.status(_accepted(), _steps("PASSED", "PASSED")) == "PASS"
+
+
+def test_a_verdict_without_the_acceptance_field_is_not_a_pass() -> None:
+    """`NOT_REACHED` і `UNREADABLE` поля не несуть — і не сміють читатись як згода."""
+    assert RUNNER.status({"verdict": "NOT_REACHED"}, _steps("PASSED", "PASSED")) == "FAIL"
+    assert RUNNER.status({"verdict": "UNREADABLE"}, _steps("PASSED", "PASSED")) == "FAIL"
+    assert RUNNER.status({"verdict": "BRANCH_CONSOLIDATION_ACCEPTED"}, _steps("PASSED")) == "FAIL"
+
+
 def test_a_skipped_step_never_reads_as_a_pass() -> None:
     """Пропуск — третій стан, і зливати його з проходженням не можна.
 
@@ -84,19 +110,19 @@ def test_a_skipped_step_never_reads_as_a_pass() -> None:
     спинявся на ньому назавжди, або — на дереві з давнім `var/recovery-report.json` —
     проходив, і вердикт залежав від вмісту var/, а не від виміру.
     """
-    assert RUNNER.status("ACCEPTED", _steps("PASSED", "PASSED")) == "PASS"
-    assert RUNNER.status("ACCEPTED", _steps("PASSED", RUNNER.SKIPPED)) == "INCOMPLETE"
+    assert RUNNER.status(_accepted(), _steps("PASSED", "PASSED")) == "PASS"
+    assert RUNNER.status(_accepted(), _steps("PASSED", RUNNER.SKIPPED)) == "INCOMPLETE"
 
 
 def test_a_failure_outranks_a_skip() -> None:
     """FAIL перебиває все: інакше пропуск ховав би падіння сусіднього кроку."""
-    assert RUNNER.status("ACCEPTED", _steps("FAILED", RUNNER.SKIPPED)) == "FAIL"
-    assert RUNNER.status("ACCEPTED", _steps("TIMED_OUT", "PASSED")) == "FAIL"
+    assert RUNNER.status(_accepted(), _steps("FAILED", RUNNER.SKIPPED)) == "FAIL"
+    assert RUNNER.status(_accepted(), _steps("TIMED_OUT", "PASSED")) == "FAIL"
 
 
 def test_a_rejected_verdict_is_not_saved_by_a_full_run() -> None:
     """Усі кроки зелені й вирок відхилено — це FAIL, а не PASS через кроки."""
-    assert RUNNER.status("REJECTED", _steps("PASSED", "PASSED")) == "FAIL"
+    assert RUNNER.status(_rejected(), _steps("PASSED", "PASSED")) == "FAIL"
 
 
 def test_external_evidence_steps_are_named_not_guessed() -> None:
