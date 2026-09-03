@@ -5759,6 +5759,15 @@
       "max_nesting": 2,
       "proof_lines": 37,
       "reason": "новий гейт: паритет розгорнутого краю з шаблоном дерева; початковий точний вимір і є стелею ратчета"
+    },
+    "scripts/verify_assurance_model.py": {
+      "lines": 253,
+      "max_complexity": 14,
+      "max_function_args": 1,
+      "max_function_lines": 42,
+      "max_nesting": 3,
+      "proof_lines": 55,
+      "reason": "новий гейт: структурна незалежність як замінник організаційної; початковий точний вимір і є стелею"
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

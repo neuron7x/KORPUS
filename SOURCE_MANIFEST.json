@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1797,
-  "root_sha256": "582da7ff552459fd67e31e66aed6646072990c86022484d09b698671308b4ced",
+  "root_sha256": "44b994dc78d6dd846e893e2d01f7b02208d70bb55a6785b74313cbaa2660c916",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 47638,
-      "sha256": "aa1f704e7ae377e7b3d5dd7650fa0d989409b8b93fad4cf4ae82dfb742b0157b",
+      "bytes": 48093,
+      "sha256": "36bd28f998d67d6a3982e0d1dcc9c9b1b46a8c6fae705330db00c159de0bb633",
       "mode": "0644"
     },
     {
@@ -409,8 +409,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 100786,
-      "sha256": "726b74e25c7fcbb1ad33ad8d09036797822255a5a532f6591036ad88312a217a",
+      "bytes": 101730,
+      "sha256": "dd21c9b10215113973a68231645d70cf397a87642a277c9b3a37718f07f4315a",
       "mode": "0644"
     },
     {
@@ -7298,7 +7298,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "c2f87b745f5bd70edb125fff07009346d817ea1cd98d91d742a4f9372100bad2",
+      "sha256": "1d1236b8ec4c0478700b4f31b6d902d22819138cc1f22328ca506b2a5ac70008",
       "mode": "0644"
     },
     {
@@ -7327,14 +7327,14 @@
     },
     {
       "path": "config/operations/gate-liveness.yaml",
-      "bytes": 16079,
-      "sha256": "8312933b12bd6c32d6544676d38091acc4fa1c7b031519cdfb7258c441c1954a",
+      "bytes": 18024,
+      "sha256": "19062ddb4968031f592096ed1ced47b3d5d6134da3e324fb079fe350c8edb181",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 550946,
-      "sha256": "3aa351028362f1b561b5741a47595b78744c4a41505fbdc91bb4f30aa8b96b5a",
+      "bytes": 551356,
+      "sha256": "e447f2a7fe2aa9cdf807b1497c7142416196980a0e0abbc5c6a3fa63c65ce8c6",
       "mode": "0644"
     },
     {

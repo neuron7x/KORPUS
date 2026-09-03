@@ -92,6 +92,10 @@ repository:validate:
     # замикання гейтів.
     # Паритет розгорнутого краю перевіряється лише самоперевіркою: у раннері немає
     # контейнера краю, і вирок там був би UNKNOWN. Здатність гейта ЛОВИТИ — є.
+    # Модель впевненості: структурна незалежність замість організаційної. У раннері
+    # немає рантайму, тож частина замінників дасть NOT_MEASURED; здатність гейта
+    # ловити самопідпис — є, і саме її перевіряє самоперевірка.
+    - python scripts/verify_assurance_model.py --selftest
     - python scripts/check_edge_config_parity.py --selftest
     - python scripts/check_unit_exec_arguments.py --selftest
     - python scripts/check_unit_exec_arguments.py
