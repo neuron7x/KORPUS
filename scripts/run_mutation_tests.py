@@ -5561,6 +5561,39 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M681_HANDOFF_LIVENESS_REBINDS_A_MALFORMED_DIGEST",
+        "scripts/run_handoff_liveness_probe.py",
+        "        and HEX_SHA256.fullmatch(tracked)\n",
+        "",
+        (
+            "apps/api/tests/test_handoff_liveness_probe.py::"
+            "test_a_poisoned_or_failed_report_is_never_rebound",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M682_HANDOFF_LIVENESS_REBINDS_AN_INCOMPARABLE_SCOPE",
+        "scripts/run_handoff_liveness_probe.py",
+        '        and report.get("tracked_tree_scope") == DIGEST_SCOPE\n',
+        "",
+        (
+            "apps/api/tests/test_handoff_liveness_probe.py::"
+            "test_a_poisoned_or_failed_report_is_never_rebound",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M683_HANDOFF_LIVENESS_REBINDS_A_FAILED_REPORT",
+        "scripts/run_handoff_liveness_probe.py",
+        '        report.get("status") == "PASS"\n        and ',
+        "        ",
+        (
+            "apps/api/tests/test_handoff_liveness_probe.py::"
+            "test_a_poisoned_or_failed_report_is_never_rebound",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M676_THE_RESOLVED_COMMAND_ALIASES_THE_REGISTRY_ENTRY",
         "scripts/check_deployment_debt.py",
         "    command: list[str] = list(value)",
