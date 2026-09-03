@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1796,
-  "root_sha256": "435d5e045892f771809fa8842e7fb213f1bc649a201d42fef9ca804df8765116",
+  "file_count": 1797,
+  "root_sha256": "582da7ff552459fd67e31e66aed6646072990c86022484d09b698671308b4ced",
   "files": [
     {
       "path": ".dockerignore",
@@ -225,6 +225,12 @@
       "path": "KORPUS_ENGINEERING_CLOSURE/15_GOVERNANCE/concurrent_write_conflict_2026-09-03.json",
       "bytes": 3786,
       "sha256": "6b3ff62e9395d47e822e5cfc550ca5dc34bf5cc5538f4be740a18a128c5c4b4b",
+      "mode": "0644"
+    },
+    {
+      "path": "KORPUS_ENGINEERING_CLOSURE/15_GOVERNANCE/external_requirements.json",
+      "bytes": 4426,
+      "sha256": "b883704566c077c00d31ae5baf49790acb408b0312b00fd3e241a6332424303c",
       "mode": "0644"
     },
     {
