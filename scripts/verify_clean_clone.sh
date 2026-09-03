@@ -24,9 +24,31 @@ git clone --quiet --no-local "$ROOT" "$TARGET"
 # the artefact under test.
 ln -s "$ROOT/apps/api/.venv" "$TARGET/apps/api/.venv"
 
-echo "clean clone of $(git -C "$ROOT" rev-parse --short HEAD) at $TARGET"
+COMMIT="$(git -C "$ROOT" rev-parse HEAD)"
+echo "clean clone of ${COMMIT:0:8} at $TARGET"
+started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 status=0
 make -C "$TARGET" $TARGETS || status=$?
+
+# Звіт пишеться ЗАВЖДИ, і в цьому весь сенс. Вимір, чий результат нікуди не лягає, не є
+# виміром: споживач читає файл від попереднього прогону й не має способу дізнатись, що
+# вимір узагалі був. Той самий клас щойно знайдено в `gate-liveness`, який писав звіт
+# лише за наявності `OUT=`.
+REPORT="${CLEAN_CLONE_REPORT:-$ROOT/var/clean-clone.json}"
+mkdir -p "$(dirname "$REPORT")"
+cat > "$REPORT" <<JSON
+{
+  "schema": "korpus.clean-clone.v1",
+  "status": "$([ "$status" -eq 0 ] && echo PASS || echo FAIL)",
+  "commit": "$COMMIT",
+  "targets": "$TARGETS",
+  "exit_code": $status,
+  "started_at": "$started",
+  "finished_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "interpretation": "Клон HEAD без робочого дерева. Відповідає на питання, якого робоче дерево поставити не може: чи стоїть коміт сам по собі. Мутація сюди НЕ входить навмисно — одинадцять хвилин на коміт тут не окупаються."
+}
+JSON
+
 if [ "$status" -ne 0 ]; then
   echo "FAIL: the commit does not stand on its own — $TARGETS failed in a clean clone" >&2
   echo "The working tree passing here means the difference is untracked or uncommitted." >&2

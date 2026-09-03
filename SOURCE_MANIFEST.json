@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1797,
-  "root_sha256": "44b994dc78d6dd846e893e2d01f7b02208d70bb55a6785b74313cbaa2660c916",
+  "file_count": 1799,
+  "root_sha256": "f53c55740b8aa6142c26f0baec3b765d2c9bf6e4e8c2f760ca3c9918f28c42d8",
   "files": [
     {
       "path": ".dockerignore",
@@ -409,8 +409,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 101730,
-      "sha256": "dd21c9b10215113973a68231645d70cf397a87642a277c9b3a37718f07f4315a",
+      "bytes": 102708,
+      "sha256": "d59fefce31223398c656438e4debe4e8c49617ead37ca7707abe7a1e0382fbae",
       "mode": "0644"
     },
     {
@@ -7242,6 +7242,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/governance/assurance-model.json",
+      "bytes": 4991,
+      "sha256": "f05977103e5ce8db3a39022d01c45822d4249585f758ae29f6e014ba8d824639",
+      "mode": "0644"
+    },
+    {
       "path": "config/governance/public-corpus-v1.json",
       "bytes": 1421,
       "sha256": "832bf02a608efec940d8525b49fef32e5a4bc108438ab12a265419fa50772820",
@@ -10590,6 +10596,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/verify_assurance_model.py",
+      "bytes": 15012,
+      "sha256": "7ebe2df7a7b1377d659075829a249fc7c8adf861aa9e64a0fc87a17ec8867321",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/verify_audit.py",
       "bytes": 309,
       "sha256": "05633878458398cf30a0a2159988df97b1aa9e8d0a52919ab718b3f3dcfd9524",
@@ -10621,8 +10633,8 @@
     },
     {
       "path": "scripts/verify_clean_clone.sh",
-      "bytes": 1636,
-      "sha256": "664f56a045b086255e7986c37c5052aa9cc171180c6bcf80eeace42fb271c95c",
+      "bytes": 2950,
+      "sha256": "f91c057bde3ad64cb0ab3f60123247418017d4b58f883a2bbc265ba2015c2182",
       "mode": "0755"
     },
     {
