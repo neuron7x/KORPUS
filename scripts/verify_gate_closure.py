@@ -95,6 +95,31 @@ _SCRIPT = re.compile(r"(scripts/[A-Za-z0-9_./-]+\.(?:py|sh))")
 # ------------------------------------------------------------------- граф (без I/O)
 
 
+#: Прапорці, що МІНЯЮТЬ ПРЕДМЕТ перевірки, а не її оформлення. Решта (`--out`, `--root`,
+#: шляхи до звітів) на твердження не впливає, і вносити її в тотожність означало б
+#: оголошувати різними цілі, які перевіряють те саме.
+_PREDICATE_FLAGS = re.compile(r"--(?:require|strict|full|deep|bound|exact)[a-z-]*")
+
+
+def _invocation(line: str, match: re.Match[str]) -> str:
+    """Тотожність запуску: ім'я скрипта ПЛЮС прапорці, що міняють його предмет.
+
+    Раніше тут стояло саме лише ім'я файла, і `enforced` зараховував ціль виконаною,
+    щойно той самий файл запускав хтось досяжний. Виміряно 02.09.2026:
+    `handoff-verify` і `handoff-verify-bound` запускають один
+    `verify_handoff_contract.py`, і вся різниця між ними — `--require-bound`, тобто
+    САМЕ ТОЙ предикат, заради якого друга ціль існує. Ціль була зарахована, предикат
+    не обчислювався в жодному лані, що виконується.
+
+    Тому в тотожність входять прапорці, які міняють предмет. `--out` і шляхи не
+    входять: два запуски, що пишуть у різні файли, перевіряють одне й те саме, і
+    розрізняти їх означало б наплодити «непокритих» цілей там, де покриття є.
+    """
+    tail = line[match.end() :]
+    flags = sorted(set(_PREDICATE_FLAGS.findall(tail)))
+    return match.group(1) + ("".join(" " + flag for flag in flags) if flags else "")
+
+
 def parse_graph(text: str) -> tuple[dict[str, set[str]], list[str], dict[str, set[str]]]:
     """Ціль → її передумови, ребра з рецептів, і скрипти, які ціль запускає.
 
@@ -112,7 +137,7 @@ def parse_graph(text: str) -> tuple[dict[str, set[str]], list[str], dict[str, se
                 for match in _RECURSIVE_MAKE.finditer(line):
                     edges.setdefault(current, set()).add(match.group(1))
                 for match in _SCRIPT.finditer(line):
-                    scripts.setdefault(current, set()).add(match.group(1))
+                    scripts.setdefault(current, set()).add(_invocation(line, match))
             continue
         matched = _RULE.match(line)
         if matched is None:

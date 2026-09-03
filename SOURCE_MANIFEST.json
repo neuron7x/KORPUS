@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1795,
-  "root_sha256": "b5affed2a1d161d68bfc5276ba314ed30328b778de96cf2ef1e83ed23631e83a",
+  "root_sha256": "094d145fe20b92fd8f1cab28286392128e6b9ac381f25b343b3da80247d8bb7e",
   "files": [
     {
       "path": ".dockerignore",
@@ -397,8 +397,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 98538,
-      "sha256": "eaec114e312461e504de33387acad738b19cf1a00c03239fbd21804c6d7a156e",
+      "bytes": 99626,
+      "sha256": "1b1cd4bd7cdad46576390a17f55a38e9efb629a49f31850649b9dec72121a3cb",
       "mode": "0644"
     },
     {
@@ -7309,8 +7309,8 @@
     },
     {
       "path": "config/operations/gate-closure.json",
-      "bytes": 10096,
-      "sha256": "c0c2450403d460473dc98515ec9f420d454c8241168be3d8a64fa194205bd40c",
+      "bytes": 11557,
+      "sha256": "5cb3d68689fab914f3ca927c4ea2a530a1cabef5aeb3437f369f811423212e9d",
       "mode": "0644"
     },
     {
@@ -7321,8 +7321,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 542980,
-      "sha256": "13f49137d6506355ab316c3b3ad0f68de533eec931a806bc8e872dd8aac19a21",
+      "bytes": 546577,
+      "sha256": "9adce0c59486d3cba321ad326d6fd115ce9d9f35600a1b5a0268a6026439d730",
       "mode": "0644"
     },
     {
@@ -9067,8 +9067,8 @@
     },
     {
       "path": "scripts/check_answer_axes.py",
-      "bytes": 14536,
-      "sha256": "eb54e9f4c55fff366547f7abe9c2eb580f3d9c9642d9ab34d9a0324d31c88703",
+      "bytes": 23927,
+      "sha256": "7ff6227f1f3cee42514ecd566405c71b8a23439e2d77f4cf527293458a793840",
       "mode": "0755"
     },
     {
@@ -10639,8 +10639,8 @@
     },
     {
       "path": "scripts/verify_gate_closure.py",
-      "bytes": 29829,
-      "sha256": "c9b18364d1964ec0a4261c21648cf77bd0109335f2bf9fa538c711046b15f54f",
+      "bytes": 31790,
+      "sha256": "8bf3cae88df5f0bfb53f99dec96cb89fa7f51638aeb76261657f682ae64ac502",
       "mode": "0755"
     },
     {

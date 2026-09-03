@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sqlite3
 import sys
 from datetime import UTC, datetime
@@ -84,13 +85,62 @@ def stale_input(spec: dict[str, Any], payload: dict[str, Any], root: Path) -> st
     # сотні нових подій.
     head = recorded.get("audit_head")
     if head is not None:
-        connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
-        try:
-            row = connection.execute("select head_hash from audit_heads").fetchone()
-        finally:
-            connection.close()
-        if (str(row[0]) if row else "") != head:
-            return "журнал подій просунувся після цього звіту"
+        moved = journal_moved_under_report(database, str(head), payload)
+        if moved is not None:
+            return moved
+    return None
+
+
+def journal_moved_under_report(database: Path, head: str, payload: dict[str, Any]) -> str | None:
+    """Чи журнал ЗМІНИВСЯ під звітом — на відміну від «просто виріс».
+
+    Раніше тут стояла рівність голів, і будь-яка нова подія робила звіт несвіжим. Для
+    дайджеста корпусу це правильно: інший вміст — інший предмет. Для журналу аудиту —
+    ні. Журнал ДОПИСУВАНИЙ: нова подія не змінює жодного байта тих, що вже є, і не
+    робить хибним твердження про виміряний відтинок.
+
+    Наслідок старого правила виміряно 03.09.2026: сторож дав UNKNOWN сім прогонів
+    поспіль, бо живий сервер пише подію на кожну відповідь. Сигнал, який не може стати
+    нічим іншим, перестає бути виміром — він не помітить і справжньої зміни.
+
+    Але просто «дозволити рости» означало б убити ратчет, заради якого вісь існує: її
+    предмет — саме НОВА подія, підписана плейсхолдером. Тому розрізняються три стани.
+
+    1. Голова та сама — звіт описує весь журнал.
+    2. Голова зрушила, але подія з записаним хешем НА МІСЦІ — префікс цілий, звіт
+       лишається дійсним ПРО СВІЙ ВІДТИНОК. Тоді питання переходить на хвіст: якщо
+       кожна нова подія несе ключ, який звіт уже знав, ратчет не спрацьовує; якщо
+       з'явився ключ поза `keys_offered` — це рівно те, що вісь ловить, і звіт більше
+       не описує стан.
+    3. Події із записаним хешем у журналі НЕМАЄ — префікс переписано. Це не
+       застарілість, а підробка, і вона мусить називатись інакше.
+
+    Членство ключа СЛАБШЕ за перевірку підпису, і тому воно тут не робить тверджень про
+    хвіст: `rate` лишається числом про виміряний відтинок, а розмір хвоста виходить
+    назовні окремо (`uncovered_events`), щоб релізний рівень міг вимагати нуля.
+    """
+    connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
+    try:
+        live = connection.execute("select sequence, head_hash from audit_heads").fetchone()
+        if live is None:
+            return "у журналі немає голови"
+        if str(live[1]) == head:
+            return None
+        anchor = connection.execute(
+            "select sequence from audit_events where event_hash = ?", (head,)
+        ).fetchone()
+        if anchor is None:
+            return "журнал переписано: події з головою цього звіту в ньому немає"
+        tail = connection.execute(
+            "select distinct audit_key_id from audit_events where sequence > ?", (anchor[0],)
+        ).fetchall()
+        payload["uncovered_events"] = int(live[0]) - int(anchor[0])
+    finally:
+        connection.close()
+    known = set(payload.get("keys_offered") or ())
+    unknown = sorted({str(row[0]) for row in tail} - known)
+    if unknown:
+        return f"після звіту з'явились події під ключами, яких він не знав: {unknown}"
     return None
 
 
@@ -154,7 +204,7 @@ def measure_axis(name: str, spec: dict[str, Any], root: Path) -> dict[str, Any]:
         population = 0
     if spec.get("invert"):
         value = 1.0 - value
-    return {
+    result = {
         "axis": name,
         "state": "MEASURED",
         "value": round(value, 4),
@@ -162,6 +212,14 @@ def measure_axis(name: str, spec: dict[str, Any], root: Path) -> dict[str, Any]:
         "population": population,
         "below_floor": value < float(spec["floor"]),
     }
+    # Скільки подій дописано ПІСЛЯ виміряного відтинку. Нуль означає, що число описує
+    # весь журнал; більше нуля — що воно описує префікс, і релізний рівень має право
+    # цього не приймати. Без цього поля «звіт про 9831 подію» і «звіт про 9831 із 9871»
+    # виглядали б однаково.
+    uncovered = payload.get("uncovered_events")
+    if uncovered is not None:
+        result["uncovered_events"] = int(uncovered)
+    return result
 
 
 def compose(axes: list[dict[str, Any]], relaxed: list[dict[str, Any]]) -> dict[str, Any]:
@@ -239,22 +297,113 @@ def selftest() -> int:
     weakest = compose([axis("a", 0.99, 0.8), axis("b", 0.42, 0.1)], [])["weakest"]
     if weakest is None or weakest["axis"] != "b":
         failures.append("вирок не назвав найслабшу вісь")
+    failures.extend(_journal_selftest())
     print(
-        json.dumps({"selftest": len(cases) + 1, "failed": failures}, ensure_ascii=False, indent=2)
+        json.dumps(
+            {"selftest": len(cases) + 1 + _JOURNAL_CASES, "failed": failures},
+            ensure_ascii=False,
+            indent=2,
+        )
     )
     return 1 if failures else 0
+
+
+#: Скільки тверджень перевіряє `_journal_selftest`. Названо числом, бо підсумок
+#: самоперевірки, який не рахує власних випадків, звітує про менше, ніж перевіряє.
+_JOURNAL_CASES = 4
+
+
+def _journal_selftest() -> list[str]:
+    """Отрути по ДАНИХ для правила дописуваного журналу.
+
+    Правило замінило рівність голів, і без цих чотирьох тверджень заміна була б
+    послабленням, а не виправленням: три з них доводять, що воно ЩЕ ловить, і лише
+    четверте — що воно перестало кричати на доброякісний ріст.
+    """
+    import tempfile
+
+    def journal(rows: list[tuple[int, str, str]], head: tuple[int, str]) -> Path:
+        descriptor, name = tempfile.mkstemp(suffix=".db")
+        os.close(descriptor)
+        path = Path(name)
+        connection = sqlite3.connect(path)
+        connection.execute(
+            "create table audit_events (sequence int, event_hash text, audit_key_id text)"
+        )
+        connection.execute(
+            "create table audit_heads (singleton_id int, sequence int, head_hash text)"
+        )
+        connection.executemany("insert into audit_events values (?,?,?)", rows)
+        connection.execute("insert into audit_heads values (1,?,?)", head)
+        connection.commit()
+        connection.close()
+        return path
+
+    known = {"keys_offered": ["k1"]}
+    problems: list[str] = []
+
+    same = journal([(1, "h1", "k1")], (1, "h1"))
+    if journal_moved_under_report(same, "h1", dict(known)) is not None:
+        problems.append("журнал, що не рухався, оголошено несвіжим")
+
+    grown = journal([(1, "h1", "k1"), (2, "h2", "k1")], (2, "h2"))
+    payload: dict[str, Any] = dict(known)
+    if journal_moved_under_report(grown, "h1", payload) is not None:
+        problems.append("ДОПИСАНІ події під відомим ключем зробили звіт несвіжим")
+    elif payload.get("uncovered_events") != 1:
+        problems.append(f"хвіст не порахований: {payload.get('uncovered_events')}")
+
+    foreign = journal([(1, "h1", "k1"), (2, "h2", "ПЛЕЙСХОЛДЕР")], (2, "h2"))
+    if journal_moved_under_report(foreign, "h1", dict(known)) is None:
+        problems.append("подія під НЕВІДОМИМ ключем не спрацювала: ратчет мертвий")
+
+    rewritten = journal([(1, "інший", "k1"), (2, "h2", "k1")], (2, "h2"))
+    verdict = journal_moved_under_report(rewritten, "h1", dict(known))
+    if verdict is None or "переписано" not in verdict:
+        problems.append(f"переписаний префікс не названо підробкою: {verdict}")
+
+    for candidate in (same, grown, foreign, rewritten):
+        candidate.unlink(missing_ok=True)
+    return problems
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--selftest", action="store_true")
+    # Релізний рівень. Звичайний прогін приймає число ПРО ВИМІРЯНИЙ ВІДТИНОК: журнал
+    # дописуваний, і подія, написана після виміру, не робить твердження про префікс
+    # хибним. Реліз — інша справа: він стверджує про СТАН, а не про відтинок, тож
+    # вимагає, щоб відтинок був цілим журналом.
+    #
+    # Без цього прапорця правило дописуваного журналу було б послабленням: вісь
+    # перестала б ставати UNKNOWN від росту й не набула б натомість жодного місця,
+    # де хвіст важить. Сигнал, який ні на що не впливає, вимірює нуль.
+    parser.add_argument("--require-full-journal-coverage", action="store_true")
     args = parser.parse_args()
     if args.selftest:
         return selftest()
     profile = json.loads(PROFILE.read_text(encoding="utf-8"))
     axes = [measure_axis(name, spec, args.root) for name, spec in profile["axes"].items()]
     result = compose(axes, list(profile.get("relaxed", [])))
+    uncovered = [
+        (item["axis"], item["uncovered_events"])
+        for item in axes
+        if int(item.get("uncovered_events", 0)) > 0
+    ]
+    if args.require_full_journal_coverage and uncovered:
+        result = {
+            **result,
+            "verdict": "UNKNOWN",
+            "problems": [
+                *result.get("problems", []),
+                *(
+                    f"{axis}: число описує префікс журналу, а не стан — {count} подій дописано "
+                    f"після виміру; для релізу перезнімайте вимірювач безпосередньо перед віссю"
+                    for axis, count in uncovered
+                ),
+            ],
+        }
     print(json.dumps({**result, "axes": axes}, ensure_ascii=False, indent=2))
     return {"PASS": 0, "FAIL": 1, "UNKNOWN": 2}[str(result["verdict"])]
 

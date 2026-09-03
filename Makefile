@@ -479,7 +479,16 @@ corpus-axes:
 	  --key "legacy-unversioned=$(SECRET_DIR)/audit-key-legacy-unversioned.txt" \
 	  --key "serve-public-inline-2026-08=$(SECRET_DIR)/audit-key-serve-public-inline.txt" \
 	  --min-attribution 1.0 --max-placeholder-signed 4061
-	$(MAKE) answer-axes PY=$(PY)
+# `--require-full-journal-coverage` РІВНО ТУТ, і це робить порядок вище перевірюваним.
+# Вимірювач журналу стоїть безпосередньо перед віссю, тож хвіст мусить бути НУЛЬ; якщо
+# між ними хтось написав подію, ціль падає замість того, щоб тихо видати число про
+# префікс. Коментар «ПОРЯДОК НЕ ДЕКОРАТИВНИЙ» був твердженням; тепер це перевірка.
+#
+# Окрема ціль `answer-axes` лишається м'якою навмисно: журнал ДОПИСУВАНИЙ, і подія,
+# написана після виміру, не робить хибним твердження про виміряний відтинок. Сім
+# прогонів сторожа поспіль давали UNKNOWN саме тому, що це не розрізнялось.
+	$(PY) scripts/check_answer_axes.py --selftest
+	$(PY) scripts/check_answer_axes.py --require-full-journal-coverage
 
 evidence-bases:
 	$(PY) scripts/measure_evidence_bases.py --selftest
