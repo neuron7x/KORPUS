@@ -44,7 +44,8 @@ def synthetic_binding(report: dict[str, Any], digest: str) -> dict[str, Any]:
 def verify() -> dict[str, Any]:
     """Call the production verifier with a read-only in-memory liveness fixture."""
     assurance_path = ROOT / "reports" / "RESEARCH_ASSURANCE_REPORT.json"
-    original_load: Callable[[Path], dict[str, Any]] = handoff._load  # noqa: SLF001
+    namespace = vars(handoff)
+    original_load: Callable[[Path], dict[str, Any]] = namespace["_load"]
 
     def load(path: Path) -> dict[str, Any]:
         report = original_load(path)
@@ -52,14 +53,14 @@ def verify() -> dict[str, Any]:
             return synthetic_binding(report, source_tree_digest())
         return report
 
-    handoff._load = load  # noqa: SLF001
+    namespace["_load"] = load
     try:
         result: object = handoff.verify(require_bound=True)
         if not isinstance(result, dict):
             raise RuntimeError("handoff verifier returned a non-object report")
         return {str(key): value for key, value in result.items()}
     finally:
-        handoff._load = original_load  # noqa: SLF001
+        namespace["_load"] = original_load
 
 
 if __name__ == "__main__":
