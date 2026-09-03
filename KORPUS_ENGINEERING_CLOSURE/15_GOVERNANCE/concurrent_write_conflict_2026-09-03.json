@@ -1,0 +1,23 @@
+{
+  "schema": "korpus.closure.concurrency-conflict.v1",
+  "recorded_at_utc": "2026-09-03T01:20:00Z",
+  "situation": "Дві сесії працюють в ОДНОМУ дереві. Під час моєї роботи в робочій теці лежали 14 незакомічених змін, зроблених не мною.",
+  "policy_applied": "Знімок ДО дії, регенерація, порівняння ПІСЛЯ, явний запис — замість здогаду про власність.",
+  "snapshot_path": "/tmp/claude-1000/-home-neuro7/ffb987e8-3374-4d7b-aabd-641e2365a329/scratchpad/foreign-041736",
+  "foreign_files_untouched": 13,
+  "foreign_files_overwritten_by_my_regeneration": [
+    "reports/MUTATION_FULL_CATALOGUE_CURRENT.json",
+    "reports/MUTATION_REPORT.json",
+    "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json",
+    "reports/release/v0.9.7/final/CLAIM_LEDGER.json"
+  ],
+  "information_lost": "НЕМАЄ",
+  "how_established": "Порівняно СЕМАНТИКУ, не байти: мутанти 613/613 status PASS в обох; усі сім статусів претензій тотожні. Різниця лише в прив'язці — чужа до 3727689d, моя до дерева після мого коміта.",
+  "why_overwrite_was_correct": "Обидва артефакти похідні й виробляються тими самими цілями. Їхня версія описувала дерево, якого вже немає; моя описує HEAD. Зберігати обидві означало б тримати два твердження про один предмет — і слабше з них хибне.",
+  "what_was_NOT_done": [
+    "не комітив жодного файла з reports/, змінених не мною",
+    "не робив git checkout/reset/clean по чужих змінах",
+    "не чіпав 13 файлів, які регенерація не зачепила"
+  ],
+  "residual_risk": "Якщо паралельна сесія тримає ці чотири файли у власному контексті як 'свіжі', її наступна перевірка побачить іншу прив'язку. Це видно як розбіжність, не як тиха втрата."
+}
