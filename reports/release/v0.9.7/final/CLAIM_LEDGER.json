@@ -1,8 +1,8 @@
 {
   "schema": "korpus.claim-ledger.v2",
-  "generated_at": "2026-09-03T12:25:36.371313+00:00",
+  "generated_at": "2026-09-03T12:44:03.848734+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "e04ec384a085927713acbe059625b4d9d62fa9bacdf48eec3b6c577d8344e14b",
+  "source_tree_sha256": "9ddc2abe25105953fdc5dcf95e2122e596fb96dafa769c29b615a3759f51d172",
   "claims": [
     {
       "id": "CLM-SOURCE-INTEGRITY",
