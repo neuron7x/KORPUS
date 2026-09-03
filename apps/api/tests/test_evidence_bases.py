@@ -135,7 +135,8 @@ def test_the_fingerprint_does_not_carry_the_password() -> None:
 
 
 def test_relative_evidence_base_paths_bind_to_the_runtime_root(
-    tmp_path: Path, monkeypatch,
+    tmp_path: Path,
+    monkeypatch,
 ) -> None:
     monkeypatch.setattr(evidence_bases, "DATA_ROOT", tmp_path)
 

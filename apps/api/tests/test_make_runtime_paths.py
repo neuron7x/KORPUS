@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def _make_value(name: str) -> str:
-    recipe = f'__print_runtime_path:\n\t@printf \'%s\\n\' "$({name})"'
+    recipe = f"__print_runtime_path:\n\t@printf '%s\\n' \"$({name})\""
     completed = subprocess.run(
         [
             "make",

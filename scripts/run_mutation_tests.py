@@ -5629,8 +5629,8 @@ MUTANTS = (
     Mutant(
         "M687_LIVE_CORPUS_AXES_ARE_MISREPORTED_AS_INTERNAL",
         "scripts/run_release_verify.py",
-        '    {"assemble-assurance", "snapshot", "corpus-axes"}\n',
-        '    {"assemble-assurance", "snapshot"}\n',
+        'EXTERNAL_EVIDENCE: frozenset[str] = frozenset({"assemble-assurance", "snapshot", "corpus-axes"})',
+        'EXTERNAL_EVIDENCE: frozenset[str] = frozenset({"assemble-assurance", "snapshot"})',
         (
             "apps/api/tests/test_release_verify_runner.py::"
             "test_external_evidence_steps_are_named_not_guessed",

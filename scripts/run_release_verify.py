@@ -52,9 +52,7 @@ EXTERNAL: tuple[tuple[str, str], ...] = (
 #: `var/recovery-report.json`, який виробляє лише `.gitlab-ci.yml`; локальний лан без
 #: docker не досягає PASS. Інакше --skip-external або спинявся, або приймав давній
 #: артефакт із var/. Пропуск дістав власне слово й ніколи не дає PASS.
-EXTERNAL_EVIDENCE: frozenset[str] = frozenset(
-    {"assemble-assurance", "snapshot", "corpus-axes"}
-)
+EXTERNAL_EVIDENCE: frozenset[str] = frozenset({"assemble-assurance", "snapshot", "corpus-axes"})
 
 SKIPPED = "SKIPPED_REQUIRES_EXTERNAL"
 
