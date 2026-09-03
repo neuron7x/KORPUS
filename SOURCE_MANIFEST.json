@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1796,
-  "root_sha256": "844b3bf7dd20aa40b58843e6708a09e6f575823b30ecdf35ceaa4af9e94f51a3",
+  "root_sha256": "b6857b386ab4d6d8f9a04709f08b996b05098ecb19d19179ccb07586da1487c6",
   "files": [
     {
       "path": ".dockerignore",
@@ -223,8 +223,8 @@
     },
     {
       "path": "KORPUS_ENGINEERING_CLOSURE/15_GOVERNANCE/concurrent_write_conflict_2026-09-03.json",
-      "bytes": 2336,
-      "sha256": "19191e3f28e4f2c5a9170bc49b7b14ab256d7a3c7a3d8b17eefbb11b93a0fcda",
+      "bytes": 3786,
+      "sha256": "6b3ff62e9395d47e822e5cfc550ca5dc34bf5cc5538f4be740a18a128c5c4b4b",
       "mode": "0644"
     },
     {
@@ -10597,8 +10597,8 @@
     },
     {
       "path": "scripts/verify_branch_consolidation.py",
-      "bytes": 20812,
-      "sha256": "656187f8a1da36cf53ac4b98475d20de2aa26f29a38cfb9a1b4578cf0acdb380",
+      "bytes": 21810,
+      "sha256": "b4324c9415f568686b61128bbfc1794eeccafd4058f2cb721e9fb8300b7bfc9f",
       "mode": "0755"
     },
     {

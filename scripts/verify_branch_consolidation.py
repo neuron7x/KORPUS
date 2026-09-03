@@ -337,7 +337,17 @@ def gather(canonical: str, prefix: str) -> dict[str, Any]:
         "branches_now": len(git("for-each-ref", "--format=%(refname)", "refs/heads").splitlines()),
         "problems": problems,
         "unknown": unknown,
-        "verdict": "REJECTED" if problems else ("UNKNOWN" if unknown else "ACCEPTED"),
+        # Вирок названий ОБСЯГОМ, а не голим словом. Рецензія 03.09.2026: `ACCEPTED`
+        # поруч із `production_authorized: false` в іншому звіті того самого дерева
+        # легко переноситься на право випуску, якого тут не встановлювали. Ця перевірка
+        # питає рівно одне: чи зведення гілок нічого не втратило й чи виміри описують
+        # ЦЕЙ коміт. Вона не питає про безпеку, відтворення з нуля, незалежну
+        # верифікацію й врядування, тож і сказати «прийнято» без обсягу не має права.
+        "verdict": (
+            "REJECTED" if problems else ("UNKNOWN" if unknown else "BRANCH_CONSOLIDATION_ACCEPTED")
+        ),
+        "scope": "branch consolidation and state binding only; NOT release authority",
+        "production_authority": False,
         "ACCEPTED": not problems and not unknown,
     }
 
