@@ -39,6 +39,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -173,6 +174,11 @@ def main() -> int:
         return selftest()
     report = adjudicate(serving_processes(arguments.proc_root), newest_source())
     report["ran_at"] = datetime.now(UTC).isoformat()
+    # Прив'язка до дерева: споживач (модель впевненості) відкидає звіт про інший коміт.
+    # Без поля звіт описував «якийсь» стан, і вчорашній вимір читався як сьогоднішній.
+    report["commit"] = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=False
+    ).stdout.strip()
     arguments.out.parent.mkdir(parents=True, exist_ok=True)
     rendered = json.dumps(report, ensure_ascii=False, indent=2)
     arguments.out.write_text(rendered, encoding="utf-8")

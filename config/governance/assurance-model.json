@@ -4,19 +4,16 @@
   "declared_by": "Owner",
   "model": "SOLO_OWNER_STRUCTURAL_INDEPENDENCE",
   "rationale": "Зовнішнього незалежного оцінювача (TEVV / red-team / assessor) у проєкті НЕМАЄ і він не є доступним ресурсом. Тримати його як блокуючу умову означало б мати гейт, якого ніхто не може пройти — а такий гейт прибирають, а не задовольняють. Тому організаційна незалежність замінюється СТРУКТУРНОЮ, і заміна описана тут як контракт, а не як послаблення.",
-
   "what_changed": {
     "before": "External Independent Assurance = MANDATORY; його відсутність давала FAIL і робила release недосяжним.",
     "after": "External Independent Assurance = NOT_PERFORMED / NON_BLOCKING. Блокує не відсутність зовнішньої сторони, а невиконання СТРУКТУРНИХ замінників нижче."
   },
-
   "release_authority": {
     "holder": "Owner",
     "agent_may_prepare": true,
     "agent_may_authorize": false,
     "note": "Агент готує кандидата й доказ. Рішення про випуск ухвалює Owner. Агент не підписує себе апрувером."
   },
-
   "external_independent_assurance": {
     "status": "NOT_PERFORMED",
     "blocking": false,
@@ -28,38 +25,67 @@
     "must_never_be_reported_as": "PASS",
     "why": "Невиконане не стає виконаним від того, що перестало блокувати. Статус лишається видимим і чесним."
   },
-
   "structural_independence_substitutes": [
-    {"id": "SI-1", "name": "executor != verifier-agent",
-     "requirement": "Верифікацію виконує інший агент, ніж той, що робив зміну; це мусить бути ВИКОНУВАНИЙ предикат, а не правило в документі.",
-     "blocking": true},
-    {"id": "SI-2", "name": "окремий чистий контекст",
-     "requirement": "Верифікатор стартує без контексту виконавця: свій пакет доказів, своє дерево, свої входи.",
-     "blocking": true},
-    {"id": "SI-3", "name": "adversarial verification",
-     "requirement": "Кожен релізо-критичний гейт має доведену здатність ВІДХИЛИТИ: отрута по даних, вирок ARMED.",
-     "blocking": true},
-    {"id": "SI-4", "name": "negative controls",
-     "requirement": "Кожне нове твердження має контроль, який падає, коли твердження хибне.",
-     "blocking": true},
-    {"id": "SI-5", "name": "mutation testing",
-     "requirement": "Каталог мутантів цілий: survived=0, invalid=0, score_over_catalogue=1.0.",
-     "blocking": true},
-    {"id": "SI-6", "name": "clean-room reproduction",
-     "requirement": "Кандидат відтворюється з чистого клону без ручних правок.",
-     "blocking": true},
-    {"id": "SI-7", "name": "CI hard gates",
-     "requirement": "Лани виконуються конвеєром, а не лише локально; дзеркало локального й CI звірене.",
-     "blocking": true},
-    {"id": "SI-8", "name": "runtime evidence",
-     "requirement": "Тотожність процесу, що обслуговує, прив'язана до кандидата; спостережність доведена на рантаймі.",
-     "blocking": true}
+    {
+      "id": "SI-1",
+      "name": "executor != verifier-agent",
+      "requirement": "Верифікацію виконує інший агент, ніж той, що робив зміну; це мусить бути ВИКОНУВАНИЙ предикат, а не правило в документі.",
+      "blocking": true,
+      "enforceable_by_mechanics": false,
+      "note": "На одній машині під одним користувачем файлова система не розрізняє, хто написав засвідчення. Механіка перевіряє артефакт верифікатора (дайджест, коміт, PASS); різність сторін/контекстів — ОГОЛОШЕННЯ. Найкращий стан — SATISFIED_BY_DECLARATION."
+    },
+    {
+      "id": "SI-2",
+      "name": "окремий чистий контекст",
+      "requirement": "Верифікатор стартує без контексту виконавця: свій пакет доказів, своє дерево, свої входи.",
+      "blocking": true,
+      "enforceable_by_mechanics": false,
+      "note": "На одній машині під одним користувачем файлова система не розрізняє, хто написав засвідчення. Механіка перевіряє артефакт верифікатора (дайджест, коміт, PASS); різність сторін/контекстів — ОГОЛОШЕННЯ. Найкращий стан — SATISFIED_BY_DECLARATION."
+    },
+    {
+      "id": "SI-3",
+      "name": "adversarial verification",
+      "requirement": "Кожен релізо-критичний гейт має доведену здатність ВІДХИЛИТИ: отрута по даних, вирок ARMED.",
+      "blocking": true
+    },
+    {
+      "id": "SI-4",
+      "name": "negative controls",
+      "requirement": "Кожне нове твердження має контроль, який падає, коли твердження хибне.",
+      "blocking": true
+    },
+    {
+      "id": "SI-5",
+      "name": "mutation testing",
+      "requirement": "Каталог мутантів цілий: survived=0, invalid=0, score_over_catalogue=1.0.",
+      "blocking": true
+    },
+    {
+      "id": "SI-6",
+      "name": "clean-room reproduction",
+      "requirement": "Кандидат відтворюється з чистого клону без ручних правок.",
+      "blocking": true
+    },
+    {
+      "id": "SI-7",
+      "name": "CI hard gates",
+      "requirement": "Лани виконуються конвеєром, а не лише локально; дзеркало локального й CI звірене.",
+      "blocking": true
+    },
+    {
+      "id": "SI-8",
+      "name": "runtime evidence",
+      "requirement": "Тотожність процесу, що обслуговує, прив'язана до кандидата; спостережність доведена на рантаймі.",
+      "blocking": true
+    }
   ],
-
-  "invariant": "Заміна НЕ послаблює: якщо структурний замінник не виконаний, реліз блокує ВІН. Зникла лише умова, якої не можна задовольнити наявними ресурсами; жодна умова, яку можна задовольнити, не знята.",
+  "invariant": "Заміна НЕ послаблює: якщо структурний замінник не виконаний, реліз блокує ВІН. Зникла лише умова, якої не можна задовольнити наявними ресурсами; жодна умова, яку можна задовольнити, не знята. Виняток названий: SI-1 і SI-2 тримаються на оголошенні (див. enforceable_by_mechanics), і звіт це пише щоразу.",
   "forbidden": [
     "звітувати External Independent Assurance як PASS",
     "підставляти виконавця апрувером або оцінювачем",
     "видавати структурну незалежність за організаційну в назві поля"
-  ]
+  ],
+  "expected_non_armed_ceiling": 1,
+  "expected_non_armed_ceiling_note": "Скільки гейтів живості сміють мати очікуваний вирок ≠ ARMED. Стеля виміряна 03.09.2026: один (`handoff-verify-bound`, ONE_WAY_FAIL за побудовою). Може лише знижуватись.",
+  "state_binding": "Кожен артефакт замінника мусить нести commit або source_digest і збігатися з деревом. Артефакт без прив'язки — NOT_MEASURED; про інше дерево — NOT_SATISFIED. Виміряно 03.09.2026: без цього три отрути по даних проходили гейт."
 }

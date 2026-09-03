@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1799,
-  "root_sha256": "3d3b86d67ca0c0b9e5393f582ea85c440347bf130df48260f7aee6ea7a2a86bf",
+  "file_count": 1801,
+  "root_sha256": "c62910487a4f8208c8f6c464ea08eedd982d1b8fd5cbaffd3ce28a17e61e9adb",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 48093,
-      "sha256": "36bd28f998d67d6a3982e0d1dcc9c9b1b46a8c6fae705330db00c159de0bb633",
+      "bytes": 48809,
+      "sha256": "1f8b69be430461bcffbd74bf56f010f8b69cd89d8ecf0c5ecd1686126c83bda9",
       "mode": "0644"
     },
     {
@@ -409,8 +409,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 102708,
-      "sha256": "d59fefce31223398c656438e4debe4e8c49617ead37ca7707abe7a1e0382fbae",
+      "bytes": 104360,
+      "sha256": "56937106b26465bfbdb951ba4ab1480c6a59050fab5550cda2dd085ff89b9ef9",
       "mode": "0644"
     },
     {
@@ -7243,8 +7243,8 @@
     },
     {
       "path": "config/governance/assurance-model.json",
-      "bytes": 4991,
-      "sha256": "f05977103e5ce8db3a39022d01c45822d4249585f758ae29f6e014ba8d824639",
+      "bytes": 6999,
+      "sha256": "f3932053a12dedf02f0847d6373a3348b578b370789b9e9245dda3b156f7f97f",
       "mode": "0644"
     },
     {
@@ -7290,6 +7290,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/operations/ci-mirror.json",
+      "bytes": 1331,
+      "sha256": "bb363b3c529a6a6a0d8937d65209bb5d904a22816f3c1c67478059ffab5c04ae",
+      "mode": "0644"
+    },
+    {
       "path": "config/operations/deployment-debt.json",
       "bytes": 2961,
       "sha256": "32df734b11844e859120e1b09ad86c05fbd378c6031b7990a0d91acfd74ec86e",
@@ -7304,7 +7310,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "1d1236b8ec4c0478700b4f31b6d902d22819138cc1f22328ca506b2a5ac70008",
+      "sha256": "e42e8b139a1833c950585f2eb5af679e4369cac23f82460493bf5bee16e7af3e",
       "mode": "0644"
     },
     {
@@ -7339,8 +7345,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 551356,
-      "sha256": "e447f2a7fe2aa9cdf807b1497c7142416196980a0e0abbc5c6a3fa63c65ce8c6",
+      "bytes": 554361,
+      "sha256": "75afad912d27c4d161ed9690ea192d919e594306a03db99c429544caad3b999a",
       "mode": "0644"
     },
     {
@@ -9199,8 +9205,8 @@
     },
     {
       "path": "scripts/check_serving_freshness.py",
-      "bytes": 9362,
-      "sha256": "fcb75445c1e74754a7771956841da21bd94774e5e5d8f47955c86ed08b2d554f",
+      "bytes": 9840,
+      "sha256": "b7975c48445737b5d3ef6ed936bff3d2d7562651c421dc5ee371f43200680691",
       "mode": "0755"
     },
     {
@@ -10597,8 +10603,8 @@
     },
     {
       "path": "scripts/verify_assurance_model.py",
-      "bytes": 15012,
-      "sha256": "7ebe2df7a7b1377d659075829a249fc7c8adf861aa9e64a0fc87a17ec8867321",
+      "bytes": 29413,
+      "sha256": "ef5a4e01598714685829d0029390a96a285fb79736864d2587cc3794e50d20e1",
       "mode": "0755"
     },
     {
@@ -10632,9 +10638,15 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/verify_ci_mirror.py",
+      "bytes": 18231,
+      "sha256": "5434496b83864bf53576b61f1fdfe0a2b86d1ba3247037c5e266826588731ea6",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/verify_clean_clone.sh",
-      "bytes": 4583,
-      "sha256": "04fa3f1298938cfb7b075f14e24b174a3451e2d6e71ab63bca8edb7a399caf30",
+      "bytes": 4652,
+      "sha256": "34511c25b0cd6517391ba9dbc3db878dfa512b6248e3b3a23a086cf02f86878f",
       "mode": "0755"
     },
     {
@@ -10663,8 +10675,8 @@
     },
     {
       "path": "scripts/verify_gate_closure.py",
-      "bytes": 37553,
-      "sha256": "88d4a050e86ef6e835fe0525eea8bd303457880c09c0c61dcff62b583fb5f5a9",
+      "bytes": 39331,
+      "sha256": "19628b8621673ae871a0b1244199efabf615f4cbf3bb6f3ba44c432b06a47302",
       "mode": "0755"
     },
     {
@@ -10753,8 +10765,8 @@
     },
     {
       "path": "scripts/verify_selftest_coverage.py",
-      "bytes": 11201,
-      "sha256": "1754e83b879700b2fc5067f42432897399a3da75bc0fa0878f2a9530bb88b258",
+      "bytes": 11634,
+      "sha256": "34c9f25e0824c1d3119712052fede0ebf8a12099a735b114bf7ac33285a2701f",
       "mode": "0755"
     },
     {
