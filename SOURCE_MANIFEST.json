@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1805,
-  "root_sha256": "60b163c037af80bf1a477aebc50d68bc50c1af6f9bf00f9005e6afd9484dd15c",
+  "file_count": 1806,
+  "root_sha256": "f71a8436d98f2ee6810772b509c9cddeb9b18e1429c4a56932b3970196812d75",
   "files": [
     {
       "path": ".dockerignore",
@@ -9033,6 +9033,12 @@
       "path": "scripts/build_liveness_fixture.py",
       "bytes": 17885,
       "sha256": "d7471c057c5e1f515496f9f894ca3c942815cbb117d17576535e7194d1cc3c87",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/build_machine_tevv.py",
+      "bytes": 9629,
+      "sha256": "43839f06d12944c618df0cc366a8a1ce69045651e33a1ec40479381b5a16df4b",
       "mode": "0755"
     },
     {
