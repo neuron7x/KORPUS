@@ -5673,6 +5673,17 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M691_A_KNOWN_FAILED_AXIS_DEGRADES_TO_UNKNOWN",
+        "scripts/check_answer_axes.py",
+        '    return "FAIL" if problems else "UNKNOWN"',
+        '    return "UNKNOWN"',
+        (
+            "apps/api/tests/test_answer_axes_composition.py::"
+            "test_a_known_failed_axis_outranks_a_blind_axis",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M676_THE_RESOLVED_COMMAND_ALIASES_THE_REGISTRY_ENTRY",
         "scripts/check_deployment_debt.py",
         "    command: list[str] = list(value)",

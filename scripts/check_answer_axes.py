@@ -253,6 +253,10 @@ def measure_axis(name: str, spec: dict[str, Any], root: Path) -> dict[str, Any]:
     return result
 
 
+def failure_precedes_unknown(problems: list[str]) -> str:
+    return "FAIL" if problems else "UNKNOWN"
+
+
 def compose(axes: list[dict[str, Any]], relaxed: list[dict[str, Any]]) -> dict[str, Any]:
     problems: list[str] = []
     for entry in relaxed:
@@ -260,17 +264,14 @@ def compose(axes: list[dict[str, Any]], relaxed: list[dict[str, Any]]) -> dict[s
             problems.append(f"послаблення {entry.get('axis')!r} без записаної причини")
     unmeasured = [item for item in axes if item["state"] != "MEASURED"]
     measured = [item for item in axes if item["state"] == "MEASURED"]
-    for item in measured:
-        if item["below_floor"]:
-            problems.append(
-                f"{item['axis']}: {item['value']:.4f} нижче підлоги {item['floor']:.2f}"
-            )
+    below_floor = [item for item in measured if item["below_floor"]]
+    for item in below_floor:
+        problems.append(f"{item['axis']}: {item['value']:.4f} нижче підлоги {item['floor']:.2f}")
     if unmeasured:
-        # Не PASS і не FAIL. Сліпа вісь робить вирок невизначеним, бо вона могла б
-        # виявитись найслабшою — а найслабша і є вироком.
+        known_weakest = min(below_floor, key=lambda item: item["value"], default=None)
         return {
-            "verdict": "UNKNOWN",
-            "weakest": None,
+            "verdict": failure_precedes_unknown(problems),
+            "weakest": known_weakest,
             "unmeasured": [item["axis"] for item in unmeasured],
             "problems": problems + [f"{item['axis']}: {item['reason']}" for item in unmeasured],
         }
@@ -306,6 +307,7 @@ def selftest() -> int:
             "FAIL",
         ),
         ("сліпа вісь не є пройденою", [axis("a", 0.99, 0.8), blind], [], "UNKNOWN"),
+        ("відомий FAIL сильніший за сліпу вісь", [axis("a", 0.1, 0.8), blind], [], "FAIL"),
         ("сама лише сліпа вісь", [blind], [], "UNKNOWN"),
         (
             "послаблення без причини",

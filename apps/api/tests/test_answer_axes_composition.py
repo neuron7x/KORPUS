@@ -54,6 +54,14 @@ def test_a_blind_axis_is_not_a_passed_axis() -> None:
     assert "сліпа" in result["unmeasured"]
 
 
+def test_a_known_failed_axis_outranks_a_blind_axis() -> None:
+    result = compose([_axis("failed", 0.1, 0.8), BLIND], [])
+
+    assert result["verdict"] == "FAIL"
+    assert result["weakest"]["axis"] == "failed"
+    assert "сліпа" in result["unmeasured"]
+
+
 def test_the_weakest_axis_is_named_not_just_counted() -> None:
     """Вирок без імені осі не дає що робити далі."""
     weakest = compose([_axis("a", 0.99, 0.8), _axis("b", 0.42, 0.1)], [])["weakest"]

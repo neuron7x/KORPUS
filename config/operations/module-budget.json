@@ -3478,13 +3478,13 @@
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/check_answer_axes.py": {
-      "lines": 462,
+      "lines": 463,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 62,
       "max_nesting": 3,
-      "proof_lines": 54,
-      "reason": "Рецензія 03.09.2026 показала, що перевірка префікса нічого не доводила: `event_hash` — це HMAC, і без ключів ланцюг не перерахувати, а я шукав лише НАЯВНІСТЬ рядка з таким хешем. Побудовано атаку: змінити `payload_json` давньої події, лишивши старий `event_hash` — перевірка казала «свіжо». Тепер звіряється ЗЧЕПЛЕННЯ префікса (ловить вставку, видалення, переставляння) і межа названа полем `prefix_integrity=LINKAGE_ONLY_NO_KEYS_HERE`; хвіст під відомим ярликом названо `unverified_tail_events`, бо ярлик не є підписом. Сім отрут по даних, таблицею на рівні модуля. СКЛАДНІСТЬ і ВКЛАДЕНІСТЬ функції впали (13->11, 4->3, 110->62 рядки); зросла довжина модуля — через саму таблицю отрут, яка і є доказом."
+      "proof_lines": 55,
+      "reason": "Рецензія 03.09.2026: префікс перевіряється на зчеплення без удаваної HMAC-верифікації. Доповнено: відомий below-floor є FAIL навіть поруч з UNMEASURED; +1 рядок коду і +1 табличний негативний контроль, M691."
     },
     "scripts/check_answer_quality_ratchet.py": {
       "lines": 94,
@@ -10377,6 +10377,19 @@
       "reason": "`make full-ssot-package OUT=dist/...` падав FileNotFoundError на чистому дереві без dist. +1 рядок створює лише точного батька оголошеного артефакту; M690 охороняє контракт.",
       "to": {
         "lines": 165
+      }
+    },
+    {
+      "from": {
+        "lines": 462,
+        "proof_lines": 54
+      },
+      "on": "2026-09-03",
+      "path": "scripts/check_answer_axes.py",
+      "reason": "Live-профіль мав evidence_bases=0.6667<1.0, але шість UNMEASURED деградували відомий FAIL до UNKNOWN. +1 рядок ізольованої пріоритетності й +1 selftest: FAIL > UNKNOWN; M691 охороняє.",
+      "to": {
+        "lines": 463,
+        "proof_lines": 55
       }
     }
   ],
