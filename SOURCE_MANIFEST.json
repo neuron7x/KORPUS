@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1803,
-  "root_sha256": "bb29a449ff8825063a82a51a7e89133897ba932dff3984fb977decb107994ef2",
+  "file_count": 1805,
+  "root_sha256": "e0efc2eadd3eb5b742d22332c393fa51499a3295d8dc41b85916cbec88bebc28",
   "files": [
     {
       "path": ".dockerignore",
@@ -409,8 +409,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 106497,
-      "sha256": "11ba010319561ac2197d8c78d89d019956fff175f0133b03a39279cda87cb353",
+      "bytes": 107108,
+      "sha256": "da76971171ae29917ed5512e2392c5c45d256b171c824d23691c00f279589311",
       "mode": "0644"
     },
     {
@@ -453,6 +453,12 @@
       "path": "RELEASE_V5_1.md",
       "bytes": 1101,
       "sha256": "31886a135d1dac509669f7e32c81dd276664aff8d556d2d64c45490a4ef22d74",
+      "mode": "0644"
+    },
+    {
+      "path": "RESUME_STATE.json",
+      "bytes": 2424,
+      "sha256": "2de15cf05f939529de32f92b49438ab3dd53d8849d23ac8643900f17848c3c4f",
       "mode": "0644"
     },
     {
@@ -7995,6 +8001,12 @@
       "path": "docs/governance/RISK_REGISTER.md",
       "bytes": 2026,
       "sha256": "ceb717c62704b45e5c4e679fc3e342e9e2c20f4f99c6832ccecd6ba1e383713e",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/incidents/2026-09-03-sqlite-corpus-unreadable.md",
+      "bytes": 4765,
+      "sha256": "ecc60ae676437f927b59101636f4adc342245e9d1a871c9376e68ea8c329684f",
       "mode": "0644"
     },
     {
