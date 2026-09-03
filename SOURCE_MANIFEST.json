@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1801,
-  "root_sha256": "b1d41a388321d157fa185e1a9a22658d6314914c05d586f0166b87199beb36b9",
+  "file_count": 1802,
+  "root_sha256": "5a60c9319f6c0e30955c6066495bc7ab1224a56e70c392f4d99c66ad50262afd",
   "files": [
     {
       "path": ".dockerignore",
@@ -409,8 +409,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 106099,
-      "sha256": "25770cfd5c60977f27f605c2188fff54099a2397facbac917de7f32890fd1016",
+      "bytes": 106497,
+      "sha256": "11ba010319561ac2197d8c78d89d019956fff175f0133b03a39279cda87cb353",
       "mode": "0644"
     },
     {
@@ -10023,6 +10023,12 @@
       "path": "scripts/recheck_blocked_sources.py",
       "bytes": 17742,
       "sha256": "80d0d6fb9108e3cce85aafe90acfbe1c112ddc5253ca7fdfa8c5001f9649d9f1",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/record_ci_run.py",
+      "bytes": 8828,
+      "sha256": "bf22c37d8a8c8e2aff67248ce9a59975fd329540309f6ae785d5812ed2b77184",
       "mode": "0755"
     },
     {
