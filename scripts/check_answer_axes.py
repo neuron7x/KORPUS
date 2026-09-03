@@ -96,28 +96,33 @@ def journal_moved_under_report(database: Path, head: str, payload: dict[str, Any
 
     Раніше тут стояла рівність голів, і будь-яка нова подія робила звіт несвіжим. Для
     дайджеста корпусу це правильно: інший вміст — інший предмет. Для журналу аудиту —
-    ні. Журнал ДОПИСУВАНИЙ: нова подія не змінює жодного байта тих, що вже є, і не
-    робить хибним твердження про виміряний відтинок.
+    ні. Журнал ДОПИСУВАНИЙ: нова подія не змінює жодного байта тих, що вже є.
 
-    Наслідок старого правила виміряно 03.09.2026: сторож дав UNKNOWN сім прогонів
-    поспіль, бо живий сервер пише подію на кожну відповідь. Сигнал, який не може стати
-    нічим іншим, перестає бути виміром — він не помітить і справжньої зміни.
+    ## Межа цієї перевірки названа, бо вона вужча, ніж здається
 
-    Але просто «дозволити рости» означало б убити ратчет, заради якого вісь існує: її
-    предмет — саме НОВА подія, підписана плейсхолдером. Тому розрізняються три стани.
+    `event_hash` — це HMAC із ключем аудиту. Отже ПЕРЕРАХУВАТИ ланцюг без матеріалу
+    ключа неможливо, а ключів у цього гейта немає й бути не мусить. Перша редакція
+    правки шукала рядок із `event_hash = записана голова` й називала це «префікс цілий».
+    Це було твердження, якого перевірка зробити не могла: побудовано атаку, у якій
+    `payload_json` давньої події змінено, а її `event_hash` лишено старим — і перевірка
+    сказала «свіжо».
 
-    1. Голова та сама — звіт описує весь журнал.
-    2. Голова зрушила, але подія з записаним хешем НА МІСЦІ — префікс цілий, звіт
-       лишається дійсним ПРО СВІЙ ВІДТИНОК. Тоді питання переходить на хвіст: якщо
-       кожна нова подія несе ключ, який звіт уже знав, ратчет не спрацьовує; якщо
-       з'явився ключ поза `keys_offered` — це рівно те, що вісь ловить, і звіт більше
-       не описує стан.
-    3. Події із записаним хешем у журналі НЕМАЄ — префікс переписано. Це не
-       застарілість, а підробка, і вона мусить називатись інакше.
+    Тому тут перевіряється те, що перевіряється БЕЗ ключів:
 
-    Членство ключа СЛАБШЕ за перевірку підпису, і тому воно тут не робить тверджень про
-    хвіст: `rate` лишається числом про виміряний відтинок, а розмір хвоста виходить
-    назовні окремо (`uncovered_events`), щоб релізний рівень міг вимагати нуля.
+      * якір на місці — подія із записаною головою існує;
+      * ЗЧЕПЛЕННЯ префікса ціле — `previous_hash` кожної події дорівнює `event_hash`
+        попередньої, а послідовність без розривів. Це ловить вставку, видалення й
+        переставляння, тобто найгрубші форми підробки;
+      * хвіст названий тим, чим він є: подіями, підпис яких ТУТ НЕ ПЕРЕВІРЯВСЯ.
+
+    Чого воно НЕ доводить: що байти префікса не змінені. Зміна `payload_json` зі
+    збереженням старого `event_hash` розривом зчеплення не є і тут не видна. Це
+    доводить лише `measure_audit_integrity`, у якого є ключі, і саме тому релізний
+    рівень (`--require-full-journal-coverage`) вимагає СВІЖОГО виміру, а не цього.
+
+    Членство `audit_key_id` у наборі ключів звіту — не підпис. Ярлик не входить у
+    канонічну форму, тож його можна переписати, не чіпаючи хешів. Тому хвіст під
+    відомим ярликом дає `unverified_tail_events`, а не «атрибутований».
     """
     connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
     try:
@@ -131,16 +136,42 @@ def journal_moved_under_report(database: Path, head: str, payload: dict[str, Any
         ).fetchone()
         if anchor is None:
             return "журнал переписано: події з головою цього звіту в ньому немає"
+        broken = _prefix_linkage_break(connection, int(anchor[0]))
+        if broken is not None:
+            return f"зчеплення префікса розірване на послідовності {broken}"
         tail = connection.execute(
             "select distinct audit_key_id from audit_events where sequence > ?", (anchor[0],)
         ).fetchall()
         payload["uncovered_events"] = int(live[0]) - int(anchor[0])
+        payload["prefix_integrity"] = "LINKAGE_ONLY_NO_KEYS_HERE"
     finally:
         connection.close()
     known = set(payload.get("keys_offered") or ())
     unknown = sorted({str(row[0]) for row in tail} - known)
     if unknown:
         return f"після звіту з'явились події під ключами, яких він не знав: {unknown}"
+    payload["unverified_tail_events"] = payload["uncovered_events"]
+    return None
+
+
+def _prefix_linkage_break(connection: sqlite3.Connection, upto: int) -> int | None:
+    """Перша послідовність, де зчеплення префікса рветься, або None.
+
+    Без ключів це найсильніше, що можна стверджувати про префікс: кожна подія мусить
+    називати попередню, і номери мусять іти без пропусків. Ловить вставку, видалення й
+    переставляння. НЕ ловить зміну вмісту зі збереженням старого `event_hash`.
+    """
+    previous = "0" * 64
+    expected = 1
+    for sequence, prior, current in connection.execute(
+        "select sequence, previous_hash, event_hash from audit_events "
+        "where sequence <= ? order by sequence",
+        (upto,),
+    ):
+        if int(sequence) != expected or str(prior) != previous:
+            return int(sequence)
+        previous = str(current)
+        expected += 1
     return None
 
 
@@ -310,59 +341,121 @@ def selftest() -> int:
 
 #: Скільки тверджень перевіряє `_journal_selftest`. Названо числом, бо підсумок
 #: самоперевірки, який не рахує власних випадків, звітує про менше, ніж перевіряє.
-_JOURNAL_CASES = 4
+_JOURNAL_CASES = 10
+
+
+_ZERO = "0" * 64
+
+#: (назва, рядки, голова, голова звіту, очікуване: None або підрядок причини)
+_JOURNAL_POISONS: list[
+    tuple[str, list[tuple[int, str, str, str]], tuple[int, str], str, str | None]
+] = [
+    ("журнал не рухався", [(1, "h1", "k1", _ZERO)], (1, "h1"), "h1", None),
+    (
+        "дописано під ВІДОМИМ ключем",
+        [(1, "h1", "k1", _ZERO), (2, "h2", "k1", "h1")],
+        (2, "h2"),
+        "h1",
+        None,
+    ),
+    (
+        "подія під НЕВІДОМИМ ключем — ратчет",
+        [(1, "h1", "k1", _ZERO), (2, "h2", "ПЛЕЙСХОЛДЕР", "h1")],
+        (2, "h2"),
+        "h1",
+        "не знав",
+    ),
+    (
+        "голову звіту переписано",
+        [(1, "інший", "k1", _ZERO), (2, "h2", "k1", "інший")],
+        (2, "h2"),
+        "h1",
+        "переписано",
+    ),
+    (
+        "подію префікса ВИДАЛЕНО",
+        [(2, "h2", "k1", "h1"), (3, "h3", "k1", "h2")],
+        (3, "h3"),
+        "h2",
+        "зчеплення",
+    ),
+    (
+        "зчеплення префікса РОЗІРВАНЕ",
+        [(1, "h1", "k1", _ZERO), (2, "h2", "k1", "ЧУЖИЙ"), (3, "h3", "k1", "h2")],
+        (3, "h3"),
+        "h2",
+        "зчеплення",
+    ),
+    (
+        "події префікса ПЕРЕСТАВЛЕНІ",
+        [(1, "h1", "k1", _ZERO), (3, "h3", "k1", "h1"), (2, "h2", "k1", "h3")],
+        (3, "h3"),
+        "h2",
+        "зчеплення",
+    ),
+]
 
 
 def _journal_selftest() -> list[str]:
     """Отрути по ДАНИХ для правила дописуваного журналу.
 
-    Правило замінило рівність голів, і без цих чотирьох тверджень заміна була б
-    послабленням, а не виправленням: три з них доводять, що воно ЩЕ ловить, і лише
-    четверте — що воно перестало кричати на доброякісний ріст.
+    Сім випадків, і шість із них доводять, що правило ЩЕ ловить: незнайомий ярлик ключа,
+    переписану голову, видалення, розрив зчеплення й переставляння. Лише сьомий доводить,
+    що воно перестало кричати на доброякісний ріст. Без цієї пропорції заміна рівності
+    голів була б послабленням, а не виправленням.
+
+    Форма таблична навмисно: сім написаних вручну блоків давали функцію на 79 рядків зі
+    вкладеністю 4, і рецензія слушно назвала це структурним боргом у самому перевіряльнику.
+    Перевіряльник, складніший за інваріант, який він охороняє, — окремий клас вади.
     """
     import tempfile
 
-    def journal(rows: list[tuple[int, str, str]], head: tuple[int, str]) -> Path:
+    known = {"keys_offered": ["k1"]}
+    made: list[Path] = []
+
+    def journal(rows: list[tuple[int, str, str, str]], head: tuple[int, str]) -> Path:
+        """Рядок: (послідовність, event_hash, audit_key_id, previous_hash)."""
         descriptor, name = tempfile.mkstemp(suffix=".db")
         os.close(descriptor)
         path = Path(name)
+        made.append(path)
         connection = sqlite3.connect(path)
         connection.execute(
-            "create table audit_events (sequence int, event_hash text, audit_key_id text)"
+            "create table audit_events "
+            "(sequence int, event_hash text, audit_key_id text, previous_hash text)"
         )
         connection.execute(
             "create table audit_heads (singleton_id int, sequence int, head_hash text)"
         )
-        connection.executemany("insert into audit_events values (?,?,?)", rows)
+        connection.executemany("insert into audit_events values (?,?,?,?)", rows)
         connection.execute("insert into audit_heads values (1,?,?)", head)
         connection.commit()
         connection.close()
         return path
 
-    known = {"keys_offered": ["k1"]}
     problems: list[str] = []
+    for label, rows, head, reported, want in _JOURNAL_POISONS:
+        got = journal_moved_under_report(journal(rows, head), reported, dict(known))
+        if want is None and got is not None:
+            problems.append(f"{label}: несподівана відмова {got!r}")
+        elif want is not None and (got is None or want not in got):
+            problems.append(f"{label}: очікувалось {want!r}, отримано {got!r}")
 
-    same = journal([(1, "h1", "k1")], (1, "h1"))
-    if journal_moved_under_report(same, "h1", dict(known)) is not None:
-        problems.append("журнал, що не рухався, оголошено несвіжим")
-
-    grown = journal([(1, "h1", "k1"), (2, "h2", "k1")], (2, "h2"))
+    # Другий випадок несе ще три твердження: хвіст порахований, названий НЕПЕРЕВІРЕНИМ
+    # і межа твердження про префікс проголошена.
     payload: dict[str, Any] = dict(known)
-    if journal_moved_under_report(grown, "h1", payload) is not None:
-        problems.append("ДОПИСАНІ події під відомим ключем зробили звіт несвіжим")
-    elif payload.get("uncovered_events") != 1:
-        problems.append(f"хвіст не порахований: {payload.get('uncovered_events')}")
+    journal_moved_under_report(
+        journal([(1, "h1", "k1", _ZERO), (2, "h2", "k1", "h1")], (2, "h2")), "h1", payload
+    )
+    for key, expected in (
+        ("uncovered_events", 1),
+        ("unverified_tail_events", 1),
+        ("prefix_integrity", "LINKAGE_ONLY_NO_KEYS_HERE"),
+    ):
+        if payload.get(key) != expected:
+            problems.append(f"{key}: очікувалось {expected!r}, отримано {payload.get(key)!r}")
 
-    foreign = journal([(1, "h1", "k1"), (2, "h2", "ПЛЕЙСХОЛДЕР")], (2, "h2"))
-    if journal_moved_under_report(foreign, "h1", dict(known)) is None:
-        problems.append("подія під НЕВІДОМИМ ключем не спрацювала: ратчет мертвий")
-
-    rewritten = journal([(1, "інший", "k1"), (2, "h2", "k1")], (2, "h2"))
-    verdict = journal_moved_under_report(rewritten, "h1", dict(known))
-    if verdict is None or "переписано" not in verdict:
-        problems.append(f"переписаний префікс не названо підробкою: {verdict}")
-
-    for candidate in (same, grown, foreign, rewritten):
+    for candidate in made:
         candidate.unlink(missing_ok=True)
     return problems
 

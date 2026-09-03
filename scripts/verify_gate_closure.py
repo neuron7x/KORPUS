@@ -95,29 +95,85 @@ _SCRIPT = re.compile(r"(scripts/[A-Za-z0-9_./-]+\.(?:py|sh))")
 # ------------------------------------------------------------------- граф (без I/O)
 
 
-#: Прапорці, що МІНЯЮТЬ ПРЕДМЕТ перевірки, а не її оформлення. Решта (`--out`, `--root`,
-#: шляхи до звітів) на твердження не впливає, і вносити її в тотожність означало б
-#: оголошувати різними цілі, які перевіряють те саме.
-_PREDICATE_FLAGS = re.compile(r"--(?:require|strict|full|deep|bound|exact)[a-z-]*")
+#: Аргументи, про які ДОВЕДЕНО, що вони не міняють предмет перевірки: куди покласти звіт
+#: і від якого кореня рахувати шляхи. Усе інше семантичне за замовчуванням.
+#:
+#: Правило перевернуте навмисно. Перша редакція мала БІЛИЙ СПИСОК семантичних прапорців
+#: (`--require|--strict|--full|--deep|--bound|--exact`), і рецензія слушно показала, що
+#: він пропускає `--mode unsafe`, `--backend postgres`, `--threshold 100`: усе, чого
+#: автор списку не передбачив, мовчки ставало несемантичним. Список ВИНЯТКІВ помиляється
+#: у безпечний бік — незнайомий аргумент робить цілі різними, і найгірше, що станеться,
+#: це зайвий запис у реєстрі прогалин.
+_NON_SEMANTIC = frozenset({"--out", "--output", "--root", "--report", "--outfile"})
+
+#: Змінні оточення, які має кожен рецепт і які нічого не кажуть про предмет.
+_AMBIENT_ENV = frozenset({"PYTHONPATH", "PYTHON", "PY", "MAKEFLAGS"})
+
+_ENV_ASSIGNMENT = re.compile(r"^(?P<name>[A-Z][A-Z0-9_]*)=")
+
+#: `$(VAR)`, `${VAR}`, `$$(cat …)` — предмет, поданий у момент виклику.
+_SUBSTITUTION = re.compile(r"\$+[({][^)}]*[)}]")
+
+
+def normalise_invocation(script: str, tail: str) -> str:
+    """Канонічна тотожність запуску: скрипт + усе, що міняє його предмет.
+
+    Раніше тотожністю було саме лише ім'я файла, і `enforced` зараховував ціль
+    виконаною, щойно той самий файл запускав хтось досяжний. Виміряно 02.09.2026:
+    `handoff-verify` і `handoff-verify-bound` запускають один
+    `verify_handoff_contract.py`, і вся різниця між ними — `--require-bound`, тобто
+    САМЕ ТОЙ предикат, заради якого друга ціль існує.
+
+    Тепер зберігається кожен аргумент, крім названих у `_NON_SEMANTIC`: два запуски, що
+    пишуть у різні файли, перевіряють одне й те саме, і розрізняти їх означало б
+    наплодити «непокритих» цілей там, де покриття є. Значення після такого прапорця
+    відкидається разом із ним.
+
+    Порядок аргументів нормалізується сортуванням: `--a --b` і `--b --a` — та сама
+    команда, і залишати їх різними означало б, що тотожність залежить від набору тексту.
+    """
+    # Підстановки вирізаються ЦІЛКОМ, до розбиття на токени: `$$(cat dist/LATEST)` — це
+    # три токени, і фільтр «токен починається з $» лишав би хвіст `dist/LATEST)`, тобто
+    # робив би дві цілі різними через оформлення підстановки, а не через предмет.
+    tokens = _SUBSTITUTION.sub(" ", tail).split()
+    kept: list[str] = []
+    skip = False
+    for token in tokens:
+        if skip:
+            skip = False
+            continue
+        if token in _NON_SEMANTIC:
+            skip = True
+            continue
+        if any(token.startswith(flag + "=") for flag in _NON_SEMANTIC):
+            continue
+        bare = token.strip("\"'")
+        # Змінна чи підстановка команди — це ПРЕДМЕТ, поданий у момент виклику, а не
+        # предикат. `zip-safety-verify` бере `"$(ARCHIVE)"`, а `package` — архів, який
+        # сам щойно зібрав; перевірка на zip-slip від цього не міняється, міняється лише
+        # те, ЩО перевіряють. Цілі, які потребують аргументу, вже має клас
+        # `requires_argument` у реєстрі, і дублювати його тотожністю команди означало б
+        # оголосити непокритим те, що покрите.
+        #
+        # Лапки знімаються ДО перевірки: перша редакція дивилась на `token[0]`, а токен
+        # у рецепті виглядає як `"$(ARCHIVE)"` — починається з лапки, і фільтр змінних
+        # його не бачив. Спіймано тестом `test_zip_safety_is_no_longer_an_accepted_gap`,
+        # який стеріг рішення, ухвалене раніше й правильно.
+        if bare.startswith("$") or bare in {"\\", "&&", "||", ";", "|"} or not bare:
+            continue
+        kept.append(bare)
+    return " ".join([script, *sorted(kept)]) if kept else script
 
 
 def _invocation(line: str, match: re.Match[str]) -> str:
-    """Тотожність запуску: ім'я скрипта ПЛЮС прапорці, що міняють його предмет.
-
-    Раніше тут стояло саме лише ім'я файла, і `enforced` зараховував ціль виконаною,
-    щойно той самий файл запускав хтось досяжний. Виміряно 02.09.2026:
-    `handoff-verify` і `handoff-verify-bound` запускають один
-    `verify_handoff_contract.py`, і вся різниця між ними — `--require-bound`, тобто
-    САМЕ ТОЙ предикат, заради якого друга ціль існує. Ціль була зарахована, предикат
-    не обчислювався в жодному лані, що виконується.
-
-    Тому в тотожність входять прапорці, які міняють предмет. `--out` і шляхи не
-    входять: два запуски, що пишуть у різні файли, перевіряють одне й те саме, і
-    розрізняти їх означало б наплодити «непокритих» цілей там, де покриття є.
-    """
+    """Тотожність запуску, взята з рядка рецепта: скрипт плюс його значущі аргументи."""
     tail = line[match.end() :]
-    flags = sorted(set(_PREDICATE_FLAGS.findall(tail)))
-    return match.group(1) + ("".join(" " + flag for flag in flags) if flags else "")
+    # Наступна команда в тому самому рядку — це вже інший запуск.
+    for separator in ("&&", "||", ";", "|"):
+        index = tail.find(separator)
+        if index >= 0:
+            tail = tail[:index]
+    return normalise_invocation(match.group(1), tail)
 
 
 def parse_graph(text: str) -> tuple[dict[str, set[str]], list[str], dict[str, set[str]]]:
@@ -471,6 +527,37 @@ def verdict(findings: list[dict[str, str]]) -> str:
 # ------------------------------------------------------------------ негативні контролі
 
 
+#: Скільки пар звіряє `_identity_selftest`. Підсумок, який не рахує власних випадків,
+#: звітує про менше, ніж перевіряє.
+_IDENTITY_CASES = 8
+
+
+def _identity_selftest() -> list[str]:
+    """Отрути для КАНОНІЧНОЇ тотожності запуску.
+
+    Рецензія 03.09.2026 показала, що білий список семантичних прапорців пропускає все,
+    чого автор списку не передбачив. Ці твердження існують, щоб заміна білого списку на
+    список винятків не могла тихо звузитись назад.
+    """
+    problems: list[str] = []
+    same_subject = [("--out a.json", "--out b.json"), ("--a --b", "--b --a")]
+    other_subject = [
+        ("--mode safe", "--mode unsafe"),
+        ("--backend sqlite", "--backend postgres"),
+        ("--threshold 0", "--threshold 100"),
+        ("--require-bound", ""),
+        ("--selftest", ""),
+        ("verify", "sign"),
+    ]
+    for left, right in same_subject:
+        if normalise_invocation("s.py", left) != normalise_invocation("s.py", right):
+            problems.append(f"той самий предмет розділено: {left!r} проти {right!r}")
+    for left, right in other_subject:
+        if normalise_invocation("s.py", left) == normalise_invocation("s.py", right):
+            problems.append(f"РІЗНІ предмети злито в один: {left!r} проти {right!r}")
+    return problems
+
+
 def selftest() -> int:
     """Кожен спосіб збрехати мусить червоніти ОКРЕМО, і чистий граф — зеленіти."""
     clean_make = (
@@ -593,7 +680,12 @@ def selftest() -> int:
         ok = got == expected
         bad += not ok
         print(f"  [{'ok' if ok else 'ЗБІЙ'}] {name}: {got}")
-    print(f"\nнегативний контроль: {len(cases) - bad}/{len(cases)}")
+    identity = _identity_selftest()
+    for problem in identity:
+        print(f"  [ЗБІЙ] тотожність команди: {problem}")
+    bad += len(identity)
+    total = len(cases) + _IDENTITY_CASES
+    print(f"\nнегативний контроль: {total - bad}/{total}")
     return 1 if bad else 0
 
 
