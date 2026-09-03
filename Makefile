@@ -173,8 +173,18 @@ military-readiness:
 military-readiness-full:
 	PYTHONPATH=apps/api/src:. $(PY) scripts/run_military_readiness_campaign.py --full --full-timeout 180 --regression-batch-size 8 --regression-workers 2
 
+# Один виробник — ОДНА дорога до обох імен. Виміряно 03.09.2026: скрипт пише
+# `var/research-assurance-report.json`, CI віддає гейтові саме його (`--report var/...`),
+# а ціль `production-engineering` читає ДЕФОЛТ — комітовану копію `reports/…`. Копію не
+# оновлював ніхто, тож вона лишалась із дайджестом чужої сесії, і гейт червонів на
+# `source_bound` при цілком свіжому доказі. Це друга поява того самого класу: один доказ
+# під двома іменами, оновлюваний двома дорогами, з яких автоматична лише одна.
+#
+# `install` тут із тієї ж причини, що й у `dependency-locks` і `standards-control-map`:
+# копіювати рукою означає мати два стани й дізнаватись про розбіжність від гейта.
 assemble-assurance:
 	PYTHONPATH=apps/api/src $(PY) scripts/assemble_assurance.py
+	install -m 0644 var/research-assurance-report.json reports/RESEARCH_ASSURANCE_REPORT.json
 
 assurance:
 	PYTHONPATH=apps/api/src $(PY) scripts/run_research_assurance.py
