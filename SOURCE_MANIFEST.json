@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1805,
-  "root_sha256": "5dfbe9794c2b65bad917c82f0583d2af59ec7bed9a00a30988e5f79df19d55d6",
+  "root_sha256": "60b163c037af80bf1a477aebc50d68bc50c1af6f9bf00f9005e6afd9484dd15c",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 52463,
-      "sha256": "f418c49d99194ff28af21ed399fc4a4f16fface9ee7101507ed18bfcf2e559a6",
+      "bytes": 53017,
+      "sha256": "e8696ca699728c939eadfa41ac66771af69f016f0a378c3d7a144d6552ab82a8",
       "mode": "0644"
     },
     {
@@ -409,8 +409,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 107108,
-      "sha256": "da76971171ae29917ed5512e2392c5c45d256b171c824d23691c00f279589311",
+      "bytes": 107926,
+      "sha256": "0a448b0260567d734342f7a1d7efd75a0d2f0002fc2bc70fbe0b19639cb865d9",
       "mode": "0644"
     },
     {
@@ -4477,8 +4477,8 @@
     },
     {
       "path": "apps/api/tests/test_release_verify_runner.py",
-      "bytes": 7157,
-      "sha256": "3cf94929abedbb3996bf059bf2d23abeaa62fc13ed5d6034d21aae11aed8bdf8",
+      "bytes": 8158,
+      "sha256": "3fd43ea597201f93f7547309fb9c4f791b7731773d660d5dd24833486c9b4011",
       "mode": "0644"
     },
     {
@@ -7316,7 +7316,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "c609f0be1f367c2c23d28da6a53ac2058c7eb24358198e56af118d5fb2260288",
+      "sha256": "ee668f693623ab18fa8c2f1c2ee098dc546f2d55da61514eb9ebcade417ffbdc",
       "mode": "0644"
     },
     {
@@ -7351,8 +7351,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 576030,
-      "sha256": "7de04c068bbd3a60a89ce50ebe48274198f3c1712271dbe8baf6d31e2dfb884b",
+      "bytes": 582825,
+      "sha256": "7f730600ff20814bbed6125a6a2fce9abe502cd1ceb02f4772b5dc6b4900098c",
       "mode": "0644"
     },
     {
@@ -9379,8 +9379,8 @@
     },
     {
       "path": "scripts/freeze_release_candidate.py",
-      "bytes": 16731,
-      "sha256": "557c65b6e35defe3fe9c46d9eb29f579f266f34bb23cc4d3e3861d3b359656b7",
+      "bytes": 18215,
+      "sha256": "e2196af546cf9b10bb0ec8b107106199e68600ebc2681ef640fcf0b652ad3304",
       "mode": "0755"
     },
     {
@@ -10363,8 +10363,8 @@
     },
     {
       "path": "scripts/run_release_verify.py",
-      "bytes": 11784,
-      "sha256": "f81994174aafd2a2b1ed76d638f732ca97a11f32724ce9550a3f514988ddc858",
+      "bytes": 13724,
+      "sha256": "2db308dac4cd06814394fb490a84cf5fd6decc198d8f518c144466cd23e969f5",
       "mode": "0755"
     },
     {

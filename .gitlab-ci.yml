@@ -408,7 +408,11 @@ api:postgres-and-restore:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends postgresql-client-17 && rm -rf /var/lib/apt/lists/*
     - python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
     - python -m pip check
-    - python scripts/wait_for_database.py
+    # Роль застосунку створює `prepare_postgres_role.py` ДВОМА кроками пізніше, тож
+    # очікування бази не може ходити нею: воно чекало б на роль, якої ще немає. Це
+    # дія власника схеми — і бере адмінський URL явно. Виміряно 03.09.2026: джоба
+    # впала за 111 с замість 735 із «password authentication failed for korpus_app».
+    - KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" python scripts/wait_for_database.py
   script:
     - KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" bash -c 'cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_db_defense_and_vectors && python -m alembic -c alembic.ini upgrade head'
     - KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" python scripts/prepare_postgres_role.py

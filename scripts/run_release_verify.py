@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -131,6 +132,23 @@ def verdict() -> dict[str, Any]:
         return {"verdict": "UNREADABLE", "problems": [done.stderr.strip()[:300]], "unknown": []}
 
 
+#: Підлога вільного місця для дерева й для тимчасових тек. Не оптимум і не смак:
+#: один прогін лану пише клон (~130 МБ), шість шардів мутації й покриття, тож нижче
+#: цього числа вимір починає міряти диск.
+FREE_SPACE_FLOOR_MIB = 3072
+
+
+def free_space_problems(root: Path = ROOT, floor_mib: int = FREE_SPACE_FLOOR_MIB) -> list[str]:
+    """Файлові системи, де місця менше за підлогу. Порожній перелік — не за замовчуванням."""
+    problems: list[str] = []
+    for label, path in (("дерево", root), ("тимчасова тека", Path(tempfile.gettempdir()))):
+        usage = shutil.disk_usage(path)
+        free_mib = usage.free // (1024 * 1024)
+        if free_mib < floor_mib:
+            problems.append(f"{label} {path}: вільно {free_mib} МіБ, підлога {floor_mib} МіБ")
+    return problems
+
+
 def status(final: dict[str, Any], results: list[dict[str, Any]]) -> str:
     """PASS лише коли ВСЕ виконано і прийнято; пропуск дає INCOMPLETE, не PASS.
 
@@ -182,6 +200,16 @@ def main() -> int:
     parser.add_argument("--timeout", type=float, default=3600.0)
     parser.add_argument("--out", type=Path, default=ROOT / "var/release-verify.json")
     args = parser.parse_args()
+
+    # Вимір на повному диску дає вердикт про ДИСК, переодягнений у вердикт про код.
+    # Виміряно 03.09.2026: корінь стояв на 100% (741 МБ із 92 ГБ), і повний `api-test`
+    # двічі дав рівно одну відмову, яка після звільнення 5,5 ГБ не повторилась у двох
+    # прогонах поспіль. Причини не встановлено — і саме тому лан не сміє починати там,
+    # де вона можлива: відмова мусить бути НАЗВАНОЮ до виміру, а не прочитаною з нього.
+    room = free_space_problems()
+    if room:
+        print(json.dumps({"status": "REFUSED", "reason": room}, ensure_ascii=False, indent=2))
+        return 4
 
     head = git("rev-parse", "HEAD")
     dirty = [line for line in git("status", "--porcelain").splitlines() if line]

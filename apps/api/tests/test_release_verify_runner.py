@@ -51,12 +51,24 @@ def test_a_spaced_interpreter_gets_an_alias_into_the_SAME_environment(
     Псевдонім мусить вести в ТЕ САМЕ оточення. Вести його за `resolve()` означає
     піти за симлінком venv на системний інтерпретатор і мовчки покинути venv — make
     дістав би `/usr/bin/python` замість дерева, у якому міряють.
+
+    Пробілу самого по собі НЕ ДОСТАТЬНО, і це виміряно 03.09.2026 у самому образі
+    джоби: там `pip install` іде в системні site-packages, venv немає, і
+    `sys.prefix` дорівнює `executable.resolve().parent.parent` — обидва `/usr/local`.
+    Оригінал і мутант стають НЕРОЗРІЗНЕННИМИ за побудовою, тож M672 виживає в CI
+    скільки завгодно разів. Тому проба створює СВОЄ venv під шляхом із пробілом:
+    тоді вирази розходяться і на хості (`…/venv` проти `/usr`), і в образі
+    (`/tmp/…/venv` проти `/usr/local`). Умову проба тепер СТВОРЮЄ, а не успадковує.
     """
-    spaced = tmp_path / "з пробілом"
-    spaced.mkdir()
-    entry = spaced / Path(sys.executable).name
-    entry.symlink_to(sys.executable)
+    prefix = tmp_path / "з пробілом" / "venv"
+    subprocess.run(
+        [sys.executable, "-m", "venv", "--without-pip", str(prefix)],
+        check=True,
+        capture_output=True,
+    )
+    entry = prefix / "bin" / Path(sys.executable).name
     monkeypatch.setattr(RUNNER.sys, "executable", str(entry))
+    monkeypatch.setattr(RUNNER.sys, "prefix", str(prefix))
 
     with RUNNER.interpreter_for_make() as executable:
         assert not any(char.isspace() for char in executable), "псевдонім сам містить пробіл"
@@ -67,9 +79,7 @@ def test_a_spaced_interpreter_gets_an_alias_into_the_SAME_environment(
             check=True,
         )
 
-    assert completed.stdout.strip() == str(Path(sys.prefix).resolve()), (
-        "псевдонім вивів із активного venv"
-    )
+    assert completed.stdout.strip() == str(prefix.resolve()), "псевдонім вивів із активного venv"
 
 
 def _steps(*states: str) -> list[dict[str, object]]:
