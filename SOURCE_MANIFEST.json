@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1807,
-  "root_sha256": "2ede1de2718bfcf7345d21f3b0276527cf6519bf50d25b4701f9b875914b6acf",
+  "root_sha256": "16b07258ac73d2e20f7b584af5b63d9ee7c04d8288a8777c0043a09228d9f6eb",
   "files": [
     {
       "path": ".dockerignore",
@@ -439,8 +439,8 @@
     },
     {
       "path": "RELEASE_ENVELOPE.json",
-      "bytes": 11140,
-      "sha256": "ee023c7cdad97450f5c25b2e49b58e45bb40b6fe9dedb69ffd21b01792c7edad",
+      "bytes": 12345,
+      "sha256": "3a251f2728486674a7f549f3493737f410d15623746f91166d96ec6f28ea5f2c",
       "mode": "0644"
     },
     {
@@ -7351,8 +7351,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 585019,
-      "sha256": "33b2c61eb692b418b24d1bf92181c7ec8a9261b727bc9f806cc4815777a9019f",
+      "bytes": 586959,
+      "sha256": "7700b2d0aa3ae4bb9cb1c8352a8527a0967b937773dea3a1e9cf2cb97bae10eb",
       "mode": "0644"
     },
     {
@@ -9229,8 +9229,8 @@
     },
     {
       "path": "scripts/check_serving_freshness.py",
-      "bytes": 18210,
-      "sha256": "2566b557456d08faa67c62d59817d388bcfc4275d92425777d974f67118a371c",
+      "bytes": 20306,
+      "sha256": "596a6127ef064d0aab084c08dda8f20341942efbe86c45b606da532183827c00",
       "mode": "0755"
     },
     {

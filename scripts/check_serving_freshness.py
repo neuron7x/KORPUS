@@ -73,12 +73,23 @@ def unit_states(units: list[str]) -> list[dict[str, Any]]:
     """Стан кожного оголошеного юніта: активність і головний процес."""
     states: list[dict[str, Any]] = []
     for unit in units:
-        done = subprocess.run(
-            ["systemctl", "--user", "show", unit, "-p", "ActiveState", "-p", "MainPID"],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+        try:
+            done = subprocess.run(
+                ["systemctl", "--user", "show", unit, "-p", "ActiveState", "-p", "MainPID"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        except FileNotFoundError:
+            # Без init-системи юніт НЕ засвідчується — і це ВІДСУТНІСТЬ ПРЕДМЕТА, а не
+            # збій інструмента. Контейнер, у якому немає systemd, не може довести, що
+            # оголошений юніт обслуговує, і не сміє: «unavailable» веде далі тим самим
+            # шляхом, що й неактивний юніт, тобто до LOCAL_DEV. Виміряно 04.09.2026:
+            # щойно перелік юнітів перестав бути порожнім, самоперевірка впала в CI із
+            # `FileNotFoundError: 'systemctl'`, бо доти вона виходила ПЕРШИМ правилом і
+            # до цього виклику не доходила ЖОДНОГО разу.
+            states.append({"unit": unit, "active": "unavailable", "main_pid": "0"})
+            continue
         fields = dict(line.split("=", 1) for line in done.stdout.splitlines() if "=" in line)
         states.append(
             {
@@ -245,6 +256,23 @@ def adjudicate(
     }
 
 
+def _states_without_systemd(units: list[str]) -> list[dict[str, Any]]:
+    """Проба СТВОРЮЄ свою умову: PATH без жодного каталогу, тож `systemctl` не знайдеться.
+
+    Порожнього PATH достатньо й він не залежить від того, де саме лежить `systemctl` на
+    цій машині: перший же варіант цієї проби лишив `/usr/bin` у PATH — тобто саме ту
+    теку, де він і лежить, — і дав хибне зелене.
+    """
+    import os
+
+    previous = os.environ.get("PATH", "")
+    os.environ["PATH"] = ""
+    try:
+        return unit_states(units)
+    finally:
+        os.environ["PATH"] = previous
+
+
 def selftest() -> int:
     now = datetime.now(UTC).timestamp()
 
@@ -304,6 +332,11 @@ def selftest() -> int:
                 "environment_class"
             ],
             LOCAL_DEV,
+        ),
+        (
+            "без init-системи оголошений юніт не засвідчується",
+            _states_without_systemd(["u.service"]),
+            [{"unit": "u.service", "active": "unavailable", "main_pid": "0"}],
         ),
         (
             "клас середовища не призначається прапорцем: без процесів це LOCAL_DEV",
