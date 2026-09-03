@@ -2412,13 +2412,20 @@ def test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost(
     assert gate.main() == 0, "a report sitting exactly on its floor must still pass"
 
 
-#: Тека, у якій РОЗГОРНУТО обслуговуваний примірник, — це факт про машину, і назвати
-#: його десь треба. Виняток названий поіменно з причиною, а не через ширше правило:
-#: `canonical_root` читають `check_deployment_debt` і `verify_branch_integration`, щоб
-#: міряти РОЗГОРТАННЯ, а не чекаут, і без нього обидва міряли б не те дерево.
-CONFIG_PATHS_OUTSIDE_THE_CHECKOUT = {
-    "config/operations/canonical-state.json": "canonical_root — шлях РОЗГОРНУТОГО примірника",
-}
+#: Єдиний законний шлях поза цим чекаутом — ОГОЛОШЕНИЙ корінь розгортання. Його читають
+#: `check_deployment_debt` і `verify_branch_integration`, щоб міряти РОЗГОРТАННЯ, а не
+#: чекаут; без нього обидва міряли б не те дерево. Дозволяється саме ЗНАЧЕННЯ, не файл:
+#: виняток на цілий файл дозволив би поруч із ним будь-який інший шлях.
+def declared_canonical_root() -> str:
+    registry = json.loads(
+        (ROOT / "config/operations/canonical-state.json").read_text(encoding="utf-8")
+    )
+    root = registry.get("canonical_root")
+    assert isinstance(root, str) and root.startswith("/"), (
+        "канонічний корінь не оголошений — правило не має з чим звіряти"
+    )
+    return root
+
 
 #: Кореневі теки FHS. Абсолютний шлях, чий перший сегмент сюди не входить, — не шлях
 #: файлової системи: `/spec/template/spec/containers/0/image` у kustomize-патчі це
@@ -2470,15 +2477,27 @@ SYSTEM_PREFIXES = (
 _ABSOLUTE_PATH = re.compile(r"(?<![\w~.\-:/])/[A-Za-z0-9_.\-]+(?:/[A-Za-z0-9_.\-]*)+")
 
 
-def paths_outside_the_checkout(text: str) -> list[tuple[int, str]]:
-    """Абсолютні шляхи в `text`, які не в цьому чекауті й не системні."""
+def paths_outside_the_checkout(
+    text: str, *, roots: tuple[str, ...] | None = None
+) -> list[tuple[int, str]]:
+    """Абсолютні шляхи в `text`, які не в цьому чекауті, не системні й не оголошений корінь.
+
+    Збіг із коренем перевіряється в ОБИДВА боки, і це не педантизм. Канонічна тека цієї
+    системи зветься «Ядро основний проект Корпус» — з пробілами, — тож збіг обривається
+    на `/home/neuro7/Desktop/`. Правило, що питає лише `candidate.startswith(root)`,
+    оголосило б на тому дереві чужим КОЖЕН власний шлях: виміряно 03.09.2026, тест
+    зелений у worktree й червоний на `main`. Тому підходить і `root.startswith(candidate)`.
+    """
+    known = roots if roots is not None else (str(ROOT), declared_canonical_root())
     found: list[tuple[int, str]] = []
     for number, line in enumerate(text.splitlines(), 1):
         for match in _ABSOLUTE_PATH.finditer(line):
             candidate = match.group(0)
             if candidate.split("/")[1] not in FILESYSTEM_ROOTS:
                 continue
-            if candidate.startswith(str(ROOT)) or candidate.startswith(SYSTEM_PREFIXES):
+            if candidate.startswith(SYSTEM_PREFIXES):
+                continue
+            if any(candidate.startswith(root) or root.startswith(candidate) for root in known):
                 continue
             found.append((number, candidate))
     return found
@@ -2503,8 +2522,6 @@ def test_no_committed_config_names_a_path_outside_this_checkout() -> None:
         if not path.is_file() or path.suffix not in {".yaml", ".yml", ".json", ".toml"}:
             continue
         relative = str(path.relative_to(ROOT))
-        if relative in CONFIG_PATHS_OUTSIDE_THE_CHECKOUT:
-            continue
         text = path.read_text(encoding="utf-8", errors="ignore")
         offenders.extend(f"{relative}:{n}: {c}" for n, c in paths_outside_the_checkout(text))
 
@@ -2518,24 +2535,41 @@ def test_the_config_rule_sees_a_path_that_is_not_at_the_start_of_a_line() -> Non
     дев'ять: чотири сиділи в продовженні `sh -c` після `>/dev/null && ''`. Гейт був
     зелений при присутньому дефекті, заради якого написаний; показав це незалежний
     верифікатор отрутою. Разова отрута не є контролем — тому вона тут.
-    """
-    foreign = "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python"
 
-    assert paths_outside_the_checkout(f"  - {foreign} scripts/x.py"), "проста форма"
-    assert paths_outside_the_checkout(f"    >/dev/null && ''{foreign}'' scripts/y.py"), (
+    Корені передаються ЯВНО, а не беруться з дерева. Перша редакція підставляла сюди
+    справжній канонічний шлях, і на самому каноні той шлях перестає бути чужим: тест
+    був зелений у worktree й червоний на `main` — контроль, залежний від того, де його
+    запустили, вимірює не те, що каже.
+    """
+    checkout = "/srv/checkout"
+    canonical = "/srv/Ядро основний проект Корпус"
+    roots = (checkout, canonical)
+    foreign = "/home/someone/Інше дерево/apps/api/.venv/bin/python"
+
+    def outside(line: str) -> list[tuple[int, str]]:
+        return paths_outside_the_checkout(line, roots=roots)
+
+    assert outside(f"  - {foreign} scripts/x.py"), "проста форма"
+    assert outside(f"    >/dev/null && ''{foreign}'' scripts/y.py"), (
         "шлях у продовженні рядка — саме та форма, якої правило не бачило"
     )
-    assert paths_outside_the_checkout(f'    "canonical": "{foreign}"'), "шлях у JSON-значенні"
+    assert outside(f'    "canonical": "{foreign}"'), "шлях у JSON-значенні"
 
-    # І негативний бік: правило не сміє червоніти на тому, що шляхом не є.
-    assert not paths_outside_the_checkout("  - {python}")
-    assert not paths_outside_the_checkout("  - /spec/template/spec/containers/0/image"), (
+    # Негативний бік: правило не сміє червоніти на тому, що шляхом не є.
+    assert not outside("  - {python}")
+    assert not outside("  - /spec/template/spec/containers/0/image"), (
         "JSON-вказівник у kustomize-патчі не є шляхом файлової системи"
     )
-    assert not paths_outside_the_checkout("    cmd: foo >/dev/null 2>&1")
-    assert not paths_outside_the_checkout("    url: https://zakon.rada.gov.ua/laws/show/550-14")
-    assert not paths_outside_the_checkout(f"  - {ROOT}/apps/api/.venv/bin/python"), (
-        "шлях У ЦЬОМУ чекауті — не порушення"
+    assert not outside("    cmd: foo >/dev/null 2>&1")
+    assert not outside("    url: https://zakon.rada.gov.ua/laws/show/550-14")
+    assert not outside(f"  - {checkout}/apps/api/.venv/bin/python"), "шлях У чекауті"
+    assert not outside(f'  "canonical_root": "{canonical}"'), (
+        "оголошений корінь розгортання — єдиний законний шлях поза чекаутом"
+    )
+    # Корінь із ПРОБІЛАМИ: збіг обривається на «/srv/», і саме тут правило,
+    # що питає лише в один бік, оголосило б чужим власне дерево.
+    assert not outside(f"  - {canonical}/apps/api/.venv/bin/python"), (
+        "шлях усередині кореня з пробілами не є чужим"
     )
 
 
@@ -2570,19 +2604,6 @@ def test_the_producer_rule_reads_the_write_not_the_declaration() -> None:
     )
     written, _ = _written_paths(ast.parse(reassigned))
     assert written == {"reports/write-me.json"}, "читач не сміє рахуватись виробником"
-
-
-def test_the_exemption_list_still_earns_every_entry() -> None:
-    """Виняток, ширший за факт, — це прощення, а не реєстр.
-
-    Запис, під яким уже немає чужого шляху, мовчки прикриває наступний, що там з'явиться.
-    """
-    stale = [
-        relative
-        for relative in CONFIG_PATHS_OUTSIDE_THE_CHECKOUT
-        if not paths_outside_the_checkout((ROOT / relative).read_text(encoding="utf-8"))
-    ]
-    assert not stale, f"виняток більше не потрібен — прибрати: {stale}"
 
 
 #: Звіти, які СПРАВДІ мають більш ніж одного виробника, з причиною на кожен. Порожній
