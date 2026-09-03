@@ -57,3 +57,17 @@ def test_a_report_without_provenance_is_refused() -> None:
 
 def test_a_report_of_a_failing_run_is_not_evidence() -> None:
     assert problems({**GOOD, "survived": ["M02"]}, EXPECTED)
+
+
+def test_the_two_names_of_one_report_never_diverge() -> None:
+    """`MUTATION_REPORT.json` і `MUTATION_FULL_CATALOGUE_CURRENT.json` — один доказ.
+
+    Прогін оновлював лише друге, а перше — те, яке читає цей самий гейт свіжості, —
+    переносили рукою. Тому після кожної зміни каталогу `validate` червонів на свіжості
+    звіту, і причина була не в каталозі, а в тому, що одну річ оновлювали двома
+    дорогами. Тепер обидва пишуться з одного рядка; розбіжність означає, що хтось
+    правив копію окремо.
+    """
+    first = (ROOT / "reports/MUTATION_REPORT.json").read_bytes()
+    second = (ROOT / "reports/MUTATION_FULL_CATALOGUE_CURRENT.json").read_bytes()
+    assert first == second, "два імені одного звіту розійшлися — одне з них редагували окремо"

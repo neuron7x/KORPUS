@@ -6717,9 +6717,19 @@ def _write_report(report: dict[str, object], output: Path, *, portable: bool = F
     serialized = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     output.write_text(serialized, encoding="utf-8")
     if portable:
-        portable_output = ROOT / "reports/MUTATION_FULL_CATALOGUE_CURRENT.json"
-        portable_output.parent.mkdir(parents=True, exist_ok=True)
-        portable_output.write_text(serialized, encoding="utf-8")
+        # ДВА імені одного доказу, і доти прогін оновлював лише перше. Друге —
+        # `MUTATION_REPORT.json`, яке читають `check_mutation_report_freshness`,
+        # `verify_branch_consolidation` і `snapshot_assurance`, — переносили РУКОЮ,
+        # тож щоразу після зміни каталогу `validate` червонів на свіжості звіту, а
+        # причина була не в каталозі. Виміряно 03.09.2026 двічі за одну ніч. Обидва
+        # пишуться з ОДНОГО рядка, тож розійтись їм нема де.
+        for name in (
+            "reports/MUTATION_FULL_CATALOGUE_CURRENT.json",
+            "reports/MUTATION_REPORT.json",
+        ):
+            portable_output = ROOT / name
+            portable_output.parent.mkdir(parents=True, exist_ok=True)
+            portable_output.write_text(serialized, encoding="utf-8")
 
 
 def _print_summary(report: dict[str, object]) -> None:
