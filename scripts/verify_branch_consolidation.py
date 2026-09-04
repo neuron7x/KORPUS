@@ -363,6 +363,88 @@ def selftest() -> int:
     ]
     heads = alembic_heads()
     checks.append(("у цьому дереві рівно одна голова", len(heads), 1))
+
+    # ВИМІРЯНО 04.09.2026. Все вище звіряло `_literal()` — парсер тексту — і кількість
+    # голів. Вирок `ACCEPTED`, заради якого скрипт існує, не торкався ЖОДНИМ випадком.
+    # Десять отрут у рішеннях (звіряння дайджесту, повнота мутацій, збирання вироку,
+    # стан лану, підлога осей) лишили самоперевірку зеленою 6/6. Самоперевірка, яка не
+    # може почервоніти від перевороту власного рішення, негативним контролем не є.
+    head, digest = "a" * 40, "d" * 64
+    bound = {"source_commit": head, "source_digest": digest}
+    checks += [
+        ("звіт про це дерево — прив'язаний", lane_binding_failure(bound, head, digest), None),
+        (
+            "інший коміт — не це дерево",
+            lane_binding_failure({**bound, "source_commit": "b" * 40}, head, digest) is None,
+            False,
+        ),
+        (
+            "той самий коміт, інший вміст — дерево було брудне",
+            lane_binding_failure({**bound, "source_digest": "e" * 64}, head, digest) is None,
+            False,
+        ),
+        (
+            "звіт без тотожності доводить НЕ той, хто читає",
+            lane_binding_failure({}, head, digest) is None,
+            False,
+        ),
+        (
+            "джерело зрушило під час лану",
+            lane_binding_failure({**bound, "source_moved_during_run": True}, head, digest) is None,
+            False,
+        ),
+        (
+            "звіт, старший за HEAD, несвіжий",
+            report_is_stale("2020-01-01T00:00:00", 2 * 10**9),
+            True,
+        ),
+        ("звіт, молодший за HEAD, свіжий", report_is_stale("2033-01-01T00:00:00", 10**9), False),
+        ("час, який не читається, — теж несвіжість", report_is_stale("не дата", 0), True),
+        (
+            "впалий лан — проблема, не невідомість",
+            _lane_findings({"failed": 2, "not_run": 0}, False, None)[0] != [],
+            True,
+        ),
+        (
+            "відсутній лан — невідомість, не проблема",
+            (_lane_findings(None, False, None)[0], _lane_findings(None, False, None)[1] != []),
+            ([], True),
+        ),
+        ("повна мутація не має проблем", mutation_consistency({"mutants": 5, "killed": 5}), []),
+        (
+            "нуль мутантів — не доказ",
+            mutation_consistency({"mutants": 0, "killed": 0, "survived": []}) != [],
+            True,
+        ),
+        ("порожній звіт мутацій — не доказ", mutation_consistency({}) != [], True),
+        (
+            "вижилий мутант — проблема",
+            mutation_consistency({"mutants": 5, "killed": 5, "survived": ["M1"]}) != [],
+            True,
+        ),
+        (
+            "вісь під підлогою — проблема",
+            _axes_findings({"axes": [{"axis": "a", "state": "MEASURED", "below_floor": True}]})[0]
+            != [],
+            True,
+        ),
+        (
+            "невиміряна вісь — невідомість, не проблема",
+            (
+                _axes_findings({"axes": [{"axis": "a", "state": "STALE", "reason": "вік"}]})[0],
+                _axes_findings({"axes": [{"axis": "a", "state": "STALE", "reason": "вік"}]})[1]
+                != [],
+            ),
+            ([], True),
+        ),
+        (
+            "вердикт FAIL без названої осі суперечить сам собі",
+            _axes_findings({"verdict": "FAIL", "axes": []})[0] != [],
+            True,
+        ),
+        ("прийнято лише коли чисто І відомо", (not [] and not []), True),
+        ("невідоме не є прийнятим", (not [] and not ["щось"]), False),
+    ]
     passed = 0
     for name, got, want in checks:
         ok = got == want

@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1826,
-  "root_sha256": "301f5832e611eb146dc7ffb8a5e36570057cd913d76a9d7da221e9ae6d4ab512",
+  "file_count": 1828,
+  "root_sha256": "0fa3b04804a7e1766834fac2c2c4ebeec75d22108075efd2e0f608218a5c911b",
   "files": [
     {
       "path": ".dockerignore",
@@ -409,8 +409,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 109357,
-      "sha256": "ed24345fc4795cd2e529bc320b3b1c3c9c6c234f2bc6ae3cfb6a0d6d05aeca0f",
+      "bytes": 110310,
+      "sha256": "78424588bdfd04846f4805d1fb42c2a5dc8d0e82f2889bad7ce933f60e9cea13",
       "mode": "0644"
     },
     {
@@ -3517,8 +3517,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_closure.py",
-      "bytes": 16940,
-      "sha256": "21345c7b0cfd2385a0fe4c71a5882de33437549999f1004ba518bf2627edeaf2",
+      "bytes": 18475,
+      "sha256": "7bfc9654999cb8eda6856d74fb96a8a64a915fb861a609784b2fdf8d6a2e0806",
       "mode": "0644"
     },
     {
@@ -7447,8 +7447,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 637852,
-      "sha256": "7f0be264caff2abdf04d937d33a4acfb2af2b23fbcaaf907dcce849010c8c60d",
+      "bytes": 641642,
+      "sha256": "6d973bf2c0a16219149a4dca470f4cc42ee4aa78757a40a338b5930f6d6102a5",
       "mode": "0644"
     },
     {
@@ -7485,6 +7485,12 @@
       "path": "config/operations/security-acceptances.json",
       "bytes": 2238,
       "sha256": "29400862283a479276a7c498a9027b7ced8826fd1838168146d01359e799e64e",
+      "mode": "0644"
+    },
+    {
+      "path": "config/operations/selftest-falsifiability.json",
+      "bytes": 2583,
+      "sha256": "d9b223899567ab19371aded16bcd3bf03e5a944a711d3a8cdda3000f6f37f843",
       "mode": "0644"
     },
     {
@@ -10069,8 +10075,8 @@
     },
     {
       "path": "scripts/postgres_gate_process.py",
-      "bytes": 3934,
-      "sha256": "0b6c1d6dc936c231ef1e86999d09d2da8730f207f3f078972b3fa5d612a404b1",
+      "bytes": 6001,
+      "sha256": "dd99245bca7b3e200ecd5aea4008d3d5b3a4b93ae03c611f39f117b92be24259",
       "mode": "0755"
     },
     {
@@ -10083,6 +10089,12 @@
       "path": "scripts/prepare_postgres_role.py",
       "bytes": 22799,
       "sha256": "56038fd5949d69e7b26bab8dbfa5a09e38e4b62e637e9f851fcc6c49cec3661f",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/probe_selftest_falsifiability.py",
+      "bytes": 17634,
+      "sha256": "7d1d742526091933e98f0dbb03a7d252859f33ba768e8549ffab06ad4e6ead00",
       "mode": "0755"
     },
     {
@@ -10771,8 +10783,8 @@
     },
     {
       "path": "scripts/verify_branch_consolidation.py",
-      "bytes": 21904,
-      "sha256": "c57d9472eaeb83a6d39f4f88d7a5e7976bc466467e89be84c72c5819ae7a9325",
+      "bytes": 26209,
+      "sha256": "84367727b88de2ff23e799c0c26980132f29fd656a584c055151219d5f4fb400",
       "mode": "0755"
     },
     {

@@ -290,14 +290,34 @@ def test_the_selftest_shortcut_needs_the_selftest_gate_to_be_covered() -> None:
     # дослівне "validate: public-env-parity gate-closure selftest-coverage", і коли між
     # `gate-closure` та `selftest-coverage` стала нова ціль, `replace` став НІЧИМ. Тест
     # тоді падає, і це щастя: він міг би так само мовчки перестати щось перевіряти.
+    # Вирізати треба КОЖЕН шлях, а не один. Виміряно 04.09.2026: щойно з'явився
+    # `selftest-falsifiability`, який залежить від `selftest-coverage` і сам висить під
+    # `check-nightly`, вирізання самої лише `validate` перестало робити ціль недосяжною —
+    # і тест червонів, кажучи саме це. Властивість не змінилась («знижка мусить зникнути
+    # разом із гейтом»); змінилось число доріг до неї, і тест мусить рахувати їх усі,
+    # а не пам'ятати одну.
     lines = (ROOT / "Makefile").read_text(encoding="utf-8").splitlines()
-    index = next(i for i, line in enumerate(lines) if line.startswith("validate:"))
-    assert "selftest-coverage" in lines[index], (
-        "ціль мусить бути в `validate`, інакше вирізати нічого"
-    )
-    lines[index] = " ".join(t for t in lines[index].split() if t != "selftest-coverage")
+    cut = 0
+    for index, line in enumerate(lines):
+        if line.startswith("selftest-coverage:") or "selftest-coverage" not in line:
+            continue
+        lines[index] = " ".join(token for token in line.split() if token != "selftest-coverage")
+        if line.startswith("\t"):
+            lines[index] = "\t" + lines[index]
+        cut += 1
+    assert cut >= 2, f"ціль мусить бути досяжною хоча б двома дорогами, знайдено {cut}"
     without = "\n".join(lines) + "\n"
-    assert "selftest-coverage" not in without.splitlines()[index]
+    # Твердження про ГРАФ, не про текст: згадка в коментарі (`\u0060selftest-coverage\u0060`)
+    # ребром не є, а підрядковий пошук вважав би її залишком і падав би на прозі.
+    cut_edges, _, cut_scripts = GATE.parse_graph(without)
+    assert not any("selftest-coverage" in deps for deps in cut_edges.values()), (
+        "після вирізання жодна ціль не сміє залежати від неї"
+    )
+    assert "selftest-coverage" not in {
+        name
+        for name, invocations in cut_scripts.items()
+        if any("selftest-coverage" in str(i) for i in invocations)
+    }
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
     edges, declared, scripts = GATE.parse_graph(without)
     findings = GATE.assess(edges, declared, registry, scripts, without)
