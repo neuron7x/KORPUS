@@ -28,6 +28,14 @@ class Outcome:
         ordered = sorted(self.latencies)
         if not ordered:
             return {"requests": 0}
+        # Частка ВІДПОВІДАНИХ у фазі. Затримки рахуються по всіх запитах, і 401 має
+        # затримку 0.006 с — тобто прогін, майже цілком відхилений на дверях, дає
+        # чудовий p95 про двері. Знайдено незалежним верифікатором 04.09.2026: ОДНА
+        # відповідь 200 зі 101 206 робила всі тринадцять перевірок гейта надійності
+        # зеленими. Рейтингувати лише по 200 не рятує — вибірка з одного елемента дає
+        # p95, що дорівнює цьому елементу. Вада на ЗНАМЕННИКУ, тож і число про
+        # знаменник виходить у звіт.
+        answered = self.statuses.get("200", 0)
 
         def at(fraction: float) -> float:
             index = min(len(ordered) - 1, int(fraction * len(ordered)))
@@ -35,6 +43,8 @@ class Outcome:
 
         return {
             "requests": len(ordered),
+            "answered": answered,
+            "answered_share": round(answered / len(ordered), 4),
             "p50_seconds": at(0.50),
             "p95_seconds": at(0.95),
             "p99_seconds": at(0.99),

@@ -78,8 +78,20 @@ def _engine_version(engine: Engine) -> str:
         return str(connection.execute(text("SELECT sqlite_version()")).scalar_one())
 
 
-def _latest_protected_write(engine: Engine) -> datetime | None:
-    """Newest durable write across the document and audit streams."""
+def _latest_protected_write(engine: Engine, authz_url: str = "") -> datetime | None:
+    """Newest durable write across the document and audit streams.
+
+    ШОСТЕ місце, де потрібен брокер, і єдине, яке лишалось непереведеним. Знайдено
+    незалежним верифікатором 04.09.2026 і виміряно на живому пілоті: `documents` має
+    RLS, `audit_events` не має. Без прив'язаного контексту потік документів дає в RPO
+    НУЛЬ внеску — не помилку, не виняток, просто зникає, — і `max` лишається журналом
+    аудиту. Відновлення, яке втратило всі документи після бекапу, але цілком відновило
+    ланцюг аудиту, дало б `rpo_seconds ≈ 0`, тобто «нічого не втрачено».
+
+    Рядок, який стоїть над викликом цієї функції, застерігає рівно від цього:
+    «audit-only RPO can read zero while documents are lost». Інваріант тримався не
+    тому, що охоронявся, а тому, що на цих даних аудит новіший за документи.
+    """
     statement = """
         SELECT max(ts) FROM (
             SELECT max(created_at) AS ts FROM documents
@@ -87,6 +99,8 @@ def _latest_protected_write(engine: Engine) -> datetime | None:
         ) AS protected_writes
     """
     with engine.begin() as connection:
+        if connection.dialect.name == "postgresql":
+            bind_rls_context(connection, authz_url, "recovery-drill")
         return _moment(connection.execute(text(statement)).scalar_one_or_none())
 
 
@@ -140,8 +154,8 @@ def main() -> int:
     lost_documents = max(written_after - survived_after, 0)
 
     # Use every protected write stream; audit-only RPO can read zero while documents are lost.
-    newest = _latest_protected_write(source)
-    newest_restored = _latest_protected_write(restored)
+    newest = _latest_protected_write(source, source_authz)
+    newest_restored = _latest_protected_write(restored, restored_authz)
     rpo_seconds = _interval(newest, newest_restored)
 
     # Той самий інваріант, що й у навантаженні: PRODUCTION_LIKE віддає ВИМІР оголошеної
