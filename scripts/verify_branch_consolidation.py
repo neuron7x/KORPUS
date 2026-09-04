@@ -201,31 +201,56 @@ def _axes_findings(axes: dict[str, Any] | None) -> tuple[list[str], list[str]]:
     return problems, stale
 
 
-def _mutation_findings(mutation: dict[str, Any] | None) -> tuple[list[str], list[str]]:
-    """Внутрішня узгодженість звіту НЕ означає, що він бачив каталог.
-
-    Після зведення каталог виріс до 525, а звіт лишився про 511 і виглядав цілим:
-    511 із 511, `survived` порожній. Тому питаємо окремий гейт свіжості.
-    """
-    problems: list[str] = []
-    freshness = subprocess.run(
+def _run_freshness_gate() -> tuple[int, str]:
+    """Єдина нечиста дія цього вироку — запуск гейта свіжості."""
+    done = subprocess.run(
         [sys.executable, str(ROOT / "scripts/check_mutation_report_freshness.py")],
         cwd=str(ROOT),
         capture_output=True,
         text=True,
         check=False,
     )
-    if freshness.returncode != 0:
-        unseen = re.findall(r"каталог має (\d+) мутантів", freshness.stdout)
-        problems.append(
-            f"звіт мутацій не бачив {unseen[0]} мутантів каталогу"
-            if unseen
-            else "звіт мутацій розійшовся з каталогом"
-        )
+    return done.returncode, done.stdout
+
+
+def _mutation_findings(
+    mutation: dict[str, Any] | None, freshness: tuple[int, str] | None = None
+) -> tuple[list[str], list[str]]:
+    """Внутрішня узгодженість звіту НЕ означає, що він бачив каталог.
+
+    Після зведення каталог виріс до 525, а звіт лишився про 511 і виглядав цілим:
+    511 із 511, `survived` порожній. Тому питаємо окремий гейт свіжості.
+
+    Результат гейта приходить ПАРАМЕТРОМ, а не з підпроцесу всередині. Виміряно
+    04.09.2026: доти переворот `mutation is None` виживав — не тому, що байдужий, а
+    тому, що самоперевірка не могла дійти сюди, не запустивши підпроцес. Нечиста дія
+    винесена в `_run_freshness_gate`, і вирок став вимірюваним.
+    """
+    problems: list[str] = []
+    problems.extend(
+        freshness_problem(*(freshness if freshness is not None else _run_freshness_gate()))
+    )
     if mutation is None:
         return problems, ["немає reports/MUTATION_REPORT.json"]
     problems.extend(mutation_consistency(mutation))
     return problems, []
+
+
+def freshness_problem(returncode: int, stdout: str) -> list[str]:
+    """Що каже гейт свіжості звіту мутацій. Нуль — мовчання, решта — скарга.
+
+    Винесено 04.09.2026: рішення жило поруч із запуском підпроцесу, тож перевірити
+    його можна було лише разом із ним — і переворот `!= 0` на `== 0` виживав, бо
+    самоперевірка до підпроцесу не доходила.
+    """
+    if returncode == 0:
+        return []
+    unseen = re.findall(r"каталог має (\d+) мутантів", stdout)
+    return [
+        f"звіт мутацій не бачив {unseen[0]} мутантів каталогу"
+        if unseen
+        else "звіт мутацій розійшовся з каталогом"
+    ]
 
 
 def mutation_consistency(mutation: dict[str, Any]) -> list[str]:
@@ -411,6 +436,51 @@ def selftest() -> int:
             ([], True),
         ),
         ("повна мутація не має проблем", mutation_consistency({"mutants": 5, "killed": 5}), []),
+        (
+            "убито менше, ніж мутантів — проблема",
+            mutation_consistency({"mutants": 5, "killed": 3}) != [],
+            True,
+        ),
+        (
+            "убито не число — теж проблема",
+            mutation_consistency({"mutants": 5, "killed": None}) != [],
+            True,
+        ),
+        ("гейт свіжості мовчить — проблем немає", freshness_problem(0, ""), []),
+        (
+            "гейт свіжості скаржиться — проблема названа числом",
+            freshness_problem(1, "каталог має 624 мутантів"),
+            ["звіт мутацій не бачив 624 мутантів каталогу"],
+        ),
+        (
+            "скарга без числа — теж проблема",
+            freshness_problem(1, "щось інше"),
+            ["звіт мутацій розійшовся з каталогом"],
+        ),
+        (
+            "немає звіту мутацій — невідомість, не проблема",
+            (
+                _mutation_findings(None, (0, ""))[0],
+                _mutation_findings(None, (0, ""))[1] != [],
+            ),
+            ([], True),
+        ),
+        (
+            "звіт є і цілий — ні проблем, ні невідомості",
+            _mutation_findings({"mutants": 5, "killed": 5}, (0, "")),
+            ([], []),
+        ),
+        (
+            "звіт є, але каталог розійшовся — проблема, не невідомість",
+            _mutation_findings({"mutants": 5, "killed": 5}, (1, "каталог має 624 мутантів"))[0]
+            != [],
+            True,
+        ),
+        (
+            "звіт, знятий у ТУ САМУ секунду, що й HEAD, не старший за нього",
+            report_is_stale("2026-09-04T00:00:00+00:00", 1788480000),
+            False,
+        ),
         (
             "нуль мутантів — не доказ",
             mutation_consistency({"mutants": 0, "killed": 0, "survived": []}) != [],

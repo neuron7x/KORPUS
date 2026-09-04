@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1828,
-  "root_sha256": "b555032fd2cb4e926e40e18fb090928f82af083435384c257d50ff4f3808a1e0",
+  "root_sha256": "023de20b2706cdf110bba028d457602f4e01b443b8dc6368b5976a505ead85c0",
   "files": [
     {
       "path": ".dockerignore",
@@ -7447,8 +7447,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 644412,
-      "sha256": "921ba7b035a8762666f7c3204c73879360a53f92fe3a7727639cccd3cd81a113",
+      "bytes": 645997,
+      "sha256": "1f748008deea4e2d25dc78343aba56cd267180586b2773c71ec190ede33600a8",
       "mode": "0644"
     },
     {
@@ -10783,8 +10783,8 @@
     },
     {
       "path": "scripts/verify_branch_consolidation.py",
-      "bytes": 26209,
-      "sha256": "84367727b88de2ff23e799c0c26980132f29fd656a584c055151219d5f4fb400",
+      "bytes": 29661,
+      "sha256": "409021ff7b51de53bd28b25c52346d4cdc4f7cd0c3d9713a9c2f1d8446fa89c4",
       "mode": "0755"
     },
     {
