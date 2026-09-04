@@ -20,11 +20,21 @@ capability_effects = Table(
     Column("input_digest", String(71), nullable=False),
     Column("state", String(32), nullable=False),
     Column("provider_reference", String(512)),
+    Column("reconciliation_disposition", String(32)),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("updated_at", DateTime(timezone=True), nullable=False),
     CheckConstraint(
         "state IN ('PENDING','COMMITTED','FAILED_KNOWN_NO_EFFECT','OUTCOME_UNKNOWN','RECONCILED')",
         name="ck_capability_effect_state",
+    ),
+    CheckConstraint(
+        "("
+        "state = 'RECONCILED' "
+        "AND reconciliation_disposition IN ('CONFIRMED_COMMITTED','CONFIRMED_NO_EFFECT')"
+        ") OR ("
+        "state <> 'RECONCILED' AND reconciliation_disposition IS NULL"
+        ")",
+        name="ck_capability_effect_reconciliation_disposition",
     ),
 )
 

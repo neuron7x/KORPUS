@@ -18,6 +18,11 @@ class EffectState(StrEnum):
     RECONCILED = "RECONCILED"
 
 
+class ReconciliationDisposition(StrEnum):
+    CONFIRMED_COMMITTED = "CONFIRMED_COMMITTED"
+    CONFIRMED_NO_EFFECT = "CONFIRMED_NO_EFFECT"
+
+
 class IdempotencyConflict(CapabilityGatewayError):
     reason = "idempotency_conflict"
 
@@ -42,6 +47,14 @@ class EffectRecord:
     input_digest: str
     state: EffectState
     provider_reference: str | None = None
+    reconciliation_disposition: ReconciliationDisposition | None = None
+
+    def __post_init__(self) -> None:
+        if self.state is EffectState.RECONCILED:
+            if self.reconciliation_disposition is None:
+                raise ValueError("reconciled effect record requires a resolved disposition")
+        elif self.reconciliation_disposition is not None:
+            raise ValueError("reconciliation disposition is valid only for RECONCILED state")
 
 
 @dataclass(frozen=True, slots=True)

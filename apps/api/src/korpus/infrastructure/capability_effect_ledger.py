@@ -6,7 +6,7 @@ from contextlib import nullcontext
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import insert, select, update
+from sqlalchemy import insert, or_, select, update
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.exc import IntegrityError
 
@@ -15,6 +15,7 @@ from korpus.application.capability_gateway.effects import (
     EffectReservation,
     EffectState,
     InvalidEffectTransition,
+    ReconciliationDisposition,
     assert_effect_transition,
 )
 from korpus.infrastructure.capability_effect_schema import capability_effects
@@ -38,6 +39,9 @@ class SqlEffectLedger:
     already-authenticated KORPUS subject before touching the FORCE-RLS table. The binder is
     infrastructure-owned composition; request bodies, provider metadata and adapters never
     get to choose it. SQLite has no RLS and remains the local/test profile.
+
+    Ambiguous effects are reconciled through `reconcile`, not generic `transition`: a
+    RECONCILED row is invalid unless its durable disposition is explicit.
     """
 
     def __init__(
@@ -76,6 +80,7 @@ class SqlEffectLedger:
             "input_digest": input_digest,
             "state": EffectState.PENDING.value,
             "provider_reference": None,
+            "reconciliation_disposition": None,
             "created_at": current,
             "updated_at": current,
         }
@@ -111,6 +116,10 @@ class SqlEffectLedger:
         target: EffectState,
         provider_reference: str | None = None,
     ) -> EffectRecord:
+        if target is EffectState.RECONCILED:
+            raise InvalidEffectTransition(
+                "RECONCILED requires an explicit disposition via SqlEffectLedger.reconcile"
+            )
         assert_effect_transition(expected, target)
         current = datetime.now(UTC)
         guard = self._sqlite_lock if self.engine.dialect.name == "sqlite" else nullcontext()
@@ -160,6 +169,89 @@ class SqlEffectLedger:
             )
         return self._record(row)
 
+    def reconcile(
+        self,
+        *,
+        subject_id: str,
+        idempotency_key: str,
+        expected_binding_digest: str,
+        disposition: ReconciliationDisposition,
+        provider_reference: str | None = None,
+    ) -> EffectRecord:
+        """Atomically resolve OUTCOME_UNKNOWN to RECONCILED with an explicit disposition."""
+
+        if not isinstance(disposition, ReconciliationDisposition):
+            raise ValueError("reconciliation disposition must be a registered enum value")
+        if provider_reference is not None:
+            if not isinstance(provider_reference, str) or not provider_reference.strip():
+                raise ValueError("provider reference must be a non-blank string")
+            if len(provider_reference) > 512:
+                raise ValueError("provider reference exceeds maximum length")
+
+        current = datetime.now(UTC)
+        guard = self._sqlite_lock if self.engine.dialect.name == "sqlite" else nullcontext()
+        with guard, self.engine.begin() as connection:
+            self._bind(connection, subject_id)
+            statement = (
+                update(capability_effects)
+                .where(capability_effects.c.subject_id == subject_id)
+                .where(capability_effects.c.idempotency_key == idempotency_key)
+                .where(capability_effects.c.binding_digest == expected_binding_digest)
+                .where(capability_effects.c.state == EffectState.OUTCOME_UNKNOWN.value)
+            )
+            if provider_reference is not None:
+                statement = statement.where(
+                    or_(
+                        capability_effects.c.provider_reference.is_(None),
+                        capability_effects.c.provider_reference == provider_reference,
+                    )
+                )
+            values: dict[str, object] = {
+                "state": EffectState.RECONCILED.value,
+                "reconciliation_disposition": disposition.value,
+                "updated_at": current,
+            }
+            if provider_reference is not None:
+                values["provider_reference"] = provider_reference
+            changed = connection.execute(statement.values(**values))
+            if changed.rowcount != 1:
+                row = (
+                    connection.execute(
+                        select(capability_effects)
+                        .where(capability_effects.c.subject_id == subject_id)
+                        .where(capability_effects.c.idempotency_key == idempotency_key)
+                    )
+                    .mappings()
+                    .first()
+                )
+                if row is None:
+                    raise EffectLedgerConflict("effect reservation does not exist")
+                if str(row["binding_digest"]) != expected_binding_digest:
+                    raise EffectLedgerConflict("effect reconciliation binding mismatch")
+                actual = EffectState(str(row["state"]))
+                if actual is not EffectState.OUTCOME_UNKNOWN:
+                    raise EffectLedgerConflict(
+                        f"effect is not reconcilable from state {actual.value}"
+                    )
+                current_reference = row["provider_reference"]
+                if (
+                    provider_reference is not None
+                    and current_reference is not None
+                    and str(current_reference) != provider_reference
+                ):
+                    raise EffectLedgerConflict("provider reference changed before reconciliation")
+                raise EffectLedgerConflict("effect reconciliation compare-and-set failed")
+            row = (
+                connection.execute(
+                    select(capability_effects)
+                    .where(capability_effects.c.subject_id == subject_id)
+                    .where(capability_effects.c.idempotency_key == idempotency_key)
+                )
+                .mappings()
+                .one()
+            )
+        return self._record(row)
+
     def get(self, *, subject_id: str, idempotency_key: str) -> EffectRecord | None:
         with self.engine.begin() as connection:
             self._bind(connection, subject_id)
@@ -186,6 +278,7 @@ class SqlEffectLedger:
 
     @staticmethod
     def _record(row: Any) -> EffectRecord:
+        disposition = row["reconciliation_disposition"]
         return EffectRecord(
             subject_id=str(row["subject_id"]),
             idempotency_key=str(row["idempotency_key"]),
@@ -198,5 +291,8 @@ class SqlEffectLedger:
             state=EffectState(str(row["state"])),
             provider_reference=(
                 str(row["provider_reference"]) if row["provider_reference"] is not None else None
+            ),
+            reconciliation_disposition=(
+                ReconciliationDisposition(str(disposition)) if disposition is not None else None
             ),
         )

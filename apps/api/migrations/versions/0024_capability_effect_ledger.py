@@ -7,6 +7,10 @@ The table is product state, not telemetry or an adapter cache. A duplicate side 
 be operationally irreversible, so the idempotency reservation must survive process restarts
 and concurrent replicas. PostgreSQL additionally binds every visible/mutable row to the
 non-forgeable RLS subject introduced by revision 0020.
+
+RECONCILED is not a sufficient outcome by itself. The row also persists whether provider
+reconciliation confirmed commitment or confirmed no effect, so ambiguity cannot be erased
+by a semantically empty terminal state.
 """
 
 from __future__ import annotations
@@ -35,11 +39,21 @@ def upgrade() -> None:
         sa.Column("input_digest", sa.String(length=71), nullable=False),
         sa.Column("state", sa.String(length=32), nullable=False),
         sa.Column("provider_reference", sa.String(length=512), nullable=True),
+        sa.Column("reconciliation_disposition", sa.String(length=32), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.CheckConstraint(
             "state IN ('PENDING','COMMITTED','FAILED_KNOWN_NO_EFFECT','OUTCOME_UNKNOWN','RECONCILED')",
             name="ck_capability_effect_state",
+        ),
+        sa.CheckConstraint(
+            "("
+            "state = 'RECONCILED' "
+            "AND reconciliation_disposition IN ('CONFIRMED_COMMITTED','CONFIRMED_NO_EFFECT')"
+            ") OR ("
+            "state <> 'RECONCILED' AND reconciliation_disposition IS NULL"
+            ")",
+            name="ck_capability_effect_reconciliation_disposition",
         ),
         sa.PrimaryKeyConstraint("subject_id", "idempotency_key"),
     )

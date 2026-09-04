@@ -27,6 +27,10 @@ def test_capability_effects_share_canonical_repository_metadata() -> None:
     assert "ix_capability_effects_reconciliation" in {
         index.name for index in capability_effects.indexes
     }
+    assert "reconciliation_disposition" in capability_effects.c
+    assert "ck_capability_effect_reconciliation_disposition" in {
+        constraint.name for constraint in capability_effects.constraints
+    }
 
 
 def test_postgres_effect_ledger_refuses_composition_without_identity_binder() -> None:
@@ -45,6 +49,15 @@ def test_effect_migration_is_head_pinned_and_uses_nonforgeable_subject_rls() -> 
     assert "subject_id = public.korpus_rls_subject()" in text
     assert "current_setting(" not in text
     assert "CREATE POLICY capability_effect_delete" not in text
+
+
+def test_effect_migration_persists_reconciliation_disposition_invariant() -> None:
+    text = MIGRATION.read_text(encoding="utf-8")
+
+    assert 'sa.Column("reconciliation_disposition", sa.String(length=32), nullable=True)' in text
+    assert "ck_capability_effect_reconciliation_disposition" in text
+    assert "CONFIRMED_COMMITTED" in text
+    assert "CONFIRMED_NO_EFFECT" in text
 
 
 def test_effect_migration_is_additive_and_downgrade_removes_only_its_table() -> None:
