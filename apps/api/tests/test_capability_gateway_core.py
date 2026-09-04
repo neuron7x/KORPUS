@@ -11,6 +11,7 @@ from korpus.application.capability_gateway.errors import (
     CapabilityAuthorizationDenied,
     CapabilityContractError,
     CapabilityNotFound,
+    CapabilityPolicyIndeterminate,
     CapabilityRegistrationError,
     CapabilityUnavailable,
 )
@@ -154,6 +155,57 @@ def test_policy_bridge_delegates_deny_to_canonical_policy_engine() -> None:
 
     with pytest.raises(CapabilityAuthorizationDenied, match="canonical policy denied"):
         bridge.authorize(identity, _spec())
+
+
+def test_resource_authorization_is_required_for_runtime_decision() -> None:
+    bridge = CapabilityPolicyBridge(
+        PolicyEngine(),
+        action_permissions={"integration:reference:read": "answer:read"},
+    )
+    identity = Identity(subject="reader", roles=frozenset({"user"}))
+
+    with pytest.raises(CapabilityPolicyIndeterminate, match="resource authorizer"):
+        bridge.authorize_resource(identity, _spec(), logical_resource="reference:abc")
+
+
+def test_resource_authorizer_can_narrow_allowed_action_to_exact_resource() -> None:
+    bridge = CapabilityPolicyBridge(
+        PolicyEngine(),
+        action_permissions={"integration:reference:read": "answer:read"},
+        resource_authorizers={
+            "reference_public_resource_v1": (
+                lambda identity, spec, resource: resource == "reference:allowed"
+            )
+        },
+    )
+    identity = Identity(subject="reader", roles=frozenset({"user"}))
+
+    with pytest.raises(CapabilityAuthorizationDenied, match="resource policy denied"):
+        bridge.authorize_resource(identity, _spec(), logical_resource="reference:denied")
+
+    decision = bridge.authorize_resource(
+        identity,
+        _spec(),
+        logical_resource="reference:allowed",
+    )
+    assert decision.allowed is True
+    assert decision.reason == "canonical_policy_and_resource_allowed"
+
+
+def test_resource_authorizer_exception_is_indeterminate_not_allow() -> None:
+    def fail(identity: Identity, spec: CapabilitySpec, resource: str) -> bool:
+        del identity, spec, resource
+        raise RuntimeError("policy backend unavailable")
+
+    bridge = CapabilityPolicyBridge(
+        PolicyEngine(),
+        action_permissions={"integration:reference:read": "answer:read"},
+        resource_authorizers={"reference_public_resource_v1": fail},
+    )
+    identity = Identity(subject="reader", roles=frozenset({"user"}))
+
+    with pytest.raises(CapabilityPolicyIndeterminate, match="could not decide"):
+        bridge.authorize_resource(identity, _spec(), logical_resource="reference:abc")
 
 
 def test_request_binding_refuses_version_mismatch_without_fallback() -> None:

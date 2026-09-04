@@ -70,6 +70,7 @@ def _preflight(
     include_output_schema: bool = True,
     include_mapper: bool = True,
     include_action: bool = True,
+    include_resource_authorizer: bool = True,
 ) -> CapabilityDeploymentPreflight:
     adapters = AdapterRegistry()
     if register_adapter:
@@ -83,6 +84,9 @@ def _preflight(
         schemas=ExactSchemaRegistry(validators),
         resource_mappers={"reference_resource_v1": object()} if include_mapper else {},
         action_permissions={"integration:reference:read": "answer:read"} if include_action else {},
+        resource_authorizers=(
+            {"reference_resource_v1": object()} if include_resource_authorizer else {}
+        ),
     )
 
 
@@ -100,16 +104,27 @@ def test_missing_runtime_dependencies_are_reported_together() -> None:
         include_output_schema=False,
         include_mapper=False,
         include_action=False,
+        include_resource_authorizer=False,
     )
 
     errors = preflight.errors()
-    assert len(errors) == 4
+    assert len(errors) == 5
     assert any("output schema is not registered" in error for error in errors)
     assert any("resource mapper is not registered" in error for error in errors)
+    assert any("resource authorizer is not registered" in error for error in errors)
     assert any("no canonical permission mapping" in error for error in errors)
     assert any("adapter implementation not registered" in error for error in errors)
     with pytest.raises(CapabilityRegistrationError, match="deployment preflight failed"):
         preflight.require_valid()
+
+
+def test_missing_resource_authorizer_blocks_otherwise_complete_capability() -> None:
+    preflight = _preflight(_spec(), include_resource_authorizer=False)
+
+    assert preflight.errors() == (
+        "reference.preflight.read@1.0.0: resource authorizer is not registered: "
+        "reference_resource_v1",
+    )
 
 
 def test_enabled_remote_capability_cannot_be_composed_with_no_egress() -> None:

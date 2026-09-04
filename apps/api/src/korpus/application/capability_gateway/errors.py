@@ -21,6 +21,12 @@ class CapabilityContractError(CapabilityGatewayError):
     reason = "capability_contract_error"
 
 
+class CapabilityPolicyIndeterminate(CapabilityGatewayError):
+    """Canonical policy could not produce a trustworthy resource-scoped decision."""
+
+    reason = "capability_policy_indeterminate"
+
+
 class CapabilityAuthorizationDenied(PermissionError):
     reason = "capability_authorization_denied"
 

@@ -32,6 +32,7 @@ from korpus.application.capability_gateway.errors import (
     CapabilityAuthorizationDenied,
     CapabilityContractError,
     CapabilityNotFound,
+    CapabilityPolicyIndeterminate,
     CapabilityUnavailable,
 )
 from korpus.application.capability_gateway.evidence import EvidenceEnvelope, validate_evidence
@@ -150,11 +151,21 @@ class CapabilityGateway:
             )
 
         try:
-            decision = self._policy.authorize(identity, spec)
+            decision = self._policy.authorize_resource(
+                identity,
+                spec,
+                logical_resource=logical_resource,
+            )
         except CapabilityAuthorizationDenied:
             return self._early_result(
                 InvocationOutcome.DENIED,
                 "POLICY_DENIED",
+                invocation_id=context.invocation_id,
+            )
+        except CapabilityPolicyIndeterminate:
+            return self._early_result(
+                InvocationOutcome.FAILED,
+                "POLICY_UNKNOWN",
                 invocation_id=context.invocation_id,
             )
 

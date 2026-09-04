@@ -175,7 +175,13 @@ def test_real_internal_adapter_completes_full_gateway_flow() -> None:
     gateway = CapabilityGateway(
         registry=registry,
         policy=CapabilityPolicyBridge(
-            PolicyEngine(), action_permissions={"integration:reference:read": "answer:read"}
+            PolicyEngine(),
+            action_permissions={"integration:reference:read": "answer:read"},
+            resource_authorizers={
+                "reference_resource_v1": (
+                    lambda identity, declared, resource: resource == "reference/alpha"
+                )
+            },
         ),
         adapters=adapters,
         schemas=schemas,
@@ -190,7 +196,10 @@ def test_real_internal_adapter_completes_full_gateway_flow() -> None:
         audit=audit,
     )
 
-    result = gateway.invoke(identity=Identity(subject="reader", roles=frozenset({"user"})), request=_request())
+    result = gateway.invoke(
+        identity=Identity(subject="reader", roles=frozenset({"user"})),
+        request=_request(),
+    )
 
     assert result.outcome is InvocationOutcome.SUCCESS
     assert result.output == {"id": "alpha", "resource": "reference/alpha"}

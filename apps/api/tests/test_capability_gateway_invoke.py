@@ -207,6 +207,8 @@ def _gateway(
     effect_authorizer: _EffectAuthorizer | None = None,
     ledger: _Ledger | None = None,
     audit: _Audit | None = None,
+    resource_allowed: bool = True,
+    include_resource_authorizer: bool = True,
 ) -> tuple[CapabilityGateway, _Adapter, _Ledger, _Audit]:
     declared = spec or _spec()
     selected_adapter = adapter or _Adapter()
@@ -219,6 +221,15 @@ def _gateway(
         policy=CapabilityPolicyBridge(
             PolicyEngine(),
             action_permissions={"integration:reference:action": "answer:read"},
+            resource_authorizers=(
+                {
+                    "reference_resource_v1": (
+                        lambda identity, capability, resource: resource_allowed
+                    )
+                }
+                if include_resource_authorizer
+                else {}
+            ),
         ),
         adapters=adapters,
         schemas=schemas or _Schemas(),
@@ -257,6 +268,26 @@ def test_canonical_policy_denial_happens_before_adapter() -> None:
 
     assert result.outcome is InvocationOutcome.DENIED
     assert result.error_code == "POLICY_DENIED"
+    assert adapter.calls == 0
+
+
+def test_resource_policy_denial_happens_before_adapter() -> None:
+    gateway, adapter, _, _ = _gateway(resource_allowed=False)
+
+    result = gateway.invoke(identity=_identity(), request=_request())
+
+    assert result.outcome is InvocationOutcome.DENIED
+    assert result.error_code == "POLICY_DENIED"
+    assert adapter.calls == 0
+
+
+def test_missing_resource_policy_fails_closed_before_adapter() -> None:
+    gateway, adapter, _, _ = _gateway(include_resource_authorizer=False)
+
+    result = gateway.invoke(identity=_identity(), request=_request())
+
+    assert result.outcome is InvocationOutcome.FAILED
+    assert result.error_code == "POLICY_UNKNOWN"
     assert adapter.calls == 0
 
 

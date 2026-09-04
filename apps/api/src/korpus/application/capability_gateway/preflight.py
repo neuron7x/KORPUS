@@ -28,12 +28,14 @@ class CapabilityDeploymentPreflight:
         schemas: ExactSchemaRegistry,
         resource_mappers: Mapping[str, object],
         action_permissions: Mapping[str, str],
+        resource_authorizers: Mapping[str, object] | None = None,
     ) -> None:
         self._registry = registry
         self._adapters = adapters
         self._schemas = schemas
         self._resource_mappers = frozenset(resource_mappers)
         self._action_permissions = dict(action_permissions)
+        self._resource_authorizers = frozenset(resource_authorizers or {})
 
     def errors(self) -> tuple[str, ...]:
         known_schemas = frozenset(self._schemas.schema_ids())
@@ -51,6 +53,11 @@ class CapabilityDeploymentPreflight:
                     f"{key}: resource mapper is not registered: "
                     f"{spec.authorization.resource_mapper}"
                 )
+            if spec.authorization.resource_mapper not in self._resource_authorizers:
+                errors.append(
+                    f"{key}: resource authorizer is not registered: "
+                    f"{spec.authorization.resource_mapper}"
+                )
             if spec.authorization.action not in self._action_permissions:
                 errors.append(
                     f"{key}: capability action has no canonical permission mapping: "
@@ -61,7 +68,10 @@ class CapabilityDeploymentPreflight:
             except CapabilityGatewayError as exc:
                 errors.append(f"{key}: {exc}")
 
-            if spec.provider_type is ProviderType.INTERNAL and spec.data_policy.egress_class is not DataEgressClass.NONE:
+            if (
+                spec.provider_type is ProviderType.INTERNAL
+                and spec.data_policy.egress_class is not DataEgressClass.NONE
+            ):
                 errors.append(f"{key}: internal provider must declare data egress NONE")
             if spec.provider_type is ProviderType.INTERNAL and spec.effect_class in {
                 EffectClass.READ_REMOTE,

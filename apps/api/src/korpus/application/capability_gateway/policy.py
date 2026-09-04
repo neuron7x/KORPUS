@@ -1,12 +1,17 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
-from korpus.application.capability_gateway.errors import CapabilityAuthorizationDenied
+from korpus.application.capability_gateway.errors import (
+    CapabilityAuthorizationDenied,
+    CapabilityPolicyIndeterminate,
+)
 from korpus.application.capability_gateway.types import CapabilitySpec
 from korpus.application.policy import AuthorizationError, KNOWN_PERMISSIONS, PolicyEngine
 from korpus.domain.models import Identity
+
+ResourceAuthorizer = Callable[[Identity, CapabilitySpec, str], bool]
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,11 +25,12 @@ class CapabilityPolicyDecision:
 
 
 class CapabilityPolicyBridge:
-    """Fail-closed bridge into the canonical KORPUS policy engine.
+    """Fail-closed bridge into canonical KORPUS action and resource policy.
 
-    Capability actions are proposal-owned identifiers and are not automatically KORPUS
-    permissions. The server must provide an explicit action -> existing canonical
-    permission mapping. Missing mappings deny; invalid mappings fail composition early.
+    Capability actions are proposal-owned identifiers and never become KORPUS permissions
+    implicitly. Action authority is mapped to the existing closed permission vocabulary.
+    Resource authority is a separate server-owned predicate keyed by the registered resource
+    mapper. Provider metadata, request claims and adapter credentials participate in neither.
     """
 
     def __init__(
@@ -32,6 +38,7 @@ class CapabilityPolicyBridge:
         policy: PolicyEngine,
         *,
         action_permissions: Mapping[str, str],
+        resource_authorizers: Mapping[str, ResourceAuthorizer] | None = None,
     ) -> None:
         normalized: dict[str, str] = {}
         for action, permission in action_permissions.items():
@@ -40,12 +47,31 @@ class CapabilityPolicyBridge:
             if not action_name:
                 raise ValueError("capability action mapping contains an empty action")
             if permission_name not in KNOWN_PERMISSIONS:
-                raise ValueError(f"unknown canonical permission in capability mapping: {permission_name}")
+                raise ValueError(
+                    f"unknown canonical permission in capability mapping: {permission_name}"
+                )
             normalized[action_name] = permission_name
+
+        normalized_resources: dict[str, ResourceAuthorizer] = {}
+        for mapper_id, authorizer in (resource_authorizers or {}).items():
+            key = mapper_id.strip()
+            if not key:
+                raise ValueError("resource authorizer mapping contains an empty mapper id")
+            if not callable(authorizer):
+                raise ValueError(f"resource authorizer is not callable: {key}")
+            normalized_resources[key] = authorizer
+
         self._policy = policy
         self._action_permissions = normalized
+        self._resource_authorizers = normalized_resources
 
     def authorize(self, identity: Identity, spec: CapabilitySpec) -> CapabilityPolicyDecision:
+        """Authorize only the canonical action permission.
+
+        This method remains useful for composition/unit checks. Runtime capability execution
+        must call `authorize_resource`, which adds the independent logical-resource predicate.
+        """
+
         action = spec.authorization.action
         permission = self._action_permissions.get(action)
         if permission is None:
@@ -63,4 +89,51 @@ class CapabilityPolicyBridge:
             canonical_permission=permission,
             allowed=True,
             reason="canonical_policy_allowed",
+        )
+
+    def has_resource_authorizer(self, spec: CapabilitySpec) -> bool:
+        return spec.authorization.resource_mapper in self._resource_authorizers
+
+    def authorize_resource(
+        self,
+        identity: Identity,
+        spec: CapabilitySpec,
+        *,
+        logical_resource: str,
+    ) -> CapabilityPolicyDecision:
+        """Require both canonical action authority and exact resource authority."""
+
+        action_decision = self.authorize(identity, spec)
+        resource = logical_resource.strip()
+        if not resource:
+            raise CapabilityPolicyIndeterminate("logical resource is empty")
+
+        mapper_id = spec.authorization.resource_mapper
+        authorizer = self._resource_authorizers.get(mapper_id)
+        if authorizer is None:
+            raise CapabilityPolicyIndeterminate(
+                f"resource authorizer is not registered: {mapper_id}"
+            )
+        try:
+            allowed = authorizer(identity, spec, resource)
+        except Exception as exc:  # noqa: BLE001 - fail-closed PEP boundary over injected policy.
+            raise CapabilityPolicyIndeterminate(
+                f"resource policy could not decide: {mapper_id}"
+            ) from exc
+        if allowed is False:
+            raise CapabilityAuthorizationDenied(
+                f"resource policy denied {spec.authorization.action} on {resource}"
+            )
+        if allowed is not True:
+            raise CapabilityPolicyIndeterminate(
+                f"resource policy returned a non-boolean decision: {mapper_id}"
+            )
+
+        return CapabilityPolicyDecision(
+            capability_id=action_decision.capability_id,
+            capability_version=action_decision.capability_version,
+            action=action_decision.action,
+            canonical_permission=action_decision.canonical_permission,
+            allowed=True,
+            reason="canonical_policy_and_resource_allowed",
         )
