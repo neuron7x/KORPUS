@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from datetime import UTC, datetime
+from uuid import UUID
 
 from korpus.application.capability_gateway.adapters import (
     AdapterExecutionResult,
@@ -8,11 +10,19 @@ from korpus.application.capability_gateway.adapters import (
     AdapterRegistry,
 )
 from korpus.application.capability_gateway.audit import InvocationOutcome
+from korpus.application.capability_gateway.contracts import payload_digest
 from korpus.application.capability_gateway.effects import (
     EffectRecord,
     EffectReservation,
     EffectState,
     assert_effect_transition,
+)
+from korpus.application.capability_gateway.evidence import (
+    EvidenceBinding,
+    EvidenceEnvelope,
+    EvidenceProvenance,
+    EvidenceStatus,
+    ProvenanceKind,
 )
 from korpus.application.capability_gateway.invoke import CapabilityGateway
 from korpus.application.capability_gateway.policy import CapabilityPolicyBridge
@@ -322,6 +332,41 @@ def test_missing_required_evidence_abstains_without_exposing_output() -> None:
     assert result.outcome is InvocationOutcome.ABSTAINED
     assert result.error_code == "EVIDENCE_MISSING"
     assert result.output is None
+
+
+def test_wrong_bound_evidence_fails_closed_without_exposing_provider_output() -> None:
+    output = {"value": "ok"}
+    evidence = EvidenceEnvelope(
+        schema_version="korpus.evidence-envelope.v1",
+        status=EvidenceStatus.VALID,
+        binding=EvidenceBinding(
+            invocation_id=UUID(int=0),
+            capability_id="reference.public.action",
+            capability_version="1.0.0",
+            adapter_id="internal.reference",
+            adapter_version="1.0.0",
+            output_digest=payload_digest(output),
+        ),
+        provenance=EvidenceProvenance(
+            kind=ProvenanceKind.SOURCE_EVIDENCE,
+            source_refs=["source:test:1"],
+        ),
+        observed_at=datetime.now(UTC),
+    )
+    adapter = _Adapter(result=AdapterExecutionResult(output=output, evidence=evidence))
+    gateway, selected_adapter, _, audit = _gateway(
+        spec=_spec(evidence_profile=EvidenceProfile.FACTUAL_EVIDENCE),
+        adapter=adapter,
+    )
+
+    result = gateway.invoke(identity=_identity(), request=_request())
+
+    assert selected_adapter.calls == 1
+    assert result.outcome is InvocationOutcome.FAILED
+    assert result.error_code == "EVIDENCE_SUBJECT_MISMATCH"
+    assert result.output is None
+    assert result.evidence is None
+    assert len(audit.calls) == 1
 
 
 def test_audit_failure_converts_success_to_fail_closed() -> None:
