@@ -5,12 +5,9 @@
 0.3904 → 1.0, прольотів 38 863 → 31 464. Ремонт застосували до бази, яка обслуговує
 читача. Через добу вимір показав, що бази ДВІ: поруч живе PostgreSQL-копія з
 увімкненою семантикою, і в ній лишились ті самі 38 863 прольоти з-перед ремонту.
-
 Жодна вісь цього не бачила, бо кожна читає ОДНУ базу — ту, яку їй назвали. Вимір, який
 питає «чи цей корпус цілий», не може відповісти на «а чи він один».
-
 ## Що саме зламано, коли баз дві
-
 Виміряно 01.09.2026: обидві бази тримають ТІ САМІ 256 джерел — множини `source_hash`
 збігаються цілком. І жодного спільного ідентифікатора: 0 із 256 `document_id`, 0 із 256
 `version_id`. Тобто цитата, видана однією базою, називає версію, якої в другій НЕМАЄ,
@@ -18,9 +15,7 @@
 
 Заморожений еталон пошуку пінить ідентифікатори версій. Він дійсний рівно для однієї
 бази, і ніде не записано, для якої.
-
 ## Чому гейт саме такої форми
-
 Різниця між базами не є вадою сама по собі: контрольна база на те й контрольна, щоб
 відрізнятись конфігурацією. Вадою є РІЗНИЦЯ, ЯКОЇ НІХТО НЕ ОГОЛОСИВ — бо саме вона
 робить порівняння недійсним мовчки: прогін 30.08.2026 порівнював лексику з гібридом на
@@ -35,7 +30,6 @@
   · оголошено `different`, виміряно те саме → REJECT (оголошення застаріло).
 Кількості рухаються вільно: вони ростуть від інжесту й ратчет на них був би податком на
 роботу. Рухається СПІВВІДНОШЕННЯ — і його треба переоголосити рукою.
-
 База, до якої не достукались, дає UNKNOWN (код 2), не PASS: відсутність виміру не є
 вимірюванням згоди.
 
@@ -59,6 +53,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sqlite3
 import subprocess
 import sys
@@ -73,6 +68,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from corpus_identity import report_inputs  # noqa: E402
 
 REGISTRY = ROOT / "config/operations/evidence-bases.json"
+DATA_ROOT = Path(os.environ.get("KORPUS_DATA_ROOT") or ROOT).resolve()
 
 #: Співвідношення, які реєстр мусить оголосити для КОЖНОЇ бази, що не є базою обліку.
 #: Список закритий навмисно: поле, дописане в реєстр, але не назване тут, не гейтується,
@@ -135,6 +131,10 @@ class Unreachable(Exception):
     """База оголошена й недосяжна. Це UNKNOWN, а не незгода."""
 
 
+def _data_path(value: object) -> Path:
+    return DATA_ROOT / str(value)
+
+
 def _digest(values: list[str]) -> str:
     """Комутативний за побудовою: сортування знімає порядок рядків із результату."""
     accumulator = hashlib.sha256()
@@ -146,7 +146,7 @@ def _digest(values: list[str]) -> str:
 
 def _postgres_dsn(spec: dict[str, Any]) -> str:
     container = str(spec["container"])
-    secret = ROOT / str(spec["password_file"])
+    secret = _data_path(spec["password_file"])
     if not secret.is_file():
         raise Unreachable(f"немає файла пароля: {secret}")
     probe = subprocess.run(
@@ -195,7 +195,7 @@ def _shape(
 
 
 def _measure_sqlite(spec: dict[str, Any]) -> dict[str, Any]:
-    database = ROOT / str(spec["path"])
+    database = _data_path(spec["path"])
     if not database.is_file():
         raise Unreachable(f"немає файла бази: {database}")
     connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
@@ -278,7 +278,7 @@ def declared_fingerprint(spec: dict[str, Any]) -> str:
     """Відбиток оголошеної бази в тому ж просторі, що й відбиток живого процесу."""
     kind = str(spec.get("kind", ""))
     if kind == "sqlite":
-        return f"sqlite:{(ROOT / str(spec['path'])).resolve()}"
+        return f"sqlite:{_data_path(spec['path']).resolve()}"
     if kind == "postgres":
         dsn = _postgres_dsn(spec)
         parts = dict(item.split("=", 1) for item in dsn.split(" ") if "=" in item)
@@ -541,7 +541,7 @@ def main() -> int:
     # лишалось би в силі після зміни тієї, з якою міряли згоду.
     record_spec = registry["bases"][record_name]
     if str(record_spec.get("kind")) == "sqlite":
-        database = ROOT / str(record_spec["path"])
+        database = _data_path(record_spec["path"])
         report["database"] = str(database)
         report["inputs"] = report_inputs(database, Path(__file__).resolve())
     _write(arguments.out, report)

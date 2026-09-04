@@ -3499,13 +3499,13 @@
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/check_answer_axes.py": {
-      "lines": 462,
+      "lines": 463,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 62,
       "max_nesting": 3,
-      "proof_lines": 54,
-      "reason": "Рецензія 03.09.2026 показала, що перевірка префікса нічого не доводила: `event_hash` — це HMAC, і без ключів ланцюг не перерахувати, а я шукав лише НАЯВНІСТЬ рядка з таким хешем. Побудовано атаку: змінити `payload_json` давньої події, лишивши старий `event_hash` — перевірка казала «свіжо». Тепер звіряється ЗЧЕПЛЕННЯ префікса (ловить вставку, видалення, переставляння) і межа названа полем `prefix_integrity=LINKAGE_ONLY_NO_KEYS_HERE`; хвіст під відомим ярликом названо `unverified_tail_events`, бо ярлик не є підписом. Сім отрут по даних, таблицею на рівні модуля. СКЛАДНІСТЬ і ВКЛАДЕНІСТЬ функції впали (13->11, 4->3, 110->62 рядки); зросла довжина модуля — через саму таблицю отрут, яка і є доказом."
+      "proof_lines": 55,
+      "reason": "Рецензія 03.09.2026: префікс перевіряється на зчеплення без удаваної HMAC-верифікації. Доповнено: відомий below-floor є FAIL навіть поруч з UNMEASURED; +1 рядок коду і +1 табличний негативний контроль, M691."
     },
     "scripts/check_answer_quality_ratchet.py": {
       "lines": 94,
@@ -3906,12 +3906,13 @@
       "reason": "нова ціль 03.09.2026 (RELEASE CLOSURE §8): вхід у наявну машину станів релізу. Обчислює тотожність кандидата (коміт, дайджест джерела, дайджест профілю, дайджест замка залежностей, голова міграцій, тотожність корпусу) і відмовляє, поки бодай одна умова не ВИМІРЯНА. 6 негативних контролів; початковий точний вимір і є стелею. Доповнено того ж дня, ремонт META-P0 за незалежною верифікацією: звіт лану прив'язується ДАЙДЖЕСТОМ ДЖЕРЕЛА (коміт доказу дайджесту не зсуває) і мусить ПОКРИВАТИ обов'язковий набір цілей — інакше заморозка прийняла б артефакт `--closure-only` про дві цілі за повний лан із вісімнадцяти. +2 негативні контролі. Доповнено того ж дня: шлях конверта читається ВІДНОСНО кореня, інакше `root / <абсолютний>` ігнорує корінь і негативний контроль читає справжній конверт замість свого — випадок «замикання замість повного лану» був зелений із хибної причини. Гілка «конверт без набору» стала досяжною, +1 контроль. Доповнено того ж дня: покриття зараховує ціль лише коли її крок ПРОЙШОВ (звіт казав той самий факт двічі, і гейт вірив слабшій копії); лан відмовляється починати вимір нижче підлоги вільного місця, бо вердикт про диск приходить переодягненим у вердикт про код."
     },
     "scripts/full_ssot_packager.py": {
-      "lines": 149,
+      "lines": 165,
       "max_complexity": 6,
       "max_function_args": 3,
       "max_function_lines": 35,
       "max_nesting": 2,
-      "proof_lines": 0
+      "proof_lines": 0,
+      "reason": "03.09.2026: tracked-tree allowlist + explicit untracked web-dist boundary; ignored host `.coverage` previously entered the archive. +1 рядок: declared OUT сам створює відсутню батьківську теку."
     },
     "scripts/gcp/canary_metrics.py": {
       "lines": 253,
@@ -5001,6 +5002,15 @@
       "proof_lines": 0,
       "reason": "v0.9.7: campaign supplies exact source/release identity to every hard predicate; measured implementation is the ratchet ceiling"
     },
+    "scripts/run_handoff_liveness_probe.py": {
+      "lines": 67,
+      "max_complexity": 4,
+      "max_function_args": 2,
+      "max_function_lines": 20,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "03.09.2026: read-only synthetic binding arms handoff liveness without relabelling stale external evidence; exact initial ratchet ceiling"
+    },
     "scripts/run_inference_security_gate.py": {
       "lines": 173,
       "max_complexity": 8,
@@ -5203,13 +5213,13 @@
       "reason": "v0.5.0: sandboxed release-critical mutation destruction campaign; exact baseline ceiling"
     },
     "scripts/run_release_verify.py": {
-      "lines": 275,
+      "lines": 272,
       "max_complexity": 13,
       "max_function_args": 2,
       "max_function_lines": 76,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "03.09.2026, ремонт хибної ВІДМОВИ обов'язкового лану: вісімнадцять кроків із вісімнадцяти пройшли, а лан оголосив FAIL — споживач порівнював `verdict` із голим `ACCEPTED`, якого сторож зведення більше не пише (він навмисно назвав вирок обсягом, щоб його не читали як право на випуск). Тепер читається поле `ACCEPTED`, яке виносить сам виробник; відсутнє поле — не згода. +10 рядків причини й контракту. Доповнено того ж дня: покриття зараховує ціль лише коли її крок ПРОЙШОВ (звіт казав той самий факт двічі, і гейт вірив слабшій копії); лан відмовляється починати вимір нижче підлоги вільного місця, бо вердикт про диск приходить переодягненим у вердикт про код."
+      "reason": "03–04.09.2026: лан має третій стан `SKIPPED_REQUIRES_EXTERNAL`, тому пропущений зовнішній доказ не стає PASS і не зупиняє перевірку наступних внутрішніх кроків; споживач читає структуроване поле `ACCEPTED`, відсутнє поле — не згода. Покриття зараховує ціль лише коли її крок ПРОЙШОВ; перед виміром діє підлога вільного місця, щоб дефіцит диска не маскувався під вердикт про код. Об'єднана точна стеля після main: 272 рядки, complexity 13, main 76, nesting 2."
     },
     "scripts/run_reliability_gate.py": {
       "lines": 78,
@@ -5572,13 +5582,13 @@
       "reason": "Новий канонічний бібліографічний гейт, виміряний 2026-09-02: перевіряє 59 джерел, 18 доменів, DOI/URL/метадані, епістемічні межі та точність двох детермінованих рендерів; вісім негативних контролів доводять fail-closed поведінку."
     },
     "scripts/verify_branch_consolidation.py": {
-      "lines": 397,
+      "lines": 398,
       "max_complexity": 15,
       "max_function_args": 6,
       "max_function_lines": 58,
       "max_nesting": 3,
       "proof_lines": 17,
-      "reason": "Вирок названий ОБСЯГОМ: `BRANCH_CONSOLIDATION_ACCEPTED` замість голого `ACCEPTED`, плюс поля `scope` і `production_authority: false`. Рецензія 03.09.2026: голе слово поруч із `production_authorized: false` в іншому звіті того самого дерева переноситься на право випуску, якого ця перевірка не встановлює."
+      "reason": "Вирок названий ОБСЯГОМ: `BRANCH_CONSOLIDATION_ACCEPTED` замість голого `ACCEPTED`, плюс поля `scope` і `production_authority: false`. 03.09.2026: +1 рядок для кореня відновленого FULL_SSOT без `.git`; інакше selftest шукав config під `scripts/` і package restoration падав."
     },
     "scripts/verify_branch_integration.py": {
       "lines": 236,
@@ -10379,6 +10389,52 @@
     },
     {
       "from": {
+        "lines": 397
+      },
+      "on": "2026-09-03",
+      "path": "scripts/verify_branch_consolidation.py",
+      "reason": "Відновлений FULL_SSOT навмисно не містить `.git`, але `validate` запускає selftest сторожа зведення. +1 рядок розпізнає корінь за канонічним реєстром; M688 доводить, що без цього restore-gate падає до перевірки предмета.",
+      "to": {
+        "lines": 398
+      }
+    },
+    {
+      "from": {
+        "lines": 149
+      },
+      "on": "2026-09-03",
+      "path": "scripts/full_ssot_packager.py",
+      "reason": "FULL_SSOT сканував увесь worktree й включив ignored `.coverage` з локальними шляхами. +15 рядків обмежують склад tracked tree та єдиним явним untracked-винятком `apps/web/dist`; M689 вбиває повернення до необмеженого сканування.",
+      "to": {
+        "lines": 164
+      }
+    },
+    {
+      "from": {
+        "lines": 164
+      },
+      "on": "2026-09-03",
+      "path": "scripts/full_ssot_packager.py",
+      "reason": "`make full-ssot-package OUT=dist/...` падав FileNotFoundError на чистому дереві без dist. +1 рядок створює лише точного батька оголошеного артефакту; M690 охороняє контракт.",
+      "to": {
+        "lines": 165
+      }
+    },
+    {
+      "from": {
+        "lines": 462,
+        "proof_lines": 54
+      },
+      "on": "2026-09-03",
+      "path": "scripts/check_answer_axes.py",
+      "reason": "Live-профіль мав evidence_bases=0.6667<1.0, але шість UNMEASURED деградували відомий FAIL до UNKNOWN. +1 рядок ізольованої пріоритетності й +1 selftest: FAIL > UNKNOWN; M691 охороняє.",
+      "to": {
+        "lines": 463,
+        "proof_lines": 55
+      }
+    },
+    {
+      "from": {
         "lines": 263,
         "max_complexity": 11,
         "proof_lines": 75
@@ -10742,6 +10798,21 @@
       "reason": "04.09.2026, ДВА контрприклади незалежного верифікатора, обидва однієї форми — число рахується над множиною, яку хтось мовчки звузив майже до порожньої. (1) Сторож проби навантаження питав `>0`, а не «досить»: ОДНА відповідь 200 зі 101 206 давала всі тринадцять перевірок гейта надійності зеленими, бо кожне число про затримку бралося з відмов 401 на дверях; рейтинг лише по 200 теж проходить — вибірка з одного елемента дає p95, що дорівнює цьому елементу, — тож ліки на ЗНАМЕННИКУ: підлога 0.95 на частку відповіданих, і сама частка виходить у звіт. (2) `_latest_protected_write` — шосте й єдине непереведене місце — читало RPO без брокера: `documents` під RLS дає нуль внеску, `audit_events` RLS не має, тож RPO рахувався з самого журналу аудиту. Відновлення, що втратило всі документи, але відновило ланцюг, дало б «нічого не втрачено».",
       "to": {
         "lines": 231
+      }
+    },
+    {
+      "from": {
+        "lines": 244,
+        "max_complexity": 12,
+        "max_function_lines": 66
+      },
+      "on": "2026-09-04",
+      "path": "scripts/run_release_verify.py",
+      "reason": "Інтеграція двох незалежних fail-closed змін: третій стан зовнішніх кроків зберігає повноту внутрішнього лану без псевдо-PASS; main зараховує обов'язкову ціль лише після PASSED і відмовляється починати вимір нижче підлоги вільного диска. Об'єднана реалізація після форматування має точні стелі 272/13/76.",
+      "to": {
+        "lines": 272,
+        "max_complexity": 13,
+        "max_function_lines": 76
       }
     },
     {

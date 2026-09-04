@@ -130,8 +130,7 @@ gates:
   - env
   - PYTHONPATH=apps/api/src
   - {python}
-  - scripts/verify_handoff_contract.py
-  - --require-bound
+  - scripts/run_handoff_liveness_probe.py
   timeout: 900
   ignore:
   - var

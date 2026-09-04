@@ -5561,6 +5561,129 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M681_HANDOFF_LIVENESS_REBINDS_A_MALFORMED_DIGEST",
+        "scripts/run_handoff_liveness_probe.py",
+        "        and HEX_SHA256.fullmatch(tracked)\n",
+        "",
+        (
+            "apps/api/tests/test_handoff_liveness_probe.py::"
+            "test_a_poisoned_or_failed_report_is_never_rebound",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M682_HANDOFF_LIVENESS_REBINDS_AN_INCOMPARABLE_SCOPE",
+        "scripts/run_handoff_liveness_probe.py",
+        '        and report.get("tracked_tree_scope") == DIGEST_SCOPE\n',
+        "",
+        (
+            "apps/api/tests/test_handoff_liveness_probe.py::"
+            "test_a_poisoned_or_failed_report_is_never_rebound",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M683_HANDOFF_LIVENESS_REBINDS_A_FAILED_REPORT",
+        "scripts/run_handoff_liveness_probe.py",
+        '        report.get("status") == "PASS"\n        and ',
+        "        ",
+        (
+            "apps/api/tests/test_handoff_liveness_probe.py::"
+            "test_a_poisoned_or_failed_report_is_never_rebound",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M684_MAKE_CORPUS_PATH_FALLS_BACK_TO_THE_FEATURE_WORKTREE",
+        "Makefile",
+        "SERVED_CORPUS ?= $(CANONICAL_ROOT)/var/runtime/corpus-v6-20260807/korpus.db",
+        "SERVED_CORPUS ?= var/runtime/corpus-v6-20260807/korpus.db",
+        (
+            "apps/api/tests/test_make_runtime_paths.py::"
+            "test_make_runtime_paths_are_rooted_in_the_canonical_declaration",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M685_MAKE_OBJECT_PATH_FALLS_BACK_TO_THE_FEATURE_WORKTREE",
+        "Makefile",
+        "SERVED_OBJECTS ?= $(CANONICAL_ROOT)/var/runtime/corpus-v6-20260807/objects",
+        "SERVED_OBJECTS ?= var/runtime/corpus-v6-20260807/objects",
+        (
+            "apps/api/tests/test_make_runtime_paths.py::"
+            "test_make_runtime_paths_are_rooted_in_the_canonical_declaration",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M686_EVIDENCE_BASES_IGNORE_THE_DECLARED_RUNTIME_ROOT",
+        "scripts/measure_evidence_bases.py",
+        "    return DATA_ROOT / str(value)",
+        "    return ROOT / str(value)",
+        (
+            "apps/api/tests/test_evidence_bases.py::"
+            "test_relative_evidence_base_paths_bind_to_the_runtime_root",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M687_LIVE_CORPUS_AXES_ARE_MISREPORTED_AS_INTERNAL",
+        "scripts/run_release_verify.py",
+        'EXTERNAL_EVIDENCE: frozenset[str] = frozenset({"assemble-assurance", "snapshot", "corpus-axes"})',
+        'EXTERNAL_EVIDENCE: frozenset[str] = frozenset({"assemble-assurance", "snapshot"})',
+        (
+            "apps/api/tests/test_release_verify_runner.py::"
+            "test_external_evidence_steps_are_named_not_guessed",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M688_EXTRACTED_PACKAGE_ROOT_REQUIRES_GIT_METADATA",
+        "scripts/verify_branch_consolidation.py",
+        '        if (candidate / ".git").exists() or registry.is_file():',
+        '        if (candidate / ".git").exists():',
+        (
+            "apps/api/tests/test_branch_consolidation.py::"
+            "test_an_extracted_distribution_has_a_project_root_without_git",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M689_FULL_SSOT_INCLUDES_UNTRACKED_HOST_STATE",
+        "scripts/full_ssot_packager.py",
+        "                tracked_paths is None\n"
+        "                or path.relative_to(root) in tracked_paths\n"
+        "                or path.relative_to(root).parts[:3] == WEB_DISTRIBUTION\n",
+        "                True\n",
+        (
+            "apps/api/tests/test_full_ssot_packager.py::"
+            "test_full_ssot_admits_only_tracked_files_plus_the_built_web",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M690_FULL_SSOT_REQUIRES_A_PRECREATED_OUTPUT_DIRECTORY",
+        "scripts/full_ssot_packager.py",
+        "    archive.parent.mkdir(parents=True, exist_ok=True)\n",
+        "",
+        (
+            "apps/api/tests/test_full_ssot_packager.py::"
+            "test_zip_tree_creates_the_declared_output_directory",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M691_A_KNOWN_FAILED_AXIS_DEGRADES_TO_UNKNOWN",
+        "scripts/check_answer_axes.py",
+        '    return "FAIL" if problems else "UNKNOWN"',
+        '    return "UNKNOWN"',
+        (
+            "apps/api/tests/test_answer_axes_composition.py::"
+            "test_a_known_failed_axis_outranks_a_blind_axis",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M676_THE_RESOLVED_COMMAND_ALIASES_THE_REGISTRY_ENTRY",
         "scripts/check_deployment_debt.py",
         "    command: list[str] = list(value)",

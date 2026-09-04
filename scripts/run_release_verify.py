@@ -50,13 +50,10 @@ EXTERNAL: tuple[tuple[str, str], ...] = (
 )
 
 #: Кроки, чий доказ виробляє ЛИШЕ зовнішній лан. `assemble-assurance` вимагає
-#: `var/recovery-report.json`, а цілі, яка його виробляє, у дереві немає:
-#: `scripts/measure_recovery.py` кличе лише `.gitlab-ci.yml`, і `assurance.py` каже про
-#: це прямо — «a local assembly without docker cannot reach PASS — deliberately».
-#: Поки вони стояли в загальному переліку, лан із --skip-external спинявся на восьмому
-#: кроці, а на дереві з давнім `var/recovery-report.json` — проходив: вердикт залежав
-#: від вмісту var/, не від виміру. Пропуск дістав власне слово й ніколи не дає PASS.
-EXTERNAL_EVIDENCE: frozenset[str] = frozenset({"assemble-assurance", "snapshot"})
+#: `var/recovery-report.json`, який виробляє лише `.gitlab-ci.yml`; локальний лан без
+#: docker не досягає PASS. Інакше --skip-external або спинявся, або приймав давній
+#: артефакт із var/. Пропуск дістав власне слово й ніколи не дає PASS.
+EXTERNAL_EVIDENCE: frozenset[str] = frozenset({"assemble-assurance", "snapshot", "corpus-axes"})
 
 SKIPPED = "SKIPPED_REQUIRES_EXTERNAL"
 

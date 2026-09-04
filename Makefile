@@ -492,7 +492,7 @@ corpus-axes:
 	$(PY) scripts/measure_declared_coverage.py --selftest
 	$(PY) scripts/measure_declared_coverage.py --database "$(or $(DATABASE),$(SERVED_CORPUS))"
 	$(PY) scripts/measure_evidence_bases.py --selftest
-	$(PY) scripts/measure_evidence_bases.py
+	KORPUS_DATA_ROOT="$(CANONICAL_ROOT)" $(PY) scripts/measure_evidence_bases.py
 # Ранжувальне плече `CalibrationProfile` — nDCG@10, MRR@10, Recall@20. Поля під них є з
 # першої версії схеми, математика є в `application/ranking_evaluation`, а водія не було:
 # `JudgedQuery` не будував ніхто поза тестами, тож плече жодного разу не бачило корпусу.
@@ -520,7 +520,7 @@ corpus-axes:
 
 evidence-bases:
 	$(PY) scripts/measure_evidence_bases.py --selftest
-	$(PY) scripts/measure_evidence_bases.py
+	KORPUS_DATA_ROOT="$(CANONICAL_ROOT)" $(PY) scripts/measure_evidence_bases.py
 
 # Підсистеми, які СПЛЯТЬ — оголошено, а не залишено без нагляду. 27 із 35 таблиць бази
 # порожні; найбільша група не імпортується жодним маршрутом API. Стан, якого ніхто не
@@ -915,10 +915,11 @@ serve-semantic-local:
 ## Корпус, який публічний сайт РЕАЛЬНО подає. Типове значення, а не обовʼязковий
 ## аргумент: перевірка, яку не запустили, і перевірка, якої немає, з відстані
 ## однакові.
-SERVED_CORPUS ?= var/runtime/corpus-v6-20260807/korpus.db
+CANONICAL_ROOT ?= $(shell python3 -c 'import json; print(json.load(open("config/operations/canonical-state.json", encoding="utf-8"))["canonical_root"])')
+SERVED_CORPUS ?= $(CANONICAL_ROOT)/var/runtime/corpus-v6-20260807/korpus.db
 # Ключі журналу живуть ПОЗА деревом: `zip -r korpus .` не сміє винести підпис доказу.
 SECRET_DIR ?= $(if $(XDG_STATE_HOME),$(XDG_STATE_HOME),$(HOME)/.local/state)/korpus-public
-SERVED_OBJECTS ?= var/runtime/corpus-v6-20260807/objects
+SERVED_OBJECTS ?= $(CANONICAL_ROOT)/var/runtime/corpus-v6-20260807/objects
 
 ## Обидві діагностики питають ЖИВИЙ API, а не базу: вони міряють, що система
 ## відповідає, а не що в ній лежить. Раннер передавав їм `--database`, якого жодна з
