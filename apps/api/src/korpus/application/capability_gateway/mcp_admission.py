@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
-from korpus.application.capability_gateway.contracts import payload_digest
+from korpus.application.capability_gateway.contracts import capability_spec_digest, payload_digest
 from korpus.application.capability_gateway.errors import CapabilityContractError
 from korpus.application.capability_gateway.types import (
     CapabilityLifecycle,
@@ -67,15 +67,9 @@ def mcp_input_schema_digest(schema: object) -> str:
 
 
 def mcp_local_contract_digest(spec: CapabilitySpec) -> str:
-    """Bind approval to the complete server-owned local capability contract.
+    """Compatibility name for the canonical complete local capability digest."""
 
-    A capability id/version is an identity, not proof that the authority-bearing fields
-    behind that identity stayed unchanged. Hashing the canonical model prevents an old MCP
-    approval from silently surviving same-version mutation of effect, policy, egress,
-    evidence, retry, idempotency, adapter or operator-approved description fields.
-    """
-
-    return payload_digest(spec.model_dump(mode="json"))
+    return capability_spec_digest(spec)
 
 
 def assess_mcp_mapping(
@@ -96,7 +90,7 @@ def assess_mcp_mapping(
             "local_capability_binding_mismatch",
             None,
         )
-    if approved.capability_contract_digest != mcp_local_contract_digest(spec):
+    if approved.capability_contract_digest != capability_spec_digest(spec):
         return McpAdmissionDecision(
             McpAdmissionStatus.QUARANTINE,
             "local_capability_contract_drift",

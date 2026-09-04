@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 from korpus.application.capability_gateway.adapters import AdapterRegistry
+from korpus.application.capability_gateway.effect_safety import EffectSafetyRegistry
+from korpus.application.capability_gateway.effects import effectful
 from korpus.application.capability_gateway.errors import (
     CapabilityGatewayError,
     CapabilityRegistrationError,
@@ -29,12 +31,14 @@ class CapabilityDeploymentPreflight:
         schemas: ExactSchemaRegistry,
         resource_mappers: Mapping[str, object],
         policy: CapabilityPolicyBridge,
+        effect_safety: EffectSafetyRegistry | None = None,
     ) -> None:
         self._registry = registry
         self._adapters = adapters
         self._schemas = schemas
         self._resource_mappers = frozenset(resource_mappers)
         self._policy = policy
+        self._effect_safety = effect_safety or EffectSafetyRegistry()
 
     def errors(self) -> tuple[str, ...]:
         known_schemas = frozenset(self._schemas.schema_ids())
@@ -66,6 +70,12 @@ class CapabilityDeploymentPreflight:
                 self._adapters.resolve(spec)
             except CapabilityGatewayError as exc:
                 errors.append(f"{key}: {exc}")
+
+            if effectful(spec):
+                try:
+                    self._effect_safety.resolve_exact(spec)
+                except CapabilityRegistrationError as exc:
+                    errors.append(f"{key}: {exc}")
 
             if (
                 spec.provider_type is ProviderType.INTERNAL

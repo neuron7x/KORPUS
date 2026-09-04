@@ -25,6 +25,17 @@ def payload_digest(value: object) -> str:
     return "sha256:" + hashlib.sha256(canonical_json_bytes(value)).hexdigest()
 
 
+def capability_spec_digest(spec: CapabilitySpec) -> str:
+    """Digest the complete immutable local capability contract.
+
+    Capability id/version is an identity, not proof that same-version server-owned fields
+    have not drifted. Safety and admission artifacts bind to this digest rather than trusting
+    the version label alone.
+    """
+
+    return payload_digest(spec.model_dump(mode="json"))
+
+
 def validate_request_binding(request: IntegrationRequest, spec: CapabilitySpec) -> None:
     if request.capability_id != spec.capability_id or request.capability_version != spec.version:
         raise CapabilityContractError("request capability id/version does not match resolved spec")
