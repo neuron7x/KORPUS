@@ -1,13 +1,14 @@
 {
   "schema": "korpus.claim-ledger.v2",
-  "generated_at": "2026-09-04T18:55:38.741686+00:00",
+  "generated_at": "2026-09-04T21:40:21.606408+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "8e804b635c2136cc0d6d202da79758a0bfdee9fd34124dfe947c9cd2afe98016",
+  "source_tree_sha256": "edec637722b7d06ab517a523b80c217522fb61ebe42aaf35db1a752cb0fe6d2f",
+  "digest_scope": "evidence_paths",
   "claims": [
     {
       "id": "CLM-SOURCE-INTEGRITY",
       "claim": "Current source manifest is the release source boundary.",
-      "status": "SUPPORTED",
+      "status": "STALE_EVIDENCE",
       "evidence": "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json"
     },
     {
@@ -25,7 +26,7 @@
     {
       "id": "CLM-MUTATION",
       "claim": "Declared full mutation catalogue has no surviving valid mutants.",
-      "status": "SUPPORTED",
+      "status": "STALE_EVIDENCE",
       "evidence": "reports/MUTATION_FULL_CATALOGUE_CURRENT.json"
     },
     {

@@ -151,3 +151,96 @@ def test_empty_release_or_digest_cannot_bind_anything(tmp_path: Path) -> None:
     checks = owner_packet_checks(root, "", "")
     assert checks[f"{PACKET}.release_bound"] is False
     assert checks[f"{PACKET}.source_bound"] is False
+
+
+def test_two_surfaces_under_one_field_name_are_not_compared_by_number(tmp_path: Path) -> None:
+    """ВИМІРЯНО 05.09.2026. Поле `source_tree_sha256` носять ДВІ різні поверхні.
+
+    `compute_source_digest` міряє двадцять оголошених доказових шляхів (`evidence_paths`),
+    `scripts/source_digest.py` — усе відстежуване дерево (`tracked_tree`). На одному й тому
+    самому чистому коміті вони дають різні числа, і це задум: докстрінг першої каже «never
+    compare the two», докстрінг другої — «Carry `digest_scope` beside the value and compare
+    scopes before hashes».
+
+    Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope`
+    ніс РІВНО ОДИН. Читач порівнював числа, не спитавши, чи вони про одну поверхню, — і звіт,
+    підписаний однією й перевірений проти другої, падав як «unbound»: повідомлення про зміну
+    дерева, коли дерево не змінювалось.
+
+    Твердження тут не про числа, а про ПОРЯДОК: спершу поверхня, потім хеш.
+    """
+    from scripts.current_truth_contract import report_binding_checks, scope_agrees
+
+    assert scope_agrees({"digest_scope": "evidence_paths"}) is True
+    assert scope_agrees({"digest_scope": "tracked_tree"}) is False, "інша поверхня — не згода"
+    assert scope_agrees({}) is False, "не назвав поверхні — не довів"
+
+    release, digest = "v9", "a" * 64
+    target = tmp_path / "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json"
+    for name in (
+        "reports/STANDARDS_CONTROL_MAP_VERIFICATION.json",
+        "reports/EXECUTABLE_EVIDENCE_INDEX_CURRENT.json",
+    ):
+        _write(tmp_path / name, {"source_tree_sha256": digest, "digest_scope": "evidence_paths"})
+
+    _write(target, {"source_tree_sha256": digest, "digest_scope": "evidence_paths"})
+    good = report_binding_checks(tmp_path, release, digest)
+    assert good["reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.source_bound"] is True
+
+    # ТЕ САМЕ число, інша поверхня: збіг хешів тут нічого не доводить.
+    _write(target, {"source_tree_sha256": digest, "digest_scope": "tracked_tree"})
+    crossed = report_binding_checks(tmp_path, release, digest)
+    assert crossed["reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.scope_named"] is False
+    assert crossed["reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.source_bound"] is False
+
+    # Поверхня названа правильно, число інше — падає з ІНШОЇ причини, і це видно.
+    _write(target, {"source_tree_sha256": "b" * 64, "digest_scope": "evidence_paths"})
+    drifted = report_binding_checks(tmp_path, release, digest)
+    assert drifted["reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.scope_named"] is True
+    assert drifted["reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.source_bound"] is False
+
+
+def test_the_final_truth_artifacts_name_their_surface(tmp_path: Path) -> None:
+    """Реєстр і журнал претензій — теж читачі одного поля, тож і для них порядок той самий."""
+    from scripts.current_truth_contract import final_truth_checks
+
+    release, digest = "v9", "a" * 64
+    base = tmp_path / f"reports/release/{release}/final"
+    _write(base / "CLAIM_LEDGER.json", {"source_tree_sha256": digest, "release": release})
+    _write(
+        base / "BLOCKER_REGISTRY.json",
+        {"source_tree_sha256": digest, "release": release, "digest_scope": "evidence_paths"},
+    )
+    checks = final_truth_checks(tmp_path, release, digest)
+    assert checks["BLOCKER_REGISTRY.json.source_bound"] is True
+    assert checks["CLAIM_LEDGER.json.scope_named"] is False, "поверхні не названо"
+    assert checks["CLAIM_LEDGER.json.source_bound"] is False, "число збігається, доказу немає"
+
+
+def test_the_live_artifacts_in_this_tree_name_their_surface() -> None:
+    """Негативний контроль до всіх трьох: поле мусить бути В АРТЕФАКТАХ, не лише у функції.
+
+    Перевірки вище звіряють читача на вигаданих даних. Але контракт читає п'ять СПРАВЖНІХ
+    файлів, і якщо виробник колись перестане називати поверхню, кожне твердження вище
+    лишиться зеленим.
+    """
+    import json
+
+    from scripts.current_truth_contract import CURRENT_REPORTS, EVIDENCE_SCOPE
+
+    root = Path(__file__).resolve().parents[3]
+
+    live = [
+        *CURRENT_REPORTS,
+        *(
+            f"reports/release/v0.9.7/final/{name}"
+            for name in ("BLOCKER_REGISTRY.json", "CLAIM_LEDGER.json")
+        ),
+    ]
+    unnamed = [
+        name
+        for name in live
+        if json.loads((root / name).read_text(encoding="utf-8")).get("digest_scope")
+        != EVIDENCE_SCOPE
+    ]
+    assert not unnamed, f"артефакти не називають поверхні: {unnamed}"

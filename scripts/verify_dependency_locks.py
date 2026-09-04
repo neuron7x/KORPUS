@@ -27,7 +27,7 @@ from packaging.version import InvalidVersion, Version
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT)]
 
-from korpus.application.provenance import compute_source_digest  # noqa: E402
+from korpus.application.provenance import DIGEST_SCOPE, compute_source_digest  # noqa: E402
 
 from scripts.release_identity import release_tag  # noqa: E402
 
@@ -242,6 +242,7 @@ def verify(root: Path = ROOT) -> dict[str, object]:
         "status": "PASS" if not failures else "FAIL",
         "release": release_tag(),
         "source_tree_sha256": compute_source_digest(root),
+        "digest_scope": DIGEST_SCOPE,
         "python": {
             "runtime_packages": len(runtime_index),
             "dev_closure_packages": len(dev_index),

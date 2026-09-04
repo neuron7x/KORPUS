@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from korpus.application.provenance import PROVENANCE_KEY
+from korpus.application.provenance import DIGEST_SCOPE, PROVENANCE_KEY
 
 
 def _binding(payload: dict[str, Any]) -> tuple[str | None, bool]:
@@ -135,5 +135,6 @@ def claim_ledger(root: Path, source_digest: str, release: str) -> dict[str, Any]
         "generated_at": datetime.now(UTC).isoformat(),
         "release": release,
         "source_tree_sha256": source_digest,
+        "digest_scope": DIGEST_SCOPE,
         "claims": rendered,
     }

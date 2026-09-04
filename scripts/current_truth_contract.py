@@ -10,6 +10,25 @@ CURRENT_REPORTS = (
     "reports/EXECUTABLE_EVIDENCE_INDEX_CURRENT.json",
 )
 
+#: Поверхня, яку міряє `compute_source_digest`. Друга поверхня — `tracked_tree` зі
+#: `scripts/source_digest.py` — інша, і її автор написав це першим абзацом докстрінга:
+#: «Both were written into a field named `source_tree_sha256`, so a report signed by one
+#: and verified against the other fails as "unbound" — a message about the tree changing,
+#: when the tree did not change and two different scopes were compared. Carry
+#: `digest_scope` beside the value and compare scopes before hashes.»
+#:
+#: ВИМІРЯНО 05.09.2026: із 200 артефактів із полем `source_tree_sha256` поле `digest_scope`
+#: несе РІВНО ОДИН. Тобто припис лежав у коді й не був виконаний, а читач порівнював
+#: числа, не спитавши, чи вони про одну поверхню. Тут виконано для п'яти артефактів,
+#: які цей контракт справді ЧИТАЄ; історичні релізи не переписуються — заморожений доказ
+#: не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN.
+EVIDENCE_SCOPE = "evidence_paths"
+
+
+def scope_agrees(payload: dict[str, Any], expected: str = EVIDENCE_SCOPE) -> bool:
+    """Чи артефакт НАЗИВАЄ ту саму поверхню. Не назвав — не довів."""
+    return payload.get("digest_scope") == expected
+
 
 def load_object(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
@@ -27,7 +46,9 @@ def report_binding_checks(root: Path, release: str, digest: str) -> dict[str, bo
             continue
         payload = load_object(path)
         bound_digest = payload.get("source_tree_sha256", payload.get("source_digest"))
-        checks[f"{relative}.source_bound"] = bound_digest == digest
+        agrees = scope_agrees(payload)
+        checks[f"{relative}.scope_named"] = agrees
+        checks[f"{relative}.source_bound"] = agrees and bound_digest == digest
         if "release" in payload:
             checks[f"{relative}.release_bound"] = payload.get("release") == release
     return checks
@@ -40,7 +61,9 @@ def final_truth_checks(root: Path, release: str, digest: str) -> dict[str, bool]
         checks[f"{name}.present"] = path.is_file()
         if path.is_file():
             payload = load_object(path)
-            checks[f"{name}.source_bound"] = payload.get("source_tree_sha256") == digest
+            agrees = scope_agrees(payload)
+            checks[f"{name}.scope_named"] = agrees
+            checks[f"{name}.source_bound"] = agrees and payload.get("source_tree_sha256") == digest
             checks[f"{name}.release_bound"] = payload.get("release") == release
     return checks
 

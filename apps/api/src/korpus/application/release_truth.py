@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from korpus.application.provenance import DIGEST_SCOPE
 from korpus.application.release_claims import claim_ledger as claim_ledger
 
 
@@ -120,6 +121,7 @@ def blocker_registry(root: Path, source_digest: str, release: str) -> dict[str, 
         "generated_at": datetime.now(UTC).isoformat(),
         "release": release,
         "source_tree_sha256": source_digest,
+        "digest_scope": DIGEST_SCOPE,
         "items": items,
         "counts": counts,
         # Обидва внутрішні стани рахуються разом: «бракує файла» і «доказ не про це

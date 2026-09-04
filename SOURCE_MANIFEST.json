@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1828,
-  "root_sha256": "439757a85c2a1196f1f7c5c4146637515a456f078f2fde4272d0b32f76b5d950",
+  "root_sha256": "e2717ccce052175f822d243f1b62b6681cec62b0c7883e5b181cd51330f311b2",
   "files": [
     {
       "path": ".dockerignore",
@@ -1651,8 +1651,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/release_claims.py",
-      "bytes": 6605,
-      "sha256": "01fd185607942c4e8be1e7059c22b04a7078445ce9d8d7603e4d08fd2ad42491",
+      "bytes": 6657,
+      "sha256": "bd803cf3c8f997e6fbb77cee7c3776b66fce393964ed16ba81904432c1711331",
       "mode": "0644"
     },
     {
@@ -1675,8 +1675,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/release_truth.py",
-      "bytes": 7437,
-      "sha256": "7a5dcb2618f97df793fe04fb4c9319aa27bc99dea4374995746b4631703fffdc",
+      "bytes": 7530,
+      "sha256": "793947d40671fec5beab03e055ee8a4c58e98aae1902c9fabcb27b262e00fae5",
       "mode": "0644"
     },
     {
@@ -3133,8 +3133,8 @@
     },
     {
       "path": "apps/api/tests/test_current_truth_hardening_v094.py",
-      "bytes": 7313,
-      "sha256": "fbcea5264005f8d801f5f2e485478b55795a2795541dd1508fc9ecf55692ca9a",
+      "bytes": 12838,
+      "sha256": "fb42b7c2e74365cfcc2f3b2f2ffc81f7787033841cebd9b4c6a93b24f4bbd67c",
       "mode": "0644"
     },
     {
@@ -7447,8 +7447,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 648359,
-      "sha256": "7e29da8a94740446cea9c151db3ca6d75011cc78eedab381c87fe9cd0bf737f9",
+      "bytes": 662965,
+      "sha256": "5c3e6873f6c08c608fd5a903cfce1ca56be0ba070eb4a4b38ab62eaa8f946293",
       "mode": "0644"
     },
     {
@@ -9397,8 +9397,8 @@
     },
     {
       "path": "scripts/current_truth_contract.py",
-      "bytes": 3213,
-      "sha256": "26522e1ea14d9caa31d342081534e9e869cc1d8fe272bfcd10e46e2f330a13ad",
+      "bytes": 4996,
+      "sha256": "cd671f2557fdfcb5ec0606b3256b222989b267181315242bb845ac029de555b3",
       "mode": "0644"
     },
     {
@@ -9745,8 +9745,8 @@
     },
     {
       "path": "scripts/generate_release_truth.py",
-      "bytes": 1830,
-      "sha256": "95cf5f1370b5968cb3367133d6cdb57b70ad80d1a4a0bf03578f730216022a99",
+      "bytes": 1886,
+      "sha256": "18a4238c410c79fe7942b9f63e82768d0ebfe68b6bb3db68ee88ee302c89ca3b",
       "mode": "0755"
     },
     {
@@ -10819,8 +10819,8 @@
     },
     {
       "path": "scripts/verify_dependency_locks.py",
-      "bytes": 10979,
-      "sha256": "a5e7f50f2be2b26e61e323811022397cdb576c20bfd3e5b306494c7304219edc",
+      "bytes": 11031,
+      "sha256": "c3a9a9c6be0bec8f14d98fe75491660533f9f9a0ee722a32752dd2e8c4c36d88",
       "mode": "0755"
     },
     {
@@ -10939,8 +10939,8 @@
     },
     {
       "path": "scripts/verify_standards_control_map.py",
-      "bytes": 7256,
-      "sha256": "bc3fa70a091368ac32e550b3046a76bbd3829e051028dd384ae229b2ce10687c",
+      "bytes": 7308,
+      "sha256": "7fc401450a798c3b08cd671274d40a439e0ce465ea41464d95407bbab52b4e3a",
       "mode": "0755"
     },
     {

@@ -1865,13 +1865,13 @@
       "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
     },
     "apps/api/src/korpus/application/release_claims.py": {
-      "lines": 139,
+      "lines": 140,
       "max_complexity": 12,
       "max_function_args": 4,
-      "max_function_lines": 60,
+      "max_function_lines": 61,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "WO-01: відсутність доказу перестала читатись як підтримка. Три дороги давали SUPPORTED без доказу «за» (нечитаний суфікс, JSON без прив'язки, JSON без вироку), і кожна тепер має власний стан. Плюс `_binding`: прив'язка читається і з верхнього рівня, і з канонічного конверта `provenance` — перша редакція знала лише верхній рівень і хибно оголосила каталог мутацій неприв'язаним. Складність 12 — це САМЕ ті нові стани: кожна гілка є окремим вироком, і злиття будь-яких двох повернуло б клас вади, заради якого правка писалась."
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
     },
     "apps/api/src/korpus/application/release_ledger.py": {
       "lines": 294,
@@ -1901,13 +1901,13 @@
       "reason": "formal fail-closed assurance/release model introduced for v0.3.0; ceiling recorded at introduction"
     },
     "apps/api/src/korpus/application/release_truth.py": {
-      "lines": 152,
-      "max_complexity": 9,
+      "lines": 154,
+      "max_complexity": 6,
       "max_function_args": 4,
-      "max_function_lines": 49,
+      "max_function_lines": 34,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "04.09.2026: додано третій стан INTERNAL_STALE_EVIDENCE. Доти «внутрішній блокер» означало ЛИШЕ «бракує файла», тож п'ять машинних блокерів (єдина прогалина яких — застаріла прив'язка доказу) читались як зовнішні, а `internal_executable_unresolved` показував нуль. Число гейтує реліз через current-truth."
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
     },
     "apps/api/src/korpus/application/request_audit_context.py": {
       "lines": 64,
@@ -3757,13 +3757,13 @@
       "reason": "v0.9.4 assurance-kernel hardening; initial exact measurement is the ratchet ceiling"
     },
     "scripts/current_truth_contract.py": {
-      "lines": 79,
+      "lines": 102,
       "max_complexity": 7,
       "max_function_args": 3,
       "max_function_lines": 32,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "v0.9.3: new bounded module; exact initial measurement becomes the ratchet ceiling"
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
     },
     "scripts/deploy_public_web.py": {
       "lines": 253,
@@ -4201,13 +4201,13 @@
       "proof_lines": 0
     },
     "scripts/generate_release_truth.py": {
-      "lines": 55,
+      "lines": 56,
       "max_complexity": 1,
       "max_function_args": 2,
-      "max_function_lines": 19,
+      "max_function_lines": 20,
       "max_nesting": 0,
       "proof_lines": 0,
-      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
     },
     "scripts/generate_status.py": {
       "lines": 122,
@@ -5636,13 +5636,13 @@
       "reason": "v0.8.0 stale-current fail-closed verifier"
     },
     "scripts/verify_dependency_locks.py": {
-      "lines": 284,
+      "lines": 285,
       "max_complexity": 13,
       "max_function_args": 4,
-      "max_function_lines": 55,
+      "max_function_lines": 56,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "v0.5.0: dependency closure now source/release-bound; exact expanded ceiling"
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
     },
     "scripts/verify_evidence_stores.py": {
       "lines": 366,
@@ -5813,13 +5813,13 @@
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling | 2026-08-29: +11 рядків, та сама пара виправлень; негативний контроль у test_package_mode_integrity.py доводить, що підкладений файл і далі НАЗИВАЄТЬСЯ, а не лише рахується."
     },
     "scripts/verify_standards_control_map.py": {
-      "lines": 186,
+      "lines": 187,
       "max_complexity": 7,
       "max_function_args": 3,
-      "max_function_lines": 36,
+      "max_function_lines": 37,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "v0.5.0: standards evidence now source/release-bound; exact expanded ceiling"
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
     },
     "scripts/verify_verdict_ledger.py": {
       "lines": 187,
@@ -11212,6 +11212,132 @@
         "max_function_lines": 16,
         "max_nesting": 1,
         "proof_lines": 21
+      }
+    },
+    {
+      "from": {
+        "lines": 139,
+        "max_complexity": 12,
+        "max_function_args": 4,
+        "max_function_lines": 60,
+        "max_nesting": 1,
+        "proof_lines": 0
+      },
+      "on": "2026-09-05",
+      "path": "apps/api/src/korpus/application/release_claims.py",
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN.",
+      "to": {
+        "lines": 140,
+        "max_complexity": 12,
+        "max_function_args": 4,
+        "max_function_lines": 61,
+        "max_nesting": 1,
+        "proof_lines": 0
+      }
+    },
+    {
+      "from": {
+        "lines": 152,
+        "max_complexity": 9,
+        "max_function_args": 4,
+        "max_function_lines": 49,
+        "max_nesting": 1,
+        "proof_lines": 0
+      },
+      "on": "2026-09-05",
+      "path": "apps/api/src/korpus/application/release_truth.py",
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN.",
+      "to": {
+        "lines": 154,
+        "max_complexity": 6,
+        "max_function_args": 4,
+        "max_function_lines": 34,
+        "max_nesting": 1,
+        "proof_lines": 0
+      }
+    },
+    {
+      "from": {
+        "lines": 79,
+        "max_complexity": 7,
+        "max_function_args": 3,
+        "max_function_lines": 32,
+        "max_nesting": 2,
+        "proof_lines": 0
+      },
+      "on": "2026-09-05",
+      "path": "scripts/current_truth_contract.py",
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN.",
+      "to": {
+        "lines": 102,
+        "max_complexity": 7,
+        "max_function_args": 3,
+        "max_function_lines": 32,
+        "max_nesting": 2,
+        "proof_lines": 0
+      }
+    },
+    {
+      "from": {
+        "lines": 55,
+        "max_complexity": 1,
+        "max_function_args": 2,
+        "max_function_lines": 19,
+        "max_nesting": 0,
+        "proof_lines": 0
+      },
+      "on": "2026-09-05",
+      "path": "scripts/generate_release_truth.py",
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN.",
+      "to": {
+        "lines": 56,
+        "max_complexity": 1,
+        "max_function_args": 2,
+        "max_function_lines": 20,
+        "max_nesting": 0,
+        "proof_lines": 0
+      }
+    },
+    {
+      "from": {
+        "lines": 284,
+        "max_complexity": 13,
+        "max_function_args": 4,
+        "max_function_lines": 55,
+        "max_nesting": 2,
+        "proof_lines": 0
+      },
+      "on": "2026-09-05",
+      "path": "scripts/verify_dependency_locks.py",
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN.",
+      "to": {
+        "lines": 285,
+        "max_complexity": 13,
+        "max_function_args": 4,
+        "max_function_lines": 56,
+        "max_nesting": 2,
+        "proof_lines": 0
+      }
+    },
+    {
+      "from": {
+        "lines": 186,
+        "max_complexity": 7,
+        "max_function_args": 3,
+        "max_function_lines": 36,
+        "max_nesting": 2,
+        "proof_lines": 0
+      },
+      "on": "2026-09-05",
+      "path": "scripts/verify_standards_control_map.py",
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN.",
+      "to": {
+        "lines": 187,
+        "max_complexity": 7,
+        "max_function_args": 3,
+        "max_function_lines": 37,
+        "max_nesting": 2,
+        "proof_lines": 0
       }
     }
   ],
