@@ -2,13 +2,28 @@
   "schema": "korpus.capability-gateway.verification-state.v1",
   "pr_number": 44,
   "branch": "proposal/korpus-capability-gateway-v1-20260904",
-  "evidence_anchor_commit": "4778d1213f8291533713ee748e9260adf9a8596b",
+  "implementation_anchor_commit": "76c91c2ddae3b0e6fbe6cb4127164ecfbac24bf7",
+  "anchor_semantics": "Last runtime-changing capability-gateway commit. Verification-only metadata commits may follow without changing the implementation subject.",
   "frozen_requirements": "docs/proposals/korpus-capability-gateway-v1/REQUIREMENTS.json",
   "denominator": 20,
+  "live_base": {
+    "branch": "main",
+    "observed_sha": "f311e83ae632579fe370f38847b4b19e5eed5aed",
+    "merge_base_sha": "578f4ea9caa93ec6211dbe914bf11ae110a6eaed",
+    "feature_ahead_by": 61,
+    "feature_behind_by": 25,
+    "relationship": "DIVERGED",
+    "acceptance_gate": "BASE_SYNC_REQUIRED",
+    "runtime_overlap_observed": false,
+    "integration_overlap_observed": true,
+    "basis": "Newer main changes source manifests, assurance evidence, module budget, recovery code and repository tests; no capability-gateway runtime path was modified by those main-only commits."
+  },
   "verification_policy": {
     "source_witness_is_not_execution_evidence": true,
     "negative_control_definition_is_not_execution_evidence": true,
     "missing_or_unobserved_execution_is_never_pass": true,
+    "diverged_base_blocks_acceptance": true,
+    "verification_metadata_does_not_redefine_frozen_requirements": true,
     "production_authority": "OWNER_ONLY",
     "merge_authority": "OWNER_ONLY",
     "allowed_states": [
@@ -18,8 +33,20 @@
   },
   "execution_evidence": {
     "status": "EXECUTION_NOT_OBSERVED",
-    "basis": "GitHub Actions workflow records for implementation heads have reported jobs without executed test steps; no executable PASS is inferred."
+    "workflow_run_id": 33900475616,
+    "candidate_commit": "76c91c2ddae3b0e6fbe6cb4127164ecfbac24bf7",
+    "observed_jobs": ["web-tests", "repository-contract", "api-tests", "api-quality"],
+    "steps_observed": false,
+    "logs_observed": false,
+    "basis": "GitHub Actions reported completed failure jobs with steps=null and logs_url=null. No executable code-level PASS or FAIL is inferred."
   },
+  "blocking_gates": [
+    "BASE_SYNC_REQUIRED",
+    "EXECUTION_NOT_OBSERVED",
+    "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED",
+    "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED",
+    "OWNER_APPROVAL_NOT_GRANTED"
+  ],
   "requirements": [
     {
       "id": "CGW-R001",
@@ -31,13 +58,13 @@
       "id": "CGW-R002",
       "state": "SOURCE_DEFINED_EXECUTION_NOT_OBSERVED",
       "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/policy.py", "apps/api/src/korpus/application/capability_gateway/invoke.py"],
-      "control_witnesses": ["apps/api/tests/test_capability_gateway_core.py", "apps/api/tests/test_capability_gateway_invoke.py"]
+      "control_witnesses": ["apps/api/tests/test_capability_gateway_core.py", "apps/api/tests/test_capability_gateway_invoke.py", "apps/api/tests/test_capability_gateway_authority_boundaries.py"]
     },
     {
       "id": "CGW-R003",
       "state": "SOURCE_DEFINED_EXECUTION_NOT_OBSERVED",
-      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/contracts.py", "apps/api/src/korpus/application/capability_gateway/validation.py", "apps/api/src/korpus/application/capability_gateway/invoke.py"],
-      "control_witnesses": ["apps/api/tests/test_capability_gateway_core.py", "apps/api/tests/test_capability_gateway_validation_egress.py", "apps/api/tests/test_capability_gateway_invoke.py"]
+      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/contracts.py", "apps/api/src/korpus/application/capability_gateway/validation.py", "apps/api/src/korpus/application/capability_gateway/invoke.py", "apps/api/src/korpus/application/capability_gateway/execution.py"],
+      "control_witnesses": ["apps/api/tests/test_capability_gateway_core.py", "apps/api/tests/test_capability_gateway_validation_egress.py", "apps/api/tests/test_capability_gateway_boundary_normalization.py"]
     },
     {
       "id": "CGW-R004",
@@ -48,26 +75,26 @@
     {
       "id": "CGW-R005",
       "state": "SOURCE_DEFINED_EXECUTION_NOT_OBSERVED",
-      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/invoke.py", "apps/api/src/korpus/application/capability_gateway/validation.py", "apps/api/src/korpus/api/routes_integrations.py"],
-      "control_witnesses": ["apps/api/tests/test_capability_gateway_invoke.py", "apps/api/tests/test_capability_gateway_api_surface.py"]
+      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/execution.py", "apps/api/src/korpus/application/capability_gateway/result.py", "apps/api/src/korpus/api/routes_integrations.py"],
+      "control_witnesses": ["apps/api/tests/test_capability_gateway_invoke.py", "apps/api/tests/test_capability_gateway_result_boundary.py", "apps/api/tests/test_capability_gateway_api_surface.py"]
     },
     {
       "id": "CGW-R006",
       "state": "SOURCE_DEFINED_EXECUTION_NOT_OBSERVED",
-      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/evidence.py", "apps/api/src/korpus/application/capability_gateway/invoke.py"],
-      "control_witnesses": ["apps/api/tests/test_capability_gateway_adapters_evidence.py", "apps/api/tests/test_capability_gateway_invoke.py"]
+      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/evidence.py", "apps/api/src/korpus/application/capability_gateway/execution.py", "apps/api/src/korpus/application/capability_gateway/result.py"],
+      "control_witnesses": ["apps/api/tests/test_capability_gateway_adapters_evidence.py", "apps/api/tests/test_capability_gateway_invoke.py", "apps/api/tests/test_capability_gateway_result_boundary.py"]
     },
     {
       "id": "CGW-R007",
       "state": "SOURCE_DEFINED_EXECUTION_NOT_OBSERVED",
       "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/types.py", "apps/api/src/korpus/application/capability_gateway/policy.py", "apps/api/src/korpus/application/capability_gateway/mcp_admission.py"],
-      "control_witnesses": ["apps/api/tests/test_capability_gateway_core.py", "apps/api/tests/test_capability_gateway_mcp_admission.py"]
+      "control_witnesses": ["apps/api/tests/test_capability_gateway_core.py", "apps/api/tests/test_capability_gateway_mcp_admission.py", "apps/api/tests/test_capability_gateway_authority_boundaries.py"]
     },
     {
       "id": "CGW-R008",
       "state": "SOURCE_DEFINED_EXECUTION_NOT_OBSERVED",
       "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/effects.py", "apps/api/src/korpus/application/capability_gateway/invoke.py"],
-      "control_witnesses": ["apps/api/tests/test_capability_gateway_effects.py", "apps/api/tests/test_capability_gateway_spec_invariants.py", "apps/api/tests/test_capability_gateway_invoke.py"]
+      "control_witnesses": ["apps/api/tests/test_capability_gateway_effects.py", "apps/api/tests/test_capability_gateway_spec_invariants.py", "apps/api/tests/test_capability_gateway_authority_boundaries.py"]
     },
     {
       "id": "CGW-R009",
@@ -78,26 +105,26 @@
     {
       "id": "CGW-R010",
       "state": "SOURCE_DEFINED_EXECUTION_NOT_OBSERVED",
-      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/effects.py", "apps/api/src/korpus/application/capability_gateway/invoke.py"],
+      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/effects.py", "apps/api/src/korpus/application/capability_gateway/invoke.py", "apps/api/src/korpus/infrastructure/capability_effect_ledger.py"],
       "control_witnesses": ["apps/api/tests/test_capability_gateway_effects.py", "apps/api/tests/test_capability_effect_ledger.py", "apps/api/tests/test_capability_gateway_invoke.py"]
     },
     {
       "id": "CGW-R011",
       "state": "SOURCE_DEFINED_EXECUTION_NOT_OBSERVED",
-      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/adapters.py", "apps/api/src/korpus/application/capability_gateway/effects.py", "apps/api/src/korpus/application/capability_gateway/invoke.py"],
-      "control_witnesses": ["apps/api/tests/test_capability_gateway_invoke.py"]
+      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/adapters.py", "apps/api/src/korpus/application/capability_gateway/effects.py", "apps/api/src/korpus/application/capability_gateway/execution.py", "apps/api/src/korpus/infrastructure/capability_effect_ledger.py"],
+      "control_witnesses": ["apps/api/tests/test_capability_gateway_invoke.py", "apps/api/tests/test_capability_gateway_boundary_normalization.py", "apps/api/tests/test_capability_effect_ledger.py"]
     },
     {
       "id": "CGW-R012",
       "state": "SOURCE_DEFINED_EXECUTION_NOT_OBSERVED",
-      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/audit.py", "apps/api/src/korpus/application/capability_gateway/invoke.py"],
-      "control_witnesses": ["apps/api/tests/test_capability_gateway_context_audit.py", "apps/api/tests/test_capability_gateway_invoke.py"]
+      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/audit.py", "apps/api/src/korpus/application/capability_gateway/result.py"],
+      "control_witnesses": ["apps/api/tests/test_capability_gateway_context_audit.py", "apps/api/tests/test_capability_gateway_result_boundary.py", "apps/api/tests/test_capability_gateway_invoke.py"]
     },
     {
       "id": "CGW-R013",
       "state": "SOURCE_DEFINED_EXECUTION_NOT_OBSERVED",
-      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/observed.py", "apps/api/src/korpus/infrastructure/capability_observability.py", "apps/api/src/korpus/api/routes_integrations.py"],
-      "control_witnesses": ["apps/api/tests/test_capability_gateway_observability.py", "apps/api/tests/test_capability_gateway_api_surface.py", "apps/api/tests/test_capability_gateway_context_audit.py"]
+      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/observed.py", "apps/api/src/korpus/infrastructure/capability_observability.py", "apps/api/src/korpus/api/routes_integrations.py", "apps/api/src/korpus/application/capability_gateway/result.py"],
+      "control_witnesses": ["apps/api/tests/test_capability_gateway_observability.py", "apps/api/tests/test_capability_gateway_observability_isolation.py", "apps/api/tests/test_capability_gateway_api_surface.py", "apps/api/tests/test_capability_gateway_result_boundary.py"]
     },
     {
       "id": "CGW-R014",
@@ -120,8 +147,8 @@
     {
       "id": "CGW-R017",
       "state": "SOURCE_DEFINED_EXECUTION_NOT_OBSERVED",
-      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/policy.py", "apps/api/src/korpus/application/capability_gateway/audit.py", "apps/api/src/korpus/application/capability_gateway/egress.py"],
-      "control_witnesses": ["apps/api/tests/test_capability_gateway_core.py", "apps/api/tests/test_capability_gateway_context_audit.py", "apps/api/tests/test_capability_gateway_validation_egress.py"]
+      "code_witnesses": ["apps/api/src/korpus/application/capability_gateway/policy.py", "apps/api/src/korpus/application/capability_gateway/audit.py", "apps/api/src/korpus/application/capability_gateway/egress.py", "apps/api/src/korpus/application/capability_gateway/result.py"],
+      "control_witnesses": ["apps/api/tests/test_capability_gateway_core.py", "apps/api/tests/test_capability_gateway_context_audit.py", "apps/api/tests/test_capability_gateway_validation_egress.py", "apps/api/tests/test_capability_gateway_authority_boundaries.py"]
     },
     {
       "id": "CGW-R018",
