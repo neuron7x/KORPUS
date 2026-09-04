@@ -49,7 +49,13 @@ variables:
     # FileNotFoundError: 'git'. Skipping that test instead would be worse: it is the
     # check that keeps build artefacts out of the manifest, and a skipped test reads
     # green in every report.
-    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git && rm -rf /var/lib/apt/lists/*
+    # `make` — це ІНСТРУМЕНТ ВИМІРУ, не залежність продукту. `test_make_runtime_paths`
+    # перевіряє, що `SERVED_CORPUS`/`SERVED_OBJECTS` розкриваються в канонічний корінь,
+    # а не в поточне дерево. Це властивість РОЗКРИТТЯ ЗМІННИХ, і довести її без make
+    # не можна: розбір тексту був би критерієм слабшим за властивість. Виміряно
+    # 04.09.2026 — у точному образі джоби make відсутній, і тест падав
+    # `FileNotFoundError: make`, зупиняючи 15 джобів, зокрема `source:package`.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git make && rm -rf /var/lib/apt/lists/*
     - python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
     - python -m pip check
 
