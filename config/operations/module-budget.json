@@ -4406,11 +4406,11 @@
     "scripts/measure_recovery.py": {
       "lines": 219,
       "max_complexity": 7,
-      "max_function_args": 2,
-      "max_function_lines": 107,
+      "max_function_args": 3,
+      "max_function_lines": 113,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": "04.09.2026: `scale_class` виводився з КЛАСУ СЕРЕДОВИЩА. Щойно пілотна топологія стала засвідченою PRODUCTION_LIKE, звіт відновлення оголосив масштаб «production-like» на 259 документах і 19 МБ — і споживач відмовив як OVERSTATED_SCALE, маючи рацію. Топологія й обсяг — різні предмети, а жили під одним іменем. Тепер клас масштабу рахується з ВИМІРЯНОГО обсягу, а підлога береться з того самого модуля, що судить, тож двох оголошень порогу не існує."
+      "reason": "04.09.2026: контекст RLS кладеться БРОКЕРОМ, і прив'язка тепер ОДНА на дерево (`scripts/rls_context.py`). Доти навчання відновлення кликало `set_config('korpus.*')` — протокол, якого схема 0020 більше не читає, — тож `korpus_app` бачив НУЛЬ документів: `document_rows: 0`, `writes_after_backup: 0` і, як наслідок, `lost_documents: 0`, тобто число, яке не могло вийти іншим. Виміряно і в CI, і локально на пілоті. Друга вада того самого виміру: ідентифікатори записів «після бекапу» стабільні (uuid5) і вставка йде `ON CONFLICT DO NOTHING`, тож на базі, де навчання вже було, ці записи ЛЕЖАЛИ В БЕКАПІ й втрата знову виходила нульовою. Тепер фаза «до бекапу» прибирає їх ПЕРЕД зняттям копії. Після ремонту: writes_after_backup 5, lost_documents 5 — результат, який міг вийти іншим."
     },
     "scripts/measure_semantic_separation.py": {
       "lines": 233,
@@ -4900,6 +4900,15 @@
       "proof_lines": 0,
       "reason": "backup copies, evidence retention and quotas checked against the disk rather than declared"
     },
+    "scripts/rls_context.py": {
+      "lines": 104,
+      "max_complexity": 3,
+      "max_function_args": 3,
+      "max_function_lines": 15,
+      "max_nesting": 2,
+      "proof_lines": 29,
+      "reason": "04.09.2026: контекст RLS кладеться БРОКЕРОМ, і прив'язка тепер ОДНА на дерево (`scripts/rls_context.py`). Доти навчання відновлення кликало `set_config('korpus.*')` — протокол, якого схема 0020 більше не читає, — тож `korpus_app` бачив НУЛЬ документів: `document_rows: 0`, `writes_after_backup: 0` і, як наслідок, `lost_documents: 0`, тобто число, яке не могло вийти іншим. Виміряно і в CI, і локально на пілоті. Друга вада того самого виміру: ідентифікатори записів «після бекапу» стабільні (uuid5) і вставка йде `ON CONFLICT DO NOTHING`, тож на базі, де навчання вже було, ці записи ЛЕЖАЛИ В БЕКАПІ й втрата знову виходила нульовою. Тепер фаза «до бекапу» прибирає їх ПЕРЕД зняттям копії. Після ремонту: writes_after_backup 5, lost_documents 5 — результат, який міг вийти іншим."
+    },
     "scripts/run_boundary_eval.py": {
       "lines": 116,
       "max_complexity": 6,
@@ -5263,12 +5272,13 @@
       "reason": "v0.9.4 package hardening: bounded safe-extraction primitive; exact initial ceiling"
     },
     "scripts/seed_recovery_fixture.py": {
-      "lines": 104,
-      "max_complexity": 8,
+      "lines": 115,
+      "max_complexity": 9,
       "max_function_args": 2,
-      "max_function_lines": 59,
+      "max_function_lines": 70,
       "max_nesting": 2,
-      "proof_lines": 0
+      "proof_lines": 0,
+      "reason": "04.09.2026: контекст RLS кладеться БРОКЕРОМ, і прив'язка тепер ОДНА на дерево (`scripts/rls_context.py`). Доти навчання відновлення кликало `set_config('korpus.*')` — протокол, якого схема 0020 більше не читає, — тож `korpus_app` бачив НУЛЬ документів: `document_rows: 0`, `writes_after_backup: 0` і, як наслідок, `lost_documents: 0`, тобто число, яке не могло вийти іншим. Виміряно і в CI, і локально на пілоті. Друга вада того самого виміру: ідентифікатори записів «після бекапу» стабільні (uuid5) і вставка йде `ON CONFLICT DO NOTHING`, тож на базі, де навчання вже було, ці записи ЛЕЖАЛИ В БЕКАПІ й втрата знову виходила нульовою. Тепер фаза «до бекапу» прибирає їх ПЕРЕД зняттям копії. Після ремонту: writes_after_backup 5, lost_documents 5 — результат, який міг вийти іншим."
     },
     "scripts/service_objectives.py": {
       "lines": 108,
@@ -10637,6 +10647,34 @@
         "lines": 219,
         "max_complexity": 7,
         "max_function_lines": 107
+      }
+    },
+    {
+      "from": {
+        "max_function_args": 2,
+        "max_function_lines": 107
+      },
+      "on": "2026-09-04",
+      "path": "scripts/measure_recovery.py",
+      "reason": "04.09.2026: контекст RLS кладеться БРОКЕРОМ, і прив'язка тепер ОДНА на дерево (`scripts/rls_context.py`). Доти навчання відновлення кликало `set_config('korpus.*')` — протокол, якого схема 0020 більше не читає, — тож `korpus_app` бачив НУЛЬ документів: `document_rows: 0`, `writes_after_backup: 0` і, як наслідок, `lost_documents: 0`, тобто число, яке не могло вийти іншим. Виміряно і в CI, і локально на пілоті. Друга вада того самого виміру: ідентифікатори записів «після бекапу» стабільні (uuid5) і вставка йде `ON CONFLICT DO NOTHING`, тож на базі, де навчання вже було, ці записи ЛЕЖАЛИ В БЕКАПІ й втрата знову виходила нульовою. Тепер фаза «до бекапу» прибирає їх ПЕРЕД зняттям копії. Після ремонту: writes_after_backup 5, lost_documents 5 — результат, який міг вийти іншим.",
+      "to": {
+        "max_function_args": 3,
+        "max_function_lines": 113
+      }
+    },
+    {
+      "from": {
+        "lines": 104,
+        "max_complexity": 8,
+        "max_function_lines": 59
+      },
+      "on": "2026-09-04",
+      "path": "scripts/seed_recovery_fixture.py",
+      "reason": "04.09.2026: контекст RLS кладеться БРОКЕРОМ, і прив'язка тепер ОДНА на дерево (`scripts/rls_context.py`). Доти навчання відновлення кликало `set_config('korpus.*')` — протокол, якого схема 0020 більше не читає, — тож `korpus_app` бачив НУЛЬ документів: `document_rows: 0`, `writes_after_backup: 0` і, як наслідок, `lost_documents: 0`, тобто число, яке не могло вийти іншим. Виміряно і в CI, і локально на пілоті. Друга вада того самого виміру: ідентифікатори записів «після бекапу» стабільні (uuid5) і вставка йде `ON CONFLICT DO NOTHING`, тож на базі, де навчання вже було, ці записи ЛЕЖАЛИ В БЕКАПІ й втрата знову виходила нульовою. Тепер фаза «до бекапу» прибирає їх ПЕРЕД зняттям копії. Після ремонту: writes_after_backup 5, lost_documents 5 — результат, який міг вийти іншим.",
+      "to": {
+        "lines": 115,
+        "max_complexity": 9,
+        "max_function_lines": 70
       }
     }
   ],

@@ -468,7 +468,12 @@ api:postgres-and-restore:
     # Counted through korpus_app, the least-privilege role the service runs as, not
     # through postgres: RLS does not apply to a superuser, so a superuser count is a
     # number about the table rather than about what the application can recover.
-    - KORPUS_RECOVERY_SOURCE_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test' KORPUS_RECOVERY_RESTORED_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore' KORPUS_RECOVERY_BACKUP_PATH="$backup_path" python scripts/measure_recovery.py
+    # Брокер ОКРЕМИЙ для кожної бази. Доти навчання клало контекст RLS через
+    # `set_config('korpus.*')` — протокол, який схема 0020 більше не читає, тож
+    # `korpus_app` бачив НУЛЬ документів: `document_rows: 0`,
+    # `writes_after_backup: 0` і, як наслідок, `lost_documents: 0` — число, яке не
+    # могло вийти іншим. Виміряно 04.09.2026 у цій джобі й локально на пілоті.
+    - KORPUS_RECOVERY_SOURCE_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test' KORPUS_RECOVERY_RESTORED_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore' KORPUS_RECOVERY_SOURCE_AUTHZ_URL='postgresql+psycopg://korpus_authz:korpus-authz-test-password@postgres:5432/korpus_test' KORPUS_RECOVERY_RESTORED_AUTHZ_URL='postgresql+psycopg://korpus_authz:korpus-authz-test-password@postgres:5432/korpus_restore' KORPUS_RECOVERY_BACKUP_PATH="$backup_path" python scripts/measure_recovery.py
     # Produce a real network load report against the restored PostgreSQL-backed API.
     # It is deliberately CI_FIXTURE evidence: it proves the producer/artifact/SLO path
     # works, but cannot satisfy the production-like environment predicate by itself.

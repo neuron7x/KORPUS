@@ -4,13 +4,16 @@
 from __future__ import annotations
 
 import ast
-import json
 import os
+import sys
 from pathlib import Path
 
 from sqlalchemy import create_engine, text
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(ROOT / "scripts")]
+from rls_context import bind as bind_rls_context  # noqa: E402
+
 VERSIONS = ROOT / "apps/api/migrations/versions"
 
 
@@ -46,45 +49,10 @@ def migration_head() -> str:
 
 
 def _bind_rls_context(connection) -> None:  # type: ignore[no-untyped-def]
-    """Покласти контекст перевірника через брокера — той самий шлях, що й у рантаймі."""
-    authz_url = os.environ.get("KORPUS_AUTHZ_DATABASE_URL")
-    if not authz_url:
-        raise SystemExit(
-            "KORPUS_AUTHZ_DATABASE_URL is required: RLS context is bound by the broker "
-            "role, and without it the verifier sees nothing and blames the backup"
-        )
-    target = connection.execute(
-        text(
-            "SELECT pg_catalog.pg_backend_pid() AS backend_pid, "
-            "pg_catalog.txid_current() AS transaction_id, session_user::text AS session_login"
-        )
-    ).one()
-    parameters = {
-        "backend_pid": int(target.backend_pid),
-        "transaction_id": int(target.transaction_id),
-        "session_login": str(target.session_login),
-        "subject": "restore-verifier",
-        "clearance": 3,
-        "corpora": json.dumps(["public", "restricted-demo"], separators=(",", ":")),
-        "classifications": json.dumps(["internal", "public", "restricted"], separators=(",", ":")),
-        "compartments": json.dumps([], separators=(",", ":")),
-        "roles": json.dumps(["admin", "user"], separators=(",", ":")),
-    }
-    broker_engine = create_engine(authz_url, pool_pre_ping=True)
-    try:
-        with broker_engine.begin() as broker:
-            broker.execute(
-                text(
-                    "SELECT public.korpus_bind_rls_context("
-                    ":backend_pid, :transaction_id, CAST(:session_login AS name), "
-                    "CAST(:subject AS text), :clearance, "
-                    "CAST(:corpora AS jsonb), CAST(:classifications AS jsonb), "
-                    "CAST(:compartments AS jsonb), CAST(:roles AS jsonb))"
-                ),
-                parameters,
-            )
-    finally:
-        broker_engine.dispose()
+    """Контекст перевірника кладе БРОКЕР — одна прив'язка на все дерево, у rls_context."""
+    bind_rls_context(
+        connection, os.environ.get("KORPUS_AUTHZ_DATABASE_URL", ""), "restore-verifier"
+    )
 
 
 url = os.environ["KORPUS_POSTGRES_TEST_URL"]

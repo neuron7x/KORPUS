@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1809,
-  "root_sha256": "ed3c30aa5b50fe6fbc58a4c125f0caca835c9844b9ad1fde7c3028d2658e093b",
+  "file_count": 1810,
+  "root_sha256": "d333845f15facd260ba4a953e8326475a15ad00cb331ddfceaeb9e15f27eb58f",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 54282,
-      "sha256": "a1aabe8ffbd110bc13176ff5396aa77bbb7672bdc66490cedfb0f326d8ba8e8b",
+      "bytes": 55094,
+      "sha256": "58a3ea4bb72d989dc0019c6d42f482d4d7d7723216529add36de9ef8ec58ceef",
       "mode": "0644"
     },
     {
@@ -7322,7 +7322,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "0597316a19cf128bad7ce324c34fa2992b78ed9f3037a75e4da939eb7d1236db",
+      "sha256": "09f197f282caebbbcedd1265277d5b2b4d645943e449d15d53b88db7d938c298",
       "mode": "0644"
     },
     {
@@ -7357,8 +7357,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 600013,
-      "sha256": "206d472e4143df99a42a26e8744d5d0f5c9bab186e4131a3baf4f43d55bc96c9",
+      "bytes": 606236,
+      "sha256": "5f8a09b8878cada2cfe78b3da7a012ea1b7d8bf023460b98232753e5c66e29e8",
       "mode": "0644"
     },
     {
@@ -9799,8 +9799,8 @@
     },
     {
       "path": "scripts/measure_recovery.py",
-      "bytes": 10126,
-      "sha256": "321d0f89ec46c3015302aab5f1dceba3a3cdab05bf79ee7b0da9be43cfeba6ad",
+      "bytes": 10625,
+      "sha256": "b1035a2eb92e66babc4e820ddcd7ed070ff5a87add696979e5ef550627cfca42",
       "mode": "0755"
     },
     {
@@ -10170,6 +10170,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/rls_context.py",
+      "bytes": 5833,
+      "sha256": "2026ec8f4f8e5be2cae6622f802017c2701e452120d8fc8dd21067e306feee18",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/run_boundary_eval.py",
       "bytes": 5875,
       "sha256": "cf0ed087ba5f17023845de84152c10cb8a705ed37323640d0fd3231d53af7d78",
@@ -10447,8 +10453,8 @@
     },
     {
       "path": "scripts/seed_recovery_fixture.py",
-      "bytes": 4450,
-      "sha256": "a8739daed70d8163f6715640d2dabb2667694c68a5ff4086894460c6cbbb707e",
+      "bytes": 5442,
+      "sha256": "2ba356d62f000f3f1ef4cce2c6034e41b5c3ee110c81d782eafa070d279a66b2",
       "mode": "0755"
     },
     {
@@ -10777,8 +10783,8 @@
     },
     {
       "path": "scripts/verify_postgres_restore.py",
-      "bytes": 6591,
-      "sha256": "f4ac34ca8e169b21c31be05b3d9e1a8d8cece1285135bb7d3c91515db50fc174",
+      "bytes": 5085,
+      "sha256": "25b23f84dc0c0e5ce82b29d33d67e0384e55b9dbe6151a432dc458690647ee07",
       "mode": "0755"
     },
     {
