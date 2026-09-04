@@ -18,6 +18,18 @@ from korpus.application.capability_gateway.types import (
 DIGEST_PATTERN = r"^sha256:[a-f0-9]{64}$"
 
 
+class CapabilityEvidenceMissing(CapabilityContractError):
+    """Required evidence was absent."""
+
+
+class CapabilityEvidenceStale(CapabilityContractError):
+    """Evidence was expired or exceeded the declared freshness bound."""
+
+
+class CapabilityEvidenceBindingMismatch(CapabilityContractError):
+    """Evidence was bound to a different invocation, capability, adapter, or output."""
+
+
 class EvidenceStatus(StrEnum):
     VALID = "VALID"
     INVALID = "INVALID"
@@ -75,7 +87,7 @@ def validate_evidence(
     if profile is EvidenceProfile.NONE and evidence is None:
         return
     if evidence is None:
-        raise CapabilityContractError("required capability evidence is missing")
+        raise CapabilityEvidenceMissing("required capability evidence is missing")
     if evidence.status is not EvidenceStatus.VALID:
         raise CapabilityContractError(f"capability evidence status is {evidence.status.value}")
     if evidence.observed_at.tzinfo is None or evaluated_at.tzinfo is None:
@@ -86,24 +98,24 @@ def validate_evidence(
         if evidence.expires_at.tzinfo is None:
             raise CapabilityContractError("evidence expiry must be timezone-aware")
         if evaluated_at > evidence.expires_at:
-            raise CapabilityContractError("capability evidence has expired")
+            raise CapabilityEvidenceStale("capability evidence has expired")
 
     binding = evidence.binding
     if binding.invocation_id != context.invocation_id:
-        raise CapabilityContractError("evidence invocation binding does not match")
+        raise CapabilityEvidenceBindingMismatch("evidence invocation binding does not match")
     if binding.capability_id != spec.capability_id or binding.capability_version != spec.version:
-        raise CapabilityContractError("evidence capability binding does not match")
+        raise CapabilityEvidenceBindingMismatch("evidence capability binding does not match")
     if (
         binding.adapter_id != spec.adapter.adapter_id
         or binding.adapter_version != spec.adapter.adapter_version
     ):
-        raise CapabilityContractError("evidence adapter binding does not match")
+        raise CapabilityEvidenceBindingMismatch("evidence adapter binding does not match")
     if binding.output_digest != payload_digest(output):
-        raise CapabilityContractError("evidence output digest does not match")
+        raise CapabilityEvidenceBindingMismatch("evidence output digest does not match")
 
     freshness = spec.evidence.freshness_seconds
     if freshness is not None and evaluated_at - evidence.observed_at > timedelta(seconds=freshness):
-        raise CapabilityContractError("capability evidence is stale")
+        raise CapabilityEvidenceStale("capability evidence is stale")
 
     if profile is EvidenceProfile.PROVIDER_PROVENANCE:
         if evidence.provenance.kind not in {
