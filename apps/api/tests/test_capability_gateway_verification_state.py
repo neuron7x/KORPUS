@@ -133,6 +133,35 @@ def test_clean_room_and_fresh_context_are_bound_to_current_candidate_without_fal
     assert fresh["candidate_commit"] == candidate
 
 
+def test_runner_probe_is_diagnostic_only_and_cannot_clear_execution_blocker() -> None:
+    ledger = _load("VERIFICATION_STATE.json")
+    policy = ledger["verification_policy"]
+    execution = ledger["execution_evidence"]
+    probe = ledger["runner_assignment_probe"]
+    blockers = ledger["blocking_gates"]
+
+    assert isinstance(policy, dict)
+    assert isinstance(execution, dict)
+    assert isinstance(probe, dict)
+    assert isinstance(blockers, list)
+    assert policy["diagnostic_probe_is_not_candidate_verification"] is True
+    assert probe["status"] == "PRE_RUNNER_EXECUTION_FAILURE_CONFIRMED"
+    assert probe["candidate_verification"] is False
+    assert probe["external_actions_used"] is False
+    assert execution["status"] == "EXECUTION_NOT_OBSERVED"
+    assert "EXECUTION_NOT_OBSERVED" in blockers
+
+    jobs = probe["jobs"]
+    assert isinstance(jobs, list)
+    assert {job["name"] for job in jobs} == {
+        "runner-probe-ubuntu-latest",
+        "runner-probe-ubuntu-24.04",
+    }
+    assert all(job["conclusion"] == "failure" for job in jobs)
+    assert all(job["steps_observed"] is False for job in jobs)
+    assert all(job["logs_observed"] is False for job in jobs)
+
+
 def test_every_verification_witness_is_repository_local_and_exists() -> None:
     ledger = _load("VERIFICATION_STATE.json")
     requirements = ledger["requirements"]
