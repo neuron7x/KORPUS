@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1824,
-  "root_sha256": "2d89bf61dda9e8fbd83f87a4df0f95058d1495551a66cbdc219a31b04bb3e9e7",
+  "file_count": 1825,
+  "root_sha256": "dcda1b03dd0c16eb73a28a75ed267dcb211cc8df992b19a341fc1bf4e8498467",
   "files": [
     {
       "path": ".dockerignore",
@@ -3663,6 +3663,12 @@
       "path": "apps/api/tests/test_handoff_liveness_probe.py",
       "bytes": 1349,
       "sha256": "90afc988ee9816ffdaa27b32a3cfc5209c90518cee83673a838e34caaf93c0dc",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_hard_predicate_guards.py",
+      "bytes": 8505,
+      "sha256": "2e31fadb4c3e2774529d854085b0c5c3d2c311b68af0e72ff6f949a459bfd6ca",
       "mode": "0644"
     },
     {
