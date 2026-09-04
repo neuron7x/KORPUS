@@ -11,6 +11,12 @@ from korpus.application.capability_gateway.adapters import (
 )
 from korpus.application.capability_gateway.audit import InvocationOutcome
 from korpus.application.capability_gateway.contracts import payload_digest
+from korpus.application.capability_gateway.effect_safety import (
+    CompensationMode,
+    EffectSafetyDeclaration,
+    EffectSafetyRegistry,
+    ReconciliationMode,
+)
 from korpus.application.capability_gateway.effects import (
     EffectRecord,
     EffectReservation,
@@ -200,6 +206,26 @@ def _spec(
     )
 
 
+def _effect_safety(spec: CapabilitySpec) -> EffectSafetyRegistry:
+    if spec.effect_class not in {
+        EffectClass.WRITE_REMOTE,
+        EffectClass.TRANSACTIONAL_SIDE_EFFECT,
+        EffectClass.PRIVILEGED_ADMIN,
+    }:
+        return EffectSafetyRegistry()
+    return EffectSafetyRegistry(
+        [
+            EffectSafetyDeclaration.for_spec(
+                spec,
+                compensation_mode=CompensationMode.NONE,
+                irreversible=True,
+                reconciliation_mode=ReconciliationMode.MANUAL,
+                operator_rationale="Test effect is irreversible and requires manual reconciliation.",
+            )
+        ]
+    )
+
+
 def _request(*, idempotency_key: str | None = None, dry_run: bool = False) -> IntegrationRequest:
     return IntegrationRequest(
         schema_version="korpus.integration-request.v1",
@@ -255,6 +281,7 @@ def _gateway(
         effect_authorizer=effect_authorizer or _EffectAuthorizer(),  # type: ignore[arg-type]
         effects=selected_ledger,
         audit=selected_audit,  # type: ignore[arg-type]
+        effect_safety=_effect_safety(declared),
     )
     return gateway, selected_adapter, selected_ledger, selected_audit
 
