@@ -55,7 +55,11 @@ class CapabilityExecutor:
         executed = self._call_adapter(frame, guard)
         if isinstance(executed, IntegrationResult):
             return executed
-        if guard.required and not self._transition(guard, EffectState.COMMITTED):
+        if guard.required and not self._transition(
+            guard,
+            EffectState.COMMITTED,
+            provider_reference=executed.provider_reference,
+        ):
             return self._emitter.emit(
                 frame,
                 InvocationOutcome.OUTCOME_UNKNOWN,
@@ -90,10 +94,20 @@ class CapabilityExecutor:
             )
         except AdapterKnownNoEffect:
             return self._known_no_effect(frame, guard)
-        except AdapterOutcomeUnknown:
-            return self._unknown_effect(frame, guard, "ADAPTER_TIMEOUT")
-        except AdapterExecutionFailed:
-            return self._adapter_failure(frame, guard, "ADAPTER_FAILURE")
+        except AdapterOutcomeUnknown as exc:
+            return self._unknown_effect(
+                frame,
+                guard,
+                "ADAPTER_TIMEOUT",
+                provider_reference=exc.provider_reference,
+            )
+        except AdapterExecutionFailed as exc:
+            return self._adapter_failure(
+                frame,
+                guard,
+                "ADAPTER_FAILURE",
+                provider_reference=exc.provider_reference,
+            )
         except Exception:
             return self._adapter_failure(frame, guard, "INTERNAL_ERROR")
 
@@ -112,8 +126,14 @@ class CapabilityExecutor:
         frame: InvocationFrame,
         guard: EffectGuard,
         error_code: str,
+        *,
+        provider_reference: str | None = None,
     ) -> IntegrationResult:
-        transitioned = self._transition(guard, EffectState.OUTCOME_UNKNOWN)
+        transitioned = self._transition(
+            guard,
+            EffectState.OUTCOME_UNKNOWN,
+            provider_reference=provider_reference,
+        )
         code = error_code if transitioned else "INTERNAL_ERROR"
         return self._emitter.emit(
             frame,
@@ -127,9 +147,16 @@ class CapabilityExecutor:
         frame: InvocationFrame,
         guard: EffectGuard,
         error_code: str,
+        *,
+        provider_reference: str | None = None,
     ) -> IntegrationResult:
         if guard.required:
-            return self._unknown_effect(frame, guard, error_code)
+            return self._unknown_effect(
+                frame,
+                guard,
+                error_code,
+                provider_reference=provider_reference,
+            )
         return self._emitter.emit(frame, InvocationOutcome.FAILED, error_code)
 
     def _validate_output(
@@ -176,7 +203,13 @@ class CapabilityExecutor:
             return self._emitter.emit(frame, InvocationOutcome.FAILED, "INTERNAL_ERROR", material)
         return self._emitter.emit(frame, InvocationOutcome.SUCCESS, None, material)
 
-    def _transition(self, guard: EffectGuard, target: EffectState) -> bool:
+    def _transition(
+        self,
+        guard: EffectGuard,
+        target: EffectState,
+        *,
+        provider_reference: str | None = None,
+    ) -> bool:
         if guard.reservation is None:
             return True
         record = guard.reservation.record
@@ -186,6 +219,7 @@ class CapabilityExecutor:
                 idempotency_key=record.idempotency_key,
                 expected=EffectState.PENDING,
                 target=target,
+                provider_reference=provider_reference,
             )
         except Exception:
             return False
