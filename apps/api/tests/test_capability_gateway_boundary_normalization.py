@@ -4,6 +4,12 @@ from dataclasses import replace
 
 from korpus.application.capability_gateway.adapters import AdapterExecutionResult, AdapterRegistry
 from korpus.application.capability_gateway.audit import InvocationOutcome
+from korpus.application.capability_gateway.effect_safety import (
+    CompensationMode,
+    EffectSafetyDeclaration,
+    EffectSafetyRegistry,
+    ReconciliationMode,
+)
 from korpus.application.capability_gateway.effects import (
     EffectRecord,
     EffectReservation,
@@ -175,6 +181,26 @@ def _spec(*, effect: EffectClass = EffectClass.READ_LOCAL) -> CapabilitySpec:
     )
 
 
+def _effect_safety(spec: CapabilitySpec) -> EffectSafetyRegistry:
+    if spec.effect_class not in {
+        EffectClass.WRITE_REMOTE,
+        EffectClass.TRANSACTIONAL_SIDE_EFFECT,
+        EffectClass.PRIVILEGED_ADMIN,
+    }:
+        return EffectSafetyRegistry()
+    return EffectSafetyRegistry(
+        [
+            EffectSafetyDeclaration.for_spec(
+                spec,
+                compensation_mode=CompensationMode.NONE,
+                irreversible=True,
+                reconciliation_mode=ReconciliationMode.MANUAL,
+                operator_rationale="Boundary-test effect is irreversible and manually reconciled.",
+            )
+        ]
+    )
+
+
 def _request(*, input_value: dict[str, object] | None = None, key: str | None = None) -> IntegrationRequest:
     return IntegrationRequest(
         schema_version="korpus.integration-request.v1",
@@ -195,6 +221,7 @@ def _gateway(
     audit: _Audit | None = None,
     adapter: _Adapter | None = None,
 ) -> tuple[CapabilityGateway, _Adapter, _Ledger, _Audit]:
+    declared = _spec(effect=effect)
     selected_adapter = adapter or _Adapter()
     selected_ledger = ledger or _Ledger()
     selected_audit = audit or _Audit()
@@ -204,7 +231,7 @@ def _gateway(
         lambda identity, spec, request: f"reference:{request.input['reference_id']}"
     )
     gateway = CapabilityGateway(
-        registry=CapabilityRegistry([_spec(effect=effect)]),
+        registry=CapabilityRegistry([declared]),
         policy=CapabilityPolicyBridge(
             PolicyEngine(),
             action_permissions={"integration:reference:boundary": "answer:read"},
@@ -217,6 +244,7 @@ def _gateway(
         effect_authorizer=authorizer or _EffectAuthorizer(),
         effects=selected_ledger,
         audit=selected_audit,
+        effect_safety=_effect_safety(declared),
     )
     return gateway, selected_adapter, selected_ledger, selected_audit
 
