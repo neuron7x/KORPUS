@@ -310,15 +310,16 @@ class CapabilityGateway:
         if not effectful(frame.spec):
             return True
         try:
-            return bool(
-                self._effect_authorizer.authorize(
-                    identity=frame.identity,
-                    spec=frame.spec,
-                    logical_resource=frame.logical_resource,
-                )
+            decision = self._effect_authorizer.authorize(
+                identity=frame.identity,
+                spec=frame.spec,
+                logical_resource=frame.logical_resource,
             )
         except Exception:
             return False
+        # Authority is granted only by the protocol's literal boolean allow decision.
+        # Truthy strings, integers, sentinels and provider-shaped objects fail closed.
+        return decision is True
 
     def _prepare_effect(self, frame: InvocationFrame) -> EffectGuard | IntegrationResult:
         explicit = self._effect_authorized(frame)
