@@ -5600,8 +5600,13 @@ MUTANTS = (
         "SERVED_CORPUS ?= $(CANONICAL_ROOT)/var/runtime/corpus-v6-20260807/korpus.db",
         "SERVED_CORPUS ?= var/runtime/corpus-v6-20260807/korpus.db",
         (
+            # ДВА плеча: текстове біжить скрізь, розгортання — там, де є `make`.
+            # Отруту «шлях без $(CANONICAL_ROOT)» ловлять обидва, тож мутант killed
+            # і в образі без інструмента.
             "apps/api/tests/test_make_runtime_paths.py::"
-            "test_make_runtime_paths_are_rooted_in_the_canonical_declaration",
+            "test_the_runtime_paths_are_written_against_the_canonical_declaration",
+            "apps/api/tests/test_make_runtime_paths.py::"
+            "test_make_expands_those_paths_to_the_declared_root",
         ),
         full_copy=True,
     ),
@@ -5611,8 +5616,13 @@ MUTANTS = (
         "SERVED_OBJECTS ?= $(CANONICAL_ROOT)/var/runtime/corpus-v6-20260807/objects",
         "SERVED_OBJECTS ?= var/runtime/corpus-v6-20260807/objects",
         (
+            # ДВА плеча: текстове біжить скрізь, розгортання — там, де є `make`.
+            # Отруту «шлях без $(CANONICAL_ROOT)» ловлять обидва, тож мутант killed
+            # і в образі без інструмента.
             "apps/api/tests/test_make_runtime_paths.py::"
-            "test_make_runtime_paths_are_rooted_in_the_canonical_declaration",
+            "test_the_runtime_paths_are_written_against_the_canonical_declaration",
+            "apps/api/tests/test_make_runtime_paths.py::"
+            "test_make_expands_those_paths_to_the_declared_root",
         ),
         full_copy=True,
     ),
