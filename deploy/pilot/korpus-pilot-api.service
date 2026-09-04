@@ -1,0 +1,40 @@
+[Unit]
+# Приватний пілот: той самий застосунок, канонічний бекенд PostgreSQL, петля.
+#
+# Чому systemd, а не compose: топологія мусить бути ЗАСВІДЧУВАНОЮ. Вимірювач класу
+# середовища вміє питати `systemctl --user show` про активність юніта і його головний
+# процес; про контейнери він не вміє нічого. Оголосити топологію, якої не може
+# засвідчити жоден наявний вимірювач, означало б лишити три предикати назавжди
+# невиміряними — а невиміряне не є пройденим.
+#
+# База — PostgreSQL, як вимагає профіль впевненості продакшену. Compose лишається
+# еталонною формою повного продакшену й у дорозі обслуговування пілоту не стоїть.
+Description=KORPUS private pilot API (PostgreSQL, loopback)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=@KORPUS_ROOT@
+# Оточення з ОДНОГО файла — друга копія розійшлася б мовчки, як уже розходилась.
+# Без префікса `-` навмисно: немає файла — юніт НЕ стартує.
+EnvironmentFile=%h/.local/state/korpus-pilot/api.env
+# Шлях у ЛАПКАХ: канонічне дерево лежить у теці з пробілами, і без лапок systemd
+# ріже команду на першому ж пробілі — 203/EXEC. Той самий рядок у публічному юніті
+# уже залапкований; тут я повторила помилку, якої той файл уже не робить.
+ExecStart="@KORPUS_ROOT@/apps/api/.venv/bin/python" -m uvicorn korpus.main:app --host 127.0.0.1 --port 8030 --log-level warning --workers 2
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+CPUAccounting=true
+CPUQuota=250%
+MemoryAccounting=true
+MemoryHigh=2G
+MemoryMax=3G
+TasksMax=128
+OOMPolicy=stop
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

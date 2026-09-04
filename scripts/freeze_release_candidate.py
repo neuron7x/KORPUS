@@ -171,7 +171,16 @@ def _lane_problems(lane: dict[str, Any], root: Path) -> list[str]:
     # він порівнювався з реальними вісімнадцятьма цілями, а не зі своїми двома.
     candidate = (_json(root / "RELEASE_ENVELOPE.json") or {}).get("release_candidate", {})
     mandatory = {str(name) for name in candidate.get("mandatory_gate_set") or []}
-    measured = {str(step.get("target")) for step in lane.get("steps") or []}
+    # Ціль зараховується лише коли її крок ПРОЙШОВ. Доти покриття будувалось з імен,
+    # а `state` не читався ніколи: звіт зі `status: PASS` і одним FAILED/SKIPPED кроком
+    # задовольняв умову. Сьогодні бігун такого звіту не випустить (`status()` дає FAIL
+    # або INCOMPLETE), тож це недосяжно — але звіт каже той самий факт ДВІЧІ, агрегатом
+    # і масивом, і гейт вірив слабшій копії. Розійдуться вони мовчки.
+    measured = {
+        str(step.get("target"))
+        for step in lane.get("steps") or []
+        if str(step.get("state")) == "PASSED"
+    }
     if not mandatory:
         problems.append("конверт не називає обов'язкового набору цілей")
     elif mandatory - measured:
@@ -234,6 +243,23 @@ def selftest() -> int:
                     "status": "PASS",
                     "source_digest": compute_source_digest(ROOT),
                     "steps": [{"target": "operational-gate"}, {"target": "lane-report"}],
+                },
+                "RELEASE_ENVELOPE.json": {
+                    "release_candidate": {"mandatory_gate_set": ["api-test", "validate"]}
+                },
+            },
+            "не покриває обов'язкових цілей",
+        ),
+        (
+            "крок названий, але НЕ пройшов — ціль не зарахована",
+            {
+                "var/release-verify.json": {
+                    "status": "PASS",
+                    "source_digest": compute_source_digest(ROOT),
+                    "steps": [
+                        {"target": "api-test", "state": "PASSED"},
+                        {"target": "validate", "state": "FAILED"},
+                    ],
                 },
                 "RELEASE_ENVELOPE.json": {
                     "release_candidate": {"mandatory_gate_set": ["api-test", "validate"]}

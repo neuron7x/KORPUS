@@ -307,6 +307,11 @@ api:assurance:
       # `api:assurance` уперше в історії виконався, упав на M341 — і доказ, який
       # назвав би причину, згинув разом із контейнером.
       - var/mutation-shard-*.log
+      # Лог несе лише ПІДСУМОК: `run_mutation_tests.py` вирізає `results` з того, що
+      # друкує. Повний запис із `returncode`, `reason: pytest_exit_N` і `output_tail`
+      # лежить у звіті шарда — без нього причина ERROR не виїжджає з раннера, і
+      # наступний прогін скаже те саме ім'я мутанта й жодного слова більше.
+      - var/mutation-shards/*.json
 
 # The drills. Each one breaks something on purpose, or loads the system until it refuses,
 # and leaves a report. They are separate from api:assurance because they take a running
@@ -381,10 +386,6 @@ api:postgres-and-restore:
     # RLS обмежує. Локальний `scripts/run_postgres_suite.sh` створює всі три ролі; ця
     # джоба створювала лише застосункову, і саме тому її перший в історії прогін
     # (03.09.2026) упав із «PostgreSQL RLS requires a separate authz database identity».
-    KORPUS_POSTGRES_AUTHZ_ROLE: korpus_authz
-    KORPUS_POSTGRES_AUTHZ_PASSWORD: korpus-authz-test-password
-    KORPUS_POSTGRES_REVIEW_ROLE: korpus_review
-    KORPUS_POSTGRES_REVIEW_PASSWORD: korpus-review-test-password
     KORPUS_AUTHZ_DATABASE_URL: postgresql+psycopg://korpus_authz:korpus-authz-test-password@postgres:5432/korpus_test
     KORPUS_REVIEW_DATABASE_URL: postgresql+psycopg://korpus_review:korpus-review-test-password@postgres:5432/korpus_test
     KORPUS_POSTGRES_TEST_URL: postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test
@@ -408,10 +409,18 @@ api:postgres-and-restore:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends postgresql-client-17 && rm -rf /var/lib/apt/lists/*
     - python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
     - python -m pip check
-    - python scripts/wait_for_database.py
+    # Роль застосунку створює `prepare_postgres_role.py` ДВОМА кроками пізніше, тож
+    # очікування бази не може ходити нею: воно чекало б на роль, якої ще немає. Це
+    # дія власника схеми — і бере адмінський URL явно. Виміряно 03.09.2026: джоба
+    # впала за 111 с замість 735 із «password authentication failed for korpus_app».
+    - KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" python scripts/wait_for_database.py
   script:
     - KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" bash -c 'cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_db_defense_and_vectors && python -m alembic -c alembic.ini upgrade head'
-    - KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" python scripts/prepare_postgres_role.py
+    # Імена й паролі ролей — входи ОДНОГО кроку, а не оточення джоби. На рівні джоби
+    # вони їхали б у застосунок, який відмовляється стартувати з нерозпізнаними
+    # `KORPUS_*`: невідоме ім'я тихо лишає налаштування на дефолті, і сторож проти
+    # цього правильний. Виміряно 03.09.2026 — джоба впала з кодом 4 саме на ньому.
+    - KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" KORPUS_POSTGRES_AUTHZ_ROLE=korpus_authz KORPUS_POSTGRES_AUTHZ_PASSWORD=korpus-authz-test-password KORPUS_POSTGRES_REVIEW_ROLE=korpus_review KORPUS_POSTGRES_REVIEW_PASSWORD=korpus-review-test-password python scripts/prepare_postgres_role.py
     # The whole suite against the migrated database, not only the postgres-marked test.
     # Every closure in this tree was proved on SQLite; the first run of this line found
     # a schema revision pin the code had outgrown, an audit verdict that called a
@@ -443,7 +452,7 @@ api:postgres-and-restore:
     - scripts/restore_postgres.sh "$backup_path"
     - export KORPUS_RECOVERY_RESTORE_SECONDS="$(python3 -c "import sys;print(float(sys.argv[2])-float(sys.argv[1]))" "$restore_started" "$(date +%s.%N)")"
     - export KORPUS_DATABASE_URL='postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_restore'
-    - python scripts/prepare_postgres_role.py
+    - KORPUS_POSTGRES_AUTHZ_ROLE=korpus_authz KORPUS_POSTGRES_AUTHZ_PASSWORD=korpus-authz-test-password KORPUS_POSTGRES_REVIEW_ROLE=korpus_review KORPUS_POSTGRES_REVIEW_PASSWORD=korpus-review-test-password python scripts/prepare_postgres_role.py
     - export KORPUS_POSTGRES_TEST_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore'
     # Ті самі три особи, але вже у ВІДНОВЛЕНІЙ базі: без них перевірка відновлення
     # говорила б із застосунком, який не може піднятись.
@@ -459,7 +468,12 @@ api:postgres-and-restore:
     # Counted through korpus_app, the least-privilege role the service runs as, not
     # through postgres: RLS does not apply to a superuser, so a superuser count is a
     # number about the table rather than about what the application can recover.
-    - KORPUS_RECOVERY_SOURCE_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test' KORPUS_RECOVERY_RESTORED_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore' KORPUS_RECOVERY_BACKUP_PATH="$backup_path" python scripts/measure_recovery.py
+    # Брокер ОКРЕМИЙ для кожної бази. Доти навчання клало контекст RLS через
+    # `set_config('korpus.*')` — протокол, який схема 0020 більше не читає, тож
+    # `korpus_app` бачив НУЛЬ документів: `document_rows: 0`,
+    # `writes_after_backup: 0` і, як наслідок, `lost_documents: 0` — число, яке не
+    # могло вийти іншим. Виміряно 04.09.2026 у цій джобі й локально на пілоті.
+    - KORPUS_RECOVERY_SOURCE_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test' KORPUS_RECOVERY_RESTORED_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore' KORPUS_RECOVERY_SOURCE_AUTHZ_URL='postgresql+psycopg://korpus_authz:korpus-authz-test-password@postgres:5432/korpus_test' KORPUS_RECOVERY_RESTORED_AUTHZ_URL='postgresql+psycopg://korpus_authz:korpus-authz-test-password@postgres:5432/korpus_restore' KORPUS_RECOVERY_BACKUP_PATH="$backup_path" python scripts/measure_recovery.py
     # Produce a real network load report against the restored PostgreSQL-backed API.
     # It is deliberately CI_FIXTURE evidence: it proves the producer/artifact/SLO path
     # works, but cannot satisfy the production-like environment predicate by itself.

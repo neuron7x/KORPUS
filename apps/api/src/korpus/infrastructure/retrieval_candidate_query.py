@@ -122,6 +122,14 @@ def candidate_span_query(
         # Interpolated verbatim so the emitted SQL text is unchanged; it only keeps
         # the repeated bound-parameter cast off the right-hand margin.
         as_of_date = "CAST(:as_of AS date)"
+        # Стовпець, не обчислення. Під RLS повнотекстова умова НЕ МОЖЕ стати умовою
+        # індексу: `ts_match_vq`, `to_tsvector` і `ts_rank_cd` не leakproof, а безпекові
+        # умови стоять рівнем нижче, тож «securely promotable» ця умова не буває ніколи
+        # — ні за яких статистик. Отже `to_tsvector('simple', s.text)` рахувався на
+        # КОЖНОМУ прольоті. Виміряно 04.09.2026 на пілоті (31 464 прольоти): 3.48 с
+        # проти 0.97 с зі збереженим вектором, ті самі span_id на чотирьох питаннях.
+        # Міграція 0023 тримає вектор ГЕНЕРОВАНИМ, тож розійтися з текстом він не може.
+        vector = "s.search_vector"
         statement = sql_text(
             f"""
             WITH superseded AS (
@@ -137,7 +145,7 @@ def candidate_span_query(
             FROM evidence_spans s
             JOIN document_versions v ON v.id = s.version_id
             JOIN documents d ON d.id = v.document_id
-            WHERE to_tsvector('simple', s.text) @@ to_tsquery('simple', :query)
+            WHERE {vector} @@ to_tsquery('simple', :query)
               AND v.review_state = 'approved'
               AND d.corpus_id IN ({corpus_placeholders})
               AND d.access_tier <= :clearance
@@ -148,7 +156,7 @@ def candidate_span_query(
               AND (v.rescinded_at IS NULL OR CAST(v.rescinded_at AS date) > {as_of_date})
               AND (v.id, v.document_id) NOT IN (SELECT id, document_id FROM superseded)
             ORDER BY ts_rank_cd(
-                to_tsvector('simple', s.text), to_tsquery('simple', :query)
+                {vector}, to_tsquery('simple', :query)
             ) DESC, s.id
             LIMIT :limit
             """

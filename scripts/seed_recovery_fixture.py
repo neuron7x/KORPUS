@@ -47,6 +47,17 @@ def main() -> int:
     engine = create_engine(url, pool_pre_ping=True)
     now = datetime.now(UTC)
     with engine.begin() as connection:
+        if not after_backup:
+            # Прибрати рядки, які лишив ПОПЕРЕДНІЙ прогін. Ідентифікатори стабільні
+            # (uuid5) і вставка йде `ON CONFLICT DO NOTHING`, тож на базі, де навчання
+            # вже було, «записи після бекапу» вже лежать У БЕКАПІ — і відновлення нічого
+            # не втрачає, хай яким воно буде. Виміряно 04.09.2026 на пілоті:
+            # `writes_after_backup: 5`, `lost_documents: 0` — друге число не могло вийти
+            # іншим. Чистити треба ДО бекапу: після нього це вже підробка втрати.
+            connection.execute(
+                text("DELETE FROM documents WHERE canonical_title LIKE :pattern"),
+                {"pattern": f"{POST_BACKUP_PREFIX} %"},
+            )
         for index in range(count):
             document_id = _identifier(f"{prefix}-document", index)
             connection.execute(

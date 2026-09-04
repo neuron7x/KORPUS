@@ -1,0 +1,179 @@
+{
+  "schema": "korpus.pilot-deployment-posture.v1",
+  "status": "MEASURED",
+  "unit": "deploy/pilot/korpus-pilot-api.service",
+  "unit_sha256": "2565d7de15f147378ac5b3e3381b30736b031508a5edf0b842da430fd1ebd565",
+  "environment_file": "/home/neuro7/.local/state/korpus-pilot/api.env",
+  "environment_keys": [
+    "KORPUS_AUDIT_ANCHOR_PATH",
+    "KORPUS_AUDIT_HMAC_KEY_FILE",
+    "KORPUS_AUDIT_KEY_ID",
+    "KORPUS_AUDIT_VERIFICATION_KEY_FILES",
+    "KORPUS_AUTH_MODE",
+    "KORPUS_BIND_HOST",
+    "KORPUS_ENVIRONMENT",
+    "KORPUS_JWT_AUDIENCE",
+    "KORPUS_JWT_ISSUER",
+    "KORPUS_JWT_MAX_LIFETIME_MINUTES",
+    "KORPUS_JWT_SECRET_FILE",
+    "KORPUS_MAX_CONCURRENT_ANSWERS",
+    "KORPUS_MODEL_EGRESS_POSTURE",
+    "KORPUS_OBJECT_ROOT",
+    "KORPUS_SCHEMA_MODE",
+    "KORPUS_TRUSTED_HOSTS",
+    "PYTHONPATH"
+  ],
+  "declared_environment": "local",
+  "auth_mode": "jwt",
+  "controlled_requirements_enforced": false,
+  "requirements_total": 35,
+  "counts": {
+    "MET": 9,
+    "UNMET": 24,
+    "NOT_APPLICABLE_TO_ROLE": 2,
+    "EVALUATION_ERROR": 0
+  },
+  "requirements": [
+    {
+      "name": "postgresql",
+      "state": "MET"
+    },
+    {
+      "name": "verified_database_transport",
+      "state": "UNMET"
+    },
+    {
+      "name": "oidc",
+      "state": "UNMET"
+    },
+    {
+      "name": "migration_managed_schema",
+      "state": "MET"
+    },
+    {
+      "name": "jwks_url",
+      "state": "UNMET"
+    },
+    {
+      "name": "browser_authentication",
+      "state": "UNMET"
+    },
+    {
+      "name": "browser_settings",
+      "state": "UNMET"
+    },
+    {
+      "name": "browser_session_key",
+      "state": "UNMET"
+    },
+    {
+      "name": "secure_cookie",
+      "state": "MET"
+    },
+    {
+      "name": "https_redirect_uri",
+      "state": "UNMET"
+    },
+    {
+      "name": "entitlement_profile",
+      "state": "UNMET"
+    },
+    {
+      "name": "entitlement_profile_digest",
+      "state": "UNMET"
+    },
+    {
+      "name": "source_signatures",
+      "state": "UNMET"
+    },
+    {
+      "name": "source_trust_profile",
+      "state": "UNMET"
+    },
+    {
+      "name": "source_trust_profile_digest",
+      "state": "UNMET"
+    },
+    {
+      "name": "reviewer_registry",
+      "state": "UNMET"
+    },
+    {
+      "name": "reviewer_registry_digest",
+      "state": "UNMET"
+    },
+    {
+      "name": "corpus_governance_profile",
+      "state": "UNMET"
+    },
+    {
+      "name": "corpus_governance_profile_digest",
+      "state": "UNMET"
+    },
+    {
+      "name": "audit_key",
+      "state": "MET"
+    },
+    {
+      "name": "calibrated_answers",
+      "state": "UNMET"
+    },
+    {
+      "name": "reviewer_separation",
+      "state": "UNMET"
+    },
+    {
+      "name": "remote_audit_anchor",
+      "state": "UNMET"
+    },
+    {
+      "name": "audit_anchor_authentication",
+      "state": "UNMET"
+    },
+    {
+      "name": "metrics",
+      "state": "MET"
+    },
+    {
+      "name": "metrics_authentication",
+      "state": "UNMET"
+    },
+    {
+      "name": "explicit_https_cors",
+      "state": "UNMET"
+    },
+    {
+      "name": "explicit_trusted_hosts",
+      "state": "MET"
+    },
+    {
+      "name": "https_s3_endpoint",
+      "state": "MET"
+    },
+    {
+      "name": "object_governance_retention",
+      "state": "UNMET"
+    },
+    {
+      "name": "gcs_quarantine_separation",
+      "state": "MET"
+    },
+    {
+      "name": "durable_ingestion",
+      "state": "UNMET"
+    },
+    {
+      "name": "malware_scanning",
+      "state": "NOT_APPLICABLE_TO_ROLE"
+    },
+    {
+      "name": "parser_isolation",
+      "state": "NOT_APPLICABLE_TO_ROLE"
+    },
+    {
+      "name": "https_otlp_endpoint",
+      "state": "MET"
+    }
+  ],
+  "interpretation": "Пілот оголошує клас `local`, тож рантайм НЕ вимагає жодної з цих умов. Число виконаних — це те, що розгортання виконує САМЕ ПО СОБІ, без примусу. Умова поза роллю рантайму не виконана й не порушена: у неї немає предмета."
+}

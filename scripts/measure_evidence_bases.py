@@ -472,6 +472,15 @@ def collect(
             claimed[declared_fingerprint(spec)] = name
         except Unreachable as error:
             reasons.setdefault(name, str(error))
+        # Одна база — кілька АДРЕС. Реєстр знає її як контейнер і власника схеми;
+        # обслуговуючий процес ходить у неї петлею під застосунковою роллю, тож
+        # відбитки не збігаються ЗА ПОБУДОВОЮ: `postgres:postgres@172.x:5432/korpus`
+        # проти `postgres:korpus_app@127.0.0.1:55440/korpus`. Виміряно 04.09.2026 —
+        # пілотна база була оголошена й водночас порахована як НЕОГОЛОШЕНА поверхня.
+        # Псевдонім — теж ОГОЛОШЕННЯ: його пише людина, і невідома адреса лишається
+        # неоголошеною так само твердо, як раніше.
+        for alias in spec.get("surface_aliases", ()):
+            claimed[str(alias)] = name
 
     ephemeral = dict(registry.get("ephemeral_copies", {}))
     globs = [str(item) for item in ephemeral.get("path_globs", ())]

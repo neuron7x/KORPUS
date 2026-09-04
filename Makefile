@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: release-freeze ci-run ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage installed-units-verify canonical-verify branch-integration
+.PHONY: pilot-posture machine-tevv release-freeze ci-run ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage installed-units-verify canonical-verify branch-integration
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -1017,6 +1017,15 @@ release-freeze:
 	$(PY) scripts/freeze_release_candidate.py --selftest
 	$(PY) scripts/freeze_release_candidate.py
 
+# Машинно-перевірна частина TEVV: очікуване ВИВОДИТЬСЯ з фактів корпусу й системи,
+# тож судження предметної людини там не потрібне зовсім. Нового вимірювача немає —
+# звіт показує на наявні артефакти, їхні числа й підлоги з конфігів. Людська частина
+# лишається окремою й позначеною HUMAN_DOMAIN_REVIEW_REQUIRED: два контексти LLM не є
+# двома незалежними анотаторами, і видавати одне за інше заборонено.
+machine-tevv:
+	$(PY) scripts/build_machine_tevv.py --selftest
+	$(PY) scripts/build_machine_tevv.py
+
 ci-run:
 	$(PY) scripts/record_ci_run.py --selftest
 	$(PY) scripts/record_ci_run.py --evidence-only
@@ -1234,11 +1243,19 @@ nightly-evidence:
 	$(MAKE) snapshot PY=$(PY)
 	$(MAKE) evidence-refresh PY=$(PY)
 
+# Постава розгортання пілоту проти ВЛАСНОГО реєстру умов керованого середовища.
+# Не гейт: пілот оголошує клас `local`, тож рантайм цих умов не вимагає. Це ВИМІР —
+# число, яке власник мусить бачити, перш ніж запросити людей. Три стани, не два:
+# умова поза роллю рантайму не виконана й не порушена, у неї немає предмета.
+pilot-posture:
+	$(PY) scripts/measure_pilot_posture.py --selftest
+	$(PY) scripts/measure_pilot_posture.py
+
 # `serving-freshness` ПЕРШИМ у цьому лані. Чотири осі профілю відповідей міряються
 # запитом до живого процесу, тож вони описують ПРОЦЕС, а не дерево. Гейт існував із
 # власним негативним контролем і не входив у жоден лан: виміряно 02.09.2026, він був
 # передумовою лише `answer-quality`, який теж не входив нікуди.
-check-deployment: serving-freshness edge-config-parity assurance-model runtime-corpus-audit corpus-integrity audit-verify deployment-debt evidence-stores
+check-deployment: serving-freshness edge-config-parity assurance-model runtime-corpus-audit corpus-integrity audit-verify deployment-debt evidence-stores pilot-posture
 
 deployment-debt:
 	$(PY) scripts/check_deployment_debt.py

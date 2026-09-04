@@ -23,30 +23,26 @@ sys.path.insert(0, str(ROOT / "apps/api/src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_serving_freshness import topology_environment_class  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
+from korpus.application.recovery import (  # noqa: E402
+    PRODUCTION_LIKE_MINIMUM_BYTES,
+    PRODUCTION_LIKE_MINIMUM_ROWS,
+)
 from release_identity import release_tag  # noqa: E402
+from rls_context import bind as bind_rls_context  # noqa: E402
 
 OUTPUT = ROOT / "var/recovery-report.json"
 
 
-def _scalar(engine: Engine, statement: str) -> int:
+def _scalar(engine: Engine, statement: str, authz_url: str = "") -> int:
     with engine.begin() as connection:
-        # Row-level security reads the subject from session settings, and `set_config` is
-        # PostgreSQL's. SQLite has no RLS at all, so there is nothing to tell — and the
-        # drill has to run there, because the deployment that is actually serving keeps
-        # its corpus in SQLite. Calling it unconditionally made this tool measurable only
-        # on the deployment it was not measuring.
+        # Контекст RLS кладе БРОКЕР. Доти тут стояв `set_config('korpus.*')` — протокол,
+        # який схема 0020 більше не читає, тож застосунковий логін бачив НУЛЬ рядків.
+        # Наслідок був не помилкою, а хибним ЧИСЛОМ: `document_rows: 0`,
+        # `writes_after_backup: 0` і, як вінець, `lost_documents: 0` — значення, яке не
+        # могло вийти іншим. Виміряно 04.09.2026 і в CI, і локально на пілоті.
+        # SQLite не має RLS: там нема чого класти й нема кому відмовляти.
         if connection.dialect.name == "postgresql":
-            for setting, value in (
-                ("korpus.subject", "recovery-drill"),
-                ("korpus.roles", "admin,user"),
-                ("korpus.clearance", "3"),
-                ("korpus.corpora", "public,restricted-demo"),
-                ("korpus.classifications", "public,internal,restricted"),
-            ):
-                connection.execute(
-                    text("SELECT set_config(:name, :value, true)"),
-                    {"name": setting, "value": value},
-                )
+            bind_rls_context(connection, authz_url, "recovery-drill")
         return int(connection.execute(text(statement)).scalar_one())
 
 
@@ -82,8 +78,20 @@ def _engine_version(engine: Engine) -> str:
         return str(connection.execute(text("SELECT sqlite_version()")).scalar_one())
 
 
-def _latest_protected_write(engine: Engine) -> datetime | None:
-    """Newest durable write across the document and audit streams."""
+def _latest_protected_write(engine: Engine, authz_url: str = "") -> datetime | None:
+    """Newest durable write across the document and audit streams.
+
+    ШОСТЕ місце, де потрібен брокер, і єдине, яке лишалось непереведеним. Знайдено
+    незалежним верифікатором 04.09.2026 і виміряно на живому пілоті: `documents` має
+    RLS, `audit_events` не має. Без прив'язаного контексту потік документів дає в RPO
+    НУЛЬ внеску — не помилку, не виняток, просто зникає, — і `max` лишається журналом
+    аудиту. Відновлення, яке втратило всі документи після бекапу, але цілком відновило
+    ланцюг аудиту, дало б `rpo_seconds ≈ 0`, тобто «нічого не втрачено».
+
+    Рядок, який стоїть над викликом цієї функції, застерігає рівно від цього:
+    «audit-only RPO can read zero while documents are lost». Інваріант тримався не
+    тому, що охоронявся, а тому, що на цих даних аудит новіший за документи.
+    """
     statement = """
         SELECT max(ts) FROM (
             SELECT max(created_at) AS ts FROM documents
@@ -91,6 +99,8 @@ def _latest_protected_write(engine: Engine) -> datetime | None:
         ) AS protected_writes
     """
     with engine.begin() as connection:
+        if connection.dialect.name == "postgresql":
+            bind_rls_context(connection, authz_url, "recovery-drill")
         return _moment(connection.execute(text(statement)).scalar_one_or_none())
 
 
@@ -107,6 +117,10 @@ def main() -> int:
     restored_url = os.environ["KORPUS_RECOVERY_RESTORED_URL"]
     backup_path = Path(os.environ["KORPUS_RECOVERY_BACKUP_PATH"])
     restore_seconds = float(os.environ["KORPUS_RECOVERY_RESTORE_SECONDS"])
+    # Брокер ОКРЕМИЙ для кожної бази: контекст RLS кладеться в ту базу, у якій рахують.
+    # Один URL на дві бази означав би, що половина чисел про іншу базу — і мовчки нуль.
+    source_authz = os.getenv("KORPUS_RECOVERY_SOURCE_AUTHZ_URL", "")
+    restored_authz = os.getenv("KORPUS_RECOVERY_RESTORED_AUTHZ_URL", "")
 
     manifest = json.loads(Path(f"{backup_path}.json").read_text(encoding="utf-8"))
     source = create_engine(source_url, pool_pre_ping=True)
@@ -116,12 +130,12 @@ def main() -> int:
     # is over when the database answers. Timed separately so a slow restore and a slow
     # first query are distinguishable rather than averaged into one opaque number.
     started = time.perf_counter()
-    document_rows = _scalar(restored, "SELECT count(*) FROM documents")
-    audit_rows = _scalar(restored, "SELECT count(*) FROM audit_events")
+    document_rows = _scalar(restored, "SELECT count(*) FROM documents", restored_authz)
+    audit_rows = _scalar(restored, "SELECT count(*) FROM audit_events", restored_authz)
     engine_version = _engine_version(restored)
     verify_seconds = time.perf_counter() - started
 
-    source_audit_rows = _scalar(source, "SELECT count(*) FROM audit_events")
+    source_audit_rows = _scalar(source, "SELECT count(*) FROM audit_events", source_authz)
 
     # Writes made after the backup, counted in both databases. They exist so that
     # "lost nothing" is a result the drill could have failed to produce: a copy of a
@@ -129,17 +143,19 @@ def main() -> int:
     written_after = _scalar(
         source,
         "SELECT count(*) FROM documents WHERE canonical_title LIKE 'recovery-drill-post %'",
+        source_authz,
     )
     survived_after = _scalar(
         restored,
         "SELECT count(*) FROM documents WHERE canonical_title LIKE 'recovery-drill-post %'",
+        restored_authz,
     )
     lost_events = max(source_audit_rows - audit_rows, 0)
     lost_documents = max(written_after - survived_after, 0)
 
     # Use every protected write stream; audit-only RPO can read zero while documents are lost.
-    newest = _latest_protected_write(source)
-    newest_restored = _latest_protected_write(restored)
+    newest = _latest_protected_write(source, source_authz)
+    newest_restored = _latest_protected_write(restored, restored_authz)
     rpo_seconds = _interval(newest, newest_restored)
 
     # Той самий інваріант, що й у навантаженні: PRODUCTION_LIKE віддає ВИМІР оголошеної
@@ -154,12 +170,22 @@ def main() -> int:
         if requested not in {"PRODUCTION_LIKE", "PRODUCTION"}
         else measured["environment_class"]
     )
+    # Клас МАСШТАБУ — не клас середовища. Виміряно 04.09.2026: пілотна топологія
+    # засвідчена як PRODUCTION_LIKE, і саме з цього рядок виводив `scale_class:
+    # production-like` — на 259 документах і 19 МБ. Споживач (`classify_recovery`)
+    # відмовив як OVERSTATED_SCALE і мав рацію: топологія й обсяг — різні предмети,
+    # а тут вони жили під одним іменем. Підлога береться З ТОГО Ж модуля, що судить,
+    # тож двох оголошень порогу не існує.
+    scale_class = (
+        "production-like"
+        if int(manifest["plaintext_bytes"]) >= PRODUCTION_LIKE_MINIMUM_BYTES
+        or document_rows >= PRODUCTION_LIKE_MINIMUM_ROWS
+        else "ci-fixture"
+    )
     report = {
         "schema_version": 2,
         "status": "PASS",
-        "scale_class": "ci-fixture"
-        if environment_class == "CI_FIXTURE"
-        else environment_class.lower().replace("_", "-"),
+        "scale_class": scale_class,
         "environment_class": environment_class,
         "environment_class_requested": requested,
         "environment_class_basis": measured["basis"],

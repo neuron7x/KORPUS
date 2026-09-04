@@ -50,8 +50,8 @@
         "apps/api/tests/test_audit.py"
       ],
       "disposition": "IN_RELEASE_PATH",
-      "disposition_reason": "Справжній PostgreSQL у контейнері доступний і гейт виконуваний. Доводить ізоляцію КОДУ; топологія обслуговування цього релізу — SQLite на loopback, і багатокористувацький продакшен на PostgreSQL релізом не дозволяється.",
-      "disposition_on": "2026-09-03"
+      "disposition_reason": "Справжній PostgreSQL у контейнері доступний і гейт виконуваний. Доводить ізоляцію КОДУ. Виправлено 04.09.2026: доти тут стояло «топологія обслуговування цього релізу — SQLite на loopback», і це РОЗХОДИЛОСЬ із RELEASE_ENVELOPE, де топологія `pilot-systemd-postgres-v1` на PostgreSQL. Дві тотожності одного предмета; слабша була текстом, який ніхто не міряв, тому вона й пережила зміну рішення. Пілот на PostgreSQL, отже цей предикат міряє саме ту базу, що обслуговує.",
+      "disposition_on": "2026-09-04"
     },
     {
       "id": "real_domain_corpus_tevv",
@@ -217,8 +217,8 @@
         "apps/api/tests/test_pec_canary_admission_v097.py"
       ],
       "disposition": "NOT_IN_RELEASE_PATH",
-      "disposition_reason": "Cloud Run канарка не в топології цього релізу — див. not_in_this_release у RELEASE_ENVELOPE. Канарка цього релізу — loopback-розгортання.",
-      "disposition_on": "2026-09-03",
+      "disposition_reason": "Cloud Run канарка не в топології цього релізу — див. not_in_this_release у RELEASE_ENVELOPE. Канарка цього релізу — приватний пілот на `korpus-pilot-api.service` перед PostgreSQL, на loopback 127.0.0.1:8030.",
+      "disposition_on": "2026-09-04",
       "not_in_release_path_proof": "gcp-cloud-run"
     }
   ],

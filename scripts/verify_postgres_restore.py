@@ -5,11 +5,15 @@ from __future__ import annotations
 
 import ast
 import os
+import sys
 from pathlib import Path
 
 from sqlalchemy import create_engine, text
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(ROOT / "scripts")]
+from rls_context import bind as bind_rls_context  # noqa: E402
+
 VERSIONS = ROOT / "apps/api/migrations/versions"
 
 
@@ -44,6 +48,13 @@ def migration_head() -> str:
     return heads[0]
 
 
+def _bind_rls_context(connection) -> None:  # type: ignore[no-untyped-def]
+    """Контекст перевірника кладе БРОКЕР — одна прив'язка на все дерево, у rls_context."""
+    bind_rls_context(
+        connection, os.environ.get("KORPUS_AUTHZ_DATABASE_URL", ""), "restore-verifier"
+    )
+
+
 url = os.environ["KORPUS_POSTGRES_TEST_URL"]
 expected_revision = migration_head()
 engine = create_engine(url, pool_pre_ping=True)
@@ -56,13 +67,17 @@ with engine.begin() as connection:
     # RLS must fail closed with no request identity.
     if connection.execute(text("SELECT count(*) FROM documents")).scalar_one() != 0:
         raise SystemExit("restored RLS leaked documents without identity")
-    connection.execute(text("SELECT set_config('korpus.subject', 'restore-verifier', true)"))
-    connection.execute(text("SELECT set_config('korpus.roles', 'admin,user', true)"))
-    connection.execute(text("SELECT set_config('korpus.clearance', '3', true)"))
-    connection.execute(text("SELECT set_config('korpus.corpora', 'public,restricted-demo', true)"))
-    connection.execute(
-        text("SELECT set_config('korpus.classifications', 'public,internal,restricted', true)")
-    )
+    # Контекст в'яжеться БРОКЕРОМ, як це робить рантайм, а не `set_config`. GUC був
+    # протоколом до 0020: після нього політики читають `korpus_rls_*()`, а ті беруть
+    # рядок із таблиці `korpus_rls_context` по ключу (backend_pid, txid, session_user),
+    # покласти який може лише `korpus_bind_rls_context` і лише роль `korpus_authz`.
+    #
+    # Виміряно 04.09.2026 на живій базі схеми 0022: політик, що читають
+    # `current_setting`, НУЛЬ; політик, що читають `korpus_rls_*()`, двадцять. Тобто
+    # `set_config` не в'язав нічого, допуск лишався -1, ролі порожні, політики
+    # закривали все — і скрипт звинувачував БЕКАП у тому, чого не міг побачити сам.
+    # Відмова приходила фактом і звучала впевнено; переміряти її було нікому.
+    _bind_rls_context(connection)
     # `count(*) >= 2` passed for as long as the pytest run before it happened to leave
     # rows behind, and failed on 2026-08-05 when the suite cleaned up after itself —
     # with a correct backup and a correct restore. The drill now seeds its own rows and

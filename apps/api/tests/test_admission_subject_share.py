@@ -17,6 +17,16 @@
 Дефолт лишається половиною НАВМИСНО. Ізоляція правильна там, де суб'єктів багато, і
 знімати її для всіх заради одного розгортання означало б поміняти одну ваду на іншу.
 Розгортання з одним суб'єктом оголошує стелю ЯВНО — рішення, а не дефолт.
+
+ПЕРЕВИМІРЯНО 04.09.2026 на пілоті, і твердження звузилось. Стара проба тримала ОДИН
+токен, тобто одного суб'єкта, хай яким був `--concurrency`; відмови за часткою були
+властивістю проби, а не розгортання, якому оголошено 3–10 РІЗНИХ користувачів. З
+чотирма суб'єктами вузьке місце змістилось на ГЛОБАЛЬНУ ємність, і це вже властивість
+розгортання: `KORPUS_MAX_CONCURRENT_ANSWERS=4`.
+
+Тобто обидва твердження істинні про різні світи: на публічній межі, де суб'єкт один,
+стеля частки — стеля на всіх; на пілоті, де суб'єктів багато, першою впирається
+глобальна ємність. Тест в'яже кожне до звіту, а не до пам'яті про нього.
 """
 
 from __future__ import annotations
@@ -52,7 +62,16 @@ def test_the_setting_reaches_the_controller():
     assert Settings(max_answers_per_subject=32).max_answers_per_subject == 32
 
 
-def test_the_measured_refusals_were_the_subject_share_and_not_capacity():
+#: Причина, яка мусить переважати у сплеску на ПІЛОТІ — розгортанні з багатьма
+#: суб'єктами. Ім'я те саме, що пише виробник (`application/overload.py`): звірятись із
+#: ключем, якого продюсер не емітує, означає стерегти те, чого не буває. Саме так тут
+#: і стояло: `reasons.get("global_capacity")` при виробнику `global_capacity_exhausted`,
+#: тож умова була істинною завжди й не могла почервоніти.
+DOMINANT_SPIKE_REFUSAL = "global_capacity_exhausted"
+SUBJECT_SHARE_REFUSAL = "subject_share_exhausted"
+
+
+def test_the_spike_refusals_name_a_cause_and_the_cause_is_the_declared_ceiling():
     """Прив'язка твердження до ДОКАЗУ, а не до пам'яті про нього.
 
     Якщо звіт перевимірять і причина стане іншою, цей тест почервоніє й змусить
@@ -60,12 +79,21 @@ def test_the_measured_refusals_were_the_subject_share_and_not_capacity():
     """
     if not PROBE.is_file():
         pytest.skip("var/load-probe.json відсутній: без нього твердження не перевіряється")
-    spike = json.loads(PROBE.read_text(encoding="utf-8")).get("spike", {})
+    report = json.loads(PROBE.read_text(encoding="utf-8"))
+    spike = report.get("spike", {})
     reasons = spike.get("refusal_reasons") or {}
-    assert reasons.get("subject_share_exhausted", 0) > 0, (
-        "звіт більше не показує вичерпання частки суб'єкта — обґрунтування застаріло"
+    assert reasons, (
+        "сплеск не знайшов точки насичення: прогін без жодної відмови не доводить, "
+        f"де стеля розгортання: {spike.get('statuses')}"
     )
-    assert not reasons.get("global_capacity"), (
-        "з'явилися відмови через глобальну ємність: вузьке місце змістилось, "
-        f"і причину треба переміряти: {reasons}"
-    )
+    dominant = max(reasons, key=lambda name: reasons[name])
+    subjects = int(report.get("subjects", 1))
+    if subjects > 1:
+        assert dominant == DOMINANT_SPIKE_REFUSAL, (
+            "на розгортанні з кількома суб'єктами першою мусить впиратись ГЛОБАЛЬНА "
+            f"ємність; переважає {dominant!r}: {reasons}"
+        )
+    else:
+        assert dominant == SUBJECT_SHARE_REFUSAL, (
+            f"де суб'єкт один, стеля частки — стеля на всіх; переважає {dominant!r}: {reasons}"
+        )
