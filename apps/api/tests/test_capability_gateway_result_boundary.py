@@ -131,3 +131,36 @@ def test_result_model_rejects_blank_present_audit_identity() -> None:
             audit_record_id="   ",
             error_code="INTERNAL_ERROR",
         )
+
+
+@pytest.mark.parametrize("error_code", [None, "", "   "])
+def test_non_success_result_requires_stable_nonblank_error_code(error_code: str | None) -> None:
+    expected = "stable error code" if error_code is None else "error code must be non-blank"
+    with pytest.raises(ValidationError, match=expected):
+        IntegrationResult(
+            invocation_id=_frame().context.invocation_id,
+            outcome=InvocationOutcome.FAILED,
+            error_code=error_code,
+        )
+
+
+def test_present_nondigestible_provider_receipt_cannot_disappear_from_audit() -> None:
+    audit = _Audit("audit-1")
+    emitter = CapabilityResultEmitter(audit)  # type: ignore[arg-type]
+
+    result = emitter.emit(
+        _frame(),
+        InvocationOutcome.SUCCESS,
+        None,
+        ExecutionMaterial(
+            output={"value": "must-not-be-exposed"},
+            provider_receipt=object(),
+        ),
+    )
+
+    assert audit.calls == 0
+    assert result.outcome is InvocationOutcome.FAILED
+    assert result.error_code == "AUDIT_APPEND_FAILED"
+    assert result.audit_record_id is None
+    assert result.output is None
+    assert result.evidence is None

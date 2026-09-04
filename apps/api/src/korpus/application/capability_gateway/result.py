@@ -41,12 +41,16 @@ class IntegrationResult(BaseModel):
     def validate_returnability_invariants(self) -> IntegrationResult:
         if self.audit_record_id is not None and not self.audit_record_id.strip():
             raise ValueError("audit record identity must be non-blank")
+        if self.error_code is not None and not self.error_code.strip():
+            raise ValueError("error code must be non-blank")
         if self.outcome is InvocationOutcome.SUCCESS:
             if self.audit_record_id is None:
                 raise ValueError("successful integration result requires persisted audit identity")
             if self.error_code is not None:
                 raise ValueError("successful integration result cannot carry an error code")
             return self
+        if self.error_code is None:
+            raise ValueError("non-success integration result requires stable error code")
         if self.output is not None or self.evidence is not None:
             raise ValueError("non-success integration result cannot expose output or evidence")
         return self
@@ -86,17 +90,29 @@ class CapabilityResultEmitter:
     ) -> IntegrationResult:
         carried = material or ExecutionMaterial()
         try:
+            input_digest = payload_digest(frame.request.input)
+            output_digest = _strict_optional_digest(carried.output)
+            evidence_digest = _evidence_digest(carried.evidence)
+            provider_receipt_digest = _strict_optional_digest(carried.provider_receipt)
+        except CapabilityContractError:
+            return early_result(
+                InvocationOutcome.FAILED,
+                "AUDIT_APPEND_FAILED",
+                invocation_id=frame.context.invocation_id,
+            )
+
+        try:
             audit_id = self._audit.append(
                 identity=frame.identity,
                 spec=frame.spec,
                 context=frame.context,
                 decision=frame.decision,
                 logical_resource=frame.logical_resource,
-                input_digest=payload_digest(frame.request.input),
-                output_digest=_optional_digest(carried.output),
-                evidence_digest=_evidence_digest(carried.evidence),
+                input_digest=input_digest,
+                output_digest=output_digest,
+                evidence_digest=evidence_digest,
                 idempotency_binding=carried.idempotency_binding,
-                provider_receipt_digest=_optional_digest(carried.provider_receipt),
+                provider_receipt_digest=provider_receipt_digest,
                 outcome=outcome,
                 error_code=error_code,
                 started_at=frame.started_at,
@@ -151,13 +167,10 @@ def _valid_audit_record_id(value: object) -> bool:
 def _evidence_digest(evidence: EvidenceEnvelope | None) -> str | None:
     if evidence is None:
         return None
-    return _optional_digest(evidence.model_dump(mode="json"))
+    return _strict_optional_digest(evidence.model_dump(mode="json"))
 
 
-def _optional_digest(value: object | None) -> str | None:
+def _strict_optional_digest(value: object | None) -> str | None:
     if value is None:
         return None
-    try:
-        return payload_digest(value)
-    except CapabilityContractError:
-        return None
+    return payload_digest(value)
