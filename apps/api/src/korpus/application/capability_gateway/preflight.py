@@ -3,12 +3,11 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 from korpus.application.capability_gateway.adapters import AdapterRegistry
-from korpus.application.capability_gateway.effect_safety import EffectSafetyRegistry
-from korpus.application.capability_gateway.effects import effectful
-from korpus.application.capability_gateway.errors import (
-    CapabilityGatewayError,
-    CapabilityRegistrationError,
+from korpus.application.capability_gateway.effect_safety import (
+    EffectSafetyRegistry,
+    effect_safety_graph_errors,
 )
+from korpus.application.capability_gateway.errors import CapabilityGatewayError, CapabilityRegistrationError
 from korpus.application.capability_gateway.policy import CapabilityPolicyBridge
 from korpus.application.capability_gateway.registry import CapabilityRegistry
 from korpus.application.capability_gateway.types import (
@@ -43,7 +42,8 @@ class CapabilityDeploymentPreflight:
     def errors(self) -> tuple[str, ...]:
         known_schemas = frozenset(self._schemas.schema_ids())
         errors: list[str] = []
-        for spec in self._registry.all_specs():
+        specs = self._registry.all_specs()
+        for spec in specs:
             if spec.lifecycle is not CapabilityLifecycle.ENABLED:
                 continue
             key = f"{spec.capability_id}@{spec.version}"
@@ -71,12 +71,6 @@ class CapabilityDeploymentPreflight:
             except CapabilityGatewayError as exc:
                 errors.append(f"{key}: {exc}")
 
-            if effectful(spec):
-                try:
-                    self._effect_safety.resolve_exact(spec)
-                except CapabilityRegistrationError as exc:
-                    errors.append(f"{key}: {exc}")
-
             if (
                 spec.provider_type is ProviderType.INTERNAL
                 and spec.data_policy.egress_class is not DataEgressClass.NONE
@@ -94,6 +88,8 @@ class CapabilityDeploymentPreflight:
                 errors.append(
                     f"{key}: enabled remote capability has a data policy that forbids all egress"
                 )
+
+        errors.extend(effect_safety_graph_errors(specs, self._effect_safety))
         return tuple(sorted(errors))
 
     def require_valid(self) -> None:

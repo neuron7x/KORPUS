@@ -50,8 +50,17 @@ Rules:
 - automatic retry only if the same provider-side idempotency identity or equivalent proof
   prevents duplicate commitment.
 
-Each capability declares compensation/rollback as provider-native, compensating action, or
-none. Irreversibility must be explicit before execution.
+Each effectful capability has an exact-bound safety declaration. Compensation semantics are
+validated over the complete server-owned capability graph, not as isolated strings:
+- `PROVIDER_NATIVE` declares provider-native rollback semantics;
+- `NONE` requires explicit irreversibility;
+- `COMPENSATING_ACTION` requires an exact distinct capability id/version whose target is
+  registered, `ENABLED`, and effectful;
+- a compensating target remains an effectful capability in its own right and therefore must
+  satisfy its own authorization, idempotency, evidence/audit and effect-safety constraints.
+
+A named but missing, disabled, or read-only compensation target is not rollback readiness and
+blocks deployment/runtime composition fail-closed.
 
 Reconciliation recording is not a new authority plane. Any operator/API surface that invokes
 it must first obtain canonical KORPUS authorization and must append canonical audit evidence;

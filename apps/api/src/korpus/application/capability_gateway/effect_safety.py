@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from enum import StrEnum
 from typing import Literal
 
@@ -11,7 +12,17 @@ from korpus.application.capability_gateway.types import (
     CAPABILITY_ID_PATTERN,
     DIGEST_PATTERN,
     SEMVER_PATTERN,
+    CapabilityLifecycle,
     CapabilitySpec,
+    EffectClass,
+)
+
+_EFFECTFUL = frozenset(
+    {
+        EffectClass.WRITE_REMOTE,
+        EffectClass.TRANSACTIONAL_SIDE_EFFECT,
+        EffectClass.PRIVILEGED_ADMIN,
+    }
 )
 
 
@@ -104,9 +115,9 @@ class EffectSafetyDeclaration(BaseModel):
 class EffectSafetyRegistry:
     """Exact immutable registry of deployment-owned side-effect safety declarations."""
 
-    def __init__(self, declarations: list[EffectSafetyDeclaration] | None = None) -> None:
+    def __init__(self, declarations: Iterable[EffectSafetyDeclaration] = ()) -> None:
         self._declarations: dict[tuple[str, str], EffectSafetyDeclaration] = {}
-        for declaration in declarations or []:
+        for declaration in declarations:
             self.register(declaration)
 
     def register(self, declaration: EffectSafetyDeclaration) -> None:
@@ -130,3 +141,57 @@ class EffectSafetyRegistry:
                 f"effect safety declaration contract drift: {key[0]}@{key[1]}"
             )
         return declaration
+
+
+def effect_safety_graph_errors(
+    specs: Iterable[CapabilitySpec],
+    safety: EffectSafetyRegistry,
+) -> tuple[str, ...]:
+    """Validate exact declarations plus cross-capability compensation dependencies.
+
+    A declaration can be locally well-formed while naming an unusable compensation target.
+    This graph-level check therefore runs over the complete server-owned capability set used
+    by deployment/runtime composition. It grants no authority; it only rejects unsafe plans.
+    """
+
+    ordered = tuple(specs)
+    by_key = {(spec.capability_id, spec.version): spec for spec in ordered}
+    errors: list[str] = []
+
+    for spec in ordered:
+        if spec.lifecycle is not CapabilityLifecycle.ENABLED or spec.effect_class not in _EFFECTFUL:
+            continue
+        source_key = f"{spec.capability_id}@{spec.version}"
+        try:
+            declaration = safety.resolve_exact(spec)
+        except CapabilityRegistrationError as exc:
+            errors.append(f"{source_key}: {exc}")
+            continue
+
+        if declaration.compensation_mode is not CompensationMode.COMPENSATING_ACTION:
+            continue
+
+        target_key_tuple = (
+            declaration.compensation_capability_id,
+            declaration.compensation_capability_version,
+        )
+        # The declaration model guarantees both values are non-None in this mode.
+        target = by_key.get(target_key_tuple)  # type: ignore[arg-type]
+        target_key = f"{target_key_tuple[0]}@{target_key_tuple[1]}"
+        if target is None:
+            errors.append(
+                f"{source_key}: compensation capability is not registered: {target_key}"
+            )
+            continue
+        if target.lifecycle is not CapabilityLifecycle.ENABLED:
+            errors.append(
+                f"{source_key}: compensation capability is not enabled: "
+                f"{target_key} ({target.lifecycle.value})"
+            )
+            continue
+        if target.effect_class not in _EFFECTFUL:
+            errors.append(
+                f"{source_key}: compensation capability must be effectful: {target_key}"
+            )
+
+    return tuple(sorted(errors))

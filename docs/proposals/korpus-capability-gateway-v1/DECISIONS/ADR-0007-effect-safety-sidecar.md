@@ -29,10 +29,17 @@ Deployment preflight fails closed for every enabled effectful capability that ha
 safety declaration or whose same-version local contract digest drifted. `NONE` compensation
 is admissible only when irreversibility is explicitly true.
 
-Every `CapabilityGateway` construction path repeats the same exact safety check. Structured
-ports remain the preferred composition API, but the transitional legacy keyword-port path is
-not allowed to weaken effect safety: an enabled effectful capability without an exact-bound
-safety declaration is non-executable regardless of constructor form.
+Safety is graph-valid, not merely document-valid. When `COMPENSATING_ACTION` is declared, its
+exact target must be present in the same server-owned capability set, `ENABLED`, and effectful.
+The target therefore also falls under the ordinary effect-safety requirement. Naming a missing,
+disabled, or read-only capability cannot satisfy rollback readiness.
+
+Every `CapabilityGateway` construction path repeats the exact safety check. Structured ports
+remain the preferred composition API, but the transitional legacy keyword-port path is not
+allowed to weaken effect safety: an enabled effectful capability without an exact-bound safety
+declaration is non-executable regardless of constructor form. Runtime composition must also
+use the same graph validation as deployment admission; preflight cannot be the only place that
+notices a hollow compensation dependency.
 
 The same declaration constrains reconciliation. Automatic reconciliation must resolve the
 exact declaration for the current capability contract and use the declared strategy only.
@@ -48,8 +55,10 @@ Those remain deployment-owned facts and therefore cannot widen policy authority.
 - Frozen v1 wire/schema compatibility is preserved.
 - Effectful deployment cannot rely on implicit rollback assumptions.
 - Same-version local contract mutation invalidates the safety declaration.
-- Deployment admission and every runtime composition path independently enforce the safety
-  prerequisite without turning it into authorization.
+- A compensating-action declaration is rejected when its exact target is absent, non-enabled,
+  or non-effectful; the target must carry its own valid effect safety when applicable.
+- Deployment admission and every runtime composition path enforce the same safety graph without
+  turning safety metadata into authorization.
 - Automatic reconciliation cannot silently substitute one recovery strategy for another or
   turn `MANUAL` into provider-driven execution.
 - The legacy constructor remains migration debt only; while it exists, it obeys the same
