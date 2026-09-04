@@ -816,7 +816,7 @@ public-health:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates
+validate: assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates package-build-identity production-observability production-inference-security production-exact-environment
 	python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py
@@ -1360,8 +1360,10 @@ production-postgres-security:
 # в образі інтерпретатор точний, а dev-інструментів немає й бути не мусить.
 # Перша версія читала обидва замки завжди й тому була нездійсненна за побудовою.
 production-exact-environment:
-	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_exact_environment_gate.py \
-	  --profile development
+	# Один рядок навмисно: перенесення зворотним слешем робить ТОТОЖНІСТЬ команди
+	# неповною для дзеркала CI — воно бачить скрипт без `--profile`, і лан із
+	# конвеєром перестають збігатися при однаковій поведінці.
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_exact_environment_gate.py --profile development
 
 # Доказ, придатний для ПРОДАКШЕННОГО предиката, добувається лише в образі:
 # `profile: runtime` вимагається окремо, тож локальний доказ його не задовольнить.

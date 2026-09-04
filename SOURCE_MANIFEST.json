@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1826,
-  "root_sha256": "98451b4caa4b9966639c60aea5b94ae8aae7c08088202b7e3c9934e8740b6621",
+  "root_sha256": "db1b61e843073aa712d55b7b30e1f04bf065178f391d2eb7fedc2cd6d8f4023b",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 55853,
-      "sha256": "b6dccad716a064f6ec7891103fe92768062a8a46096831f2cf62274a938c82c2",
+      "bytes": 56391,
+      "sha256": "e9488a59262fdd2af3bd397069afa8a41bb112698b597ae6475c36769f4386cc",
       "mode": "0644"
     },
     {
@@ -409,8 +409,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 108894,
-      "sha256": "343d8203caec80d5ce34c3635218e9b825d2bb53fe3842ae932942efb3667cc0",
+      "bytes": 109370,
+      "sha256": "fce312bf5f0fc5bc8a36ad307ee9a1b6bcf79f3c9905b10d84937d4c69c26973",
       "mode": "0644"
     },
     {
@@ -7412,7 +7412,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "2fa933a8dc03aa54634029800ede2728a29ac2383b1ab8926de9fedb1e0673d2",
+      "sha256": "7d160931b921e0eef9fbf3b117f81ae5d7adf0ee4bce86efca94e7a20f687cfe",
       "mode": "0644"
     },
     {
@@ -7435,8 +7435,8 @@
     },
     {
       "path": "config/operations/gate-closure.json",
-      "bytes": 12659,
-      "sha256": "0f471d47d7f8ec0dafaa933b27af1e1a9ad4d978ef51b466b7632321e8ae8b83",
+      "bytes": 20495,
+      "sha256": "5f104a2a0cf84f7e1fdcfaa4db4a0a758fda3a7975d90e173e0beb49bfe969a9",
       "mode": "0644"
     },
     {
@@ -7447,8 +7447,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 625501,
-      "sha256": "5cc566b92ec470fd77ed0f51c294c07613473666b47b50de0e3473e075388ba8",
+      "bytes": 626294,
+      "sha256": "ade5dd695e896497690d93b33dd831d3bf84ac474f90cb660c1cecd3164b691e",
       "mode": "0644"
     },
     {
@@ -10825,8 +10825,8 @@
     },
     {
       "path": "scripts/verify_gate_closure.py",
-      "bytes": 39331,
-      "sha256": "19628b8621673ae871a0b1244199efabf615f4cbf3bb6f3ba44c432b06a47302",
+      "bytes": 42911,
+      "sha256": "1d45539dfc994e626384342aa1e7d0b4272ba6b87a96a27233a4a1bf4810ce0e",
       "mode": "0755"
     },
     {
