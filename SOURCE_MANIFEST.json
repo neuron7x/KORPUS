@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1828,
-  "root_sha256": "e2717ccce052175f822d243f1b62b6681cec62b0c7883e5b181cd51330f311b2",
+  "root_sha256": "79859759026c1524924de57a04b4e459f515c4dc34c43f400232945244f64dec",
   "files": [
     {
       "path": ".dockerignore",
@@ -3133,8 +3133,8 @@
     },
     {
       "path": "apps/api/tests/test_current_truth_hardening_v094.py",
-      "bytes": 12838,
-      "sha256": "fb42b7c2e74365cfcc2f3b2f2ffc81f7787033841cebd9b4c6a93b24f4bbd67c",
+      "bytes": 16832,
+      "sha256": "b5281035cdbfb349e2ca163534ab3d3d4c3a0eb81252b5b4eb6ec2739d7922e0",
       "mode": "0644"
     },
     {
@@ -9385,8 +9385,8 @@
     },
     {
       "path": "scripts/current_truth_admission.py",
-      "bytes": 7364,
-      "sha256": "7b8c33bfdc183f986fb6a5fc3c5d5016b31f26bdfeceed01728604bd798b9070",
+      "bytes": 7292,
+      "sha256": "5af5b27845e04ad945fd5d23c9ac9934116684fd4dabc0a07e957cf87f9508a5",
       "mode": "0644"
     },
     {
@@ -10970,7 +10970,7 @@
     {
       "path": "source-sbom.cdx.json",
       "bytes": 11915,
-      "sha256": "0aed46ab6f8d5c7028b1f6acab097677f221c07bafafb3ace6d8f93deed251c6",
+      "sha256": "bbcf487188d0ceb6a372cd68e1801c1659a8aedbdfd7e17306b4b7b92be91077",
       "mode": "0644"
     }
   ]

@@ -1,172 +1,240 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-04T21:40:21.601824+00:00",
+  "generated_at": "2026-09-04T21:55:57.452570+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "edec637722b7d06ab517a523b80c217522fb61ebe42aaf35db1a752cb0fe6d2f",
+  "source_tree_sha256": "628a7b6ac1155f883442180916e806e4ea8edec23c857040f8a33b9d893fd713",
   "digest_scope": "evidence_paths",
   "items": [
     {
       "id": "external_independent_redteam",
-      "state": "INTERNAL_BLOCKED",
+      "state": "INTERNAL_STALE_EVIDENCE",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-      "evidence_current": false,
-      "software_ready": false,
+      "evidence_current": true,
+      "software_ready": true,
       "externally_satisfied": false,
-      "machine_closable": false,
-      "failed_external_checks": [],
+      "machine_closable": true,
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "required_proof_class": "INTERNAL_ADVERSARIAL_CAMPAIGN"
     },
     {
       "id": "live_vulnerability_scanners",
-      "state": "INTERNAL_BLOCKED",
+      "state": "INTERNAL_STALE_EVIDENCE",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-      "evidence_current": false,
-      "software_ready": false,
+      "evidence_current": true,
+      "software_ready": true,
       "externally_satisfied": false,
-      "machine_closable": false,
-      "failed_external_checks": [],
+      "machine_closable": true,
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM"
     },
     {
       "id": "live_postgres_rls",
-      "state": "INTERNAL_BLOCKED",
+      "state": "INTERNAL_STALE_EVIDENCE",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-      "evidence_current": false,
-      "software_ready": false,
+      "evidence_current": true,
+      "software_ready": true,
       "externally_satisfied": false,
-      "machine_closable": false,
-      "failed_external_checks": [],
+      "machine_closable": true,
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "required_proof_class": "REAL_POSTGRESQL"
     },
     {
       "id": "real_domain_corpus_tevv",
-      "state": "INTERNAL_BLOCKED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-      "evidence_current": false,
-      "software_ready": false,
+      "evidence_current": true,
+      "software_ready": true,
       "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "attack_families",
+        "evidence_schema",
+        "gate_source_bound",
+        "null_control_ledger_structured",
+        "null_controls",
+        "observation_ledger_structured",
+        "pass_rate",
+        "preregistered",
+        "release_bound",
+        "required_attack_families_covered",
+        "source_bound",
+        "tevv_admissible"
+      ],
       "required_proof_class": "REAL_DOMAIN_CORPUS"
     },
     {
       "id": "independent_tevv",
-      "state": "INTERNAL_BLOCKED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-      "evidence_current": false,
-      "software_ready": false,
+      "evidence_current": true,
+      "software_ready": true,
       "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "assessor_structured",
+        "gate_source_bound"
+      ],
       "required_proof_class": "INTERNAL_STRUCTURALLY_SEPARATED"
     },
     {
       "id": "production_like_tevv_environment",
-      "state": "INTERNAL_BLOCKED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-      "evidence_current": false,
-      "software_ready": false,
+      "evidence_current": true,
+      "software_ready": true,
       "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "environment_class",
+        "gate_source_bound"
+      ],
       "required_proof_class": "MATCHES_FROZEN_TOPOLOGY"
     },
     {
       "id": "production_like_load",
-      "state": "INTERNAL_BLOCKED",
+      "state": "INTERNAL_STALE_EVIDENCE",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-      "evidence_current": false,
-      "software_ready": false,
+      "evidence_current": true,
+      "software_ready": true,
       "externally_satisfied": false,
-      "machine_closable": false,
-      "failed_external_checks": [],
+      "machine_closable": true,
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "required_proof_class": "PRODUCTION_LIKE_LOAD"
     },
     {
       "id": "trusted_load_attestation",
-      "state": "INTERNAL_BLOCKED",
+      "state": "INTERNAL_STALE_EVIDENCE",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-      "evidence_current": false,
-      "software_ready": false,
+      "evidence_current": true,
+      "software_ready": true,
       "externally_satisfied": false,
-      "machine_closable": false,
-      "failed_external_checks": [],
+      "machine_closable": true,
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
     {
       "id": "trusted_recovery_attestation",
-      "state": "INTERNAL_BLOCKED",
+      "state": "INTERNAL_STALE_EVIDENCE",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-      "evidence_current": false,
-      "software_ready": false,
+      "evidence_current": true,
+      "software_ready": true,
       "externally_satisfied": false,
-      "machine_closable": false,
-      "failed_external_checks": [],
+      "machine_closable": true,
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
     {
       "id": "trusted_hosted_builder",
-      "state": "INTERNAL_BLOCKED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-      "evidence_current": false,
-      "software_ready": false,
+      "evidence_current": true,
+      "software_ready": true,
       "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "builder_provenance_verified",
+        "gate_release_bound",
+        "gate_source_bound"
+      ],
       "required_proof_class": "HOSTED_CI_PROVENANCE_SOURCE_BOUND"
     },
     {
       "id": "trusted_release_signing",
-      "state": "INTERNAL_BLOCKED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-      "evidence_current": false,
-      "software_ready": false,
+      "evidence_current": true,
+      "software_ready": true,
       "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "gate_release_bound",
+        "gate_source_bound",
+        "release_attestation_verified",
+        "release_manifest_bound",
+        "release_trusted_signer"
+      ],
       "required_proof_class": "OWNER_SIGNED_AT_APPROVAL"
     },
     {
       "id": "exact_python_3_12_13_environment",
-      "state": "INTERNAL_BLOCKED",
+      "state": "INTERNAL_STALE_EVIDENCE",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-      "evidence_current": false,
-      "software_ready": false,
+      "evidence_current": true,
+      "software_ready": true,
       "externally_satisfied": false,
-      "machine_closable": false,
-      "failed_external_checks": [],
+      "machine_closable": true,
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "required_proof_class": "EXACT_LOCKED_ENVIRONMENT"
     },
     {
       "id": "pec_human_production_authority",
-      "state": "INTERNAL_BLOCKED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-      "evidence_current": false,
-      "software_ready": false,
+      "evidence_current": true,
+      "software_ready": true,
       "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "attestation_verified",
+        "audit_trace_nonempty",
+        "binding_valid",
+        "evidence_schema",
+        "gate_release_bound",
+        "gate_source_bound",
+        "hosted_evidence",
+        "human_judgments",
+        "metadata:environment_class",
+        "source_bound",
+        "training_lineage",
+        "trusted_signer"
+      ],
       "required_proof_class": "HOSTED_HUMAN_EXACT_COHORT_ATTESTED"
     },
     {
       "id": "pec_canary_revision_admission",
-      "state": "INTERNAL_BLOCKED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-      "evidence_current": false,
-      "software_ready": false,
+      "evidence_current": true,
+      "software_ready": true,
       "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "authority_pass",
+        "exact_cloud_run_revision",
+        "gate_release_bound",
+        "gate_source_bound",
+        "human_judgment_admissible",
+        "metadata:environment_class",
+        "minimum_samples",
+        "release_bound",
+        "server_error_rate",
+        "source_bound"
+      ],
       "required_proof_class": "EXACT_CLOUD_RUN_REVISION_CANARY_ATTESTED"
     }
   ],
   "counts": {
-    "INTERNAL_BLOCKED": 14
+    "EXTERNAL_REQUIRED": 7,
+    "INTERNAL_STALE_EVIDENCE": 7
   },
-  "internal_executable_unresolved": 14,
-  "internal_missing_artifact": 14,
-  "internal_stale_evidence": 0,
-  "production_external_or_runtime_unresolved": 0,
+  "internal_executable_unresolved": 7,
+  "internal_missing_artifact": 0,
+  "internal_stale_evidence": 7,
+  "production_external_or_runtime_unresolved": 7,
   "hard_predicates_total": 14,
-  "hard_predicate_report_current": false
+  "hard_predicate_report_current": true
 }

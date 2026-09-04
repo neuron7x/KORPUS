@@ -1,14 +1,14 @@
 {
   "schema": "korpus.claim-ledger.v2",
-  "generated_at": "2026-09-04T21:40:21.606408+00:00",
+  "generated_at": "2026-09-04T21:55:57.457452+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "edec637722b7d06ab517a523b80c217522fb61ebe42aaf35db1a752cb0fe6d2f",
+  "source_tree_sha256": "628a7b6ac1155f883442180916e806e4ea8edec23c857040f8a33b9d893fd713",
   "digest_scope": "evidence_paths",
   "claims": [
     {
       "id": "CLM-SOURCE-INTEGRITY",
       "claim": "Current source manifest is the release source boundary.",
-      "status": "STALE_EVIDENCE",
+      "status": "SUPPORTED",
       "evidence": "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json"
     },
     {
