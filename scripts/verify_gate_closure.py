@@ -362,8 +362,35 @@ def selftest_only(makefile: str) -> set[str]:
     return covered
 
 
-def verification_targets(declared: list[str]) -> list[str]:
-    return [name for name in declared if VERIFICATION.search(name)]
+#: Ціль, ЩО РОБИТЬ перевірку, а не ціль, ЩО ЗВЕТЬСЯ перевіркою. Рецепт, який кличе
+#: `verify_*`, `check_*`, `audit_*` або `run_*_gate`, є гейтом незалежно від імені.
+VERIFICATION_RECIPE = re.compile(r"scripts/(?:verify_|check_|audit_|run_[A-Za-z0-9_]*gate)")
+
+
+def verification_targets(
+    declared: list[str], scripts: dict[str, set[str]] | None = None
+) -> list[str]:
+    """Перевірочні цілі — за ІМЕНЕМ і за ПОВЕДІНКОЮ.
+
+    Доти класифікація була суто за іменем: `VERIFICATION.search(name)`. Ціль, чий
+    рецепт запускає верифікаційний скрипт, але чиє ім'я не містить магічного слова,
+    для гейта не існувала — отже не мусила бути ані досяжною, ані оголошеною.
+
+    Виміряно 04.09.2026 на цьому Makefile: 52 цілі виконують верифікаційний скрипт і
+    невидимі за іменем; з них 29 недосяжні з жодного лану і відсутні в реєстрі —
+    серед них `dormant-subsystems`, `serving-freshness` (виробник доказу SI-8),
+    `production-hard-predicates`, усі `production-*`. Гейт при цьому давав PASS.
+
+    Це та сама вада, яку гейт існує ловити, лише на рівень вище: він шукав не те, що
+    охороняє. Ім'я — оформлення; виклик скрипта — факт.
+    """
+    by_name = {name for name in declared if VERIFICATION.search(name)}
+    by_recipe = {
+        name
+        for name, invocations in (scripts or {}).items()
+        if name in declared and any(VERIFICATION_RECIPE.search(str(i)) for i in invocations)
+    }
+    return sorted(by_name | by_recipe)
 
 
 # ---------------------------------------------------------------- судження (без I/O)
@@ -433,7 +460,7 @@ def assess(
     if "selftest-coverage" in covered:
         covered |= selftest_only(makefile)
     named = _named(registry)
-    targets = verification_targets(declared)
+    targets = verification_targets(declared, scripts)
     findings: list[dict[str, str]] = []
 
     missing = sorted(t for t in targets if t not in covered and t not in named)
@@ -594,6 +621,17 @@ def selftest() -> int:
     )
     recipe_make = "check:\n\t$(MAKE) span-hygiene\nspan-hygiene:\n\techo\n"
     orphan_make = clean_make + "gate-liveness:\n\tfive\n"
+    # Ціль, ЩО РОБИТЬ перевірку, але чиє ІМ'Я не містить магічного слова. Доти вона
+    # була для гейта невидима: не мусила бути ані досяжною, ані оголошеною.
+    blind_make = clean_make + "corpus-tuning:\n\t$(PY) scripts/verify_something.py\n"
+    blind_wired = (
+        clean_make.replace(
+            "check: validate span-hygiene", "check: validate span-hygiene corpus-tuning"
+        )
+        + "corpus-tuning:\n\t$(PY) scripts/verify_something.py\n"
+    )
+    # Те саме ім'я, але рецепт НЕ перевіряє нічого: хибного спрацювання бути не має.
+    harmless_make = clean_make + "corpus-tuning:\n\techo nothing\n"
 
     def run(makefile: str, registry: dict[str, Any]) -> str:
         edges, declared, scripts = parse_graph(makefile)
@@ -609,6 +647,30 @@ def selftest() -> int:
             "PASS",
         ),
         ("нова ціль, яку ніхто не підключив і не назвав", orphan_make, {"accepted": []}, "FAIL"),
+        (
+            "гейт за ПОВЕДІНКОЮ, а не за іменем: рецепт кличе verify_*",
+            blind_make,
+            {"accepted": []},
+            "FAIL",
+        ),
+        (
+            "той самий гейт, під'єднаний до check — дозволено",
+            blind_wired,
+            {"accepted": []},
+            "PASS",
+        ),
+        (
+            "той самий гейт, названий у реєстрі — дозволено",
+            blind_make,
+            {"accepted": [{"target": "corpus-tuning", "reason": reason, "on": "2026-09-04"}]},
+            "PASS",
+        ),
+        (
+            "ім'я не збігається І рецепт нічого не перевіряє — не гейт, скарги нема",
+            harmless_make,
+            {"accepted": []},
+            "PASS",
+        ),
         (
             "названа — і тоді дозволено",
             orphan_make,
@@ -739,7 +801,7 @@ def main() -> int:
     findings = assess(edges, declared, registry, scripts, text)
     overall = verdict(findings)
     covered = enforced(edges, scripts)
-    targets = verification_targets(declared)
+    targets = verification_targets(declared, scripts)
     report = {
         "schema": SCHEMA,
         "status": overall,
