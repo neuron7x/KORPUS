@@ -38,7 +38,13 @@ from korpus.application.capability_gateway.errors import (
     CapabilityPolicyIndeterminate,
     CapabilityUnavailable,
 )
-from korpus.application.capability_gateway.evidence import EvidenceEnvelope, validate_evidence
+from korpus.application.capability_gateway.evidence import (
+    CapabilityEvidenceBindingMismatch,
+    CapabilityEvidenceMissing,
+    CapabilityEvidenceStale,
+    EvidenceEnvelope,
+    validate_evidence,
+)
 from korpus.application.capability_gateway.policy import (
     CapabilityPolicyBridge,
     CapabilityPolicyDecision,
@@ -89,6 +95,18 @@ class IntegrationResult(BaseModel):
     evidence: EvidenceEnvelope | None = None
     audit_record_id: str | None = Field(default=None, max_length=256)
     error_code: str | None = Field(default=None, max_length=128)
+
+
+def _evidence_failure_semantics(
+    error: CapabilityContractError,
+) -> tuple[InvocationOutcome, str]:
+    if isinstance(error, CapabilityEvidenceBindingMismatch):
+        return InvocationOutcome.FAILED, "EVIDENCE_SUBJECT_MISMATCH"
+    if isinstance(error, CapabilityEvidenceMissing):
+        return InvocationOutcome.ABSTAINED, "EVIDENCE_MISSING"
+    if isinstance(error, CapabilityEvidenceStale):
+        return InvocationOutcome.ABSTAINED, "EVIDENCE_STALE"
+    return InvocationOutcome.ABSTAINED, "EVIDENCE_INVALID"
 
 
 class CapabilityGateway:
@@ -450,14 +468,7 @@ class CapabilityGateway:
                 evaluated_at=datetime.now(UTC),
             )
         except CapabilityContractError as exc:
-            message = str(exc).lower()
-            code = (
-                "EVIDENCE_STALE"
-                if "stale" in message or "expired" in message
-                else "EVIDENCE_INVALID"
-            )
-            if "missing" in message:
-                code = "EVIDENCE_MISSING"
+            outcome, code = _evidence_failure_semantics(exc)
             return self._audited_result(
                 identity=identity,
                 spec=spec,
@@ -466,7 +477,7 @@ class CapabilityGateway:
                 logical_resource=logical_resource,
                 request=request,
                 started_at=started_at,
-                outcome=InvocationOutcome.ABSTAINED,
+                outcome=outcome,
                 error_code=code,
                 output=executed.output,
                 evidence=executed.evidence,
