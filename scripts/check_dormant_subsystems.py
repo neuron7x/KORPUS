@@ -176,6 +176,63 @@ def table_rows(database: Path, tables: list[str]) -> dict[str, int | None]:
         connection.close()
 
 
+def _declared_modules(registry: dict[str, Any]) -> set[str]:
+    """Кожен модуль, названий у реєстрі, незалежно від того, яким ключем."""
+    return {
+        module
+        for spec in registry["subsystems"].values()
+        for key in ("modules_unreachable_from_api", "modules_reachable_as_schema_only")
+        for module in spec.get(key, [])
+    }
+
+
+def _undeclared(
+    registry: dict[str, Any], every_module: set[str], production_reachable: set[str] | None
+) -> list[str] | None:
+    """Сплячі модулі, яких реєстр не називає. None означає «не вимірювалось»."""
+    if production_reachable is None:
+        return None
+    declared = _declared_modules(registry)
+    return sorted(
+        module
+        for module in every_module - production_reachable
+        if behavioural(module) and module not in declared
+    )
+
+
+def _status(undeclared: list[str] | None, changed: list[str]) -> str:
+    """Три різні вироки, і жоден не є іншим: невиміряне ≠ порожнє ≠ пробуджене."""
+    if undeclared is None:
+        return "UNKNOWN"
+    if undeclared:
+        return "UNDECLARED_DORMANT"
+    return "CHANGED" if changed else "MEASURED"
+
+
+def _subsystem_finding(
+    name: str,
+    spec: dict[str, Any],
+    reachable: set[str],
+    tables: dict[str, int | None],
+    every_module: set[str],
+) -> dict[str, Any]:
+    """Вирок про ОДНУ оголошену підсистему: пробуджене, зникле, записане, відсутнє."""
+    declared = sorted(spec.get("modules_unreachable_from_api", []))
+    problems = {
+        "modules_now_reachable": sorted(m for m in declared if m in reachable),
+        "modules_that_vanished": sorted(m for m in declared if m not in every_module),
+        "tables_with_rows": sorted(t for t, rows in tables.items() if rows not in (0, None)),
+        "tables_absent": sorted(t for t, rows in tables.items() if rows is None),
+    }
+    return {
+        "subsystem": name,
+        "state": "DORMANT" if not any(problems.values()) else "CHANGED",
+        "declared_modules": len(declared),
+        "declared_tables": len(tables),
+        **problems,
+    }
+
+
 def judge(
     registry: dict[str, Any],
     reachable: set[str],
@@ -194,60 +251,21 @@ def judge(
     `production_reachable=None` означає, що виявлення НЕ проводилось, і звіт каже
     про це `null`, а не порожній перелік: невиміряне не є порожнім.
     """
-    findings: list[dict[str, Any]] = []
-    for name, spec in sorted(registry["subsystems"].items()):
-        declared = sorted(spec.get("modules_unreachable_from_api", []))
-        woke = sorted(module for module in declared if module in reachable)
-        gone = sorted(module for module in declared if module not in every_module)
-        written = sorted(
-            table for table, rows in counts.get(name, {}).items() if rows not in (0, None)
-        )
-        absent = sorted(table for table, rows in counts.get(name, {}).items() if rows is None)
-        problems = {
-            "modules_now_reachable": woke,
-            "modules_that_vanished": gone,
-            "tables_with_rows": written,
-            "tables_absent": absent,
-        }
-        findings.append(
-            {
-                "subsystem": name,
-                "state": "DORMANT" if not any(problems.values()) else "CHANGED",
-                "declared_modules": len(declared),
-                "declared_tables": len(counts.get(name, {})),
-                **problems,
-            }
-        )
+    findings = [
+        _subsystem_finding(name, spec, reachable, counts.get(name, {}), every_module)
+        for name, spec in sorted(registry["subsystems"].items())
+    ]
     dormant = sum(1 for item in findings if item["state"] == "DORMANT")
-    all_declared = {
-        module
-        for spec in registry["subsystems"].values()
-        for key in ("modules_unreachable_from_api", "modules_reachable_as_schema_only")
-        for module in spec.get(key, [])
-    }
-    undeclared: list[str] | None = None
-    if production_reachable is not None:
-        undeclared = sorted(
-            module
-            for module in every_module - production_reachable
-            if behavioural(module) and module not in all_declared
-        )
+    undeclared = _undeclared(registry, every_module, production_reachable)
     changed = [item["subsystem"] for item in findings if item["state"] == "CHANGED"]
-    if undeclared is None:
-        status = "UNKNOWN"
-    elif undeclared:
-        status = "UNDECLARED_DORMANT"
-    elif changed:
-        status = "CHANGED"
-    else:
-        status = "MEASURED"
+    status = _status(undeclared, changed)
     return {
         "schema": "korpus.dormant-subsystems.v2",
         "subsystems": len(findings),
         "still_dormant": dormant,
         "changed": changed,
         "rate": round(dormant / len(findings), 4) if findings else None,
-        "declared_modules_total": len(all_declared),
+        "declared_modules_total": len(_declared_modules(registry)),
         "undeclared_dormant": undeclared,
         "undeclared_dormant_count": None if undeclared is None else len(undeclared),
         "status": status,

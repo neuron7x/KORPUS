@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1826,
-  "root_sha256": "db1b61e843073aa712d55b7b30e1f04bf065178f391d2eb7fedc2cd6d8f4023b",
+  "root_sha256": "1f6da1ee4d1776e4cfb0b1f74d1321c739977831d1b0515313d774c89c8f461d",
   "files": [
     {
       "path": ".dockerignore",
@@ -1675,8 +1675,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/release_truth.py",
-      "bytes": 4461,
-      "sha256": "2169ae744c81713e9926bede8eac68daea526fdf463e24461f574eb12ac5aae4",
+      "bytes": 7437,
+      "sha256": "7a5dcb2618f97df793fe04fb4c9319aa27bc99dea4374995746b4631703fffdc",
       "mode": "0644"
     },
     {
@@ -3133,8 +3133,8 @@
     },
     {
       "path": "apps/api/tests/test_current_truth_hardening_v094.py",
-      "bytes": 3916,
-      "sha256": "7b4d646d2fd6e90266cb08704e4a168ad64ef0c373c6724a7a2adc24967d9e99",
+      "bytes": 7313,
+      "sha256": "fbcea5264005f8d801f5f2e485478b55795a2795541dd1508fc9ecf55692ca9a",
       "mode": "0644"
     },
     {
@@ -3361,8 +3361,8 @@
     },
     {
       "path": "apps/api/tests/test_environment_drift.py",
-      "bytes": 11671,
-      "sha256": "c253afedece8d8044da02c4dc2959f645b21fa1fef96b45c6389352510f0f50a",
+      "bytes": 14589,
+      "sha256": "aac509be3581266c74296f1b4affd28ac59c59efab1db56096e68f7525a61593",
       "mode": "0644"
     },
     {
@@ -4555,8 +4555,8 @@
     },
     {
       "path": "apps/api/tests/test_release_truth_hard_predicates.py",
-      "bytes": 3282,
-      "sha256": "bf0cf805d9173ed3ce4df31ed4dbec7d4dcf4a03b243def758318ba462f2c612",
+      "bytes": 9728,
+      "sha256": "7a5d0893be2942d477335db48456eeacbe48a2c88adda00e4216c9a5e46bb6b1",
       "mode": "0644"
     },
     {
@@ -7417,8 +7417,8 @@
     },
     {
       "path": "config/operations/dormant-subsystems.json",
-      "bytes": 4679,
-      "sha256": "24be0065bc1c2afaaf4ebbe1cf81633772439518be0ea706fac683ed0aaa27da",
+      "bytes": 9920,
+      "sha256": "3e10b22ac2deed4b829f11a209c95dc4e36b2e28e1465811141cd34efd62f6e7",
       "mode": "0644"
     },
     {
@@ -7447,8 +7447,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 626294,
-      "sha256": "ade5dd695e896497690d93b33dd831d3bf84ac474f90cb660c1cecd3164b691e",
+      "bytes": 636291,
+      "sha256": "c0e94175be7744cec211b7e3a65ea0dce49efbf98e0aaa75f20c17fa1c667e30",
       "mode": "0644"
     },
     {
@@ -9259,8 +9259,8 @@
     },
     {
       "path": "scripts/check_dormant_subsystems.py",
-      "bytes": 10836,
-      "sha256": "4127f5b62c402866cf1b5a8f4e75c173500a1f02e68ba5fb9c211d4c449e56a1",
+      "bytes": 18425,
+      "sha256": "898d0958f8eec6067ab20b67e757f94e6cde69350e26422e37fae34b11f7c007",
       "mode": "0755"
     },
     {
@@ -9271,8 +9271,8 @@
     },
     {
       "path": "scripts/check_environment_drift.py",
-      "bytes": 5116,
-      "sha256": "23f79f0a7792fcca012b1fc977bdc356f76a5c7d1bc65b20d55ecba72891583e",
+      "bytes": 7283,
+      "sha256": "e63c62c430e3014d2c3d4e804531b2e730f41cfa24213d72ac2422d06448f908",
       "mode": "0755"
     },
     {
@@ -9379,8 +9379,8 @@
     },
     {
       "path": "scripts/current_truth_admission.py",
-      "bytes": 5015,
-      "sha256": "290ad8f19a967dca395ca03a0d1ca4252e8b444741cf21bc6faa795f5145200d",
+      "bytes": 7364,
+      "sha256": "7b8c33bfdc183f986fb6a5fc3c5d5016b31f26bdfeceed01728604bd798b9070",
       "mode": "0644"
     },
     {
@@ -10387,8 +10387,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 317253,
-      "sha256": "d9d5e87114c81eee8ce9b68e38560bd56623a0bb1188529900784c40bf58dee2",
+      "bytes": 317295,
+      "sha256": "ec0ec56bf8526b11921f2f7e727f0373262bb20a9fce18fb4e66998b71a8d8aa",
       "mode": "0755"
     },
     {
@@ -10801,8 +10801,8 @@
     },
     {
       "path": "scripts/verify_current_truth.py",
-      "bytes": 2125,
-      "sha256": "8ae5e836960bdde4fcd563998ba86e09bdd998166841c561812f196e3b5e4e38",
+      "bytes": 2217,
+      "sha256": "4f798123eedd782ec5b175dd5f7a9fa22a14441f0a4a084e18a70dce2d208cb2",
       "mode": "0755"
     },
     {

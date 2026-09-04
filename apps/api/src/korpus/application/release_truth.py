@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import json
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -68,6 +69,36 @@ def _machine_closable(state: dict[str, Any]) -> bool:
     return bool(failed) and failed <= EVIDENCE_BINDING_CHECKS
 
 
+def _blocker_state(state: dict[str, Any]) -> str:
+    """Один із чотирьох станів. «Внутрішній» означає «машина може закрити», не «бракує файла»."""
+    software = state.get("software_ready") is True
+    if not software:
+        return "INTERNAL_BLOCKED"
+    if state.get("externally_satisfied") is True:
+        return "CLOSED_ANCHORED"
+    return "INTERNAL_STALE_EVIDENCE" if _machine_closable(state) else "EXTERNAL_REQUIRED"
+
+
+def _blocker_item(
+    predicate_id: str, raw: Mapping[str, Any], state: dict[str, Any], current: bool
+) -> dict[str, Any]:
+    """Один запис реєстру блокерів разом із підставою вироку."""
+    software = state.get("software_ready") is True
+    return {
+        "id": predicate_id,
+        "state": _blocker_state(state),
+        "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+        "evidence_current": current,
+        "software_ready": software,
+        "externally_satisfied": state.get("externally_satisfied") is True,
+        "machine_closable": software and _machine_closable(state),
+        "failed_external_checks": sorted(
+            str(item) for item in state.get("failed_external_checks") or ()
+        ),
+        "required_proof_class": raw.get("required_proof_class"),
+    }
+
+
 def blocker_registry(root: Path, source_digest: str, release: str) -> dict[str, Any]:
     profile = json.loads(
         (root / "config/assurance/production-hard-predicates-v1.json").read_text(encoding="utf-8")
@@ -79,34 +110,7 @@ def blocker_registry(root: Path, source_digest: str, release: str) -> dict[str, 
     for raw in profile.get("predicates", ()):
         predicate_id = str(raw["id"])
         state = states.get(predicate_id, {})
-        software, external = (
-            state.get("software_ready") is True,
-            state.get("externally_satisfied") is True,
-        )
-        status = (
-            "CLOSED_ANCHORED"
-            if software and external
-            else "INTERNAL_STALE_EVIDENCE"
-            if software and _machine_closable(state)
-            else "EXTERNAL_REQUIRED"
-            if software
-            else "INTERNAL_BLOCKED"
-        )
-        items.append(
-            {
-                "id": predicate_id,
-                "state": status,
-                "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
-                "evidence_current": current,
-                "software_ready": software,
-                "externally_satisfied": external,
-                "machine_closable": bool(software) and _machine_closable(state),
-                "failed_external_checks": sorted(
-                    str(item) for item in state.get("failed_external_checks") or ()
-                ),
-                "required_proof_class": raw.get("required_proof_class"),
-            }
-        )
+        items.append(_blocker_item(predicate_id, raw, state, current))
     counts = {
         state: sum(item["state"] == state for item in items)
         for state in {item["state"] for item in items}
