@@ -367,7 +367,9 @@ def test_an_unknown_operator_matches_nothing_instead_of_defaulting_to_true() -> 
         (True, "unsupported_non_numeric_feature:top1_score"),
     ],
 )
-def test_support_check_names_why_a_feature_could_not_be_judged(value: object, expected: str) -> None:
+def test_support_check_names_why_a_feature_could_not_be_judged(
+    value: object, expected: str
+) -> None:
     """Причина відмови названа окремо для «не число» й «не скінченне».
 
     Обидва випадки означають «судити не можна», але походження в них різне, і звіт,

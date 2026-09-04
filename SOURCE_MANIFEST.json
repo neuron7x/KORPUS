@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1813,
-  "root_sha256": "4d08d1667737c54cd3aacf4d1b920a8ddd3a76854df81c17dd5af6670adfbcc6",
+  "file_count": 1821,
+  "root_sha256": "028c15787f8d9fd2f8320defd0991a26ff420c4447ed90360635cf905a1e48ba",
   "files": [
     {
       "path": ".dockerignore",
@@ -2706,6 +2706,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_answer_dissent_and_billing_time.py",
+      "bytes": 3115,
+      "sha256": "1acae42d79f9819fb55db2d6a90db458cb2155940594199cd7a93d1aedc018ca",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_answer_paths_are_bounded.py",
       "bytes": 5369,
       "sha256": "63cd5fb1601eac6c116586485e6eb2b34e892a31542a61c4097e64546176837b",
@@ -3085,8 +3091,8 @@
     },
     {
       "path": "apps/api/tests/test_corpus_snapshot_contract.py",
-      "bytes": 17000,
-      "sha256": "8942bde9ac0fec337eb410c4de6908640eb5751442b29edefbfbfee5e06b1cf4",
+      "bytes": 23194,
+      "sha256": "7b1df7cf56d73b0b3a839ebb372b80ae3ab20435aa221144b7a8abb3320a10a0",
       "mode": "0644"
     },
     {
@@ -3456,6 +3462,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_extraction_boundaries.py",
+      "bytes": 2428,
+      "sha256": "7666cebdf47a72de0483a43f29cb47053d5b57a8a3ccf55b5232465d7ace9c60",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_extraction_drops_page_furniture.py",
       "bytes": 8320,
       "sha256": "487649182b1a73a5bc64e60011547fc16c2b18d5e8e8e8bfa807a8b10acb4c4c",
@@ -3717,6 +3729,12 @@
       "path": "apps/api/tests/test_ingestion_queue_ownership.py",
       "bytes": 10941,
       "sha256": "bb7c25707dc8b983fcea2d579e5a1d0bf81ec68248364af9d7178b1d2596d0c7",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_input_contract_refusals.py",
+      "bytes": 11086,
+      "sha256": "792617cdbc99afb9b59bea39cdf4cfb35111264dff6956a901c29934b2bec66c",
       "mode": "0644"
     },
     {
@@ -4062,6 +4080,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_pec_adaptive_retrieval.py",
+      "bytes": 7651,
+      "sha256": "ef0a51b0116405cceaf183deca183a258f585ba82665127ec42c46f250cb5d94",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_pec_audit_trace_v097.py",
       "bytes": 1620,
       "sha256": "1e905b51fdf96af341f9940b82fe8661616b500a6d09dd49caf0ec80f5a73140",
@@ -4089,6 +4113,12 @@
       "path": "apps/api/tests/test_pec_contextual_benchmark.py",
       "bytes": 1673,
       "sha256": "40d81312e6aeb4c31b713d0fd2b9c883933c6b352651e0f40daeea8fe7170aa5",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_pec_evidence_features.py",
+      "bytes": 5125,
+      "sha256": "883771c46fa3277c555197c10c1d4fb599ce98f9b40e2990778b1e7f3b0dd997",
       "mode": "0644"
     },
     {
@@ -4131,6 +4161,12 @@
       "path": "apps/api/tests/test_pec_oracle_boundaries.py",
       "bytes": 7796,
       "sha256": "5ef523a5611918f8d0bacdb6727591651e2ef2dd49ffcb33b351d9c3791cbb1f",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_pec_promotion_bindings.py",
+      "bytes": 5891,
+      "sha256": "02332e68470e3996b683b38c98a49889ac90aa561b1c3fdf926c03f4cdfb497a",
       "mode": "0644"
     },
     {
@@ -4255,8 +4291,8 @@
     },
     {
       "path": "apps/api/tests/test_predictive_evidence_control.py",
-      "bytes": 10185,
-      "sha256": "59ac006de987e8c8c6fa865171a60141b3e6ba2188d969f302832d1ea390cddb",
+      "bytes": 15468,
+      "sha256": "bb8de34c4ccc950aa85a44d2d79842f219f5bd2f2aea830ec9ed519a4c77f894",
       "mode": "0644"
     },
     {
@@ -4299,6 +4335,12 @@
       "path": "apps/api/tests/test_production_report_verification.py",
       "bytes": 6429,
       "sha256": "046b8b8f7bbecc7420a9895f7b1d314411dd0ac805237b9002e8f3ba436e047e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_provenance_digest_guards.py",
+      "bytes": 4330,
+      "sha256": "edf289b6d133ce2c9d54b228c2a7a82e10f8c8522de736edf40419d5c2326804",
       "mode": "0644"
     },
     {
@@ -5043,6 +5085,12 @@
       "path": "apps/api/tests/test_verifier_resistance.py",
       "bytes": 5073,
       "sha256": "660b898744ca877a57450aab0035bf588e2a0f273b652f0a09c8c33cfea60927",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_verify_draft_edges.py",
+      "bytes": 4281,
+      "sha256": "cc443c5cd938cd0de151249e3b6a981a37fe918d2185855fdc1fe85803748d49",
       "mode": "0644"
     },
     {

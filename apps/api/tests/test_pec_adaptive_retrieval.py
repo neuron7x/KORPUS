@@ -176,7 +176,9 @@ def test_an_action_that_is_not_a_known_member_falls_back_instead_of_raising() ->
     ("action", "early_abstain"),
     [(RetrievalAction.STOP_USE_CURRENT_EVIDENCE, False), (RetrievalAction.ABSTAIN, True)],
 )
-def test_terminal_actions_do_no_further_retrieval(action: RetrievalAction, early_abstain: bool) -> None:
+def test_terminal_actions_do_no_further_retrieval(
+    action: RetrievalAction, early_abstain: bool
+) -> None:
     """Спинитись означає не шукати більше — інакше «стоп» коштує стільки ж, скільки пошук."""
     outcome, calls = _run(action)
     assert len(calls.one) == 1
