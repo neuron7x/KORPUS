@@ -7,7 +7,6 @@ from korpus.application.capability_gateway.adapters import (
     AdapterExecutionResult,
 )
 from korpus.application.capability_gateway.contracts import payload_digest
-from korpus.application.capability_gateway.errors import CapabilityContractError
 from korpus.application.capability_gateway.evidence import (
     EvidenceBinding,
     EvidenceEnvelope,
@@ -31,7 +30,7 @@ class InternalFunctionAdapter:
     """No-network adapter for server-owned deterministic read functions.
 
     It is intentionally narrow: only INTERNAL/READ_LOCAL capabilities with NONE or
-    EXECUTION_ONLY evidence are admitted.  The handler receives validated request data
+    EXECUTION_ONLY evidence are admitted. The handler receives validated request data
     and a server-derived logical resource; it receives no credentials and owns no
     authorization decision.
     """
@@ -59,7 +58,7 @@ class InternalFunctionAdapter:
         try:
             output = self._handler(request.input, logical_resource)
             output_digest = payload_digest(output)
-        except (CapabilityContractError, TypeError, ValueError, RuntimeError) as exc:
+        except (TypeError, ValueError, RuntimeError) as exc:
             raise AdapterExecutionFailed("internal handler failed") from exc
 
         evidence: EvidenceEnvelope | None = None
