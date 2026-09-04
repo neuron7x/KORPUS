@@ -98,9 +98,22 @@ def _whole(value: Any) -> int | None:
 
 
 def _unexplained_loss(report: Mapping[str, Any], provenance: Mapping[str, Any]) -> list[str]:
-    """Втрата понад навмисне вікно. Порожній перелік — не за замовчуванням."""
-    window = _whole(provenance.get("writes_after_backup"))
+    """Втрата понад ІДЕНТИФІКОВАНУ. Порожній перелік — не за замовчуванням.
+
+    Знаменник тут — не РОЗМІР вікна, а ті рядки, які навчання створило й упізнає за
+    власним префіксом. П'ятий контрприклад верифікатора, 04.09.2026: порівняння з
+    розміром вікна пропускало втрату до 4999 СПРАВЖНІХ документів корпусу, бо число
+    «влазило в дозволений розмір». Дозвіл же виданий не на кількість, а на КОНКРЕТНУ
+    множину; втрата інших рядків ним не пояснюється взагалі. Тотожність було підмінено
+    потужністю — родовий клас цієї доби: критерій слабший за властивість, яку називає.
+
+    Виміряно до правки на живому звіті: `lost_documents_total=3000` при вікні 5000 і
+    нулі фікстурної втрати давало `FIXTURE_SCALE` без жодної скарги. Обслуговуваний
+    корпус має 256 документів — тобто він міг зникнути ЦІЛКОМ, а доказ відновлення
+    лишився б «виміряним».
+    """
     documents = _whole(report.get("lost_documents_total"))
+    identified = _whole(report.get("lost_documents"))
     events = _whole(report.get("lost_events"))
     problems: list[str] = []
     if documents is None:
@@ -108,12 +121,16 @@ def _unexplained_loss(report: Mapping[str, Any], provenance: Mapping[str, Any]) 
             "звіт не називає повної втрати документів (`lost_documents_total`): "
             "величина не виміряна, а невиміряне не є нулем"
         )
-    elif window is None:
-        problems.append("провенанс не називає вікна записів після бекапу — надлишок не рахується")
-    elif documents > window:
+    elif identified is None:
         problems.append(
-            f"втрачено {documents} документів при вікні {window}: "
-            f"{documents - window} понад те, що навчання створило навмисно"
+            "звіт не називає ІДЕНТИФІКОВАНОЇ втрати (`lost_documents`): без неї не видно, "
+            "яка частина втрати пояснена навчанням, а яка є втратою корпусу"
+        )
+    elif documents > identified:
+        problems.append(
+            f"втрачено {documents - identified} документів, яких навчання не створювало: "
+            f"усього {documents}, упізнано як навмисні {identified} — "
+            "це втрата КОРПУСУ, а не вікно бекапу"
         )
     if events is None:
         problems.append("звіт не називає втрати подій журналу (`lost_events`)")

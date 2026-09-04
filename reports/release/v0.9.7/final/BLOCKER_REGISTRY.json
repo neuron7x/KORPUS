@@ -1,16 +1,16 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-04T08:51:28.760631+00:00",
+  "generated_at": "2026-09-04T11:25:31.939314+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "4f3436d1c475f6967e4bc033c7a4fd64087b7d6227c3779f481ad87a221cf128",
+  "source_tree_sha256": "40696e95065fb9f9eb7f1a4867c1c6525c01ff78b7493ac8282162d4e31e7acf",
   "items": [
     {
       "id": "external_independent_redteam",
-      "state": "CLOSED_ANCHORED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
+      "externally_satisfied": false,
       "required_proof_class": "INTERNAL_ADVERSARIAL_CAMPAIGN"
     },
     {
@@ -60,29 +60,29 @@
     },
     {
       "id": "production_like_load",
-      "state": "CLOSED_ANCHORED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
+      "externally_satisfied": false,
       "required_proof_class": "PRODUCTION_LIKE_LOAD"
     },
     {
       "id": "trusted_load_attestation",
-      "state": "CLOSED_ANCHORED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
+      "externally_satisfied": false,
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
     {
       "id": "trusted_recovery_attestation",
-      "state": "CLOSED_ANCHORED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
+      "externally_satisfied": false,
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
     {
@@ -132,11 +132,10 @@
     }
   ],
   "counts": {
-    "CLOSED_ANCHORED": 4,
-    "EXTERNAL_REQUIRED": 10
+    "EXTERNAL_REQUIRED": 14
   },
   "internal_executable_unresolved": 0,
-  "production_external_or_runtime_unresolved": 10,
+  "production_external_or_runtime_unresolved": 14,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true
 }

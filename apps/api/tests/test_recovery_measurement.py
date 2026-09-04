@@ -36,6 +36,8 @@ def _report(**overrides: Any) -> dict[str, Any]:
         "rpo_seconds": 0.0,
         "lost_events": 0,
         "lost_documents_total": 0,
+        # Ідентифікована частина втрати: рядки, які навчання створило й упізнає.
+        "lost_documents": 0,
         "provenance": {
             "backup_bytes": 40960,
             "plaintext_bytes": 131072,
@@ -146,19 +148,41 @@ def test_lost_event_count_is_a_nonnegative_integer(bad: object) -> None:
 # `recovery_numeric_problem` питає лише форму числа. Форма без порога — опис, не умова.
 
 
-def test_loss_beyond_the_deliberate_window_is_refused() -> None:
-    """Поріг не «нуль втрат»: судиться НАДЛИШОК понад те, що навчання створило само."""
-    verdict = classify_recovery(_report(lost_documents_total=6))
+def test_loss_beyond_the_identified_fixture_is_refused() -> None:
+    """Поріг не «нуль втрат» і не РОЗМІР вікна: судиться надлишок понад УПІЗНАНЕ."""
+    verdict = classify_recovery(_report(lost_documents_total=6, lost_documents=5))
     assert verdict.status == UNEXPLAINED_LOSS
     assert not verdict.loss_explained
-    assert "1 понад" in verdict.reasons[0]
+    assert "яких навчання не створювало" in verdict.reasons[0]
 
 
-def test_loss_equal_to_the_window_is_what_the_drill_is_for() -> None:
-    """Втратити рівно записане після бекапу — задум навчання, а не вада."""
-    verdict = classify_recovery(_report(lost_documents_total=5))
+def test_loss_equal_to_the_identified_fixture_is_what_the_drill_is_for() -> None:
+    """Втратити рівно ті рядки, які навчання створило, — задум, а не вада."""
+    verdict = classify_recovery(_report(lost_documents_total=5, lost_documents=5))
     assert verdict.loss_explained
     assert verdict.status != UNEXPLAINED_LOSS
+
+
+def test_corpus_loss_inside_the_window_size_is_still_unexplained() -> None:
+    """П'ятий контрприклад верифікатора: ТОТОЖНІСТЬ, а не потужність.
+
+    Дозвіл виданий на КОНКРЕТНУ множину рядків, які навчання створило після бекапу.
+    Порівняння з РОЗМІРОМ вікна пропускало втрату до 4999 справжніх документів корпусу,
+    бо число «влазило в дозволений розмір». Обслуговуваний корпус має 256 документів —
+    він міг зникнути ЦІЛКОМ, а вирок лишався б «виміряно».
+    """
+    report = _report(lost_documents_total=3000, lost_documents=0)
+    report["provenance"]["writes_after_backup"] = 5000
+    verdict = classify_recovery(report)
+    assert verdict.status == UNEXPLAINED_LOSS, "втрата корпусу всередині розміру вікна"
+    assert "3000" in verdict.reasons[0]
+
+
+def test_an_unmeasured_identified_loss_is_not_zero() -> None:
+    """Без упізнаної частини не видно, що з утраченого пояснене — і це не нуль."""
+    report = _report()
+    del report["lost_documents"]
+    assert classify_recovery(report).status == UNEXPLAINED_LOSS
 
 
 def test_an_unmeasured_total_loss_is_not_zero() -> None:
