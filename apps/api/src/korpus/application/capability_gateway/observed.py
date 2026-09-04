@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import time
-from contextlib import AbstractContextManager
+from collections.abc import Iterator
+from contextlib import AbstractContextManager, contextmanager
 from typing import Protocol
 
 from korpus.application.capability_gateway.errors import CapabilityNotFound, CapabilityUnavailable
@@ -30,7 +31,8 @@ class ObservedCapabilityGateway:
 
     Canonical capability metadata is resolved only for bounded telemetry dimensions. A
     caller-controlled unknown capability id is deliberately represented as `spec=None` so
-    it cannot create unbounded metric labels or trace attributes.
+    it cannot create unbounded metric labels or trace attributes. Telemetry is deliberately
+    lossy: its failures never authorize, block, replace, suppress, or rewrite gateway results.
     """
 
     def __init__(
@@ -46,9 +48,9 @@ class ObservedCapabilityGateway:
     def invoke(self, *, identity: Identity, request: IntegrationRequest) -> IntegrationResult:
         spec = self._resolved_for_telemetry(request)
         started = time.monotonic()
-        with self._telemetry.invocation_span(spec):
+        with _lossy_telemetry_span(self._telemetry, spec):
             result = self._gateway.invoke(identity=identity, request=request)
-        self._telemetry.observe_invocation(
+        self._observe_lossy(
             spec=spec,
             result=result,
             duration_seconds=max(0.0, time.monotonic() - started),
@@ -60,3 +62,52 @@ class ObservedCapabilityGateway:
             return self._registry.resolve_exact(request.capability_id, request.capability_version)
         except (CapabilityNotFound, CapabilityUnavailable):
             return None
+        except Exception:
+            return None
+
+    def _observe_lossy(
+        self,
+        *,
+        spec: CapabilitySpec | None,
+        result: IntegrationResult,
+        duration_seconds: float,
+    ) -> None:
+        try:
+            self._telemetry.observe_invocation(
+                spec=spec,
+                result=result,
+                duration_seconds=duration_seconds,
+            )
+        except Exception:
+            return
+
+
+@contextmanager
+def _lossy_telemetry_span(
+    telemetry: CapabilityInvocationTelemetry,
+    spec: CapabilitySpec | None,
+) -> Iterator[None]:
+    manager: AbstractContextManager[object] | None = None
+    try:
+        manager = telemetry.invocation_span(spec)
+        manager.__enter__()
+    except Exception:
+        manager = None
+
+    if manager is None:
+        yield
+        return
+
+    try:
+        yield
+    except BaseException as exc:
+        try:
+            manager.__exit__(type(exc), exc, exc.__traceback__)
+        except Exception:
+            pass
+        raise
+    else:
+        try:
+            manager.__exit__(None, None, None)
+        except Exception:
+            pass
