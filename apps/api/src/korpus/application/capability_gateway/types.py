@@ -5,7 +5,7 @@ from enum import StrEnum
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 CAPABILITY_ID_PATTERN = r"^[a-z][a-z0-9_.-]{2,127}$"
 SEMVER_PATTERN = r"^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?$"
@@ -137,6 +137,23 @@ class CapabilitySpec(BaseModel):
     idempotency: IdempotencySpec
     data_policy: DataPolicySpec
     lifecycle: CapabilityLifecycle
+
+    @model_validator(mode="after")
+    def validate_execution_invariants(self) -> CapabilitySpec:
+        effectful = self.effect_class in {
+            EffectClass.WRITE_REMOTE,
+            EffectClass.TRANSACTIONAL_SIDE_EFFECT,
+            EffectClass.PRIVILEGED_ADMIN,
+        }
+        if effectful and not self.idempotency.required:
+            raise ValueError("effectful capabilities must require durable idempotency")
+        if self.authorization.requires_explicit_effect_authorization and not effectful:
+            raise ValueError("explicit effect authorization is valid only for effectful capabilities")
+        if self.idempotency.provider_key_forwarding and not self.idempotency.required:
+            raise ValueError("provider idempotency-key forwarding requires idempotency")
+        if self.retry.max_attempts > 1 and not self.retry.only_safe_errors:
+            raise ValueError("multiple attempts require only_safe_errors=true")
+        return self
 
 
 class IntegrationRequest(BaseModel):
