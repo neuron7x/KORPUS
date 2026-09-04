@@ -1,0 +1,21 @@
+{
+  "description": "Caller attempts authority injection.",
+  "request": {
+    "schema_version": "korpus.integration-request.v1",
+    "capability_id": "reference.public.read",
+    "capability_version": "1.0.0",
+    "input": {
+      "reference_id": "doc-123"
+    },
+    "idempotency_key": null,
+    "dry_run": false,
+    "authorized": true,
+    "role": "admin",
+    "trusted": true
+  },
+  "expected": {
+    "schema_valid": false,
+    "authority_gain": false,
+    "adapter_calls": 0
+  }
+}

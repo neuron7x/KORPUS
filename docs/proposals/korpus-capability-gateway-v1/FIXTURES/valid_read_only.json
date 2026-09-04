@@ -1,0 +1,17 @@
+{
+  "description": "Positive read-only request.",
+  "request": {
+    "schema_version": "korpus.integration-request.v1",
+    "capability_id": "reference.public.read",
+    "capability_version": "1.0.0",
+    "input": {
+      "reference_id": "doc-123"
+    },
+    "idempotency_key": null,
+    "dry_run": false
+  },
+  "expected": {
+    "outcome": "SUCCESS",
+    "adapter_calls": 1
+  }
+}

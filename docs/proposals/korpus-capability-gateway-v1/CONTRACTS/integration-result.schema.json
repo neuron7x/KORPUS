@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:korpus:capability-gateway:v1:integration-result",
+  "title": "KORPUS IntegrationResult v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "invocation_id",
+    "outcome",
+    "audit_record_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "korpus.integration-result.v1"
+    },
+    "invocation_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "outcome": {
+      "enum": [
+        "SUCCESS",
+        "DENIED",
+        "REJECTED",
+        "FAILED",
+        "ABSTAINED",
+        "OUTCOME_UNKNOWN"
+      ]
+    },
+    "output": {},
+    "evidence": {},
+    "audit_record_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 256
+    },
+    "error_code": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 128
+    }
+  }
+}

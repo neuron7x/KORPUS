@@ -1,0 +1,126 @@
+{
+  "schema": "korpus.capability-gateway.requirements.v1",
+  "baseline_commit": "578f4ea9caa93ec6211dbe914bf11ae110a6eaed",
+  "requirements": [
+    {
+      "id": "CGW-R001",
+      "text": "Unknown capability never executes.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R002",
+      "text": "Policy deny or unknown never executes.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R003",
+      "text": "Invalid input never executes.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R004",
+      "text": "Exact capability version is bound before execution.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R005",
+      "text": "Invalid output cannot be returned as success.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R006",
+      "text": "Required missing, stale, or wrong-bound evidence cannot support success.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R007",
+      "text": "Request, adapter, or provider metadata cannot supply KORPUS authorization.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R008",
+      "text": "Effectful operations require explicit effect authorization.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R009",
+      "text": "Effectful operations require idempotency binding.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R010",
+      "text": "Idempotency conflicts cannot execute.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R011",
+      "text": "Ambiguous effect timeout becomes OUTCOME_UNKNOWN.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R012",
+      "text": "Required audit persistence is a success precondition.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R013",
+      "text": "Secrets do not enter user output or telemetry labels.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R014",
+      "text": "Remote and MCP metadata remains untrusted discovery data.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R015",
+      "text": "Schema or effect drift cannot silently widen an enabled capability.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R016",
+      "text": "Disabled gateway preserves existing product behavior.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R017",
+      "text": "Canonical KORPUS policy, evidence, and audit remain authoritative.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R018",
+      "text": "Exact-state clean-room reproduction passes.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R019",
+      "text": "Separate-context verifier reproduces blocking controls.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "CGW-R020",
+      "text": "Final production authority remains with Owner.",
+      "blocking": true,
+      "status": "NOT_IMPLEMENTED"
+    }
+  ]
+}

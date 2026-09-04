@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:korpus:capability-gateway:v1:evidence-envelope",
+  "title": "KORPUS EvidenceEnvelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "binding",
+    "provenance",
+    "observed_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "korpus.evidence-envelope.v1"
+    },
+    "status": {
+      "enum": [
+        "VALID",
+        "INVALID",
+        "UNKNOWN"
+      ]
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "invocation_id",
+        "capability_id",
+        "capability_version",
+        "adapter_id",
+        "adapter_version",
+        "output_digest"
+      ],
+      "properties": {
+        "invocation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "capability_id": {
+          "type": "string"
+        },
+        "capability_version": {
+          "type": "string"
+        },
+        "adapter_id": {
+          "type": "string"
+        },
+        "adapter_version": {
+          "type": "string"
+        },
+        "output_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "source_refs"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "INTERNAL",
+            "REMOTE_RESPONSE",
+            "SIGNED_RECEIPT",
+            "SOURCE_EVIDENCE"
+          ]
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 1024
+          },
+          "maxItems": 128
+        },
+        "provider_identity": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        }
+      }
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "reproducible": {
+      "type": "boolean"
+    },
+    "signature_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 1024
+    }
+  }
+}

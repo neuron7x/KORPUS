@@ -1,0 +1,8 @@
+{
+  "description": "Evidence binds another output digest.",
+  "expected_output_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "evidence_output_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "expected": {
+    "error_code": "EVIDENCE_SUBJECT_MISMATCH"
+  }
+}

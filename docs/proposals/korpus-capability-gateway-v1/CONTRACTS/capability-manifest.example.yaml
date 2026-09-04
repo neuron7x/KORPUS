@@ -1,0 +1,33 @@
+schema_version: korpus.capability-spec.v1
+capability_id: reference.public.read
+version: 1.0.0
+description: Read one public reference object through a governed remote adapter.
+provider_type: http
+adapter:
+  adapter_id: http.reference
+  adapter_version: 1.0.0
+  configuration_ref: providers/reference-public
+effect_class: READ_REMOTE
+input_schema_id: urn:korpus:example:reference-read-input:v1
+output_schema_id: urn:korpus:example:reference-read-output:v1
+authorization:
+  action: integration:reference:read
+  resource_mapper: reference_public_resource_v1
+  requires_explicit_effect_authorization: false
+evidence:
+  profile: PROVIDER_PROVENANCE
+  freshness_seconds: 300
+  bind_output_digest: true
+timeouts:
+  total_ms: 5000
+retry:
+  max_attempts: 2
+  only_safe_errors: true
+idempotency:
+  required: false
+  provider_key_forwarding: false
+data_policy:
+  egress_class: PUBLIC_ONLY
+  max_request_bytes: 16384
+  max_response_bytes: 1048576
+lifecycle: DECLARED
