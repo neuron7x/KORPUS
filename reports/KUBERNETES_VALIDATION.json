@@ -15,8 +15,8 @@
   "note": "static topology validation only; cluster execution remains external evidence",
   "provenance": {
     "schema_version": 1,
-    "source_digest": "171d687a12d816f9b60cfe5ed7b5aa2c7dcddd206f30863c2d801e78b737da52",
+    "source_digest": "d377b7aae796a3b40d4952eae6bc5c439cdcb387319ffabe6d5c91ff0a56e5d1",
     "generator": "scripts/validate_kubernetes.py",
-    "generated_at": "2026-09-04T06:06:47+00:00"
+    "generated_at": "2026-09-04T07:02:11+00:00"
   }
 }
