@@ -109,13 +109,13 @@ class GovernedHttpReadAdapter:
                 body = self._read_bounded(response, spec.data_policy.max_response_bytes)
         except AdapterExecutionFailed:
             raise
-        except (httpx.TimeoutException, httpx.TransportError) as exc:
+        except httpx.TransportError as exc:
             raise AdapterExecutionFailed("HTTP provider unavailable") from exc
 
         try:
             output = json.loads(body)
             output_digest = payload_digest(output)
-        except (json.JSONDecodeError, UnicodeDecodeError, TypeError, ValueError, RuntimeError) as exc:
+        except (TypeError, ValueError, RuntimeError) as exc:
             raise AdapterExecutionFailed("HTTP provider returned invalid JSON") from exc
 
         evidence = self._evidence(spec, context, output_digest, url)
@@ -137,6 +137,8 @@ class GovernedHttpReadAdapter:
     def _validate_headers(headers: Mapping[str, str]) -> dict[str, str]:
         result: dict[str, str] = {}
         for name, value in headers.items():
+            if not isinstance(name, str) or not isinstance(value, str):
+                raise ValueError("HTTP capability headers must be strings")
             normalized = name.strip().lower()
             if not normalized or normalized in _FORBIDDEN_HEADERS:
                 raise ValueError(f"HTTP capability header is forbidden: {name}")
