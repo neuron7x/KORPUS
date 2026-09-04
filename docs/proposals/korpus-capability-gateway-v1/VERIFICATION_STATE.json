@@ -4,23 +4,23 @@
   "branch": "proposal/korpus-capability-gateway-v1-20260904",
   "implementation_anchor_commit": "1e40b813794dd684f3aff63733dd5136f9a2521c",
   "anchor_semantics": "Last observed runtime-changing capability-gateway commit. It identifies implementation lineage; it is conceptually distinct from, but may equal, the exact verification candidate.",
-  "verification_candidate_commit": "e3a5f37ece244ebe547ca092126b8147c0bd2ec7",
+  "verification_candidate_commit": "3b6406b9d1cbb6523b61d5586c967d7f730118be",
   "candidate_semantics": "Exact acceptance candidate including runtime lineage, contract artifacts and falsification controls. Later diagnostic or metadata-only checkpoints do not redefine this evidence subject.",
-  "checkpoint_parent_commit": "e3a5f37ece244ebe547ca092126b8147c0bd2ec7",
+  "checkpoint_parent_commit": "3b6406b9d1cbb6523b61d5586c967d7f730118be",
   "frozen_requirements": "docs/proposals/korpus-capability-gateway-v1/REQUIREMENTS.json",
   "denominator": 20,
   "live_base": {
     "branch": "main",
     "observed_sha": "f311e83ae632579fe370f38847b4b19e5eed5aed",
     "merge_base_sha": "f311e83ae632579fe370f38847b4b19e5eed5aed",
-    "feature_ahead_by": 86,
+    "feature_ahead_by": 88,
     "feature_behind_by": 0,
     "relationship": "SYNCHRONIZED",
     "acceptance_gate": "CLEARED",
     "synchronization_commit": "55b15f87a4e66dd9a2c08edec7ae1c8ec2340095",
     "runtime_overlap_observed": false,
     "integration_overlap_observed": true,
-    "basis": "The exact acceptance candidate descends from the deterministic current-main synchronization; compare f311e83...e3a5f37 reports ahead_by=86, behind_by=0 and merge-base=f311e83."
+    "basis": "The exact acceptance candidate descends from deterministic current-main synchronization; compare ancestry remains behind_by=0 with merge-base=f311e83."
   },
   "verification_policy": {
     "source_witness_is_not_execution_evidence": true,
@@ -45,12 +45,12 @@
   },
   "execution_evidence": {
     "status": "EXECUTION_NOT_OBSERVED",
-    "candidate_commit": "e3a5f37ece244ebe547ca092126b8147c0bd2ec7",
+    "candidate_commit": "3b6406b9d1cbb6523b61d5586c967d7f730118be",
     "exact_head_bound": true,
     "workflow_run_ids": {
-      "ci": 33920246120,
-      "assurance": 33920246148,
-      "dependency-review": 33920246101
+      "ci": 33920664251,
+      "assurance": 33920664277,
+      "dependency-review": 33920664271
     },
     "observed_jobs": [
       "web-tests",
@@ -94,7 +94,7 @@
   },
   "clean_room_evidence": {
     "status": "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED",
-    "candidate_commit": "e3a5f37ece244ebe547ca092126b8147c0bd2ec7",
+    "candidate_commit": "3b6406b9d1cbb6523b61d5586c967d7f730118be",
     "test_command_executed": false,
     "previous_attempt": {
       "candidate_commit": "55b15f87a4e66dd9a2c08edec7ae1c8ec2340095",
@@ -104,7 +104,7 @@
   },
   "fresh_context_evidence": {
     "status": "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED",
-    "candidate_commit": "e3a5f37ece244ebe547ca092126b8147c0bd2ec7"
+    "candidate_commit": "3b6406b9d1cbb6523b61d5586c967d7f730118be"
   },
   "cleared_gates": [
     "BASE_SYNC_REQUIRED",
@@ -121,10 +121,10 @@
     {"id":"CGW-R003","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/contracts.py","apps/api/src/korpus/application/capability_gateway/validation.py","apps/api/src/korpus/application/capability_gateway/invoke.py","apps/api/src/korpus/application/capability_gateway/execution.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_core.py","apps/api/tests/test_capability_gateway_validation_egress.py","apps/api/tests/test_capability_gateway_boundary_normalization.py"]},
     {"id":"CGW-R004","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/registry.py","apps/api/src/korpus/application/capability_gateway/contracts.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_core.py"]},
     {"id":"CGW-R005","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/execution.py","apps/api/src/korpus/application/capability_gateway/result.py","apps/api/src/korpus/api/routes_integrations.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_invoke.py","apps/api/tests/test_capability_gateway_result_boundary.py","apps/api/tests/test_capability_gateway_api_surface.py","apps/api/tests/test_capability_gateway_contract_parity.py"]},
-    {"id":"CGW-R006","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/evidence.py","apps/api/src/korpus/application/capability_gateway/execution.py","apps/api/src/korpus/application/capability_gateway/result.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_adapters_evidence.py","apps/api/tests/test_capability_gateway_invoke.py","apps/api/tests/test_capability_gateway_result_boundary.py"]},
+    {"id":"CGW-R006","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/evidence.py","apps/api/src/korpus/application/capability_gateway/execution.py","apps/api/src/korpus/application/capability_gateway/result.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_adapters_evidence.py","apps/api/tests/test_capability_gateway_invoke.py","apps/api/tests/test_capability_gateway_result_boundary.py","apps/api/tests/test_capability_gateway_contract_parity.py"]},
     {"id":"CGW-R007","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/types.py","apps/api/src/korpus/application/capability_gateway/policy.py","apps/api/src/korpus/application/capability_gateway/mcp_admission.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_core.py","apps/api/tests/test_capability_gateway_mcp_admission.py","apps/api/tests/test_capability_gateway_authority_boundaries.py"]},
-    {"id":"CGW-R008","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/effects.py","apps/api/src/korpus/application/capability_gateway/invoke.py","apps/api/src/korpus/application/capability_gateway/reconciliation.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_effects.py","apps/api/tests/test_capability_gateway_spec_invariants.py","apps/api/tests/test_capability_gateway_authority_boundaries.py","apps/api/tests/test_capability_gateway_reconciliation.py"]},
-    {"id":"CGW-R009","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/effects.py","apps/api/src/korpus/infrastructure/capability_effect_ledger.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_effects.py","apps/api/tests/test_capability_effect_ledger.py","apps/api/tests/test_capability_gateway_spec_invariants.py"]},
+    {"id":"CGW-R008","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/effects.py","apps/api/src/korpus/application/capability_gateway/invoke.py","apps/api/src/korpus/application/capability_gateway/reconciliation.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_effects.py","apps/api/tests/test_capability_gateway_spec_invariants.py","apps/api/tests/test_capability_gateway_authority_boundaries.py","apps/api/tests/test_capability_gateway_reconciliation.py","apps/api/tests/test_capability_gateway_contract_parity.py"]},
+    {"id":"CGW-R009","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/effects.py","apps/api/src/korpus/infrastructure/capability_effect_ledger.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_effects.py","apps/api/tests/test_capability_effect_ledger.py","apps/api/tests/test_capability_gateway_spec_invariants.py","apps/api/tests/test_capability_gateway_contract_parity.py"]},
     {"id":"CGW-R010","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/effects.py","apps/api/src/korpus/application/capability_gateway/invoke.py","apps/api/src/korpus/infrastructure/capability_effect_ledger.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_effects.py","apps/api/tests/test_capability_effect_ledger.py","apps/api/tests/test_capability_gateway_invoke.py"]},
     {"id":"CGW-R011","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/adapters.py","apps/api/src/korpus/application/capability_gateway/effects.py","apps/api/src/korpus/application/capability_gateway/execution.py","apps/api/src/korpus/application/capability_gateway/reconciliation.py","apps/api/src/korpus/infrastructure/capability_effect_ledger.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_invoke.py","apps/api/tests/test_capability_gateway_boundary_normalization.py","apps/api/tests/test_capability_effect_ledger.py","apps/api/tests/test_capability_gateway_reconciliation.py"]},
     {"id":"CGW-R012","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/audit.py","apps/api/src/korpus/application/capability_gateway/result.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_context_audit.py","apps/api/tests/test_capability_gateway_result_boundary.py","apps/api/tests/test_capability_gateway_invoke.py","apps/api/tests/test_capability_gateway_contract_parity.py"]},
