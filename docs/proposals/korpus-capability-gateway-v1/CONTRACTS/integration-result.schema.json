@@ -35,14 +35,64 @@
         "string",
         "null"
       ],
-      "maxLength": 256
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "\\S"
     },
     "error_code": {
       "type": [
         "string",
         "null"
       ],
-      "maxLength": 128
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "\\S"
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "SUCCESS"
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "then": {
+        "properties": {
+          "audit_record_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "\\S"
+          },
+          "error_code": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "error_code"
+        ],
+        "properties": {
+          "output": {
+            "type": "null"
+          },
+          "evidence": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "\\S"
+          }
+        }
+      }
+    }
+  ]
 }

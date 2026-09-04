@@ -9,6 +9,7 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
+from korpus.application.capability_gateway.audit import InvocationOutcome
 from korpus.application.capability_gateway.evidence import (
     EvidenceBinding,
     EvidenceEnvelope,
@@ -16,6 +17,7 @@ from korpus.application.capability_gateway.evidence import (
     EvidenceStatus,
     ProvenanceKind,
 )
+from korpus.application.capability_gateway.result import IntegrationResult
 from korpus.application.capability_gateway.types import (
     ActorType,
     InvocationActor,
@@ -26,10 +28,17 @@ ROOT = Path(__file__).resolve().parents[3]
 EVIDENCE_SCHEMA = (
     ROOT / "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/evidence-envelope.schema.json"
 )
+RESULT_SCHEMA = (
+    ROOT / "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/integration-result.schema.json"
+)
 
 
 def _evidence_schema() -> dict[str, Any]:
     return json.loads(EVIDENCE_SCHEMA.read_text(encoding="utf-8"))
+
+
+def _result_schema() -> dict[str, Any]:
+    return json.loads(RESULT_SCHEMA.read_text(encoding="utf-8"))
 
 
 def _binding() -> EvidenceBinding:
@@ -101,4 +110,44 @@ def test_invocation_context_date_time_contract_rejects_naive_request_time() -> N
             request_time=datetime(2026, 9, 4, 15, 0),
             service_release="0.9.7",
             policy_context_digest="sha256:" + "0" * 64,
+        )
+
+
+def test_integration_result_contract_encodes_runtime_returnability_invariants() -> None:
+    contract = _result_schema()
+    conditionals = contract["allOf"]
+
+    assert isinstance(conditionals, list)
+    assert len(conditionals) == 1
+    branch = conditionals[0]
+    assert branch["if"]["properties"]["outcome"]["const"] == "SUCCESS"
+
+    success = branch["then"]["properties"]
+    assert success["audit_record_id"]["type"] == "string"
+    assert success["audit_record_id"]["minLength"] == 1
+    assert success["error_code"]["type"] == "null"
+
+    failure = branch["else"]
+    assert "error_code" in failure["required"]
+    assert failure["properties"]["output"]["type"] == "null"
+    assert failure["properties"]["evidence"]["type"] == "null"
+    assert failure["properties"]["error_code"]["type"] == "string"
+
+
+def test_runtime_result_rejects_success_without_persisted_audit_identity() -> None:
+    with pytest.raises(ValidationError, match="persisted audit identity"):
+        IntegrationResult(
+            invocation_id=uuid4(),
+            outcome=InvocationOutcome.SUCCESS,
+            output={"value": "ok"},
+        )
+
+
+def test_runtime_result_rejects_non_success_provider_payload() -> None:
+    with pytest.raises(ValidationError, match="cannot expose output or evidence"):
+        IntegrationResult(
+            invocation_id=uuid4(),
+            outcome=InvocationOutcome.DENIED,
+            output={"sensitive": "provider-output"},
+            error_code="POLICY_DENIED",
         )
