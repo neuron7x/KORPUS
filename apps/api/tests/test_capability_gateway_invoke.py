@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from datetime import UTC, datetime
-
-import pytest
 
 from korpus.application.capability_gateway.adapters import (
     AdapterExecutionResult,

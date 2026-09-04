@@ -136,7 +136,7 @@ class CapabilityGateway:
             )
         try:
             logical_resource = mapper(identity, spec, request)
-        except Exception:
+        except (RuntimeError, ValueError):
             return self._early_result(
                 InvocationOutcome.FAILED,
                 "RESOURCE_MAPPING_FAILED",
@@ -206,7 +206,7 @@ class CapabilityGateway:
                 outcome=InvocationOutcome.DENIED,
                 error_code="EGRESS_DENIED",
             )
-        except Exception:
+        except RuntimeError:
             return self._audited_result(
                 identity=identity,
                 spec=spec,
@@ -227,7 +227,7 @@ class CapabilityGateway:
                     spec=spec,
                     logical_resource=logical_resource,
                 )
-            except Exception:
+            except RuntimeError:
                 explicit_effect_authorized = False
             if not explicit_effect_authorized:
                 return self._audited_result(
@@ -288,7 +288,7 @@ class CapabilityGateway:
                 outcome=InvocationOutcome.REJECTED,
                 error_code="IDEMPOTENCY_CONFLICT",
             )
-        except Exception:
+        except RuntimeError:
             return self._audited_result(
                 identity=identity,
                 spec=spec,
@@ -383,7 +383,7 @@ class CapabilityGateway:
                 effect_guard=effect_guard,
                 error_code="ADAPTER_FAILURE",
             )
-        except Exception:
+        except RuntimeError:
             return self._adapter_failure_result(
                 identity=identity,
                 spec=spec,
@@ -430,7 +430,11 @@ class CapabilityGateway:
             )
         except CapabilityContractError as exc:
             message = str(exc).lower()
-            code = "EVIDENCE_STALE" if "stale" in message or "expired" in message else "EVIDENCE_INVALID"
+            code = (
+                "EVIDENCE_STALE"
+                if "stale" in message or "expired" in message
+                else "EVIDENCE_INVALID"
+            )
             if "missing" in message:
                 code = "EVIDENCE_MISSING"
             return self._audited_result(
@@ -560,7 +564,7 @@ class CapabilityGateway:
                 started_at=started_at,
                 ended_at=datetime.now(UTC),
             )
-        except Exception:
+        except RuntimeError:
             return IntegrationResult(
                 invocation_id=context.invocation_id,
                 outcome=InvocationOutcome.FAILED,
