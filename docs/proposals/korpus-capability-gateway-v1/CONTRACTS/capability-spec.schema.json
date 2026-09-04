@@ -23,57 +23,28 @@
     "lifecycle"
   ],
   "properties": {
-    "schema_version": {
-      "const": "korpus.capability-spec.v1"
-    },
+    "schema_version": {"const": "korpus.capability-spec.v1"},
     "capability_id": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_.-]{2,127}$"
     },
     "version": {
       "type": "string",
-      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?$"
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?$",
+      "maxLength": 64
     },
-    "description": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 1024
-    },
+    "description": {"type": "string", "minLength": 1, "maxLength": 1024},
     "provider_type": {
-      "enum": [
-        "internal",
-        "http",
-        "mcp",
-        "queue",
-        "object_store",
-        "custom"
-      ]
+      "enum": ["internal", "http", "mcp", "queue", "object_store", "custom"]
     },
     "adapter": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "adapter_id",
-        "adapter_version"
-      ],
+      "required": ["adapter_id", "adapter_version"],
       "properties": {
-        "adapter_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
-        },
-        "adapter_version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
-        },
-        "configuration_ref": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 256
-        }
+        "adapter_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "adapter_version": {"type": "string", "minLength": 1, "maxLength": 64},
+        "configuration_ref": {"type": ["string", "null"], "maxLength": 256}
       }
     },
     "effect_class": {
@@ -85,43 +56,22 @@
         "PRIVILEGED_ADMIN"
       ]
     },
-    "input_schema_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "output_schema_id": {
-      "type": "string",
-      "minLength": 1
-    },
+    "input_schema_id": {"type": "string", "minLength": 1, "maxLength": 512},
+    "output_schema_id": {"type": "string", "minLength": 1, "maxLength": 512},
     "authorization": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "action",
-        "resource_mapper"
-      ],
+      "required": ["action", "resource_mapper"],
       "properties": {
-        "action": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
-        },
-        "resource_mapper": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
-        },
-        "requires_explicit_effect_authorization": {
-          "type": "boolean"
-        }
+        "action": {"type": "string", "minLength": 1, "maxLength": 128},
+        "resource_mapper": {"type": "string", "minLength": 1, "maxLength": 128},
+        "requires_explicit_effect_authorization": {"type": "boolean"}
       }
     },
     "evidence": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "profile"
-      ],
+      "required": ["profile"],
       "properties": {
         "profile": {
           "enum": [
@@ -132,91 +82,46 @@
             "SIGNED_RECEIPT"
           ]
         },
-        "freshness_seconds": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "minimum": 0
-        },
-        "bind_output_digest": {
-          "type": "boolean"
-        }
+        "freshness_seconds": {"type": ["integer", "null"], "minimum": 0},
+        "bind_output_digest": {"type": "boolean"}
       }
     },
     "timeouts": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "total_ms"
-      ],
+      "required": ["total_ms"],
       "properties": {
-        "total_ms": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 300000
-        }
+        "total_ms": {"type": "integer", "minimum": 1, "maximum": 300000}
       }
     },
     "retry": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "max_attempts"
-      ],
+      "required": ["max_attempts"],
       "properties": {
-        "max_attempts": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 10
-        },
-        "only_safe_errors": {
-          "type": "boolean"
-        }
+        "max_attempts": {"type": "integer", "minimum": 1, "maximum": 10},
+        "only_safe_errors": {"type": "boolean"}
       }
     },
     "idempotency": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "required"
-      ],
+      "required": ["required"],
       "properties": {
-        "required": {
-          "type": "boolean"
-        },
-        "provider_key_forwarding": {
-          "type": "boolean"
-        }
+        "required": {"type": "boolean"},
+        "provider_key_forwarding": {"type": "boolean"}
       }
     },
     "data_policy": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "egress_class",
-        "max_request_bytes",
-        "max_response_bytes"
-      ],
+      "required": ["egress_class", "max_request_bytes", "max_response_bytes"],
       "properties": {
         "egress_class": {
-          "enum": [
-            "NONE",
-            "PUBLIC_ONLY",
-            "POLICY_GATED",
-            "RESTRICTED_NO_EGRESS"
-          ]
+          "enum": ["NONE", "PUBLIC_ONLY", "POLICY_GATED", "RESTRICTED_NO_EGRESS"]
         },
-        "max_request_bytes": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 10485760
-        },
-        "max_response_bytes": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 104857600
-        }
+        "max_request_bytes": {"type": "integer", "minimum": 0, "maximum": 10485760},
+        "max_response_bytes": {"type": "integer", "minimum": 0, "maximum": 104857600}
       }
     },
     "lifecycle": {
@@ -230,5 +135,78 @@
         "RETIRED"
       ]
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "effect_class": {
+            "enum": ["WRITE_REMOTE", "TRANSACTIONAL_SIDE_EFFECT", "PRIVILEGED_ADMIN"]
+          }
+        },
+        "required": ["effect_class"]
+      },
+      "then": {
+        "properties": {
+          "idempotency": {
+            "properties": {"required": {"const": true}}
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "authorization": {
+            "properties": {"requires_explicit_effect_authorization": {"const": true}},
+            "required": ["requires_explicit_effect_authorization"]
+          }
+        },
+        "required": ["authorization"]
+      },
+      "then": {
+        "properties": {
+          "effect_class": {
+            "enum": ["WRITE_REMOTE", "TRANSACTIONAL_SIDE_EFFECT", "PRIVILEGED_ADMIN"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "idempotency": {
+            "properties": {"provider_key_forwarding": {"const": true}},
+            "required": ["provider_key_forwarding"]
+          }
+        },
+        "required": ["idempotency"]
+      },
+      "then": {
+        "properties": {
+          "idempotency": {
+            "properties": {"required": {"const": true}}
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "retry": {
+            "properties": {"max_attempts": {"minimum": 2}},
+            "required": ["max_attempts"]
+          }
+        },
+        "required": ["retry"]
+      },
+      "then": {
+        "properties": {
+          "retry": {
+            "properties": {"only_safe_errors": {"const": true}}
+          }
+        }
+      }
+    }
+  ]
 }

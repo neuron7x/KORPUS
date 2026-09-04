@@ -25,20 +25,26 @@ from korpus.application.capability_gateway.types import (
 )
 
 ROOT = Path(__file__).resolve().parents[3]
-EVIDENCE_SCHEMA = (
-    ROOT / "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/evidence-envelope.schema.json"
-)
-RESULT_SCHEMA = (
-    ROOT / "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/integration-result.schema.json"
-)
+CONTRACTS = ROOT / "docs/proposals/korpus-capability-gateway-v1/CONTRACTS"
+CAPABILITY_SCHEMA = CONTRACTS / "capability-spec.schema.json"
+EVIDENCE_SCHEMA = CONTRACTS / "evidence-envelope.schema.json"
+RESULT_SCHEMA = CONTRACTS / "integration-result.schema.json"
+
+
+def _schema(path: Path) -> dict[str, Any]:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _capability_schema() -> dict[str, Any]:
+    return _schema(CAPABILITY_SCHEMA)
 
 
 def _evidence_schema() -> dict[str, Any]:
-    return json.loads(EVIDENCE_SCHEMA.read_text(encoding="utf-8"))
+    return _schema(EVIDENCE_SCHEMA)
 
 
 def _result_schema() -> dict[str, Any]:
-    return json.loads(RESULT_SCHEMA.read_text(encoding="utf-8"))
+    return _schema(RESULT_SCHEMA)
 
 
 def _binding() -> EvidenceBinding:
@@ -70,6 +76,19 @@ def test_runtime_source_ref_limit_matches_frozen_evidence_contract() -> None:
             kind=ProvenanceKind.SOURCE_EVIDENCE,
             source_refs=["x" * (limit + 1)],
         )
+
+
+def test_evidence_binding_scalar_limits_match_runtime_model() -> None:
+    binding = _evidence_schema()["properties"]["binding"]["properties"]
+
+    assert binding["capability_id"]["minLength"] == 1
+    assert binding["capability_id"]["maxLength"] == 128
+    assert binding["capability_version"]["minLength"] == 1
+    assert binding["capability_version"]["maxLength"] == 64
+    assert binding["adapter_id"]["minLength"] == 1
+    assert binding["adapter_id"]["maxLength"] == 128
+    assert binding["adapter_version"]["minLength"] == 1
+    assert binding["adapter_version"]["maxLength"] == 64
 
 
 def test_evidence_date_time_contract_rejects_naive_observation() -> None:
@@ -111,6 +130,50 @@ def test_invocation_context_date_time_contract_rejects_naive_request_time() -> N
             service_release="0.9.7",
             policy_context_digest="sha256:" + "0" * 64,
         )
+
+
+def test_capability_spec_scalar_limits_match_runtime_model() -> None:
+    properties = _capability_schema()["properties"]
+
+    assert properties["version"]["maxLength"] == 64
+    assert properties["input_schema_id"]["maxLength"] == 512
+    assert properties["output_schema_id"]["maxLength"] == 512
+
+
+def test_capability_spec_cross_field_rules_match_runtime_validator() -> None:
+    rules = _capability_schema()["allOf"]
+    assert isinstance(rules, list)
+    assert len(rules) == 4
+
+    effectful = {"WRITE_REMOTE", "TRANSACTIONAL_SIDE_EFFECT", "PRIVILEGED_ADMIN"}
+    assert set(rules[0]["if"]["properties"]["effect_class"]["enum"]) == effectful
+    assert (
+        rules[0]["then"]["properties"]["idempotency"]["properties"]["required"]["const"]
+        is True
+    )
+
+    assert (
+        rules[1]["if"]["properties"]["authorization"]["properties"]
+        ["requires_explicit_effect_authorization"]["const"]
+        is True
+    )
+    assert set(rules[1]["then"]["properties"]["effect_class"]["enum"]) == effectful
+
+    assert (
+        rules[2]["if"]["properties"]["idempotency"]["properties"]
+        ["provider_key_forwarding"]["const"]
+        is True
+    )
+    assert (
+        rules[2]["then"]["properties"]["idempotency"]["properties"]["required"]["const"]
+        is True
+    )
+
+    assert rules[3]["if"]["properties"]["retry"]["properties"]["max_attempts"]["minimum"] == 2
+    assert (
+        rules[3]["then"]["properties"]["retry"]["properties"]["only_safe_errors"]["const"]
+        is True
+    )
 
 
 def test_integration_result_contract_encodes_runtime_returnability_invariants() -> None:
