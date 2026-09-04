@@ -301,8 +301,13 @@ def selftest() -> int:
     checks.append(("БЕЗ виявлення — null, не []", unmeasured["undeclared_dormant"], None))
     checks.append(("і вирок UNKNOWN, не MEASURED", unmeasured["status"], "UNKNOWN"))
 
-    pkg = judge(registry, set(), {"s": {"t": 0}}, {"m.a", "m.b", "korpus.mcp.__init__"},
-                production_reachable=set())
+    pkg = judge(
+        registry,
+        set(),
+        {"s": {"t": 0}},
+        {"m.a", "m.b", "korpus.mcp.__init__"},
+        production_reachable=set(),
+    )
     checks.append(("__init__ пакета не «спить»", pkg["undeclared_dormant"], []))
 
     awake_named = judge(registry, {"m.b"}, {"s": {"t": 0}}, both, production_reachable={"m.b"})
