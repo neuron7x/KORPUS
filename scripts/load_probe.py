@@ -136,6 +136,61 @@ def _port_of(base: str) -> int | None:
     return parsed.port
 
 
+def phases_below_floor(answered: dict[str, float]) -> list[str]:
+    """Фази, чия частка відповіданих нижча за підлогу. Порожній перелік — не дефолт."""
+    return sorted(phase for phase, share in answered.items() if share < ANSWERED_SHARE_FLOOR)
+
+
+def selftest() -> int:
+    """Негативний контроль сторожа знаменника — виконуваний, не описаний.
+
+    Доти контрприклад був ручним: незалежний верифікатор показав, що ОДНА відповідь
+    200 зі 101 206 проходила попереднього сторожа (`> 0`). Правку я зробила, а проби,
+    яка б це ловила НА ЗАПУСКУ, не лишила — тобто ліки жили в коді й не жили в гейті.
+    """
+    outcome = Outcome()
+    for _ in range(99):
+        outcome.record(0.006, "401")
+    outcome.record(3.0, "200")
+    one_in_a_hundred = outcome.summary()
+    cases = [
+        (
+            "одна відповідь зі ста не є виміром",
+            phases_below_floor({"soak": one_in_a_hundred["answered_share"]}),
+            ["soak"],
+        ),
+        ("частка рахується від УСІХ запитів", one_in_a_hundred["answered_share"], 0.01),
+        (
+            "p95 над відмовами лишається малим — саме тому знаменник і потрібен",
+            one_in_a_hundred["p95_seconds"] < 1.0,
+            True,
+        ),
+        ("рівно підлога проходить", phases_below_floor({"soak": ANSWERED_SHARE_FLOOR}), []),
+        (
+            "на волосину нижче підлоги — відмова",
+            phases_below_floor({"soak": ANSWERED_SHARE_FLOOR - 0.001}),
+            ["soak"],
+        ),
+        (
+            "порожня фаза не проходить мовчки",
+            phases_below_floor({"load": 0.0, "soak": 1.0}),
+            ["load"],
+        ),
+        (
+            "обидві фази судяться, не одна",
+            phases_below_floor({"load": 0.0, "soak": 0.0}),
+            ["load", "soak"],
+        ),
+    ]
+    bad = 0
+    for name, actual, expected in cases:
+        ok = actual == expected
+        bad += not ok
+        print(f"  {'ok' if ok else 'FAIL'} {name}: {actual!r}")
+    print(f"негативний контроль: {len(cases) - bad}/{len(cases)}")
+    return 1 if bad else 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--base", default="http://127.0.0.1:8081/api")
@@ -150,6 +205,7 @@ def main() -> int:
         choices=("LOCAL_DEV", "CI_FIXTURE", "PRODUCTION_LIKE", "PRODUCTION"),
         default="LOCAL_DEV",
     )
+    parser.add_argument("--selftest", action="store_true")
     parser.add_argument("--source-tree-sha256", default="")
     parser.add_argument("--release", default="")
     parser.add_argument(
@@ -159,6 +215,8 @@ def main() -> int:
         help="bearer token; repeat once per distinct subject the probe should imitate",
     )
     arguments = parser.parse_args()
+    if arguments.selftest:
+        return selftest()
 
     global TOKEN, TOKENS  # noqa: PLW0603 - one process, one target, set once at start-up
     TOKENS = [value for value in (arguments.token or []) if value]
@@ -231,7 +289,7 @@ def main() -> int:
     # вибірка з одного елемента дає p95, що дорівнює цьому елементу. Вада на
     # ЗНАМЕННИКУ: майже порожня множина, над якою рахують.
     answered = {phase: report[phase].get("answered_share", 0.0) for phase in ("load", "soak")}
-    silent = [phase for phase, share in answered.items() if share < ANSWERED_SHARE_FLOOR]
+    silent = phases_below_floor(answered)
     if silent:
         print(
             json.dumps(

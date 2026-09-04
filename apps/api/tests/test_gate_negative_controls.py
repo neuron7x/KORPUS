@@ -162,6 +162,7 @@ def _passing_recovery() -> dict[str, Any]:
         # Повна втрата, а не лише фікстурна підмножина. Без цього поля вирок
         # відмовляє: невиміряне не є нулем.
         "lost_documents_total": 0,
+        "lost_documents": 0,
         "provenance": {
             "backup_bytes": 40960,
             "plaintext_bytes": 131072,

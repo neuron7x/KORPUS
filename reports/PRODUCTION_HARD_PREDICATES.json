@@ -1,15 +1,15 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "4f3436d1c475f6967e4bc033c7a4fd64087b7d6227c3779f481ad87a221cf128",
+  "source_tree_sha256": "8e804b635c2136cc0d6d202da79758a0bfdee9fd34124dfe947c9cd2afe98016",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
-  "externally_satisfied": 6,
-  "production_satisfied": 6,
+  "externally_satisfied": 7,
+  "production_satisfied": 7,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 42.857143,
-  "production_completion_percent": 42.857143,
+  "external_completion_percent": 50.0,
+  "production_completion_percent": 50.0,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -44,14 +44,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "evidence_manifest_bound",
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": [
         "evidence_attestation_verified",
         "evidence_trusted_signer"
@@ -93,8 +90,7 @@
         "tevv_admissible",
         "pass_rate",
         "null_controls",
-        "attack_families",
-        "gate_source_bound"
+        "attack_families"
       ],
       "waived_external_checks": []
     },
@@ -110,8 +106,7 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "assessor_structured",
-        "gate_source_bound"
+        "assessor_structured"
       ],
       "waived_external_checks": [
         "independent_class",
@@ -131,8 +126,7 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "environment_class",
-        "gate_source_bound"
+        "environment_class"
       ],
       "waived_external_checks": [
         "assessor_attestation_verified",

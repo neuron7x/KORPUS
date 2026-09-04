@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import hashlib
+import math
 from datetime import date
+from types import SimpleNamespace
 
 import pytest
 from korpus.application.contextual_projection import build_contextual_projection
@@ -16,6 +18,8 @@ from korpus.application.evidence_state import build_evidence_state, feature_sche
 from korpus.application.predictive_evidence_control import (
     PredictiveEvidenceController,
     RetrievalAction,
+    _condition_matches,
+    _support_failure,
 )
 from korpus.application.risk import QueryRisk
 from korpus.domain.models import (
@@ -273,3 +277,104 @@ def test_profile_rejects_wrong_feature_schema_and_underpowered_admitted_leaf() -
                 ),
             ),
         )
+
+
+# Чотири гілки цього модуля не виконував ЖОДЕН прогін (вимір покриття 04.09.2026).
+# Три з них — відмови на нечислових та нескінченних значеннях, тобто саме те, що
+# відрізняє «умова не справдилась» від «умову неможливо перевірити». Четверта —
+# дорога підтримки листа: наявний `test_unadmitted_leaf_and_out_of_support_fall_back`
+# називає її в заголовку, але стверджує лише `leaf_not_admitted`.
+
+
+def test_matching_rule_still_falls_back_when_the_state_leaves_leaf_support() -> None:
+    """Правило спрацювало — і цього НЕ досить.
+
+    Умова правила й носій листа — різні твердження: перше каже «цей випадок мій»,
+    друге — «на таких значеннях я вимірював». Стан може задовольнити перше й вийти
+    за друге, і тоді дія листа не має доказової підстави.
+    """
+    profile = _profile().model_copy(
+        update={
+            "rules": (
+                ControllerRule(
+                    rule_id="matches-but-unsupported",
+                    conditions=(RuleCondition(feature="top1_score", operator="ge", value=0.5),),
+                    leaf=ControllerLeaf(
+                        leaf_id="narrow",
+                        action="STOP_USE_CURRENT_EVIDENCE",
+                        admitted=True,
+                        observed_samples=100,
+                        upper_error_bound=0.01,
+                        support={"top1_score": FeatureRange(minimum=0.99, maximum=1.0)},
+                    ),
+                ),
+            )
+        }
+    )
+    state = build_evidence_state(
+        query="журнал дата",
+        risk=QueryRisk.STANDARD,
+        evidence=[_evidence("журнал дата", score=0.8)],
+        eligible_evidence_count=1,
+    )
+    decision = PredictiveEvidenceController(profile, shadow_mode=False).decide(
+        state, corpus_release_id="b" * 64, answer_calibration_id="cal-v1"
+    )
+    assert decision.effective_action is RetrievalAction.BASELINE
+    assert decision.fallback_reason == "state_below_support:top1_score"
+    assert decision.rule_id == "matches-but-unsupported"
+
+
+@pytest.mark.parametrize("value", [math.inf, -math.inf, math.nan])
+def test_ordered_comparison_refuses_a_non_finite_bound(value: float) -> None:
+    """Нескінченність не порівнюють — її відхиляють.
+
+    `nan >= x` хибне, `inf >= x` істинне для всього: обидва відповіді на питання,
+    якого не ставили. Правильний вихід — «умова не перевірена», тобто False.
+    """
+    state = build_evidence_state(
+        query="журнал",
+        risk=QueryRisk.STANDARD,
+        evidence=[_evidence("журнал", score=0.8)],
+        eligible_evidence_count=1,
+    )
+    condition = SimpleNamespace(feature="top1_score", operator="ge", value=value)
+    assert _condition_matches(state, condition) is False  # type: ignore[arg-type]
+
+
+def test_an_unknown_operator_matches_nothing_instead_of_defaulting_to_true() -> None:
+    """Невідомий оператор — не дозвіл.
+
+    Схема оператор валідує, тож ця гілка захисна: вона існує на випадок, коли
+    правило прийде повз схему. Вона мусить відмовляти, а не пропускати.
+    """
+    state = build_evidence_state(
+        query="журнал",
+        risk=QueryRisk.STANDARD,
+        evidence=[_evidence("журнал", score=0.8)],
+        eligible_evidence_count=1,
+    )
+    condition = SimpleNamespace(feature="top1_score", operator="within", value=0.5)
+    assert _condition_matches(state, condition) is False  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (math.inf, "unsupported_non_finite_feature:top1_score"),
+        (math.nan, "unsupported_non_finite_feature:top1_score"),
+        ("0.8", "unsupported_non_numeric_feature:top1_score"),
+        (True, "unsupported_non_numeric_feature:top1_score"),
+    ],
+)
+def test_support_check_names_why_a_feature_could_not_be_judged(
+    value: object, expected: str
+) -> None:
+    """Причина відмови названа окремо для «не число» й «не скінченне».
+
+    Обидва випадки означають «судити не можна», але походження в них різне, і звіт,
+    який їх зливає, приховує, чи це вада ознаки, чи вада вимірювання.
+    """
+    state = SimpleNamespace(feature_value=lambda name: value)
+    support = {"top1_score": FeatureRange(minimum=0.0, maximum=1.0)}
+    assert _support_failure(state, support) == expected  # type: ignore[arg-type]
