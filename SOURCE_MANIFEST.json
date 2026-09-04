@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1813,
-  "root_sha256": "abbb8e70bed45104458afeb7b542350b8ff96c018212849e90b87d907f7e27f3",
+  "file_count": 1810,
+  "root_sha256": "3aeca42a7f09bc02aa4d2468a782e0ce73263b8abb9a2f5487e59db2d49e10fb",
   "files": [
     {
       "path": ".dockerignore",
@@ -409,8 +409,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 108894,
-      "sha256": "343d8203caec80d5ce34c3635218e9b825d2bb53fe3842ae932942efb3667cc0",
+      "bytes": 108630,
+      "sha256": "c7866dc7058dfe139debfb04501ff39fdecce8108b798b55d4a23c09db4a4490",
       "mode": "0644"
     },
     {
@@ -2695,8 +2695,8 @@
     },
     {
       "path": "apps/api/tests/test_answer_axes_composition.py",
-      "bytes": 4973,
-      "sha256": "3614d2d00e66a7530c5206006178fd0b99fa9d18808567a60c3f1885cda888e3",
+      "bytes": 4711,
+      "sha256": "5d8e02da62dd976ddd98f58bdfe071b1635d350f9dbdeee13060346350f96d5a",
       "mode": "0644"
     },
     {
@@ -2857,8 +2857,8 @@
     },
     {
       "path": "apps/api/tests/test_branch_consolidation.py",
-      "bytes": 5582,
-      "sha256": "6b584b5a6c468e42e51cb240fb43a578283cd5d2a9adf57629c8cc3f69474aab",
+      "bytes": 5190,
+      "sha256": "fb81b6ac24a29504738c10754690041af4a5ee5b9ac8e290f3a568663fef8865",
       "mode": "0644"
     },
     {
@@ -3361,8 +3361,8 @@
     },
     {
       "path": "apps/api/tests/test_evidence_bases.py",
-      "bytes": 6346,
-      "sha256": "13b4cd805472d865e1730e0964e21f4261cb55e3719eb642fd78d85e90b05365",
+      "bytes": 5899,
+      "sha256": "b0ad986a836c6296d5dde46fb64d23143fa138f67a064504d15382a26f688316",
       "mode": "0644"
     },
     {
@@ -3487,8 +3487,8 @@
     },
     {
       "path": "apps/api/tests/test_full_ssot_packager.py",
-      "bytes": 3093,
-      "sha256": "e74baf0c1f57e565e8b2d5aed1ef269dedb336fd334535984ec71d3097048f71",
+      "bytes": 1908,
+      "sha256": "b7b87b5e0a29a99928a3d7bb0e4db4f51c17de445596a1b675a50bc766ffa558",
       "mode": "0644"
     },
     {
@@ -3636,12 +3636,6 @@
       "mode": "0644"
     },
     {
-      "path": "apps/api/tests/test_handoff_liveness_probe.py",
-      "bytes": 1349,
-      "sha256": "90afc988ee9816ffdaa27b32a3cfc5209c90518cee83673a838e34caaf93c0dc",
-      "mode": "0644"
-    },
-    {
       "path": "apps/api/tests/test_health.py",
       "bytes": 2366,
       "sha256": "473a07ff8b9279f67468fe58209c6e649cec6088862811626bc41d0aa08cbcb1",
@@ -3783,12 +3777,6 @@
       "path": "apps/api/tests/test_local_production_preflight.py",
       "bytes": 3423,
       "sha256": "c5dc46a074b4d22d99e6cf63ee7970ff6aed06ae87c44d2cd98ff235d30e85fd",
-      "mode": "0644"
-    },
-    {
-      "path": "apps/api/tests/test_make_runtime_paths.py",
-      "bytes": 1162,
-      "sha256": "8d3bfb366097289a3ec9bf093832e30d1a418584dbd525a25b2730ef28074c9d",
       "mode": "0644"
     },
     {
@@ -4495,8 +4483,8 @@
     },
     {
       "path": "apps/api/tests/test_release_verify_runner.py",
-      "bytes": 8374,
-      "sha256": "3a955d1d7afbde3d382cd1a650a4cb213a427f636ac33397fc2a488ffc982482",
+      "bytes": 8158,
+      "sha256": "3fd43ea597201f93f7547309fb9c4f791b7731773d660d5dd24833486c9b4011",
       "mode": "0644"
     },
     {
@@ -7363,14 +7351,14 @@
     },
     {
       "path": "config/operations/gate-liveness.yaml",
-      "bytes": 18180,
-      "sha256": "ce11568cacaf2c90c353b49bb55d12b9099d0a078649b77a12065075d8abf258",
+      "bytes": 18197,
+      "sha256": "de4f7156f470f33d0f45e0d98c50bb723bdb696f8710f8961162a04eafb33586",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 616776,
-      "sha256": "54d8b5782b9534bdfb1a57d28cf9afab0df1c468e8e37f8458acd7fbcaa54bf9",
+      "bytes": 615188,
+      "sha256": "baf0ade785d80bad68ea194edaf9649384971f4b8cbb008917490e3053d60d18",
       "mode": "0644"
     },
     {
@@ -9133,8 +9121,8 @@
     },
     {
       "path": "scripts/check_answer_axes.py",
-      "bytes": 27991,
-      "sha256": "9b7efd3c6b934da37f802e098a297f1e459816636e54bff5ff2fda4f0b330abe",
+      "bytes": 27870,
+      "sha256": "62f9da9526a755d31feedbac07b61c6c9e9ae90f06e5089480f9e5f34dc456d2",
       "mode": "0755"
     },
     {
@@ -9415,8 +9403,8 @@
     },
     {
       "path": "scripts/full_ssot_packager.py",
-      "bytes": 6291,
-      "sha256": "4ddc8d281d24d4d23020cca509c080938cd4379a3af716cfb261a9b8d8859362",
+      "bytes": 5665,
+      "sha256": "f30769fd925f2e551f979d52390a55ecf9677989dc174034dda1a9409b128dba",
       "mode": "0644"
     },
     {
@@ -9793,8 +9781,8 @@
     },
     {
       "path": "scripts/measure_evidence_bases.py",
-      "bytes": 27740,
-      "sha256": "167ae0e695d14b2f86c6f543a7ea3b7e457398d745d026d080261adaa51dba6d",
+      "bytes": 27592,
+      "sha256": "7994da6adfdd34ba6cfa3557dad1ac988d81174959f43d4929830c04450b4d49",
       "mode": "0755"
     },
     {
@@ -9811,8 +9799,8 @@
     },
     {
       "path": "scripts/measure_recovery.py",
-      "bytes": 12013,
-      "sha256": "a5a6975cd6b4a55d9cff7d11eb01205f046af082057f3cde0a204f838509db4e",
+      "bytes": 13483,
+      "sha256": "1dcbca4488dc1e92bc071337252b09feb0a093e193fbc00173a57f5bc29e2b35",
       "mode": "0755"
     },
     {
@@ -10248,12 +10236,6 @@
       "mode": "0755"
     },
     {
-      "path": "scripts/run_handoff_liveness_probe.py",
-      "bytes": 2384,
-      "sha256": "6bbaad6b4ea7cdec5d9f066031c364e525c148fb77612a6c7887f89bc0c4daeb",
-      "mode": "0755"
-    },
-    {
       "path": "scripts/run_inference_security_gate.py",
       "bytes": 6299,
       "sha256": "af3a11444fb2a887bec3cf33c76059025107774ea861c2edbd998212634d6d5e",
@@ -10309,8 +10291,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 315608,
-      "sha256": "a38d34c9bf8e68f5201f519fd98bb4b4061feff6341422936d6d34a304e47a90",
+      "bytes": 310982,
+      "sha256": "e249f48ffe9accabb6eacd926088dfa8bf6725c55c1d2f0c0cd51fb9e55de187",
       "mode": "0755"
     },
     {
@@ -10411,8 +10393,8 @@
     },
     {
       "path": "scripts/run_release_verify.py",
-      "bytes": 13377,
-      "sha256": "b77121e81442600c7afb67b516d6e68baa80ffef391e2e8b4e934186818a7efc",
+      "bytes": 13724,
+      "sha256": "2db308dac4cd06814394fb490a84cf5fd6decc198d8f518c144466cd23e969f5",
       "mode": "0755"
     },
     {
@@ -10693,8 +10675,8 @@
     },
     {
       "path": "scripts/verify_branch_consolidation.py",
-      "bytes": 21904,
-      "sha256": "c57d9472eaeb83a6d39f4f88d7a5e7976bc466467e89be84c72c5819ae7a9325",
+      "bytes": 21810,
+      "sha256": "b4324c9415f568686b61128bbfc1794eeccafd4058f2cb721e9fb8300b7bfc9f",
       "mode": "0755"
     },
     {
