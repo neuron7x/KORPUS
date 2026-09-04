@@ -137,6 +137,23 @@ def _structured_ports(
     )
 
 
+def _legacy_ports(spec: CapabilitySpec) -> dict[str, object]:
+    adapters, schemas = _adapters_and_schemas(spec)
+    return {
+        "registry": CapabilityRegistry([spec]),
+        "policy": _policy(spec),
+        "adapters": adapters,
+        "schemas": schemas,
+        "resource_mappers": {
+            spec.authorization.resource_mapper: lambda identity, declared, request: "reference:1"
+        },
+        "egress": object(),
+        "effect_authorizer": object(),
+        "effects": object(),
+        "audit": object(),
+    }
+
+
 def test_no_compensation_requires_explicit_irreversibility() -> None:
     with pytest.raises(ValidationError, match="explicitly irreversible"):
         EffectSafetyDeclaration.for_spec(
@@ -209,10 +226,26 @@ def test_structured_effectful_gateway_composition_rejects_missing_safety() -> No
         CapabilityGateway(_structured_ports(_effect_spec(), None))
 
 
+def test_legacy_effectful_gateway_composition_rejects_missing_safety() -> None:
+    with pytest.raises(CapabilityRegistrationError, match="effectful gateway composition rejected"):
+        CapabilityGateway(**_legacy_ports(_effect_spec()))
+
+
 def test_structured_effectful_gateway_composition_accepts_exact_safety_only() -> None:
     spec = _effect_spec()
     safety = EffectSafetyRegistry([_manual_irreversible(spec)])
 
     gateway = CapabilityGateway(_structured_ports(spec, safety))
+
+    assert isinstance(gateway, CapabilityGateway)
+
+
+def test_legacy_effectful_gateway_composition_accepts_exact_safety_only() -> None:
+    spec = _effect_spec()
+    safety = EffectSafetyRegistry([_manual_irreversible(spec)])
+    ports = _legacy_ports(spec)
+    ports["effect_safety"] = safety
+
+    gateway = CapabilityGateway(**ports)
 
     assert isinstance(gateway, CapabilityGateway)
