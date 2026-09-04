@@ -2,25 +2,25 @@
   "schema": "korpus.capability-gateway.verification-state.v1",
   "pr_number": 44,
   "branch": "proposal/korpus-capability-gateway-v1-20260904",
-  "implementation_anchor_commit": "1e40b813794dd684f3aff63733dd5136f9a2521c",
+  "implementation_anchor_commit": "9a6188ba1375078b4724e90bc779d81af2856ffd",
   "anchor_semantics": "Last observed runtime-changing capability-gateway commit. It identifies implementation lineage; it is conceptually distinct from, but may equal, the exact verification candidate.",
-  "verification_candidate_commit": "3b6406b9d1cbb6523b61d5586c967d7f730118be",
+  "verification_candidate_commit": "9a6188ba1375078b4724e90bc779d81af2856ffd",
   "candidate_semantics": "Exact acceptance candidate including runtime lineage, contract artifacts and falsification controls. Later diagnostic or metadata-only checkpoints do not redefine this evidence subject.",
-  "checkpoint_parent_commit": "3b6406b9d1cbb6523b61d5586c967d7f730118be",
+  "checkpoint_parent_commit": "9a6188ba1375078b4724e90bc779d81af2856ffd",
   "frozen_requirements": "docs/proposals/korpus-capability-gateway-v1/REQUIREMENTS.json",
   "denominator": 20,
   "live_base": {
     "branch": "main",
     "observed_sha": "f311e83ae632579fe370f38847b4b19e5eed5aed",
     "merge_base_sha": "f311e83ae632579fe370f38847b4b19e5eed5aed",
-    "feature_ahead_by": 88,
+    "feature_ahead_by": 90,
     "feature_behind_by": 0,
     "relationship": "SYNCHRONIZED",
     "acceptance_gate": "CLEARED",
     "synchronization_commit": "55b15f87a4e66dd9a2c08edec7ae1c8ec2340095",
     "runtime_overlap_observed": false,
     "integration_overlap_observed": true,
-    "basis": "The exact acceptance candidate descends from deterministic current-main synchronization; compare ancestry remains behind_by=0 with merge-base=f311e83."
+    "basis": "The exact acceptance candidate descends from deterministic current-main synchronization and remains behind_by=0 with merge-base=f311e83."
   },
   "verification_policy": {
     "source_witness_is_not_execution_evidence": true,
@@ -45,12 +45,12 @@
   },
   "execution_evidence": {
     "status": "EXECUTION_NOT_OBSERVED",
-    "candidate_commit": "3b6406b9d1cbb6523b61d5586c967d7f730118be",
+    "candidate_commit": "9a6188ba1375078b4724e90bc779d81af2856ffd",
     "exact_head_bound": true,
     "workflow_run_ids": {
-      "ci": 33920664251,
-      "assurance": 33920664277,
-      "dependency-review": 33920664271
+      "ci": 33920919320,
+      "assurance": 33920919374,
+      "dependency-review": 33920919324
     },
     "observed_jobs": [
       "web-tests",
@@ -69,20 +69,8 @@
     "workflow": ".github/workflows/runner-probe.yml (diagnostic-only; removed after observation)",
     "external_actions_used": false,
     "jobs": [
-      {
-        "name": "runner-probe-ubuntu-latest",
-        "job_id": 101174115541,
-        "conclusion": "failure",
-        "steps_observed": false,
-        "logs_observed": false
-      },
-      {
-        "name": "runner-probe-ubuntu-24.04",
-        "job_id": 101174115363,
-        "conclusion": "failure",
-        "steps_observed": false,
-        "logs_observed": false
-      }
+      {"name":"runner-probe-ubuntu-latest","job_id":101174115541,"conclusion":"failure","steps_observed":false,"logs_observed":false},
+      {"name":"runner-probe-ubuntu-24.04","job_id":101174115363,"conclusion":"failure","steps_observed":false,"logs_observed":false}
     ],
     "falsified_hypotheses": [
       "failure is specific to ubuntu-24.04 runner label",
@@ -94,7 +82,7 @@
   },
   "clean_room_evidence": {
     "status": "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED",
-    "candidate_commit": "3b6406b9d1cbb6523b61d5586c967d7f730118be",
+    "candidate_commit": "9a6188ba1375078b4724e90bc779d81af2856ffd",
     "test_command_executed": false,
     "previous_attempt": {
       "candidate_commit": "55b15f87a4e66dd9a2c08edec7ae1c8ec2340095",
@@ -104,17 +92,10 @@
   },
   "fresh_context_evidence": {
     "status": "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED",
-    "candidate_commit": "3b6406b9d1cbb6523b61d5586c967d7f730118be"
+    "candidate_commit": "9a6188ba1375078b4724e90bc779d81af2856ffd"
   },
-  "cleared_gates": [
-    "BASE_SYNC_REQUIRED",
-    "OWNER_APPROVAL_GRANTED"
-  ],
-  "blocking_gates": [
-    "EXECUTION_NOT_OBSERVED",
-    "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED",
-    "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED"
-  ],
+  "cleared_gates": ["BASE_SYNC_REQUIRED", "OWNER_APPROVAL_GRANTED"],
+  "blocking_gates": ["EXECUTION_NOT_OBSERVED", "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED", "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED"],
   "requirements": [
     {"id":"CGW-R001","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/registry.py","apps/api/src/korpus/application/capability_gateway/invoke.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_core.py","apps/api/tests/test_capability_gateway_invoke.py"]},
     {"id":"CGW-R002","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/policy.py","apps/api/src/korpus/application/capability_gateway/invoke.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_core.py","apps/api/tests/test_capability_gateway_invoke.py","apps/api/tests/test_capability_gateway_authority_boundaries.py"]},
