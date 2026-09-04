@@ -54,9 +54,25 @@ def labelled_tail(stdout: str, stderr: str, budget: int = TAIL_BUDGET) -> str:
     )
 
 
+def postgres_available(database_url: str | None, docker: str | None) -> bool:
+    """Чи є ЧИМ ганяти набір: або зовнішня база, або docker. Досить одного.
+
+    Винесено 04.09.2026, бо рішення ПРОПУСТИТИ гейт не мало жодного негативного
+    контролю: самоперевірка звіряла лише підписані хвости виводу. Переворот `or` на
+    `and` тут пропускав би гейт усюди, де є тільки docker, — і це `NOT_EXECUTED`, яке
+    ніхто не відрізнить від `PASS`, бо пропуск повертає код `None`, не відмову.
+    """
+    return bool(database_url) or docker is not None
+
+
+def skips(targets_present: bool, available: bool) -> bool:
+    """Гейт не бігає, коли нема чого міряти АБО нема чим. Обидві причини — не PASS."""
+    return not targets_present or not available
+
+
 def runtime(root: Path, targets: list[str], targets_present: bool) -> tuple[bool, int | None, str]:
-    available = bool(os.getenv("KORPUS_TEST_DATABASE_URL")) or shutil.which("docker") is not None
-    if not targets_present or not available:
+    available = postgres_available(os.getenv("KORPUS_TEST_DATABASE_URL"), shutil.which("docker"))
+    if skips(targets_present, available):
         return available, None, ""
     completed = run(
         root,
@@ -76,6 +92,16 @@ def selftest() -> int:
         ("підписані хвости зберігають причину", cause in labelled_tail(cause, noise), True),
         ("підписані хвости зберігають і шум", "upgrade 0599" in labelled_tail(cause, noise), True),
         ("порожні труби не падають", labelled_tail("", "").count("---"), 4),
+        # Рішення ПРОПУСТИТИ гейт — теж вирок, і доти його не звіряв ніхто.
+        ("сама зовнішня база — досить", postgres_available("postgresql://x", None), True),
+        ("сам docker — досить", postgres_available(None, "/usr/bin/docker"), True),
+        ("обидва — теж досить", postgres_available("postgresql://x", "/usr/bin/docker"), True),
+        ("немає нічого — гейт не має чим бігти", postgres_available(None, None), False),
+        ("порожній рядок бази не є базою", postgres_available("", None), False),
+        ("без цілей — пропуск", skips(False, True), True),
+        ("нема чим бігти — пропуск", skips(True, False), True),
+        ("є цілі й є чим — БІЖИТЬ", skips(True, True), False),
+        ("нема ні того, ні того — пропуск", skips(False, False), True),
     ]
     bad = 0
     for name, actual, expected in cases:
