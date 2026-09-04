@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 try:
@@ -81,6 +82,21 @@ def claim_admission_checks(root: Path, release: str, digest: str) -> dict[str, b
 #: пам'ять автора.
 OWNER_PACKET = "reports/OWNER_PILOT_RELEASE_PACKET.md"
 
+#: Рядок, якого в пакеті бути не сміє. Він оголошує КОМІТ, а документ усередині дерева
+#: назвати свій коміт не здатен: будь-яка його правка створює новий, і число застаріває
+#: тієї ж миті. Тому це не «хибне значення, яке треба поправити», а тотожність, яку
+#: жоден коміт не лишить істинною.
+#:
+#: Виміряно 04.09.2026 на `05246147`: заголовок казав `**КАНДИДАТ:** d2964c6e5386…`,
+#: тоді як кандидатом був `05246147`. Рядок дайджесту при цьому був ПРАВИЛЬНИЙ, бо
+#: `reports/` не входить у `EVIDENCE_SOURCE_PATHS` і два різні коміти несуть один
+#: дайджест джерела. Отже `source_bound` вище цього стану не бачить за побудовою:
+#: критерій слабший за властивість, яку називає.
+#:
+#: Тотожність коміта встановлює ЗАХИЩЕНИЙ ТЕГ, який ставить власник після рішення, —
+#: не проза в дереві. Слабшу тотожність тут не лагодять, а видаляють.
+_CANDIDATE_CLAIM = re.compile(r"^\*\*КАНДИДАТ:\*\*\s*`?[0-9a-fA-F]{7,40}`?", re.MULTILINE)
+
 
 def owner_packet_checks(root: Path, release: str, digest: str) -> dict[str, bool]:
     """Чи описує пакет власника ЦЕЙ кандидат.
@@ -100,6 +116,7 @@ def owner_packet_checks(root: Path, release: str, digest: str) -> dict[str, bool
         f"{OWNER_PACKET}.present": True,
         f"{OWNER_PACKET}.release_bound": bool(release) and release in text,
         f"{OWNER_PACKET}.source_bound": bool(digest) and digest in text,
+        f"{OWNER_PACKET}.no_unverifiable_candidate": not _CANDIDATE_CLAIM.search(text),
     }
 
 

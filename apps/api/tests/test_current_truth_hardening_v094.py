@@ -244,3 +244,64 @@ def test_the_live_artifacts_in_this_tree_name_their_surface() -> None:
         != EVIDENCE_SCOPE
     ]
     assert not unnamed, f"артефакти не називають поверхні: {unnamed}"
+
+
+def test_a_packet_that_names_a_commit_is_refused_even_when_the_digest_is_right(
+    tmp_path: Path,
+) -> None:
+    """Вада, якої `source_bound` не бачить ЗА ПОБУДОВОЮ.
+
+    Виміряно 04.09.2026 на `05246147`: заголовок казав `**КАНДИДАТ:** d2964c6e5386…`,
+    кандидатом був `05246147`, а рядок дайджесту був ПРАВИЛЬНИЙ — бо `reports/` не
+    входить у `EVIDENCE_SOURCE_PATHS`, тож два різні коміти несуть один дайджест
+    джерела. Перевірка підрядком проходила, документ називав не той коміт.
+
+    Обидва плеча тут в ОДНОМУ тесті навмисно: доказ у тому, що `source_bound` лишається
+    істинним, поки п'ята перевірка червона. Порізно кожне плече виглядало б як згода.
+    """
+    digest = "a" * 64
+    body = (
+        "# Пакет власника — приватний пілот KORPUS v0.9.7\n\n"
+        "**КАНДИДАТ:** `d2964c6e5386bb8ab7f6cfcec3af855a876bbf8d`\n"
+        f"**ДАЙДЖЕСТ ДЖЕРЕЛА:** `{digest}`\n"
+    )
+    checks = owner_packet_checks(_packet(tmp_path, body), "v0.9.7", digest)
+    assert checks[f"{PACKET}.source_bound"] is True
+    assert checks[f"{PACKET}.no_unverifiable_candidate"] is False
+
+
+def test_a_packet_bound_only_by_digest_is_accepted(tmp_path: Path) -> None:
+    """Позитивне плече п'ятої перевірки: без рядка про коміт пакет прийнятний.
+
+    Дайджест — єдина тотожність, яку проза в дереві здатна тримати істинною: `reports/`
+    поза `EVIDENCE_SOURCE_PATHS`, тож запис у пакет його не зсуває. Коміт документ
+    назвати не може взагалі — його власна правка створює новий.
+    """
+    digest = "a" * 64
+    body = (
+        "# Пакет власника — приватний пілот KORPUS v0.9.7\n\n"
+        f"**ДАЙДЖЕСТ ДЖЕРЕЛА:** `{digest}`\n"
+        "**Кандидат** — коміт, який несе цей дайджест; його називає захищений тег.\n"
+    )
+    checks = owner_packet_checks(_packet(tmp_path, body), "v0.9.7", digest)
+    assert checks[f"{PACKET}.source_bound"] is True
+    assert checks[f"{PACKET}.no_unverifiable_candidate"] is True
+
+
+def test_the_refusal_is_about_the_claim_not_about_hex_anywhere(tmp_path: Path) -> None:
+    """Негативний контроль на сам контроль: заборонено ТВЕРДЖЕННЯ, не шістнадцяткове.
+
+    Без цього перевірка червоніла б від будь-якої згадки коміта в прозі — а пакет мусить
+    мати право процитувати історичний коміт, не оголошуючи його кандидатом. Перевірка,
+    що падає на цитаті, змусила б наступного автора цитати прибрати, і документ став би
+    біднішим заради зеленого кольору.
+    """
+    digest = "a" * 64
+    body = (
+        "# Пакет власника — приватний пілот KORPUS v0.9.7\n\n"
+        f"**ДАЙДЖЕСТ ДЖЕРЕЛА:** `{digest}`\n\n"
+        "Вада знайдена на `d2964c6e5386bb8ab7f6cfcec3af855a876bbf8d` і закрита на\n"
+        "наступному коміті; КАНДИДАТ згадується тут як слово, не як прив'язка.\n"
+    )
+    checks = owner_packet_checks(_packet(tmp_path, body), "v0.9.7", digest)
+    assert checks[f"{PACKET}.no_unverifiable_candidate"] is True
