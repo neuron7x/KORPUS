@@ -59,12 +59,24 @@ QUESTIONS = (
 #: must not be sent: the point of that path is that the visitor holds nothing.
 TOKEN = ""
 
+#: Один токен на робітника, коли їх передали кілька. У режимі `jwt` частку допуску
+#: рахують НА СУБ'ЄКТА, а суб'єкт бере з токена. Проба з одним токеном тому міряє
+#: одного користувача, що б не стояло в `--concurrency`: виміряно 04.09.2026 — при
+#: `KORPUS_MAX_CONCURRENT_ANSWERS=4` (частка суб'єкта 2) паралелізм 4 давав
+#: `subject_share_exhausted`, і відмови були властивістю ПРОБИ, а не розгортання,
+#: якому оголошено 3–10 РІЗНИХ користувачів. Форма проби мусить збігатися з формою
+#: того, що вона нібито міряє.
+TOKENS: list[str] = []
 
-def _ask(base: str, question: str, timeout: float) -> tuple[float, str, str, str]:
+
+def _ask(
+    base: str, question: str, timeout: float, token: str | None = None
+) -> tuple[float, str, str, str]:
     body = json.dumps({"text": question, "declaration": DECLARATION}).encode("utf-8")
     headers = {"content-type": "application/json"}
-    if TOKEN:
-        headers["Authorization"] = f"Bearer {TOKEN}"
+    bearer = TOKEN if token is None else token
+    if bearer:
+        headers["Authorization"] = f"Bearer {bearer}"
     request = urllib.request.Request(f"{base}/v1/answers", data=body, headers=headers)
     started = time.monotonic()
     try:
@@ -94,10 +106,11 @@ def _phase(base: str, concurrency: int, seconds: float, timeout: float) -> Outco
 
     def worker(index: int) -> None:
         nonlocal counter
+        token = TOKENS[index % len(TOKENS)] if TOKENS else TOKEN
         while time.monotonic() < deadline:
             counter += 1
             question = QUESTIONS[(index + counter) % len(QUESTIONS)]
-            elapsed, status, decision, refusal_reason = _ask(base, question, timeout)
+            elapsed, status, decision, refusal_reason = _ask(base, question, timeout, token)
             outcome.record(elapsed, status, decision, refusal_reason)
             if status == "429":
                 # Honour the refusal instead of spinning on it. A worker that retries a
@@ -135,12 +148,16 @@ def main() -> int:
     parser.add_argument("--source-tree-sha256", default="")
     parser.add_argument("--release", default="")
     parser.add_argument(
-        "--token", default="", help="bearer token; only for probing the API directly"
+        "--token",
+        action="append",
+        default=None,
+        help="bearer token; repeat once per distinct subject the probe should imitate",
     )
     arguments = parser.parse_args()
 
-    global TOKEN  # noqa: PLW0603 - one process, one target, set once at start-up
-    TOKEN = arguments.token
+    global TOKEN, TOKENS  # noqa: PLW0603 - one process, one target, set once at start-up
+    TOKENS = [value for value in (arguments.token or []) if value]
+    TOKEN = TOKENS[0] if TOKENS else ""
 
     # Cold first, deliberately: the first question after a restart pays for whatever the
     # process builds lazily, and a report that hides it describes a system nobody starts.
@@ -177,6 +194,9 @@ def main() -> int:
             "status": cold_status,
             "refusal_reason": cold_refusal_reason,
         },
+        # Скільки РІЗНИХ суб'єктів тримала проба. Без цього числа «немає тротлінгу»
+        # і «є тротлінг» — твердження про різні світи, і жоден звіт не каже, про який.
+        "subjects": max(len(TOKENS), 1),
         "load": {"concurrency": arguments.concurrency, **load.summary()},
         "spike": {"concurrency": arguments.spike, **spike.summary()},
         "soak": {"concurrency": arguments.concurrency, **soak.summary()},

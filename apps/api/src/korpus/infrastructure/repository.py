@@ -846,6 +846,23 @@ class SqlRepository:
                 )
             )
         elif self.engine.dialect.name == "postgresql":
+            # Дорога `create_all` мусить дати ту саму таблицю, що й міграція 0023:
+            # схема, зібрана з метаданих, не знає про стовпець, а запит добору знає.
+            # Це вже ставалось із самим індексом — тому він тут і стоїть.
+            connection.execute(
+                sql_text(
+                    "ALTER TABLE evidence_spans ADD COLUMN IF NOT EXISTS search_vector "
+                    "tsvector GENERATED ALWAYS AS (to_tsvector('simple', text)) STORED"
+                )
+            )
+            connection.execute(
+                sql_text(
+                    "CREATE INDEX IF NOT EXISTS ix_evidence_spans_search_vector "
+                    "ON evidence_spans USING GIN (search_vector)"
+                )
+            )
+            # Старий вираз-індекс лишається: ревізія N-1 застосунку питає
+            # `to_tsvector('simple', s.text)` і мусить пережити міграцію.
             connection.execute(
                 sql_text(
                     "CREATE INDEX IF NOT EXISTS ix_evidence_spans_search "

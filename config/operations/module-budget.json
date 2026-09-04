@@ -2713,13 +2713,13 @@
       "reason": "PEC v1 initial ratchet: low-cardinality observability primitive measured at first integration; ceiling may only move down"
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1237,
+      "lines": 1254,
       "max_complexity": 13,
       "max_function_args": 17,
       "max_function_lines": 88,
       "max_nesting": 4,
       "proof_lines": 0,
-      "reason": "Raised 1067 -> 1086 on 2026-08-28 for NonRetryableWriteError: a review transition that found the version in another state was converted to a retryable ConcurrentWriteError, so the retry loop spent its whole budget on a conflict that cannot resolve and the caller received 'transaction retry budget exhausted' through the 409 body instead of 'version state changed concurrently'. Earlier entry: _is_contention, SQLSTATE 40001/40P01 instead of a substring PostgreSQL never emits."
+      "reason": "04.09.2026, ВИМІРЯНА причина повільного добору на PostgreSQL: під RLS повнотекстова умова НЕ МОЖЕ стати умовою індексу — `ts_match_vq`, `to_tsvector` і `ts_rank_cd` мають `proleakproof = f`, а безпекові умови стоять рівнем нижче, тож «securely promotable» ця умова не буває ніколи. Індекс `ix_evidence_spans_search` існував і був недосяжний, а `to_tsvector('simple', s.text)` рахувався на КОЖНОМУ з 31 464 прольотів. Міграція 0023 дає генерований стовпець; запит читає його. Виміряно на пілоті: 3.48 с → 0.97 с у базі, 3.9 с → 1.6 с у відповіді, ті самі span_id на чотирьох питаннях."
     },
     "apps/api/src/korpus/infrastructure/repository_search.py": {
       "lines": 111,
@@ -2740,13 +2740,13 @@
       "reason": "Strict infrastructure resource-bound arithmetic"
     },
     "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py": {
-      "lines": 160,
+      "lines": 166,
       "max_complexity": 13,
       "max_function_args": 6,
-      "max_function_lines": 120,
+      "max_function_lines": 124,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+      "reason": "04.09.2026, ВИМІРЯНА причина повільного добору на PostgreSQL: під RLS повнотекстова умова НЕ МОЖЕ стати умовою індексу — `ts_match_vq`, `to_tsvector` і `ts_rank_cd` мають `proleakproof = f`, а безпекові умови стоять рівнем нижче, тож «securely promotable» ця умова не буває ніколи. Індекс `ix_evidence_spans_search` існував і був недосяжний, а `to_tsvector('simple', s.text)` рахувався на КОЖНОМУ з 31 464 прольотів. Міграція 0023 дає генерований стовпець; запит читає його. Виміряно на пілоті: 3.48 с → 0.97 с у базі, 3.9 с → 1.6 с у відповіді, ті самі span_id на чотирьох питаннях."
     },
     "apps/api/src/korpus/infrastructure/retrieval_queries.py": {
       "lines": 238,
@@ -4315,13 +4315,13 @@
       "reason": "registered 2026-08-29: shared ISO-date parser, extracted after an equivalent-input probe found three gates rejecting a valid datetime and accepting compact and week-numbered forms"
     },
     "scripts/load_probe.py": {
-      "lines": 204,
-      "max_complexity": 6,
+      "lines": 224,
+      "max_complexity": 8,
       "max_function_args": 4,
-      "max_function_lines": 80,
+      "max_function_lines": 87,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "03.09.2026: прапорець `--environment-class` може лише ПОСЛАБИТИ клас; PRODUCTION_LIKE віддає вимір топології. Доти прогін на дев-машині ставав доказом про продакшен одним аргументом. Звіт несе і запит, і підставу виміру."
+      "reason": "04.09.2026: проба тримала ОДИН токен, тобто одного суб'єкта, що б не стояло в `--concurrency`. У режимі jwt частку допуску рахують НА СУБ'ЄКТА, тож при `KORPUS_MAX_CONCURRENT_ANSWERS=4` (частка 2) паралелізм 4 давав `subject_share_exhausted` — і ці відмови були властивістю ПРОБИ, а не розгортання, якому оголошено 3–10 РІЗНИХ користувачів. Тепер `--token` повторюваний, один токен на робітника, а звіт несе число суб'єктів: без нього «є тротлінг» і «немає тротлінгу» — твердження про різні світи."
     },
     "scripts/load_probe_lib/metrics.py": {
       "lines": 57,
@@ -10561,6 +10561,45 @@
       "to": {
         "lines": 962,
         "proof_lines": 131
+      }
+    },
+    {
+      "from": {
+        "lines": 204,
+        "max_complexity": 6,
+        "max_function_lines": 80
+      },
+      "on": "2026-09-04",
+      "path": "scripts/load_probe.py",
+      "reason": "04.09.2026: проба тримала ОДИН токен, тобто одного суб'єкта, що б не стояло в `--concurrency`. У режимі jwt частку допуску рахують НА СУБ'ЄКТА, тож при `KORPUS_MAX_CONCURRENT_ANSWERS=4` (частка 2) паралелізм 4 давав `subject_share_exhausted` — і ці відмови були властивістю ПРОБИ, а не розгортання, якому оголошено 3–10 РІЗНИХ користувачів. Тепер `--token` повторюваний, один токен на робітника, а звіт несе число суб'єктів: без нього «є тротлінг» і «немає тротлінгу» — твердження про різні світи.",
+      "to": {
+        "lines": 224,
+        "max_complexity": 8,
+        "max_function_lines": 87
+      }
+    },
+    {
+      "from": {
+        "lines": 1237
+      },
+      "on": "2026-09-04",
+      "path": "apps/api/src/korpus/infrastructure/repository.py",
+      "reason": "04.09.2026, ВИМІРЯНА причина повільного добору на PostgreSQL: під RLS повнотекстова умова НЕ МОЖЕ стати умовою індексу — `ts_match_vq`, `to_tsvector` і `ts_rank_cd` мають `proleakproof = f`, а безпекові умови стоять рівнем нижче, тож «securely promotable» ця умова не буває ніколи. Індекс `ix_evidence_spans_search` існував і був недосяжний, а `to_tsvector('simple', s.text)` рахувався на КОЖНОМУ з 31 464 прольотів. Міграція 0023 дає генерований стовпець; запит читає його. Виміряно на пілоті: 3.48 с → 0.97 с у базі, 3.9 с → 1.6 с у відповіді, ті самі span_id на чотирьох питаннях.",
+      "to": {
+        "lines": 1254
+      }
+    },
+    {
+      "from": {
+        "lines": 160,
+        "max_function_lines": 120
+      },
+      "on": "2026-09-04",
+      "path": "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
+      "reason": "04.09.2026, ВИМІРЯНА причина повільного добору на PostgreSQL: під RLS повнотекстова умова НЕ МОЖЕ стати умовою індексу — `ts_match_vq`, `to_tsvector` і `ts_rank_cd` мають `proleakproof = f`, а безпекові умови стоять рівнем нижче, тож «securely promotable» ця умова не буває ніколи. Індекс `ix_evidence_spans_search` існував і був недосяжний, а `to_tsvector('simple', s.text)` рахувався на КОЖНОМУ з 31 464 прольотів. Міграція 0023 дає генерований стовпець; запит читає його. Виміряно на пілоті: 3.48 с → 0.97 с у базі, 3.9 с → 1.6 с у відповіді, ті самі span_id на чотирьох питаннях.",
+      "to": {
+        "lines": 166,
+        "max_function_lines": 124
       }
     }
   ],
