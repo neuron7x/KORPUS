@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1809,
-  "root_sha256": "e0910cfd53ea3097f5401982b27f1117d96eafe016d3a2fe7cba83fe470ee5e7",
+  "root_sha256": "ed3c30aa5b50fe6fbc58a4c125f0caca835c9844b9ad1fde7c3028d2658e093b",
   "files": [
     {
       "path": ".dockerignore",
@@ -7357,8 +7357,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 598434,
-      "sha256": "3f3658a3e175ba29c6ba5065f8e794029594393834f2430aa607f2ee1f2e91cf",
+      "bytes": 600013,
+      "sha256": "206d472e4143df99a42a26e8744d5d0f5c9bab186e4131a3baf4f43d55bc96c9",
       "mode": "0644"
     },
     {
@@ -9799,8 +9799,8 @@
     },
     {
       "path": "scripts/measure_recovery.py",
-      "bytes": 9182,
-      "sha256": "537264425fa4bca913597b18488162009f2dce0e3fdafd670ce2ebc23e32ab13",
+      "bytes": 10126,
+      "sha256": "321d0f89ec46c3015302aab5f1dceba3a3cdab05bf79ee7b0da9be43cfeba6ad",
       "mode": "0755"
     },
     {

@@ -23,6 +23,10 @@ sys.path.insert(0, str(ROOT / "apps/api/src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_serving_freshness import topology_environment_class  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
+from korpus.application.recovery import (  # noqa: E402
+    PRODUCTION_LIKE_MINIMUM_BYTES,
+    PRODUCTION_LIKE_MINIMUM_ROWS,
+)
 from release_identity import release_tag  # noqa: E402
 
 OUTPUT = ROOT / "var/recovery-report.json"
@@ -154,12 +158,22 @@ def main() -> int:
         if requested not in {"PRODUCTION_LIKE", "PRODUCTION"}
         else measured["environment_class"]
     )
+    # Клас МАСШТАБУ — не клас середовища. Виміряно 04.09.2026: пілотна топологія
+    # засвідчена як PRODUCTION_LIKE, і саме з цього рядок виводив `scale_class:
+    # production-like` — на 259 документах і 19 МБ. Споживач (`classify_recovery`)
+    # відмовив як OVERSTATED_SCALE і мав рацію: топологія й обсяг — різні предмети,
+    # а тут вони жили під одним іменем. Підлога береться З ТОГО Ж модуля, що судить,
+    # тож двох оголошень порогу не існує.
+    scale_class = (
+        "production-like"
+        if int(manifest["plaintext_bytes"]) >= PRODUCTION_LIKE_MINIMUM_BYTES
+        or document_rows >= PRODUCTION_LIKE_MINIMUM_ROWS
+        else "ci-fixture"
+    )
     report = {
         "schema_version": 2,
         "status": "PASS",
-        "scale_class": "ci-fixture"
-        if environment_class == "CI_FIXTURE"
-        else environment_class.lower().replace("_", "-"),
+        "scale_class": scale_class,
         "environment_class": environment_class,
         "environment_class_requested": requested,
         "environment_class_basis": measured["basis"],
