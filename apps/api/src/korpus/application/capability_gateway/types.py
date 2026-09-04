@@ -5,7 +5,7 @@ from enum import StrEnum
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 CAPABILITY_ID_PATTERN = r"^[a-z][a-z0-9_.-]{2,127}$"
 SEMVER_PATTERN = r"^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?$"
@@ -188,3 +188,10 @@ class InvocationContext(BaseModel):
     policy_context_digest: str = Field(pattern=DIGEST_PATTERN)
     trace_id: str | None = Field(default=None, max_length=64)
     purpose: str | None = Field(default=None, max_length=256)
+
+    @field_validator("request_time")
+    @classmethod
+    def require_timezone_aware_request_time(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("invocation request_time must be timezone-aware")
+        return value

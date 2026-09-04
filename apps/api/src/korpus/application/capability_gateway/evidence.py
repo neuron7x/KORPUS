@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 from enum import StrEnum
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from korpus.application.capability_gateway.contracts import payload_digest
 from korpus.application.capability_gateway.errors import CapabilityContractError
@@ -16,6 +16,7 @@ from korpus.application.capability_gateway.types import (
 )
 
 DIGEST_PATTERN = r"^sha256:[a-f0-9]{64}$"
+EvidenceSourceRef = Annotated[str, Field(max_length=1024)]
 
 
 class CapabilityEvidenceMissing(CapabilityContractError):
@@ -58,7 +59,7 @@ class EvidenceProvenance(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     kind: ProvenanceKind
-    source_refs: list[str] = Field(default_factory=list, max_length=128)
+    source_refs: list[EvidenceSourceRef] = Field(default_factory=list, max_length=128)
     provider_identity: str | None = Field(default=None, max_length=256)
 
 
@@ -73,6 +74,13 @@ class EvidenceEnvelope(BaseModel):
     expires_at: datetime | None = None
     reproducible: bool = False
     signature_ref: str | None = Field(default=None, max_length=1024)
+
+    @field_validator("observed_at", "expires_at")
+    @classmethod
+    def require_timezone_aware_timestamp(cls, value: datetime | None) -> datetime | None:
+        if value is not None and (value.tzinfo is None or value.utcoffset() is None):
+            raise ValueError("evidence timestamps must be timezone-aware")
+        return value
 
 
 def validate_evidence(
