@@ -4,7 +4,7 @@ import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 import httpx
 
@@ -27,6 +27,18 @@ from korpus.application.capability_gateway.types import (
     IntegrationRequest,
     InvocationContext,
     ProviderType,
+)
+
+_FORBIDDEN_HEADERS = frozenset(
+    {
+        "connection",
+        "content-length",
+        "host",
+        "proxy-authenticate",
+        "proxy-authorization",
+        "transfer-encoding",
+        "upgrade",
+    }
 )
 
 
@@ -61,7 +73,7 @@ class GovernedHttpReadAdapter:
         self._client = client
         self._base = self._validate_base_url(base_url)
         self._plan_builder = plan_builder
-        self._headers = dict(headers or {})
+        self._headers = self._validate_headers(headers or {})
 
     def execute(
         self,
@@ -75,6 +87,7 @@ class GovernedHttpReadAdapter:
         try:
             plan = self._plan_builder(request.input, logical_resource)
             url = self._resolve_url(plan.path)
+            query = self._validate_query(plan.query)
         except (TypeError, ValueError, RuntimeError) as exc:
             raise AdapterExecutionFailed("HTTP request plan rejected") from exc
 
@@ -83,7 +96,7 @@ class GovernedHttpReadAdapter:
             with self._client.stream(
                 "GET",
                 url,
-                params=list(plan.query),
+                params=query,
                 headers=self._headers,
                 timeout=timeout,
                 follow_redirects=False,
@@ -115,7 +128,22 @@ class GovernedHttpReadAdapter:
             raise ValueError("HTTP capability base URL must be absolute HTTPS")
         if candidate.userinfo or candidate.query or candidate.fragment:
             raise ValueError("HTTP capability base URL cannot contain credentials, query, or fragment")
+        decoded = unquote(candidate.path)
+        if "\\" in decoded or any(segment in {".", ".."} for segment in decoded.split("/")):
+            raise ValueError("HTTP capability base URL contains unsafe path segments")
         return candidate
+
+    @staticmethod
+    def _validate_headers(headers: Mapping[str, str]) -> dict[str, str]:
+        result: dict[str, str] = {}
+        for name, value in headers.items():
+            normalized = name.strip().lower()
+            if not normalized or normalized in _FORBIDDEN_HEADERS:
+                raise ValueError(f"HTTP capability header is forbidden: {name}")
+            if any(char in name or char in value for char in ("\r", "\n", "\x00")):
+                raise ValueError("HTTP capability headers contain control characters")
+            result[name] = value
+        return result
 
     @staticmethod
     def _validate_spec(spec: CapabilitySpec) -> None:
@@ -133,11 +161,18 @@ class GovernedHttpReadAdapter:
             )
 
     def _resolve_url(self, path: str) -> httpx.URL:
-        if not path or any(segment == ".." for segment in path.split("/")):
-            raise ValueError("HTTP capability path is invalid")
+        if not path:
+            raise ValueError("HTTP capability path is empty")
         parsed = urlsplit(path)
-        if parsed.scheme or parsed.netloc or parsed.fragment:
-            raise ValueError("HTTP capability path must be relative and fragment-free")
+        if parsed.scheme or parsed.netloc or parsed.query or parsed.fragment:
+            raise ValueError("HTTP capability path must contain path data only")
+        decoded = unquote(parsed.path)
+        if (
+            "\\" in decoded
+            or any(ord(char) < 32 for char in decoded)
+            or any(segment in {".", ".."} for segment in decoded.split("/"))
+        ):
+            raise ValueError("HTTP capability path is invalid")
 
         base_path = self._base.path.rstrip("/")
         relative_path = parsed.path.lstrip("/")
@@ -150,6 +185,20 @@ class GovernedHttpReadAdapter:
         ):
             raise ValueError("HTTP capability target escaped configured origin")
         return candidate
+
+    @staticmethod
+    def _validate_query(query: tuple[tuple[str, str], ...]) -> list[tuple[str, str]]:
+        result: list[tuple[str, str]] = []
+        for pair in query:
+            if len(pair) != 2:
+                raise ValueError("HTTP capability query pair is invalid")
+            name, value = pair
+            if not isinstance(name, str) or not isinstance(value, str) or not name:
+                raise ValueError("HTTP capability query must contain string pairs")
+            if any(char in name or char in value for char in ("\r", "\n", "\x00")):
+                raise ValueError("HTTP capability query contains control characters")
+            result.append((name, value))
+        return result
 
     @staticmethod
     def _validate_content_type(response: httpx.Response) -> None:
