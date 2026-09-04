@@ -15,6 +15,7 @@ class CapabilityInvoker(Protocol):
     def invoke(self, *, identity: Identity, request: IntegrationRequest) -> IntegrationResult: ...
 
 
+IdentityDependency = Annotated[Identity, Depends(get_identity)]
 _PREAUTH_DENIALS = frozenset({"CAPABILITY_UNKNOWN", "CAPABILITY_DISABLED", "POLICY_DENIED"})
 
 
@@ -35,12 +36,11 @@ def build_integration_router(invoker: CapabilityInvoker) -> APIRouter:
     """Create the API surface without activating it in the application composition root."""
 
     router = APIRouter()
-    identity_dependency = Annotated[Identity, Depends(get_identity)]
 
     @router.post("/v1/integrations/invoke", response_model=IntegrationResult)
     def invoke_capability(
         request: IntegrationRequest,
-        identity: identity_dependency,
+        identity: IdentityDependency,
         response: Response,
     ) -> IntegrationResult:
         internal = invoker.invoke(identity=identity, request=request)
