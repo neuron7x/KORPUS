@@ -36,6 +36,11 @@ def _spec(
     evidence: EvidenceProfile = EvidenceProfile.PROVIDER_PROVENANCE,
     max_response_bytes: int = 4096,
 ) -> CapabilitySpec:
+    effectful = effect in {
+        EffectClass.WRITE_REMOTE,
+        EffectClass.TRANSACTIONAL_SIDE_EFFECT,
+        EffectClass.PRIVILEGED_ADMIN,
+    }
     return CapabilitySpec(
         schema_version="korpus.capability-spec.v1",
         capability_id="reference.remote.read",
@@ -49,6 +54,7 @@ def _spec(
         authorization=AuthorizationSpec(
             action="integration:reference:read",
             resource_mapper="reference_resource_v1",
+            requires_explicit_effect_authorization=effectful,
         ),
         evidence=EvidenceSpec(
             profile=evidence,
@@ -57,7 +63,7 @@ def _spec(
         ),
         timeouts=TimeoutSpec(total_ms=500),
         retry=RetrySpec(max_attempts=1),
-        idempotency=IdempotencySpec(required=False),
+        idempotency=IdempotencySpec(required=effectful),
         data_policy=DataPolicySpec(
             egress_class=DataEgressClass.PUBLIC_ONLY,
             max_request_bytes=4096,

@@ -57,6 +57,18 @@ def test_effectful_capability_requires_durable_idempotency_at_registration_time(
         CapabilitySpec.model_validate(payload)
 
 
+def test_effectful_capability_requires_explicit_effect_authorization_declaration() -> None:
+    payload = _payload()
+    payload["authorization"] = AuthorizationSpec(
+        action="integration:effect:write",
+        resource_mapper="effect_resource_v1",
+        requires_explicit_effect_authorization=False,
+    )
+
+    with pytest.raises(ValidationError, match="must require explicit effect authorization"):
+        CapabilitySpec.model_validate(payload)
+
+
 def test_read_capability_cannot_claim_explicit_effect_authorization() -> None:
     payload = _payload()
     payload["effect_class"] = EffectClass.READ_REMOTE

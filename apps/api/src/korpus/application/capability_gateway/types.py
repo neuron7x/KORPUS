@@ -147,6 +147,8 @@ class CapabilitySpec(BaseModel):
         }
         if effectful and not self.idempotency.required:
             raise ValueError("effectful capabilities must require durable idempotency")
+        if effectful and not self.authorization.requires_explicit_effect_authorization:
+            raise ValueError("effectful capabilities must require explicit effect authorization")
         if self.authorization.requires_explicit_effect_authorization and not effectful:
             raise ValueError("explicit effect authorization is valid only for effectful capabilities")
         if self.idempotency.provider_key_forwarding and not self.idempotency.required:
