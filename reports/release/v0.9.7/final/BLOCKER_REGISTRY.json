@@ -1,6 +1,6 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-04T23:14:49.482580+00:00",
+  "generated_at": "2026-09-04T23:30:13.774556+00:00",
   "release": "v0.9.7",
   "source_tree_sha256": "c785baa8068142b045a3b622e227bb0e4366b8536b1cf9ba9a9053decbc59614",
   "digest_scope": "evidence_paths",
@@ -154,13 +154,16 @@
     },
     {
       "id": "exact_python_3_12_13_environment",
-      "state": "CLOSED_ANCHORED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
+      "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "metadata:profile",
+        "production_python_exact"
+      ],
       "required_proof_class": "EXACT_LOCKED_ENVIRONMENT"
     },
     {
@@ -211,13 +214,13 @@
     }
   ],
   "counts": {
-    "CLOSED_ANCHORED": 7,
-    "EXTERNAL_REQUIRED": 7
+    "CLOSED_ANCHORED": 6,
+    "EXTERNAL_REQUIRED": 8
   },
   "internal_executable_unresolved": 0,
   "internal_missing_artifact": 0,
   "internal_stale_evidence": 0,
-  "production_external_or_runtime_unresolved": 7,
+  "production_external_or_runtime_unresolved": 8,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true
 }
