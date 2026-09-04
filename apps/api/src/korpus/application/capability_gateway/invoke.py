@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from typing import Literal, Protocol
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from korpus.application.capability_gateway.adapters import (
     AdapterExecutionFailed,
@@ -95,6 +95,18 @@ class IntegrationResult(BaseModel):
     evidence: EvidenceEnvelope | None = None
     audit_record_id: str | None = Field(default=None, max_length=256)
     error_code: str | None = Field(default=None, max_length=128)
+
+    @model_validator(mode="after")
+    def validate_returnability_invariants(self) -> IntegrationResult:
+        if self.outcome is InvocationOutcome.SUCCESS:
+            if self.audit_record_id is None:
+                raise ValueError("successful integration result requires persisted audit identity")
+            if self.error_code is not None:
+                raise ValueError("successful integration result cannot carry an error code")
+            return self
+        if self.output is not None or self.evidence is not None:
+            raise ValueError("non-success integration result cannot expose output or evidence")
+        return self
 
 
 def _evidence_failure_semantics(

@@ -3,8 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 from uuid import UUID
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from pydantic import ValidationError
 
 from korpus.api.routes_integrations import build_integration_router
 from korpus.application.capability_gateway.audit import InvocationOutcome
@@ -27,12 +29,20 @@ class _Invoker:
 
 
 def _result(outcome: InvocationOutcome, error_code: str | None = None) -> IntegrationResult:
-    return IntegrationResult(
-        invocation_id=UUID("77777777-7777-7777-7777-777777777777"),
-        outcome=outcome,
-        output={"sensitive": "provider-output"},
-        error_code=error_code,
-    )
+    values = {
+        "schema_version": "korpus.integration-result.v1",
+        "invocation_id": UUID("77777777-7777-7777-7777-777777777777"),
+        "outcome": outcome,
+        "output": {"sensitive": "provider-output"},
+        "evidence": None,
+        "audit_record_id": "audit-test" if outcome is InvocationOutcome.SUCCESS else None,
+        "error_code": error_code,
+    }
+    if outcome is InvocationOutcome.SUCCESS:
+        return IntegrationResult.model_validate(values)
+    # Deliberately bypass the domain invariant to emulate a compromised/regressed core and
+    # prove the HTTP boundary independently strips non-success data.
+    return IntegrationResult.model_construct(**values)
 
 
 def _client(result: IntegrationResult) -> tuple[TestClient, _Invoker]:
@@ -50,6 +60,25 @@ def _request() -> dict[str, object]:
         "capability_version": "1.0.0",
         "input": {"reference_id": "alpha"},
     }
+
+
+def test_integration_result_rejects_non_success_payload_by_construction() -> None:
+    with pytest.raises(ValidationError, match="non-success integration result"):
+        IntegrationResult(
+            invocation_id=UUID("77777777-7777-7777-7777-777777777777"),
+            outcome=InvocationOutcome.DENIED,
+            output={"sensitive": "provider-output"},
+            error_code="POLICY_DENIED",
+        )
+
+
+def test_success_result_requires_persisted_audit_identity() -> None:
+    with pytest.raises(ValidationError, match="persisted audit identity"):
+        IntegrationResult(
+            invocation_id=UUID("77777777-7777-7777-7777-777777777777"),
+            outcome=InvocationOutcome.SUCCESS,
+            output={"value": "ok"},
+        )
 
 
 def test_unknown_and_policy_denied_are_non_oracular_publicly() -> None:
@@ -87,6 +116,8 @@ def test_outcome_unknown_forces_explicit_reconciliation_status() -> None:
 
     assert response.status_code == 409
     assert response.json()["outcome"] == "OUTCOME_UNKNOWN"
+    assert response.json()["output"] is None
+    assert response.json()["evidence"] is None
 
 
 def test_success_keeps_normal_200_envelope() -> None:
@@ -96,6 +127,7 @@ def test_success_keeps_normal_200_envelope() -> None:
 
     assert response.status_code == 200
     assert response.json()["output"] == {"sensitive": "provider-output"}
+    assert response.json()["audit_record_id"] == "audit-test"
     assert invoker.calls == 1
 
 
