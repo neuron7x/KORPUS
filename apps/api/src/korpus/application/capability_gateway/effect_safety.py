@@ -115,9 +115,12 @@ class EffectSafetyDeclaration(BaseModel):
 class EffectSafetyRegistry:
     """Exact immutable registry of deployment-owned side-effect safety declarations."""
 
-    def __init__(self, declarations: Iterable[EffectSafetyDeclaration] = ()) -> None:
+    def __init__(
+        self,
+        declarations: Iterable[EffectSafetyDeclaration] | None = None,
+    ) -> None:
         self._declarations: dict[tuple[str, str], EffectSafetyDeclaration] = {}
-        for declaration in declarations:
+        for declaration in declarations or ():
             self.register(declaration)
 
     def register(self, declaration: EffectSafetyDeclaration) -> None:
@@ -171,13 +174,17 @@ def effect_safety_graph_errors(
         if declaration.compensation_mode is not CompensationMode.COMPENSATING_ACTION:
             continue
 
-        target_key_tuple = (
-            declaration.compensation_capability_id,
-            declaration.compensation_capability_version,
-        )
-        # The declaration model guarantees both values are non-None in this mode.
-        target = by_key.get(target_key_tuple)  # type: ignore[arg-type]
-        target_key = f"{target_key_tuple[0]}@{target_key_tuple[1]}"
+        target_id = declaration.compensation_capability_id
+        target_version = declaration.compensation_capability_version
+        if target_id is None or target_version is None:
+            errors.append(
+                f"{source_key}: compensation capability identity is incomplete"
+            )
+            continue
+
+        target_key_tuple = target_id, target_version
+        target = by_key.get(target_key_tuple)
+        target_key = f"{target_id}@{target_version}"
         if target is None:
             errors.append(
                 f"{source_key}: compensation capability is not registered: {target_key}"
