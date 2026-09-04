@@ -83,6 +83,14 @@ def main() -> int:
             # A fresh checkout has no var/. The script owns the path it was given:
             # asking every caller to mkdir first is how the check ends up wrapped in a
             # shell line that silently swallows its exit code.
+            if args.out.is_dir() or not args.out.name:
+                print(
+                    json.dumps(
+                        {"valid": False, "reason": f"--out is not a file path: {args.out!s}"},
+                        ensure_ascii=False,
+                    )
+                )
+                return 2
             args.out.parent.mkdir(parents=True, exist_ok=True)
             args.out.write_text(rendered, encoding="utf-8")
         else:
@@ -99,6 +107,27 @@ def main() -> int:
                         "run --observe on the deployed host first"
                     ),
                 }
+            )
+        )
+        return 2
+
+    # `make environment-drift` без `OBSERVATION=` передає ПОРОЖНІЙ рядок, і `Path("")`
+    # стає `Path(".")` — не None, отже сторож відсутності вище його не бачить. Далі
+    # `read_text` падав `IsADirectoryError`, тобто перевірка завершувалась ТРЕЙСБЕКОМ,
+    # а не відмовою. Це різні речі: код повернення від непійманого винятку не
+    # відрізняє «перевірка знайшла дрейф» від «перевірка не змогла запуститись».
+    # Виміряно 04.09.2026: ціль не входить у жоден лан, тож падіння не бачив ніхто.
+    if not args.observation.is_file():
+        print(
+            json.dumps(
+                {
+                    "valid": False,
+                    "reason": (
+                        f"observation path is not a readable file: {args.observation!s}. "
+                        "Pass OBSERVATION=<file> produced by --observe on the deployed host."
+                    ),
+                },
+                ensure_ascii=False,
             )
         )
         return 2
