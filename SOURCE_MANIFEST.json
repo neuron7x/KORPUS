@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1821,
-  "root_sha256": "028c15787f8d9fd2f8320defd0991a26ff420c4447ed90360635cf905a1e48ba",
+  "file_count": 1824,
+  "root_sha256": "2d89bf61dda9e8fbd83f87a4df0f95058d1495551a66cbdc219a31b04bb3e9e7",
   "files": [
     {
       "path": ".dockerignore",
@@ -3012,6 +3012,18 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_config_and_readiness_refusals.py",
+      "bytes": 10455,
+      "sha256": "5ec0c71ef3aa8a58502db0b0954841e0bda9afc50f216035af3590b42bd5df1d",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_config_policy_refusals.py",
+      "bytes": 4676,
+      "sha256": "bd977eae5c827662c82872373d9c0aa14440df980ae0f98b00ded07e22876bc8",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_configuration_typos.py",
       "bytes": 6169,
       "sha256": "3cde3b2df725267034913c5d1901d50463c651c0bd225048b1ea5699ad019c19",
@@ -5007,6 +5019,12 @@
       "path": "apps/api/tests/test_token_issuance_refusals.py",
       "bytes": 3384,
       "sha256": "a94f8a19545bdc15ae3a7531f6abb41800228316224e94762795385c0e1dd5b3",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_training_and_infra_edges.py",
+      "bytes": 11081,
+      "sha256": "b7f9b815ccad0b3cf7ace2c75c503a49fc2da207e16862fdde05bf53d53b3802",
       "mode": "0644"
     },
     {
