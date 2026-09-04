@@ -5,11 +5,11 @@
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
-  "externally_satisfied": 0,
-  "production_satisfied": 0,
+  "externally_satisfied": 4,
+  "production_satisfied": 4,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 0.0,
-  "production_completion_percent": 0.0,
+  "external_completion_percent": 28.571429,
+  "production_completion_percent": 28.571429,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -18,13 +18,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": [
         "report_present",
         "attestation_present",
@@ -150,13 +148,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": []
     },
     {
@@ -166,13 +162,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": [
         "load_attestation_verified",
         "load_trusted_signer"
@@ -185,13 +179,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": [
         "recovery_attestation_verified",
         "recovery_trusted_signer"
