@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1826,
-  "root_sha256": "c9d52c7bb0a45de25873e4f95dd1838abfa6f06296811906fe416f8d372151e8",
+  "root_sha256": "98451b4caa4b9966639c60aea5b94ae8aae7c08088202b7e3c9934e8740b6621",
   "files": [
     {
       "path": ".dockerignore",
@@ -7447,8 +7447,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 624415,
-      "sha256": "1cf06d10e10aef9aa20f81826cd06776eefc6361190ca194cbb91a4ee893ebf9",
+      "bytes": 625501,
+      "sha256": "5cc566b92ec470fd77ed0f51c294c07613473666b47b50de0e3473e075388ba8",
       "mode": "0644"
     },
     {
@@ -9829,8 +9829,8 @@
     },
     {
       "path": "scripts/load_probe.py",
-      "bytes": 14457,
-      "sha256": "03d762a7f9ba035dfbb8245dd34825cc47eb0e6a3bcde4abf2e968b1a8a1fbce",
+      "bytes": 17109,
+      "sha256": "1d293ded609447d3af53994c504f856229db11a3ce8d2782934fddfe1c564088",
       "mode": "0755"
     },
     {
