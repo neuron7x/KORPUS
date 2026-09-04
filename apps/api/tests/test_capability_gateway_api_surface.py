@@ -63,8 +63,10 @@ def test_unknown_and_policy_denied_are_non_oracular_publicly() -> None:
     assert denied.status_code == 404
     assert unknown.json()["error_code"] == "CAPABILITY_UNAVAILABLE"
     assert denied.json()["error_code"] == "CAPABILITY_UNAVAILABLE"
-    assert unknown.json()["output"] == {"sensitive": "provider-output"}
-    assert denied.json()["output"] == {"sensitive": "provider-output"}
+    assert unknown.json()["output"] is None
+    assert denied.json()["output"] is None
+    assert unknown.json()["evidence"] is None
+    assert denied.json()["evidence"] is None
 
 
 def test_failed_internal_result_never_exposes_provider_output() -> None:
