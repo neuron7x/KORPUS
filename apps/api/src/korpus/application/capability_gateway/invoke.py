@@ -113,12 +113,9 @@ class CapabilityGateway:
         ports: CapabilityGatewayPorts | None = None,
         **legacy_ports: object,
     ) -> None:
-        structured_composition = ports is not None
-        explicit_legacy_safety = "effect_safety" in legacy_ports
         resolved = _normalize_ports(ports, legacy_ports)
         safety = resolved.effect_safety or EffectSafetyRegistry()
-        if structured_composition or explicit_legacy_safety:
-            _require_effect_safety(resolved.registry, safety)
+        _require_effect_safety(resolved.registry, safety)
         self._registry = resolved.registry
         self._policy = resolved.policy
         self._resource_mappers = dict(resolved.resource_mappers)
