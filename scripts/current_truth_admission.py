@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import hashlib
 import json
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 
 try:
     from .current_truth_contract import load_object
@@ -88,4 +91,28 @@ def blocker_state_checks(root: Path, release: str, digest: str) -> dict[str, boo
         == 0,
         "BLOCKER_REGISTRY.source_bound_current": payload.get("source_tree_sha256") == digest,
         "BLOCKER_REGISTRY.release_bound_current": payload.get("release") == release,
+        # Прив'язка до ДЕРЕВА не визначає змісту реєстру: його стани виводяться з
+        # `reports/PRODUCTION_HARD_PREDICATES.json`, а `reports/` навмисно виключено
+        # з `source_tree_sha256`. Виміряно 04.09.2026: реєстр кандидата був зібраний
+        # на шість годин раніше за свій же доказ, і перезбирання на НЕЗМІННОМУ дереві
+        # перевело 7 блокерів у CLOSED_ANCHORED. Прив'язка трималась, зміст розійшовся.
+        "BLOCKER_REGISTRY.evidence_inputs_current": _evidence_inputs_current(root, payload),
     }
+
+
+def _evidence_inputs_current(root: Path, payload: Mapping[str, Any]) -> bool:
+    """Чи зібрано реєстр саме з ТИХ файлів доказів, які лежать зараз.
+
+    Порожній запис — НЕ згода: реєстр без переліку входів не називає, з чого зібраний,
+    і невимірене не є пройденим.
+    """
+    recorded = payload.get("evidence_sha256")
+    if not isinstance(recorded, Mapping) or not recorded:
+        return False
+    for relative, expected in recorded.items():
+        path = root / str(relative)
+        if not path.is_file():
+            return False
+        if hashlib.sha256(path.read_bytes()).hexdigest() != str(expected):
+            return False
+    return True

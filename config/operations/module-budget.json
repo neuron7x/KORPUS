@@ -1901,13 +1901,13 @@
       "reason": "formal fail-closed assurance/release model introduced for v0.3.0; ceiling recorded at introduction"
     },
     "apps/api/src/korpus/application/release_truth.py": {
-      "lines": 108,
+      "lines": 137,
       "max_complexity": 9,
       "max_function_args": 3,
       "max_function_lines": 49,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+      "reason": "04.09.2026: реєстр блокерів записує ДАЙДЖЕСТ ЗМІСТУ свого входу, а допуск його звіряє. Прив'язка до дерева не визначала змісту реєстру: його стани виводяться з `reports/PRODUCTION_HARD_PREDICATES.json`, а `reports/` навмисно виключено з `source_tree_sha256`. Виміряно на кандидаті f311e83a — реєстр зібрано на шість годин раніше за свій же доказ, у тому самому коміті; перезбирання на НЕЗМІННОМУ дереві перевело 7 блокерів у CLOSED_ANCHORED, і жоден гейт цього не бачив. +5 негативних контролів, з них 4 валяться при знятті перевірки з допуску."
     },
     "apps/api/src/korpus/application/request_audit_context.py": {
       "lines": 64,
@@ -3739,13 +3739,13 @@
       "reason": "v0.5.0: deterministic risk-weighted coverage ratchet with absolute uncovered-edge ceiling"
     },
     "scripts/current_truth_admission.py": {
-      "lines": 91,
+      "lines": 118,
       "max_complexity": 11,
       "max_function_args": 4,
       "max_function_lines": 26,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "WO-01, другий кінець ланцюга: `bound is None or bound == digest` зараховував артефакт без прив'язки як поточний, а `all([])` робив нуль підтриманих претензій достатнім. Додано читання конверта `provenance`, окремий стан для двох прив'язок, що розійшлись, і предикат has_supported_claims. Зростання часткове компенсоване: `claim_admission_checks` читав журнал ДВІЧІ (два читання одного файла можуть дати різний вміст), тепер один раз, і його складність упала з 14 до нижчої за `_current_json`."
+      "reason": "04.09.2026: реєстр блокерів записує ДАЙДЖЕСТ ЗМІСТУ свого входу, а допуск його звіряє. Прив'язка до дерева не визначала змісту реєстру: його стани виводяться з `reports/PRODUCTION_HARD_PREDICATES.json`, а `reports/` навмисно виключено з `source_tree_sha256`. Виміряно на кандидаті f311e83a — реєстр зібрано на шість годин раніше за свій же доказ, у тому самому коміті; перезбирання на НЕЗМІННОМУ дереві перевело 7 блокерів у CLOSED_ANCHORED, і жоден гейт цього не бачив. +5 негативних контролів, з них 4 валяться при знятті перевірки з допуску."
     },
     "scripts/current_truth_aliases.py": {
       "lines": 30,
@@ -10884,6 +10884,28 @@
         "lines": 276,
         "max_function_lines": 127,
         "proof_lines": 48
+      }
+    },
+    {
+      "from": {
+        "lines": 108
+      },
+      "on": "2026-09-04",
+      "path": "apps/api/src/korpus/application/release_truth.py",
+      "reason": "04.09.2026: реєстр блокерів записує ДАЙДЖЕСТ ЗМІСТУ свого входу, а допуск його звіряє. Прив'язка до дерева не визначала змісту реєстру: його стани виводяться з `reports/PRODUCTION_HARD_PREDICATES.json`, а `reports/` навмисно виключено з `source_tree_sha256`. Виміряно на кандидаті f311e83a — реєстр зібрано на шість годин раніше за свій же доказ, у тому самому коміті; перезбирання на НЕЗМІННОМУ дереві перевело 7 блокерів у CLOSED_ANCHORED, і жоден гейт цього не бачив. +5 негативних контролів, з них 4 валяться при знятті перевірки з допуску.",
+      "to": {
+        "lines": 137
+      }
+    },
+    {
+      "from": {
+        "lines": 91
+      },
+      "on": "2026-09-04",
+      "path": "scripts/current_truth_admission.py",
+      "reason": "04.09.2026: реєстр блокерів записує ДАЙДЖЕСТ ЗМІСТУ свого входу, а допуск його звіряє. Прив'язка до дерева не визначала змісту реєстру: його стани виводяться з `reports/PRODUCTION_HARD_PREDICATES.json`, а `reports/` навмисно виключено з `source_tree_sha256`. Виміряно на кандидаті f311e83a — реєстр зібрано на шість годин раніше за свій же доказ, у тому самому коміті; перезбирання на НЕЗМІННОМУ дереві перевело 7 блокерів у CLOSED_ANCHORED, і жоден гейт цього не бачив. +5 негативних контролів, з них 4 валяться при знятті перевірки з допуску.",
+      "to": {
+        "lines": 118
       }
     }
   ],
