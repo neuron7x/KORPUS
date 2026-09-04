@@ -65,6 +65,12 @@ class CapabilityPolicyBridge:
         self._action_permissions = normalized
         self._resource_authorizers = normalized_resources
 
+    def has_action_mapping(self, spec: CapabilitySpec) -> bool:
+        return spec.authorization.action in self._action_permissions
+
+    def has_resource_authorizer(self, spec: CapabilitySpec) -> bool:
+        return spec.authorization.resource_mapper in self._resource_authorizers
+
     def authorize(self, identity: Identity, spec: CapabilitySpec) -> CapabilityPolicyDecision:
         """Authorize only the canonical action permission.
 
@@ -90,9 +96,6 @@ class CapabilityPolicyBridge:
             allowed=True,
             reason="canonical_policy_allowed",
         )
-
-    def has_resource_authorizer(self, spec: CapabilitySpec) -> bool:
-        return spec.authorization.resource_mapper in self._resource_authorizers
 
     def authorize_resource(
         self,

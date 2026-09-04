@@ -4,6 +4,7 @@ import pytest
 
 from korpus.application.capability_gateway.adapters import AdapterExecutionResult, AdapterRegistry
 from korpus.application.capability_gateway.errors import CapabilityRegistrationError
+from korpus.application.capability_gateway.policy import CapabilityPolicyBridge
 from korpus.application.capability_gateway.preflight import CapabilityDeploymentPreflight
 from korpus.application.capability_gateway.registry import CapabilityRegistry
 from korpus.application.capability_gateway.types import (
@@ -22,6 +23,7 @@ from korpus.application.capability_gateway.types import (
     TimeoutSpec,
 )
 from korpus.application.capability_gateway.validation import ExactSchemaRegistry
+from korpus.application.policy import PolicyEngine
 
 
 class _Adapter:
@@ -78,15 +80,21 @@ def _preflight(
     validators = {"urn:korpus:test:preflight-input:v1": lambda value: None}
     if include_output_schema:
         validators["urn:korpus:test:preflight-output:v1"] = lambda value: None
+    policy = CapabilityPolicyBridge(
+        PolicyEngine(),
+        action_permissions={"integration:reference:read": "answer:read"} if include_action else {},
+        resource_authorizers=(
+            {"reference_resource_v1": lambda identity, declared, resource: True}
+            if include_resource_authorizer
+            else {}
+        ),
+    )
     return CapabilityDeploymentPreflight(
         registry=CapabilityRegistry([spec]),
         adapters=adapters,
         schemas=ExactSchemaRegistry(validators),
         resource_mappers={"reference_resource_v1": object()} if include_mapper else {},
-        action_permissions={"integration:reference:read": "answer:read"} if include_action else {},
-        resource_authorizers=(
-            {"reference_resource_v1": object()} if include_resource_authorizer else {}
-        ),
+        policy=policy,
     )
 
 
