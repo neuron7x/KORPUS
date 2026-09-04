@@ -47,6 +47,17 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "apps/api/src"
 REGISTRY = ROOT / "config/operations/dormant-subsystems.json"
 DEFAULT_DB = ROOT / "var/runtime/corpus-v6-20260807/korpus.db"
+SCRIPTS = ROOT / "scripts"
+
+#: Точки входу, які запускає розгортання, крім API: юніт `korpus-worker.service` кличе
+#: `python -m korpus.cli worker-loop`, а MCP подається окремим процесом. Досяжність
+#: САМЕ з API — вужча міра, ніж «продакшен це виконує», і саме тому вона тут не одна.
+RUNTIME_ROOTS = (
+    "korpus.cli",
+    "korpus.worker_service",
+    "korpus.mcp.stdio",
+    "korpus.mcp.server",
+)
 
 
 def _edges_of(node: ast.AST, modules: dict[str, Path]) -> set[str]:
@@ -100,6 +111,51 @@ def reachable_from_api(graph: dict[str, set[str]]) -> set[str]:
     return seen
 
 
+def script_seeds(scripts: Path, modules: set[str]) -> set[str]:
+    """Модулі, які імпортують гейти й інструменти релізу.
+
+    Це ДРУГА поверхня продакшену. Скрипт — теж виконуваний шлях: `provenance`,
+    `production_hard_predicates`, `recovery` недосяжні з API й при цьому щодня
+    виконуються ланом. Без цієї поверхні «недосяжний з API» назвав би сплячим те,
+    що працює.
+    """
+    found: set[str] = set()
+    for path in sorted(scripts.rglob("*.py")):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except (OSError, SyntaxError):
+            continue
+        for node in ast.walk(tree):
+            found |= _edges_of(node, {name: path for name in modules})
+    return found & modules
+
+
+def closure(graph: dict[str, set[str]], roots: set[str]) -> set[str]:
+    seen = {root for root in roots if root in graph}
+    queue = list(seen)
+    while queue:
+        for nxt in graph.get(queue.pop(), ()):
+            if nxt not in seen:
+                seen.add(nxt)
+                queue.append(nxt)
+    return seen
+
+
+def reachable_from_production(graph: dict[str, set[str]], scripts: Path) -> set[str]:
+    """Усе, що досягає ХОЧ ОДНА поверхня продакшену: API, рантайм-юніти, гейти."""
+    api = {name for name in graph if name.startswith("korpus.api.") or name == "korpus.main"}
+    return (
+        closure(graph, api)
+        | closure(graph, set(RUNTIME_ROOTS))
+        | closure(graph, script_seeds(scripts, set(graph)))
+    )
+
+
+def behavioural(module: str) -> bool:
+    """`__init__` пакета — простір імен, не поведінка: він не «спить», його нема кому будити."""
+    return not module.endswith(".__init__") and module != "korpus"
+
+
 def table_rows(database: Path, tables: list[str]) -> dict[str, int | None]:
     """None означає «таблиці немає» — це не нуль і не рядок, а відсутність предмета."""
     connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
@@ -125,7 +181,19 @@ def judge(
     reachable: set[str],
     counts: dict[str, dict[str, int | None]],
     every_module: set[str],
+    production_reachable: set[str] | None = None,
 ) -> dict[str, Any]:
+    """Вирок про оголошені підсистеми ПЛЮС виявлення повз реєстр.
+
+    Доти гейт питав лише те, що хтось уже згадав оголосити: він звіряв ВЛАСНЕ
+    оголошення й був зелений рівно в тому стані, заради якого існує. Виміряно
+    04.09.2026 на цьому дереві: реєстр називав 2 підсистеми й 9 модулів, а
+    недосяжними з усіх поверхонь продакшену були 40 модулів. Вирок читався
+    `rate 1.0, still_dormant 2` — і мовчав про 33 модулі та 3344 рядки.
+
+    `production_reachable=None` означає, що виявлення НЕ проводилось, і звіт каже
+    про це `null`, а не порожній перелік: невиміряне не є порожнім.
+    """
     findings: list[dict[str, Any]] = []
     for name, spec in sorted(registry["subsystems"].items()):
         declared = sorted(spec.get("modules_unreachable_from_api", []))
@@ -151,13 +219,38 @@ def judge(
             }
         )
     dormant = sum(1 for item in findings if item["state"] == "DORMANT")
+    all_declared = {
+        module
+        for spec in registry["subsystems"].values()
+        for key in ("modules_unreachable_from_api", "modules_reachable_as_schema_only")
+        for module in spec.get(key, [])
+    }
+    undeclared: list[str] | None = None
+    if production_reachable is not None:
+        undeclared = sorted(
+            module
+            for module in every_module - production_reachable
+            if behavioural(module) and module not in all_declared
+        )
+    changed = [item["subsystem"] for item in findings if item["state"] == "CHANGED"]
+    if undeclared is None:
+        status = "UNKNOWN"
+    elif undeclared:
+        status = "UNDECLARED_DORMANT"
+    elif changed:
+        status = "CHANGED"
+    else:
+        status = "MEASURED"
     return {
-        "schema": "korpus.dormant-subsystems.v1",
+        "schema": "korpus.dormant-subsystems.v2",
         "subsystems": len(findings),
         "still_dormant": dormant,
-        "changed": [item["subsystem"] for item in findings if item["state"] == "CHANGED"],
+        "changed": changed,
         "rate": round(dormant / len(findings), 4) if findings else None,
-        "status": "MEASURED" if findings else "UNKNOWN",
+        "declared_modules_total": len(all_declared),
+        "undeclared_dormant": undeclared,
+        "undeclared_dormant_count": None if undeclared is None else len(undeclared),
+        "status": status,
         "detail": findings,
     }
 
@@ -188,6 +281,38 @@ def selftest() -> int:
     vanished = judge(registry, set(), {"s": {"t": 0}}, {"m.a"})
     checks.append(("зниклий модуль видно", vanished["detail"][0]["modules_that_vanished"], ["m.b"]))
 
+    # ── Виявлення повз реєстр. Без цих плечей гейт зелений рівно в тому стані,
+    # заради якого існує: він звіряє власне оголошення.
+    three = {"m.a", "m.b", "m.c"}
+    hidden = judge(registry, set(), {"s": {"t": 0}}, three, production_reachable=set())
+    checks.append(("неоголошений сплячий ВИДНО", hidden["undeclared_dormant"], ["m.c"]))
+    checks.append(("він робить вирок не MEASURED", hidden["status"], "UNDECLARED_DORMANT"))
+    checks.append(("оголошені при цьому досі сплять", hidden["still_dormant"], 1))
+
+    declared_all = {"subsystems": {"s": {"modules_unreachable_from_api": ["m.a", "m.b", "m.c"]}}}
+    named = judge(declared_all, set(), {"s": {"t": 0}}, three, production_reachable=set())
+    checks.append(("оголошення знімає скаргу", named["undeclared_dormant"], []))
+    checks.append(("і повертає MEASURED", named["status"], "MEASURED"))
+
+    served = judge(registry, set(), {"s": {"t": 0}}, three, production_reachable={"m.c"})
+    checks.append(("досяжний із продакшену не сплячий", served["undeclared_dormant"], []))
+
+    unmeasured = judge(registry, set(), {"s": {"t": 0}}, three)
+    checks.append(("БЕЗ виявлення — null, не []", unmeasured["undeclared_dormant"], None))
+    checks.append(("і вирок UNKNOWN, не MEASURED", unmeasured["status"], "UNKNOWN"))
+
+    pkg = judge(
+        registry,
+        set(),
+        {"s": {"t": 0}},
+        {"m.a", "m.b", "korpus.mcp.__init__"},
+        production_reachable=set(),
+    )
+    checks.append(("__init__ пакета не «спить»", pkg["undeclared_dormant"], []))
+
+    awake_named = judge(registry, {"m.b"}, {"s": {"t": 0}}, both, production_reachable={"m.b"})
+    checks.append(("пробудження лишається CHANGED", awake_named["status"], "CHANGED"))
+
     passed = 0
     for name, got, want in checks:
         ok = got == want
@@ -214,7 +339,13 @@ def main() -> int:
         name: table_rows(arguments.database, list(spec.get("tables_expected_empty", [])))
         for name, spec in registry["subsystems"].items()
     }
-    report = judge(registry, reachable, counts, set(graph))
+    report = judge(
+        registry,
+        reachable,
+        counts,
+        set(graph),
+        production_reachable=reachable_from_production(graph, SCRIPTS),
+    )
     report["ran_at"] = datetime.now(UTC).isoformat()
     report["database"] = str(arguments.database)
     report["modules_reachable_from_api"] = len(reachable)
@@ -223,7 +354,9 @@ def main() -> int:
     rendered = json.dumps(report, ensure_ascii=False, indent=2)
     arguments.out.write_text(rendered, encoding="utf-8")
     print(rendered)
-    return 0 if report["rate"] == 1.0 else 1
+    # Три різні вироки, і жоден не є іншим: невиміряне не дорівнює порожньому,
+    # а неоголошене не дорівнює пробудженому.
+    return 0 if report["status"] == "MEASURED" else 1
 
 
 if __name__ == "__main__":
