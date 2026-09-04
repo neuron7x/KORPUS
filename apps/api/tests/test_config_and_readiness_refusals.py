@@ -109,9 +109,7 @@ def test_an_empty_verification_map_leaves_only_the_active_key(tmp_path: pathlib.
 # ───────────────────────────── готовність ─────────────────────────────
 
 
-@pytest.mark.parametrize(
-    "source", [None, SimpleNamespace(corpus_governance=None)]
-)
+@pytest.mark.parametrize("source", [None, SimpleNamespace(corpus_governance=None)])
 def test_semantic_is_not_ready_when_there_is_nothing_to_ask(source: object) -> None:
     """Увімкнена семантика без джерела — НЕ готова, і не «готова за замовчуванням».
 

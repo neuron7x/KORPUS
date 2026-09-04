@@ -11,8 +11,8 @@
 from __future__ import annotations
 
 from korpus.infrastructure.extraction import (
-    MAX_UNESCAPE_ROUNDS,
     _RESIDUAL_MARKUP,
+    MAX_UNESCAPE_ROUNDS,
     _strip_html,
 )
 

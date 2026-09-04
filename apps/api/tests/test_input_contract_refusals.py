@@ -41,9 +41,7 @@ def test_a_token_payload_that_is_not_an_object_is_refused(payload: object) -> No
 def test_a_token_type_other_than_bearer_is_refused() -> None:
     """Тип токена — не оздоба: інший тип означає інший спосіб пред'явлення."""
     with pytest.raises(ValueError, match="token_type must be Bearer"):
-        parse_access_token_payload(
-            {"access_token": "t", "token_type": "MAC", "expires_in": 3600}
-        )
+        parse_access_token_payload({"access_token": "t", "token_type": "MAC", "expires_in": 3600})
 
 
 def test_a_well_formed_bearer_payload_is_accepted() -> None:
@@ -168,7 +166,9 @@ def _cookie_settings(**changes: object) -> SimpleNamespace:
 def test_a_controlled_deployment_refuses_cookies_that_are_not_secure() -> None:
     """Кука без Secure їде відкритим каналом; у контрольованому розгортанні це відмова."""
     with pytest.raises(ValueError, match="must be Secure"):
-        validate_browser_cookie_policy(_cookie_settings(browser_cookie_secure=False), controlled=True)
+        validate_browser_cookie_policy(
+            _cookie_settings(browser_cookie_secure=False), controlled=True
+        )
 
 
 def test_an_uncontrolled_deployment_does_not_impose_the_secure_rule() -> None:
