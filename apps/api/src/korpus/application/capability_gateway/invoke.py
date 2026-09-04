@@ -519,6 +519,7 @@ class CapabilityGateway:
             return
         record = guard.reservation.record
         self._effects.transition(
+            subject_id=record.subject_id,
             idempotency_key=record.idempotency_key,
             expected=EffectState.PENDING,
             target=target,

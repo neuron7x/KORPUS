@@ -32,9 +32,14 @@ class InvalidEffectTransition(CapabilityGatewayError):
 
 @dataclass(frozen=True, slots=True)
 class EffectRecord:
+    subject_id: str
     idempotency_key: str
     binding_digest: str
     invocation_id: str
+    capability_id: str
+    capability_version: str
+    logical_resource: str
+    input_digest: str
     state: EffectState
     provider_reference: str | None = None
 
@@ -56,22 +61,28 @@ class EffectGuard:
 class EffectLedger(Protocol):
     """Durable atomic idempotency ledger port.
 
-    `reserve` must serialize on `idempotency_key`: two concurrent callers may not both
-    observe `created=True`. Production implementations must persist state outside process
-    memory before adapter dispatch.
+    `reserve` must serialize on `(subject_id, idempotency_key)`: two concurrent callers
+    in the same subject scope may not both observe `created=True`. Different subjects
+    cannot reserve or block one another merely by choosing the same client key.
     """
 
     def reserve(
         self,
         *,
+        subject_id: str,
         idempotency_key: str,
         binding_digest: str,
         invocation_id: str,
+        capability_id: str,
+        capability_version: str,
+        logical_resource: str,
+        input_digest: str,
     ) -> EffectReservation: ...
 
     def transition(
         self,
         *,
+        subject_id: str,
         idempotency_key: str,
         expected: EffectState,
         target: EffectState,
@@ -161,6 +172,7 @@ def prepare_effect_guard(
     if request.idempotency_key is None:
         raise CapabilityContractError("effectful invocation requires an idempotency key")
 
+    input_digest = payload_digest(request.input)
     binding = effect_binding_digest(
         identity=identity,
         spec=spec,
@@ -168,13 +180,18 @@ def prepare_effect_guard(
         logical_resource=logical_resource,
     )
     reservation = ledger.reserve(
+        subject_id=identity.subject,
         idempotency_key=request.idempotency_key,
         binding_digest=binding,
         invocation_id=invocation_id,
+        capability_id=spec.capability_id,
+        capability_version=spec.version,
+        logical_resource=logical_resource,
+        input_digest=input_digest,
     )
     if reservation.record.binding_digest != binding:
         raise IdempotencyConflict(
-            "idempotency key is already bound to a different subject/capability/resource/input"
+            "idempotency key is already bound to a different capability/resource/input"
         )
     return EffectGuard(
         required=True,

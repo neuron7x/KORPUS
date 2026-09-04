@@ -36,41 +36,54 @@ from korpus.domain.models import Identity
 
 class _MemoryLedger:
     def __init__(self) -> None:
-        self.records: dict[str, EffectRecord] = {}
+        self.records: dict[tuple[str, str], EffectRecord] = {}
 
     def reserve(
         self,
         *,
+        subject_id: str,
         idempotency_key: str,
         binding_digest: str,
         invocation_id: str,
+        capability_id: str,
+        capability_version: str,
+        logical_resource: str,
+        input_digest: str,
     ) -> EffectReservation:
-        existing = self.records.get(idempotency_key)
+        key = subject_id, idempotency_key
+        existing = self.records.get(key)
         if existing is not None:
             return EffectReservation(record=existing, created=False)
         record = EffectRecord(
+            subject_id=subject_id,
             idempotency_key=idempotency_key,
             binding_digest=binding_digest,
             invocation_id=invocation_id,
+            capability_id=capability_id,
+            capability_version=capability_version,
+            logical_resource=logical_resource,
+            input_digest=input_digest,
             state=EffectState.PENDING,
         )
-        self.records[idempotency_key] = record
+        self.records[key] = record
         return EffectReservation(record=record, created=True)
 
     def transition(
         self,
         *,
+        subject_id: str,
         idempotency_key: str,
         expected: EffectState,
         target: EffectState,
         provider_reference: str | None = None,
     ) -> EffectRecord:
-        current = self.records[idempotency_key]
+        key = subject_id, idempotency_key
+        current = self.records[key]
         if current.state is not expected:
             raise RuntimeError("compare-and-set failed")
         assert_effect_transition(current.state, target)
         updated = replace(current, state=target, provider_reference=provider_reference)
-        self.records[idempotency_key] = updated
+        self.records[key] = updated
         return updated
 
 
@@ -162,7 +175,7 @@ def test_same_idempotency_binding_replays_without_duplicate_execution() -> None:
     assert second.binding_digest == first.binding_digest
 
 
-def test_same_idempotency_key_with_different_binding_is_conflict() -> None:
+def test_same_idempotency_key_with_different_binding_is_conflict_within_subject() -> None:
     ledger = _MemoryLedger()
     identity = Identity(subject="writer", roles=frozenset({"admin"}))
     spec = _spec()
@@ -186,6 +199,32 @@ def test_same_idempotency_key_with_different_binding_is_conflict() -> None:
             ledger=ledger,
             explicit_effect_authorized=True,
         )
+
+
+def test_same_client_key_is_isolated_between_subjects() -> None:
+    ledger = _MemoryLedger()
+    first = prepare_effect_guard(
+        identity=Identity(subject="writer-a", roles=frozenset({"admin"})),
+        spec=_spec(),
+        request=_request(),
+        logical_resource="reference:1",
+        invocation_id="inv-1",
+        ledger=ledger,
+        explicit_effect_authorized=True,
+    )
+    second = prepare_effect_guard(
+        identity=Identity(subject="writer-b", roles=frozenset({"admin"})),
+        spec=_spec(),
+        request=_request(),
+        logical_resource="reference:1",
+        invocation_id="inv-2",
+        ledger=ledger,
+        explicit_effect_authorized=True,
+    )
+
+    assert first.should_execute is True
+    assert second.should_execute is True
+    assert len(ledger.records) == 2
 
 
 def test_effect_state_machine_allows_unknown_only_from_pending() -> None:

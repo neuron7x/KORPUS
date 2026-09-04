@@ -68,41 +68,54 @@ class _EffectAuthorizer:
 
 class _Ledger:
     def __init__(self) -> None:
-        self.records: dict[str, EffectRecord] = {}
+        self.records: dict[tuple[str, str], EffectRecord] = {}
 
     def reserve(
         self,
         *,
+        subject_id: str,
         idempotency_key: str,
         binding_digest: str,
         invocation_id: str,
+        capability_id: str,
+        capability_version: str,
+        logical_resource: str,
+        input_digest: str,
     ) -> EffectReservation:
-        existing = self.records.get(idempotency_key)
+        key = subject_id, idempotency_key
+        existing = self.records.get(key)
         if existing is not None:
             return EffectReservation(record=existing, created=False)
         record = EffectRecord(
+            subject_id=subject_id,
             idempotency_key=idempotency_key,
             binding_digest=binding_digest,
             invocation_id=invocation_id,
+            capability_id=capability_id,
+            capability_version=capability_version,
+            logical_resource=logical_resource,
+            input_digest=input_digest,
             state=EffectState.PENDING,
         )
-        self.records[idempotency_key] = record
+        self.records[key] = record
         return EffectReservation(record=record, created=True)
 
     def transition(
         self,
         *,
+        subject_id: str,
         idempotency_key: str,
         expected: EffectState,
         target: EffectState,
         provider_reference: str | None = None,
     ) -> EffectRecord:
-        current = self.records[idempotency_key]
+        key = subject_id, idempotency_key
+        current = self.records[key]
         if current.state is not expected:
             raise RuntimeError("compare-and-set failed")
         assert_effect_transition(current.state, target)
         updated = replace(current, state=target, provider_reference=provider_reference)
-        self.records[idempotency_key] = updated
+        self.records[key] = updated
         return updated
 
 
@@ -340,7 +353,7 @@ def test_effectful_timeout_becomes_outcome_unknown_not_retry() -> None:
     assert selected_adapter.calls == 1
     assert result.outcome is InvocationOutcome.OUTCOME_UNKNOWN
     assert result.error_code == "ADAPTER_TIMEOUT"
-    assert ledger.records["idem-1"].state is EffectState.OUTCOME_UNKNOWN
+    assert ledger.records[("reader", "idem-1")].state is EffectState.OUTCOME_UNKNOWN
 
 
 def test_effectful_success_commits_ledger_once() -> None:
@@ -354,4 +367,4 @@ def test_effectful_success_commits_ledger_once() -> None:
 
     assert result.outcome is InvocationOutcome.SUCCESS
     assert adapter.calls == 1
-    assert ledger.records["idem-1"].state is EffectState.COMMITTED
+    assert ledger.records[("reader", "idem-1")].state is EffectState.COMMITTED
