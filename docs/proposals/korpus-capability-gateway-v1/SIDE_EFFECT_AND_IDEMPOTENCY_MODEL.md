@@ -34,9 +34,19 @@ Rules:
 - timeout after dispatch: `OUTCOME_UNKNOWN`;
 - reconciliation requires the exact subject, capability id/version, idempotency binding and
   compatible provider reference before a provider status observation is admitted;
+- reconciliation additionally requires the server-owned `EffectSafetyDeclaration` to resolve
+  exactly against the current immutable capability contract;
+- automatic provider reconciliation must use the exact strategy declared by
+  `reconciliation_mode`; a provider-status resolver cannot stand in for an idempotency lookup
+  and vice versa;
+- `MANUAL` reconciliation never invokes an automatic provider resolver. It requires a distinct
+  canonical-authorized, canonical-audited operator workflow;
+- resolver strategy identity is server composition, not provider/request metadata, and cannot
+  widen authorization or select a different reconciliation mode;
 - an indeterminate reconciliation observation leaves the effect `OUTCOME_UNKNOWN`;
 - reconciliation is compare-and-set from `OUTCOME_UNKNOWN` and has one terminal winner;
-- provider reconciliation must query status only; it must never redispatch the original effect;
+- provider reconciliation must query status/lookup identity only; it must never redispatch the
+  original effect;
 - automatic retry only if the same provider-side idempotency identity or equivalent proof
   prevents duplicate commitment.
 

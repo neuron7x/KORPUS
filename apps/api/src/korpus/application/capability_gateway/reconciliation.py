@@ -3,6 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
+from korpus.application.capability_gateway.effect_safety import (
+    EffectSafetyRegistry,
+    ReconciliationMode,
+)
 from korpus.application.capability_gateway.effects import (
     EffectRecord,
     EffectState,
@@ -11,6 +15,7 @@ from korpus.application.capability_gateway.effects import (
 from korpus.application.capability_gateway.errors import (
     CapabilityAuthorizationDenied,
     CapabilityGatewayError,
+    CapabilityRegistrationError,
 )
 from korpus.application.capability_gateway.types import CapabilitySpec
 from korpus.domain.models import Identity
@@ -45,10 +50,14 @@ class ReconciliationObservation:
 
 
 class EffectOutcomeResolver(Protocol):
-    """Provider-specific status resolver.
+    """Server-composed, provider-specific read-only reconciliation strategy.
 
-    Implementations may query provider state but must not dispatch the original effect again.
+    `reconciliation_mode` is local composition metadata. Provider descriptions, annotations
+    and response bodies cannot select or widen the strategy used for an effectful capability.
+    Implementations may query provider state but must never dispatch the original effect again.
     """
+
+    reconciliation_mode: ReconciliationMode
 
     def observe(
         self,
@@ -81,12 +90,18 @@ def reconcile_unknown_effect(
     authorized: bool,
     ledger: ReconciliationLedger,
     resolver: EffectOutcomeResolver,
+    effect_safety: EffectSafetyRegistry,
 ) -> EffectRecord:
     """Resolve one OUTCOME_UNKNOWN record without re-dispatching the original effect.
 
     Authorization is supplied by the canonical policy/effect authority outside this helper.
     Only the literal boolean `True` is admitted; request/provider metadata cannot widen it.
-    The durable ledger performs the final compare-and-set on state + exact binding.
+    The exact-bound deployment safety declaration selects the admissible reconciliation
+    strategy, and the durable ledger performs the final compare-and-set on state + binding.
+
+    This helper is intentionally an automatic provider-observation path. A capability whose
+    exact safety declaration says `MANUAL` is refused here and must use a distinct authorized,
+    audited operator workflow rather than smuggling a manual decision through a resolver.
     """
 
     if authorized is not True:
@@ -108,6 +123,25 @@ def reconcile_unknown_effect(
     if record.state is not EffectState.OUTCOME_UNKNOWN:
         raise ReconciliationConflict(
             f"effect is not reconcilable from state {record.state.value}"
+        )
+
+    try:
+        safety = effect_safety.resolve_exact(spec)
+    except CapabilityRegistrationError as exc:
+        raise ReconciliationConflict(
+            "exact effect safety declaration is unavailable or drifted"
+        ) from exc
+
+    declared_mode = safety.reconciliation_mode
+    if declared_mode is ReconciliationMode.MANUAL:
+        raise ReconciliationIndeterminate("manual reconciliation is required by effect safety")
+
+    resolver_mode = getattr(resolver, "reconciliation_mode", None)
+    if not isinstance(resolver_mode, ReconciliationMode):
+        raise ReconciliationConflict("reconciliation resolver mode is invalid")
+    if resolver_mode is not declared_mode:
+        raise ReconciliationConflict(
+            "reconciliation resolver mode does not match exact effect safety declaration"
         )
 
     try:

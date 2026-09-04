@@ -4,6 +4,12 @@ from dataclasses import replace
 
 import pytest
 
+from korpus.application.capability_gateway.effect_safety import (
+    CompensationMode,
+    EffectSafetyDeclaration,
+    EffectSafetyRegistry,
+    ReconciliationMode,
+)
 from korpus.application.capability_gateway.effects import (
     EffectRecord,
     EffectState,
@@ -34,12 +40,12 @@ from korpus.application.capability_gateway.types import (
 from korpus.domain.models import Identity
 
 
-def _spec(*, version: str = "1.0.0") -> CapabilitySpec:
+def _spec(*, version: str = "1.0.0", description: str | None = None) -> CapabilitySpec:
     return CapabilitySpec(
         schema_version="korpus.capability-spec.v1",
         capability_id="reference.reconcile.write",
         version=version,
-        description="Reconciliation semantics test capability.",
+        description=description or "Reconciliation semantics test capability.",
         provider_type=ProviderType.CUSTOM,
         adapter=AdapterSpec(adapter_id="custom.reconcile", adapter_version="1.0.0"),
         effect_class=EffectClass.WRITE_REMOTE,
@@ -60,6 +66,24 @@ def _spec(*, version: str = "1.0.0") -> CapabilitySpec:
             max_response_bytes=4096,
         ),
         lifecycle=CapabilityLifecycle.ENABLED,
+    )
+
+
+def _safety(
+    spec: CapabilitySpec,
+    *,
+    mode: ReconciliationMode = ReconciliationMode.PROVIDER_STATUS_QUERY,
+) -> EffectSafetyRegistry:
+    return EffectSafetyRegistry(
+        [
+            EffectSafetyDeclaration.for_spec(
+                spec,
+                compensation_mode=CompensationMode.NONE,
+                irreversible=True,
+                reconciliation_mode=mode,
+                operator_rationale="Test effect is irreversible; reconciliation mode is exact-bound.",
+            )
+        ]
     )
 
 
@@ -128,7 +152,10 @@ class _Resolver:
         self,
         observation: ReconciliationObservation | None = None,
         error: Exception | None = None,
+        *,
+        mode: ReconciliationMode = ReconciliationMode.PROVIDER_STATUS_QUERY,
     ) -> None:
+        self.reconciliation_mode = mode
         self.observation = observation or ReconciliationObservation(
             disposition=ReconciliationDisposition.CONFIRMED_COMMITTED,
             provider_reference="provider:transaction:42",
@@ -151,15 +178,18 @@ def _reconcile(
     authorized: bool = True,
     spec: CapabilitySpec | None = None,
     binding: str = "sha256:" + "1" * 64,
+    safety: EffectSafetyRegistry | None = None,
 ) -> EffectRecord:
+    selected_spec = spec or _spec()
     return reconcile_unknown_effect(
         identity=Identity(subject="writer", roles=frozenset({"admin"})),
-        spec=spec or _spec(),
+        spec=selected_spec,
         idempotency_key="idem-1",
         expected_binding_digest=binding,
         authorized=authorized,
         ledger=ledger,
         resolver=resolver,
+        effect_safety=safety or _safety(selected_spec),
     )
 
 
@@ -202,6 +232,77 @@ def test_wrong_capability_version_blocks_provider_observation() -> None:
     assert ledger.reconcile_calls == 0
 
 
+def test_missing_effect_safety_blocks_provider_observation() -> None:
+    ledger = _Ledger(_record())
+    resolver = _Resolver()
+
+    with pytest.raises(ReconciliationConflict, match="effect safety declaration"):
+        _reconcile(
+            ledger=ledger,
+            resolver=resolver,
+            safety=EffectSafetyRegistry(),
+        )
+
+    assert resolver.calls == 0
+    assert ledger.reconcile_calls == 0
+    assert ledger.record is not None
+    assert ledger.record.state is EffectState.OUTCOME_UNKNOWN
+
+
+def test_same_version_safety_drift_blocks_provider_observation() -> None:
+    original = _spec()
+    drifted = _spec(description="Same identity, drifted contract under reconciliation test.")
+    ledger = _Ledger(_record())
+    resolver = _Resolver()
+
+    with pytest.raises(ReconciliationConflict, match="effect safety declaration"):
+        _reconcile(
+            ledger=ledger,
+            resolver=resolver,
+            spec=drifted,
+            safety=_safety(original),
+        )
+
+    assert resolver.calls == 0
+    assert ledger.reconcile_calls == 0
+
+
+def test_manual_reconciliation_mode_never_invokes_automatic_provider_resolver() -> None:
+    spec = _spec()
+    ledger = _Ledger(_record())
+    resolver = _Resolver()
+
+    with pytest.raises(ReconciliationIndeterminate, match="manual reconciliation"):
+        _reconcile(
+            ledger=ledger,
+            resolver=resolver,
+            spec=spec,
+            safety=_safety(spec, mode=ReconciliationMode.MANUAL),
+        )
+
+    assert resolver.calls == 0
+    assert ledger.reconcile_calls == 0
+    assert ledger.record is not None
+    assert ledger.record.state is EffectState.OUTCOME_UNKNOWN
+
+
+def test_resolver_mode_mismatch_blocks_provider_observation() -> None:
+    spec = _spec()
+    ledger = _Ledger(_record())
+    resolver = _Resolver(mode=ReconciliationMode.PROVIDER_IDEMPOTENCY_LOOKUP)
+
+    with pytest.raises(ReconciliationConflict, match="resolver mode does not match"):
+        _reconcile(
+            ledger=ledger,
+            resolver=resolver,
+            spec=spec,
+            safety=_safety(spec, mode=ReconciliationMode.PROVIDER_STATUS_QUERY),
+        )
+
+    assert resolver.calls == 0
+    assert ledger.reconcile_calls == 0
+
+
 def test_provider_resolver_failure_preserves_ambiguity() -> None:
     ledger = _Ledger(_record())
     resolver = _Resolver(error=OSError("provider status unavailable"))
@@ -232,6 +333,13 @@ def test_provider_reference_drift_cannot_reconcile_wrong_effect() -> None:
 
 
 @pytest.mark.parametrize(
+    "mode",
+    [
+        ReconciliationMode.PROVIDER_STATUS_QUERY,
+        ReconciliationMode.PROVIDER_IDEMPOTENCY_LOOKUP,
+    ],
+)
+@pytest.mark.parametrize(
     "disposition",
     [
         ReconciliationDisposition.CONFIRMED_COMMITTED,
@@ -239,17 +347,25 @@ def test_provider_reference_drift_cannot_reconcile_wrong_effect() -> None:
     ],
 )
 def test_successful_reconciliation_records_exact_terminal_disposition(
+    mode: ReconciliationMode,
     disposition: ReconciliationDisposition,
 ) -> None:
+    spec = _spec()
     ledger = _Ledger(_record())
     resolver = _Resolver(
         ReconciliationObservation(
             disposition=disposition,
             provider_reference="provider:transaction:42",
-        )
+        ),
+        mode=mode,
     )
 
-    result = _reconcile(ledger=ledger, resolver=resolver)
+    result = _reconcile(
+        ledger=ledger,
+        resolver=resolver,
+        spec=spec,
+        safety=_safety(spec, mode=mode),
+    )
 
     assert result.state is EffectState.RECONCILED
     assert result.reconciliation_disposition is disposition
