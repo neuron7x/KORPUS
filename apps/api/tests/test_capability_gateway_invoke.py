@@ -77,8 +77,9 @@ class _EffectAuthorizer:
 
 
 class _Ledger:
-    def __init__(self) -> None:
+    def __init__(self, *, fail_target: EffectState | None = None) -> None:
         self.records: dict[tuple[str, str], EffectRecord] = {}
+        self.fail_target = fail_target
 
     def reserve(
         self,
@@ -119,6 +120,8 @@ class _Ledger:
         target: EffectState,
         provider_reference: str | None = None,
     ) -> EffectRecord:
+        if target is self.fail_target:
+            raise RuntimeError("simulated durable effect transition failure")
         key = subject_id, idempotency_key
         current = self.records[key]
         if current.state is not expected:
@@ -444,3 +447,39 @@ def test_effectful_success_commits_ledger_once() -> None:
     assert result.outcome is InvocationOutcome.SUCCESS
     assert adapter.calls == 1
     assert ledger.records[("reader", "idem-1")].state is EffectState.COMMITTED
+
+
+def test_effectful_success_with_commit_persistence_failure_is_outcome_unknown() -> None:
+    ledger = _Ledger(fail_target=EffectState.COMMITTED)
+    gateway, adapter, _, audit = _gateway(
+        spec=_spec(effect=EffectClass.WRITE_REMOTE),
+        ledger=ledger,
+    )
+
+    result = gateway.invoke(identity=_identity(), request=_request(idempotency_key="idem-1"))
+
+    assert adapter.calls == 1
+    assert result.outcome is InvocationOutcome.OUTCOME_UNKNOWN
+    assert result.error_code == "INTERNAL_ERROR"
+    assert result.output is None
+    assert result.evidence is None
+    assert ledger.records[("reader", "idem-1")].state is EffectState.PENDING
+    assert len(audit.calls) == 1
+
+
+def test_effectful_timeout_with_state_persistence_failure_remains_outcome_unknown() -> None:
+    ledger = _Ledger(fail_target=EffectState.OUTCOME_UNKNOWN)
+    adapter = _Adapter(error=AdapterOutcomeUnknown("transport timeout after dispatch"))
+    gateway, selected_adapter, _, audit = _gateway(
+        spec=_spec(effect=EffectClass.WRITE_REMOTE),
+        adapter=adapter,
+        ledger=ledger,
+    )
+
+    result = gateway.invoke(identity=_identity(), request=_request(idempotency_key="idem-1"))
+
+    assert selected_adapter.calls == 1
+    assert result.outcome is InvocationOutcome.OUTCOME_UNKNOWN
+    assert result.error_code == "INTERNAL_ERROR"
+    assert ledger.records[("reader", "idem-1")].state is EffectState.PENDING
+    assert len(audit.calls) == 1

@@ -383,7 +383,10 @@ class CapabilityGateway:
                 logical_resource=logical_resource,
             )
         except AdapterKnownNoEffect:
-            self._transition_if_reserved(effect_guard, EffectState.FAILED_KNOWN_NO_EFFECT)
+            transitioned = self._transition_if_reserved(
+                effect_guard,
+                EffectState.FAILED_KNOWN_NO_EFFECT,
+            )
             return self._audited_result(
                 identity=identity,
                 spec=spec,
@@ -393,11 +396,11 @@ class CapabilityGateway:
                 request=request,
                 started_at=started_at,
                 outcome=InvocationOutcome.FAILED,
-                error_code="ADAPTER_FAILURE",
+                error_code="ADAPTER_FAILURE" if transitioned else "INTERNAL_ERROR",
                 idempotency_binding=effect_guard.binding_digest,
             )
         except AdapterOutcomeUnknown:
-            self._transition_if_reserved(effect_guard, EffectState.OUTCOME_UNKNOWN)
+            transitioned = self._transition_if_reserved(effect_guard, EffectState.OUTCOME_UNKNOWN)
             return self._audited_result(
                 identity=identity,
                 spec=spec,
@@ -407,7 +410,7 @@ class CapabilityGateway:
                 request=request,
                 started_at=started_at,
                 outcome=InvocationOutcome.OUTCOME_UNKNOWN,
-                error_code="ADAPTER_TIMEOUT",
+                error_code="ADAPTER_TIMEOUT" if transitioned else "INTERNAL_ERROR",
                 idempotency_binding=effect_guard.binding_digest,
             )
         except AdapterExecutionFailed:
@@ -435,8 +438,25 @@ class CapabilityGateway:
                 error_code="INTERNAL_ERROR",
             )
 
-        if effect_guard.required:
-            self._transition_if_reserved(effect_guard, EffectState.COMMITTED)
+        if effect_guard.required and not self._transition_if_reserved(
+            effect_guard,
+            EffectState.COMMITTED,
+        ):
+            return self._audited_result(
+                identity=identity,
+                spec=spec,
+                context=context,
+                decision=decision,
+                logical_resource=logical_resource,
+                request=request,
+                started_at=started_at,
+                outcome=InvocationOutcome.OUTCOME_UNKNOWN,
+                error_code="INTERNAL_ERROR",
+                output=executed.output,
+                evidence=executed.evidence,
+                idempotency_binding=effect_guard.binding_digest,
+                provider_receipt=executed.provider_receipt,
+            )
 
         try:
             self._schemas.validate(spec.output_schema_id, executed.output)
@@ -515,8 +535,10 @@ class CapabilityGateway:
         error_code: str,
     ) -> IntegrationResult:
         if effect_guard.required:
-            self._transition_if_reserved(effect_guard, EffectState.OUTCOME_UNKNOWN)
+            transitioned = self._transition_if_reserved(effect_guard, EffectState.OUTCOME_UNKNOWN)
             outcome = InvocationOutcome.OUTCOME_UNKNOWN
+            if not transitioned:
+                error_code = "INTERNAL_ERROR"
         else:
             outcome = InvocationOutcome.FAILED
         return self._audited_result(
@@ -546,16 +568,20 @@ class CapabilityGateway:
             error_code=error_code,
         )
 
-    def _transition_if_reserved(self, guard: EffectGuard, target: EffectState) -> None:
+    def _transition_if_reserved(self, guard: EffectGuard, target: EffectState) -> bool:
         if guard.reservation is None:
-            return
+            return True
         record = guard.reservation.record
-        self._effects.transition(
-            subject_id=record.subject_id,
-            idempotency_key=record.idempotency_key,
-            expected=EffectState.PENDING,
-            target=target,
-        )
+        try:
+            self._effects.transition(
+                subject_id=record.subject_id,
+                idempotency_key=record.idempotency_key,
+                expected=EffectState.PENDING,
+                target=target,
+            )
+        except RuntimeError:
+            return False
+        return True
 
     def _audited_result(
         self,
