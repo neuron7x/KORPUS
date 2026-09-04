@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1828,
-  "root_sha256": "023de20b2706cdf110bba028d457602f4e01b443b8dc6368b5976a505ead85c0",
+  "root_sha256": "439757a85c2a1196f1f7c5c4146637515a456f078f2fde4272d0b32f76b5d950",
   "files": [
     {
       "path": ".dockerignore",
@@ -7447,8 +7447,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 645997,
-      "sha256": "1f748008deea4e2d25dc78343aba56cd267180586b2773c71ec190ede33600a8",
+      "bytes": 648359,
+      "sha256": "7e29da8a94740446cea9c151db3ca6d75011cc78eedab381c87fe9cd0bf737f9",
       "mode": "0644"
     },
     {
@@ -10849,8 +10849,8 @@
     },
     {
       "path": "scripts/verify_gcp_slo.py",
-      "bytes": 1047,
-      "sha256": "6df2445cdca87c06301476f94bbf73b32b6f3562b67602672ff4e34e6a47c369",
+      "bytes": 4210,
+      "sha256": "39b8a54ca6e4ca2028364c71104632db73e7bf4a75dd242d9d381c987ee251c6",
       "mode": "0755"
     },
     {

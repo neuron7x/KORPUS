@@ -5681,13 +5681,13 @@
       "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
     },
     "scripts/verify_gcp_slo.py": {
-      "lines": 33,
-      "max_complexity": 7,
-      "max_function_args": 0,
-      "max_function_lines": 19,
+      "lines": 68,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 16,
       "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "v0.8.2 production request-SLI decomposition; exact measured value becomes the ratchet ceiling"
+      "proof_lines": 21,
+      "reason": "04.09.2026: скрипт став обов'язковим у конвеєрі (`gcp:production-contract` внесено до `required_jobs`), а вирок будувався як `all(item.passed for item in predicates)` — і `all([])` істинне, тож порожній перелік предикатів давав PASS із `total: 0`. Сьогодні `evaluate()` повертає літеральний список і порожнім не буває, але вирок не сміє триматися на цьому: `evaluate_request_sli()` вливається в той самий список. Вирок винесено в чисту `judge()`, порожній перелік тепер FAIL із названою причиною. 21 доказовий рядок — шість негативних контролів; доти в скрипта не було ні самоперевірки, ні жодного тесту, що його імпортує."
     },
     "scripts/verify_handoff_contract.py": {
       "lines": 275,
@@ -11191,6 +11191,27 @@
         "max_function_lines": 58,
         "max_nesting": 2,
         "proof_lines": 144
+      }
+    },
+    {
+      "from": {
+        "lines": 33,
+        "max_complexity": 7,
+        "max_function_args": 0,
+        "max_function_lines": 19,
+        "max_nesting": 1,
+        "proof_lines": 0
+      },
+      "on": "2026-09-04",
+      "path": "scripts/verify_gcp_slo.py",
+      "reason": "04.09.2026: скрипт став обов'язковим у конвеєрі (`gcp:production-contract` внесено до `required_jobs`), а вирок будувався як `all(item.passed for item in predicates)` — і `all([])` істинне, тож порожній перелік предикатів давав PASS із `total: 0`. Сьогодні `evaluate()` повертає літеральний список і порожнім не буває, але вирок не сміє триматися на цьому: `evaluate_request_sli()` вливається в той самий список. Вирок винесено в чисту `judge()`, порожній перелік тепер FAIL із названою причиною. 21 доказовий рядок — шість негативних контролів; доти в скрипта не було ні самоперевірки, ні жодного тесту, що його імпортує.",
+      "to": {
+        "lines": 68,
+        "max_complexity": 6,
+        "max_function_args": 3,
+        "max_function_lines": 16,
+        "max_nesting": 1,
+        "proof_lines": 21
       }
     }
   ],
