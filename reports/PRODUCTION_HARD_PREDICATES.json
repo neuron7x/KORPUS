@@ -5,11 +5,11 @@
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
-  "externally_satisfied": 6,
-  "production_satisfied": 6,
+  "externally_satisfied": 7,
+  "production_satisfied": 7,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 42.857143,
-  "production_completion_percent": 42.857143,
+  "external_completion_percent": 50.0,
+  "production_completion_percent": 50.0,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -44,14 +44,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "evidence_manifest_bound",
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": [
         "evidence_attestation_verified",
         "evidence_trusted_signer"
