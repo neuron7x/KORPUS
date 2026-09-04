@@ -20,16 +20,23 @@ _PREAUTH_DENIALS = frozenset({"CAPABILITY_UNKNOWN", "CAPABILITY_DISABLED", "POLI
 
 
 def public_integration_result(result: IntegrationResult) -> IntegrationResult:
-    """Project precise internal decisions into a non-oracular client envelope."""
+    """Project precise internal decisions into a non-oracular client envelope.
 
+    The application core already withholds output for non-success outcomes. This projection
+    repeats that rule at the HTTP boundary so a future core regression cannot turn a denied,
+    failed or ambiguous invocation into data disclosure.
+    """
+
+    if result.outcome is InvocationOutcome.SUCCESS:
+        return result
+
+    updates: dict[str, object | None] = {"output": None, "evidence": None}
     if result.error_code in _PREAUTH_DENIALS:
-        return result.model_copy(update={"error_code": "CAPABILITY_UNAVAILABLE"})
-    if result.outcome is InvocationOutcome.FAILED:
+        updates["error_code"] = "CAPABILITY_UNAVAILABLE"
+    elif result.outcome is InvocationOutcome.FAILED:
         # Internal adapter/schema/audit topology is operator evidence, not client data.
-        return result.model_copy(
-            update={"output": None, "evidence": None, "error_code": "INTEGRATION_FAILED"}
-        )
-    return result
+        updates["error_code"] = "INTEGRATION_FAILED"
+    return result.model_copy(update=updates)
 
 
 def build_integration_router(invoker: CapabilityInvoker) -> APIRouter:
