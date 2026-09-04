@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from korpus.application.capability_gateway.adapters import AdapterExecutionResult, AdapterRegistry
 from korpus.application.capability_gateway.effect_safety import (
     CompensationMode,
@@ -8,6 +10,8 @@ from korpus.application.capability_gateway.effect_safety import (
     ReconciliationMode,
     effect_safety_graph_errors,
 )
+from korpus.application.capability_gateway.errors import CapabilityRegistrationError
+from korpus.application.capability_gateway.invoke import CapabilityGateway, CapabilityGatewayPorts
 from korpus.application.capability_gateway.policy import CapabilityPolicyBridge
 from korpus.application.capability_gateway.preflight import CapabilityDeploymentPreflight
 from korpus.application.capability_gateway.registry import CapabilityRegistry
@@ -131,6 +135,24 @@ def _preflight(
     )
 
 
+def _ports(
+    specs: list[CapabilitySpec],
+    safety: EffectSafetyRegistry,
+) -> CapabilityGatewayPorts:
+    return CapabilityGatewayPorts(
+        registry=CapabilityRegistry(specs),
+        policy=object(),  # type: ignore[arg-type]
+        adapters=object(),  # type: ignore[arg-type]
+        schemas=object(),  # type: ignore[arg-type]
+        resource_mappers={},
+        egress=object(),  # type: ignore[arg-type]
+        effect_authorizer=object(),  # type: ignore[arg-type]
+        effects=object(),  # type: ignore[arg-type]
+        audit=object(),  # type: ignore[arg-type]
+        effect_safety=safety,
+    )
+
+
 def test_compensation_target_must_be_registered() -> None:
     primary = _spec("reference.safety.primary")
     absent = _spec("reference.safety.rollback")
@@ -209,3 +231,22 @@ def test_deployment_preflight_accepts_exact_compensation_graph() -> None:
 
     assert preflight.errors() == ()
     preflight.require_valid()
+
+
+def test_runtime_composition_rejects_hollow_compensation_plan_without_preflight() -> None:
+    primary = _spec("reference.safety.primary")
+    absent = _spec("reference.safety.rollback")
+    safety = EffectSafetyRegistry([_compensated(primary, absent)])
+
+    with pytest.raises(CapabilityRegistrationError, match="compensation capability is not registered"):
+        CapabilityGateway(_ports([primary], safety))
+
+
+def test_runtime_composition_accepts_exact_compensation_graph() -> None:
+    primary = _spec("reference.safety.primary")
+    target = _spec("reference.safety.rollback")
+    safety = EffectSafetyRegistry([_compensated(primary, target), _irreversible(target)])
+
+    gateway = CapabilityGateway(_ports([primary, target], safety))
+
+    assert isinstance(gateway, CapabilityGateway)

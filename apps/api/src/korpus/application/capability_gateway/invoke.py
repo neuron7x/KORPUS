@@ -12,7 +12,10 @@ from korpus.application.capability_gateway.context import (
     build_invocation_context,
 )
 from korpus.application.capability_gateway.contracts import validate_request_binding
-from korpus.application.capability_gateway.effect_safety import EffectSafetyRegistry
+from korpus.application.capability_gateway.effect_safety import (
+    EffectSafetyRegistry,
+    effect_safety_graph_errors,
+)
 from korpus.application.capability_gateway.effects import (
     EffectGuard,
     EffectLedger,
@@ -43,7 +46,6 @@ from korpus.application.capability_gateway.result import (
     early_result,
 )
 from korpus.application.capability_gateway.types import (
-    CapabilityLifecycle,
     CapabilitySpec,
     IntegrationRequest,
     InvocationContext,
@@ -371,16 +373,9 @@ def _require_effect_safety(
     registry: CapabilityRegistry,
     safety: EffectSafetyRegistry,
 ) -> None:
-    errors: list[str] = []
-    for spec in registry.all_specs():
-        if spec.lifecycle is not CapabilityLifecycle.ENABLED or not effectful(spec):
-            continue
-        try:
-            safety.resolve_exact(spec)
-        except CapabilityRegistrationError as exc:
-            errors.append(str(exc))
+    errors = effect_safety_graph_errors(registry.all_specs(), safety)
     if errors:
-        detail = "; ".join(sorted(errors))
+        detail = "; ".join(errors)
         raise CapabilityRegistrationError(f"effectful gateway composition rejected: {detail}")
 
 
