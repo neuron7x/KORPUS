@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1810,
-  "root_sha256": "fe72055df8b0a6ea9130327716523b881adb8ecaec4c040051bce18e97bcd084",
+  "root_sha256": "78c33aa5247dfd735333af29f0956cd46de0d6e13fd0762818b49babab656594",
   "files": [
     {
       "path": ".dockerignore",
@@ -7333,8 +7333,8 @@
     },
     {
       "path": "config/operations/evidence-bases.json",
-      "bytes": 7021,
-      "sha256": "435b1917a071b8e9b4256dae979fbb077fd6cb5f53214968cb595ea789788cdd",
+      "bytes": 9296,
+      "sha256": "ea15381717054cae293ab59363464260e799604c167c656eee71886a29329f4b",
       "mode": "0644"
     },
     {
@@ -7357,8 +7357,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 607432,
-      "sha256": "9f2335c79cba248176e09456422e727f882b92c78b206f5696f27191828d147b",
+      "bytes": 607972,
+      "sha256": "b7dc02450184c1b7e557d0bd10ac059e0d54c9ab48ddc7ac696a841ce50ef6cb",
       "mode": "0644"
     },
     {
@@ -9781,8 +9781,8 @@
     },
     {
       "path": "scripts/measure_evidence_bases.py",
-      "bytes": 26626,
-      "sha256": "d258deafa2e708beeae4ece41c659943ba809a76b876e59f882da48b9a1fcbf8",
+      "bytes": 27592,
+      "sha256": "7994da6adfdd34ba6cfa3557dad1ac988d81174959f43d4929830c04450b4d49",
       "mode": "0755"
     },
     {
