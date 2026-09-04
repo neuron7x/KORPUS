@@ -11,6 +11,7 @@ from korpus.application.capability_gateway.effect_safety import (
     ReconciliationMode,
 )
 from korpus.application.capability_gateway.errors import CapabilityRegistrationError
+from korpus.application.capability_gateway.invoke import CapabilityGateway, CapabilityGatewayPorts
 from korpus.application.capability_gateway.policy import CapabilityPolicyBridge
 from korpus.application.capability_gateway.preflight import CapabilityDeploymentPreflight
 from korpus.application.capability_gateway.registry import CapabilityRegistry
@@ -78,10 +79,7 @@ def _manual_irreversible(spec: CapabilitySpec) -> EffectSafetyDeclaration:
     )
 
 
-def _preflight(
-    spec: CapabilitySpec,
-    safety: EffectSafetyRegistry | None = None,
-) -> CapabilityDeploymentPreflight:
+def _adapters_and_schemas(spec: CapabilitySpec) -> tuple[AdapterRegistry, ExactSchemaRegistry]:
     adapters = AdapterRegistry()
     adapters.register(spec.adapter.adapter_id, spec.adapter.adapter_version, _Adapter())
     schemas = ExactSchemaRegistry(
@@ -90,19 +88,51 @@ def _preflight(
             spec.output_schema_id: lambda value: None,
         }
     )
-    policy = CapabilityPolicyBridge(
+    return adapters, schemas
+
+
+def _policy(spec: CapabilitySpec) -> CapabilityPolicyBridge:
+    return CapabilityPolicyBridge(
         PolicyEngine(),
         action_permissions={spec.authorization.action: "answer:read"},
         resource_authorizers={
             spec.authorization.resource_mapper: lambda identity, declared, resource: True
         },
     )
+
+
+def _preflight(
+    spec: CapabilitySpec,
+    safety: EffectSafetyRegistry | None = None,
+) -> CapabilityDeploymentPreflight:
+    adapters, schemas = _adapters_and_schemas(spec)
     return CapabilityDeploymentPreflight(
         registry=CapabilityRegistry([spec]),
         adapters=adapters,
         schemas=schemas,
         resource_mappers={spec.authorization.resource_mapper: object()},
-        policy=policy,
+        policy=_policy(spec),
+        effect_safety=safety,
+    )
+
+
+def _structured_ports(
+    spec: CapabilitySpec,
+    safety: EffectSafetyRegistry | None,
+) -> CapabilityGatewayPorts:
+    adapters, schemas = _adapters_and_schemas(spec)
+    return CapabilityGatewayPorts(
+        registry=CapabilityRegistry([spec]),
+        policy=_policy(spec),
+        adapters=adapters,
+        schemas=schemas,
+        resource_mappers={
+            spec.authorization.resource_mapper: lambda identity, declared, request: "reference:1"
+        },
+        egress=object(),  # type: ignore[arg-type]
+        effect_authorizer=object(),  # type: ignore[arg-type]
+        effects=object(),  # type: ignore[arg-type]
+        audit=object(),  # type: ignore[arg-type]
         effect_safety=safety,
     )
 
@@ -172,3 +202,17 @@ def test_exact_bound_effect_safety_allows_preflight_without_granting_authority()
     assert declaration.irreversible is True
     assert declaration.compensation_mode is CompensationMode.NONE
     assert declaration.reconciliation_mode is ReconciliationMode.MANUAL
+
+
+def test_structured_effectful_gateway_composition_rejects_missing_safety() -> None:
+    with pytest.raises(CapabilityRegistrationError, match="effectful gateway composition rejected"):
+        CapabilityGateway(_structured_ports(_effect_spec(), None))
+
+
+def test_structured_effectful_gateway_composition_accepts_exact_safety_only() -> None:
+    spec = _effect_spec()
+    safety = EffectSafetyRegistry([_manual_irreversible(spec)])
+
+    gateway = CapabilityGateway(_structured_ports(spec, safety))
+
+    assert isinstance(gateway, CapabilityGateway)

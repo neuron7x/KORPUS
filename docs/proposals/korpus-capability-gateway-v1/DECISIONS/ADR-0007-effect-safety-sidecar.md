@@ -29,9 +29,19 @@ Deployment preflight fails closed for every enabled effectful capability that ha
 safety declaration or whose same-version local contract digest drifted. `NONE` compensation
 is admissible only when irreversibility is explicitly true.
 
+The structured `CapabilityGatewayPorts` composition path repeats the same exact safety check
+at construction time, making an unsafe effectful structured composition non-executable even
+if a caller accidentally skips preflight. The legacy keyword-port constructor is retained
+only as a transitional unit-test/backward-compatibility shim and is **not deployment
+admission**; owner-approved effectful composition must use structured ports plus preflight.
+
 ## Consequences
 - Frozen v1 wire/schema compatibility is preserved.
 - Effectful deployment cannot rely on implicit rollback assumptions.
 - Same-version local contract mutation invalidates the safety declaration.
+- Deployment admission and structured runtime composition independently enforce the safety
+  prerequisite without turning it into authorization.
+- The legacy constructor remains an explicit migration debt and should be removed after all
+  callers move to structured ports.
 - A future capability-contract version may inline equivalent semantics only through an
   explicit versioned contract migration; this ADR does not mutate v1 retrospectively.

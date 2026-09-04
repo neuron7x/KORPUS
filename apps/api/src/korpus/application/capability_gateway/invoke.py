@@ -12,6 +12,7 @@ from korpus.application.capability_gateway.context import (
     build_invocation_context,
 )
 from korpus.application.capability_gateway.contracts import validate_request_binding
+from korpus.application.capability_gateway.effect_safety import EffectSafetyRegistry
 from korpus.application.capability_gateway.effects import (
     EffectGuard,
     EffectLedger,
@@ -25,6 +26,7 @@ from korpus.application.capability_gateway.errors import (
     CapabilityContractError,
     CapabilityNotFound,
     CapabilityPolicyIndeterminate,
+    CapabilityRegistrationError,
     CapabilityUnavailable,
 )
 from korpus.application.capability_gateway.execution import CapabilityExecutor, SchemaValidator
@@ -41,6 +43,7 @@ from korpus.application.capability_gateway.result import (
     early_result,
 )
 from korpus.application.capability_gateway.types import (
+    CapabilityLifecycle,
     CapabilitySpec,
     IntegrationRequest,
     InvocationContext,
@@ -83,9 +86,10 @@ class CapabilityGatewayPorts:
     effect_authorizer: EffectAuthorizer
     effects: EffectLedger
     audit: CapabilityAuditSink
+    effect_safety: EffectSafetyRegistry | None = None
 
 
-_LEGACY_PORT_KEYS = frozenset(
+_LEGACY_REQUIRED_PORT_KEYS = frozenset(
     {
         "registry",
         "policy",
@@ -98,6 +102,7 @@ _LEGACY_PORT_KEYS = frozenset(
         "audit",
     }
 )
+_LEGACY_OPTIONAL_PORT_KEYS = frozenset({"effect_safety"})
 
 
 class CapabilityGateway:
@@ -108,13 +113,19 @@ class CapabilityGateway:
         ports: CapabilityGatewayPorts | None = None,
         **legacy_ports: object,
     ) -> None:
+        structured_composition = ports is not None
+        explicit_legacy_safety = "effect_safety" in legacy_ports
         resolved = _normalize_ports(ports, legacy_ports)
+        safety = resolved.effect_safety or EffectSafetyRegistry()
+        if structured_composition or explicit_legacy_safety:
+            _require_effect_safety(resolved.registry, safety)
         self._registry = resolved.registry
         self._policy = resolved.policy
         self._resource_mappers = dict(resolved.resource_mappers)
         self._egress = resolved.egress
         self._effect_authorizer = resolved.effect_authorizer
         self._effects = resolved.effects
+        self._effect_safety = safety
         self._emitter = CapabilityResultEmitter(resolved.audit)
         self._executor = CapabilityExecutor(
             adapters=resolved.adapters,
@@ -359,6 +370,23 @@ class CapabilityGateway:
         )
 
 
+def _require_effect_safety(
+    registry: CapabilityRegistry,
+    safety: EffectSafetyRegistry,
+) -> None:
+    errors: list[str] = []
+    for spec in registry.all_specs():
+        if spec.lifecycle is not CapabilityLifecycle.ENABLED or not effectful(spec):
+            continue
+        try:
+            safety.resolve_exact(spec)
+        except CapabilityRegistrationError as exc:
+            errors.append(str(exc))
+    if errors:
+        detail = "; ".join(sorted(errors))
+        raise CapabilityRegistrationError(f"effectful gateway composition rejected: {detail}")
+
+
 def _normalize_ports(
     ports: CapabilityGatewayPorts | None,
     legacy: Mapping[str, object],
@@ -367,9 +395,11 @@ def _normalize_ports(
         if legacy:
             raise TypeError("CapabilityGateway accepts either ports or legacy keyword ports, not both")
         return ports
-    if frozenset(legacy) != _LEGACY_PORT_KEYS:
-        missing = sorted(_LEGACY_PORT_KEYS - frozenset(legacy))
-        extra = sorted(frozenset(legacy) - _LEGACY_PORT_KEYS)
+    keys = frozenset(legacy)
+    allowed = _LEGACY_REQUIRED_PORT_KEYS | _LEGACY_OPTIONAL_PORT_KEYS
+    if not _LEGACY_REQUIRED_PORT_KEYS.issubset(keys) or not keys.issubset(allowed):
+        missing = sorted(_LEGACY_REQUIRED_PORT_KEYS - keys)
+        extra = sorted(keys - allowed)
         raise TypeError(f"invalid CapabilityGateway port set: missing={missing}, extra={extra}")
     return CapabilityGatewayPorts(
         registry=cast(CapabilityRegistry, legacy["registry"]),
@@ -381,6 +411,7 @@ def _normalize_ports(
         effect_authorizer=cast(EffectAuthorizer, legacy["effect_authorizer"]),
         effects=cast(EffectLedger, legacy["effects"]),
         audit=cast(CapabilityAuditSink, legacy["audit"]),
+        effect_safety=cast(EffectSafetyRegistry | None, legacy.get("effect_safety")),
     )
 
 
