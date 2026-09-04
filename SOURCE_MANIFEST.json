@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1825,
-  "root_sha256": "dcda1b03dd0c16eb73a28a75ed267dcb211cc8df992b19a341fc1bf4e8498467",
+  "file_count": 1826,
+  "root_sha256": "c9d52c7bb0a45de25873e4f95dd1838abfa6f06296811906fe416f8d372151e8",
   "files": [
     {
       "path": ".dockerignore",
@@ -3855,6 +3855,12 @@
       "path": "apps/api/tests/test_mcp_server.py",
       "bytes": 13824,
       "sha256": "a9ef19bb61f7f29ef98c3d5970b0f771b3fef61e844aa5c083f714fffd27fa1b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_mcp_stdio_loop.py",
+      "bytes": 4776,
+      "sha256": "180a96e427f5010b97b65c77e62a4d5dad248a6acf6436e552012ec1d34eb88b",
       "mode": "0644"
     },
     {
