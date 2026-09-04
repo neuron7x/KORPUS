@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1810,
-  "root_sha256": "d333845f15facd260ba4a953e8326475a15ad00cb331ddfceaeb9e15f27eb58f",
+  "root_sha256": "fe72055df8b0a6ea9130327716523b881adb8ecaec4c040051bce18e97bcd084",
   "files": [
     {
       "path": ".dockerignore",
@@ -2659,8 +2659,8 @@
     },
     {
       "path": "apps/api/tests/test_admission_subject_share.py",
-      "bytes": 4433,
-      "sha256": "7ce65e4ef7fc98560819cb126b6badbb8315dbf506032ff05d3c7cbd49e3ad76",
+      "bytes": 6666,
+      "sha256": "94ab7229980bab1ed8ae68fce655519a2139a7bddb2a2a3da77cc9b0f38b1e16",
       "mode": "0644"
     },
     {
@@ -7357,8 +7357,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 606236,
-      "sha256": "5f8a09b8878cada2cfe78b3da7a012ea1b7d8bf023460b98232753e5c66e29e8",
+      "bytes": 607432,
+      "sha256": "9f2335c79cba248176e09456422e727f882b92c78b206f5696f27191828d147b",
       "mode": "0644"
     },
     {
@@ -9739,8 +9739,8 @@
     },
     {
       "path": "scripts/load_probe.py",
-      "bytes": 11118,
-      "sha256": "f470371e83bee4842b6c4818fc36e46e18e33131dae0ec0517558203123e176c",
+      "bytes": 12868,
+      "sha256": "92fa52c51b4857f66b06f564559b9ddd55b754c0cffbc26214ff40b860401a87",
       "mode": "0755"
     },
     {

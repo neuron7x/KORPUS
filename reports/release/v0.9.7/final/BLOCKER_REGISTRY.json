@@ -1,8 +1,8 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-04T01:58:18.794970+00:00",
+  "generated_at": "2026-09-04T02:19:39.179057+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "c65d64e6c7a7d435c57a1b2ba8a08eb6e6167cbe59dfcf4bb13d04598f72213e",
+  "source_tree_sha256": "15232e8dada73b7e06d6f8efce9f204595eeb8f021b19f31c2e7746be924e1db",
   "items": [
     {
       "id": "external_independent_redteam",
@@ -60,29 +60,29 @@
     },
     {
       "id": "production_like_load",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
       "required_proof_class": "PRODUCTION_LIKE_LOAD"
     },
     {
       "id": "trusted_load_attestation",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
     {
       "id": "trusted_recovery_attestation",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
     {
@@ -132,10 +132,11 @@
     }
   ],
   "counts": {
-    "EXTERNAL_REQUIRED": 14
+    "CLOSED_ANCHORED": 3,
+    "EXTERNAL_REQUIRED": 11
   },
   "internal_executable_unresolved": 0,
-  "production_external_or_runtime_unresolved": 14,
+  "production_external_or_runtime_unresolved": 11,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true
 }

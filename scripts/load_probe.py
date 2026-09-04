@@ -212,6 +212,32 @@ def main() -> int:
             "number that says whether the steady state is steady."
         ),
     }
+    # Проба, яку відмовили НА ДВЕРЯХ, міряє двері. Виміряно 04.09.2026: токени
+    # протухли за годину, і прогін дав 101 206 відповідей 401 за хвилину — p95 0.006 с,
+    # жодного 5xx, жодного тротлінгу. Тобто ВСІ чотири перевірки SLO пройшли б на
+    # вимірі, у якому система не відповіла жодного разу. Порожній знаменник знову
+    # виглядав як згода. Виробник відмовляється писати такий звіт: відсутній доказ —
+    # це UNKNOWN, а UNKNOWN не є PASS; вигаданий доказ був би гіршим за обидва.
+    answered = {phase: report[phase]["statuses"].get("200", 0) for phase in ("load", "soak")}
+    silent = [phase for phase, count in answered.items() if not count]
+    if silent:
+        print(
+            json.dumps(
+                {
+                    "refused": "жодної відповіді 200 у фазах, за якими судять SLO",
+                    "phases": silent,
+                    "statuses": {phase: report[phase]["statuses"] for phase in silent},
+                    "why": (
+                        "SLO рахуються на фазі soak; прогін, де кожен запит відхилено на "
+                        "вході, задовольняє їх усі, нічого не вимірявши"
+                    ),
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            file=sys.stderr,
+        )
+        return 65
     path = arguments.out
     with open(path, "w", encoding="utf-8") as handle:
         json.dump(report, handle, ensure_ascii=False, indent=2)
