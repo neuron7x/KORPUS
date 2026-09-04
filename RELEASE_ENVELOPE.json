@@ -111,29 +111,31 @@
       "visibility": "private",
       "why_not_github": "Дзеркало на github.com/neuron7x/KORPUS ПУБЛІЧНЕ. Кандидат туди не штовхається з цього лану: публікація — рішення власника, не крок закриття релізу.",
       "required_jobs": [
-        "repository:validate",
-        "api:test",
-        "api:quality",
-        "web:test",
         "api:assurance",
         "api:drills",
-        "audit:closure",
         "api:postgres-and-restore",
-        "secret:scan",
-        "python:audit",
-        "infrastructure:scan",
-        "security:summary",
-        "source:sbom",
+        "api:quality",
+        "api:test",
+        "audit:closure",
         "container:build",
-        "container:scan",
         "container:sbom",
-        "source:package"
+        "container:scan",
+        "gcp:production-contract",
+        "infrastructure:scan",
+        "python:audit",
+        "repository:validate",
+        "secret:scan",
+        "security:summary",
+        "source:package",
+        "source:sbom",
+        "web:test"
       ],
       "excluded_jobs": {
         "production:release": "ручний джоб релізу — його виконує власник, не лан",
         "gcp:deploy-production": "GCP не в дорозі обслуговування цього релізу",
         "gcp:production-contract": "перевіряє контракт GCP; топологія цього релізу — loopback"
-      }
+      },
+      "required_jobs_note": "04.09.2026: `gcp:production-contract` біжить БЕЗУМОВНО і ганяє три верифікатори (контракт GCP, SLO, структура terraform) — а в переліку обов'язкових його не було. Поки він падає, вирок ловив його як `failed`; але джоб, який НЕ ЗАПУСТИВСЯ, не є ні впалим, ні відсутнім серед обов'язкових, і прогін лишався б PASS із невиконаною перевіркою. Він і доти проходив на кожному прогоні, тож внесення нічого не послаблює й закриває NOT_EXECUTED. Альтернатива — назвати його в `jobs_not_required` — була б слабшою: вона визнає джоб необов'язковим, хоча він зелений і дешевий."
     },
     "required_serving_units_note": "Юніт, який МУСИТЬ обслуговувати пілот. Вимірювач класу середовища відмовляє, поки він не активний і поки його головний процес не серед тих, що відповідають.",
     "private_pilot": {
