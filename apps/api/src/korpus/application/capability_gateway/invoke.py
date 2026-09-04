@@ -14,7 +14,10 @@ from korpus.application.capability_gateway.adapters import (
     AdapterRegistry,
 )
 from korpus.application.capability_gateway.audit import CapabilityAuditSink, InvocationOutcome
-from korpus.application.capability_gateway.context import build_invocation_context
+from korpus.application.capability_gateway.context import (
+    bind_invocation_resource,
+    build_invocation_context,
+)
 from korpus.application.capability_gateway.contracts import (
     canonical_json_bytes,
     payload_digest,
@@ -143,12 +146,19 @@ class CapabilityGateway:
                 "RESOURCE_MAPPING_FAILED",
                 invocation_id=context.invocation_id,
             )
-        if not logical_resource:
+        if not isinstance(logical_resource, str) or not logical_resource.strip():
             return self._early_result(
                 InvocationOutcome.FAILED,
                 "RESOURCE_MAPPING_FAILED",
                 invocation_id=context.invocation_id,
             )
+        logical_resource = logical_resource.strip()
+        context = bind_invocation_resource(
+            context,
+            identity=identity,
+            spec=spec,
+            logical_resource=logical_resource,
+        )
 
         try:
             decision = self._policy.authorize_resource(

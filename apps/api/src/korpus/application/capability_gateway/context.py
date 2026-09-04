@@ -15,8 +15,13 @@ from korpus.application.request_audit_context import current_request_audit_conte
 from korpus.domain.models import Identity
 
 
-def policy_context_digest(identity: Identity, spec: CapabilitySpec) -> str:
-    """Digest only trusted server-side authorization inputs relevant to this invocation."""
+def policy_context_digest(
+    identity: Identity,
+    spec: CapabilitySpec,
+    *,
+    logical_resource: str | None = None,
+) -> str:
+    """Digest trusted server-side inputs that determine capability authorization."""
 
     return payload_digest(
         {
@@ -28,6 +33,8 @@ def policy_context_digest(identity: Identity, spec: CapabilitySpec) -> str:
             "capability_id": spec.capability_id,
             "capability_version": spec.version,
             "action": spec.authorization.action,
+            "resource_mapper": spec.authorization.resource_mapper,
+            "logical_resource": logical_resource,
             "effect_class": spec.effect_class.value,
         }
     )
@@ -56,4 +63,27 @@ def build_invocation_context(
         policy_context_digest=policy_context_digest(identity, spec),
         trace_id=trace_id,
         purpose=purpose,
+    )
+
+
+def bind_invocation_resource(
+    context: InvocationContext,
+    *,
+    identity: Identity,
+    spec: CapabilitySpec,
+    logical_resource: str,
+) -> InvocationContext:
+    """Bind the already-created invocation identity to its server-derived resource."""
+
+    resource = logical_resource.strip()
+    if not resource:
+        raise ValueError("logical resource must be non-empty")
+    return context.model_copy(
+        update={
+            "policy_context_digest": policy_context_digest(
+                identity,
+                spec,
+                logical_resource=resource,
+            )
+        }
     )

@@ -9,6 +9,7 @@ from korpus.application.capability_gateway.audit import (
     capability_policy_decision_ref,
 )
 from korpus.application.capability_gateway.context import (
+    bind_invocation_resource,
     build_invocation_context,
     policy_context_digest,
 )
@@ -97,6 +98,43 @@ def test_policy_context_digest_is_deterministic_for_set_order() -> None:
     second = Identity(subject="reader", roles=frozenset({"instructor", "user"}))
 
     assert policy_context_digest(first, spec) == policy_context_digest(second, spec)
+
+
+def test_policy_context_digest_changes_with_logical_resource() -> None:
+    identity = Identity(subject="reader", roles=frozenset({"user"}))
+    spec = _spec()
+
+    first = policy_context_digest(identity, spec, logical_resource="reference:1")
+    second = policy_context_digest(identity, spec, logical_resource="reference:2")
+
+    assert first != second
+
+
+def test_bind_invocation_resource_preserves_identity_and_binds_resource() -> None:
+    identity = Identity(subject="reader", roles=frozenset({"user"}))
+    spec = _spec()
+    context = build_invocation_context(
+        identity=identity,
+        spec=spec,
+        request_time=datetime(2026, 9, 4, 11, 0, tzinfo=UTC),
+    )
+
+    bound = bind_invocation_resource(
+        context,
+        identity=identity,
+        spec=spec,
+        logical_resource="reference:1",
+    )
+
+    assert bound.invocation_id == context.invocation_id
+    assert bound.actor == context.actor
+    assert bound.request_time == context.request_time
+    assert bound.policy_context_digest != context.policy_context_digest
+    assert bound.policy_context_digest == policy_context_digest(
+        identity,
+        spec,
+        logical_resource="reference:1",
+    )
 
 
 def test_invocation_context_reuses_hashed_request_session_binding() -> None:
