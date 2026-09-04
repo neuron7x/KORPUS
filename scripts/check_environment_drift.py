@@ -57,6 +57,32 @@ def observe(root: Path, paths: list[str]) -> dict[str, Any]:
     }
 
 
+def _refuse(reason: str) -> bool:
+    """Назвати причину в stdout і сказати кличучому, що далі йти не можна."""
+    print(json.dumps({"valid": False, "reason": reason}, ensure_ascii=False))
+    return True
+
+
+def _unreadable_observation(path: Path) -> bool:
+    """Порожній OBSERVATION робить `Path("")` → `Path(".")`: не None, тож сторож
+    відсутності його не бачить, а `read_text` падає винятком. Трейсбек і відмова —
+    різні речі: код повернення від винятку не відрізняє «знайдено дрейф» від «не
+    змогла запуститись»."""
+    if path.is_file():
+        return False
+    return _refuse(
+        f"observation path is not a readable file: {path!s}. "
+        "Pass OBSERVATION=<file> produced by --observe on the deployed host."
+    )
+
+
+def _unwritable_out(path: Path) -> bool:
+    """Той самий клас на шляху запису: порожній --out писав би в ТЕКУ."""
+    if not (path.is_dir() or not path.name):
+        return False
+    return _refuse(f"--out is not a file path: {path!s}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--observe", type=Path, help="fingerprint this deployed tree")
@@ -83,6 +109,8 @@ def main() -> int:
             # A fresh checkout has no var/. The script owns the path it was given:
             # asking every caller to mkdir first is how the check ends up wrapped in a
             # shell line that silently swallows its exit code.
+            if _unwritable_out(args.out):
+                return 2
             args.out.parent.mkdir(parents=True, exist_ok=True)
             args.out.write_text(rendered, encoding="utf-8")
         else:
@@ -101,6 +129,15 @@ def main() -> int:
                 }
             )
         )
+        return 2
+
+    # `make environment-drift` без `OBSERVATION=` передає ПОРОЖНІЙ рядок, і `Path("")`
+    # стає `Path(".")` — не None, отже сторож відсутності вище його не бачить. Далі
+    # `read_text` падав `IsADirectoryError`, тобто перевірка завершувалась ТРЕЙСБЕКОМ,
+    # а не відмовою. Це різні речі: код повернення від непійманого винятку не
+    # відрізняє «перевірка знайшла дрейф» від «перевірка не змогла запуститись».
+    # Виміряно 04.09.2026: ціль не входить у жоден лан, тож падіння не бачив ніхто.
+    if _unreadable_observation(args.observation):
         return 2
 
     payload = json.loads(args.observation.read_text(encoding="utf-8"))

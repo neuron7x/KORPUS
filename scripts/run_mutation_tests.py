@@ -41,6 +41,12 @@ class Mutant:
     full_copy: bool = False
 
 
+# МЕЖА, ВИМІРЯНА 04.09.2026: цей каталог не може мутувати ВЛАСНЕ джерело. Ціль мутанта —
+# дослівний рядок, а запис у каталозі цитує його ТУТ ЖЕ, тож будь-яка спроба дає дві появи
+# й статус INVALID. Спіймано не запуском, а `test_gate_parity`: сторож єдиності цілі назвав
+# дві появи, а сторож номерів — що номер уже зайнято. Обидва спрацювали з першого разу.
+# Тому властивості самого прогону охороняють тести `test_mutation_report_declares_its_verdict`,
+# а не мутанти.
 MUTANTS = (
     Mutant(
         "M630_FOLD_SKIPS_NEW_WINNERS",
@@ -5174,8 +5180,8 @@ MUTANTS = (
     Mutant(
         "M550_A_SUBSYSTEM_THAT_WOKE_UP_IS_STILL_CALLED_DORMANT",
         "scripts/check_dormant_subsystems.py",
-        "        woke = sorted(module for module in declared if module in reachable)",
-        "        woke = []",
+        '        "modules_now_reachable": sorted(m for m in declared if m in reachable),',
+        '        "modules_now_reachable": [],',
         (
             "apps/api/tests/test_dormant_subsystems.py::"
             "test_a_module_wired_into_the_api_wakes_the_subsystem",
@@ -5185,16 +5191,16 @@ MUTANTS = (
     Mutant(
         "M551_A_MODULE_THAT_VANISHED_IS_NOT_REPORTED",
         "scripts/check_dormant_subsystems.py",
-        "        gone = sorted(module for module in declared if module not in every_module)",
-        "        gone = []",
+        '        "modules_that_vanished": sorted(m for m in declared if m not in every_module),',
+        '        "modules_that_vanished": [],',
         ("apps/api/tests/test_dormant_subsystems.py::test_a_module_that_vanished_is_a_change",),
         full_copy=True,
     ),
     Mutant(
         "M552_AN_ABSENT_TABLE_IS_READ_AS_AN_EMPTY_ONE",
         "scripts/check_dormant_subsystems.py",
-        "        absent = sorted(table for table, rows in counts.get(name, {}).items() if rows is None)",
-        "        absent = []",
+        '        "tables_absent": sorted(t for t, rows in tables.items() if rows is None),',
+        '        "tables_absent": [],',
         (
             "apps/api/tests/test_dormant_subsystems.py::"
             "test_a_table_that_disappeared_is_a_change_too",
@@ -6888,7 +6894,13 @@ def _run_probe(only: str, jobs: int) -> int:
     report["probe"] = True
     _write_report(report, ROOT / "var/mutation-probe.json")
     _print_summary(report)
-    return 0 if report["mutation_score"] == 1.0 else 1
+    # Вирок уже ОГОЛОШЕНО в звіті, і `test_mutation_report_declares_its_verdict`
+    # тримає саме його. Тут же код повернення виводився заново з `mutation_score` —
+    # з того самого числа, про яке той файл написав, що виводити з нього вирок не
+    # можна. Виміряно 04.09.2026: проба {убитий, ціль_втрачена} дала звіт FAIL і
+    # КОД 0, бо INVALID виходить зі знаменника разом із чисельником. Дві тотожності
+    # одного вироку, і читає їх різне: людина — звіт, оболонка — код.
+    return 0 if report["status"] == "PASS" else 1
 
 
 def _run_catalogue(args: argparse.Namespace) -> tuple[dict[str, object], Path]:
@@ -6925,7 +6937,9 @@ def main() -> int:
     results = report["results"]
     counted = len(results) if isinstance(results, (list, tuple)) else 0
     expected = len(MUTANTS) if args.merge or args.shard_count == 1 else counted
-    return 0 if report["mutation_score"] == 1.0 and report["valid_mutants"] == expected else 1
+    # Повнота шарда лишається окремою умовою: `status` не знає, скільки мутантів мало
+    # бути в цьому прогоні, і сам по собі не спіймав би каталог, що всихає між шардами.
+    return 0 if report["status"] == "PASS" and report["valid_mutants"] == expected else 1
 
 
 if __name__ == "__main__":

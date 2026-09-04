@@ -71,6 +71,38 @@ def claim_admission_checks(root: Path, release: str, digest: str) -> dict[str, b
     }
 
 
+#: Документ, на якому власник ухвалює рішення. Виміряно 04.09.2026: з усіх доказів
+#: релізу він єдиний не звірявся НІЧИМ — `grep -rl OWNER_PILOT_RELEASE_PACKET
+#: scripts/ apps/api/ config/ Makefile` давав порожньо. Наслідок був не гіпотетичний:
+#: пакет називав `944dbee1`, `28ea87342ae3`, `25e42e77`, `210762bc` і жодного разу
+#: кандидата `d2964c6e`; §13 стверджував, що останній машинний блокер тримає борг
+#: покриття, вже закритий (204 при стелі 220); §3 казав «два машинні блокери», а
+#: виміряно один. Механіка боронила машинні артефакти й лишила людський вхід на
+#: пам'ять автора.
+OWNER_PACKET = "reports/OWNER_PILOT_RELEASE_PACKET.md"
+
+
+def owner_packet_checks(root: Path, release: str, digest: str) -> dict[str, bool]:
+    """Чи описує пакет власника ЦЕЙ кандидат.
+
+    Форма взята з наявної перевірки `GITHUB_IMPORT.md`/`GITLAB_IMPORT.md`: для
+    текстового доказу прив'язка — це наявність рядка. Для пакета звіряється ще й
+    дайджест дерева, бо він унікальний для коміту, тоді як назва релізу спільна для
+    всіх кандидатів `v0.9.7` і сама по собі не відрізнила б їх один від одного.
+    """
+    path = root / OWNER_PACKET
+    if not path.is_file():
+        # Відсутній пакет — це не «нема на що скаржитись». Власник не має на чому
+        # ухвалювати рішення, і мовчазний PASS тут був би найдорожчим із можливих.
+        return {f"{OWNER_PACKET}.present": False}
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    return {
+        f"{OWNER_PACKET}.present": True,
+        f"{OWNER_PACKET}.release_bound": bool(release) and release in text,
+        f"{OWNER_PACKET}.source_bound": bool(digest) and digest in text,
+    }
+
+
 def blocker_state_checks(root: Path, release: str, digest: str) -> dict[str, bool]:
     path = root / f"reports/release/{release}/final/BLOCKER_REGISTRY.json"
     if not path.is_file():

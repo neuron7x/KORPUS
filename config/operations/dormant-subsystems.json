@@ -1,11 +1,12 @@
 {
-  "schema": "korpus.dormant-subsystems.v1",
-  "recorded_at": "2026-09-01",
+  "schema": "korpus.dormant-subsystems.v2",
+  "recorded_at": "2026-09-04",
   "doctrine": [
     "Сплячий шар — це РІШЕННЯ, і воно мусить бути записане. Стан, якого ніхто не обирав, виглядає однаково і як задум, і як недогляд.",
     "Оголошення несе два перевірювані твердження: названі модулі недосяжні з API, названі таблиці порожні. Кожне падає окремо.",
     "Гейт двобічний навмисно. Той, що ловить лише ПРОБУДЖЕННЯ, не помітить тихого ВИДАЛЕННЯ, і реєстр стане описом неіснуючого.",
-    "Досяжність міряється графом імпортів від `korpus.api.*` і `korpus.main`, а не переліком у конфізі: перелік — це друге оголошення того самого факту."
+    "Досяжність міряється графом імпортів від `korpus.api.*` і `korpus.main`, а не переліком у конфізі: перелік — це друге оголошення того самого факту.",
+    "Реєстр НЕ є мірою. Досяжність рахується графом імпортів від УСІХ поверхонь продакшену — `korpus.api.*`/`korpus.main`, юнітів рантайму (`korpus.cli`, `korpus.worker_service`, MCP) і скриптів-гейтів. Модуль, недосяжний з усіх і не названий тут, робить вирок UNDECLARED_DORMANT: гейт, що звіряє лише власне оголошення, зелений рівно в тому стані, заради якого існує."
   ],
   "subsystems": {
     "learning": {
@@ -53,6 +54,58 @@
         "operational_tasks",
         "operational_task_competencies"
       ]
+    },
+    "snapshot_answer_path": {
+      "why": "Друга реалізація тієї самої спроможності знімка корпусу. Жива дорога відповіді — `ExtractiveAnswerService` у `application/answer_query.py` (838 рядків), і вона сама тримає `CorpusReadToken`, `_snapshot_token` і відмову `corpus_snapshot_unavailable`. `answer_snapshot.py` (274 рядки) робить те саме й не імпортується ЖОДНИМ модулем продакшену; `snapshot_retrieval` імпортує лише він. Виміряно 04.09.2026 графом імпортів і запуском: покриття гілок 14,3 %.",
+      "decision_needed": "дві тотожності одного предмета. Або під'єднати цю дорогу замість наявної, або прибрати її разом із оголошенням у `config/operations/branch-integration.json`, яке називає спроможність `answer_snapshot` ПЕРЕНЕСЕНОЮ. Доки стан не обрано, реєстр гілкової інтеграції стверджує інтеграцію, якої немає.",
+      "modules_unreachable_from_api": [
+        "korpus.application.answer_snapshot",
+        "korpus.application.snapshot_retrieval"
+      ],
+      "tables_expected_empty": []
+    },
+    "parser_worker_process": {
+      "why": "Окремий процес-розбирач: `parser_worker.main()` під `if __name__ == \"__main__\"`. Виміряно 04.09.2026: жоден юніт systemd, жодна ціль Makefile і жоден джоб CI його не запускають; посилаються на нього лише тести. `parser_contracts` імпортує лише він.",
+      "decision_needed": "або дати йому спосіб запуску (юніт або ціль), або прибрати. Точка входу, яку ніщо не викликає, читається як розгорнута спроможність і нею не є.",
+      "modules_unreachable_from_api": [
+        "korpus.infrastructure.parser_worker",
+        "korpus.infrastructure.parser_contracts"
+      ],
+      "tables_expected_empty": []
+    },
+    "undeclared_2026_09_04": {
+      "why": "Виявлено проходом ПОВЗ реєстр 04.09.2026, коли гейт дістав руку виявлення. Доти він звіряв лише 2 підсистеми й 9 модулів і давав `rate 1.0`, мовчачи про 31 модуль і 3344 рядки. Ці 27 недосяжні з жодної поверхні продакшену — ані з API, ані з юнітів рантайму, ані зі скриптів-гейтів. Це ВИМІР, не вирок про намір: частина може чекати під'єднання.",
+      "decision_needed": "кожен модуль потребує окремого рішення: під'єднати, прибрати або оголосити сплячим із причиною. Доти стан названий і порахований, але не обраний.",
+      "modules_unreachable_from_api": [
+        "korpus.application.break_glass",
+        "korpus.application.doctrine_impact",
+        "korpus.application.embedding_migration",
+        "korpus.application.evaluation_validity",
+        "korpus.application.evidence_fusion",
+        "korpus.application.gate_inventory",
+        "korpus.application.inference_budget",
+        "korpus.application.military_assurance",
+        "korpus.application.military_knowledge",
+        "korpus.application.mission_assurance_v2",
+        "korpus.application.offline_trust",
+        "korpus.application.pec_audit_trace",
+        "korpus.application.pec_canary_admission",
+        "korpus.application.pec_cohort",
+        "korpus.application.pec_evidence_receipt",
+        "korpus.application.pec_external_assurance",
+        "korpus.application.pec_hosted_evidence",
+        "korpus.application.pec_human_judgment",
+        "korpus.application.pec_revision_binding",
+        "korpus.application.pec_training_lineage",
+        "korpus.application.regression_receipt_identity",
+        "korpus.application.supply_chain_attestation",
+        "korpus.application.training_progression",
+        "korpus.application.tuning",
+        "korpus.application.tuning_validation",
+        "korpus.infrastructure.competency_repository",
+        "korpus.infrastructure.training_progress_repository"
+      ],
+      "tables_expected_empty": []
     }
   }
 }

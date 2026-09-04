@@ -278,3 +278,60 @@ def test_the_script_creates_the_directory_it_was_told_to_write_into(tmp_path: Pa
 
     assert _run("--observe", str(ROOT), "--out", str(observation)).returncode == 0
     assert observation.is_file()
+
+
+# ── Порожній аргумент — не відсутній аргумент.
+# `make environment-drift` без `OBSERVATION=` передає ПОРОЖНІЙ рядок; `Path("")` стає
+# `Path(".")`, тобто НЕ None, і сторож відсутності його не бачив. Далі `read_text`
+# падав `IsADirectoryError` — перевірка завершувалась трейсбеком, а не відмовою.
+# Код повернення від непійманого винятку не відрізняє «знайдено дрейф» від «не змогла
+# запуститись». Виміряно 04.09.2026: ціль не входить у жоден лан, тож не бачив ніхто.
+
+SCRIPT = Path(__file__).resolve().parents[3] / "scripts/check_environment_drift.py"
+
+
+def _run(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(SCRIPT), *args],
+        capture_output=True,
+        text=True,
+        check=False,
+        cwd=SCRIPT.parent.parent,
+    )
+
+
+def test_an_empty_observation_argument_is_a_named_refusal_not_a_traceback() -> None:
+    """Порожній шлях мусить дати ВИРОК, а не виняток.
+
+    Трейсбек і відмова — різні речі: перший каже «перевірка зламалась», друга —
+    «перевірка виконалась і відхилила». Читач коду повернення не розрізнить їх.
+    """
+    done = _run("--observation", "")
+    assert "Traceback" not in done.stderr
+    assert done.returncode == 2
+    payload = json.loads(done.stdout)
+    assert payload["valid"] is False
+    assert "not a readable file" in payload["reason"]
+
+
+def test_an_empty_out_argument_is_a_named_refusal_not_a_traceback() -> None:
+    """Той самий клас на другому шляху: `--out ""` писав би в теку."""
+    done = _run("--observe", ".", "--out", "")
+    assert "Traceback" not in done.stderr
+    assert done.returncode == 2
+    assert json.loads(done.stdout)["valid"] is False
+
+
+def test_a_missing_observation_argument_keeps_its_own_named_refusal() -> None:
+    """Негативне плече: відсутній аргумент мав власну відмову — вона не змінилась."""
+    done = _run()
+    assert done.returncode == 2
+    assert "no observation supplied" in json.loads(done.stdout)["reason"]
+
+
+def test_a_real_observation_still_round_trips(tmp_path: Path) -> None:
+    """Позитивне плече: правка не сміє закрити законний шлях."""
+    observation = tmp_path / "obs.json"
+    assert _run("--observe", ".", "--out", str(observation)).returncode == 0
+    assert observation.is_file()
+    assert _run("--observation", str(observation)).returncode == 0

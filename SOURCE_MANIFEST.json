@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1826,
-  "root_sha256": "98451b4caa4b9966639c60aea5b94ae8aae7c08088202b7e3c9934e8740b6621",
+  "root_sha256": "301f5832e611eb146dc7ffb8a5e36570057cd913d76a9d7da221e9ae6d4ab512",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 55853,
-      "sha256": "b6dccad716a064f6ec7891103fe92768062a8a46096831f2cf62274a938c82c2",
+      "bytes": 56391,
+      "sha256": "e9488a59262fdd2af3bd397069afa8a41bb112698b597ae6475c36769f4386cc",
       "mode": "0644"
     },
     {
@@ -409,8 +409,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 108894,
-      "sha256": "343d8203caec80d5ce34c3635218e9b825d2bb53fe3842ae932942efb3667cc0",
+      "bytes": 109357,
+      "sha256": "ed24345fc4795cd2e529bc320b3b1c3c9c6c234f2bc6ae3cfb6a0d6d05aeca0f",
       "mode": "0644"
     },
     {
@@ -1675,8 +1675,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/release_truth.py",
-      "bytes": 4461,
-      "sha256": "2169ae744c81713e9926bede8eac68daea526fdf463e24461f574eb12ac5aae4",
+      "bytes": 7437,
+      "sha256": "7a5dcb2618f97df793fe04fb4c9319aa27bc99dea4374995746b4631703fffdc",
       "mode": "0644"
     },
     {
@@ -3133,8 +3133,8 @@
     },
     {
       "path": "apps/api/tests/test_current_truth_hardening_v094.py",
-      "bytes": 3916,
-      "sha256": "7b4d646d2fd6e90266cb08704e4a168ad64ef0c373c6724a7a2adc24967d9e99",
+      "bytes": 7313,
+      "sha256": "fbcea5264005f8d801f5f2e485478b55795a2795541dd1508fc9ecf55692ca9a",
       "mode": "0644"
     },
     {
@@ -3361,8 +3361,8 @@
     },
     {
       "path": "apps/api/tests/test_environment_drift.py",
-      "bytes": 11671,
-      "sha256": "c253afedece8d8044da02c4dc2959f645b21fa1fef96b45c6389352510f0f50a",
+      "bytes": 14589,
+      "sha256": "aac509be3581266c74296f1b4affd28ac59c59efab1db56096e68f7525a61593",
       "mode": "0644"
     },
     {
@@ -3937,8 +3937,8 @@
     },
     {
       "path": "apps/api/tests/test_mutation_report_declares_its_verdict.py",
-      "bytes": 4846,
-      "sha256": "6da54b493cf3c1be4649f916334586761f7fb88320d60c41ba2318046d1e5c4b",
+      "bytes": 8311,
+      "sha256": "2ee13a324b313adefcbaba0d525834af6665fcd1a30a8995c1a7d5bea616d8cd",
       "mode": "0644"
     },
     {
@@ -4555,8 +4555,8 @@
     },
     {
       "path": "apps/api/tests/test_release_truth_hard_predicates.py",
-      "bytes": 3282,
-      "sha256": "bf0cf805d9173ed3ce4df31ed4dbec7d4dcf4a03b243def758318ba462f2c612",
+      "bytes": 9728,
+      "sha256": "7a5d0893be2942d477335db48456eeacbe48a2c88adda00e4216c9a5e46bb6b1",
       "mode": "0644"
     },
     {
@@ -7412,13 +7412,13 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "2fa933a8dc03aa54634029800ede2728a29ac2383b1ab8926de9fedb1e0673d2",
+      "sha256": "7d160931b921e0eef9fbf3b117f81ae5d7adf0ee4bce86efca94e7a20f687cfe",
       "mode": "0644"
     },
     {
       "path": "config/operations/dormant-subsystems.json",
-      "bytes": 4679,
-      "sha256": "24be0065bc1c2afaaf4ebbe1cf81633772439518be0ea706fac683ed0aaa27da",
+      "bytes": 9920,
+      "sha256": "3e10b22ac2deed4b829f11a209c95dc4e36b2e28e1465811141cd34efd62f6e7",
       "mode": "0644"
     },
     {
@@ -7435,8 +7435,8 @@
     },
     {
       "path": "config/operations/gate-closure.json",
-      "bytes": 12659,
-      "sha256": "0f471d47d7f8ec0dafaa933b27af1e1a9ad4d978ef51b466b7632321e8ae8b83",
+      "bytes": 20495,
+      "sha256": "5f104a2a0cf84f7e1fdcfaa4db4a0a758fda3a7975d90e173e0beb49bfe969a9",
       "mode": "0644"
     },
     {
@@ -7447,8 +7447,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 625501,
-      "sha256": "5cc566b92ec470fd77ed0f51c294c07613473666b47b50de0e3473e075388ba8",
+      "bytes": 637852,
+      "sha256": "7f0be264caff2abdf04d937d33a4acfb2af2b23fbcaaf907dcce849010c8c60d",
       "mode": "0644"
     },
     {
@@ -9259,8 +9259,8 @@
     },
     {
       "path": "scripts/check_dormant_subsystems.py",
-      "bytes": 10836,
-      "sha256": "4127f5b62c402866cf1b5a8f4e75c173500a1f02e68ba5fb9c211d4c449e56a1",
+      "bytes": 18425,
+      "sha256": "898d0958f8eec6067ab20b67e757f94e6cde69350e26422e37fae34b11f7c007",
       "mode": "0755"
     },
     {
@@ -9271,8 +9271,8 @@
     },
     {
       "path": "scripts/check_environment_drift.py",
-      "bytes": 5116,
-      "sha256": "23f79f0a7792fcca012b1fc977bdc356f76a5c7d1bc65b20d55ecba72891583e",
+      "bytes": 7283,
+      "sha256": "e63c62c430e3014d2c3d4e804531b2e730f41cfa24213d72ac2422d06448f908",
       "mode": "0755"
     },
     {
@@ -9379,8 +9379,8 @@
     },
     {
       "path": "scripts/current_truth_admission.py",
-      "bytes": 5015,
-      "sha256": "290ad8f19a967dca395ca03a0d1ca4252e8b444741cf21bc6faa795f5145200d",
+      "bytes": 7364,
+      "sha256": "7b8c33bfdc183f986fb6a5fc3c5d5016b31f26bdfeceed01728604bd798b9070",
       "mode": "0644"
     },
     {
@@ -10387,8 +10387,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 317253,
-      "sha256": "d9d5e87114c81eee8ce9b68e38560bd56623a0bb1188529900784c40bf58dee2",
+      "bytes": 319123,
+      "sha256": "9f044018f87f2c3c3704f0afffbd98a91022039982a686d2115bb6e9ce78a08c",
       "mode": "0755"
     },
     {
@@ -10801,8 +10801,8 @@
     },
     {
       "path": "scripts/verify_current_truth.py",
-      "bytes": 2125,
-      "sha256": "8ae5e836960bdde4fcd563998ba86e09bdd998166841c561812f196e3b5e4e38",
+      "bytes": 2217,
+      "sha256": "4f798123eedd782ec5b175dd5f7a9fa22a14441f0a4a084e18a70dce2d208cb2",
       "mode": "0755"
     },
     {
@@ -10825,8 +10825,8 @@
     },
     {
       "path": "scripts/verify_gate_closure.py",
-      "bytes": 39331,
-      "sha256": "19628b8621673ae871a0b1244199efabf615f4cbf3bb6f3ba44c432b06a47302",
+      "bytes": 46219,
+      "sha256": "710d44ab6f3f2e36ec41abdf8651818ba07da0cbf7962f1a688309030d7c24c2",
       "mode": "0755"
     },
     {
