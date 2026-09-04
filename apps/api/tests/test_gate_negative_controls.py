@@ -159,6 +159,9 @@ def _passing_recovery() -> dict[str, Any]:
         "rto_seconds": 12.5,
         "rpo_seconds": 0.0,
         "lost_events": 0,
+        # Повна втрата, а не лише фікстурна підмножина. Без цього поля вирок
+        # відмовляє: невиміряне не є нулем.
+        "lost_documents_total": 0,
         "provenance": {
             "backup_bytes": 40960,
             "plaintext_bytes": 131072,
@@ -263,6 +266,16 @@ ASSURANCE_BREAKERS: dict[str, Any] = {
                     }
                 }
             }
+        }
+    ),
+    # Втрата, більша за вікно, яке навчання створило навмисно. Доти це число
+    # вимірювалось, друкувалось і не судилось: відновлення, що втратило п'ять тисяч
+    # документів, і бездоганне отримували ОДИН вирок.
+    "recovery_loss_explained": lambda inputs: (
+        inputs
+        | {
+            "reports": inputs["reports"]
+            | {"recovery": inputs["reports"]["recovery"] | {"lost_documents_total": 5000}}
         }
     ),
     # The TEVV failure mode transplanted: a fixture relabelled as the real thing.

@@ -23,6 +23,7 @@ from korpus.application.recovery import (
     MISSING,
     OVERSTATED_SCALE,
     PRODUCTION_LIKE_MINIMUM_ROWS,
+    UNEXPLAINED_LOSS,
     classify_recovery,
 )
 
@@ -34,6 +35,7 @@ def _report(**overrides: Any) -> dict[str, Any]:
         "rto_seconds": 12.5,
         "rpo_seconds": 0.0,
         "lost_events": 0,
+        "lost_documents_total": 0,
         "provenance": {
             "backup_bytes": 40960,
             "plaintext_bytes": 131072,
@@ -136,3 +138,51 @@ def test_recovery_provenance_counts_are_discrete_and_finite(field: str) -> None:
 @pytest.mark.parametrize("bad", [True, 1.5, float("inf"), -1])
 def test_lost_event_count_is_a_nonnegative_integer(bad: object) -> None:
     assert classify_recovery(_report(lost_events=bad)).status == INCOMPLETE_PROVENANCE
+
+
+# Виміряно 04.09.2026 незалежним верифікатором: `lost_events`, `lost_documents` і
+# `lost_documents_total` вимірювались, друкувались і НЕ СУДИЛИСЬ ніким. Відновлення, що
+# втратило п'ять тисяч документів, і бездоганне відновлення отримували ОДИН вирок, бо
+# `recovery_numeric_problem` питає лише форму числа. Форма без порога — опис, не умова.
+
+
+def test_loss_beyond_the_deliberate_window_is_refused() -> None:
+    """Поріг не «нуль втрат»: судиться НАДЛИШОК понад те, що навчання створило само."""
+    verdict = classify_recovery(_report(lost_documents_total=6))
+    assert verdict.status == UNEXPLAINED_LOSS
+    assert not verdict.loss_explained
+    assert "1 понад" in verdict.reasons[0]
+
+
+def test_loss_equal_to_the_window_is_what_the_drill_is_for() -> None:
+    """Втратити рівно записане після бекапу — задум навчання, а не вада."""
+    verdict = classify_recovery(_report(lost_documents_total=5))
+    assert verdict.loss_explained
+    assert verdict.status != UNEXPLAINED_LOSS
+
+
+def test_an_unmeasured_total_loss_is_not_zero() -> None:
+    """Відсутнє поле — не нуль. Нуль тут був би згодою, якої ніхто не давав."""
+    report = _report()
+    del report["lost_documents_total"]
+    verdict = classify_recovery(report)
+    assert verdict.status == UNEXPLAINED_LOSS
+    assert not verdict.loss_explained
+
+
+def test_a_lost_audit_event_is_never_explained() -> None:
+    """Навчання не пише подій після бекапу, тож будь-яка їх втрата не має пояснення."""
+    verdict = classify_recovery(_report(lost_events=1))
+    assert verdict.status == UNEXPLAINED_LOSS
+
+
+def test_the_verdict_moves_when_the_loss_moves() -> None:
+    """Дуал: вирок, який не рухається від входу, не є виміром цього входу.
+
+    Саме цей стан і був вадою — два звіти з різницею в п'ять тисяч документів давали
+    той самий рядок.
+    """
+    clean = classify_recovery(_report(lost_documents_total=0))
+    lossy = classify_recovery(_report(lost_documents_total=5000, lost_events=500))
+    assert clean.status != lossy.status
+    assert clean.loss_explained and not lossy.loss_explained

@@ -37,6 +37,9 @@ from korpus.application.recovery_contracts import recovery_numeric_problem, reco
 MISSING = "MISSING"
 INCOMPLETE_PROVENANCE = "INCOMPLETE_PROVENANCE"
 OVERSTATED_SCALE = "OVERSTATED_SCALE"
+#: Втрата, більша за ВІКНО, яке навчання створило навмисно. Стан окремий і б'є решту:
+#: зламане відновлення на фікстурному масштабі лишається зламаним відновленням.
+UNEXPLAINED_LOSS = "UNEXPLAINED_LOSS"
 FIXTURE_SCALE = "FIXTURE_SCALE"
 MEASURED = "MEASURED"
 
@@ -83,6 +86,44 @@ class RecoveryVerdict:
     def scale_not_overstated(self) -> bool:
         return self.status != OVERSTATED_SCALE
 
+    @property
+    def loss_explained(self) -> bool:
+        """Чи вся втрата пояснена вікном, яке навчання створило навмисно."""
+        return self.status != UNEXPLAINED_LOSS
+
+
+def _whole(value: Any) -> int | None:
+    """Ціле з поля звіту, або None. Відсутнє поле — не нуль: нуль був би згодою."""
+    return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
+def _unexplained_loss(report: Mapping[str, Any], provenance: Mapping[str, Any]) -> list[str]:
+    """Втрата понад навмисне вікно. Порожній перелік — не за замовчуванням."""
+    window = _whole(provenance.get("writes_after_backup"))
+    documents = _whole(report.get("lost_documents_total"))
+    events = _whole(report.get("lost_events"))
+    problems: list[str] = []
+    if documents is None:
+        problems.append(
+            "звіт не називає повної втрати документів (`lost_documents_total`): "
+            "величина не виміряна, а невиміряне не є нулем"
+        )
+    elif window is None:
+        problems.append("провенанс не називає вікна записів після бекапу — надлишок не рахується")
+    elif documents > window:
+        problems.append(
+            f"втрачено {documents} документів при вікні {window}: "
+            f"{documents - window} понад те, що навчання створило навмисно"
+        )
+    if events is None:
+        problems.append("звіт не називає втрати подій журналу (`lost_events`)")
+    elif events > 0:
+        problems.append(
+            f"втрачено {events} подій журналу аудиту: навчання не створює подій після "
+            "бекапу, тож будь-яка їх втрата не пояснена"
+        )
+    return problems
+
 
 def classify_recovery(report: Mapping[str, Any] | None) -> RecoveryVerdict:
     """Decide what the drill report supports, without deciding whether it is enough."""
@@ -106,6 +147,21 @@ def classify_recovery(report: Mapping[str, Any] | None) -> RecoveryVerdict:
     numeric_problem = recovery_numeric_problem(report, provenance)
     if numeric_problem:
         return RecoveryVerdict(INCOMPLETE_PROVENANCE, (numeric_problem,))
+
+    # ВЕЛИЧИНА втрати, а не лише її форма. Виміряно 04.09.2026 незалежним верифікатором:
+    # `lost_events`, `lost_documents` і `lost_documents_total` вимірювались, друкувались і
+    # не судились НІКИМ — відновлення, що втратило п'ять тисяч документів, і бездоганне
+    # відновлення отримували ОДИН вирок. `recovery_numeric_problem` питає лише, чи число
+    # скінченне й невід'ємне; форма без порога є описом, а не умовою.
+    #
+    # Поріг не «нуль втрат»: навчання НАВМИСНО пише рядки після бекапу й мусить втратити
+    # рівно їх — інакше воно нічого не міряє. Отже судиться НАДЛИШОК понад це вікно.
+    #
+    # RPO лишається несудженим СВІДОМО: жодної оголошеної цілі RPO не існує, і вигадати
+    # поріг тут означало б підробити повноваження (§2.9). Несуджене названо, не прибране.
+    excess = _unexplained_loss(report, provenance)
+    if excess:
+        return RecoveryVerdict(UNEXPLAINED_LOSS, tuple(excess))
 
     declared = str(report.get("scale_class", "")).strip()
     if declared not in {FIXTURE, PRODUCTION_LIKE}:

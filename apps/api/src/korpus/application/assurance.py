@@ -115,6 +115,9 @@ def evaluate_assurance(
         "recovery_drill_executed": recovery.executed,
         "recovery_provenance_complete": recovery.provenance_complete,
         "recovery_scale_not_overstated": recovery.scale_not_overstated,
+        # Величина втрати, а не лише її форма: без цієї умови втрата будь-якого
+        # розміру давала той самий вирок, що й бездоганне відновлення.
+        "recovery_loss_explained": recovery.loss_explained,
     }
     reasons = tuple(name for name, ok in checks.items() if not ok) + provenance_reasons
     if missing_reports:

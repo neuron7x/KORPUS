@@ -55,6 +55,8 @@ def reports() -> dict:
             "rto_seconds": 12.5,
             "rpo_seconds": 0.0,
             "lost_events": 0,
+            # Невиміряна повна втрата — не нуль, і вирок відмовляє без цього поля.
+            "lost_documents_total": 0,
             "provenance": {
                 "backup_bytes": 40960,
                 "plaintext_bytes": 131072,
