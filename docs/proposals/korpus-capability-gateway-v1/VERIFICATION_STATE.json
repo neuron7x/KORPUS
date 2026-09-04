@@ -4,23 +4,23 @@
   "branch": "proposal/korpus-capability-gateway-v1-20260904",
   "implementation_anchor_commit": "1e40b813794dd684f3aff63733dd5136f9a2521c",
   "anchor_semantics": "Last observed runtime-changing capability-gateway commit. It identifies implementation lineage; it is conceptually distinct from, but may equal, the exact verification candidate.",
-  "verification_candidate_commit": "7b9f505e7dad19610fab21de67f8e039aa67f62a",
+  "verification_candidate_commit": "e3a5f37ece244ebe547ca092126b8147c0bd2ec7",
   "candidate_semantics": "Exact acceptance candidate including runtime lineage, contract artifacts and falsification controls. Later diagnostic or metadata-only checkpoints do not redefine this evidence subject.",
-  "checkpoint_parent_commit": "7b9f505e7dad19610fab21de67f8e039aa67f62a",
+  "checkpoint_parent_commit": "e3a5f37ece244ebe547ca092126b8147c0bd2ec7",
   "frozen_requirements": "docs/proposals/korpus-capability-gateway-v1/REQUIREMENTS.json",
   "denominator": 20,
   "live_base": {
     "branch": "main",
     "observed_sha": "f311e83ae632579fe370f38847b4b19e5eed5aed",
     "merge_base_sha": "f311e83ae632579fe370f38847b4b19e5eed5aed",
-    "feature_ahead_by": 84,
+    "feature_ahead_by": 86,
     "feature_behind_by": 0,
     "relationship": "SYNCHRONIZED",
     "acceptance_gate": "CLEARED",
     "synchronization_commit": "55b15f87a4e66dd9a2c08edec7ae1c8ec2340095",
     "runtime_overlap_observed": false,
     "integration_overlap_observed": true,
-    "basis": "The exact acceptance candidate descends from the deterministic current-main synchronization; compare f311e83...7b9f505 reports ahead_by=84, behind_by=0 and merge-base=f311e83."
+    "basis": "The exact acceptance candidate descends from the deterministic current-main synchronization; compare f311e83...e3a5f37 reports ahead_by=86, behind_by=0 and merge-base=f311e83."
   },
   "verification_policy": {
     "source_witness_is_not_execution_evidence": true,
@@ -45,12 +45,12 @@
   },
   "execution_evidence": {
     "status": "EXECUTION_NOT_OBSERVED",
-    "candidate_commit": "7b9f505e7dad19610fab21de67f8e039aa67f62a",
+    "candidate_commit": "e3a5f37ece244ebe547ca092126b8147c0bd2ec7",
     "exact_head_bound": true,
     "workflow_run_ids": {
-      "ci": 33919940677,
-      "assurance": 33919940651,
-      "dependency-review": 33919940721
+      "ci": 33920246120,
+      "assurance": 33920246148,
+      "dependency-review": 33920246101
     },
     "observed_jobs": [
       "web-tests",
@@ -94,7 +94,7 @@
   },
   "clean_room_evidence": {
     "status": "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED",
-    "candidate_commit": "7b9f505e7dad19610fab21de67f8e039aa67f62a",
+    "candidate_commit": "e3a5f37ece244ebe547ca092126b8147c0bd2ec7",
     "test_command_executed": false,
     "previous_attempt": {
       "candidate_commit": "55b15f87a4e66dd9a2c08edec7ae1c8ec2340095",
@@ -104,7 +104,7 @@
   },
   "fresh_context_evidence": {
     "status": "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED",
-    "candidate_commit": "7b9f505e7dad19610fab21de67f8e039aa67f62a"
+    "candidate_commit": "e3a5f37ece244ebe547ca092126b8147c0bd2ec7"
   },
   "cleared_gates": [
     "BASE_SYNC_REQUIRED",
@@ -134,7 +134,7 @@
     {"id":"CGW-R016","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/api/routes_integrations.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_api_surface.py"]},
     {"id":"CGW-R017","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/policy.py","apps/api/src/korpus/application/capability_gateway/audit.py","apps/api/src/korpus/application/capability_gateway/egress.py","apps/api/src/korpus/application/capability_gateway/result.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_core.py","apps/api/tests/test_capability_gateway_context_audit.py","apps/api/tests/test_capability_gateway_validation_egress.py","apps/api/tests/test_capability_gateway_authority_boundaries.py"]},
     {"id":"CGW-R018","state":"PROTOCOL_DEFINED_NOT_EXECUTED","code_witnesses":[],"control_witnesses":["docs/proposals/korpus-capability-gateway-v1/RELEASE_AND_MERGE_PROTOCOL.md","docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_06_INTEGRATION_ACCEPTANCE.md"]},
-    {"id":"CGW-R019","state":"PROTOCOL_DEFINED_NOT_EXECUTED","code_witnesses":[],"control_witnesses":["docs/proposals/korpus-capability-gateway-v1/AGENT_ARCHITECTURE.md","docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_05_NEGATIVE_CONTROL_VERIFICATION.md"]},
+    {"id":"CGW-R019","state":"PROTOCOL_DEFINED_NOT_EXECUTED","code_witnesses":[],"control_witnesses":["docs/proposals/korpus-capability-gateway-v1/AGENT_ARCHITECTURE.md","docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_05_NEGATIVE_CONTROL_VERIFICATION.md","apps/api/tests/test_capability_gateway_verification_state.py"]},
     {"id":"CGW-R020","state":"PROTOCOL_DEFINED_NOT_EXECUTED","code_witnesses":[],"control_witnesses":["docs/proposals/korpus-capability-gateway-v1/RELEASE_AND_MERGE_PROTOCOL.md","docs/proposals/korpus-capability-gateway-v1/IMPLEMENTATION_PR_MARKER.md"]}
   ]
 }
