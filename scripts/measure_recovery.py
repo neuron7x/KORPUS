@@ -150,8 +150,18 @@ def main() -> int:
         "SELECT count(*) FROM documents WHERE canonical_title LIKE 'recovery-drill-post %'",
         restored_authz,
     )
+    # Симетрично до `lost_events`: ОБИДВІ сторони, а не лише відновлена. Третій
+    # контрприклад верифікатора, 04.09.2026: `rpo_seconds = max(джерело) − max(копія)`
+    # відповідає на питання «наскільки свіжий найновіший УЦІЛІЛИЙ запис», а не «скільки
+    # втрачено». Виміряно на ізольованій базі: 10 документів у джерелі, 5 у копії,
+    # втрачено середину — вістря ціле, RPO 0.000000. І жодне інше число звіту цього не
+    # ловило: `document_rows` рахувався ЛИШЕ у відновленій базі, `lost_documents` — лише
+    # у фікстурній підмножині `recovery-drill-post %`. Отже втрата звичайних документів
+    # корпусу — не найновіших, не фікстурних — була невидима цілком.
+    source_document_rows = _scalar(source, "SELECT count(*) FROM documents", source_authz)
     lost_events = max(source_audit_rows - audit_rows, 0)
     lost_documents = max(written_after - survived_after, 0)
+    lost_documents_total = max(source_document_rows - document_rows, 0)
 
     # Use every protected write stream; audit-only RPO can read zero while documents are lost.
     newest = _latest_protected_write(source, source_authz)
@@ -197,10 +207,13 @@ def main() -> int:
         "rpo_seconds": None if rpo_seconds is None else round(rpo_seconds, 3),
         "lost_events": lost_events,
         "lost_documents": lost_documents,
+        # Втрата ПО ВСЬОМУ корпусу, не лише по фікстурі навчання.
+        "lost_documents_total": lost_documents_total,
         "provenance": {
             "backup_bytes": int(manifest["bytes"]),
             "plaintext_bytes": int(manifest["plaintext_bytes"]),
             "document_rows": document_rows,
+            "source_document_rows": source_document_rows,
             "audit_event_rows": audit_rows,
             "source_audit_event_rows": source_audit_rows,
             "writes_after_backup": written_after,
