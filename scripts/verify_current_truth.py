@@ -11,7 +11,11 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
-from current_truth_admission import blocker_state_checks, claim_admission_checks  # noqa: E402
+from current_truth_admission import (  # noqa: E402
+    blocker_state_checks,
+    claim_admission_checks,
+    owner_packet_checks,
+)
 from current_truth_aliases import alias_checks  # noqa: E402
 from current_truth_contract import final_truth_checks, report_binding_checks  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
@@ -26,6 +30,7 @@ def evaluate(root: Path = ROOT) -> dict[str, Any]:
         **final_truth_checks(root, release, digest),
         **claim_admission_checks(root, release, digest),
         **blocker_state_checks(root, release, digest),
+        **owner_packet_checks(root, release, digest),
         **alias_checks(root, release),
     }
     failures = sorted(key for key, ok in checks.items() if not ok)
