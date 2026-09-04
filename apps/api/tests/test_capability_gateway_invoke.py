@@ -483,3 +483,70 @@ def test_effectful_timeout_with_state_persistence_failure_remains_outcome_unknow
     assert result.error_code == "INTERNAL_ERROR"
     assert ledger.records[("reader", "idem-1")].state is EffectState.PENDING
     assert len(audit.calls) == 1
+
+
+def test_effectful_invalid_output_keeps_committed_effect_and_blocks_reexecution() -> None:
+    ledger = _Ledger()
+    gateway, adapter, _, _ = _gateway(
+        spec=_spec(effect=EffectClass.WRITE_REMOTE),
+        schemas=_Schemas(frozenset({"urn:korpus:test:output:v1"})),
+        ledger=ledger,
+    )
+    request = _request(idempotency_key="idem-1")
+
+    first = gateway.invoke(identity=_identity(), request=request)
+    second = gateway.invoke(identity=_identity(), request=request)
+
+    assert first.outcome is InvocationOutcome.FAILED
+    assert first.error_code == "OUTPUT_SCHEMA_INVALID"
+    assert first.output is None
+    assert ledger.records[("reader", "idem-1")].state is EffectState.COMMITTED
+    assert second.outcome is InvocationOutcome.FAILED
+    assert second.error_code == "IDEMPOTENT_REPLAY_REQUIRES_RECONCILIATION"
+    assert adapter.calls == 1
+
+
+def test_effectful_missing_evidence_keeps_committed_effect_and_blocks_reexecution() -> None:
+    ledger = _Ledger()
+    gateway, adapter, _, _ = _gateway(
+        spec=_spec(
+            effect=EffectClass.WRITE_REMOTE,
+            evidence_profile=EvidenceProfile.FACTUAL_EVIDENCE,
+        ),
+        ledger=ledger,
+    )
+    request = _request(idempotency_key="idem-1")
+
+    first = gateway.invoke(identity=_identity(), request=request)
+    second = gateway.invoke(identity=_identity(), request=request)
+
+    assert first.outcome is InvocationOutcome.ABSTAINED
+    assert first.error_code == "EVIDENCE_MISSING"
+    assert first.output is None
+    assert ledger.records[("reader", "idem-1")].state is EffectState.COMMITTED
+    assert second.outcome is InvocationOutcome.FAILED
+    assert second.error_code == "IDEMPOTENT_REPLAY_REQUIRES_RECONCILIATION"
+    assert adapter.calls == 1
+
+
+def test_effectful_audit_failure_never_reexecutes_committed_effect() -> None:
+    ledger = _Ledger()
+    audit = _Audit(fail=True)
+    gateway, adapter, _, _ = _gateway(
+        spec=_spec(effect=EffectClass.WRITE_REMOTE),
+        ledger=ledger,
+        audit=audit,
+    )
+    request = _request(idempotency_key="idem-1")
+
+    first = gateway.invoke(identity=_identity(), request=request)
+    second = gateway.invoke(identity=_identity(), request=request)
+
+    assert first.outcome is InvocationOutcome.FAILED
+    assert first.error_code == "AUDIT_APPEND_FAILED"
+    assert first.output is None
+    assert ledger.records[("reader", "idem-1")].state is EffectState.COMMITTED
+    assert second.outcome is InvocationOutcome.FAILED
+    assert second.error_code == "AUDIT_APPEND_FAILED"
+    assert adapter.calls == 1
+    assert len(audit.calls) == 2
