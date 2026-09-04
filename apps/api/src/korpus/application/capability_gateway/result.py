@@ -19,6 +19,8 @@ from korpus.application.capability_gateway.types import (
 )
 from korpus.domain.models import Identity
 
+_MAX_AUDIT_RECORD_ID_LENGTH = 256
+
 
 class IntegrationResult(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -28,11 +30,17 @@ class IntegrationResult(BaseModel):
     outcome: InvocationOutcome
     output: object | None = None
     evidence: EvidenceEnvelope | None = None
-    audit_record_id: str | None = Field(default=None, max_length=256)
+    audit_record_id: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=_MAX_AUDIT_RECORD_ID_LENGTH,
+    )
     error_code: str | None = Field(default=None, max_length=128)
 
     @model_validator(mode="after")
     def validate_returnability_invariants(self) -> IntegrationResult:
+        if self.audit_record_id is not None and not self.audit_record_id.strip():
+            raise ValueError("audit record identity must be non-blank")
         if self.outcome is InvocationOutcome.SUCCESS:
             if self.audit_record_id is None:
                 raise ValueError("successful integration result requires persisted audit identity")
@@ -100,6 +108,12 @@ class CapabilityResultEmitter:
                 "AUDIT_APPEND_FAILED",
                 invocation_id=frame.context.invocation_id,
             )
+        if not _valid_audit_record_id(audit_id):
+            return early_result(
+                InvocationOutcome.FAILED,
+                "AUDIT_APPEND_FAILED",
+                invocation_id=frame.context.invocation_id,
+            )
 
         expose = outcome is InvocationOutcome.SUCCESS
         return IntegrationResult(
@@ -123,6 +137,14 @@ def early_result(
         outcome=outcome,
         audit_record_id=None,
         error_code=error_code,
+    )
+
+
+def _valid_audit_record_id(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and bool(value.strip())
+        and len(value) <= _MAX_AUDIT_RECORD_ID_LENGTH
     )
 
 
