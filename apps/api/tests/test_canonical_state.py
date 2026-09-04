@@ -23,8 +23,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/verify_canonical_state.py"
 REGISTRY = ROOT / "config/operations/canonical-state.json"
@@ -35,9 +33,7 @@ SPEC.loader.exec_module(GATE)
 
 sys.path.insert(0, str(ROOT / "scripts"))
 from canonical_declaration import (  # noqa: E402
-    EPHEMERAL_CHECKOUT,
     canonical_branch,
-    workspace_kind,
 )
 
 #: Тест, що вписує відповідь константою, перевіряє не оголошення, а свою копію.
@@ -288,22 +284,48 @@ def test_a_vanished_trunk_block_is_refused_unless_the_debt_was_closed() -> None:
     ), "запис без причини закриває борг лише на вигляд"
 
 
-def test_the_real_repository_still_has_the_declared_branch_and_remotes() -> None:
-    """Проти РЕАЛЬНОСТІ, не синтетики.
+def test_the_declared_branch_and_remotes_are_observed_where_they_exist(tmp_path: Path) -> None:
+    """Проба СТВОРЮЄ свій предмет, а не питає дерево, у якому опинилась.
 
-    Реальність тут — канонічне робоче дерево. У чекауті конвеєра немає ні локальних
-    гілок, ні названих віддалених, тож твердження було б про предмет, якого там немає.
+    Доти це твердження зверталось до навколишнього репозиторію. У канонічному дереві
+    воно було істинним, у чистому клоні — хибним, і не тому, що коміт зламаний, а тому,
+    що клон має один віддалений `origin` замість оголошених. Виміряно 04.09.2026:
+    `verify_clean_clone.sh` казав «коміт не стоїть сам по собі», а шість цілей із семи
+    в голому клоні проходили; не стояла сама по собі конфігурація ремоутів розробника.
+    Той самий тест роками тримав і CI.
+
+    Тепер репозиторій із оголошеною гілкою й оголошеними ремоутами будується тут, і
+    твердження стає про ГЕЙТ, а не про машину, на якій він біжить.
     """
-    if workspace_kind(ROOT) == EPHEMERAL_CHECKOUT:
-        pytest.skip(
-            "чекаут конвеєра: ні локальних гілок, ні названих віддалених — предмета "
-            "твердження в цьому дереві немає"
-        )
-    observation = GATE.observe(ROOT)
     registry = _registry()
+    declared = [item["remote"] for item in registry["publications"] + registry["awaiting_decision"]]
+    root = tmp_path / "repo"
+    root.mkdir()
+    run = lambda *args: subprocess.run(  # noqa: E731 - локальний хелпер, не API
+        ["git", "-C", str(root), *args], capture_output=True, text=True, check=True
+    )
+    subprocess.run(["git", "init", "--quiet", str(root)], check=True)
+    run("config", "user.email", "probe@example.invalid")
+    run("config", "user.name", "probe")
+    run("checkout", "--quiet", "-B", registry["canonical_branch"])
+    (root / "seed").write_text("seed\n", encoding="utf-8")
+    run("add", "seed")
+    run("commit", "--quiet", "-m", "seed")
+    for name in sorted(set(declared)):
+        run("remote", "add", name, f"https://example.invalid/{name}.git")
+
+    observation = GATE.observe(root)
     assert registry["canonical_branch"] in observation["branches"]
-    for item in registry["publications"] + registry["awaiting_decision"]:
-        assert item["remote"] in observation["remotes"], item["remote"]
+    for name in declared:
+        assert name in observation["remotes"], name
+
+
+def test_a_missing_declared_remote_is_visible_to_the_observer(tmp_path: Path) -> None:
+    """Дуал: якби спостерігач бачив ремоут, якого немає, попередній тест нічого не вартий."""
+    root = tmp_path / "bare"
+    root.mkdir()
+    subprocess.run(["git", "init", "--quiet", str(root)], check=True)
+    assert not GATE.observe(root)["remotes"]
 
 
 def test_gate_reddens_on_every_defect_separately() -> None:

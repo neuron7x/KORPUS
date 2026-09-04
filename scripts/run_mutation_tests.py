@@ -28,6 +28,7 @@ from korpus.application.provenance import (  # noqa: E402  (path set above)
     read_provenance,
     stamp,
 )
+from release_identity import release_tag  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -6699,6 +6700,12 @@ def summarize(
     return {
         "schema_version": 3,
         "status": status,
+        # Реліз, а не лише дайджест. Замінник SI-5 вимагає, щоб каталог називав
+        # КАНДИДАТА, і мав рацію: звіт із чужим тегом описує іншого кандидата навіть на
+        # тому самому дереві. Виміряно 04.09.2026 — поля не було НІКОЛИ, тож SI-5 не міг
+        # бути виміряним ні на якому дереві, і його `NOT_MEASURED` роками читався як
+        # властивість доказу, а не як відсутність рядка у виробника.
+        "release": release_tag(),
         "shard_index": shard_index,
         "shard_count": shard_count,
         "mutants": len(results),

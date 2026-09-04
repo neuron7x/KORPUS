@@ -103,13 +103,43 @@ def test_a_cleanly_merging_branch_may_not_linger_without_a_reason() -> None:
     assert finding["verdict"] == "FAIL"
 
 
+def _declared_remotes(registry: dict[str, Any]) -> list[str]:
+    return sorted(
+        {item["remote"] for item in registry.get("publications", []) if item.get("remote")}
+    )
+
+
 def test_the_real_registry_is_green_on_the_real_repository() -> None:
+    """Реєстр описує КАНОНІЧНЕ робоче дерево, і вимір робиться саме там.
+
+    Доти пропуск робився лише для чекауту конвеєра. Але чистий клон — не чекаут: у нього
+    є локальна гілка й один віддалений `origin`, тож `workspace_kind` називав його
+    робочим деревом, а `origin/*` приносив гілки, яких не називає жоден реєстр. Виміряно
+    04.09.2026: саме цей тест і сусідній робили `verify_clean_clone.sh` червоним, і його
+    речення «коміт не стоїть сам по собі» було хибним про світ — не стояла сама по собі
+    конфігурація ремоутів розробника.
+
+    Предмет називається виміром, а не прапорцем: дерево без ОГОЛОШЕНИХ віддалених за
+    визначенням не є тим деревом, яке описує реєстр.
+    """
     if workspace_kind(ROOT) == EPHEMERAL_CHECKOUT:
         pytest.skip(
             "чекаут конвеєра: гілок для зведення тут немає — реєстр описує канонічне "
             "робоче дерево, і вимір робиться там"
         )
-    findings = GATE.assess(GATE.observe(CANON, ROOT), _registry())
+    registry = _registry()
+    present = (
+        subprocess.run(
+            ["git", "-C", str(ROOT), "remote"], capture_output=True, text=True, check=False
+        ).stdout
+    ).split()
+    absent = [name for name in _declared_remotes(registry) if name not in present]
+    if absent:
+        pytest.skip(
+            f"дерево не несе оголошених віддалених {absent}: реєстр описує не його, "
+            "і вирок про чужі гілки був би твердженням про інший предмет"
+        )
+    findings = GATE.assess(GATE.observe(CANON, ROOT), registry)
     assert GATE.verdict(findings) == "PASS", findings
 
 

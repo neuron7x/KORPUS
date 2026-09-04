@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1813,
-  "root_sha256": "b342e9560eac4da69c917ff79d8cdca690178f453e966b1f7de4d97429b24c17",
+  "root_sha256": "ab2d24dbf7b2c713e237f6cfb724705e0d54d64ad28512679729d10523e78df5",
   "files": [
     {
       "path": ".dockerignore",
@@ -2893,8 +2893,8 @@
     },
     {
       "path": "apps/api/tests/test_branch_integration.py",
-      "bytes": 7479,
-      "sha256": "f94e41ba4043d3d45dd49809b68f4012444b9b8fce83052a779b65acea1f6af1",
+      "bytes": 9402,
+      "sha256": "e72382ae69b2a08dfd1cfb448a28c09d1d3f406ba97c4e8db997181b0ebd2620",
       "mode": "0644"
     },
     {
@@ -2959,8 +2959,8 @@
     },
     {
       "path": "apps/api/tests/test_canonical_state.py",
-      "bytes": 14882,
-      "sha256": "47b0f48a0d46154247cb24a248db42fb8ccd105767bc1a9068ec4cc6bd44a3d3",
+      "bytes": 16501,
+      "sha256": "6eecebfa8dcf50abdf977bc5ec39ddb82adf2094baa1fed03c8d4b7885fc78fb",
       "mode": "0644"
     },
     {
@@ -10309,8 +10309,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 315608,
-      "sha256": "a38d34c9bf8e68f5201f519fd98bb4b4061feff6341422936d6d34a304e47a90",
+      "bytes": 316369,
+      "sha256": "d54e80f7a44a29af48481fa20a54b8c65269cc435705e2562ac67895dccbcb85",
       "mode": "0755"
     },
     {
