@@ -12,14 +12,18 @@ from korpus.application.answer_snapshot import SnapshotAnswerRuntime, SnapshotAu
 from korpus.application.corpus_snapshot import (
     CorpusConsistencyError,
     CorpusReadToken,
+    ReleaseIdentityUnavailable,
     SemanticReleaseMember,
+    attached_snapshot_reader,
     canonical_optional,
     canonical_set,
     release_identity_digest,
+    release_token,
+    token_audit_record,
     version_evidence_digest,
 )
 from korpus.application.ports import Repository
-from korpus.domain.models import AccessTier
+from korpus.domain.models import AccessTier, Identity
 from korpus.infrastructure import corpus_snapshot_guards
 from sqlalchemy import text
 
@@ -394,3 +398,124 @@ def test_postgres_guard_verifier_rejects_dead_code_decoy_body_without_database()
         RuntimeError, match=r"korpus_bump_corpus_state_epoch.*invalid function body"
     ):
         corpus_snapshot_guards._postgres_guards(connection)  # type: ignore[arg-type]
+
+
+# Дев'ять fail-closed сторожів цього модуля не мали жодного тесту, здатного їх
+# запустити: вимір покриття гілок на 04.09.2026 показав ці дуги невзятими ЖОДНИМ
+# прогоном — ані SQLite, ані PostgreSQL. Сторож, який ніколи не відмовляв, не
+# доведений; він лише не заважав. Кожен тест нижче примушує рівно одну відмову.
+
+
+def _token_fields(**changes: object) -> CorpusReadToken:
+    fields: dict[str, object] = {
+        "state_epoch": 7,
+        "release_id": "a" * 64,
+        "as_of": date(2026, 8, 14),
+        "corpus_ids": frozenset({"public"}),
+        "authorization_scope_id": "b" * 64,
+    }
+    fields.update(changes)
+    return CorpusReadToken(**fields)  # type: ignore[arg-type]
+
+
+def _identity() -> Identity:
+    return Identity(
+        subject="snapshot-contract-user",
+        roles=frozenset({"user"}),
+        clearance=AccessTier.PUBLIC,
+        corpora=frozenset({"public"}),
+    )
+
+
+def test_corpus_read_token_rejects_negative_state_epoch() -> None:
+    """Епоха — монотонний лічильник стану; від'ємна означає лічильник, що йшов назад."""
+    with pytest.raises(ValueError, match="state_epoch must be non-negative"):
+        _token_fields(state_epoch=-1)
+
+
+def test_corpus_read_token_accepts_the_zero_epoch() -> None:
+    """Нуль законний: порожній корпус — це стан, а не помилка. Межа саме нижче нуля."""
+    assert _token_fields(state_epoch=0).state_epoch == 0
+
+
+@pytest.mark.parametrize(
+    "scope_id",
+    ["b" * 16, "b" * 63, "b" * 65, "B" * 64, "z" * 64, ""],
+)
+def test_corpus_read_token_rejects_noncanonical_authorization_scope(scope_id: str) -> None:
+    """Scope_id зв'язує токен із тим, ХТО читає.
+
+    Обрізаний або неканонічний ідентифікатор дав би двом різним читачам однакову
+    прив'язку — рівно та вада, яку повнодовжинний реліз уже закрив для корпусу.
+    """
+    with pytest.raises(ValueError, match="SHA-256"):
+        _token_fields(authorization_scope_id=scope_id)
+
+
+def test_attached_snapshot_reader_reports_absence_rather_than_guessing() -> None:
+    """Немає читача — None, не вигаданий читач і не виняток: відсутність теж відповідь."""
+    assert attached_snapshot_reader(SimpleNamespace()) is None
+    reader = object()
+    assert attached_snapshot_reader(SimpleNamespace(corpus_snapshot_reader=reader)) is reader
+
+
+def test_release_token_refuses_when_no_snapshot_reader_is_attached() -> None:
+    """Реліз не вгадують.
+
+    Доти чотири місця питали релізну тотожність у репозиторію й діставали ІНШУ,
+    слабшу. Без читача правильна дія — сказати «невідомо», а не повернути щось.
+    """
+    with pytest.raises(ReleaseIdentityUnavailable, match="no corpus snapshot reader"):
+        release_token(SimpleNamespace(), _identity(), frozenset({"public"}), date(2026, 8, 14))
+
+
+def test_token_audit_record_of_absent_token_is_absent_not_empty() -> None:
+    """None ≠ {}: порожній запис у журналі читався б як «читали ніщо», і це твердження."""
+    assert token_audit_record(None) is None
+    record = token_audit_record(_token_fields())
+    assert record is not None
+    assert record["state_epoch"] == 7
+
+
+def test_version_evidence_digest_refuses_an_empty_evidence_set() -> None:
+    """Схвалена версія без жодного прольоту опечатала б порожнечу як доказ."""
+    with pytest.raises(CorpusConsistencyError, match="empty evidence set"):
+        version_evidence_digest([])
+
+
+def test_version_evidence_digest_refuses_a_duplicate_span_id() -> None:
+    """Один id на два прольоти робить цитату неоднозначною при перевірці."""
+    content = "evidence bytes"
+    text_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+    with pytest.raises(CorpusConsistencyError, match="duplicate span id"):
+        version_evidence_digest(
+            [
+                ("span-1", 0, None, None, content, text_hash),
+                ("span-1", 1, None, None, content, text_hash),
+            ]
+        )
+
+
+def test_version_evidence_digest_refuses_a_duplicate_span_ordinal() -> None:
+    """Порядок прольотів входить у дайджест; два однакові порядки — два різні дайджести."""
+    content = "evidence bytes"
+    text_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+    with pytest.raises(CorpusConsistencyError, match="duplicate span ordinal"):
+        version_evidence_digest(
+            [
+                ("span-1", 0, None, None, content, text_hash),
+                ("span-2", 0, None, None, content, text_hash),
+            ]
+        )
+
+
+def test_version_evidence_digest_refuses_text_hash_that_does_not_match_text() -> None:
+    """Найважливіший зі сторожів: він ловить текст, підмінений ПІСЛЯ запису хеша.
+
+    Без нього печатка засвідчувала б збережений хеш, а не збережений текст, і цитата
+    проходила б перевірку, не збігаючись із тим, що читає людина.
+    """
+    content = "evidence bytes"
+    wrong = hashlib.sha256(b"other bytes").hexdigest()
+    with pytest.raises(CorpusConsistencyError, match="text_hash does not match"):
+        version_evidence_digest([("span-1", 0, None, None, content, wrong)])
