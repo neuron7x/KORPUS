@@ -193,6 +193,28 @@ def test_stale_provider_evidence_fails_closed() -> None:
         )
 
 
+def test_empty_evidence_source_reference_is_invalid_by_construction() -> None:
+    with pytest.raises(ValueError):
+        EvidenceProvenance(
+            kind=ProvenanceKind.SOURCE_EVIDENCE,
+            source_refs=[""],
+        )
+
+
+def test_empty_signature_reference_is_invalid_by_construction() -> None:
+    now = datetime.now(UTC)
+    spec = _spec(EvidenceProfile.SIGNED_RECEIPT)
+    with pytest.raises(ValueError):
+        _evidence(
+            spec=spec,
+            context=_context(now),
+            output={"value": 1},
+            observed_at=now,
+            kind=ProvenanceKind.SIGNED_RECEIPT,
+            signature_ref="",
+        )
+
+
 def test_signed_receipt_profile_requires_signed_provenance_and_signature() -> None:
     now = datetime.now(UTC)
     spec = _spec(EvidenceProfile.SIGNED_RECEIPT)

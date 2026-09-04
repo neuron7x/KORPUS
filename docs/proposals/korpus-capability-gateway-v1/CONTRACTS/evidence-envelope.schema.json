@@ -36,7 +36,7 @@
         "kind": {"enum": ["INTERNAL", "REMOTE_RESPONSE", "SIGNED_RECEIPT", "SOURCE_EVIDENCE"]},
         "source_refs": {
           "type": "array",
-          "items": {"type": "string", "maxLength": 1024},
+          "items": {"type": "string", "minLength": 1, "maxLength": 1024},
           "maxItems": 128
         },
         "provider_identity": {"type": ["string", "null"], "maxLength": 256}
@@ -45,6 +45,6 @@
     "observed_at": {"type": "string", "format": "date-time"},
     "expires_at": {"type": ["string", "null"], "format": "date-time"},
     "reproducible": {"type": "boolean"},
-    "signature_ref": {"type": ["string", "null"], "maxLength": 1024}
+    "signature_ref": {"type": ["string", "null"], "minLength": 1, "maxLength": 1024}
   }
 }

@@ -16,7 +16,7 @@ from korpus.application.capability_gateway.types import (
 )
 
 DIGEST_PATTERN = r"^sha256:[a-f0-9]{64}$"
-EvidenceSourceRef = Annotated[str, Field(max_length=1024)]
+EvidenceSourceRef = Annotated[str, Field(min_length=1, max_length=1024)]
 
 
 class CapabilityEvidenceMissing(CapabilityContractError):
@@ -73,7 +73,7 @@ class EvidenceEnvelope(BaseModel):
     observed_at: datetime
     expires_at: datetime | None = None
     reproducible: bool = False
-    signature_ref: str | None = Field(default=None, max_length=1024)
+    signature_ref: str | None = Field(default=None, min_length=1, max_length=1024)
 
     @field_validator("observed_at", "expires_at")
     @classmethod
