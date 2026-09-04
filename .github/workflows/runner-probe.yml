@@ -1,0 +1,34 @@
+name: runner-probe
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  latest-shell:
+    name: runner-probe-ubuntu-latest
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Prove runner assignment and shell execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'runner_os=%s\n' "$RUNNER_OS"
+          printf 'runner_arch=%s\n' "$RUNNER_ARCH"
+          uname -a
+
+  ubuntu-24-shell:
+    name: runner-probe-ubuntu-24.04
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Prove runner assignment and shell execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'runner_os=%s\n' "$RUNNER_OS"
+          printf 'runner_arch=%s\n' "$RUNNER_ARCH"
+          uname -a
