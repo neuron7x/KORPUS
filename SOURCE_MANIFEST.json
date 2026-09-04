@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1828,
-  "root_sha256": "0fa3b04804a7e1766834fac2c2c4ebeec75d22108075efd2e0f608218a5c911b",
+  "root_sha256": "e165f9cbbfaf8778e4c9d5bcc540996dd1399f1a7b1d6ecff379c700290f4607",
   "files": [
     {
       "path": ".dockerignore",
@@ -7447,8 +7447,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 641642,
-      "sha256": "6d973bf2c0a16219149a4dca470f4cc42ee4aa78757a40a338b5930f6d6102a5",
+      "bytes": 642405,
+      "sha256": "5c59d2b9865551aa00c1a40e59ea6619c80c575756a1b4d95bcf2d697b2b4e80",
       "mode": "0644"
     },
     {
@@ -7489,8 +7489,8 @@
     },
     {
       "path": "config/operations/selftest-falsifiability.json",
-      "bytes": 2583,
-      "sha256": "d9b223899567ab19371aded16bcd3bf03e5a944a711d3a8cdda3000f6f37f843",
+      "bytes": 2767,
+      "sha256": "d2ca3f1ab59433b250ddf46d2540dc870a37a6bfbae3c9f3c7ff1ab27161cd70",
       "mode": "0644"
     },
     {
@@ -10093,8 +10093,8 @@
     },
     {
       "path": "scripts/probe_selftest_falsifiability.py",
-      "bytes": 17634,
-      "sha256": "7d1d742526091933e98f0dbb03a7d252859f33ba768e8549ffab06ad4e6ead00",
+      "bytes": 20975,
+      "sha256": "7f8b415af85d6cacd591fc910c617cd8f3d1ce4fa5674a304228dc723a4ea942",
       "mode": "0755"
     },
     {

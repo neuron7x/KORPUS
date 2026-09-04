@@ -67,6 +67,16 @@ FLIP: dict[type, type] = {
     ast.Or: ast.And,
 }
 SKIP_FUNCTIONS = frozenset({"selftest", "_selftest", "main", "parse_args"})
+#: Зсув МЕЖІ — окремий клас від перевороту. `<` і `<=` різняться рівно на одній
+#: точці, і саме її зазвичай не звіряє ніхто: переворот `<`→`>=` ловиться будь-яким
+#: випадком, зсув `<`→`<=` — лише випадком НА межі. Виміряно 04.09.2026: розширення
+#: з переворотів на зсуви й булеві сталі знайшло межі, яких перший клас не бачив.
+SHIFT: dict[type, type] = {
+    ast.Lt: ast.LtE,
+    ast.LtE: ast.Lt,
+    ast.Gt: ast.GtE,
+    ast.GtE: ast.Gt,
+}
 
 
 def _skip_ranges(tree: ast.AST) -> list[tuple[int, int]]:
@@ -86,23 +96,58 @@ def _is_dunder_main(node: ast.AST) -> bool:
     )
 
 
+def _decision_booleans(tree: ast.AST) -> set[int]:
+    """Булеві сталі, які є РІШЕННЯМ модуля, а не налаштуванням виклику.
+
+    Виміряно 04.09.2026, коли клас булевих сталих щойно додали: єдиними новими
+    місцями виявились `pool_pre_ping=True` у `create_engine` і `uri=True` у
+    `sqlite3.connect`. Це прапорці бібліотеки, а не вирок скрипта; їхній переворот
+    ламає з'єднання, якого самоперевірка й не відкриває, тож «не спіймано» тут
+    вимірює межу проби, а не сліпоту контролю. `rls_context.py` через них дістав
+    вирок CANNOT_FAIL, а `validate_fetch_stubs.py` — сьоме місце, і причина в
+    реєстрі («усі п'ять у `content_beyond_title`») стала хибною ЧИСЛОМ.
+
+    Тому сталу беремо лише там, де модуль щось ВИРІШУЄ нею: `return True/False`
+    і привласнення простому імені. Значення іменованого аргументу — ні.
+    """
+    wanted = {
+        id(node.value)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Return | ast.Assign | ast.AnnAssign) and node.value is not None
+    }
+    return {
+        index
+        for index, node in enumerate(ast.walk(tree))
+        if _is_boolean_constant(node) and id(node) in wanted
+    }
+
+
+def _is_boolean_constant(node: ast.AST) -> bool:
+    return isinstance(node, ast.Constant) and isinstance(node.value, bool)
+
+
 def _poisonable(node: ast.AST) -> bool:
     if isinstance(node, ast.Compare):
-        return bool(node.ops) and type(node.ops[0]) in FLIP
-    return isinstance(node, ast.BoolOp) and type(node.op) in FLIP
+        return bool(node.ops) and (type(node.ops[0]) in FLIP or type(node.ops[0]) in SHIFT)
+    if isinstance(node, ast.BoolOp):
+        return type(node.op) in FLIP
+    return False
 
 
 def sites(source: str) -> list[int]:
     """Індекси вузлів, які можна отруїти, по одному на РІЗНЕ місце."""
     tree = ast.parse(source)
     skip = _skip_ranges(tree)
+    decisions = _decision_booleans(tree)
     seen: set[tuple[int, int, str]] = set()
     found: list[int] = []
     for index, node in enumerate(ast.walk(tree)):
         line = getattr(node, "lineno", None)
         if line is None or any(low <= line <= high for low, high in skip):
             continue
-        if _is_dunder_main(node) or not _poisonable(node):
+        if _is_dunder_main(node):
+            continue
+        if not (_poisonable(node) or index in decisions):
             continue
         # Ключ несе ТИП вузла: `a == 1 or b == 2` дає `BoolOp` і перший `Compare` на
         # одній позиції, і ключ без типу мовчки викидав би `or` — тобто одну отруту з
@@ -115,16 +160,33 @@ def sites(source: str) -> list[int]:
     return found
 
 
-def poison(source: str, target: int) -> str | None:
+def _mutate(node: ast.AST, kind: str) -> bool:
+    """Перевернути ОДИН вузол на місці. Повертає, чи щось змінилось."""
+    if isinstance(node, ast.Compare):
+        table = SHIFT if kind == "shift" else FLIP
+        operator = type(node.ops[0])
+        if operator not in table:
+            return False
+        node.ops = [table[operator](), *node.ops[1:]]
+        return True
+    if kind != "flip":
+        return False
+    if isinstance(node, ast.BoolOp):
+        node.op = FLIP[type(node.op)]()
+        return True
+    if isinstance(node, ast.Constant) and isinstance(node.value, bool):
+        node.value = not node.value
+        return True
+    return False
+
+
+def poison(source: str, target: int, kind: str = "flip") -> str | None:
+    """Отруїти РІВНО один вузол. `kind` називає клас отрути, а не її силу."""
     tree = ast.parse(source)
     for index, node in enumerate(ast.walk(tree)):
         if index != target:
             continue
-        if isinstance(node, ast.Compare):
-            node.ops = [FLIP[type(node.ops[0])](), *node.ops[1:]]
-        elif isinstance(node, ast.BoolOp):
-            node.op = FLIP[type(node.op)]()
-        else:
+        if not _mutate(node, kind):
             return None
         return ast.unparse(ast.fix_missing_locations(tree))
     return None
@@ -167,13 +229,14 @@ def probe(root: Path, relative: str, python: str) -> dict[str, Any]:
     tried = 0
     try:
         for index in candidates:
-            mutated = poison(source, index)
-            if mutated is None:
-                continue
-            tried += 1
-            script.write_text(mutated, encoding="utf-8")
-            if _selftest_rc(root, script, python) != 0:
-                caught += 1
+            for kind in ("flip", "shift"):
+                mutated = poison(source, index, kind)
+                if mutated is None or mutated == source:
+                    continue
+                tried += 1
+                script.write_text(mutated, encoding="utf-8")
+                if _selftest_rc(root, script, python) != 0:
+                    caught += 1
     finally:
         script.write_text(source, encoding="utf-8")
     verdict = "FALSIFIABLE" if caught else ("NO_SITES" if tried == 0 else "CANNOT_FAIL")
