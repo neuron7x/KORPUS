@@ -1,22 +1,13 @@
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from contextlib import nullcontext
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import (
-    CheckConstraint,
-    Column,
-    DateTime,
-    MetaData,
-    String,
-    Table,
-    insert,
-    select,
-    update,
-)
-from sqlalchemy.engine import Engine
+from sqlalchemy import insert, select, update
+from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.exc import IntegrityError
 
 from korpus.application.capability_gateway.effects import (
@@ -26,29 +17,14 @@ from korpus.application.capability_gateway.effects import (
     InvalidEffectTransition,
     assert_effect_transition,
 )
+from korpus.infrastructure.capability_effect_schema import capability_effects
+from korpus.infrastructure.schema import metadata
 
-capability_effect_metadata = MetaData()
+# Backward-compatible test/export name. This is deliberately the canonical metadata now,
+# not a private island that production startup and Alembic can fail to see.
+capability_effect_metadata = metadata
 
-capability_effects = Table(
-    "capability_effects",
-    capability_effect_metadata,
-    Column("subject_id", String(256), primary_key=True),
-    Column("idempotency_key", String(256), primary_key=True),
-    Column("binding_digest", String(71), nullable=False),
-    Column("invocation_id", String(36), nullable=False),
-    Column("capability_id", String(128), nullable=False),
-    Column("capability_version", String(64), nullable=False),
-    Column("logical_resource", String(512), nullable=False),
-    Column("input_digest", String(71), nullable=False),
-    Column("state", String(32), nullable=False),
-    Column("provider_reference", String(512)),
-    Column("created_at", DateTime(timezone=True), nullable=False),
-    Column("updated_at", DateTime(timezone=True), nullable=False),
-    CheckConstraint(
-        "state IN ('PENDING','COMMITTED','FAILED_KNOWN_NO_EFFECT','OUTCOME_UNKNOWN','RECONCILED')",
-        name="ck_capability_effect_state",
-    ),
-)
+SubjectIdentityBinder = Callable[[Connection, str], None]
 
 
 class EffectLedgerConflict(RuntimeError):
@@ -56,15 +32,24 @@ class EffectLedgerConflict(RuntimeError):
 
 
 class SqlEffectLedger:
-    """Durable compare-and-set ledger for capability side effects.
+    """Durable compare-and-set ledger for governed capability side effects.
 
-    This module deliberately does not create its table at runtime. Production composition
-    is invalid until the matching Alembic migration exists and the repository schema pin
-    advances atomically. Tests may create `capability_effect_metadata` explicitly.
+    PostgreSQL requires an injected subject binder. Each ledger transaction binds the
+    already-authenticated KORPUS subject before touching the FORCE-RLS table. The binder is
+    infrastructure-owned composition; request bodies, provider metadata and adapters never
+    get to choose it. SQLite has no RLS and remains the local/test profile.
     """
 
-    def __init__(self, engine: Engine) -> None:
+    def __init__(
+        self,
+        engine: Engine,
+        *,
+        bind_subject: SubjectIdentityBinder | None = None,
+    ) -> None:
+        if engine.dialect.name == "postgresql" and bind_subject is None:
+            raise ValueError("PostgreSQL effect ledger requires a trusted subject identity binder")
         self.engine = engine
+        self._bind_subject = bind_subject
         self._sqlite_lock = threading.RLock()
 
     def reserve(
@@ -98,10 +83,12 @@ class SqlEffectLedger:
         with guard:
             try:
                 with self.engine.begin() as connection:
+                    self._bind(connection, subject_id)
                     connection.execute(insert(capability_effects).values(**values))
                 return EffectReservation(record=self._record(values), created=True)
             except IntegrityError:
                 with self.engine.begin() as connection:
+                    self._bind(connection, subject_id)
                     row = (
                         connection.execute(
                             select(capability_effects)
@@ -128,6 +115,7 @@ class SqlEffectLedger:
         current = datetime.now(UTC)
         guard = self._sqlite_lock if self.engine.dialect.name == "sqlite" else nullcontext()
         with guard, self.engine.begin() as connection:
+            self._bind(connection, subject_id)
             changed = connection.execute(
                 update(capability_effects)
                 .where(capability_effects.c.subject_id == subject_id)
@@ -174,6 +162,7 @@ class SqlEffectLedger:
 
     def get(self, *, subject_id: str, idempotency_key: str) -> EffectRecord | None:
         with self.engine.begin() as connection:
+            self._bind(connection, subject_id)
             row = (
                 connection.execute(
                     select(capability_effects)
@@ -184,6 +173,16 @@ class SqlEffectLedger:
                 .first()
             )
         return self._record(row) if row is not None else None
+
+    def _bind(self, connection: Connection, subject_id: str) -> None:
+        if self.engine.dialect.name != "postgresql":
+            return
+        binder = self._bind_subject
+        if binder is None:
+            # Constructor rejects this state for PostgreSQL. Keep the runtime assertion so
+            # monkeypatching or deserialization cannot silently turn RLS into an empty context.
+            raise RuntimeError("trusted effect-ledger subject binder is unavailable")
+        binder(connection, subject_id)
 
     @staticmethod
     def _record(row: Any) -> EffectRecord:
