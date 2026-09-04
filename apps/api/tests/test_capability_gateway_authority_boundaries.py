@@ -2,6 +2,12 @@ from __future__ import annotations
 
 from korpus.application.capability_gateway.adapters import AdapterExecutionResult, AdapterRegistry
 from korpus.application.capability_gateway.audit import InvocationOutcome
+from korpus.application.capability_gateway.effect_safety import (
+    CompensationMode,
+    EffectSafetyDeclaration,
+    EffectSafetyRegistry,
+    ReconciliationMode,
+)
 from korpus.application.capability_gateway.effects import EffectRecord, EffectReservation, EffectState
 from korpus.application.capability_gateway.invoke import CapabilityGateway
 from korpus.application.capability_gateway.policy import CapabilityPolicyBridge
@@ -134,6 +140,20 @@ def _effect_spec() -> CapabilitySpec:
     )
 
 
+def _effect_safety(spec: CapabilitySpec) -> EffectSafetyRegistry:
+    return EffectSafetyRegistry(
+        [
+            EffectSafetyDeclaration.for_spec(
+                spec,
+                compensation_mode=CompensationMode.NONE,
+                irreversible=True,
+                reconciliation_mode=ReconciliationMode.MANUAL,
+                operator_rationale="Test effect is irreversible and requires manual reconciliation.",
+            )
+        ]
+    )
+
+
 def test_truthy_non_boolean_effect_authorizer_cannot_widen_authority() -> None:
     spec = _effect_spec()
     adapter = _Adapter()
@@ -159,6 +179,7 @@ def test_truthy_non_boolean_effect_authorizer_cannot_widen_authority() -> None:
         effect_authorizer=_TruthyNonBooleanEffectAuthorizer(),
         effects=ledger,
         audit=audit,
+        effect_safety=_effect_safety(spec),
     )
     request = IntegrationRequest(
         schema_version="korpus.integration-request.v1",
