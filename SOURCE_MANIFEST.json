@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1824,
-  "root_sha256": "2d89bf61dda9e8fbd83f87a4df0f95058d1495551a66cbdc219a31b04bb3e9e7",
+  "file_count": 1826,
+  "root_sha256": "c9d52c7bb0a45de25873e4f95dd1838abfa6f06296811906fe416f8d372151e8",
   "files": [
     {
       "path": ".dockerignore",
@@ -3666,6 +3666,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_hard_predicate_guards.py",
+      "bytes": 8505,
+      "sha256": "2e31fadb4c3e2774529d854085b0c5c3d2c311b68af0e72ff6f949a459bfd6ca",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_health.py",
       "bytes": 2366,
       "sha256": "473a07ff8b9279f67468fe58209c6e649cec6088862811626bc41d0aa08cbcb1",
@@ -3849,6 +3855,12 @@
       "path": "apps/api/tests/test_mcp_server.py",
       "bytes": 13824,
       "sha256": "a9ef19bb61f7f29ef98c3d5970b0f771b3fef61e844aa5c083f714fffd27fa1b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_mcp_stdio_loop.py",
+      "bytes": 4776,
+      "sha256": "180a96e427f5010b97b65c77e62a4d5dad248a6acf6436e552012ec1d34eb88b",
       "mode": "0644"
     },
     {
