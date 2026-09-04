@@ -256,6 +256,38 @@ def recipes(text: str) -> dict[str, list[str]]:
     return found
 
 
+def phantom_targets(text: str) -> list[str]:
+    """Імена, оголошені в `.PHONY`, для яких правила немає взагалі.
+
+    `make <ім'я>` для такого імені виходить із НУЛЕМ, не виконавши нічого: GNU make
+    вважає phony-ціль без рецепта досягнутою. Тобто ім'я, яке обіцяє перевірку, ніколи
+    не буває червоним — сигнал із нульовою ентропією.
+
+    Виміряно 04.09.2026: `quality-gate` стояв у `.PHONY` від першого коміту, рецепта не
+    мав ЖОДНОГО разу за всю історію, і жоден рецепт, конвеєр чи скрипт на нього не
+    посилався. `make quality-gate` казав «Ціль не вимагає виконання команд» і rc=0.
+
+    Реєстр закриття цього не бачив за побудовою: розбір Makefile пропускає рядок
+    `.PHONY` (там імена стоять у передумовах, не в цілях), тож примарне ім'я не
+    потрапляло навіть у перелік оголошених — його не можна було ні покрити, ні
+    внести до винятків. Дірка була рівно там, де перевірка не дивилась.
+    """
+    phony: set[str] = set()
+    with_rule: set[str] = set()
+    for line in text.splitlines():
+        if line.startswith("\t"):
+            continue
+        matched = _RULE.match(line)
+        if matched is None:
+            continue
+        names = matched.group("names").split()
+        if names[0] == ".PHONY":
+            phony.update(matched.group("deps").split())
+            continue
+        with_rule.update(name for name in names if "%" not in name)
+    return sorted(phony - with_rule)
+
+
 def duplicate_recipes(text: str) -> list[str]:
     """Цілі, оголошені двічі З РЕЦЕПТОМ. GNU make лишає ОСТАННІЙ і лише попереджає.
 
@@ -503,6 +535,7 @@ def _assess_makefile_truth(
         return [
             _finding("duplicate_target", "UNKNOWN", "Makefile не переданий — не виміряно"),
             _finding("unfounded_requirement", "UNKNOWN", "Makefile не переданий — не виміряно"),
+            _finding("phantom_target", "UNKNOWN", "Makefile не переданий — не виміряно"),
         ]
 
     duplicates = duplicate_recipes(makefile)
@@ -532,6 +565,18 @@ def _assess_makefile_truth(
         )
         if unfounded
         else _finding("unfounded_requirement", "PASS", "кожне «потребує аргумент» має підставу")
+    )
+
+    phantoms = phantom_targets(makefile)
+    found.append(
+        _finding(
+            "phantom_target",
+            "FAIL",
+            "ім'я в .PHONY без правила: make виходить нулем, не зробивши нічого: "
+            + ", ".join(phantoms),
+        )
+        if phantoms
+        else _finding("phantom_target", "PASS", "кожне ім'я в .PHONY має правило")
     )
     return found
 
@@ -651,6 +696,24 @@ def selftest() -> int:
             "другий заголовок БЕЗ рецепта — законний і не червоніє",
             clean_make + "span-hygiene: audit-verify\n",
             {"accepted": []},
+            "PASS",
+        ),
+        (
+            "ім'я в .PHONY без правила: make каже 0, не зробивши нічого",
+            ".PHONY: quality-gate\n" + clean_make,
+            {"accepted": []},
+            "FAIL",
+        ),
+        (
+            "усі імена .PHONY мають правила — законно",
+            ".PHONY: span-hygiene audit-verify\n" + clean_make,
+            {"accepted": []},
+            "PASS",
+        ),
+        (
+            "правило нижче за .PHONY — порядок рядків не робить ім'я примарою",
+            ".PHONY: late-target\n" + clean_make + "late-target:\n\tseven\n",
+            {"accepted": [{"target": "late-target", "reason": reason, "on": "2026-09-04"}]},
             "PASS",
         ),
         (

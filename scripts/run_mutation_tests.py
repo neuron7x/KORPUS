@@ -41,6 +41,12 @@ class Mutant:
     full_copy: bool = False
 
 
+# МЕЖА, ВИМІРЯНА 04.09.2026: цей каталог не може мутувати ВЛАСНЕ джерело. Ціль мутанта —
+# дослівний рядок, а запис у каталозі цитує його ТУТ ЖЕ, тож будь-яка спроба дає дві появи
+# й статус INVALID. Спіймано не запуском, а `test_gate_parity`: сторож єдиності цілі назвав
+# дві появи, а сторож номерів — що номер уже зайнято. Обидва спрацювали з першого разу.
+# Тому властивості самого прогону охороняють тести `test_mutation_report_declares_its_verdict`,
+# а не мутанти.
 MUTANTS = (
     Mutant(
         "M630_FOLD_SKIPS_NEW_WINNERS",
@@ -6888,7 +6894,13 @@ def _run_probe(only: str, jobs: int) -> int:
     report["probe"] = True
     _write_report(report, ROOT / "var/mutation-probe.json")
     _print_summary(report)
-    return 0 if report["mutation_score"] == 1.0 else 1
+    # Вирок уже ОГОЛОШЕНО в звіті, і `test_mutation_report_declares_its_verdict`
+    # тримає саме його. Тут же код повернення виводився заново з `mutation_score` —
+    # з того самого числа, про яке той файл написав, що виводити з нього вирок не
+    # можна. Виміряно 04.09.2026: проба {убитий, ціль_втрачена} дала звіт FAIL і
+    # КОД 0, бо INVALID виходить зі знаменника разом із чисельником. Дві тотожності
+    # одного вироку, і читає їх різне: людина — звіт, оболонка — код.
+    return 0 if report["status"] == "PASS" else 1
 
 
 def _run_catalogue(args: argparse.Namespace) -> tuple[dict[str, object], Path]:
@@ -6925,7 +6937,9 @@ def main() -> int:
     results = report["results"]
     counted = len(results) if isinstance(results, (list, tuple)) else 0
     expected = len(MUTANTS) if args.merge or args.shard_count == 1 else counted
-    return 0 if report["mutation_score"] == 1.0 and report["valid_mutants"] == expected else 1
+    # Повнота шарда лишається окремою умовою: `status` не знає, скільки мутантів мало
+    # бути в цьому прогоні, і сам по собі не спіймав би каталог, що всихає між шардами.
+    return 0 if report["status"] == "PASS" and report["valid_mutants"] == expected else 1
 
 
 if __name__ == "__main__":
