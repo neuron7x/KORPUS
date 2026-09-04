@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Запуск підпроцесів гейта PostgreSQL — і збереження ПРИЧИНИ їхньої відмови.
 
-    postgres_gate_process.py --selftest
+postgres_gate_process.py --selftest
 """
 
 from __future__ import annotations

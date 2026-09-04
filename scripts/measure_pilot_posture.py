@@ -59,8 +59,8 @@ def environment_file(root: Path = ROOT) -> Path | None:
 
 def parse_environment(path: Path) -> dict[str, str]:
     values: dict[str, str] = {}
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = line.split("=", 1)
@@ -161,8 +161,16 @@ def selftest() -> int:
         ("дефолтне оточення не виконує oidc", named["oidc"], UNMET),
         ("oidc вмикається зміною предмета, не прапорцем звіту", oidc_named["oidc"], MET),
         ("станів рівно стільки, скільки умов", len(posture(api)), len(CONTROLLED_REQUIREMENTS)),
-        ("порожнього оточення юніта не існує — це NOT_MEASURED", measure(Path("/nonexistent"))["status"], NOT_MEASURED),
-        ("предикат, що кинув виняток, не стає UNMET", _state_of_a_broken_predicate(), EVALUATION_ERROR),
+        (
+            "порожнього оточення юніта не існує — це NOT_MEASURED",
+            measure(Path("/nonexistent"))["status"],
+            NOT_MEASURED,
+        ),
+        (
+            "предикат, що кинув виняток, не стає UNMET",
+            _state_of_a_broken_predicate(),
+            EVALUATION_ERROR,
+        ),
     ]
     bad = 0
     for name, actual, expected in cases:

@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1809,
-  "root_sha256": "5516237ae90fb9715c908eae2955a7dc5270e237831c5da80ac0850cb8835bc0",
+  "root_sha256": "e0910cfd53ea3097f5401982b27f1117d96eafe016d3a2fe7cba83fe470ee5e7",
   "files": [
     {
       "path": ".dockerignore",
@@ -7357,8 +7357,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 596661,
-      "sha256": "58a5c234e6ee9abd2803ea509dfecbe7e6e0678ecd2894d1ad701abd8ff98c23",
+      "bytes": 598434,
+      "sha256": "3f3658a3e175ba29c6ba5065f8e794029594393834f2430aa607f2ee1f2e91cf",
       "mode": "0644"
     },
     {
@@ -9787,8 +9787,8 @@
     },
     {
       "path": "scripts/measure_pilot_posture.py",
-      "bytes": 8704,
-      "sha256": "963cbbec9204935b98831805bfa2c00a8a13b7e2e4fac95b9a6017990f8b2018",
+      "bytes": 8796,
+      "sha256": "aaf81faaaeb7e26f2075686003a6ac2a5c98abbfc16e0917b6c5184b7fa19321",
       "mode": "0755"
     },
     {
@@ -9979,8 +9979,8 @@
     },
     {
       "path": "scripts/postgres_gate_process.py",
-      "bytes": 3938,
-      "sha256": "91e4a4868ae2395d7e1b0630d5fdac9df421a8b49f61a0aeaebd9cd18ee548b6",
+      "bytes": 3934,
+      "sha256": "0b6c1d6dc936c231ef1e86999d09d2da8730f207f3f078972b3fa5d612a404b1",
       "mode": "0755"
     },
     {
@@ -10651,8 +10651,8 @@
     },
     {
       "path": "scripts/verify_assurance_model.py",
-      "bytes": 52214,
-      "sha256": "983613b5ff849a0e7ddb1d1c94ebe9e94a79df92fd384ede9263eddbd081bdb0",
+      "bytes": 52273,
+      "sha256": "967d22b3dcf1f25f23a2ff1a21214fa05d23c2b9369d3aefe9148891f9260860",
       "mode": "0755"
     },
     {

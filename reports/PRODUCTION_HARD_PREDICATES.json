@@ -1,15 +1,15 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "db7f5f4998361839be7a7e9e02a4466736f6ab77ee59401fcba553062a003a10",
+  "source_tree_sha256": "722d6fe5647882a8ab60a6591b7818f21e774d5e54f8cedc25acb174e4bd281c",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
-  "externally_satisfied": 2,
-  "production_satisfied": 2,
+  "externally_satisfied": 0,
+  "production_satisfied": 0,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 14.285714,
-  "production_completion_percent": 14.285714,
+  "external_completion_percent": 0.0,
+  "production_completion_percent": 0.0,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -150,11 +150,13 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
-      "blocks_candidate": false,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "waived_external_checks": []
     },
     {
@@ -164,11 +166,13 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
-      "blocks_candidate": false,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "waived_external_checks": [
         "load_attestation_verified",
         "load_trusted_signer"
@@ -186,7 +190,8 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "recovery_source_bound"
+        "recovery_source_bound",
+        "gate_source_bound"
       ],
       "waived_external_checks": [
         "recovery_attestation_verified",

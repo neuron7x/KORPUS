@@ -1046,7 +1046,10 @@ def selftest() -> int:
             _write(
                 sub,
                 PRODUCTION_PROFILE,
-                {**_PROFILE_OK, "external_requirements": {**_OK_REQUIREMENTS, "postgres_backend": "postgresql"}},
+                {
+                    **_PROFILE_OK,
+                    "external_requirements": {**_OK_REQUIREMENTS, "postgres_backend": "postgresql"},
+                },
             )
             problems = topology_agreement(sub)
             if bool(problems) != expect_problem:
