@@ -1,31 +1,68 @@
 {
-  "schema": "korpus.closure.final-state.v1",
+  "schema": "korpus.closure.final-state.v2",
   "protocol": "KORPUS-CLOSE-2026-09-05",
-  "final_head": "fcc46104b40be94d9e6e08030b7a077d41d0ac0d",
+  "measured_on_head": "cd51618a2d359aa2306554391594134c3e6b94ea",
+  "recorded_in": "наступний коміт: артефакт, що описує стан дерева, не може лежати в тому ж коміті, який він описує — його запис змінює дерево. Попередня редакція називала голову fcc46104 і хешувала файли вже з 0c671683; це виправлено тим, що вимір робиться на ЧИСТОМУ дереві.",
+  "worktree_clean_at_measurement": {
+    "value": true,
+    "means": "дерево чисте, ЯКЩО ЄДИНА зміна — сам цей артефакт. Поле не може бути простим True: перенаправлення виводу створює файл раніше, ніж вимір встигає подивитись на дерево, тож наївне `git status == \"\"` тут завжди хибне і описувало б власний акт запису, а не стан кандидата.",
+    "dirty_entries": [
+      " M reports/closure/FINAL_CLOSURE_STATE.json"
+    ]
+  },
   "final_source_digest": "b9096028195cc54f45d43174d8ca7c7edf2a4d542cf1fc03c432768efde7f20c",
   "digest_scope": "evidence_paths",
+  "source_digest_stability": {
+    "stable_since": "59554a20",
+    "changed_during_campaign": [
+      "12cbc22a",
+      "961f2639",
+      "5a97eba5",
+      "9ef04bfe",
+      "80840649",
+      "ae4ed6d5",
+      "b9096028"
+    ],
+    "note": "спростовано незалежним верифікатором: дайджест мінявся шість разів; твердження про стабільність було істинним лише для останніх пʼяти комітів"
+  },
   "release": "v0.9.7",
   "mirrors": {
-    "local": "fcc46104b40be94d9e6e08030b7a077d41d0ac0d",
-    "origin_github": "fcc46104b40be94d9e6e08030b7a077d41d0ac0d",
-    "gitlab": "fcc46104b40be94d9e6e08030b7a077d41d0ac0d"
+    "local": "cd51618a2d359aa2306554391594134c3e6b94ea",
+    "origin_github": "cd51618a2d359aa2306554391594134c3e6b94ea",
+    "gitlab": "0c671683fa63b26b4b46392aead8d83659024727"
   },
   "internal_closure": {
-    "verdict": "TRUE",
+    "verdict": "TRUE_WITH_NAMED_DEFECTS",
     "current_truth": "PASS",
     "current_truth_failures": [],
+    "current_truth_checks": 52,
+    "current_truth_bound_to": "b9096028195c",
     "internal_executable_unresolved": 0,
     "blocker_counts": {
       "CLOSED_ANCHORED": 7,
       "EXTERNAL_REQUIRED": 7
     },
     "software_ready": "14/14",
+    "software_ready_means": "буквально: оголошені software_artifacts проходять is_file(). Зміст, версія і здатність виконатись НЕ читаються (VD-7).",
     "externally_satisfied": 7,
     "production_satisfied": 7,
-    "handoff_release_evidence": "BOUND",
-    "lane_make_check": "rc=0",
-    "remote_ci": "EXECUTED_PASS (GitLab pipeline #372, 18/18 jobs, neuron7x/korpus-platform)",
-    "github_actions": "EXECUTION_NOT_OBSERVED (account billing lock; 0 success in 100 runs)"
+    "handoff_release_evidence": "STALE на цьому HEAD; BOUND був на fcc46104 і живе рівно один коміт",
+    "lane_make_check": "rc=0 на fcc46104; на цьому HEAD не перезнімався",
+    "remote_ci": "EXECUTED_PASS (GitLab #372, 18/18 на fcc46104)",
+    "github_actions": "EXECUTION_NOT_OBSERVED (account billing lock; 0 success зі 100 прогонів)"
+  },
+  "independent_verification": {
+    "verdict": "REJECT",
+    "class": "SEPARATE_CONTEXT_SAME_HARNESS",
+    "caveat": "НЕ третя сторона (L9): інший контекст і інший виконавець-агент, але той самий харнес, та сама машина, той самий власник. Не може задовольнити independent_tevv.",
+    "refuted_claims": 3,
+    "open_defects": [
+      "VD-1",
+      "VD-2",
+      "VD-5",
+      "VD-6",
+      "VD-7"
+    ]
   },
   "claims": {
     "total": 7,
@@ -46,22 +83,17 @@
   "mutation": {
     "killed": 624,
     "survived": [],
-    "caveat": "число ПРО КАТАЛОГ: 162 модулі (42% джерела) не мають жодного мутанта, виміряно 2026-08-29"
+    "caveat": "число ПРО КАТАЛОГ: 162 модулі (42% джерела) без мутантів. Верифікатор прогнав свою пробу, seed 4242: 12/12 убито, 0 вижило."
   },
   "clean_room": {
     "class": "REMOTE_SOURCE_FRESH_DEPENDENCIES",
     "status": "PASS",
-    "pytest": {
-      "tests": 4159,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 48
-    },
-    "caveat": "НЕ незалежна валідація (L9): виконавець той самий"
+    "candidate_sha": "5e0b4cdd1f464cf13e5fefa4b478fe0a5e665d0c",
+    "caveat": "знято на 5e0b4cdd; діф до цього HEAD лише під reports/. Артефакт НЕ читає жоден гейт і «свіжий venv» стверджено прозою (VD-6) — властивість UNATTACKED."
   },
   "reproducibility": "NON_REPRODUCIBLE",
   "production_authorized": false,
-  "production_authorized_reason": "7 EXTERNAL_REQUIRED предикатів потребують третьої сторони або повноважень власника; жоден локальний доказ їх не задовольняє",
+  "production_authorized_reason": "сім EXTERNAL_REQUIRED предикатів потребують третьої сторони або повноважень власника",
   "external_blockers": [
     "real_domain_corpus_tevv",
     "independent_tevv",
@@ -76,10 +108,11 @@
     "reports/closure/REPRODUCIBILITY_REPORT.json": "54fb856afdc3c53301ff33177f58c368d055b922849cd38520e40b9119de63e0",
     "reports/closure/QUALITY_MATRIX.json": "5dd1bfefd4e16dfc50a700ede06e7db067a39217685e49611d2b56253f1c1984",
     "reports/closure/EXTERNAL_BLOCKERS.json": "8e0e4fdb883eac99b15a25a1b2c1aba7ae28a59a8bba51617e2c2e5d99963a2d",
+    "reports/closure/INDEPENDENT_VERIFICATION_VERDICT.json": "d113f83cfa32c1ed0cdf9fe04d717076d7bc160bd74138032046cc48b16c10f1",
     "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json": "473d8a244b04a38d63f2dc396ff60cbe6691923953e1dfb4117a2e8b33e2f462",
     "reports/release/v0.9.7/final/CLAIM_LEDGER.json": "107e91df0b96f0ee3450225e55ad9b2cb1e6dbb284a5ee2ac4d1329c62c268e2",
     "reports/PRODUCTION_HARD_PREDICATES.json": "e4fc830d15edd739277533a8c1592f30ff941d98dc85bec9aded8ce1a5bdb071",
-    "reports/CURRENT_TRUTH_VERIFICATION.json": "a7041cdcdc3f5ec25112f99d3ad05e7ace485f8fedd433ec761abe52d7fe54d9",
+    "reports/CURRENT_TRUTH_VERIFICATION.json": "5a2aeac37cdba44620e4435b07e09f1252bee0a31198a1ec7c7db2e59b86eaa9",
     "reports/OWNER_PILOT_RELEASE_PACKET.md": "25a59a27a17f20f957d649214fb2575c6f6ca73eecb1c99fd3958f95c9cacdaa",
     "docs/assurance/CLOSURE_CAMPAIGN_2026-09-05.md": "0e35981c31d822a0cfbd823b3c2457634dcfed36a62ea173d5c09bbe4e46b999"
   }
