@@ -11,6 +11,7 @@ from korpus.application.capability_gateway.effects import (
     EffectRecord,
     EffectState,
     ReconciliationDisposition,
+    attest_reconciled_effect,
 )
 from korpus.application.capability_gateway.errors import (
     CapabilityAuthorizationDenied,
@@ -172,10 +173,16 @@ def reconcile_unknown_effect(
     provider_reference = observation.provider_reference or record.provider_reference
 
     try:
-        return ledger.reconcile(
+        updated = ledger.reconcile(
             subject_id=identity.subject,
             idempotency_key=idempotency_key,
             expected_binding_digest=expected_binding_digest,
+            disposition=observation.disposition,
+            provider_reference=provider_reference,
+        )
+        return attest_reconciled_effect(
+            record,
+            updated,
             disposition=observation.disposition,
             provider_reference=provider_reference,
         )

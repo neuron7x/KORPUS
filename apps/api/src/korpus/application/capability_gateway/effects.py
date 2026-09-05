@@ -190,6 +190,28 @@ def attest_effect_transition(
     return updated
 
 
+def attest_reconciled_effect(
+    previous: EffectRecord,
+    updated: object,
+    *,
+    disposition: ReconciliationDisposition,
+    provider_reference: str | None,
+) -> EffectRecord:
+    """Require reconciliation persistence to match the provider observation exactly."""
+
+    if not isinstance(updated, EffectRecord):
+        raise InvalidEffectTransition("effect ledger returned an invalid reconciled record type")
+    if _record_binding(updated) != _record_binding(previous):
+        raise InvalidEffectTransition("reconciliation changed immutable reservation binding")
+    if updated.state is not EffectState.RECONCILED:
+        raise InvalidEffectTransition("reconciliation did not persist RECONCILED state")
+    if updated.reconciliation_disposition is not disposition:
+        raise InvalidEffectTransition("reconciliation disposition does not match observation")
+    if updated.provider_reference != provider_reference:
+        raise InvalidEffectTransition("reconciliation provider reference does not match observation")
+    return updated
+
+
 def _attest_reservation(
     reservation: object,
     *,
