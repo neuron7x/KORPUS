@@ -214,33 +214,33 @@ def effect_safety_graph_errors(
 
 
 def _compensation_cycle_errors(edges: Mapping[CapabilityKey, CapabilityKey]) -> tuple[str, ...]:
-    """Return deterministic errors for cycles in a functional compensation graph."""
+    """Return deterministic cycle errors in O(V) without recursion-depth dependence."""
 
     visited: set[CapabilityKey] = set()
-    active_index: dict[CapabilityKey, int] = {}
-    stack: list[CapabilityKey] = []
     errors: set[str] = set()
 
-    def visit(node: CapabilityKey) -> None:
-        if node in active_index:
-            cycle = stack[active_index[node] :] + [node]
+    for start in sorted(edges):
+        if start in visited:
+            continue
+        path: list[CapabilityKey] = []
+        path_index: dict[CapabilityKey, int] = {}
+        node = start
+
+        while node not in visited and node not in path_index:
+            path_index[node] = len(path)
+            path.append(node)
+            target = edges.get(node)
+            if target is None:
+                break
+            node = target
+
+        if node in path_index:
+            cycle = path[path_index[node] :] + [node]
             rendered = " -> ".join(_format_capability_key(item) for item in cycle)
             errors.add(f"compensation cycle detected: {rendered}")
-            return
-        if node in visited:
-            return
 
-        active_index[node] = len(stack)
-        stack.append(node)
-        target = edges.get(node)
-        if target is not None:
-            visit(target)
-        stack.pop()
-        active_index.pop(node, None)
-        visited.add(node)
+        visited.update(path)
 
-    for node in sorted(edges):
-        visit(node)
     return tuple(sorted(errors))
 
 
