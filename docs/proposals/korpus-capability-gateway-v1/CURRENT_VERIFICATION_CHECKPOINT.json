@@ -2,18 +2,18 @@
   "schema": "korpus.capability-gateway.current-verification-checkpoint.v1",
   "pr_number": 44,
   "branch": "proposal/korpus-capability-gateway-v1-20260904",
-  "verification_candidate_commit": "f280e98ff89ec9e49288718d8148cd44ff88012f",
+  "verification_candidate_commit": "4f74109151e3cf73324ad0a427aba1a64b8f6cce",
   "candidate_semantics": "Latest material capability-gateway candidate under verification. A later metadata checkpoint records evidence about this exact candidate and does not recursively verify itself.",
   "latest_material_hardening": [
-    {"commit":"40019ec10d1e7d7847a135f1d676e65fb9b1a112","claim":"Abstain from unproven capability-specific telemetry metadata."},
-    {"commit":"56a9e345414c5e736b13873da6705e098ccf35e7","claim":"Classify pre-dispatch missing-adapter failure as FAILED_KNOWN_NO_EFFECT."},
-    {"commit":"f280e98ff89ec9e49288718d8148cd44ff88012f","claim":"Preserve causal error semantics: pre-append audit-material serialization failure is INTERNAL_ERROR; AUDIT_APPEND_FAILED is reserved for the audit port/receipt boundary."}
+    {"commit":"56a9e345414c5e736b13873da6705e098ccf35e7","claim":"Pre-dispatch missing adapter becomes FAILED_KNOWN_NO_EFFECT."},
+    {"commit":"f280e98ff89ec9e49288718d8148cd44ff88012f","claim":"Audit-material construction failure is not mislabeled as audit append failure."},
+    {"commit":"4f74109151e3cf73324ad0a427aba1a64b8f6cce","claim":"Adapter registry rejects missing, non-callable or failing execute surfaces at composition time."}
   ],
   "live_base": {
     "branch": "main",
     "observed_sha": "5f900936636fecfc389564421b1e03cd319f69eb",
     "merge_base_sha": "0494b02ab8237cfc4145d5f24825174e691179cc",
-    "feature_ahead_by": 148,
+    "feature_ahead_by": 150,
     "feature_behind_by": 9,
     "relationship": "DIVERGED",
     "acceptance_gate": "BASE_SYNC_REQUIRED",
@@ -22,7 +22,7 @@
   },
   "execution_evidence": {
     "github_actions": {
-      "candidate_commit": "f280e98ff89ec9e49288718d8148cd44ff88012f",
+      "candidate_commit": "4f74109151e3cf73324ad0a427aba1a64b8f6cce",
       "workflow_runs_observed": 0,
       "commit_statuses_observed": 0,
       "status": "EXECUTION_NOT_OBSERVED",
@@ -30,22 +30,13 @@
       "trigger_blocker": "PULL_REQUEST_MERGE_CONFLICT"
     },
     "static_regression_review": {
-      "candidate_commit": "f280e98ff89ec9e49288718d8148cd44ff88012f",
+      "candidate_commit": "4f74109151e3cf73324ad0a427aba1a64b8f6cce",
       "status": "SOURCE_REVIEW_ONLY",
-      "finding": "Result emission now distinguishes audit-material construction failure from audit append/receipt failure. Existing boundary control was tightened to assert audit.calls == 0 with INTERNAL_ERROR for a nondigestible provider receipt.",
+      "finding": "Adapter executability is now a composition invariant. Negative controls reject absent execute, non-callable execute and descriptor failure before invocation can create effect ambiguity.",
       "transferable_as_test_result": false
     },
-    "clean_room": {
-      "candidate_commit": "f280e98ff89ec9e49288718d8148cd44ff88012f",
-      "status": "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED",
-      "checkout_executed": false,
-      "test_command_executed": false,
-      "transferable_as_test_result": false
-    },
-    "fresh_context": {
-      "candidate_commit": "f280e98ff89ec9e49288718d8148cd44ff88012f",
-      "status": "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED"
-    }
+    "clean_room": {"candidate_commit":"4f74109151e3cf73324ad0a427aba1a64b8f6cce","status":"CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED","checkout_executed":false,"test_command_executed":false,"transferable_as_test_result":false},
+    "fresh_context": {"candidate_commit":"4f74109151e3cf73324ad0a427aba1a64b8f6cce","status":"FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED"}
   },
   "truth_policy": {
     "source_witness_is_not_execution_evidence": true,
@@ -55,18 +46,7 @@
     "evidence_from_another_commit_is_not_current": true,
     "metadata_checkpoint_does_not_verify_itself": true
   },
-  "blocking_gates": [
-    "BASE_SYNC_REQUIRED",
-    "PULL_REQUEST_MERGE_CONFLICT",
-    "CI_TRIGGER_BLOCKED",
-    "EXECUTION_NOT_OBSERVED",
-    "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED",
-    "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED"
-  ],
+  "blocking_gates": ["BASE_SYNC_REQUIRED","PULL_REQUEST_MERGE_CONFLICT","CI_TRIGGER_BLOCKED","EXECUTION_NOT_OBSERVED","CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED","FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED"],
   "verdict": "FAIL_MERGE_READINESS",
-  "authority": {
-    "merge_action": "PROHIBITED_IN_CURRENT_AGENT_SESSION",
-    "production_authority": "OWNER_ONLY",
-    "technical_validity_must_precede_merge": true
-  }
+  "authority": {"merge_action":"PROHIBITED_IN_CURRENT_AGENT_SESSION","production_authority":"OWNER_ONLY","technical_validity_must_precede_merge":true}
 }
