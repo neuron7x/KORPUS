@@ -91,7 +91,7 @@ class CapabilityExecutor:
                 ExecutionMaterial(idempotency_binding=guard.binding_digest),
             )
         try:
-            return adapter.execute(
+            executed = adapter.execute(
                 spec=frame.spec,
                 request=frame.request,
                 context=frame.context,
@@ -122,6 +122,12 @@ class CapabilityExecutor:
             )
         except Exception:
             return self._adapter_failure(frame, guard, "INTERNAL_ERROR")
+        if not isinstance(executed, AdapterExecutionResult):
+            # Protocol typing is not runtime proof. A provider adapter may be buggy or
+            # compromised; after dispatch an effectful operation must become ambiguous
+            # rather than escaping as AttributeError or being treated as success.
+            return self._adapter_failure(frame, guard, "INTERNAL_ERROR")
+        return executed
 
     def _known_no_effect(
         self,
