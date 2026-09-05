@@ -99,6 +99,26 @@ def test_multiple_attempts_require_safe_error_classification() -> None:
         CapabilitySpec.model_validate(payload)
 
 
+def test_effectful_multiple_attempts_require_provider_duplicate_prevention_proof() -> None:
+    payload = _payload()
+    payload["retry"] = RetrySpec(max_attempts=2, only_safe_errors=True)
+    payload["idempotency"] = IdempotencySpec(required=True, provider_key_forwarding=False)
+
+    with pytest.raises(ValidationError, match="provider idempotency-key forwarding proof"):
+        CapabilitySpec.model_validate(payload)
+
+
+def test_effectful_multiple_attempts_are_admissible_with_provider_key_forwarding() -> None:
+    payload = _payload()
+    payload["retry"] = RetrySpec(max_attempts=2, only_safe_errors=True)
+
+    spec = CapabilitySpec.model_validate(payload)
+
+    assert spec.retry.max_attempts == 2
+    assert spec.retry.only_safe_errors is True
+    assert spec.idempotency.provider_key_forwarding is True
+
+
 def test_valid_effect_contract_remains_admissible() -> None:
     spec = CapabilitySpec.model_validate(_payload())
 
