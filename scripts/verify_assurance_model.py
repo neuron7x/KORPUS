@@ -113,6 +113,18 @@ def bound(report: dict[str, Any], who: Identity, what: str) -> Verdict | None:
     if not commit and not digest:
         return NOT_MEASURED, f"{what}: звіт не несе ні commit, ні source_digest — не прив'язаний"
     if commit and commit != who["commit"]:
+        # ДВА різні стани доти мали одну назву. Якщо дайджест джерела той самий,
+        # засвідчення застаріло щодо дерева цілком, а не щодо предмета, про який
+        # воно свідчить: між такими комітами міг змінитись лише `reports/`.
+        # Вирок не мʼякшає — мʼякшає лише мовчання: вічне NOT_SATISFIED без цієї
+        # різниці є недосяжністю, яка виглядає як очікування на людину.
+        same_source = bool(digest and who["source_digest"] and digest == who["source_digest"])
+        if same_source:
+            return NOT_SATISFIED, (
+                f"{what}: звіт про {commit[:8]}, HEAD {who['commit'][:8]} — "
+                f"ДЖЕРЕЛО те саме ({digest[:8]}), застаріла лише прив'язка до коміту; "
+                "перезняти на цьому HEAD"
+            )
         return NOT_SATISFIED, f"{what}: звіт про {commit[:8]}, HEAD {who['commit'][:8]}"
     if digest and not commit and not who["source_digest"]:
         return NOT_MEASURED, f"{what}: дайджест дерева не обчислено, звірити нема з чим"
