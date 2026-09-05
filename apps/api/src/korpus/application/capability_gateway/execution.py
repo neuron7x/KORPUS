@@ -85,11 +85,12 @@ class CapabilityExecutor:
         try:
             adapter = self._adapters.resolve(frame.spec)
         except CapabilityNotFound:
-            return self._emitter.emit(
+            # Resolution failed before dispatch. This proves the provider was not invoked,
+            # so a durable reservation must not remain PENDING/ambiguous.
+            return self._known_no_effect(
                 frame,
-                InvocationOutcome.FAILED,
-                "ADAPTER_NOT_REGISTERED",
-                ExecutionMaterial(idempotency_binding=guard.binding_digest),
+                guard,
+                error_code="ADAPTER_NOT_REGISTERED",
             )
         try:
             executed = adapter.execute(
