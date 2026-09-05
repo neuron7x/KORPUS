@@ -167,6 +167,21 @@ def test_constructed_success_with_error_code_fails_closed_at_http_boundary() -> 
     assert response.json()["output"] is None
 
 
+def test_poisoned_internal_error_cannot_select_http_status_after_revalidation() -> None:
+    client, invoker = _client(
+        _unsafe_success(audit_record_id=None, error_code="CAPABILITY_UNKNOWN")
+    )
+
+    response = client.post("/v1/integrations/invoke", json=_request())
+
+    assert response.status_code == 503
+    assert response.json()["outcome"] == "FAILED"
+    assert response.json()["error_code"] == "INTEGRATION_FAILED"
+    assert response.json()["output"] is None
+    assert response.json()["evidence"] is None
+    assert invoker.calls == 1
+
+
 def test_router_factory_is_not_activated_in_main_without_owner_config_gate() -> None:
     source = Path("apps/api/src/korpus/main.py").read_text(encoding="utf-8")
 

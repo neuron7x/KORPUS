@@ -18,6 +18,7 @@ class CapabilityInvoker(Protocol):
 
 IdentityDependency = Annotated[Identity, Depends(get_identity)]
 _PREAUTH_DENIALS = frozenset({"CAPABILITY_UNKNOWN", "CAPABILITY_DISABLED", "POLICY_DENIED"})
+_PUBLIC_PREAUTH_ERROR = "CAPABILITY_UNAVAILABLE"
 
 
 def _revalidate_public_result(result: IntegrationResult) -> IntegrationResult:
@@ -53,7 +54,7 @@ def public_integration_result(result: IntegrationResult) -> IntegrationResult:
 
     updates: dict[str, object | None] = {"output": None, "evidence": None}
     if result.error_code in _PREAUTH_DENIALS:
-        updates["error_code"] = "CAPABILITY_UNAVAILABLE"
+        updates["error_code"] = _PUBLIC_PREAUTH_ERROR
     elif result.outcome is InvocationOutcome.FAILED:
         # Internal adapter/schema/audit topology is operator evidence, not client data.
         updates["error_code"] = "INTEGRATION_FAILED"
@@ -73,7 +74,9 @@ def build_integration_router(invoker: CapabilityInvoker) -> APIRouter:
     ) -> IntegrationResult:
         internal = invoker.invoke(identity=identity, request=request)
         public = public_integration_result(internal)
-        if internal.error_code in _PREAUTH_DENIALS:
+        # Status projection must consume only the revalidated public envelope. The internal
+        # object may have been constructed unsafely and is not authority at this boundary.
+        if public.error_code == _PUBLIC_PREAUTH_ERROR:
             response.status_code = status.HTTP_404_NOT_FOUND
         elif public.outcome is InvocationOutcome.DENIED:
             response.status_code = status.HTTP_403_FORBIDDEN
