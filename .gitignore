@@ -33,3 +33,12 @@ gha-creds-*.json
 crash.log
 crash.*.log
 
+
+# Образи й SBOM контейнерів — артефакти джоби, не вміст репозиторію.
+# 05.09.2026 `git add -A` після локального відтворення постачальницьких доказів
+# заніс api-image.tar (462 МБ) і web-image.tar (73 МБ) у коміт; обидва форжі
+# відхилили push, і правильно зробили. Правило тут, щоб наступний `add -A` не повторив.
+api-image.tar
+web-image.tar
+api-sbom.cdx.json
+web-sbom.cdx.json

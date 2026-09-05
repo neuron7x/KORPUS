@@ -5,6 +5,7 @@
     "CARRY_FORWARD_SOURCE_BOUND": "Historical execution is admissible only after byte-level proof over unchanged governed runtime paths.",
     "RUNTIME_UNAVAILABLE": "Required tool/runtime is unavailable; this is neither PASS nor code failure.",
     "INTERNAL_BLOCKED": "Repository-side executable or admission precondition is missing.",
+    "INTERNAL_STALE_EVIDENCE": "Gate evidence exists but is bound to another tree or release; closing it is a re-run, not an external action.",
     "EXTERNAL_REQUIRED": "Predicate requires independent authority, production-like infrastructure, or pre-admitted trust root.",
     "CONFLICT": "Compatible evidence contradicts; conflict remains explicit and fails closed.",
     "FAIL": "Executed predicate failed.",

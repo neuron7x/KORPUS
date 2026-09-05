@@ -201,31 +201,56 @@ def _axes_findings(axes: dict[str, Any] | None) -> tuple[list[str], list[str]]:
     return problems, stale
 
 
-def _mutation_findings(mutation: dict[str, Any] | None) -> tuple[list[str], list[str]]:
-    """Внутрішня узгодженість звіту НЕ означає, що він бачив каталог.
-
-    Після зведення каталог виріс до 525, а звіт лишився про 511 і виглядав цілим:
-    511 із 511, `survived` порожній. Тому питаємо окремий гейт свіжості.
-    """
-    problems: list[str] = []
-    freshness = subprocess.run(
+def _run_freshness_gate() -> tuple[int, str]:
+    """Єдина нечиста дія цього вироку — запуск гейта свіжості."""
+    done = subprocess.run(
         [sys.executable, str(ROOT / "scripts/check_mutation_report_freshness.py")],
         cwd=str(ROOT),
         capture_output=True,
         text=True,
         check=False,
     )
-    if freshness.returncode != 0:
-        unseen = re.findall(r"каталог має (\d+) мутантів", freshness.stdout)
-        problems.append(
-            f"звіт мутацій не бачив {unseen[0]} мутантів каталогу"
-            if unseen
-            else "звіт мутацій розійшовся з каталогом"
-        )
+    return done.returncode, done.stdout
+
+
+def _mutation_findings(
+    mutation: dict[str, Any] | None, freshness: tuple[int, str] | None = None
+) -> tuple[list[str], list[str]]:
+    """Внутрішня узгодженість звіту НЕ означає, що він бачив каталог.
+
+    Після зведення каталог виріс до 525, а звіт лишився про 511 і виглядав цілим:
+    511 із 511, `survived` порожній. Тому питаємо окремий гейт свіжості.
+
+    Результат гейта приходить ПАРАМЕТРОМ, а не з підпроцесу всередині. Виміряно
+    04.09.2026: доти переворот `mutation is None` виживав — не тому, що байдужий, а
+    тому, що самоперевірка не могла дійти сюди, не запустивши підпроцес. Нечиста дія
+    винесена в `_run_freshness_gate`, і вирок став вимірюваним.
+    """
+    problems: list[str] = []
+    problems.extend(
+        freshness_problem(*(freshness if freshness is not None else _run_freshness_gate()))
+    )
     if mutation is None:
         return problems, ["немає reports/MUTATION_REPORT.json"]
     problems.extend(mutation_consistency(mutation))
     return problems, []
+
+
+def freshness_problem(returncode: int, stdout: str) -> list[str]:
+    """Що каже гейт свіжості звіту мутацій. Нуль — мовчання, решта — скарга.
+
+    Винесено 04.09.2026: рішення жило поруч із запуском підпроцесу, тож перевірити
+    його можна було лише разом із ним — і переворот `!= 0` на `== 0` виживав, бо
+    самоперевірка до підпроцесу не доходила.
+    """
+    if returncode == 0:
+        return []
+    unseen = re.findall(r"каталог має (\d+) мутантів", stdout)
+    return [
+        f"звіт мутацій не бачив {unseen[0]} мутантів каталогу"
+        if unseen
+        else "звіт мутацій розійшовся з каталогом"
+    ]
 
 
 def mutation_consistency(mutation: dict[str, Any]) -> list[str]:
@@ -363,6 +388,133 @@ def selftest() -> int:
     ]
     heads = alembic_heads()
     checks.append(("у цьому дереві рівно одна голова", len(heads), 1))
+
+    # ВИМІРЯНО 04.09.2026. Все вище звіряло `_literal()` — парсер тексту — і кількість
+    # голів. Вирок `ACCEPTED`, заради якого скрипт існує, не торкався ЖОДНИМ випадком.
+    # Десять отрут у рішеннях (звіряння дайджесту, повнота мутацій, збирання вироку,
+    # стан лану, підлога осей) лишили самоперевірку зеленою 6/6. Самоперевірка, яка не
+    # може почервоніти від перевороту власного рішення, негативним контролем не є.
+    head, digest = "a" * 40, "d" * 64
+    bound = {"source_commit": head, "source_digest": digest}
+    checks += [
+        ("звіт про це дерево — прив'язаний", lane_binding_failure(bound, head, digest), None),
+        (
+            "інший коміт — не це дерево",
+            lane_binding_failure({**bound, "source_commit": "b" * 40}, head, digest) is None,
+            False,
+        ),
+        (
+            "той самий коміт, інший вміст — дерево було брудне",
+            lane_binding_failure({**bound, "source_digest": "e" * 64}, head, digest) is None,
+            False,
+        ),
+        (
+            "звіт без тотожності доводить НЕ той, хто читає",
+            lane_binding_failure({}, head, digest) is None,
+            False,
+        ),
+        (
+            "джерело зрушило під час лану",
+            lane_binding_failure({**bound, "source_moved_during_run": True}, head, digest) is None,
+            False,
+        ),
+        (
+            "звіт, старший за HEAD, несвіжий",
+            report_is_stale("2020-01-01T00:00:00", 2 * 10**9),
+            True,
+        ),
+        ("звіт, молодший за HEAD, свіжий", report_is_stale("2033-01-01T00:00:00", 10**9), False),
+        ("час, який не читається, — теж несвіжість", report_is_stale("не дата", 0), True),
+        (
+            "впалий лан — проблема, не невідомість",
+            _lane_findings({"failed": 2, "not_run": 0}, False, None)[0] != [],
+            True,
+        ),
+        (
+            "відсутній лан — невідомість, не проблема",
+            (_lane_findings(None, False, None)[0], _lane_findings(None, False, None)[1] != []),
+            ([], True),
+        ),
+        ("повна мутація не має проблем", mutation_consistency({"mutants": 5, "killed": 5}), []),
+        (
+            "убито менше, ніж мутантів — проблема",
+            mutation_consistency({"mutants": 5, "killed": 3}) != [],
+            True,
+        ),
+        (
+            "убито не число — теж проблема",
+            mutation_consistency({"mutants": 5, "killed": None}) != [],
+            True,
+        ),
+        ("гейт свіжості мовчить — проблем немає", freshness_problem(0, ""), []),
+        (
+            "гейт свіжості скаржиться — проблема названа числом",
+            freshness_problem(1, "каталог має 624 мутантів"),
+            ["звіт мутацій не бачив 624 мутантів каталогу"],
+        ),
+        (
+            "скарга без числа — теж проблема",
+            freshness_problem(1, "щось інше"),
+            ["звіт мутацій розійшовся з каталогом"],
+        ),
+        (
+            "немає звіту мутацій — невідомість, не проблема",
+            (
+                _mutation_findings(None, (0, ""))[0],
+                _mutation_findings(None, (0, ""))[1] != [],
+            ),
+            ([], True),
+        ),
+        (
+            "звіт є і цілий — ні проблем, ні невідомості",
+            _mutation_findings({"mutants": 5, "killed": 5}, (0, "")),
+            ([], []),
+        ),
+        (
+            "звіт є, але каталог розійшовся — проблема, не невідомість",
+            _mutation_findings({"mutants": 5, "killed": 5}, (1, "каталог має 624 мутантів"))[0]
+            != [],
+            True,
+        ),
+        (
+            "звіт, знятий у ТУ САМУ секунду, що й HEAD, не старший за нього",
+            report_is_stale("2026-09-04T00:00:00+00:00", 1788480000),
+            False,
+        ),
+        (
+            "нуль мутантів — не доказ",
+            mutation_consistency({"mutants": 0, "killed": 0, "survived": []}) != [],
+            True,
+        ),
+        ("порожній звіт мутацій — не доказ", mutation_consistency({}) != [], True),
+        (
+            "вижилий мутант — проблема",
+            mutation_consistency({"mutants": 5, "killed": 5, "survived": ["M1"]}) != [],
+            True,
+        ),
+        (
+            "вісь під підлогою — проблема",
+            _axes_findings({"axes": [{"axis": "a", "state": "MEASURED", "below_floor": True}]})[0]
+            != [],
+            True,
+        ),
+        (
+            "невиміряна вісь — невідомість, не проблема",
+            (
+                _axes_findings({"axes": [{"axis": "a", "state": "STALE", "reason": "вік"}]})[0],
+                _axes_findings({"axes": [{"axis": "a", "state": "STALE", "reason": "вік"}]})[1]
+                != [],
+            ),
+            ([], True),
+        ),
+        (
+            "вердикт FAIL без названої осі суперечить сам собі",
+            _axes_findings({"verdict": "FAIL", "axes": []})[0] != [],
+            True,
+        ),
+        ("прийнято лише коли чисто І відомо", (not [] and not []), True),
+        ("невідоме не є прийнятим", (not [] and not ["щось"]), False),
+    ]
     passed = 0
     for name, got, want in checks:
         ok = got == want

@@ -11,7 +11,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 
-from korpus.application.provenance import compute_source_digest  # noqa: E402
+from korpus.application.provenance import DIGEST_SCOPE, compute_source_digest  # noqa: E402
 from korpus.application.release_truth import (  # noqa: E402
     blocker_registry,
     claim_ledger,
@@ -39,6 +39,7 @@ def main() -> int:
             "schema": "korpus.executable-evidence-index.v2",
             **counts,
             "source_tree_sha256": source_digest,
+            "digest_scope": DIGEST_SCOPE,
             "release": release,
             "method": "AST enumeration over current source/test tree",
         },

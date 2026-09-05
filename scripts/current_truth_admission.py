@@ -1,7 +1,12 @@
 from __future__ import annotations
 
 import json
+import re
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
+
+from korpus.application.release_truth import evidence_digest
 
 try:
     from .current_truth_contract import load_object
@@ -71,6 +76,37 @@ def claim_admission_checks(root: Path, release: str, digest: str) -> dict[str, b
     }
 
 
+#: Документ, на якому власник ухвалює рішення. Доти єдиний доказ релізу, якого не
+#: звіряло НІЩО, і він двічі розійшовся з деревом мовчки. Повний облік — §16 пакета.
+OWNER_PACKET = "reports/OWNER_PILOT_RELEASE_PACKET.md"
+
+#: Рядок, якого в пакеті бути не сміє: він оголошує КОМІТ, а документ усередині дерева
+#: назвати свій коміт не здатен — власна правка створює новий, і число застаріває тієї
+#: ж миті. Тотожність коміта встановлює захищений тег власника, не проза в дереві.
+#: `source_bound` цього не бачить за побудовою: `reports/` поза `EVIDENCE_SOURCE_PATHS`,
+#: тож два коміти несуть один дайджест — критерій слабший за властивість, яку називає.
+_CANDIDATE_CLAIM = re.compile(r"^\*\*КАНДИДАТ:\*\*\s*`?[0-9a-fA-F]{7,40}`?", re.MULTILINE)
+
+
+def owner_packet_checks(root: Path, release: str, digest: str) -> dict[str, bool]:
+    """Чи описує пакет власника ЦЕЙ кандидат.
+
+    Назва релізу спільна для всіх кандидатів `v0.9.7` і сама по собі їх не розрізнить,
+    тож в'яже дайджест дерева; четверта перевірка — про форму твердження, не значення.
+    """
+    path = root / OWNER_PACKET
+    if not path.is_file():
+        # Відсутній пакет — «власнику нема на чому вирішувати», не «скарг немає».
+        return {f"{OWNER_PACKET}.present": False}
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    return {
+        f"{OWNER_PACKET}.present": True,
+        f"{OWNER_PACKET}.release_bound": bool(release) and release in text,
+        f"{OWNER_PACKET}.source_bound": bool(digest) and digest in text,
+        f"{OWNER_PACKET}.no_unverifiable_candidate": not _CANDIDATE_CLAIM.search(text),
+    }
+
+
 def blocker_state_checks(root: Path, release: str, digest: str) -> dict[str, bool]:
     path = root / f"reports/release/{release}/final/BLOCKER_REGISTRY.json"
     if not path.is_file():
@@ -88,4 +124,26 @@ def blocker_state_checks(root: Path, release: str, digest: str) -> dict[str, boo
         == 0,
         "BLOCKER_REGISTRY.source_bound_current": payload.get("source_tree_sha256") == digest,
         "BLOCKER_REGISTRY.release_bound_current": payload.get("release") == release,
+        # Усі перевірки вище читають те, що реєстр каже САМ ПРО СЕБЕ, і жодна не
+        # відкриває його вхід — тож підміна змісту входу за тим самим шляхом лишалась
+        # зеленою. `reports/` навмисно поза `source_tree_sha256`, тому прив'язка до
+        # дерева змісту реєстру не визначає.
+        "BLOCKER_REGISTRY.evidence_inputs_current": _evidence_inputs_current(root, payload),
     }
+
+
+def _evidence_inputs_current(root: Path, payload: Mapping[str, Any]) -> bool:
+    """Чи зібрано реєстр саме з ТИХ файлів доказів, які лежать зараз.
+
+    Дайджест рахує ТА САМА функція, що його записала (`release_truth.evidence_digest`):
+    два визначення одного відношення розійшлися б мовчки — рівно той клас, який ця
+    перевірка й закриває рівнем вище. Зниклий файл дає порожній рядок, який не збігається
+    з жодним записаним дайджестом. Порожній запис — НЕ згода: `all([])` істинне.
+    """
+    recorded = payload.get("evidence_sha256")
+    if not isinstance(recorded, Mapping) or not recorded:
+        return False
+    return all(
+        evidence_digest(root / str(relative)) == str(expected)
+        for relative, expected in recorded.items()
+    )

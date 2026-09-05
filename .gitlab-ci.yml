@@ -203,6 +203,11 @@ repository:validate:
     - python scripts/validate_infrastructure.py
     - python scripts/validate_kubernetes.py
     - python -m compileall -q apps/api/src apps/api/migrations scripts
+    # Під'єднано 04.09.2026 разом із цілями, доданими в лан `validate`: без цього
+    # дзеркало CI каже «команда лану CI не виконує», і гарантія лану стає
+    # твердженням про локальну машину, а не про конвеєр.
+    - PYTHONPATH=apps/api/src:scripts python scripts/verify_package_build_identity.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/run_exact_environment_gate.py --profile development
   artifacts:
     when: always
     paths:

@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: pilot-posture machine-tevv release-freeze ci-run ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage installed-units-verify canonical-verify branch-integration
+.PHONY: pilot-posture machine-tevv release-freeze ci-run ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite sqlite-recovery-drill handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage selftest-falsifiability installed-units-verify canonical-verify branch-integration
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -816,7 +816,7 @@ public-health:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates
+validate: assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates package-build-identity production-observability production-inference-security production-exact-environment
 	python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py
@@ -964,6 +964,15 @@ subject-precision:
 selftest-coverage:
 	$(PY) scripts/verify_selftest_coverage.py --selftest
 	$(PY) scripts/verify_selftest_coverage.py
+
+# Самоперевірка, яка не може почервоніти, негативним контролем не є. `selftest-coverage`
+# доводить, що всі оголошені ЗАПУЩЕНО і зелені; жодна з цих властивостей не каже, чи
+# БУВАЛИ б вони іншими. Ця проба труїть рішення кожного скрипта (перевороти операторів
+# поза тілом самоперевірки) і дивиться, чи самоперевірка це помітить. 56 с на всі 57,
+# тому живе в нічному лані, а не у `validate`.
+selftest-falsifiability: selftest-coverage
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/probe_selftest_falsifiability.py --selftest
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/probe_selftest_falsifiability.py
 
 ## Чи те, що ВСТАНОВЛЕНО на машині, є тим, що описує дерево. Виміряно 01.09.2026:
 ## встановлений `korpus-public-api.service` має `EnvironmentFile=`, а шаблон у дереві
@@ -1220,6 +1229,7 @@ check-nightly:
 	$(MAKE) mutation-probe PY=$(PY)
 	$(MAKE) verify-clean-clone PY=$(PY)
 	$(MAKE) coverage-ratchet PY=$(PY)
+	$(MAKE) selftest-falsifiability PY=$(PY)
 	$(MAKE) package PY=$(PY)
 	$(MAKE) installed-units-verify PY=$(PY)
 	$(MAKE) canonical-verify PY=$(PY)
@@ -1360,8 +1370,10 @@ production-postgres-security:
 # в образі інтерпретатор точний, а dev-інструментів немає й бути не мусить.
 # Перша версія читала обидва замки завжди й тому була нездійсненна за побудовою.
 production-exact-environment:
-	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_exact_environment_gate.py \
-	  --profile development
+	# Один рядок навмисно: перенесення зворотним слешем робить ТОТОЖНІСТЬ команди
+	# неповною для дзеркала CI — воно бачить скрипт без `--profile`, і лан із
+	# конвеєром перестають збігатися при однаковій поведінці.
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_exact_environment_gate.py --profile development
 
 # Доказ, придатний для ПРОДАКШЕННОГО предиката, добувається лише в образі:
 # `profile: runtime` вимагається окремо, тож локальний доказ його не задовольнить.

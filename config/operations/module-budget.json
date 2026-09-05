@@ -1865,13 +1865,13 @@
       "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
     },
     "apps/api/src/korpus/application/release_claims.py": {
-      "lines": 139,
+      "lines": 140,
       "max_complexity": 12,
       "max_function_args": 4,
-      "max_function_lines": 60,
+      "max_function_lines": 61,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "WO-01: відсутність доказу перестала читатись як підтримка. Три дороги давали SUPPORTED без доказу «за» (нечитаний суфікс, JSON без прив'язки, JSON без вироку), і кожна тепер має власний стан. Плюс `_binding`: прив'язка читається і з верхнього рівня, і з канонічного конверта `provenance` — перша редакція знала лише верхній рівень і хибно оголосила каталог мутацій неприв'язаним. Складність 12 — це САМЕ ті нові стани: кожна гілка є окремим вироком, і злиття будь-яких двох повернуло б клас вади, заради якого правка писалась."
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
     },
     "apps/api/src/korpus/application/release_ledger.py": {
       "lines": 294,
@@ -1901,13 +1901,13 @@
       "reason": "formal fail-closed assurance/release model introduced for v0.3.0; ceiling recorded at introduction"
     },
     "apps/api/src/korpus/application/release_truth.py": {
-      "lines": 108,
-      "max_complexity": 9,
-      "max_function_args": 3,
-      "max_function_lines": 49,
+      "lines": 175,
+      "max_complexity": 6,
+      "max_function_args": 4,
+      "max_function_lines": 37,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN. | 2026-09-05: реєстр блокерів тепер записує ДАЙДЖЕСТ ЗМІСТУ свого входу, а допуск його звіряє (`evidence_sha256` / `evidence_inputs_current`). Стеля піднята під ПОВЕДІНКУ, не під прозу: докстрінги скорочено перед підняттям, і залишок — функція `_evidence_digest`, перевірка `_evidence_inputs_current` і три рядки поля в реєстрі. Доведено контрприкладом: до правки main приймав підміну ЗМІСТУ входу за тим самим шляхом при незмінній прив'язці до дерева (P1 = PASS), після — FAIL. Мутація зняла ще одну ваду: зняття умови `or not recorded` не вбивало жодного тесту, бо контроль прибирав ПОЛЕ, а не лишав порожній словник. | АУДИТ СТЕЛІ 2026-09-05 (ACTO-02 §10): контрфактичне питання поставлено — чи вміщується потрібна поведінка в стару стелю чистим рефактором. Два рефактори випробувано. ПРИЙНЯТО: виробник і перевіряльник тепер ділять ОДНЕ визначення відношення (`release_truth.evidence_digest`) — два визначення розійшлися б мовчки, тобто це той самий клас, який ця перевірка закриває рівнем вище; на розмір це не вплинуло. ВІДХИЛЕНО: винесення НЕспорідненого коду (перевірок пакета власника) заради місця — це підгонка метрики, а не вміщення потрібної поведінки. Залишковий приріст — сама поведінка: функція дайджесту, перевірка входів і поле в реєстрі; прозу скорочено ПЕРЕД підняттям. Класифікація: LEGITIMATE_CAPACITY_CHANGE."
     },
     "apps/api/src/korpus/application/request_audit_context.py": {
       "lines": 64,
@@ -3571,13 +3571,13 @@
       "reason": "Новий гейт: документ, що називає файл, якого немає, — не помилка форматування. Виміряно 02.09.2026 — звіт про стадію руйнування подавав числа від ТРЬОХ скриптів атак, яких не існувало в жодній гілці; помічене подавалось як виміряне. Форма мала три ітерації, кожну зняв ЗАПУСК: дослівні шляхи дали 242 хибні з 242 (звідси розв'язання скорочень); реєстр виправдань зробив би правду про видалене дорожчою за мовчання (звідси маркер у самому тексті); опора на `git ls-files` червонила б гейт у пісочниці, в образі й у чистому клоні (звідси три яруси опису і ОКРЕМИЙ, ширший обсяг розв'язання)."
     },
     "scripts/check_dormant_subsystems.py": {
-      "lines": 230,
+      "lines": 316,
       "max_complexity": 12,
-      "max_function_args": 4,
+      "max_function_args": 5,
       "max_function_lines": 45,
       "max_nesting": 4,
-      "proof_lines": 33,
-      "reason": "Підсистеми, які СПЛЯТЬ — оголошено, а не залишено без нагляду. 27 із 35 таблиць бази порожні; найбільша група (навчальний шар, 1516 рядків коду й 1036 тестів) не імпортується жодним маршрутом API. Досяжність міряється ГРАФОМ ІМПОРТІВ, бо перелік у конфізі був би другим оголошенням того самого факту. Гейт двобічний: той, що ловить лише пробудження, не помітить тихого видалення."
+      "proof_lines": 65,
+      "reason": "04.09.2026: додано другу поверхню досяжності (юніти рантайму + скрипти-гейти) і руку ВИЯВЛЕННЯ повз реєстр. Доти гейт звіряв власне оголошення: 2 підсистеми, 9 модулів, rate 1.0 — при 31 неоголошеному сплячому модулі. Плюс 10 нових негативних контролів."
     },
     "scripts/check_edge_config_parity.py": {
       "lines": 139,
@@ -3589,13 +3589,13 @@
       "reason": "новий гейт: паритет розгорнутого краю з шаблоном дерева; початковий точний вимір і є стелею ратчета"
     },
     "scripts/check_environment_drift.py": {
-      "lines": 132,
-      "max_complexity": 8,
+      "lines": 169,
+      "max_complexity": 10,
       "max_function_args": 2,
-      "max_function_lines": 69,
-      "max_nesting": 2,
+      "max_function_lines": 80,
+      "max_nesting": 3,
       "proof_lines": 0,
-      "reason": "OPS-004: observe on the running host, compare against the committed manifest, refuse an observation too old to describe the environment, and own the output path"
+      "reason": "04.09.2026: порожній аргумент дав НАЗВАНУ відмову замість IsADirectoryError. Трейсбек і відмова — різні речі: код повернення від непійманого винятку не відрізняє «знайдено дрейф» від «не змогла запуститись»."
     },
     "scripts/check_evidence_freshness.py": {
       "lines": 160,
@@ -3739,13 +3739,13 @@
       "reason": "v0.5.0: deterministic risk-weighted coverage ratchet with absolute uncovered-edge ceiling"
     },
     "scripts/current_truth_admission.py": {
-      "lines": 91,
+      "lines": 149,
       "max_complexity": 11,
       "max_function_args": 4,
       "max_function_lines": 26,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "WO-01, другий кінець ланцюга: `bound is None or bound == digest` зараховував артефакт без прив'язки як поточний, а `all([])` робив нуль підтриманих претензій достатнім. Додано читання конверта `provenance`, окремий стан для двох прив'язок, що розійшлись, і предикат has_supported_claims. Зростання часткове компенсоване: `claim_admission_checks` читав журнал ДВІЧІ (два читання одного файла можуть дати різний вміст), тепер один раз, і його складність упала з 14 до нижчої за `_current_json`."
+      "reason": "WO-01, другий кінець ланцюга: `bound is None or bound == digest` зараховував артефакт без прив'язки як поточний, а `all([])` робив нуль підтриманих претензій достатнім. Додано читання конверта `provenance`, окремий стан для двох прив'язок, що розійшлись, і предикат has_supported_claims. Зростання часткове компенсоване: `claim_admission_checks` читав журнал ДВІЧІ (два читання одного файла можуть дати різний вміст), тепер один раз, і його складність упала з 14 до нижчої за `_current_json`. | 2026-09-05: реєстр блокерів тепер записує ДАЙДЖЕСТ ЗМІСТУ свого входу, а допуск його звіряє (`evidence_sha256` / `evidence_inputs_current`). Стеля піднята під ПОВЕДІНКУ, не під прозу: докстрінги скорочено перед підняттям, і залишок — функція `_evidence_digest`, перевірка `_evidence_inputs_current` і три рядки поля в реєстрі. Доведено контрприкладом: до правки main приймав підміну ЗМІСТУ входу за тим самим шляхом при незмінній прив'язці до дерева (P1 = PASS), після — FAIL. Мутація зняла ще одну ваду: зняття умови `or not recorded` не вбивало жодного тесту, бо контроль прибирав ПОЛЕ, а не лишав порожній словник. | АУДИТ СТЕЛІ 2026-09-05 (ACTO-02 §10): контрфактичне питання поставлено — чи вміщується потрібна поведінка в стару стелю чистим рефактором. Два рефактори випробувано. ПРИЙНЯТО: виробник і перевіряльник тепер ділять ОДНЕ визначення відношення (`release_truth.evidence_digest`) — два визначення розійшлися б мовчки, тобто це той самий клас, який ця перевірка закриває рівнем вище; на розмір це не вплинуло. ВІДХИЛЕНО: винесення НЕспорідненого коду (перевірок пакета власника) заради місця — це підгонка метрики, а не вміщення потрібної поведінки. Залишковий приріст — сама поведінка: функція дайджесту, перевірка входів і поле в реєстрі; прозу скорочено ПЕРЕД підняттям. Класифікація: LEGITIMATE_CAPACITY_CHANGE."
     },
     "scripts/current_truth_aliases.py": {
       "lines": 30,
@@ -3757,13 +3757,13 @@
       "reason": "v0.9.4 assurance-kernel hardening; initial exact measurement is the ratchet ceiling"
     },
     "scripts/current_truth_contract.py": {
-      "lines": 79,
+      "lines": 102,
       "max_complexity": 7,
       "max_function_args": 3,
       "max_function_lines": 32,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "v0.9.3: new bounded module; exact initial measurement becomes the ratchet ceiling"
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
     },
     "scripts/deploy_public_web.py": {
       "lines": 253,
@@ -4201,13 +4201,13 @@
       "proof_lines": 0
     },
     "scripts/generate_release_truth.py": {
-      "lines": 55,
+      "lines": 56,
       "max_complexity": 1,
       "max_function_args": 2,
-      "max_function_lines": 19,
+      "max_function_lines": 20,
       "max_nesting": 0,
       "proof_lines": 0,
-      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
     },
     "scripts/generate_status.py": {
       "lines": 122,
@@ -4653,13 +4653,13 @@
       "proof_lines": 0
     },
     "scripts/postgres_gate_process.py": {
-      "lines": 82,
+      "lines": 98,
       "max_complexity": 5,
       "max_function_args": 4,
       "max_function_lines": 19,
       "max_nesting": 1,
-      "proof_lines": 17,
-      "reason": "04.09.2026, доказ гейта губив ПРИЧИНУ власної відмови: хвіст писався як `(stdout + stderr)[-8000:]`, тобто це були останні 8000 символів ТІЄЇ ТРУБИ, що прийшла другою. pytest називав відмову у stdout, alembic заливав stderr журналом міграцій — і у звіті `postgres_security-gate.json` лишався самий журнал міграцій. Гейт казав FAIL, називав перевірку й не міг назвати причину. Тепер бюджет НА ТРУБУ, обидва хвости підписані. Рядки доказу 0→17: негативний контроль показує розходження старої й нової форми на тому самому вході."
+      "proof_lines": 27,
+      "reason": "04.09.2026: самоперевірка стала звіряти ВИРОК, а не сусідню функцію. Виміряно пробою фальсифікованості: `verify_branch_consolidation` не червонів від жодної з десяти отрут у власне рішення (звіряння дайджесту, повнота мутацій, збирання вироку), бо звіряв парсер тексту й кількість alembic-голів; `postgres_gate_process` не звіряв рішення ПРОПУСТИТИ гейт, а пропуск повертає None, не відмову. Після правок: 0/10 → 5/10 і 0/3 → 3/3. Зростання — доказові рядки, і вони під власною стелею."
     },
     "scripts/postgres_role_hardening.py": {
       "lines": 72,
@@ -4678,6 +4678,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "`corpus_state_epoch` у мутабельних таблицях: тригер піднімає епоху на КОЖНІЙ зміні складу доказів, і без права оновлювати її застосунок не міг би зафіксувати, що корпус зрушив між двома читаннями однієї відповіді."
+    },
+    "scripts/probe_selftest_falsifiability.py": {
+      "lines": 368,
+      "max_complexity": 10,
+      "max_function_args": 3,
+      "max_function_lines": 29,
+      "max_nesting": 4,
+      "proof_lines": 89,
+      "reason": "04.09.2026, розширення класів отрути: до перевороту операторів додано ЗСУВ МЕЖІ (`<`↔`<=`) і переворот булевої сталої В ПОЗИЦІЇ РІШЕННЯ. Зсув ловиться лише випадком НА межі, тож переворот його не заміняє. Клас сталих довелось звузити тим самим вечором: спершу він брав `pool_pre_ping=True` і `uri=True` — прапорці бібліотеки, а не вироки, — і через них `rls_context.py` дістав хибний CANNOT_FAIL. Тепер берeться лише стала в `return` і привласненні."
     },
     "scripts/probe_source_content.py": {
       "lines": 367,
@@ -4778,13 +4787,13 @@
       "reason": "registered 2026-08-29 при першому вимірі. Причина існування: 3 з 8 джерел, заблокованих як «URI не резолвиться, документа за ним немає», віддають PDF просто зараз (17.8 МБ, 145.8 МБ, 1.9 МБ), і ще 3 віддають КАРТКУ замість документа. Відмова, яку ніхто не переміряв, стоїть як факт. | 2026-08-30: 260→275. Вимір паралельної сесії показав, що вісь РОЗМІРУ картки й документи не розділяє: 92 захоплені документи 41 609…145 793 253 Б проти 6 карток 41 553…42 459, max(картки) < min(документи) = False. Поріг перейменовано з CARD_CEILING_BYTES на NOT_A_CARD_ABOVE_BYTES — він стеля «завелике, щоб бути карткою» (4.7× над найбільшою карткою), а не розділювач; тримається все на тому, що %PDF- перевіряється РАНІШЕ. Три проби ловлять майбутнє спрощення умови до розміру з обох боків діапазону."
     },
     "scripts/record_ci_run.py": {
-      "lines": 162,
-      "max_complexity": 12,
+      "lines": 227,
+      "max_complexity": 13,
       "max_function_args": 5,
-      "max_function_lines": 51,
-      "max_nesting": 2,
-      "proof_lines": 66,
-      "reason": "новий вимірювач 03.09.2026: дзеркало лану доводить структуру, а не запуск. Питає хостований GitLab про конвеєр ДЛЯ ТОЧНОГО коміта; відсутність конвеєра — NOT_MEASURED, не FAIL. 6 негативних контролів, серед них «порожній перелік вимог не проходить», бо all([]) істинне. Початковий точний вимір і є стелею."
+      "max_function_lines": 55,
+      "max_nesting": 3,
+      "proof_lines": 115,
+      "reason": "04.09.2026: вирок про прогін закриває NOT_EXECUTED. `required_jobs` живе в конверті, і ніхто не звіряв його з самим `.gitlab-ci.yml`. Виміряно: `gcp:production-contract` біжить БЕЗУМОВНО і ганяє три верифікатори, а серед обов'язкових його не було. Поки він падає, його ловить `failed`; але джоб, що НЕ ЗАПУСТИВСЯ (skipped/created), не є ні впалим, ні відсутнім серед обов'язкових — і прогін лишався б PASS із невиконаною перевіркою. Три факти про один набір джобів (required/unconditional/excused) зведено в `JobCatalogue`, бо трьома параметрами вони тягли форму `adjudicate` за стелю. +4 негативні контролі, з них один валиться при знятті умови."
     },
     "scripts/recut_span_boundaries.py": {
       "lines": 203,
@@ -5582,13 +5591,13 @@
       "reason": "Новий канонічний бібліографічний гейт, виміряний 2026-09-02: перевіряє 59 джерел, 18 доменів, DOI/URL/метадані, епістемічні межі та точність двох детермінованих рендерів; вісім негативних контролів доводять fail-closed поведінку."
     },
     "scripts/verify_branch_consolidation.py": {
-      "lines": 398,
-      "max_complexity": 15,
+      "lines": 423,
+      "max_complexity": 14,
       "max_function_args": 6,
       "max_function_lines": 58,
-      "max_nesting": 3,
-      "proof_lines": 17,
-      "reason": "Вирок названий ОБСЯГОМ: `BRANCH_CONSOLIDATION_ACCEPTED` замість голого `ACCEPTED`, плюс поля `scope` і `production_authority: false`. 03.09.2026: +1 рядок для кореня відновленого FULL_SSOT без `.git`; інакше selftest шукав config під `scripts/` і package restoration падав."
+      "max_nesting": 2,
+      "proof_lines": 144,
+      "reason": "04.09.2026, друга правка: самоперевірка піднялась 5/10 → 9/12 отрут. Додано межу (звіт, знятий у ТУ САМУ секунду, що й HEAD, не старший), випадок «убито менше, ніж мутантів» і три випадки на гейт свіжості. Нечисту дію винесено в `_run_freshness_gate`, а результат приходить ПАРАМЕТРОМ: доти переворот `mutation is None` виживав не тому, що байдужий, а тому, що самоперевірка не могла дійти сюди, не запустивши підпроцес. Три отрути, що лишились, — усі форми `git(...) or fallback`: їх фальсифікує лише справжнє git-дерево, і це роблять `test_branch_integration` та `test_canonical_state`."
     },
     "scripts/verify_branch_integration.py": {
       "lines": 236,
@@ -5618,22 +5627,22 @@
       "reason": "новий гейт 03.09.2026: дзеркало лану читає `.gitlab-ci.yml` як YAML і вимагає для кожної команди `validate`/`check` тієї самої команди в CI; 15 негативних контролів; початковий точний вимір і є стелею"
     },
     "scripts/verify_current_truth.py": {
-      "lines": 59,
+      "lines": 64,
       "max_complexity": 4,
       "max_function_args": 1,
-      "max_function_lines": 19,
+      "max_function_lines": 20,
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "v0.8.0 stale-current fail-closed verifier"
     },
     "scripts/verify_dependency_locks.py": {
-      "lines": 284,
+      "lines": 285,
       "max_complexity": 13,
       "max_function_args": 4,
-      "max_function_lines": 55,
+      "max_function_lines": 56,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "v0.5.0: dependency closure now source/release-bound; exact expanded ceiling"
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
     },
     "scripts/verify_evidence_stores.py": {
       "lines": 366,
@@ -5654,13 +5663,13 @@
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
     },
     "scripts/verify_gate_closure.py": {
-      "lines": 634,
+      "lines": 706,
       "max_complexity": 17,
       "max_function_args": 5,
       "max_function_lines": 77,
       "max_nesting": 4,
-      "proof_lines": 129,
-      "reason": "03.09.2026: тотожність команди прибирає перенаправлення оболонки та `$(if …)`/`$(or …)` з рахунком дужок (дзеркало CI показало `model_check_assurance.py > var/…` і `verify_current_truth.py ) ,--out` як «різні» команди через оформлення); публічний `invocations()` для дзеркала CI; 10 пар негативного контролю тотожності"
+      "proof_lines": 182,
+      "reason": "04.09.2026, ЗЛИТТЯ: модуль змінили дві лінії закриття незалежно — виявлення повз реєстр (all-six) і сторож примарної цілі (`phantom_target`). Стелю не можна взяти максимумом сторін: `max` — хибне правило злиття ратчета, бо пропускає зростання, якого не робила жодна сторона. Значення ПЕРЕВИМІРЯНО на злитому дереві."
     },
     "scripts/verify_gcp_production.py": {
       "lines": 37,
@@ -5672,13 +5681,13 @@
       "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
     },
     "scripts/verify_gcp_slo.py": {
-      "lines": 33,
-      "max_complexity": 7,
-      "max_function_args": 0,
-      "max_function_lines": 19,
+      "lines": 68,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 16,
       "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "v0.8.2 production request-SLI decomposition; exact measured value becomes the ratchet ceiling"
+      "proof_lines": 21,
+      "reason": "04.09.2026: скрипт став обов'язковим у конвеєрі (`gcp:production-contract` внесено до `required_jobs`), а вирок будувався як `all(item.passed for item in predicates)` — і `all([])` істинне, тож порожній перелік предикатів давав PASS із `total: 0`. Сьогодні `evaluate()` повертає літеральний список і порожнім не буває, але вирок не сміє триматися на цьому: `evaluate_request_sli()` вливається в той самий список. Вирок винесено в чисту `judge()`, порожній перелік тепер FAIL із названою причиною. 21 доказовий рядок — шість негативних контролів; доти в скрипта не було ні самоперевірки, ні жодного тесту, що його імпортує."
     },
     "scripts/verify_handoff_contract.py": {
       "lines": 275,
@@ -5804,13 +5813,13 @@
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling | 2026-08-29: +11 рядків, та сама пара виправлень; негативний контроль у test_package_mode_integrity.py доводить, що підкладений файл і далі НАЗИВАЄТЬСЯ, а не лише рахується."
     },
     "scripts/verify_standards_control_map.py": {
-      "lines": 186,
+      "lines": 187,
       "max_complexity": 7,
       "max_function_args": 3,
-      "max_function_lines": 36,
+      "max_function_lines": 37,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "v0.5.0: standards evidence now source/release-bound; exact expanded ceiling"
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
     },
     "scripts/verify_verdict_ledger.py": {
       "lines": 187,
@@ -10884,6 +10893,451 @@
         "lines": 276,
         "max_function_lines": 127,
         "proof_lines": 48
+      }
+    },
+    {
+      "from": {
+        "lines": 634,
+        "proof_lines": 129
+      },
+      "on": "2026-09-04",
+      "path": "scripts/verify_gate_closure.py",
+      "reason": "поведінкова класифікація гейтів + 4 негативні контролі. Точні виміряні значення явно зміненого модуля.",
+      "to": {
+        "lines": 661,
+        "proof_lines": 164
+      }
+    },
+    {
+      "from": {
+        "lines": 108
+      },
+      "on": "2026-09-04",
+      "path": "apps/api/src/korpus/application/release_truth.py",
+      "reason": "04.09.2026: додано третій стан INTERNAL_STALE_EVIDENCE. Доти «внутрішній блокер» означало ЛИШЕ «бракує файла», тож п'ять машинних блокерів (єдина прогалина яких — застаріла прив'язка доказу) читались як зовнішні, а `internal_executable_unresolved` показував нуль. Число гейтує реліз через current-truth. Точне виміряне значення явно зміненого модуля.",
+      "to": {
+        "lines": 148
+      }
+    },
+    {
+      "from": {
+        "lines": 230
+      },
+      "on": "2026-09-04",
+      "path": "scripts/check_dormant_subsystems.py",
+      "reason": "04.09.2026: додано другу поверхню досяжності (юніти рантайму + скрипти-гейти) і руку ВИЯВЛЕННЯ повз реєстр. Доти гейт звіряв власне оголошення: 2 підсистеми, 9 модулів, rate 1.0 — при 31 неоголошеному сплячому модулі. Плюс 10 нових негативних контролів. Точне виміряне значення явно зміненого модуля.",
+      "to": {
+        "lines": 298
+      }
+    },
+    {
+      "from": {
+        "lines": 132
+      },
+      "on": "2026-09-04",
+      "path": "scripts/check_environment_drift.py",
+      "reason": "04.09.2026: порожній аргумент дав НАЗВАНУ відмову замість IsADirectoryError. Трейсбек і відмова — різні речі: код повернення від непійманого винятку не відрізняє «знайдено дрейф» від «не змогла запуститись». Точне виміряне значення явно зміненого модуля.",
+      "to": {
+        "lines": 161
+      }
+    },
+    {
+      "from": {
+        "lines": 91
+      },
+      "on": "2026-09-04",
+      "path": "scripts/current_truth_admission.py",
+      "reason": "04.09.2026: модуль явно змінено закриттям верифікаторів (див. гілки closure/*). Точне виміряне значення; зростання незміненого модуля лишається забороненим.",
+      "to": {
+        "lines": 123
+      }
+    },
+    {
+      "from": {
+        "lines": 59
+      },
+      "on": "2026-09-04",
+      "path": "scripts/verify_current_truth.py",
+      "reason": "04.09.2026: модуль явно змінено закриттям верифікаторів (див. гілки closure/*). Точне виміряне значення; зростання незміненого модуля лишається забороненим.",
+      "to": {
+        "lines": 64
+      }
+    },
+    {
+      "from": {
+        "lines": 148
+      },
+      "on": "2026-09-04",
+      "path": "apps/api/src/korpus/application/release_truth.py",
+      "reason": "04.09.2026: модуль ЯВНО змінено закриттям верифікаторів (гілки closure/*). Точне виміряне значення. Доктрина бюджету дозволяє перезапис саме для явно змінених модулів; зростання незміненого лишається забороненим.",
+      "to": {
+        "lines": 151
+      }
+    },
+    {
+      "from": {
+        "lines": 298
+      },
+      "on": "2026-09-04",
+      "path": "scripts/check_dormant_subsystems.py",
+      "reason": "04.09.2026: модуль ЯВНО змінено закриттям верифікаторів (гілки closure/*). Точне виміряне значення. Доктрина бюджету дозволяє перезапис саме для явно змінених модулів; зростання незміненого лишається забороненим.",
+      "to": {
+        "lines": 316
+      }
+    },
+    {
+      "from": {
+        "lines": 161
+      },
+      "on": "2026-09-04",
+      "path": "scripts/check_environment_drift.py",
+      "reason": "04.09.2026: модуль ЯВНО змінено закриттям верифікаторів (гілки closure/*). Точне виміряне значення. Доктрина бюджету дозволяє перезапис саме для явно змінених модулів; зростання незміненого лишається забороненим.",
+      "to": {
+        "lines": 169
+      }
+    },
+    {
+      "from": {
+        "max_function_args": 3
+      },
+      "on": "2026-09-04",
+      "path": "apps/api/src/korpus/application/release_truth.py",
+      "reason": "04.09.2026: модуль ЯВНО змінено закриттям верифікаторів (гілки closure/*). Точне виміряне значення. Доктрина бюджету дозволяє перезапис саме для явно змінених модулів; зростання незміненого лишається забороненим. Функція `_blocker_item`.",
+      "to": {
+        "max_function_args": 4
+      }
+    },
+    {
+      "from": {
+        "max_function_args": 4
+      },
+      "on": "2026-09-04",
+      "path": "scripts/check_dormant_subsystems.py",
+      "reason": "04.09.2026: модуль ЯВНО змінено закриттям верифікаторів (гілки closure/*). Точне виміряне значення. Доктрина бюджету дозволяє перезапис саме для явно змінених модулів; зростання незміненого лишається забороненим. Функція `judge`.",
+      "to": {
+        "max_function_args": 5
+      }
+    },
+    {
+      "from": {
+        "max_complexity": 8
+      },
+      "on": "2026-09-04",
+      "path": "scripts/check_environment_drift.py",
+      "reason": "04.09.2026: модуль ЯВНО змінено закриттям верифікаторів (гілки closure/*). Точне виміряне значення. Доктрина бюджету дозволяє перезапис саме для явно змінених модулів; зростання незміненого лишається забороненим. Функція `main`.",
+      "to": {
+        "max_complexity": 10
+      }
+    },
+    {
+      "from": {
+        "max_function_lines": 69
+      },
+      "on": "2026-09-04",
+      "path": "scripts/check_environment_drift.py",
+      "reason": "04.09.2026: модуль ЯВНО змінено закриттям верифікаторів (гілки closure/*). Точне виміряне значення. Доктрина бюджету дозволяє перезапис саме для явно змінених модулів; зростання незміненого лишається забороненим. Функція `main`.",
+      "to": {
+        "max_function_lines": 80
+      }
+    },
+    {
+      "from": {
+        "max_nesting": 2
+      },
+      "on": "2026-09-04",
+      "path": "scripts/check_environment_drift.py",
+      "reason": "04.09.2026: модуль ЯВНО змінено закриттям верифікаторів (гілки closure/*). Точне виміряне значення. Доктрина бюджету дозволяє перезапис саме для явно змінених модулів; зростання незміненого лишається забороненим. Функція `main`.",
+      "to": {
+        "max_nesting": 3
+      }
+    },
+    {
+      "from": {
+        "max_function_lines": 19
+      },
+      "on": "2026-09-04",
+      "path": "scripts/verify_current_truth.py",
+      "reason": "04.09.2026: модуль ЯВНО змінено закриттям верифікаторів (гілки closure/*). Точне виміряне значення. Доктрина бюджету дозволяє перезапис саме для явно змінених модулів; зростання незміненого лишається забороненим. Функція `evaluate`.",
+      "to": {
+        "max_function_lines": 20
+      }
+    },
+    {
+      "from": {
+        "proof_lines": 33
+      },
+      "on": "2026-09-04",
+      "path": "scripts/check_dormant_subsystems.py",
+      "reason": "04.09.2026: десять нових негативних контролів руки виявлення повз реєстр — включно з тим, що доводить ВІДСУТНІСТЬ хибних спрацювань, і тим, що невиміряне дає null, а не порожній перелік. Докази звільнені від стелі модуля, але не від власної; точне виміряне значення явно зміненого модуля.",
+      "to": {
+        "proof_lines": 65
+      }
+    },
+    {
+      "from": {
+        "lines": 151
+      },
+      "on": "2026-09-04",
+      "path": "apps/api/src/korpus/application/release_truth.py",
+      "reason": "04.09.2026: модуль ЯВНО змінено закриттям верифікаторів (гілки closure/*). Точне виміряне значення.",
+      "to": {
+        "lines": 152
+      }
+    },
+    {
+      "from": {
+        "lines": 634,
+        "proof_lines": 129
+      },
+      "on": "2026-09-04",
+      "path": "scripts/verify_gate_closure.py",
+      "reason": "04.09.2026: примарна ЦІЛЬ стала перевіркою. Ім'я в `.PHONY` без правила виходить із нулем, не виконавши нічого, — сигнал, який не може почервоніти. Реєстр закриття не бачив таких імен ЗА ПОБУДОВОЮ: розбір Makefile пропускає рядок `.PHONY`, де імена стоять у передумовах, тож примара не потрапляла навіть у перелік оголошених. Виміряно на `quality-gate`: у `.PHONY` від першого коміту, рецепта не мав жодного разу за всю історію, жодного споживача. +3 випадки негативного контролю.",
+      "to": {
+        "lines": 679,
+        "proof_lines": 147
+      }
+    },
+    {
+      "from": {
+        "lines": 661,
+        "proof_lines": 164
+      },
+      "on": "2026-09-04",
+      "path": "scripts/verify_gate_closure.py",
+      "reason": "04.09.2026, ЗЛИТТЯ: модуль змінили дві лінії закриття незалежно — виявлення повз реєстр (all-six) і сторож примарної цілі (`phantom_target`). Стелю не можна взяти максимумом сторін: `max` — хибне правило злиття ратчета, бо пропускає зростання, якого не робила жодна сторона. Значення ПЕРЕВИМІРЯНО на злитому дереві.",
+      "to": {
+        "lines": 706,
+        "proof_lines": 182
+      }
+    },
+    {
+      "from": {
+        "proof_lines": 17
+      },
+      "on": "2026-09-04",
+      "path": "scripts/verify_branch_consolidation.py",
+      "reason": "04.09.2026: самоперевірка стала звіряти ВИРОК, а не сусідню функцію. Виміряно пробою фальсифікованості: `verify_branch_consolidation` не червонів від жодної з десяти отрут у власне рішення (звіряння дайджесту, повнота мутацій, збирання вироку), бо звіряв парсер тексту й кількість alembic-голів; `postgres_gate_process` не звіряв рішення ПРОПУСТИТИ гейт, а пропуск повертає None, не відмову. Після правок: 0/10 → 5/10 і 0/3 → 3/3. Зростання — доказові рядки, і вони під власною стелею.",
+      "to": {
+        "proof_lines": 99
+      }
+    },
+    {
+      "from": {
+        "lines": 82,
+        "proof_lines": 17
+      },
+      "on": "2026-09-04",
+      "path": "scripts/postgres_gate_process.py",
+      "reason": "04.09.2026: самоперевірка стала звіряти ВИРОК, а не сусідню функцію. Виміряно пробою фальсифікованості: `verify_branch_consolidation` не червонів від жодної з десяти отрут у власне рішення (звіряння дайджесту, повнота мутацій, збирання вироку), бо звіряв парсер тексту й кількість alembic-голів; `postgres_gate_process` не звіряв рішення ПРОПУСТИТИ гейт, а пропуск повертає None, не відмову. Після правок: 0/10 → 5/10 і 0/3 → 3/3. Зростання — доказові рядки, і вони під власною стелею.",
+      "to": {
+        "lines": 98,
+        "proof_lines": 27
+      }
+    },
+    {
+      "from": {
+        "lines": 305,
+        "max_complexity": 9,
+        "max_function_lines": 28,
+        "max_nesting": 3
+      },
+      "on": "2026-09-04",
+      "path": "scripts/probe_selftest_falsifiability.py",
+      "reason": "04.09.2026, розширення класів отрути: до перевороту операторів додано ЗСУВ МЕЖІ (`<`↔`<=`) і переворот булевої сталої В ПОЗИЦІЇ РІШЕННЯ. Зсув ловиться лише випадком НА межі, тож переворот його не заміняє. Клас сталих довелось звузити тим самим вечором: спершу він брав `pool_pre_ping=True` і `uri=True` — прапорці бібліотеки, а не вироки, — і через них `rls_context.py` дістав хибний CANNOT_FAIL. Тепер берeться лише стала в `return` і привласненні.",
+      "to": {
+        "lines": 368,
+        "max_complexity": 10,
+        "max_function_lines": 29,
+        "max_nesting": 4
+      }
+    },
+    {
+      "from": {
+        "lines": 162,
+        "max_complexity": 12,
+        "max_function_args": 5,
+        "max_function_lines": 51,
+        "max_nesting": 2,
+        "proof_lines": 66
+      },
+      "on": "2026-09-04",
+      "path": "scripts/record_ci_run.py",
+      "reason": "04.09.2026: вирок про прогін закриває NOT_EXECUTED. `required_jobs` живе в конверті, і ніхто не звіряв його з самим `.gitlab-ci.yml`. Виміряно: `gcp:production-contract` біжить БЕЗУМОВНО і ганяє три верифікатори, а серед обов'язкових його не було. Поки він падає, його ловить `failed`; але джоб, що НЕ ЗАПУСТИВСЯ (skipped/created), не є ні впалим, ні відсутнім серед обов'язкових — і прогін лишався б PASS із невиконаною перевіркою. Три факти про один набір джобів (required/unconditional/excused) зведено в `JobCatalogue`, бо трьома параметрами вони тягли форму `adjudicate` за стелю. +4 негативні контролі, з них один валиться при знятті умови.",
+      "to": {
+        "lines": 227,
+        "max_complexity": 13,
+        "max_function_args": 5,
+        "max_function_lines": 55,
+        "max_nesting": 3,
+        "proof_lines": 115
+      }
+    },
+    {
+      "from": {
+        "lines": 398,
+        "max_complexity": 15,
+        "max_function_args": 6,
+        "max_function_lines": 58,
+        "max_nesting": 3,
+        "proof_lines": 99
+      },
+      "on": "2026-09-04",
+      "path": "scripts/verify_branch_consolidation.py",
+      "reason": "04.09.2026, друга правка: самоперевірка піднялась 5/10 → 9/12 отрут. Додано межу (звіт, знятий у ТУ САМУ секунду, що й HEAD, не старший), випадок «убито менше, ніж мутантів» і три випадки на гейт свіжості. Нечисту дію винесено в `_run_freshness_gate`, а результат приходить ПАРАМЕТРОМ: доти переворот `mutation is None` виживав не тому, що байдужий, а тому, що самоперевірка не могла дійти сюди, не запустивши підпроцес. Три отрути, що лишились, — усі форми `git(...) or fallback`: їх фальсифікує лише справжнє git-дерево, і це роблять `test_branch_integration` та `test_canonical_state`.",
+      "to": {
+        "lines": 423,
+        "max_complexity": 14,
+        "max_function_args": 6,
+        "max_function_lines": 58,
+        "max_nesting": 2,
+        "proof_lines": 144
+      }
+    },
+    {
+      "from": {
+        "lines": 33,
+        "max_complexity": 7,
+        "max_function_args": 0,
+        "max_function_lines": 19,
+        "max_nesting": 1,
+        "proof_lines": 0
+      },
+      "on": "2026-09-04",
+      "path": "scripts/verify_gcp_slo.py",
+      "reason": "04.09.2026: скрипт став обов'язковим у конвеєрі (`gcp:production-contract` внесено до `required_jobs`), а вирок будувався як `all(item.passed for item in predicates)` — і `all([])` істинне, тож порожній перелік предикатів давав PASS із `total: 0`. Сьогодні `evaluate()` повертає літеральний список і порожнім не буває, але вирок не сміє триматися на цьому: `evaluate_request_sli()` вливається в той самий список. Вирок винесено в чисту `judge()`, порожній перелік тепер FAIL із названою причиною. 21 доказовий рядок — шість негативних контролів; доти в скрипта не було ні самоперевірки, ні жодного тесту, що його імпортує.",
+      "to": {
+        "lines": 68,
+        "max_complexity": 6,
+        "max_function_args": 3,
+        "max_function_lines": 16,
+        "max_nesting": 1,
+        "proof_lines": 21
+      }
+    },
+    {
+      "from": {
+        "lines": 139,
+        "max_complexity": 12,
+        "max_function_args": 4,
+        "max_function_lines": 60,
+        "max_nesting": 1,
+        "proof_lines": 0
+      },
+      "on": "2026-09-05",
+      "path": "apps/api/src/korpus/application/release_claims.py",
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN.",
+      "to": {
+        "lines": 140,
+        "max_complexity": 12,
+        "max_function_args": 4,
+        "max_function_lines": 61,
+        "max_nesting": 1,
+        "proof_lines": 0
+      }
+    },
+    {
+      "from": {
+        "lines": 152,
+        "max_complexity": 9,
+        "max_function_args": 4,
+        "max_function_lines": 49,
+        "max_nesting": 1,
+        "proof_lines": 0
+      },
+      "on": "2026-09-05",
+      "path": "apps/api/src/korpus/application/release_truth.py",
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN.",
+      "to": {
+        "lines": 154,
+        "max_complexity": 6,
+        "max_function_args": 4,
+        "max_function_lines": 34,
+        "max_nesting": 1,
+        "proof_lines": 0
+      }
+    },
+    {
+      "from": {
+        "lines": 79,
+        "max_complexity": 7,
+        "max_function_args": 3,
+        "max_function_lines": 32,
+        "max_nesting": 2,
+        "proof_lines": 0
+      },
+      "on": "2026-09-05",
+      "path": "scripts/current_truth_contract.py",
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN.",
+      "to": {
+        "lines": 102,
+        "max_complexity": 7,
+        "max_function_args": 3,
+        "max_function_lines": 32,
+        "max_nesting": 2,
+        "proof_lines": 0
+      }
+    },
+    {
+      "from": {
+        "lines": 55,
+        "max_complexity": 1,
+        "max_function_args": 2,
+        "max_function_lines": 19,
+        "max_nesting": 0,
+        "proof_lines": 0
+      },
+      "on": "2026-09-05",
+      "path": "scripts/generate_release_truth.py",
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN.",
+      "to": {
+        "lines": 56,
+        "max_complexity": 1,
+        "max_function_args": 2,
+        "max_function_lines": 20,
+        "max_nesting": 0,
+        "proof_lines": 0
+      }
+    },
+    {
+      "from": {
+        "lines": 284,
+        "max_complexity": 13,
+        "max_function_args": 4,
+        "max_function_lines": 55,
+        "max_nesting": 2,
+        "proof_lines": 0
+      },
+      "on": "2026-09-05",
+      "path": "scripts/verify_dependency_locks.py",
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN.",
+      "to": {
+        "lines": 285,
+        "max_complexity": 13,
+        "max_function_args": 4,
+        "max_function_lines": 56,
+        "max_nesting": 2,
+        "proof_lines": 0
+      }
+    },
+    {
+      "from": {
+        "lines": 186,
+        "max_complexity": 7,
+        "max_function_args": 3,
+        "max_function_lines": 36,
+        "max_nesting": 2,
+        "proof_lines": 0
+      },
+      "on": "2026-09-05",
+      "path": "scripts/verify_standards_control_map.py",
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN.",
+      "to": {
+        "lines": 187,
+        "max_complexity": 7,
+        "max_function_args": 3,
+        "max_function_lines": 37,
+        "max_nesting": 2,
+        "proof_lines": 0
       }
     }
   ],

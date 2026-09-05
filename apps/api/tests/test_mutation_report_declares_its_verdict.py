@@ -86,3 +86,66 @@ def test_the_shipped_catalogue_declares_a_verdict() -> None:
     report = json.loads((ROOT / cited.pop()).read_text(encoding="utf-8"))
     assert "status" in report, "артефакт, який цитує претензія, не оголошує вироку"
     assert report["status"] in {"PASS", "FAIL"}
+
+
+def _probe_exit_code(statuses: dict[str, str]) -> int:
+    """Прогнати РЕАЛЬНИЙ `_run_probe` із підставленими результатами мутантів.
+
+    Пишемо лише в пам'ять: звіт і друк заглушені, бо предмет тут — КОД ПОВЕРНЕННЯ,
+    а не артефакт.
+    """
+    import run_mutation_tests as runner
+
+    chosen = [runner.MUTANTS[index].id for index in range(len(statuses))]
+    plan = dict(zip(chosen, statuses.values(), strict=True))
+
+    def selected(mutants: object, jobs: int) -> list[dict[str, object]]:
+        return [
+            {
+                "id": mutant.id,
+                "file": mutant.file,
+                "status": plan[mutant.id],
+                "target_occurrences": 0 if plan[mutant.id] == "INVALID" else 1,
+                "tests": list(mutant.tests),
+            }
+            for mutant in mutants  # type: ignore[attr-defined]
+        ]
+
+    original = (runner.run_selected, runner._write_report, runner._print_summary)
+    runner.run_selected = selected  # type: ignore[assignment]
+    runner._write_report = lambda *a, **k: None  # type: ignore[assignment]
+    runner._print_summary = lambda report: None  # type: ignore[assignment]
+    try:
+        return runner._run_probe(",".join(chosen), 1)
+    finally:
+        runner.run_selected, runner._write_report, runner._print_summary = original
+
+
+def test_the_probe_exit_code_is_the_declared_verdict_not_a_second_opinion() -> None:
+    """ВИМІРЯНО 04.09.2026. Звіт казав FAIL, оболонка чула 0.
+
+    `mutation_score` ділить убитих на ЗАСТОСОВНИХ. Мутант, чию ціль забрав рефакторинг,
+    виходить із знаменника РАЗОМ із чисельником, тож {убитий, ціль_втрачена} дає рівно
+    1.0 — і колишній код повернення проби виводив «пройшло» саме з цього числа. Тобто
+    інструмент, яким перевіряють «чи не роззброїв мій рефакторинг мутанта», мовчав
+    рівно в тому випадку, заради якого його й запускають: M550, M551 і M552 втратили
+    цілі 04.09.2026 після винесення функцій у `check_dormant_subsystems`.
+
+    Твердження тут не про число, а про ТОТОЖНІСТЬ: код повернення мусить бути тим
+    самим вироком, який звіт оголошує, а не другою думкою про ті самі дані.
+    """
+    assert _probe_exit_code({"a": "KILLED", "b": "INVALID"}) == 1
+
+
+def test_a_probe_of_killed_mutants_exits_zero() -> None:
+    """Плече, чиє завдання — пройти: без нього попереднє твердження тримала б константа."""
+    assert _probe_exit_code({"a": "KILLED", "b": "KILLED"}) == 0
+
+
+def test_a_surviving_mutant_fails_the_probe() -> None:
+    assert _probe_exit_code({"a": "KILLED", "b": "SURVIVED"}) == 1
+
+
+def test_an_errored_mutant_fails_the_probe() -> None:
+    """ERROR так само виходить зі знаменника — той самий механізм, інша назва."""
+    assert _probe_exit_code({"a": "KILLED", "b": "ERROR"}) == 1

@@ -1,34 +1,41 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-04T13:20:02.551842+00:00",
+  "generated_at": "2026-09-04T23:30:13.774556+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "8e804b635c2136cc0d6d202da79758a0bfdee9fd34124dfe947c9cd2afe98016",
+  "source_tree_sha256": "c785baa8068142b045a3b622e227bb0e4366b8536b1cf9ba9a9053decbc59614",
+  "digest_scope": "evidence_paths",
   "items": [
     {
       "id": "external_independent_redteam",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
+      "machine_closable": false,
+      "failed_external_checks": [],
       "required_proof_class": "INTERNAL_ADVERSARIAL_CAMPAIGN"
     },
     {
       "id": "live_vulnerability_scanners",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
+      "machine_closable": false,
+      "failed_external_checks": [],
       "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM"
     },
     {
       "id": "live_postgres_rls",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
+      "machine_closable": false,
+      "failed_external_checks": [],
       "required_proof_class": "REAL_POSTGRESQL"
     },
     {
@@ -38,6 +45,20 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
+      "machine_closable": false,
+      "failed_external_checks": [
+        "attack_families",
+        "evidence_schema",
+        "null_control_ledger_structured",
+        "null_controls",
+        "observation_ledger_structured",
+        "pass_rate",
+        "preregistered",
+        "release_bound",
+        "required_attack_families_covered",
+        "source_bound",
+        "tevv_admissible"
+      ],
       "required_proof_class": "REAL_DOMAIN_CORPUS"
     },
     {
@@ -47,6 +68,10 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
+      "machine_closable": false,
+      "failed_external_checks": [
+        "assessor_structured"
+      ],
       "required_proof_class": "INTERNAL_STRUCTURALLY_SEPARATED"
     },
     {
@@ -56,33 +81,43 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
+      "machine_closable": false,
+      "failed_external_checks": [
+        "environment_class"
+      ],
       "required_proof_class": "MATCHES_FROZEN_TOPOLOGY"
     },
     {
       "id": "production_like_load",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
+      "machine_closable": false,
+      "failed_external_checks": [],
       "required_proof_class": "PRODUCTION_LIKE_LOAD"
     },
     {
       "id": "trusted_load_attestation",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
+      "machine_closable": false,
+      "failed_external_checks": [],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
     {
       "id": "trusted_recovery_attestation",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
+      "machine_closable": false,
+      "failed_external_checks": [],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
     {
@@ -92,6 +127,12 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
+      "machine_closable": false,
+      "failed_external_checks": [
+        "builder_provenance_verified",
+        "gate_release_bound",
+        "gate_source_bound"
+      ],
       "required_proof_class": "HOSTED_CI_PROVENANCE_SOURCE_BOUND"
     },
     {
@@ -101,6 +142,14 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
+      "machine_closable": false,
+      "failed_external_checks": [
+        "gate_release_bound",
+        "gate_source_bound",
+        "release_attestation_verified",
+        "release_manifest_bound",
+        "release_trusted_signer"
+      ],
       "required_proof_class": "OWNER_SIGNED_AT_APPROVAL"
     },
     {
@@ -110,6 +159,11 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
+      "machine_closable": false,
+      "failed_external_checks": [
+        "metadata:profile",
+        "production_python_exact"
+      ],
       "required_proof_class": "EXACT_LOCKED_ENVIRONMENT"
     },
     {
@@ -119,6 +173,21 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
+      "machine_closable": false,
+      "failed_external_checks": [
+        "attestation_verified",
+        "audit_trace_nonempty",
+        "binding_valid",
+        "evidence_schema",
+        "gate_release_bound",
+        "gate_source_bound",
+        "hosted_evidence",
+        "human_judgments",
+        "metadata:environment_class",
+        "source_bound",
+        "training_lineage",
+        "trusted_signer"
+      ],
       "required_proof_class": "HOSTED_HUMAN_EXACT_COHORT_ATTESTED"
     },
     {
@@ -128,14 +197,30 @@
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
+      "machine_closable": false,
+      "failed_external_checks": [
+        "authority_pass",
+        "exact_cloud_run_revision",
+        "gate_release_bound",
+        "gate_source_bound",
+        "human_judgment_admissible",
+        "metadata:environment_class",
+        "minimum_samples",
+        "release_bound",
+        "server_error_rate",
+        "source_bound"
+      ],
       "required_proof_class": "EXACT_CLOUD_RUN_REVISION_CANARY_ATTESTED"
     }
   ],
   "counts": {
-    "EXTERNAL_REQUIRED": 14
+    "CLOSED_ANCHORED": 6,
+    "EXTERNAL_REQUIRED": 8
   },
   "internal_executable_unresolved": 0,
-  "production_external_or_runtime_unresolved": 14,
+  "internal_missing_artifact": 0,
+  "internal_stale_evidence": 0,
+  "production_external_or_runtime_unresolved": 8,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true
 }
