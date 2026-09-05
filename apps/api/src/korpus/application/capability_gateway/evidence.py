@@ -92,8 +92,12 @@ def validate_evidence(
     evaluated_at: datetime,
 ) -> None:
     profile = spec.evidence.profile
-    if profile is EvidenceProfile.NONE and evidence is None:
-        return
+    if profile is EvidenceProfile.NONE:
+        if evidence is None:
+            return
+        # Evidence admission is closed-world. An adapter/provider cannot add a provenance
+        # class that the server-owned capability contract explicitly did not declare.
+        raise CapabilityContractError("evidence profile NONE forbids an evidence envelope")
     if evidence is None:
         raise CapabilityEvidenceMissing("required capability evidence is missing")
     if evidence.status is not EvidenceStatus.VALID:
