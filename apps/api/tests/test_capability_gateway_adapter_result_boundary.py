@@ -4,13 +4,21 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from uuid import UUID
 
-from korpus.application.capability_gateway.adapters import AdapterRegistry
+from korpus.application.capability_gateway.adapters import AdapterExecutionResult, AdapterRegistry
 from korpus.application.capability_gateway.audit import InvocationOutcome
+from korpus.application.capability_gateway.contracts import payload_digest
 from korpus.application.capability_gateway.effects import (
     EffectGuard,
     EffectRecord,
     EffectReservation,
     EffectState,
+)
+from korpus.application.capability_gateway.evidence import (
+    EvidenceBinding,
+    EvidenceEnvelope,
+    EvidenceProvenance,
+    EvidenceStatus,
+    ProvenanceKind,
 )
 from korpus.application.capability_gateway.execution import CapabilityExecutor
 from korpus.application.capability_gateway.policy import CapabilityPolicyDecision
@@ -60,6 +68,34 @@ class _InvalidResultAdapter:
         del kwargs
         self.calls += 1
         return {"provider": "returned the wrong runtime type"}
+
+
+class _UndeclaredEvidenceAdapter:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def execute(self, **kwargs: object) -> AdapterExecutionResult:
+        self.calls += 1
+        spec = kwargs["spec"]
+        context = kwargs["context"]
+        assert isinstance(spec, CapabilitySpec)
+        assert isinstance(context, InvocationContext)
+        output = {"value": "ok"}
+        evidence = EvidenceEnvelope(
+            schema_version="korpus.evidence-envelope.v1",
+            status=EvidenceStatus.VALID,
+            binding=EvidenceBinding(
+                invocation_id=context.invocation_id,
+                capability_id=spec.capability_id,
+                capability_version=spec.version,
+                adapter_id=spec.adapter.adapter_id,
+                adapter_version=spec.adapter.adapter_version,
+                output_digest=payload_digest(output),
+            ),
+            provenance=EvidenceProvenance(kind=ProvenanceKind.INTERNAL),
+            observed_at=datetime(2026, 9, 5, 6, 45, tzinfo=UTC),
+        )
+        return AdapterExecutionResult(output=output, evidence=evidence)
 
 
 class _Effects:
@@ -173,7 +209,7 @@ def _record() -> EffectRecord:
     )
 
 
-def _executor(adapter: _InvalidResultAdapter, effects: _Effects, audit: _Audit) -> CapabilityExecutor:
+def _executor(adapter: object, effects: _Effects, audit: _Audit) -> CapabilityExecutor:
     adapters = AdapterRegistry()
     adapters.register("boundary.invalid-result", "1.0.0", adapter)  # type: ignore[arg-type]
     return CapabilityExecutor(
@@ -225,4 +261,24 @@ def test_invalid_effect_adapter_result_becomes_outcome_unknown_after_dispatch() 
     assert result.output is None
     assert result.evidence is None
     assert effects.targets == [EffectState.OUTCOME_UNKNOWN]
+    assert audit.calls == 1
+
+
+def test_undeclared_evidence_cannot_upgrade_none_profile_success() -> None:
+    adapter = _UndeclaredEvidenceAdapter()
+    effects = _Effects()
+    audit = _Audit()
+    spec = _spec(EffectClass.READ_LOCAL)
+
+    result = _executor(adapter, effects, audit).execute(
+        _frame(spec, _request()),
+        EffectGuard(required=False, should_execute=True, binding_digest=None, reservation=None),
+    )
+
+    assert adapter.calls == 1
+    assert result.outcome is InvocationOutcome.ABSTAINED
+    assert result.error_code == "EVIDENCE_INVALID"
+    assert result.output is None
+    assert result.evidence is None
+    assert effects.targets == []
     assert audit.calls == 1
