@@ -2,7 +2,7 @@
 
 State: IN_PROGRESS / FAIL_MERGE_READINESS
 
-Current material verification candidate: `d26865a07872903c0bc7bcf7a8a98b40e0753b83`.
+Current material verification candidate: `0e02e12a38200cae3a675c0e999ca4ba58a3b71b`.
 
 Current machine checkpoint: `CURRENT_VERIFICATION_CHECKPOINT.json`.
 `VERIFICATION_STATE.json` records an earlier exact candidate and must not be treated as the
@@ -18,10 +18,12 @@ Latest material safety increments:
 - non-`NONE` evidence uses exact output-digest binding as the safe default;
 - an explicit attempt to weaken that binding is rejected by runtime and frozen JSON contract;
 - compensation graphs must be acyclic, so a locally valid recovery declaration cannot form
-  a non-terminating A -> B -> ... -> A recovery plan.
+  a non-terminating A -> B -> ... -> A recovery plan;
+- compensation-cycle verification is iterative O(V), avoiding recursion-limit dependence on
+  large capability graphs; stress controls cover 2,000-edge acyclic and 1,500-edge cyclic cases.
 
 Current live base: `main@340b1b27fa67e667c351572822de790f871d5458`.
-Relationship: `DIVERGED` (`ahead_by=134`, `behind_by=4`), merge base
+Relationship: `DIVERGED` (`ahead_by=136`, `behind_by=4`), merge base
 `0494b02ab8237cfc4145d5f24825174e691179cc`.
 
 Current blocking chain:
@@ -30,7 +32,7 @@ Current blocking chain:
 PR #44 remains `mergeable=false` / dirty. This is classified as a verification-trigger blocker,
 not as evidence that the exact candidate tests failed.
 
-For exact candidate `d26865a07872903c0bc7bcf7a8a98b40e0753b83`:
+For exact candidate `0e02e12a38200cae3a675c0e999ca4ba58a3b71b`:
 - GitHub Actions workflow runs observed: `0`;
 - commit statuses observed: `0`;
 - clean-room reproduction: `NOT_EXECUTED`;
