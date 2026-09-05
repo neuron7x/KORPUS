@@ -35,6 +35,10 @@ class InvalidEffectTransition(CapabilityGatewayError):
     reason = "invalid_effect_transition"
 
 
+class InvalidEffectReservation(CapabilityGatewayError):
+    reason = "invalid_effect_reservation"
+
+
 @dataclass(frozen=True, slots=True)
 class EffectRecord:
     subject_id: str
@@ -151,6 +155,65 @@ def effect_binding_digest(
     )
 
 
+def _attest_reservation(
+    reservation: object,
+    *,
+    identity: Identity,
+    spec: CapabilitySpec,
+    request: IntegrationRequest,
+    logical_resource: str,
+    invocation_id: str,
+    input_digest: str,
+    binding_digest: str,
+) -> EffectReservation:
+    """Validate durable-ledger output before it can authorize dispatch semantics.
+
+    The ledger is authoritative durable state, but a Python port return value is not trusted
+    merely because its static type says `EffectReservation`. Exact field binding and the
+    `created=True -> PENDING/current invocation` relation are required before execution.
+    """
+
+    if not isinstance(reservation, EffectReservation):
+        raise InvalidEffectReservation("effect ledger returned an invalid reservation type")
+    if not isinstance(reservation.created, bool):
+        raise InvalidEffectReservation("effect reservation created flag is not boolean")
+    record = reservation.record
+    if not isinstance(record, EffectRecord):
+        raise InvalidEffectReservation("effect ledger returned an invalid record type")
+    if record.binding_digest != binding_digest:
+        raise IdempotencyConflict(
+            "idempotency key is already bound to a different capability/resource/input"
+        )
+    expected = (
+        identity.subject,
+        request.idempotency_key,
+        spec.capability_id,
+        spec.version,
+        logical_resource,
+        input_digest,
+    )
+    observed = (
+        record.subject_id,
+        record.idempotency_key,
+        record.capability_id,
+        record.capability_version,
+        record.logical_resource,
+        record.input_digest,
+    )
+    if observed != expected:
+        raise InvalidEffectReservation("effect reservation exact binding fields are inconsistent")
+    if not isinstance(record.state, EffectState):
+        raise InvalidEffectReservation("effect reservation state is not canonical")
+    if reservation.created:
+        if record.state is not EffectState.PENDING:
+            raise InvalidEffectReservation("new effect reservation is not PENDING")
+        if record.invocation_id != invocation_id:
+            raise InvalidEffectReservation("new effect reservation invocation binding is inconsistent")
+        if record.provider_reference is not None or record.reconciliation_disposition is not None:
+            raise InvalidEffectReservation("new effect reservation contains terminal provider state")
+    return reservation
+
+
 def prepare_effect_guard(
     *,
     identity: Identity,
@@ -192,7 +255,7 @@ def prepare_effect_guard(
         request=request,
         logical_resource=logical_resource,
     )
-    reservation = ledger.reserve(
+    raw_reservation = ledger.reserve(
         subject_id=identity.subject,
         idempotency_key=request.idempotency_key,
         binding_digest=binding,
@@ -202,10 +265,16 @@ def prepare_effect_guard(
         logical_resource=logical_resource,
         input_digest=input_digest,
     )
-    if reservation.record.binding_digest != binding:
-        raise IdempotencyConflict(
-            "idempotency key is already bound to a different capability/resource/input"
-        )
+    reservation = _attest_reservation(
+        raw_reservation,
+        identity=identity,
+        spec=spec,
+        request=request,
+        logical_resource=logical_resource,
+        invocation_id=invocation_id,
+        input_digest=input_digest,
+        binding_digest=binding,
+    )
     return EffectGuard(
         required=True,
         should_execute=reservation.created,
