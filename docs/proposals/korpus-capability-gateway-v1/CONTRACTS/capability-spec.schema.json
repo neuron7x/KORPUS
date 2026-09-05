@@ -83,7 +83,7 @@
           ]
         },
         "freshness_seconds": {"type": ["integer", "null"], "minimum": 0},
-        "bind_output_digest": {"type": "boolean"}
+        "bind_output_digest": {"type": "boolean", "default": true}
       }
     },
     "timeouts": {
@@ -244,6 +244,28 @@
           "idempotency": {
             "properties": {"provider_key_forwarding": {"const": true}},
             "required": ["provider_key_forwarding"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence": {
+            "properties": {
+              "profile": {
+                "enum": ["EXECUTION_ONLY", "PROVIDER_PROVENANCE", "FACTUAL_EVIDENCE", "SIGNED_RECEIPT"]
+              }
+            },
+            "required": ["profile"]
+          }
+        },
+        "required": ["evidence"]
+      },
+      "then": {
+        "properties": {
+          "evidence": {
+            "properties": {"bind_output_digest": {"const": true}}
           }
         }
       }
