@@ -485,3 +485,39 @@ def test_the_registry_verdict_is_computed_from_its_own_counts(tmp_path: Path) ->
     digest = "a" * 64
     assert _registry_status(tmp_path, digest, current=True) == "PASS"
     assert _registry_status(tmp_path, digest, current=False) == "FAIL"
+
+
+def _decided(root: Path, statuses: list[str]) -> bool:
+    _write(
+        root / "reports/release/v0.9.7/final/CLAIM_LEDGER.json",
+        {
+            "claims": [
+                {"id": f"C{n}", "status": s, "evidence": "x.json"} for n, s in enumerate(statuses)
+            ]
+        },
+    )
+    checks = claim_admission_checks(root, "v0.9.7", "a" * 64)
+    return checks["CLAIM_LEDGER.every_claim_decided_by_evidence"]
+
+
+def test_a_claim_that_never_leaves_pending_is_unreachable_not_unmeasured(tmp_path: Path) -> None:
+    """Вічне «не знаємо» є дефектом, а не станом очікування.
+
+    Виміряно 05.09.2026: `current-truth` був ЗЕЛЕНИЙ, поки `CLM-WEB` стояла
+    PENDING_EVIDENCE — тобто поки файла доказу фізично не існувало, і не існувало тому,
+    що його не писав ЖОДЕН крок репозиторію. Хибне PASS у головному гейті істини релізу
+    прожило місяці, бо кожна наявна перевірка дивилась ЛИШЕ на SUPPORTED, і весь інший
+    простір станів був невидимий.
+
+    Ліки — білий список, а не чорний: вирішеними доказом є рівно SUPPORTED і
+    REFUTED_BY_EVIDENCE. Решта онтології (PENDING, INVALID, UNDECLARED, UNBOUND, STALE,
+    DIVERGENT) означає «не знаємо», а «не знаємо» не є «ні» і тим паче не є «так».
+
+    Порожній журнал перевіряється окремо: `all([])` істинне, тож нуль претензій
+    задовольнив би закон тривіально — і саме так виглядав би журнал, який зламався.
+    """
+    assert _decided(tmp_path, ["SUPPORTED", "REFUTED_BY_EVIDENCE"]) is True
+    assert _decided(tmp_path, ["SUPPORTED", "PENDING_EVIDENCE"]) is False
+    assert _decided(tmp_path, ["SUPPORTED", "UNDECLARED_EVIDENCE"]) is False
+    assert _decided(tmp_path, ["SUPPORTED", "STALE_EVIDENCE"]) is False
+    assert _decided(tmp_path, []) is False

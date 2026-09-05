@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1830,
-  "root_sha256": "81fca6952a03f35ed2c1a2cd36d302110b605f619e3b662b1f39c8d684dc3f24",
+  "root_sha256": "cf5d08d8367dcdc6896d923a54805ba5dd6aefee5e132c87d10c0922d9635ad6",
   "files": [
     {
       "path": ".dockerignore",
@@ -3139,8 +3139,8 @@
     },
     {
       "path": "apps/api/tests/test_current_truth_hardening_v094.py",
-      "bytes": 27506,
-      "sha256": "9f226522bafc7a1e12f7eaf7002fe2e7ebb578d531da7ffef32584ec6ebb688e",
+      "bytes": 29742,
+      "sha256": "df6dee27cc1c704ae70a8f1390a9d897864643d720250c04afb5c0e6a1d16b96",
       "mode": "0644"
     },
     {
@@ -9391,8 +9391,8 @@
     },
     {
       "path": "scripts/current_truth_admission.py",
-      "bytes": 9027,
-      "sha256": "f7a61e4a220754c23b5ea65f433946fc536bf6d19aece1782a2ee9fe243a43f7",
+      "bytes": 9309,
+      "sha256": "2909f3457eb4417b97e73a3d1618751854a45c397558f1e3c5b9dce1e5ce3ff8",
       "mode": "0644"
     },
     {
