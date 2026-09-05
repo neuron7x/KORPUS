@@ -155,6 +155,10 @@ class CapabilitySpec(BaseModel):
             raise ValueError("provider idempotency-key forwarding requires idempotency")
         if self.retry.max_attempts > 1 and not self.retry.only_safe_errors:
             raise ValueError("multiple attempts require only_safe_errors=true")
+        if effectful and self.retry.max_attempts > 1 and not self.idempotency.provider_key_forwarding:
+            raise ValueError(
+                "effectful multiple attempts require provider idempotency-key forwarding proof"
+            )
         return self
 
 
