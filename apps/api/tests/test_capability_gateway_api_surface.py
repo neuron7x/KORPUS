@@ -45,6 +45,18 @@ def _result(outcome: InvocationOutcome, error_code: str | None = None) -> Integr
     return IntegrationResult.model_construct(**values)
 
 
+def _unsafe_success(*, audit_record_id: str | None, error_code: str | None) -> IntegrationResult:
+    return IntegrationResult.model_construct(
+        schema_version="korpus.integration-result.v1",
+        invocation_id=UUID("88888888-8888-8888-8888-888888888888"),
+        outcome=InvocationOutcome.SUCCESS,
+        output={"sensitive": "must-not-escape"},
+        evidence=None,
+        audit_record_id=audit_record_id,
+        error_code=error_code,
+    )
+
+
 def _client(result: IntegrationResult) -> tuple[TestClient, _Invoker]:
     invoker = _Invoker(result)
     app = FastAPI()
@@ -129,6 +141,30 @@ def test_success_keeps_normal_200_envelope() -> None:
     assert response.json()["output"] == {"sensitive": "provider-output"}
     assert response.json()["audit_record_id"] == "audit-test"
     assert invoker.calls == 1
+
+
+def test_constructed_success_without_audit_fails_closed_at_http_boundary() -> None:
+    client, invoker = _client(_unsafe_success(audit_record_id=None, error_code=None))
+
+    response = client.post("/v1/integrations/invoke", json=_request())
+
+    assert response.status_code == 503
+    assert response.json()["outcome"] == "FAILED"
+    assert response.json()["error_code"] == "INTEGRATION_FAILED"
+    assert response.json()["output"] is None
+    assert response.json()["evidence"] is None
+    assert invoker.calls == 1
+
+
+def test_constructed_success_with_error_code_fails_closed_at_http_boundary() -> None:
+    client, _ = _client(_unsafe_success(audit_record_id="audit-test", error_code="ADAPTER_FAILURE"))
+
+    response = client.post("/v1/integrations/invoke", json=_request())
+
+    assert response.status_code == 503
+    assert response.json()["outcome"] == "FAILED"
+    assert response.json()["error_code"] == "INTEGRATION_FAILED"
+    assert response.json()["output"] is None
 
 
 def test_router_factory_is_not_activated_in_main_without_owner_config_gate() -> None:
