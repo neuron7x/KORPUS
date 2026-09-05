@@ -4769,13 +4769,13 @@
       "reason": "New 2026-08-29: projects the sharded regression merge into the preflight's backend report, which had no producer."
     },
     "scripts/publish_release_evidence.py": {
-      "lines": 136,
+      "lines": 137,
       "max_complexity": 8,
       "max_function_args": 2,
       "max_function_lines": 55,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "New 2026-08-29: carries run artefacts into the release directory the preflight reads, refusing any bound to another tree."
+      "reason": "New 2026-08-29: carries run artefacts into the release directory the preflight reads, refusing any bound to another tree. | 2026-09-05: 136 -> 137, рівно +1 рядок ПОВЕДІНКИ — запис `WEB_REGRESSION_REPORT.json` у мапі публікатора. Доти цей звіт оголошувався доказом `CLM-WEB`, і не писав його ЖОДЕН крок: претензія була вічним PENDING_EVIDENCE за побудовою. Прозу знято ПЕРЕД підняттям — пояснення живе в докстрінгу виробника `scripts/publish_web_regression.py`, а не в мапі."
     },
     "scripts/recheck_blocked_sources.py": {
       "lines": 275,

@@ -44,6 +44,7 @@ SOURCES = {
     "INFERENCE_SECURITY_GATE.json": "var/production/inference_security-gate.json",
     "STANDARDS_CONTROL_MAP_VERIFICATION.json": "var/standards-control-map-verification.json",
     "MUTATION_DELTA_REPORT.json": "reports/MUTATION_DELTA_REPORT.json",
+    "WEB_REGRESSION_REPORT.json": "var/web-regression.json",
 }
 
 
