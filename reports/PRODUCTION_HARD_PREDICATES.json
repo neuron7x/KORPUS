@@ -1,15 +1,15 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "7241aefedeb488a1a9f3e49be4038080406b343271720662b79a00dd9af6f72f",
+  "source_tree_sha256": "bad7efe1a766497a8b1430283e28a47e013d8f811496cf9d3b0a50d272db8a95",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
-  "externally_satisfied": 2,
-  "production_satisfied": 2,
+  "externally_satisfied": 6,
+  "production_satisfied": 6,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 14.285714,
-  "production_completion_percent": 14.285714,
+  "external_completion_percent": 42.857143,
+  "production_completion_percent": 42.857143,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -65,14 +65,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "postgres_adversarial_suite",
-        "metadata:backend"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": []
     },
     {
@@ -147,13 +144,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "load_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": []
     },
     {
@@ -163,13 +158,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "load_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": [
         "load_attestation_verified",
         "load_trusted_signer"
@@ -182,13 +175,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "recovery_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": [
         "recovery_attestation_verified",
         "recovery_trusted_signer"

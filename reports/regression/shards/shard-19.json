@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "444e9ef659228635f326e5f7341adf7c2421eab05db7ef961cb2720e71569dd1",
-  "collection_digest": "218994b48455adf28bb72966ed1c5e006ba397e87630933cb041f5e04131f410",
-  "collection_count": 4159,
+  "source_digest": "bad7efe1a766497a8b1430283e28a47e013d8f811496cf9d3b0a50d272db8a95",
+  "collection_digest": "7b40e785c0526675cb2631af19c5f3f42ccada64149657172f607ef641347d95",
+  "collection_count": 4166,
   "shard_index": 19,
   "shard_count": 24,
-  "selected_count": 185,
+  "selected_count": 186,
   "selected_nodeids": [
     "apps/api/tests/test_access_control.py::test_restricted_corpus_update_does_not_change_public_release",
     "apps/api/tests/test_access_oracles.py::test_the_near_duplicate_probe_is_not_a_graded_content_oracle[clearance-document1-reader1]",
@@ -127,6 +127,7 @@
     "apps/api/tests/test_military_knowledge.py::test_graph_is_source_bound_and_publishable",
     "apps/api/tests/test_mission_assurance_v2.py::test_a_non_positive_case_minimum_is_refused[-1]",
     "apps/api/tests/test_mission_assurance_v2.py::test_claim_counts_that_contradict_each_other_are_refused[-1-0]",
+    "apps/api/tests/test_mutation_delta_gate.py::test_the_curated_catalogue_is_parsed_not_grepped",
     "apps/api/tests/test_mutation_sandbox_scope.py::test_the_sandbox_contains_the_tracked_tree",
     "apps/api/tests/test_numeric_integrity.py::test_an_ordinary_passage_carries_no_suspicion",
     "apps/api/tests/test_object_store_integrity.py::test_the_store_root_is_not_world_readable",
@@ -195,9 +196,9 @@
     "apps/api/tests/test_v5_security_kernel.py::test_a_new_version_of_an_existing_document_is_scanned_too",
     "apps/api/tests/test_v5_security_kernel.py::test_sentence_segmenter_preserves_offsets_for_decimals_abbreviations_and_lists"
   ],
-  "selected_digest": "c43b8e3c83891572ffc4a229c43a8813d687585e47f89bfe4f4828d17b9fe682",
+  "selected_digest": "a3d36f726d9a76e9945c375d9bbfe00e2d932de91fcec5791a1e11d05c23079b",
   "junit": {
-    "tests": 185,
+    "tests": 186,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -206,9 +207,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 8.003263,
+  "elapsed_seconds": 7.410533,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 38%]\n.............................................................s.......... [ 77%]\n.........................................                                [100%]",
+  "stdout_tail": "........................................................................ [ 38%]\n..............................................................s......... [ 77%]\n..........................................                               [100%]",
   "stderr_tail": ""
 }

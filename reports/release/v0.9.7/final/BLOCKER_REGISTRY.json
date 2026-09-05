@@ -1,9 +1,9 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-05T22:34:14.352767+00:00",
+  "generated_at": "2026-09-05T23:19:54.165093+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "7241aefedeb488a1a9f3e49be4038080406b343271720662b79a00dd9af6f72f",
+  "source_tree_sha256": "bad7efe1a766497a8b1430283e28a47e013d8f811496cf9d3b0a50d272db8a95",
   "digest_scope": "evidence_paths",
   "items": [
     {
@@ -34,16 +34,13 @@
     },
     {
       "id": "live_postgres_rls",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
       "machine_closable": false,
-      "failed_external_checks": [
-        "metadata:backend",
-        "postgres_adversarial_suite"
-      ],
+      "failed_external_checks": [],
       "required_proof_class": "REAL_POSTGRESQL"
     },
     {
@@ -97,41 +94,35 @@
     },
     {
       "id": "production_like_load",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
       "machine_closable": false,
-      "failed_external_checks": [
-        "load_source_bound"
-      ],
+      "failed_external_checks": [],
       "required_proof_class": "PRODUCTION_LIKE_LOAD"
     },
     {
       "id": "trusted_load_attestation",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
       "machine_closable": false,
-      "failed_external_checks": [
-        "load_source_bound"
-      ],
+      "failed_external_checks": [],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
     {
       "id": "trusted_recovery_attestation",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
       "machine_closable": false,
-      "failed_external_checks": [
-        "recovery_source_bound"
-      ],
+      "failed_external_checks": [],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
     {
@@ -225,16 +216,16 @@
     }
   ],
   "counts": {
-    "CLOSED_ANCHORED": 2,
-    "EXTERNAL_REQUIRED": 12
+    "CLOSED_ANCHORED": 6,
+    "EXTERNAL_REQUIRED": 8
   },
   "internal_executable_unresolved": 0,
   "internal_missing_artifact": 0,
   "internal_stale_evidence": 0,
-  "production_external_or_runtime_unresolved": 12,
+  "production_external_or_runtime_unresolved": 8,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "a8e7108aa287a8ec177f91a3d5c7c961bcffaf3678f0734a52a12442aaee9d72"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "f205819fe30e1c9fec587c694c911b5bf3b41fb54310788dd863dcde1fab29c3"
   }
 }
