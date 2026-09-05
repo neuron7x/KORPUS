@@ -159,6 +159,8 @@ class CapabilitySpec(BaseModel):
             raise ValueError(
                 "effectful multiple attempts require provider idempotency-key forwarding proof"
             )
+        if self.evidence.profile is not EvidenceProfile.NONE and not self.evidence.bind_output_digest:
+            raise ValueError("declared evidence profiles must bind the exact output digest")
         return self
 
 
