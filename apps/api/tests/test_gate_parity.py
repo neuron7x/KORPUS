@@ -3112,3 +3112,31 @@ def test_the_verdict_ledger_is_not_part_of_the_digest_it_describes() -> None:
         assert source_included(Path(kept)), (
             f"{kept} випав із digest — виключення журналу забрало з собою джерела"
         )
+
+
+def test_an_image_scoped_suppression_cannot_be_applied_to_another_image() -> None:
+    """Обсяг придушення мусить триматись МЕХАНІКОЮ, а не рев'ю.
+
+    Виміряно 05.09.2026 незалежним верифікатором: `trivy` мовчки приймає
+    `.trivyignore.web.yaml`, прикладений до api-образу — rc=0, порожній stderr, жодного
+    попередження. Формат ковтає будь-яке поле, включно з вигаданим, тож `paths` для
+    знахідки на пакеті ОС обмежувачем НЕ є. Механічного обсягу інструмент не пропонує.
+
+    Доти обсяг тримало те, що людина побачить слово `web` у рядку api. Це домовленість,
+    а не гейт — рівно той клас, який цей набір існує ловити. Тут він стає механікою:
+    рядок сканування образу не сміє посилатись на файл придушення, названий за ІНШИМ
+    образом. Правило симетричне, тож `api` у рядку web ловиться так само.
+    """
+    scan = _ci_script("container:scan")
+    lines = [line for line in scan if "trivy image" in line and "--ignorefile" in line]
+    assert lines, "container:scan більше не має рядка з --ignorefile — тест застарів"
+    for line in lines:
+        image = re.search(r"--input\s+(\w+)-image\.tar", line)
+        ignore = re.search(r"--ignorefile\s+\"?\S*?\.trivyignore(?:\.(\w+))?\.yaml", line)
+        assert image, f"не видно, який образ сканує рядок: {line}"
+        if ignore is None or ignore.group(1) is None:
+            continue
+        assert ignore.group(1) == image.group(1), (
+            f"придушення {ignore.group(1)!r} прикладено до образу {image.group(1)!r}: "
+            "обсяг названий одним образом, а діє на інший"
+        )
