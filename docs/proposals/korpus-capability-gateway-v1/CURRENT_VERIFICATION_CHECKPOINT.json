@@ -2,7 +2,7 @@
   "schema": "korpus.capability-gateway.current-verification-checkpoint.v1",
   "pr_number": 44,
   "branch": "proposal/korpus-capability-gateway-v1-20260904",
-  "verification_candidate_commit": "373045fa366971db039910b9ae01e4a40c1a2347",
+  "verification_candidate_commit": "2cb88a27450b87bf1fa4bc21bdda98e609bbcac8",
   "candidate_semantics": "Latest material capability-gateway candidate containing runtime, falsification tests and contract-relevant safety changes under verification. A later metadata checkpoint records evidence about this candidate and does not recursively verify itself.",
   "runtime_hardening_since_historical_verification_state": [
     {"commit":"9e600f2569eb471064341db350e654b56fe362e4","claim":"Normalize reconciliation boundary failures before provider observation or durable mutation."},
@@ -14,13 +14,14 @@
     {"commit":"ad958a30eed5747e2ccc52969fcf8616c2ec794a","claim":"Attest reconciliation persistence against exact binding, disposition and provider reference."},
     {"commit":"1e1b3306eafd12e1543cd3d072444a070fb3e0be","claim":"Attest pre-execution schema, egress and canonical policy success-return semantics."},
     {"commit":"75402124805ab15fdf9e071101dc417166cb7112","claim":"Require provider duplicate-prevention proof for effectful multi-attempt declarations and align runtime plus frozen-contract acceptance languages."},
-    {"commit":"373045fa366971db039910b9ae01e4a40c1a2347","claim":"Enforce closed-world evidence admission: EvidenceProfile.NONE cannot be upgraded by provider-supplied evidence; executor returns ABSTAINED/EVIDENCE_INVALID without exposing output or evidence."}
+    {"commit":"373045fa366971db039910b9ae01e4a40c1a2347","claim":"Enforce closed-world evidence admission: EvidenceProfile.NONE cannot be upgraded by provider-supplied evidence; executor returns ABSTAINED/EVIDENCE_INVALID without exposing output or evidence."},
+    {"commit":"2cb88a27450b87bf1fa4bc21bdda98e609bbcac8","claim":"Eliminate weak/dead evidence-binding declarations: declared evidence profiles use safe-default exact output binding, explicit weakening is rejected, and JSON contract parity is enforced."}
   ],
   "live_base": {
     "branch": "main",
     "observed_sha": "7211854d7b04ec017bd75d9219d5f5ba2901bbe2",
     "merge_base_sha": "0494b02ab8237cfc4145d5f24825174e691179cc",
-    "feature_ahead_by": 124,
+    "feature_ahead_by": 131,
     "feature_behind_by": 3,
     "relationship": "DIVERGED",
     "main_only_delta_scope_observed": "reports/** only in compare 0494b02a..7211854d",
@@ -31,7 +32,7 @@
   },
   "execution_evidence": {
     "github_actions": {
-      "candidate_commit": "373045fa366971db039910b9ae01e4a40c1a2347",
+      "candidate_commit": "2cb88a27450b87bf1fa4bc21bdda98e609bbcac8",
       "workflow_runs_observed": 0,
       "commit_statuses_observed": 0,
       "status": "EXECUTION_NOT_OBSERVED",
@@ -40,18 +41,16 @@
       "causal_basis": "PR #44 is mergeable=false, rebaseable=false and mergeable_state=dirty while the base workflow listens to pull_request without path filters. Earlier pull_request workflow runs exist on this branch; no execution evidence is transferred to the current candidate. The merge-conflicted pull-request state is therefore recorded as the current trigger blocker, not as a code-test failure or PASS."
     },
     "clean_room": {
-      "candidate_commit": "373045fa366971db039910b9ae01e4a40c1a2347",
-      "status": "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED",
+      "candidate_commit": "2cb88a27450b87bf1fa4bc21bdda98e609bbcac8",
+      "status": "CLEAN_ROOM_EXECUTION_UNAVAILABLE",
+      "checkout_executed": false,
       "test_command_executed": false,
-      "previous_attempt": {
-        "candidate_commit": "7bb497598248ee1ae4ebc0631f9bde30aa4ecd9c",
-        "status": "CLEAN_ROOM_EXECUTION_UNAVAILABLE",
-        "failure_class": "DNS_RESOLUTION",
-        "transferable_to_current_candidate": false
-      }
+      "failure_class": "DNS_RESOLUTION",
+      "failure_observation": "git ls-remote https://github.com/neuron7x/KORPUS.git failed before checkout with: Could not resolve host: github.com",
+      "transferable_as_test_result": false
     },
     "fresh_context": {
-      "candidate_commit": "373045fa366971db039910b9ae01e4a40c1a2347",
+      "candidate_commit": "2cb88a27450b87bf1fa4bc21bdda98e609bbcac8",
       "status": "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED"
     }
   },
@@ -61,6 +60,7 @@
     "missing_execution_is_never_pass": true,
     "workflow_absence_is_not_code_failure": true,
     "merge_conflict_trigger_block_is_not_code_failure": true,
+    "clean_room_pre_checkout_failure_is_not_test_failure": true,
     "evidence_from_another_commit_is_not_current": true,
     "content_equivalence_is_not_ancestry_equivalence": true,
     "metadata_checkpoint_does_not_verify_itself": true
