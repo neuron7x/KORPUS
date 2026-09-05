@@ -143,7 +143,7 @@ def test_capability_spec_scalar_limits_match_runtime_model() -> None:
 def test_capability_spec_cross_field_rules_match_runtime_validator() -> None:
     rules = _capability_schema()["allOf"]
     assert isinstance(rules, list)
-    assert len(rules) == 4
+    assert len(rules) == 6
 
     effectful = {"WRITE_REMOTE", "TRANSACTIONAL_SIDE_EFFECT", "PRIVILEGED_ADMIN"}
     assert set(rules[0]["if"]["properties"]["effect_class"]["enum"]) == effectful
@@ -152,28 +152,48 @@ def test_capability_spec_cross_field_rules_match_runtime_validator() -> None:
         is True
     )
 
+    assert set(rules[1]["if"]["properties"]["effect_class"]["enum"]) == effectful
     assert (
-        rules[1]["if"]["properties"]["authorization"]["properties"]
+        rules[1]["then"]["properties"]["authorization"]["properties"]
         ["requires_explicit_effect_authorization"]["const"]
         is True
     )
-    assert set(rules[1]["then"]["properties"]["effect_class"]["enum"]) == effectful
+    assert (
+        "requires_explicit_effect_authorization"
+        in rules[1]["then"]["properties"]["authorization"]["required"]
+    )
 
     assert (
-        rules[2]["if"]["properties"]["idempotency"]["properties"]
+        rules[2]["if"]["properties"]["authorization"]["properties"]
+        ["requires_explicit_effect_authorization"]["const"]
+        is True
+    )
+    assert set(rules[2]["then"]["properties"]["effect_class"]["enum"]) == effectful
+
+    assert (
+        rules[3]["if"]["properties"]["idempotency"]["properties"]
         ["provider_key_forwarding"]["const"]
         is True
     )
     assert (
-        rules[2]["then"]["properties"]["idempotency"]["properties"]["required"]["const"]
+        rules[3]["then"]["properties"]["idempotency"]["properties"]["required"]["const"]
         is True
     )
 
-    assert rules[3]["if"]["properties"]["retry"]["properties"]["max_attempts"]["minimum"] == 2
+    assert rules[4]["if"]["properties"]["retry"]["properties"]["max_attempts"]["minimum"] == 2
     assert (
-        rules[3]["then"]["properties"]["retry"]["properties"]["only_safe_errors"]["const"]
+        rules[4]["then"]["properties"]["retry"]["properties"]["only_safe_errors"]["const"]
         is True
     )
+
+    assert set(rules[5]["if"]["properties"]["effect_class"]["enum"]) == effectful
+    assert rules[5]["if"]["properties"]["retry"]["properties"]["max_attempts"]["minimum"] == 2
+    assert (
+        rules[5]["then"]["properties"]["idempotency"]["properties"]
+        ["provider_key_forwarding"]["const"]
+        is True
+    )
+    assert "provider_key_forwarding" in rules[5]["then"]["properties"]["idempotency"]["required"]
 
 
 def test_integration_result_contract_encodes_runtime_returnability_invariants() -> None:
