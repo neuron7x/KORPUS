@@ -2,17 +2,18 @@
   "schema": "korpus.capability-gateway.current-verification-checkpoint.v1",
   "pr_number": 44,
   "branch": "proposal/korpus-capability-gateway-v1-20260904",
-  "verification_candidate_commit": "56a9e345414c5e736b13873da6705e098ccf35e7",
+  "verification_candidate_commit": "f280e98ff89ec9e49288718d8148cd44ff88012f",
   "candidate_semantics": "Latest material capability-gateway candidate under verification. A later metadata checkpoint records evidence about this exact candidate and does not recursively verify itself.",
   "latest_material_hardening": [
-    {"commit":"40019ec10d1e7d7847a135f1d676e65fb9b1a112","claim":"Abstain from capability-specific telemetry metadata unless exact runtime-snapshot binding is proven; preserve bounded outcome/error telemetry."},
-    {"commit":"56a9e345414c5e736b13873da6705e098ccf35e7","claim":"Classify missing adapter resolution after durable reservation as FAILED_KNOWN_NO_EFFECT because provider dispatch provably never started; replay no longer invents OUTCOME_UNKNOWN."}
+    {"commit":"40019ec10d1e7d7847a135f1d676e65fb9b1a112","claim":"Abstain from unproven capability-specific telemetry metadata."},
+    {"commit":"56a9e345414c5e736b13873da6705e098ccf35e7","claim":"Classify pre-dispatch missing-adapter failure as FAILED_KNOWN_NO_EFFECT."},
+    {"commit":"f280e98ff89ec9e49288718d8148cd44ff88012f","claim":"Preserve causal error semantics: pre-append audit-material serialization failure is INTERNAL_ERROR; AUDIT_APPEND_FAILED is reserved for the audit port/receipt boundary."}
   ],
   "live_base": {
     "branch": "main",
     "observed_sha": "5f900936636fecfc389564421b1e03cd319f69eb",
     "merge_base_sha": "0494b02ab8237cfc4145d5f24825174e691179cc",
-    "feature_ahead_by": 146,
+    "feature_ahead_by": 148,
     "feature_behind_by": 9,
     "relationship": "DIVERGED",
     "acceptance_gate": "BASE_SYNC_REQUIRED",
@@ -21,29 +22,28 @@
   },
   "execution_evidence": {
     "github_actions": {
-      "candidate_commit": "56a9e345414c5e736b13873da6705e098ccf35e7",
+      "candidate_commit": "f280e98ff89ec9e49288718d8148cd44ff88012f",
       "workflow_runs_observed": 0,
       "commit_statuses_observed": 0,
       "status": "EXECUTION_NOT_OBSERVED",
       "trigger_status": "CI_TRIGGER_BLOCKED",
-      "trigger_blocker": "PULL_REQUEST_MERGE_CONFLICT",
-      "causal_basis": "No workflow run or commit status exists for the exact candidate. No result from another commit is transferred."
+      "trigger_blocker": "PULL_REQUEST_MERGE_CONFLICT"
     },
     "static_regression_review": {
-      "candidate_commit": "56a9e345414c5e736b13873da6705e098ccf35e7",
+      "candidate_commit": "f280e98ff89ec9e49288718d8148cd44ff88012f",
       "status": "SOURCE_REVIEW_ONLY",
-      "finding": "The missing-adapter pre-dispatch path now transitions a durable reservation from PENDING to FAILED_KNOWN_NO_EFFECT and defines a focused replay poison control. Source and test definitions are not execution evidence.",
+      "finding": "Result emission now distinguishes audit-material construction failure from audit append/receipt failure. Existing boundary control was tightened to assert audit.calls == 0 with INTERNAL_ERROR for a nondigestible provider receipt.",
       "transferable_as_test_result": false
     },
     "clean_room": {
-      "candidate_commit": "56a9e345414c5e736b13873da6705e098ccf35e7",
+      "candidate_commit": "f280e98ff89ec9e49288718d8148cd44ff88012f",
       "status": "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED",
       "checkout_executed": false,
       "test_command_executed": false,
       "transferable_as_test_result": false
     },
     "fresh_context": {
-      "candidate_commit": "56a9e345414c5e736b13873da6705e098ccf35e7",
+      "candidate_commit": "f280e98ff89ec9e49288718d8148cd44ff88012f",
       "status": "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED"
     }
   },
@@ -52,7 +52,6 @@
     "negative_control_definition_is_not_execution_evidence": true,
     "missing_execution_is_never_pass": true,
     "workflow_absence_is_not_code_failure": true,
-    "merge_conflict_trigger_block_is_not_code_failure": true,
     "evidence_from_another_commit_is_not_current": true,
     "metadata_checkpoint_does_not_verify_itself": true
   },
