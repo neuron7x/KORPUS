@@ -651,9 +651,10 @@ container:scan:
       artifacts: true
   script:
     - trivy image --input api-image.tar --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed
-    # `--ignorefile` СТОЇТЬ ЛИШЕ ТУТ: підстава виміряна в web-образі, і той самий CVE
-    # в api-образі мусить валити скан далі. Обсяг придушення — образ, не проєкт.
-    - trivy image --input web-image.tar --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed --ignorefile "$CI_PROJECT_DIR/.trivyignore.yaml"
+    # Окремий файл, а не спільний: обсяг придушення мусить триматись АРТЕФАКТОМ,
+    # а не тим, у якому рядку дописано прапорець. Той самий CVE в api-образі валить
+    # скан далі, і застосувати web-файл до api можна лише навмисно й помітно.
+    - trivy image --input web-image.tar --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed --ignorefile "$CI_PROJECT_DIR/.trivyignore.web.yaml"
     # --ignore-unfixed is the right gate — refusing to ship over a CVE with no patch
     # blocks forever on somebody else's release schedule — but it makes the exposure
     # invisible, and "no findings" then means two different things. Measured 2026-08-06:

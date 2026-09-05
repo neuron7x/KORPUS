@@ -1,0 +1,63 @@
+# Придушення уразливостей ДЛЯ WEB-ОБРАЗУ. Обсяг тримає ІМ'Я ФАЙЛА, не проза.
+#
+# Перша редакція мала сім записів у спільному `.trivyignore.yaml` із рядком
+# «scoped to the web image only» в тексті. Обсяг тоді жив у ВИКЛИКУ — у тому, що
+# `--ignorefile` дописано лише в рядку web-образу в `.gitlab-ci.yml`. Досить було б
+# комусь колись дописати той самий прапорець у рядок api-образу, і сім CVE тихо
+# погасли б і там; файл, який сам себе називає «scoped», цього не спиняв.
+#
+# Сусідній `KSV-0109` у `.trivyignore.yaml` робить це правильно — через `paths:`.
+# Тут прив'язки до шляху немає, бо знахідка на пакеті ОС, а не у файлі; тому обсяг
+# винесено в окремий файл: застосувати його до api-образу можна лише навмисно й
+# помітно.
+#
+# ВИМІРЯНО 05.09.2026 в самому образі nginx:1.31.3-alpine@sha256:4a73073b, не з
+# опису поради:
+#
+#   apk info                     встановлено ЛИШЕ `libuuid`, пакета `util-linux` немає
+#   apk info -L libuuid          рівно два файли: usr/lib/libuuid.so.1{,.1.3.0}
+#   apk info --who-owns /bin/mount, /usr/bin/nsenter, /sbin/losetup
+#                                → busybox-1.37.0-r31, НЕ util-linux
+#   find / -perm -4000           жодного setuid-бінарника
+#
+# Усі сім порад — про `mount(8)`, `nsenter`, `X-mount.subdir` і зовнішні
+# mount-помічники з util-linux. Цього коду в образі НЕМАЄ: mount і nsenter тут —
+# аплети busybox. trivy приписує поради пакетові `libuuid`, бо Alpine збирає його з
+# ДЖЕРЕЛА `util-linux`, і порада заведена на версію джерела, а не підпакета.
+#
+# Чому не оновлення: виміряно `apk policy util-linux` у v3.24 — репозиторій дає лише
+# 2.42.1-r0; виправлених 2.42.3-r0 у цій гілці немає, і найновіший `nginx:alpine`
+# теж 3.24.1. Тобто «fixed» у базі trivy не означає «доступне нам».
+#
+# Обсяг: лише web-образ (`--ignorefile` стоїть тільки на його рядку в
+# container:scan). Той самий CVE в api-образі далі валить скан.
+# Видимість збережено: `container:build` пише web-unfixed.json без придушення.
+vulnerabilities:
+  - id: CVE-2026-53612
+    statement: >-
+      util-linux advisory mapped onto the libuuid subpackage. Measured in the image on 2026-09-05: only libuuid is installed (two shared-library files); mount, nsenter and losetup are busybox applets; no setuid binaries exist. The vulnerable util-linux binaries are absent. Fixed 2.42.3-r0 is not published in alpine v3.24, so this is not closable by upgrade. Scoped to the web image only.
+    expired_at: 2026-12-05
+  - id: CVE-2026-53613
+    statement: >-
+      util-linux advisory mapped onto the libuuid subpackage. Measured in the image on 2026-09-05: only libuuid is installed (two shared-library files); mount, nsenter and losetup are busybox applets; no setuid binaries exist. The vulnerable util-linux binaries are absent. Fixed 2.42.3-r0 is not published in alpine v3.24, so this is not closable by upgrade. Scoped to the web image only.
+    expired_at: 2026-12-05
+  - id: CVE-2026-53614
+    statement: >-
+      util-linux advisory mapped onto the libuuid subpackage. Measured in the image on 2026-09-05: only libuuid is installed (two shared-library files); mount, nsenter and losetup are busybox applets; no setuid binaries exist. The vulnerable util-linux binaries are absent. Fixed 2.42.3-r0 is not published in alpine v3.24, so this is not closable by upgrade. Scoped to the web image only.
+    expired_at: 2026-12-05
+  - id: CVE-2026-76642
+    statement: >-
+      util-linux advisory mapped onto the libuuid subpackage. Measured in the image on 2026-09-05: only libuuid is installed (two shared-library files); mount, nsenter and losetup are busybox applets; no setuid binaries exist. The vulnerable util-linux binaries are absent. Fixed 2.42.3-r0 is not published in alpine v3.24, so this is not closable by upgrade. Scoped to the web image only.
+    expired_at: 2026-12-05
+  - id: CVE-2026-78408
+    statement: >-
+      util-linux advisory mapped onto the libuuid subpackage. Measured in the image on 2026-09-05: only libuuid is installed (two shared-library files); mount, nsenter and losetup are busybox applets; no setuid binaries exist. The vulnerable util-linux binaries are absent. Fixed 2.42.3-r0 is not published in alpine v3.24, so this is not closable by upgrade. Scoped to the web image only.
+    expired_at: 2026-12-05
+  - id: CVE-2026-78409
+    statement: >-
+      util-linux advisory mapped onto the libuuid subpackage. Measured in the image on 2026-09-05: only libuuid is installed (two shared-library files); mount, nsenter and losetup are busybox applets; no setuid binaries exist. The vulnerable util-linux binaries are absent. Fixed 2.42.3-r0 is not published in alpine v3.24, so this is not closable by upgrade. Scoped to the web image only.
+    expired_at: 2026-12-05
+  - id: CVE-2026-78410
+    statement: >-
+      util-linux advisory mapped onto the libuuid subpackage. Measured in the image on 2026-09-05: only libuuid is installed (two shared-library files); mount, nsenter and losetup are busybox applets; no setuid binaries exist. The vulnerable util-linux binaries are absent. Fixed 2.42.3-r0 is not published in alpine v3.24, so this is not closable by upgrade. Scoped to the web image only.
+    expired_at: 2026-12-05

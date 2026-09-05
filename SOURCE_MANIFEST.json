@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1828,
-  "root_sha256": "7dc0d26794cce55e46dbf05ad1550d35bc9ad786e62640b7f2824904b6edf8d0",
+  "file_count": 1829,
+  "root_sha256": "ac18b6ff7d095c738d8b00888eea3520242d04b5d4660f961fdbdd56aaf93fcf",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 56709,
-      "sha256": "439080c708f6698f7e6b5c56d6b3b351b189a947fcf9ef989e6559113a6207a5",
+      "bytes": 56855,
+      "sha256": "0fb269611ec6db2522e9846e4ec44541661bb793fffe45a33a54fcf0303e23a3",
       "mode": "0644"
     },
     {
@@ -144,9 +144,15 @@
       "mode": "0644"
     },
     {
+      "path": ".trivyignore.web.yaml",
+      "bytes": 6095,
+      "sha256": "0f0c92eb2d0edd4af5b4a79109a4b6cbe52d29dd1b50f54c787d93ff9df0157d",
+      "mode": "0644"
+    },
+    {
       "path": ".trivyignore.yaml",
-      "bytes": 6148,
-      "sha256": "217fc39b2bc466f2c49654c053838fe89bc53db6022a50ddb6839ea9d2b92184",
+      "bytes": 1115,
+      "sha256": "4e06e917612cb752eb0466caa54826c92a53c4a9a68805f09d01eb7531d01da8",
       "mode": "0644"
     },
     {
@@ -7412,7 +7418,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "7d160931b921e0eef9fbf3b117f81ae5d7adf0ee4bce86efca94e7a20f687cfe",
+      "sha256": "c24c4dcd9e50181d8ee610371f7f0e29a310c2a2e47fa9cd9da03a00d3a62b32",
       "mode": "0644"
     },
     {
