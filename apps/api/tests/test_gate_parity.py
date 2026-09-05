@@ -3134,9 +3134,7 @@ def test_an_image_scoped_suppression_cannot_be_applied_to_another_image() -> Non
         image = re.search(r"--input\s+(\w+)-image\.tar", line)
         assert image, f"не видно, який образ сканує рядок: {line}"
         # Обидві форми, бо trivy приймає обидві: `--ignorefile X` і `--ignorefile=X`.
-        ignore = re.search(
-            r"--ignorefile[=\s]+\"?\S*?\.trivyignore(?:\.(\w+))?\.yaml", line
-        )
+        ignore = re.search(r"--ignorefile[=\s]+\"?\S*?\.trivyignore(?:\.(\w+))?\.yaml", line)
         # «Не розпізнав» НЕ є «усе гаразд». Перша редакція мала тут `continue`, і повз
         # неї проходили дві форми: `--ignorefile=$CI_PROJECT_DIR/...` і
         # `--ignorefile "$WEB_IGNORES"`. Знайшов незалежний верифікатор 05.09.2026;
