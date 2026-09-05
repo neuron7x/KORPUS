@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1828,
-  "root_sha256": "4b920f17ddb86b3c1b0e6bc2b5c35acb36aeb23f7d39e0ab42db4f5ad3562922",
+  "root_sha256": "eeb58b1ac102a700ac58dfad509eec305f40bd07fcb2e362ee1cab0f7aef5dd4",
   "files": [
     {
       "path": ".dockerignore",
@@ -439,8 +439,8 @@
     },
     {
       "path": "RELEASE_ENVELOPE.json",
-      "bytes": 15272,
-      "sha256": "206a34d71c0bb384a0cbe381ee923e96084ca13370d8966e03c73cf480ef3942",
+      "bytes": 17052,
+      "sha256": "05f06da21a49d881bd983873d5949be2b0ee1a858b9ad16e1e3708c5b90e7a5d",
       "mode": "0644"
     },
     {
@@ -5677,8 +5677,8 @@
     },
     {
       "path": "config/assurance/production-hard-predicates-v1.json",
-      "bytes": 13560,
-      "sha256": "d4aecaf00f0ca1099f04ac0a833813922339bb319ef4f7024b29f7c8c10370d2",
+      "bytes": 18838,
+      "sha256": "8e54c4fab32937a888fbd91ccd18c7462eea5f38a0ed283221c557193a009661",
       "mode": "0644"
     },
     {
