@@ -1,0 +1,78 @@
+{
+  "schema": "korpus.closure.independent-verdict.v1",
+  "protocol": "KORPUS-CLOSE-2026-09-05",
+  "verifier": "korpus-verifier (окремий агент, свіжий контекст, той самий харнес і машина)",
+  "verdict": "REJECT",
+  "independence_class": "SEPARATE_CONTEXT_SAME_HARNESS",
+  "independence_caveat": "НЕ третя сторона (L9): інший контекст і інший виконавець-агент, але той самий харнес, та сама машина, той самий власник. Не може задовольнити independent_tevv.",
+  "confirmed_by_running": [
+    "current-truth-verify exit 0, PASS, failures [], 52 перевірки; негативний контроль у клоні: підміна internal_executable_unresolved на 3 -> FAIL. Гейт озброєний.",
+    "software_ready 14/14 і claim ledger 7 (SUPPORTED 5, REFUTED 2) — точні",
+    "повний набір на ізольованому клоні: 4159 / 0 fail / 0 error / 48 skipped, exit 0",
+    "mutation-report-freshness exit 0, selftest 8/8; каталог 624 id у коді = 624 у звіті",
+    "власна проба мутацій, свіжий seed 4242, 162 некаталогізовані модулі: 12/12 убито, 0 вижило"
+  ],
+  "refuted": [
+    {
+      "claim": "дайджест джерела не змінювався протягом усієї кампанії",
+      "measurement": "digest_source_records над закоміченими байтами: 12cbc22a -> 961f2639 -> 5a97eba5 -> 9ef04bfe -> 80840649 -> ae4ed6d5 -> b9096028",
+      "verdict": "ХИБНЕ. Дайджест мінявся шість разів; стабільний лише з 59554a20 (останні пʼять комітів). Я оголосив про ВСЮ кампанію те, що виміряв лише для своєї частини."
+    },
+    {
+      "claim": "handoff release_evidence BOUND",
+      "measurement": "make handoff-verify-bound -> rc=2 STALE на 0c671683",
+      "verdict": "БІЛЬШЕ НЕ ТРИМАЄТЬСЯ. BOUND був істинним на fcc46104 і живе рівно один коміт: його вбиває сам акт запису закриття."
+    },
+    {
+      "claim": "твердження 1 (блокери) і твердження 5 (лан rc=0) описують один стан дерева",
+      "measurement": "Makefile:1376 production-exact-environment (--profile development) входить у validate, check і release та пише той самий файл, що образна форма",
+      "verdict": "ВЗАЄМНО НЕСУМІСНІ. Після лану предикат exact_python не може бути задоволеним."
+    }
+  ],
+  "defects_found_by_verifier": [
+    {
+      "id": "VD-1",
+      "detail": "assurance-model (scripts/verify_assurance_model.py) НЕ входить у validate/check/release: там стоїть assurance-model-check (scripts/model_check_assurance.py) — інший скрипт зі схожою назвою. Прямий прогін дає FAIL: 7 із 8 блокуючих структурних замінників NOT_SATISFIED, усі через прив'язку до старих комітів.",
+      "class": "gate_red_and_unreachable_by_any_lane"
+    },
+    {
+      "id": "VD-2",
+      "detail": "check_mutation_report_freshness.py не міряє свіжості: отрута по ДАНИХ (source_digest = 64 нулі, дата 2020) дає problems() == []. Його власний selftest вписує ті самі нулі як ЧИСТИЙ випадок.",
+      "class": "gate_named_for_a_property_it_does_not_measure"
+    },
+    {
+      "id": "VD-3",
+      "detail": "reports/CURRENT_TRUTH_VERIFICATION.json був від 24.08 (дайджест 31b1d7bd, 40 перевірок), бо ціль пише файл лише за OUT=. Він хеш-засвідчений у FINAL_CLOSURE_STATE і названий у where_current_truth_lives. Цілість не є актуальністю.",
+      "class": "integrity_mistaken_for_currency",
+      "status": "ВИПРАВЛЕНО: перезнято з OUT=, тепер b9096028, 52 перевірки, PASS"
+    },
+    {
+      "id": "VD-4",
+      "detail": "FINAL_CLOSURE_STATE.json називав final_head fcc46104, а хешував артефакти вже з 0c671683: артефакт закриття про одну голову засвідчував докази іншої.",
+      "class": "artifact_about_its_own_commit",
+      "status": "ВИПРАВЛЯЄТЬСЯ перегенерацією ПІСЛЯ коміту"
+    },
+    {
+      "id": "VD-5",
+      "detail": "var/production/redteam-gate.json (evidence_class EXTERNAL_INDEPENDENT, status FAIL, 13 перевірок false, test_cases 0) не читає ЖОДЕН предикат: external_independent_redteam читає redteam_internal-gate.json.",
+      "class": "produced_evidence_no_consumer"
+    },
+    {
+      "id": "VD-6",
+      "detail": "reports/closure/CLEAN_ROOM_REPRODUCTION.json не має виробника в дереві, не читається жодним гейтом, dependency_freeze_sha256 ні з чим не звіряється, а «venv не симлінк» стверджено ПРОЗОЮ в полі distinguishes_from.",
+      "class": "evidence_unattacked_and_unconsumed"
+    },
+    {
+      "id": "VD-7",
+      "detail": "software_ready = not missing, де missing — оголошені software_artifacts, що не проходять is_file(). Зміст, версія і здатність виконатись не читаються. 14/14 означає буквально «файли на місці».",
+      "class": "metric_weaker_than_its_name"
+    }
+  ],
+  "not_executed_by_verifier": [
+    "make check (13 цілей) — дерево рухалось під виміром, і сам лан знищив би runtime-доказ",
+    "postgres-suite, coverage-ratchet, gate-liveness, selftest-falsifiability — поза check",
+    "GitLab pipeline #372 18/18 — не перевіряв ні виконанням, ні запитом до API",
+    "чи venv clean-room був справді свіжим і не симлінком — недосяжно з дерева"
+  ],
+  "verifier_own_contamination": "Верифікатор о ~20:38 прогнав make production-exact-environment у канонічному дереві (це крок validate) і перезаписав var/production/exact_environment-gate.json; відновив байт-у-байт. Названо ним самим."
+}
