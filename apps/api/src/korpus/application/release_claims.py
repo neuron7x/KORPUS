@@ -114,20 +114,20 @@ def claim_ledger(root: Path, source_digest: str, release: str) -> dict[str, Any]
         }
         for i, c, e in claims
     ]
+    # Доти обидві несли вписаний у код "REFUTED": правдивий і НЕФАЛЬСИФІКОВНИЙ разом.
+    registry = f"reports/release/{release}/final/BLOCKER_REGISTRY.json"
     rendered.extend(
         [
             {
-                "id": "CLM-PRODUCTION-AUTH",
-                "claim": "System is production-authorized.",
-                "status": "REFUTED",
-                "evidence": f"reports/release/{release}/final/BLOCKER_REGISTRY.json",
-            },
-            {
-                "id": "CLM-INDEPENDENT",
-                "claim": "System is independently validated.",
-                "status": "REFUTED",
-                "evidence": f"reports/release/{release}/final/BLOCKER_REGISTRY.json",
-            },
+                "id": i,
+                "claim": c,
+                "status": _claim_status(root, registry, source_digest, release),
+                "evidence": registry,
+            }
+            for i, c in (
+                ("CLM-PRODUCTION-AUTH", "System is production-authorized."),
+                ("CLM-INDEPENDENT", "System is independently validated."),
+            )
         ]
     )
     return {

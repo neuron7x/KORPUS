@@ -6,6 +6,7 @@ from pathlib import Path
 
 from korpus.application.provenance import compute_source_digest
 from korpus.application.release_claims import claim_ledger
+from korpus.application.release_truth import blocker_registry
 
 from scripts.current_truth_admission import (
     blocker_state_checks,
@@ -417,3 +418,70 @@ def test_a_digest_recorded_for_another_path_does_not_vouch_for_this_one(
     _write(root / REGISTRY, registry)
     checks = blocker_state_checks(root, "v0.9.7", "a" * 64)
     assert checks["BLOCKER_REGISTRY.evidence_inputs_current"] is False
+
+
+def _authorization_claims(root: Path, digest: str, registry: dict[str, object]) -> dict[str, str]:
+    _write(root / "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json", registry)
+    ledger = claim_ledger(root, digest, "v0.9.7")
+    return {
+        claim["id"]: claim["status"]
+        for claim in ledger["claims"]
+        if claim["id"] in ("CLM-PRODUCTION-AUTH", "CLM-INDEPENDENT")
+    }
+
+
+def test_authorization_claims_are_read_from_the_registry_they_name(tmp_path: Path) -> None:
+    """Вирок мусить бути ФУНКЦІЄЮ доказу, а не рядком у коді.
+
+    Доти `CLM-PRODUCTION-AUTH` і `CLM-INDEPENDENT` несли вписаний у джерело "REFUTED".
+    Він був правдивий і НЕФАЛЬСИФІКОВНИЙ водночас: жоден вхід не міг зробити його іншим,
+    тож він не був виміром. Обидві претензії називали доказом реєстр блокерів і не читали
+    з нього жодного байта — доказ був названий і не відкритий.
+
+    Проба СТВОРЮЄ свою умову в tmp_path, а не успадковує її від дерева: інакше вона
+    міряла б стан репозиторію, а не поведінку функції. Три різні реєстри мусять дати три
+    різні вироки; однаковий результат на всіх трьох означає, що константа повернулась.
+    """
+    digest = "a" * 64
+    base = {"release": "v0.9.7", "source_tree_sha256": digest}
+
+    closed = _authorization_claims(tmp_path, digest, {**base, "status": "PASS"})
+    assert set(closed.values()) == {"SUPPORTED"}, closed
+
+    open_blockers = _authorization_claims(tmp_path, digest, {**base, "status": "FAIL"})
+    assert set(open_blockers.values()) == {"REFUTED_BY_EVIDENCE"}, open_blockers
+
+    other_tree = _authorization_claims(
+        tmp_path, digest, {**base, "status": "PASS", "source_tree_sha256": "b" * 64}
+    )
+    assert set(other_tree.values()) == {"STALE_EVIDENCE"}, other_tree
+
+    # Реєстр БЕЗ вироку не виносить його мовчки: відсутність — не «ні» і не «так».
+    silent = _authorization_claims(tmp_path, digest, base)
+    assert set(silent.values()) == {"UNDECLARED_EVIDENCE"}, silent
+
+
+def _registry_status(root: Path, digest: str, current: bool) -> str:
+    _write(root / "config/assurance/production-hard-predicates-v1.json", {"predicates": []})
+    _write(
+        root / "reports/PRODUCTION_HARD_PREDICATES.json",
+        {"release": "v0.9.7", "source_tree_sha256": digest if current else "c" * 64},
+    )
+    return str(blocker_registry(root, digest, "v0.9.7")["status"])
+
+
+def test_the_registry_verdict_is_computed_from_its_own_counts(tmp_path: Path) -> None:
+    """Друга половина контролю: вирок мусить ВИРОБЛЯТИСЬ, а не лише читатись.
+
+    Перша проба писала реєстр власноруч, тож прибирання поля `status` із
+    `blocker_registry` її не вбивало: вона доводила, що претензії читають доказ, і нічого
+    не казала про те, чи доказ його виносить. Одна озброєна половина виглядає як цілий
+    контроль і нею НЕ Є.
+
+    Порожній перелік предикатів навмисно: `all([])` істинне, тож саме тут згода мала б
+    з'явитись безпідставно. Вона й з'являється — але лише коли звіт предикатів про ЦЕ
+    дерево; несвіжий звіт мусить давати FAIL при тих самих нульових лічильниках.
+    """
+    digest = "a" * 64
+    assert _registry_status(tmp_path, digest, current=True) == "PASS"
+    assert _registry_status(tmp_path, digest, current=False) == "FAIL"
