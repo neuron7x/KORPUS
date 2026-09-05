@@ -248,3 +248,25 @@ def test_none_profile_accepts_absence_of_evidence_only() -> None:
         evidence=None,
         evaluated_at=now,
     )
+
+
+def test_none_profile_rejects_provider_supplied_evidence() -> None:
+    now = datetime.now(UTC)
+    spec = _spec(EvidenceProfile.NONE)
+    context = _context(now)
+    output = {"value": 1}
+    evidence = _evidence(
+        spec=spec,
+        context=context,
+        output=output,
+        observed_at=now,
+    )
+
+    with pytest.raises(CapabilityContractError, match="profile NONE forbids"):
+        validate_evidence(
+            spec=spec,
+            context=context,
+            output=output,
+            evidence=evidence,
+            evaluated_at=now,
+        )
