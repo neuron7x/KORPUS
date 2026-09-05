@@ -155,6 +155,41 @@ def effect_binding_digest(
     )
 
 
+def _record_binding(record: EffectRecord) -> tuple[str, ...]:
+    return (
+        record.subject_id,
+        record.idempotency_key,
+        record.binding_digest,
+        record.invocation_id,
+        record.capability_id,
+        record.capability_version,
+        record.logical_resource,
+        record.input_digest,
+    )
+
+
+def attest_effect_transition(
+    previous: EffectRecord,
+    updated: object,
+    *,
+    target: EffectState,
+    provider_reference: str | None = None,
+) -> EffectRecord:
+    """Require the durable transition result to prove the write that was requested."""
+
+    if not isinstance(updated, EffectRecord):
+        raise InvalidEffectTransition("effect ledger returned an invalid transition record type")
+    if _record_binding(updated) != _record_binding(previous):
+        raise InvalidEffectTransition("effect transition changed immutable reservation binding")
+    if updated.state is not target:
+        raise InvalidEffectTransition("effect transition did not persist the requested state")
+    if updated.provider_reference != provider_reference:
+        raise InvalidEffectTransition("effect transition provider reference does not match request")
+    if updated.reconciliation_disposition is not None:
+        raise InvalidEffectTransition("ordinary effect transition cannot set reconciliation disposition")
+    return updated
+
+
 def _attest_reservation(
     reservation: object,
     *,
@@ -187,6 +222,7 @@ def _attest_reservation(
     expected = (
         identity.subject,
         request.idempotency_key,
+        binding_digest,
         spec.capability_id,
         spec.version,
         logical_resource,
@@ -195,6 +231,7 @@ def _attest_reservation(
     observed = (
         record.subject_id,
         record.idempotency_key,
+        record.binding_digest,
         record.capability_id,
         record.capability_version,
         record.logical_resource,

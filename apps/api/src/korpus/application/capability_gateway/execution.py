@@ -16,6 +16,7 @@ from korpus.application.capability_gateway.effects import (
     EffectGuard,
     EffectLedger,
     EffectState,
+    attest_effect_transition,
     effectful,
 )
 from korpus.application.capability_gateway.errors import CapabilityContractError, CapabilityNotFound
@@ -250,10 +251,16 @@ class CapabilityExecutor:
             return True
         record = guard.reservation.record
         try:
-            self._effects.transition(
+            updated = self._effects.transition(
                 subject_id=record.subject_id,
                 idempotency_key=record.idempotency_key,
                 expected=EffectState.PENDING,
+                target=target,
+                provider_reference=provider_reference,
+            )
+            attest_effect_transition(
+                record,
+                updated,
                 target=target,
                 provider_reference=provider_reference,
             )
