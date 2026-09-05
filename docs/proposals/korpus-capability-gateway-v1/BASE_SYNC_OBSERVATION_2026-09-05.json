@@ -1,0 +1,28 @@
+{
+  "schema": "korpus.capability-gateway.base-sync-observation.v1",
+  "observed_at_utc": "2026-09-05T05:55:18Z",
+  "pr_number": 44,
+  "feature_branch": "proposal/korpus-capability-gateway-v1-20260904",
+  "feature_head_sha": "f1b7f6a5dd7221de5f9f2dd76dac6f0156f50ada",
+  "main_sha": "7708826139a3e018b5965372064029736adf19ad",
+  "merge_base_sha": "0494b02ab8237cfc4145d5f24825174e691179cc",
+  "feature_ahead_by": 99,
+  "feature_behind_by": 1,
+  "relationship": "DIVERGED",
+  "acceptance_gate": "BLOCKED",
+  "main_delta": {
+    "commits": 1,
+    "runtime_overlap_observed": false,
+    "integration_overlap_observed": false,
+    "integration_surfaces": [
+      "reports/"
+    ]
+  },
+  "content_equivalence": {
+    "reports_subtree_main_sha": "c333740f0162e19607a80b4e91fa3daccc941d7b",
+    "reports_subtree_feature_sha": "c333740f0162e19607a80b4e91fa3daccc941d7b",
+    "content_replay_commit": "0ca0d136665fcaed5d25b6850716e20a5ae3ee63",
+    "ancestry_synced": false
+  },
+  "interpretation": "The remaining main-only delta is assurance/report content. Its reports subtree has been replayed byte-for-byte onto the feature branch, eliminating report-content drift. Git ancestry nevertheless remains diverged because main@77088261 is not an ancestor of the feature candidate. Content equivalence is not ancestry equivalence; BASE_SYNC_REQUIRED remains blocking until an owner-permitted integration strategy produces an exact post-integration verification subject. This observation is metadata evidence only and does not establish PASS."
+}

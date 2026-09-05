@@ -1,0 +1,421 @@
+{
+  "schema": "korpus.proposal-branch-manifest.v1",
+  "repository": "neuron7x/KORPUS",
+  "target_branch": "main",
+  "baseline_commit": "578f4ea9caa93ec6211dbe914bf11ae110a6eaed",
+  "proposed_branch": "proposal/korpus-capability-gateway-v1-20260904",
+  "proposal_root": "docs/proposals/korpus-capability-gateway-v1",
+  "package_mode": "ADDITIVE_DOCUMENTATION_ONLY",
+  "implementation_status": "NOT_IMPLEMENTED",
+  "production_authority": "NONE",
+  "conflict_strategy": {
+    "existing_repository_files_modified_by_zip": 0,
+    "proposal_path_absent_at_inspected_baseline": true,
+    "future_conflict_guarantee": false,
+    "rule": "Every ZIP member is below proposal_root."
+  },
+  "content_manifest_excludes_this_manifest": true,
+  "content_set_sha256": "644613c78ba4d0c5bec65083ef6ec12d24e73a101d7d6f8ee0c5efb422bc2aa6",
+  "validation": {
+    "all_json_parse": "PASS",
+    "positive_request_json_schema_2020_12": "PASS",
+    "english_only_cyrillic_scan": "PASS"
+  },
+  "files": [
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/ACCEPTANCE_CRITERIA.md",
+      "sha256": "3a963fd62059ff86573dee1ace2bcfd4b535e719a177a07bd564b367063907e9",
+      "bytes": 1909
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_ARCHITECTURE.md",
+      "sha256": "a551d0d5e52a1d7e0cd352e722aee2a471af1a45430c2ac15ec8f2a50f31a8a2",
+      "bytes": 952
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/00_orchestrator.md",
+      "sha256": "ccad10923e0adcbba36693bd4636881cf476795201afd4efcf396716e7ed6d4a",
+      "bytes": 369
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/01_repo_forensics_agent.md",
+      "sha256": "7797908c12d4ff6f12d77e60c90146543fc5d947953400b96c9dc725b0741246",
+      "bytes": 314
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/02_architecture_agent.md",
+      "sha256": "a4c91a910c8c774b9264ee2b52c59d72ace2962da911faae3fd6fe3a3aca0ee8",
+      "bytes": 276
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/03_contract_agent.md",
+      "sha256": "c51300651212a893b7e80b428693f1715bc46fee1c2cdba231b08e1e06b24409",
+      "bytes": 267
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/04_policy_security_agent.md",
+      "sha256": "268d84824128686ea37274e873cef17182cb7b1ae4cce288b9ed6ffd2edf904e",
+      "bytes": 269
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/05_adapter_mcp_agent.md",
+      "sha256": "77bc031b77860c3ae820885bbf0a696a1ebf0d9f1697d645079da52c948bc58f",
+      "bytes": 221
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/06_side_effect_agent.md",
+      "sha256": "c720b6c9df55a9b1e4735702a40aa523e62fd2127a904987671834cadcacf6bb",
+      "bytes": 236
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/07_evidence_audit_agent.md",
+      "sha256": "b4e66335a21e16c2c559f08c5803360c3c783e939da74608c6ce3ca23b163f9a",
+      "bytes": 213
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/08_observability_agent.md",
+      "sha256": "c8ae2d58bdb08885c4e4c333cc2bebe917b809f265a81ab6a656afc037ddf36f",
+      "bytes": 216
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/09_test_falsification_agent.md",
+      "sha256": "a24eb99d2c9e8b03eec28247984f2f217046027acdb677da1981f840ac8ad644",
+      "bytes": 222
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/10_integration_verifier_agent.md",
+      "sha256": "cbb81c89551f352ce7812d996e35d4ef4749d784d0a050842b94a63dab13ee10",
+      "bytes": 287
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/11_clean_room_reproducer_agent.md",
+      "sha256": "5372c8332619105ef366505fc25c2c20d0e8da88590ae219cfd1716704e736d4",
+      "bytes": 216
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/12_release_handoff_agent.md",
+      "sha256": "f385c6d2679405143024607f8bce957fa101a3ef969b75ce130d06dc37fa827a",
+      "bytes": 260
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/ARCHITECTURE.md",
+      "sha256": "44f42b779e73595d88ec14f8895ee9562bdb88bd38e9f575d59d02893f59a81c",
+      "bytes": 2101
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/BIBLIOGRAPHY.md",
+      "sha256": "c74c9a05f03f5fa58dd0031952e18fb534e002443c8a49d376be32a8536e389a",
+      "bytes": 4065
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CAPABILITY_MODEL.md",
+      "sha256": "507812176ff4109681f4d77ee66317516769863f3928d6653af5ebbba573249c",
+      "bytes": 1538
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CODE_AGENT_EXECUTION_ORDER.md",
+      "sha256": "2594aa13d91ada4a621e8600da8b598957fcfbdc6cdbb38d158c471f68087204",
+      "bytes": 2654
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONFORMANCE_PROFILE.md",
+      "sha256": "cf8ca147a781460e71a42612eb9b938580fd5d6bf045a683740cc0a70cd0db13",
+      "bytes": 591
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/README.md",
+      "sha256": "e1ad6fdf5e274118e964e6f73b49a0affbed53881f1169bbfaac41dc3fd0815a",
+      "bytes": 419
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/audit-record.schema.json",
+      "sha256": "618fa242854d00139832e1089d716218f46a62757ce939f5c48cb474613133f8",
+      "bytes": 2463
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/capability-manifest.example.yaml",
+      "sha256": "6c19dd431450183c55f5819a2377560a21bbd79cce355da1b3504b77d7339458",
+      "bytes": 954
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/capability-spec.schema.json",
+      "sha256": "6ae6c44676253357121968d8a9e56a1ce2d2019dfcb73bc233eef6ca75cb1952",
+      "bytes": 4912
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/evidence-envelope.schema.json",
+      "sha256": "95f5d900fd2507b7d6b40f8a726078030681f7ed6a79f66d76cdcd3a40958edf",
+      "bytes": 2336
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/integration-request.schema.json",
+      "sha256": "a00807c5d2eefab97591a95e51c002f423ef847a99f3c22202b1d2c7140cb929",
+      "bytes": 857
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/integration-result.schema.json",
+      "sha256": "6369de8b6bd1e33e48ff1ea986d25ad364430dd657d2d4e365ec04215b455a09",
+      "bytes": 929
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/invocation-context.schema.json",
+      "sha256": "f203f12e6311d051f855ea1fa4ecf78403ad91b15fa93be84844135eb8798f39",
+      "bytes": 1613
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/DECISIONS/ADR-0001-additive-gateway.md",
+      "sha256": "58b4160e916c340eb4c7c02646388f6496584d07225d908543f65e69ba020a46",
+      "bytes": 340
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/DECISIONS/ADR-0002-policy-before-execution.md",
+      "sha256": "e032ac00690b3e52df6c402923d65c4c84c1b00be34a49e85febbbfd7ca14bbf",
+      "bytes": 250
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/DECISIONS/ADR-0003-no-parallel-authority-stack.md",
+      "sha256": "dcd88044c7d5f0a2aad0a2c0099a172837a927ff8870c23f01e651dac4559bfe",
+      "bytes": 291
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/DECISIONS/ADR-0004-side-effect-idempotency.md",
+      "sha256": "e1c2b7b442496b12881fe0c70c04006df5b99c249e86f6aa0648d4635ffe13ea",
+      "bytes": 301
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/DECISIONS/ADR-0005-structural-agent-separation.md",
+      "sha256": "09b3768b3ff565cea477463226bf700f5e1a0595533d23c81e44014f76e3e094",
+      "bytes": 247
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/DECISIONS/ADR-0006-mcp-as-adapter-not-authority.md",
+      "sha256": "db0e8bcb9fd07e2b22b2168981b0a7316cc9a1f33915638fbeb406b72c5ff29d",
+      "bytes": 259
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/ERROR_SEMANTICS.md",
+      "sha256": "27b1a952130e95fd89d9fab035fe5104e65f0e25a042becef7d4c5a567d2fd78",
+      "bytes": 1080
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/EVIDENCE_AND_AUDIT_MODEL.md",
+      "sha256": "1bafb93c0822881b83d41f6aae81b735823af630fbc9700e4210733af64c8d79",
+      "bytes": 1459
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/EXAMPLE_EXECUTION_TRACES.md",
+      "sha256": "79ceb1f9e0184cdf3e15af33eb2a32612489a52162c5a7368cdd87fc7ef44be6",
+      "bytes": 752
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/README.md",
+      "sha256": "364ea649463918652bd0efd8740299deb9cd4a633eb47b1b0bb2ec65555b11f9",
+      "bytes": 257
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/adapter_exception.json",
+      "sha256": "1d212390f7fdc8f6eb945234521750d62925c18b93343b072d272358125e51fb",
+      "bytes": 261
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/malformed_input.json",
+      "sha256": "6c392e807bde564b92b5f63ebd8233e61abfb7e9ca2840da8d79497b4bed08ff",
+      "bytes": 407
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/missing_evidence.json",
+      "sha256": "1330ccf9861db49a5ffe146de515f8c051b2da7fc92d1a95cc7690d578fda923",
+      "bytes": 253
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/policy_denied.json",
+      "sha256": "89c1f0abe0261c5f47d64d8eec482d47903e068d9b9005feb4f397b837c63af8",
+      "bytes": 436
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/side_effect_missing_idempotency.json",
+      "sha256": "1c56607cdce93e3f9a8164b27466318230d18a3f2c4724f615dccb9776b1a2b8",
+      "bytes": 455
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/spoofed_trust_metadata.json",
+      "sha256": "11532b0b5f8fbe2b36c9deabc8ca8f848e0bffaae0cc62e4132fb9bc99f4a817",
+      "bytes": 486
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/stale_evidence.json",
+      "sha256": "92e2f679f3b23e91c442664fcfd7f02342a3a690604649d9aa902bb0f16ca123",
+      "bytes": 900
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/unknown_capability.json",
+      "sha256": "0c66bf0367cd4ed1fdec76af375cc0f21adc489f1d8feccfcf0bf4d8dc27f150",
+      "bytes": 341
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/valid_read_only.json",
+      "sha256": "40d7173f29bc03df7f85bb7eab37cdedf10fd0e1e53d8607fe1959b7575518e6",
+      "bytes": 381
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/wrong_subject_binding.json",
+      "sha256": "45e467588415b9448cc4763d9b1fd430800e921057c354bf5eab60379341ef06",
+      "bytes": 334
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FUNCTION_CATALOG.md",
+      "sha256": "29087bb69c8bdd229b540457d9d6064d7ae00e59fccfc4298a97455854d530e6",
+      "bytes": 2422
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/IMPLEMENTATION_GRAPH.yaml",
+      "sha256": "d396bcff63a9b4acc753231a562f3956132446482e8313bb1fbb07335b6b10d5",
+      "bytes": 1080
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/IMPLEMENTATION_TARGET_MAP.md",
+      "sha256": "175a63501bf6f523ace716eb30f853031be806b48c0f8663268272a54f620f1f",
+      "bytes": 1124
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/IMPLEMENTATION_WORKPACKAGES.md",
+      "sha256": "9c3bc00ad9545001f4b940c805d5a82b508f54bfa7d07dc11bdaf118e101a089",
+      "bytes": 1771
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/MCP_AND_EXTERNAL_ADAPTER_MODEL.md",
+      "sha256": "8716b7debd66d257bf4f29a6ff6ac32a1005ceb36feaeb35d1487a9fea3bd3c5",
+      "bytes": 1415
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/MERGE_COMMITS_PLAN.md",
+      "sha256": "85f25040ec09b775624d82b592c48668e08f1b220d8ab4c6362478e583a79cae",
+      "bytes": 745
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/MERGE_GUIDE.md",
+      "sha256": "2293f52fc484d64ec60ef19381841bbc381fa7c4be391b63acbd44fdb5eaa53e",
+      "bytes": 880
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/MIGRATION_AND_COMPATIBILITY.md",
+      "sha256": "47c14eb6bf2371a7f04672398cb3220f0ce625743c57310a86a91ae064a6f76d",
+      "bytes": 860
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/NEGATIVE_CONTROLS.md",
+      "sha256": "7c4b42a8b73f07e794fc7b07f4c9e7c2045465514cd3ec086176a34b549f2dec",
+      "bytes": 1359
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/NON_NORMATIVE_REFERENCE_PSEUDOCODE.md",
+      "sha256": "b91531eafd9d3e7749b52218f8d3bbf7baf6e9df308ccc87473314dc8ad399db",
+      "bytes": 1521
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/OBSERVABILITY.md",
+      "sha256": "7db2b97302f6490f190faa1175e8ddc6fa2b47ff5c600a479b1166958a352082",
+      "bytes": 746
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/README.md",
+      "sha256": "f9284bbd91af08e4a321a8bdcc23bdb844e85919e76cbcb3cea30e83155f403f",
+      "bytes": 2462
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/RELEASE_AND_MERGE_PROTOCOL.md",
+      "sha256": "23dbeea4a3bb08bab1c636b4000c1be3bbbad2592f0a05c78d85da8e356df071",
+      "bytes": 854
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/REPOSITORY_ANALYSIS.md",
+      "sha256": "34bd972c06987399430b271cd8c635c9df48fff06d2ca8ec4d8ec5c1c8d7667d",
+      "bytes": 2153
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/REQUIREMENTS.json",
+      "sha256": "b51a131c3147d2d84f84ebbda5e8f849cc988424685bf5b2a5efad07d87fa944",
+      "bytes": 3439
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/RISK_REGISTER.md",
+      "sha256": "599a26b0b64275c81b8b2290b5e16cc74718629236ea82c843e145931d53397e",
+      "bytes": 1026
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/SCOPE_AND_NON_GOALS.md",
+      "sha256": "e34d15337598ac110404436d65655821acc51184fc5e3f74db08458c96288703",
+      "bytes": 1158
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/SECURITY_AND_POLICY_MODEL.md",
+      "sha256": "6894f8a63f4a0af98c2f57e083507f6b073c07767e9c44bbf005cbad7ae0192d",
+      "bytes": 1411
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/SIDE_EFFECT_AND_IDEMPOTENCY_MODEL.md",
+      "sha256": "3af09be2f818ccf8301470386518d3a5e2d184a82f161390af56fe6aed229c30",
+      "bytes": 835
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/STATE_MACHINE.md",
+      "sha256": "08d4863a32bc313b08b6d1b3bfed4000d13dbef96b438ca3c6a12fcc98d5163e",
+      "bytes": 755
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/TEST_STRATEGY.md",
+      "sha256": "c2a11dbef34254b32ecae320a9c47be4b0707dac0af1b19ccf0cfdc6f262be72",
+      "bytes": 1299
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/THREAT_MODEL.md",
+      "sha256": "cbb02f66e9628c49af89145f53cdb2c47fc95e2f6acf22f2baa4c54e3d068e48",
+      "bytes": 1427
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/TRACEABILITY_MATRIX.md",
+      "sha256": "64423d63645b7771e230b71b4e8959d847eb5b618170ec8d4d1909c6ae365bca",
+      "bytes": 895
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_00_REPO_BASELINE.md",
+      "sha256": "5677f26e5a5d3e29c90ccc7ee1c9a2926d77cf05948dab9efc8186546d1495db",
+      "bytes": 1206
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_01_ARCHITECTURE_APPROVAL.md",
+      "sha256": "d168fd3549271f6be4c7ebdc02eed157ae6209d26fff44307cccef646b0914f2",
+      "bytes": 1195
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_02_CONTRACT_FREEZE.md",
+      "sha256": "47b9bddf53defce9d6e5b1279926b70b08651d45cc89eadeb27b87755535ccab",
+      "bytes": 1190
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_03_POLICY_SECURITY_REVIEW.md",
+      "sha256": "36eb272788fc9cb05c521e928e55c3b1f3f7cdaaccdb5f521f95d1e7d23b7ac3",
+      "bytes": 1190
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_04_IMPLEMENTATION_COMPLETE.md",
+      "sha256": "3063eee46371d07b8162ccf019b486fec56d31c985dd65a41fb1d0df9f71ff3e",
+      "bytes": 1189
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_05_NEGATIVE_CONTROL_VERIFICATION.md",
+      "sha256": "e3570b02f2529d1c9fe6ac63a2d0e5a8838fd4a6bec13e4c6f1bece005499928",
+      "bytes": 1193
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_06_INTEGRATION_ACCEPTANCE.md",
+      "sha256": "e338f66e43ccd9de2a0b18a65d1d3b190e680a3eca8b4a80d8c1df71eb51e412",
+      "bytes": 1186
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_07_RELEASE_CANDIDATE_HANDOFF.md",
+      "sha256": "ff9a1ebb83cca2f8251c126a85208c1e1c1b7b0fff85b882f79607a25308f4f8",
+      "bytes": 1189
+    }
+  ]
+}

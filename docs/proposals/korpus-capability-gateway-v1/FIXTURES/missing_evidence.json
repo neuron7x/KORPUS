@@ -1,0 +1,12 @@
+{
+  "description": "Evidence-required output has no evidence.",
+  "provider_output": {
+    "reference_id": "doc-123",
+    "value": "example"
+  },
+  "evidence": null,
+  "expected": {
+    "error_code": "EVIDENCE_MISSING",
+    "outcome": "ABSTAINED"
+  }
+}

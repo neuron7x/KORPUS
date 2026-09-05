@@ -1,0 +1,18 @@
+schema: korpus.capability-gateway.workgraph.v1
+baseline: 578f4ea9caa93ec6211dbe914bf11ae110a6eaed
+nodes:
+  WP0: {title: live baseline and canonical seam map, depends_on: []}
+  WP1: {title: freeze gateway contract, depends_on: [WP0]}
+  WP2: {title: registry and contracts, depends_on: [WP1]}
+  WP3: {title: canonical policy integration, depends_on: [WP2]}
+  WP4: {title: deterministic internal adapter, depends_on: [WP3]}
+  WP5: {title: read-only HTTP adapter, depends_on: [WP4], optional_profile: http-read}
+  WP6: {title: evidence and audit binding, depends_on: [WP4]}
+  WP7: {title: side-effect idempotency, depends_on: [WP6], optional_profile: side-effects}
+  WP8: {title: MCP adapter, depends_on: [WP5, WP6], optional_profile: mcp}
+  WP9: {title: observability, depends_on: [WP4]}
+  WP10: {title: falsification suite, depends_on: [WP6, WP9]}
+  WP11: {title: compatibility and migration, depends_on: [WP10]}
+  WP12: {title: clean-room exact-state reproduction, depends_on: [WP11]}
+  WP13: {title: owner release handoff, depends_on: [WP12]}
+stop_state: READY_FOR_OWNER_APPROVAL

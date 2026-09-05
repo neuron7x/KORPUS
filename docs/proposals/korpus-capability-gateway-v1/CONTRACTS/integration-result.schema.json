@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:korpus:capability-gateway:v1:integration-result",
+  "title": "KORPUS IntegrationResult v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "invocation_id",
+    "outcome",
+    "audit_record_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "korpus.integration-result.v1"
+    },
+    "invocation_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "outcome": {
+      "enum": [
+        "SUCCESS",
+        "DENIED",
+        "REJECTED",
+        "FAILED",
+        "ABSTAINED",
+        "OUTCOME_UNKNOWN"
+      ]
+    },
+    "output": {},
+    "evidence": {},
+    "audit_record_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "\\S"
+    },
+    "error_code": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "\\S"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "SUCCESS"
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "then": {
+        "properties": {
+          "audit_record_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "\\S"
+          },
+          "error_code": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "error_code"
+        ],
+        "properties": {
+          "output": {
+            "type": "null"
+          },
+          "evidence": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "\\S"
+          }
+        }
+      }
+    }
+  ]
+}

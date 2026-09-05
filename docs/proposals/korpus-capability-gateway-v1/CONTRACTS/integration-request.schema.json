@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:korpus:capability-gateway:v1:integration-request",
+  "title": "KORPUS IntegrationRequest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "capability_id",
+    "capability_version",
+    "input"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "korpus.integration-request.v1"
+    },
+    "capability_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{2,127}$"
+    },
+    "capability_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "input": {
+      "type": "object"
+    },
+    "idempotency_key": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "dry_run": {
+      "type": "boolean"
+    }
+  }
+}
