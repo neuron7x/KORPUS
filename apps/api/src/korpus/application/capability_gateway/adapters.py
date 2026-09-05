@@ -80,9 +80,19 @@ class AdapterRegistry:
     def register(self, adapter_id: str, adapter_version: str, adapter: CapabilityAdapter) -> None:
         if self._frozen:
             raise CapabilityRegistrationError("adapter registry snapshot is frozen")
+        if not isinstance(adapter_id, str) or not isinstance(adapter_version, str):
+            raise CapabilityRegistrationError("adapter id/version must be strings")
         key = adapter_id.strip(), adapter_version.strip()
         if not all(key):
             raise CapabilityRegistrationError("adapter id/version must be non-empty")
+        try:
+            execute = getattr(adapter, "execute")
+        except Exception as exc:
+            raise CapabilityRegistrationError(
+                "adapter implementation must expose callable execute"
+            ) from exc
+        if not callable(execute):
+            raise CapabilityRegistrationError("adapter implementation must expose callable execute")
         if key in self._adapters:
             raise CapabilityRegistrationError(
                 f"duplicate adapter implementation: {adapter_id}@{adapter_version}"
