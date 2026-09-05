@@ -23,13 +23,20 @@
     "feature_behind_by": 3,
     "relationship": "DIVERGED",
     "main_only_delta_scope_observed": "reports/** only in compare 0494b02a..7211854d",
-    "acceptance_gate": "BASE_SYNC_REQUIRED"
+    "acceptance_gate": "BASE_SYNC_REQUIRED",
+    "pull_request_mergeable": false,
+    "pull_request_rebaseable": false,
+    "pull_request_mergeable_state": "dirty"
   },
   "execution_evidence": {
     "github_actions": {
       "candidate_commit": "75402124805ab15fdf9e071101dc417166cb7112",
       "workflow_runs_observed": 0,
-      "status": "EXECUTION_NOT_OBSERVED"
+      "commit_statuses_observed": 0,
+      "status": "EXECUTION_NOT_OBSERVED",
+      "trigger_status": "CI_TRIGGER_BLOCKED",
+      "trigger_blocker": "PULL_REQUEST_MERGE_CONFLICT",
+      "causal_basis": "PR #44 is mergeable=false, rebaseable=false and mergeable_state=dirty while the base workflow listens to pull_request without path filters. Earlier pull_request workflow runs exist on this branch; no execution evidence is transferred to the current candidate. The merge-conflicted pull-request state is therefore recorded as the current trigger blocker, not as a code-test failure or PASS."
     },
     "clean_room": {
       "candidate_commit": "75402124805ab15fdf9e071101dc417166cb7112",
@@ -52,12 +59,15 @@
     "negative_control_definition_is_not_execution_evidence": true,
     "missing_execution_is_never_pass": true,
     "workflow_absence_is_not_code_failure": true,
+    "merge_conflict_trigger_block_is_not_code_failure": true,
     "evidence_from_another_commit_is_not_current": true,
     "content_equivalence_is_not_ancestry_equivalence": true,
     "metadata_checkpoint_does_not_verify_itself": true
   },
   "blocking_gates": [
     "BASE_SYNC_REQUIRED",
+    "PULL_REQUEST_MERGE_CONFLICT",
+    "CI_TRIGGER_BLOCKED",
     "EXECUTION_NOT_OBSERVED",
     "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED",
     "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED"
