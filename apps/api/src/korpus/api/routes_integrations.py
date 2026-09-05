@@ -21,6 +21,14 @@ _PREAUTH_DENIALS = frozenset({"CAPABILITY_UNKNOWN", "CAPABILITY_DISABLED", "POLI
 _PUBLIC_PREAUTH_ERROR = "CAPABILITY_UNAVAILABLE"
 
 
+def _failed_public_result(invocation_id: object = None) -> IntegrationResult:
+    return IntegrationResult(
+        invocation_id=invocation_id if isinstance(invocation_id, UUID) else uuid4(),
+        outcome=InvocationOutcome.FAILED,
+        error_code="INTEGRATION_FAILED",
+    )
+
+
 def _revalidate_public_result(result: IntegrationResult) -> IntegrationResult:
     """Re-establish result invariants at the transport trust boundary.
 
@@ -32,23 +40,19 @@ def _revalidate_public_result(result: IntegrationResult) -> IntegrationResult:
     try:
         return IntegrationResult.model_validate(result.model_dump(mode="python"))
     except Exception:
-        invocation_id = result.invocation_id if isinstance(result.invocation_id, UUID) else uuid4()
-        return IntegrationResult(
-            invocation_id=invocation_id,
-            outcome=InvocationOutcome.FAILED,
-            error_code="INTEGRATION_FAILED",
-        )
+        return _failed_public_result(result.invocation_id)
 
 
-def public_integration_result(result: IntegrationResult) -> IntegrationResult:
-    """Project precise internal decisions into a non-oracular client envelope.
+def public_integration_result(result: object) -> IntegrationResult:
+    """Project an untrusted internal return value into the public result contract.
 
-    The application core already withholds output for non-success outcomes. This projection
-    repeats that rule at the HTTP boundary so a future core regression cannot turn a denied,
-    failed or ambiguous invocation into data disclosure. The projected envelope is then
-    revalidated so an invalid SUCCESS cannot bypass the canonical audit-success invariant.
+    Runtime protocol conformance is checked explicitly: Python type hints cannot prove that a
+    regressed or compromised invoker returned `IntegrationResult`. Invalid objects collapse to
+    one stable failed envelope before status projection or payload exposure.
     """
 
+    if not isinstance(result, IntegrationResult):
+        return _failed_public_result()
     if result.outcome is InvocationOutcome.SUCCESS:
         return _revalidate_public_result(result)
 
@@ -74,8 +78,8 @@ def build_integration_router(invoker: CapabilityInvoker) -> APIRouter:
     ) -> IntegrationResult:
         internal = invoker.invoke(identity=identity, request=request)
         public = public_integration_result(internal)
-        # Status projection must consume only the revalidated public envelope. The internal
-        # object may have been constructed unsafely and is not authority at this boundary.
+        # Status projection consumes only the revalidated public envelope. The internal object
+        # is not authority at this boundary, even when its static type claims otherwise.
         if public.error_code == _PUBLIC_PREAUTH_ERROR:
             response.status_code = status.HTTP_404_NOT_FOUND
         elif public.outcome is InvocationOutcome.DENIED:
