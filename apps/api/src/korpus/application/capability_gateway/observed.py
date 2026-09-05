@@ -5,7 +5,6 @@ from collections.abc import Iterator
 from contextlib import AbstractContextManager, contextmanager
 from typing import Protocol
 
-from korpus.application.capability_gateway.errors import CapabilityNotFound, CapabilityUnavailable
 from korpus.application.capability_gateway.invoke import CapabilityGateway, IntegrationResult
 from korpus.application.capability_gateway.registry import CapabilityRegistry
 from korpus.application.capability_gateway.types import CapabilitySpec, IntegrationRequest
@@ -29,10 +28,15 @@ class CapabilityInvocationTelemetry(Protocol):
 class ObservedCapabilityGateway:
     """Telemetry decorator preserving the exact gateway decision path.
 
-    Canonical capability metadata is resolved only from a frozen composition snapshot for
-    bounded telemetry dimensions. Later mutation of the caller-owned registry cannot make
-    telemetry describe a runtime-rejected capability as admitted. Telemetry remains lossy:
-    failures never authorize, block, replace, suppress, or rewrite gateway results.
+    The legacy registry argument is retained for call-site compatibility, but it is not an
+    admissible source of runtime capability identity: it can be independently populated or
+    mutated and therefore cannot prove that it is the exact frozen registry consumed by the
+    gateway. Until the runtime exposes an explicit immutable metadata view, capability
+    attribution deliberately abstains (`spec=None`). Outcome/error telemetry remains useful
+    and bounded, while false operational evidence is impossible by construction.
+
+    Telemetry is deliberately lossy: its failures never authorize, block, replace, suppress,
+    or rewrite gateway results.
     """
 
     def __init__(
@@ -42,11 +46,14 @@ class ObservedCapabilityGateway:
         telemetry: CapabilityInvocationTelemetry,
     ) -> None:
         self._gateway = gateway
-        self._registry = registry.frozen_snapshot()
         self._telemetry = telemetry
+        # Do not derive operational evidence from an independently supplied registry. Keeping
+        # the argument avoids a compatibility break while the runtime-bound metadata view is
+        # designed explicitly.
+        del registry
 
     def invoke(self, *, identity: Identity, request: IntegrationRequest) -> IntegrationResult:
-        spec = self._resolved_for_telemetry(request)
+        spec: CapabilitySpec | None = None
         started = time.monotonic()
         with _lossy_telemetry_span(self._telemetry, spec):
             result = self._gateway.invoke(identity=identity, request=request)
@@ -56,14 +63,6 @@ class ObservedCapabilityGateway:
             duration_seconds=max(0.0, time.monotonic() - started),
         )
         return result
-
-    def _resolved_for_telemetry(self, request: IntegrationRequest) -> CapabilitySpec | None:
-        try:
-            return self._registry.resolve_exact(request.capability_id, request.capability_version)
-        except (CapabilityNotFound, CapabilityUnavailable):
-            return None
-        except Exception:
-            return None
 
     def _observe_lossy(
         self,

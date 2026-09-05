@@ -36,6 +36,17 @@ class _UnknownGateway:
         )
 
 
+class _SuccessGateway:
+    def invoke(self, *, identity: Identity, request: IntegrationRequest) -> IntegrationResult:
+        del identity, request
+        return IntegrationResult(
+            invocation_id=UUID("44444444-4444-4444-4444-444444444444"),
+            outcome=InvocationOutcome.SUCCESS,
+            output={"ok": True},
+            audit_record_id="audit-telemetry-1",
+        )
+
+
 class _Telemetry:
     def __init__(self) -> None:
         self.specs: list[object | None] = []
@@ -53,7 +64,7 @@ def _spec() -> CapabilitySpec:
         schema_version="korpus.capability-spec.v1",
         capability_id="reference.telemetry.late",
         version="1.0.0",
-        description="Late telemetry-registry mutation control.",
+        description="Telemetry registry provenance control.",
         provider_type=ProviderType.INTERNAL,
         adapter=AdapterSpec(adapter_id="internal.telemetry", adapter_version="1.0.0"),
         effect_class=EffectClass.READ_LOCAL,
@@ -76,6 +87,15 @@ def _spec() -> CapabilitySpec:
     )
 
 
+def _request(spec: CapabilitySpec) -> IntegrationRequest:
+    return IntegrationRequest(
+        schema_version="korpus.integration-request.v1",
+        capability_id=spec.capability_id,
+        capability_version=spec.version,
+        input={"id": "1"},
+    )
+
+
 def test_late_registry_mutation_cannot_make_runtime_unknown_look_admitted_in_telemetry() -> None:
     spec = _spec()
     registry = CapabilityRegistry()
@@ -87,13 +107,39 @@ def test_late_registry_mutation_cannot_make_runtime_unknown_look_admitted_in_tel
     )
 
     registry.register(spec)
-    request = IntegrationRequest(
-        schema_version="korpus.integration-request.v1",
-        capability_id=spec.capability_id,
-        capability_version=spec.version,
-        input={"id": "1"},
-    )
-    result = wrapper.invoke(identity=Identity(subject="reader"), request=request)
+    result = wrapper.invoke(identity=Identity(subject="reader"), request=_request(spec))
 
     assert result.error_code == "CAPABILITY_UNKNOWN"
+    assert telemetry.specs == [None, None]
+
+
+def test_prepopulated_divergent_registry_cannot_claim_runtime_capability_metadata() -> None:
+    spec = _spec()
+    registry = CapabilityRegistry([spec])
+    telemetry = _Telemetry()
+    wrapper = ObservedCapabilityGateway(  # type: ignore[arg-type]
+        _UnknownGateway(),
+        registry,
+        telemetry,  # type: ignore[arg-type]
+    )
+
+    result = wrapper.invoke(identity=Identity(subject="reader"), request=_request(spec))
+
+    assert result.error_code == "CAPABILITY_UNKNOWN"
+    assert telemetry.specs == [None, None]
+
+
+def test_success_does_not_claim_unproven_separate_registry_identity() -> None:
+    spec = _spec()
+    registry = CapabilityRegistry([spec])
+    telemetry = _Telemetry()
+    wrapper = ObservedCapabilityGateway(  # type: ignore[arg-type]
+        _SuccessGateway(),
+        registry,
+        telemetry,  # type: ignore[arg-type]
+    )
+
+    result = wrapper.invoke(identity=Identity(subject="reader"), request=_request(spec))
+
+    assert result.outcome is InvocationOutcome.SUCCESS
     assert telemetry.specs == [None, None]
