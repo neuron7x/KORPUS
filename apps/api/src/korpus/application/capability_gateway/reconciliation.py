@@ -111,7 +111,10 @@ def reconcile_unknown_effect(
     if not expected_binding_digest:
         raise ReconciliationConflict("reconciliation requires an exact effect binding digest")
 
-    record = ledger.get(subject_id=identity.subject, idempotency_key=idempotency_key)
+    try:
+        record = ledger.get(subject_id=identity.subject, idempotency_key=idempotency_key)
+    except Exception as exc:
+        raise ReconciliationIndeterminate("durable reconciliation state is unavailable") from exc
     if record is None:
         raise ReconciliationConflict("effect reservation does not exist")
     if record.subject_id != identity.subject:
@@ -131,12 +134,19 @@ def reconcile_unknown_effect(
         raise ReconciliationConflict(
             "exact effect safety declaration is unavailable or drifted"
         ) from exc
+    except Exception as exc:
+        raise ReconciliationConflict(
+            "exact effect safety declaration could not be evaluated"
+        ) from exc
 
     declared_mode = safety.reconciliation_mode
     if declared_mode is ReconciliationMode.MANUAL:
         raise ReconciliationIndeterminate("manual reconciliation is required by effect safety")
 
-    resolver_mode = getattr(resolver, "reconciliation_mode", None)
+    try:
+        resolver_mode = getattr(resolver, "reconciliation_mode", None)
+    except Exception as exc:
+        raise ReconciliationConflict("reconciliation resolver mode could not be evaluated") from exc
     if not isinstance(resolver_mode, ReconciliationMode):
         raise ReconciliationConflict("reconciliation resolver mode is invalid")
     if resolver_mode is not declared_mode:
