@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1830,
-  "root_sha256": "cf5d08d8367dcdc6896d923a54805ba5dd6aefee5e132c87d10c0922d9635ad6",
+  "file_count": 1831,
+  "root_sha256": "17865fed956d2fb2b0dd91906cabc43595e9ca1bf2a2983a1cb7047e074740da",
   "files": [
     {
       "path": ".dockerignore",
@@ -7791,6 +7791,12 @@
       "path": "docs/assurance/ASSURANCE_CASE.md",
       "bytes": 1791,
       "sha256": "7cb0bca04d74d606114d2e280446967017c82ac0554897706d5424335d78f107",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/assurance/CLOSURE_CAMPAIGN_2026-09-05.md",
+      "bytes": 10676,
+      "sha256": "0e35981c31d822a0cfbd823b3c2457634dcfed36a62ea173d5c09bbe4e46b999",
       "mode": "0644"
     },
     {

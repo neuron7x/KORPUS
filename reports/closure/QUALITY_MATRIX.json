@@ -1,0 +1,99 @@
+{
+  "schema": "korpus.closure.quality-matrix.v1",
+  "reference_model": "ISO/IEC 25010:2023",
+  "candidate": "fcc46104",
+  "source_digest": "b9096028195cc54f45d43174d8ca7c7edf2a4d542cf1fc03c432768efde7f20c",
+  "note": "Включено лише характеристики, під якими лежить артефакт цього кандидата. Характеристики без вимоги в KORPUS НЕ додані: матриця, доповнена заради повноти моделі, описує модель, а не систему.",
+  "characteristics": [
+    {
+      "quality_characteristic": "Functional correctness",
+      "requirement": "Відповідь спирається на цитати з допущеного корпусу; жодна претензія без підстави",
+      "metric": "регресія бекенду: падінь і помилок",
+      "measurement_method": "make check -> reports/release/v0.9.7/FULL_BACKEND_REPORT.json",
+      "acceptance_threshold": "failures = 0 AND errors = 0",
+      "evidence": "reports/release/v0.9.7/FULL_BACKEND_REPORT.json",
+      "status": "PASS"
+    },
+    {
+      "quality_characteristic": "Functional correctness (falsifiability)",
+      "requirement": "Тест мусить падати, коли властивість, яку він охороняє, зруйнована",
+      "metric": "куровані мутанти: вбито / вижило",
+      "measurement_method": "make mutation (6 шардів)",
+      "acceptance_threshold": "survived = 0",
+      "evidence": "reports/MUTATION_FULL_CATALOGUE_CURRENT.json",
+      "status": "PASS",
+      "caveat": "число ПРО КАТАЛОГ: 162 модулі (42% джерела) не мають жодного мутанта — виміряно 2026-08-29"
+    },
+    {
+      "quality_characteristic": "Performance efficiency (time behaviour)",
+      "requirement": "Пілот на 3-10 запрошених тримає затримку відповіді під оголошеною стелею",
+      "metric": "p50 / p95 фази soak, частка відповідей",
+      "measurement_method": "load_probe.py проти пілотної топології, клас вимірюється, не оголошується",
+      "acceptance_threshold": "answered_share >= 0.95 AND p95 < 5.0 с",
+      "evidence": "var/load-probe.json (soak: 187/187, p50 1.678, p95 2.459)",
+      "status": "PASS"
+    },
+    {
+      "quality_characteristic": "Performance efficiency (capacity)",
+      "requirement": "Перевищення ємності відмовляє названою відмовою, а не деградацією",
+      "metric": "розподіл статусів на сплеску",
+      "measurement_method": "load_probe.py, фаза spike, паралелізм 12",
+      "acceptance_threshold": "жодного 5xx поза global_capacity_exhausted",
+      "evidence": "var/load-probe.json (145x200, 53x429, 754x503; refusal_reasons названі)",
+      "status": "PASS",
+      "caveat": "чесна стеля пілоту — 4 одночасні відповіді (KORPUS_MAX_CONCURRENT_ANSWERS=4)"
+    },
+    {
+      "quality_characteristic": "Reliability (recoverability)",
+      "requirement": "Відновлення з бекапу виконується і втрата вимірюється, а не припускається",
+      "metric": "RTO, RPO, втрачені події",
+      "measurement_method": "drill на окремій PostgreSQL: засів -> бекап -> засів ПІСЛЯ бекапу -> відновлення",
+      "acceptance_threshold": "drill виконується, числа зібрані, клас масштабу названий",
+      "evidence": "var/recovery-report.json (RTO 10.430 с, RPO 13.442 с, lost_events 0)",
+      "status": "PASS",
+      "caveat": "клас ci-fixture: обсяг на два порядки нижчий за підлогу претензії; час не переноситься на операційний корпус. RTO/RPO objective НЕ оголошений тим, хто має право оголошувати"
+    },
+    {
+      "quality_characteristic": "Reliability (fault tolerance)",
+      "requirement": "Збій ніколи не рендериться як відповідь про корпус",
+      "metric": "матриця хаосу: випадки / порушення",
+      "measurement_method": "make chaos-matrix",
+      "acceptance_threshold": "rc = 0, жодна відмова не набула форми відповіді",
+      "evidence": "chaos_cases 8, rc=0",
+      "status": "PASS"
+    },
+    {
+      "quality_characteristic": "Security (confidentiality, integrity)",
+      "requirement": "Авторизація прив'язана до суб'єкта і ресурсу; доказ прив'язаний до кандидата",
+      "metric": "негативні контролі гейтів; прив'язка доказів до дайджесту",
+      "measurement_method": "make operational-gate, verify_current_truth, production-hard-predicates",
+      "acceptance_threshold": "internal_executable_unresolved = 0 AND current-truth failures = []",
+      "evidence": "reports/CURRENT_TRUTH_VERIFICATION.json, reports/release/v0.9.7/final/BLOCKER_REGISTRY.json",
+      "status": "PASS"
+    },
+    {
+      "quality_characteristic": "Maintainability (analysability, modifiability)",
+      "requirement": "Покриття не може впасти від нового коду",
+      "metric": "приріст непокритих гілок",
+      "measurement_method": "make coverage-ratchet проти config/operations/test-adaptation-policy.json",
+      "acceptance_threshold": "maximum_missing_branch_regression = 0",
+      "evidence": "config/operations/test-adaptation-policy.json; лан make check rc=0",
+      "status": "PASS"
+    },
+    {
+      "quality_characteristic": "Portability (installability, replaceability)",
+      "requirement": "Кандидат відтворюється поза деревом розробки",
+      "metric": "повний набір у клоні з remote зі свіжим інтерпретатором",
+      "measurement_method": "клон origin на точний SHA + venv з локів + pytest",
+      "acceptance_threshold": "failures = 0 AND errors = 0",
+      "evidence": "reports/closure/CLEAN_ROOM_REPRODUCTION.json (4159/0/0/48)",
+      "status": "PASS",
+      "caveat": "НЕ незалежна валідація (L9): виконавець той самий"
+    }
+  ],
+  "excluded_characteristics": [
+    {"name": "Usability", "why": "інтерфейс пілоту не має вимоги з порогом у цьому релізі; матриця без порога не є виміром"},
+    {"name": "Compatibility (interoperability)", "why": "зовнішніх інтеграцій у релізному контурі немає; capability gateway (PR#44) ще не злитий"},
+    {"name": "Safety", "why": "KORPUS не керує фізичним процесом; характеристика не мапиться на вимогу"}
+  ]
+}
