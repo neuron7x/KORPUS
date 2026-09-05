@@ -4777,6 +4777,15 @@
       "proof_lines": 0,
       "reason": "New 2026-08-29: carries run artefacts into the release directory the preflight reads, refusing any bound to another tree. | 2026-09-05: 136 -> 137, рівно +1 рядок ПОВЕДІНКИ — запис `WEB_REGRESSION_REPORT.json` у мапі публікатора. Доти цей звіт оголошувався доказом `CLM-WEB`, і не писав його ЖОДЕН крок: претензія була вічним PENDING_EVIDENCE за побудовою. Прозу знято ПЕРЕД підняттям — пояснення живе в докстрінгу виробника `scripts/publish_web_regression.py`, а не в мапі."
     },
+    "scripts/publish_web_regression.py": {
+      "lines": 100,
+      "max_complexity": 8,
+      "max_function_args": 1,
+      "max_function_lines": 34,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "05.09.2026: виробник доказу CLM-WEB, якого доти не було НІ ОДНОГО. `WEB_REGRESSION_REPORT.json` оголошувався доказом і не писався жодним кроком, тож претензія була вічним PENDING_EVIDENCE за побудовою. Стелі — точний вимір при внесенні, як і решта реєстру: ратчет ставиться там, де модуль стоїть зараз, а не там, куди він міг би вирости."
+    },
     "scripts/recheck_blocked_sources.py": {
       "lines": 275,
       "max_complexity": 10,
