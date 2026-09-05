@@ -2,7 +2,7 @@
 
 State: IN_PROGRESS / FAIL_MERGE_READINESS
 
-Current material verification candidate: `2cb88a27450b87bf1fa4bc21bdda98e609bbcac8`.
+Current material verification candidate: `d26865a07872903c0bc7bcf7a8a98b40e0753b83`.
 
 Current machine checkpoint: `CURRENT_VERIFICATION_CHECKPOINT.json`.
 `VERIFICATION_STATE.json` records an earlier exact candidate and must not be treated as the
@@ -16,16 +16,27 @@ Latest material safety increments:
 - executor poison control requires `ABSTAINED/EVIDENCE_INVALID`, no output/evidence exposure,
   and canonical audit persistence;
 - non-`NONE` evidence uses exact output-digest binding as the safe default;
-- an explicit attempt to weaken that binding is rejected by runtime and frozen JSON contract.
+- an explicit attempt to weaken that binding is rejected by runtime and frozen JSON contract;
+- compensation graphs must be acyclic, so a locally valid recovery declaration cannot form
+  a non-terminating A -> B -> ... -> A recovery plan.
+
+Current live base: `main@340b1b27fa67e667c351572822de790f871d5458`.
+Relationship: `DIVERGED` (`ahead_by=134`, `behind_by=4`), merge base
+`0494b02ab8237cfc4145d5f24825174e691179cc`.
 
 Current blocking chain:
 `BASE_SYNC_REQUIRED -> PULL_REQUEST_MERGE_CONFLICT -> CI_TRIGGER_BLOCKED -> EXECUTION_NOT_OBSERVED`.
 
-PR #44 is currently `mergeable=false`, `rebaseable=false`, `mergeable_state=dirty`. This is
-classified as a verification-trigger blocker, not as evidence that the candidate tests failed.
+PR #44 remains `mergeable=false` / dirty. This is classified as a verification-trigger blocker,
+not as evidence that the exact candidate tests failed.
 
-Clean-room attempt for the exact candidate was blocked before checkout by DNS resolution
-(`Could not resolve host: github.com`); no test result is inferred from that infrastructure failure.
+For exact candidate `d26865a07872903c0bc7bcf7a8a98b40e0753b83`:
+- GitHub Actions workflow runs observed: `0`;
+- commit statuses observed: `0`;
+- clean-room reproduction: `NOT_EXECUTED`;
+- fresh-context verification: `NOT_EXECUTED`.
+
+No evidence from an earlier candidate is promoted to this candidate.
 
 Additional blockers:
 - `CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED`
@@ -33,4 +44,4 @@ Additional blockers:
 
 Current execution order follows `IMPLEMENTATION_CAMPAIGN.md` and `IMPLEMENTATION_GRAPH.yaml`.
 
-Merge action remains prohibited in the current agent session.
+Merge, rebase, force-update and auto-merge remain prohibited in the current agent session.
