@@ -2,7 +2,7 @@
 
 State: IN_PROGRESS / FAIL_MERGE_READINESS
 
-Current material verification candidate: `94321447a6bb90f4276817d978e5a65959554f15`.
+Current material verification candidate: `40019ec10d1e7d7847a135f1d676e65fb9b1a112`.
 
 Current machine checkpoint: `CURRENT_VERIFICATION_CHECKPOINT.json`.
 `VERIFICATION_STATE.json` remains historical evidence for an earlier exact candidate.
@@ -16,25 +16,22 @@ Latest material safety increments:
 - provider duplicate-prevention proof for effectful retries;
 - acyclic, well-founded compensation graphs with iterative O(V) verification;
 - frozen runtime snapshots of capability, adapter and `ExactSchemaRegistry` composition state;
-- frozen telemetry registry snapshot against late caller mutation.
+- telemetry now abstains from capability-specific attribution unless exact runtime-snapshot
+  binding is proven. Outcome and stable-error telemetry remain bounded and available.
 
-Static red-team finding on the exact candidate:
-`ObservedCapabilityGateway` still derives bounded capability metadata from an independently
-supplied telemetry registry rather than from the exact frozen registry consumed by the runtime
-gateway. A pre-populated divergent registry can therefore produce false operational metadata
-for the same request identity. This is not observed authorization widening, but it is an
-evidence-integrity defect and remains blocking as
-`OBSERVABILITY_RUNTIME_SNAPSHOT_BINDING_REQUIRED`.
+The prior static observability provenance finding is source-level closed by
+`40019ec10d1e7d7847a135f1d676e65fb9b1a112`, with poison controls for late mutation,
+pre-populated divergent registries, and success without proven telemetry binding. Those controls
+have not been executed on the exact candidate and therefore are not recorded as PASS.
 
-Current live base: `main@b86a3d8b4415a95b73a4855e0d0f0edab67923f8`.
-Relationship: `DIVERGED` (`ahead_by=142`, `behind_by=8`), merge base
+Current live base: `main@5f900936636fecfc389564421b1e03cd319f69eb`.
+Relationship: `DIVERGED` (`ahead_by=144`, `behind_by=9`), merge base
 `0494b02ab8237cfc4145d5f24825174e691179cc`.
 
 Current blocking chain:
-`OBSERVABILITY_RUNTIME_SNAPSHOT_BINDING_REQUIRED` plus
 `BASE_SYNC_REQUIRED -> PULL_REQUEST_MERGE_CONFLICT -> CI_TRIGGER_BLOCKED -> EXECUTION_NOT_OBSERVED`.
 
-For exact candidate `94321447a6bb90f4276817d978e5a65959554f15`:
+For exact candidate `40019ec10d1e7d7847a135f1d676e65fb9b1a112`:
 - GitHub Actions workflow runs observed: `0`;
 - commit statuses observed: `0`;
 - clean-room reproduction: `NOT_EXECUTED`;
