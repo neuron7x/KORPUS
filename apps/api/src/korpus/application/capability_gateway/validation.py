@@ -27,9 +27,15 @@ class ExactSchemaRegistry:
     def register(self, schema_id: str, validator: SchemaCheck) -> None:
         if self._frozen:
             raise CapabilityRegistrationError("schema registry snapshot is frozen")
+        if not isinstance(schema_id, str):
+            raise CapabilityRegistrationError("schema id must be a string")
         normalized = schema_id.strip()
         if not normalized:
             raise CapabilityRegistrationError("schema id must be non-empty")
+        if not callable(validator):
+            raise CapabilityRegistrationError(
+                f"schema validator must be callable: {normalized}"
+            )
         if normalized in self._validators:
             raise CapabilityRegistrationError(f"duplicate schema id: {normalized}")
         self._validators[normalized] = validator
