@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from enum import StrEnum
 from typing import Literal
 
@@ -24,6 +24,7 @@ _EFFECTFUL = frozenset(
         EffectClass.PRIVILEGED_ADMIN,
     }
 )
+CapabilityKey = tuple[str, str]
 
 
 class CompensationMode(StrEnum):
@@ -119,7 +120,7 @@ class EffectSafetyRegistry:
         self,
         declarations: Iterable[EffectSafetyDeclaration] | None = None,
     ) -> None:
-        self._declarations: dict[tuple[str, str], EffectSafetyDeclaration] = {}
+        self._declarations: dict[CapabilityKey, EffectSafetyDeclaration] = {}
         for declaration in declarations or ():
             self.register(declaration)
 
@@ -154,17 +155,21 @@ def effect_safety_graph_errors(
 
     A declaration can be locally well-formed while naming an unusable compensation target.
     This graph-level check therefore runs over the complete server-owned capability set used
-    by deployment/runtime composition. It grants no authority; it only rejects unsafe plans.
+    by deployment/runtime composition. Compensation edges must also be acyclic: recovery
+    needs a well-founded terminal plan, not a locally valid A->B->...->A loop.
+    This grants no authority; it only rejects unsafe plans.
     """
 
     ordered = tuple(specs)
     by_key = {(spec.capability_id, spec.version): spec for spec in ordered}
     errors: list[str] = []
+    compensation_edges: dict[CapabilityKey, CapabilityKey] = {}
 
     for spec in ordered:
         if spec.lifecycle is not CapabilityLifecycle.ENABLED or spec.effect_class not in _EFFECTFUL:
             continue
-        source_key = f"{spec.capability_id}@{spec.version}"
+        source_key_tuple = spec.capability_id, spec.version
+        source_key = _format_capability_key(source_key_tuple)
         try:
             declaration = safety.resolve_exact(spec)
         except CapabilityRegistrationError as exc:
@@ -184,7 +189,7 @@ def effect_safety_graph_errors(
 
         target_key_tuple = target_id, target_version
         target = by_key.get(target_key_tuple)
-        target_key = f"{target_id}@{target_version}"
+        target_key = _format_capability_key(target_key_tuple)
         if target is None:
             errors.append(
                 f"{source_key}: compensation capability is not registered: {target_key}"
@@ -200,5 +205,44 @@ def effect_safety_graph_errors(
             errors.append(
                 f"{source_key}: compensation capability must be effectful: {target_key}"
             )
+            continue
 
+        compensation_edges[source_key_tuple] = target_key_tuple
+
+    errors.extend(_compensation_cycle_errors(compensation_edges))
     return tuple(sorted(errors))
+
+
+def _compensation_cycle_errors(edges: Mapping[CapabilityKey, CapabilityKey]) -> tuple[str, ...]:
+    """Return deterministic errors for cycles in a functional compensation graph."""
+
+    visited: set[CapabilityKey] = set()
+    active_index: dict[CapabilityKey, int] = {}
+    stack: list[CapabilityKey] = []
+    errors: set[str] = set()
+
+    def visit(node: CapabilityKey) -> None:
+        if node in active_index:
+            cycle = stack[active_index[node] :] + [node]
+            rendered = " -> ".join(_format_capability_key(item) for item in cycle)
+            errors.add(f"compensation cycle detected: {rendered}")
+            return
+        if node in visited:
+            return
+
+        active_index[node] = len(stack)
+        stack.append(node)
+        target = edges.get(node)
+        if target is not None:
+            visit(target)
+        stack.pop()
+        active_index.pop(node, None)
+        visited.add(node)
+
+    for node in sorted(edges):
+        visit(node)
+    return tuple(sorted(errors))
+
+
+def _format_capability_key(key: CapabilityKey) -> str:
+    return f"{key[0]}@{key[1]}"
