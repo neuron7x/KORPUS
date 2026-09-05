@@ -26,6 +26,7 @@ _KNOWN_ERROR_CODES = frozenset(
         "IDEMPOTENT_REPLAY_PENDING",
         "IDEMPOTENT_REPLAY_REQUIRES_RECONCILIATION",
         "IDEMPOTENT_REPLAY_COMMITTED",
+        "IDEMPOTENT_REPLAY_COMPLETED",
         "IDEMPOTENT_REPLAY_KNOWN_NO_EFFECT",
         "ADAPTER_NOT_REGISTERED",
         "ADAPTER_FAILURE",
@@ -65,7 +66,7 @@ class CapabilityObservability:
         )
         self._outcome_unknown = Counter(
             "korpus_capability_outcome_unknown_total",
-            "Capability invocations requiring effect reconciliation.",
+            "Capability invocations with unresolved execution or effect disposition.",
             ["effect_class", "provider_type"],
             registry=observability.registry,
         )

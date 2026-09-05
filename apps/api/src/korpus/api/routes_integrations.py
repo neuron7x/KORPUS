@@ -63,8 +63,8 @@ def build_integration_router(invoker: CapabilityInvoker) -> APIRouter:
         elif public.outcome is InvocationOutcome.ABSTAINED:
             response.status_code = status.HTTP_409_CONFLICT
         elif public.outcome is InvocationOutcome.OUTCOME_UNKNOWN:
-            # A retry can duplicate an already-committed effect. 409 forces the caller
-            # into explicit reconciliation rather than treating the transport as failed.
+            # 409 forces explicit state resolution before any retry. Depending on the
+            # durable state this may mean wait/recovery or provider reconciliation.
             response.status_code = status.HTTP_409_CONFLICT
         return public
 

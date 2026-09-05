@@ -79,6 +79,47 @@ def test_replay_semantics_preserve_durable_effect_truth(
     assert _replay_semantics(record) == (outcome, error_code)
 
 
+@pytest.mark.parametrize(
+    ("record", "outcome", "error_code"),
+    [
+        (
+            _record(EffectState.PENDING),
+            InvocationOutcome.OUTCOME_UNKNOWN,
+            "IDEMPOTENT_REPLAY_PENDING",
+        ),
+        (
+            _record(EffectState.COMMITTED),
+            InvocationOutcome.FAILED,
+            "IDEMPOTENT_REPLAY_COMPLETED",
+        ),
+        (
+            _record(EffectState.FAILED_KNOWN_NO_EFFECT),
+            InvocationOutcome.FAILED,
+            "IDEMPOTENT_REPLAY_KNOWN_NO_EFFECT",
+        ),
+        (
+            _record(EffectState.OUTCOME_UNKNOWN),
+            InvocationOutcome.FAILED,
+            "INTERNAL_ERROR",
+        ),
+        (
+            _record(
+                EffectState.RECONCILED,
+                ReconciliationDisposition.CONFIRMED_COMMITTED,
+            ),
+            InvocationOutcome.FAILED,
+            "INTERNAL_ERROR",
+        ),
+    ],
+)
+def test_non_effectful_replay_never_invents_external_commit_ambiguity(
+    record: EffectRecord,
+    outcome: InvocationOutcome,
+    error_code: str,
+) -> None:
+    assert _replay_semantics(record, effectful_operation=False) == (outcome, error_code)
+
+
 def test_missing_replay_record_fails_closed_instead_of_claiming_reconciliation() -> None:
     assert _replay_semantics(None) == (InvocationOutcome.FAILED, "INTERNAL_ERROR")
 
@@ -114,6 +155,7 @@ def test_only_ambiguous_effect_state_claims_reconciliation_is_required() -> None
         "IDEMPOTENT_REPLAY_PENDING",
         "IDEMPOTENT_REPLAY_REQUIRES_RECONCILIATION",
         "IDEMPOTENT_REPLAY_COMMITTED",
+        "IDEMPOTENT_REPLAY_COMPLETED",
         "IDEMPOTENT_REPLAY_KNOWN_NO_EFFECT",
     ],
 )

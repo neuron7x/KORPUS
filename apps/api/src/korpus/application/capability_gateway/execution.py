@@ -12,7 +12,12 @@ from korpus.application.capability_gateway.adapters import (
 )
 from korpus.application.capability_gateway.audit import InvocationOutcome
 from korpus.application.capability_gateway.contracts import canonical_json_bytes
-from korpus.application.capability_gateway.effects import EffectGuard, EffectLedger, EffectState
+from korpus.application.capability_gateway.effects import (
+    EffectGuard,
+    EffectLedger,
+    EffectState,
+    effectful,
+)
 from korpus.application.capability_gateway.errors import CapabilityContractError, CapabilityNotFound
 from korpus.application.capability_gateway.evidence import (
     CapabilityEvidenceBindingMismatch,
@@ -62,7 +67,7 @@ class CapabilityExecutor:
         ):
             return self._emitter.emit(
                 frame,
-                InvocationOutcome.OUTCOME_UNKNOWN,
+                InvocationOutcome.OUTCOME_UNKNOWN if effectful(frame.spec) else InvocationOutcome.FAILED,
                 "INTERNAL_ERROR",
                 self._material(executed, guard),
             )
@@ -95,10 +100,17 @@ class CapabilityExecutor:
         except AdapterKnownNoEffect:
             return self._known_no_effect(frame, guard)
         except AdapterOutcomeUnknown as exc:
-            return self._unknown_effect(
+            if effectful(frame.spec):
+                return self._unknown_effect(
+                    frame,
+                    guard,
+                    "ADAPTER_TIMEOUT",
+                    provider_reference=exc.provider_reference,
+                )
+            return self._known_no_effect(
                 frame,
                 guard,
-                "ADAPTER_TIMEOUT",
+                error_code="ADAPTER_TIMEOUT",
                 provider_reference=exc.provider_reference,
             )
         except AdapterExecutionFailed as exc:
@@ -111,9 +123,20 @@ class CapabilityExecutor:
         except Exception:
             return self._adapter_failure(frame, guard, "INTERNAL_ERROR")
 
-    def _known_no_effect(self, frame: InvocationFrame, guard: EffectGuard) -> IntegrationResult:
-        transitioned = self._transition(guard, EffectState.FAILED_KNOWN_NO_EFFECT)
-        code = "ADAPTER_FAILURE" if transitioned else "INTERNAL_ERROR"
+    def _known_no_effect(
+        self,
+        frame: InvocationFrame,
+        guard: EffectGuard,
+        *,
+        error_code: str = "ADAPTER_FAILURE",
+        provider_reference: str | None = None,
+    ) -> IntegrationResult:
+        transitioned = self._transition(
+            guard,
+            EffectState.FAILED_KNOWN_NO_EFFECT,
+            provider_reference=provider_reference,
+        )
+        code = error_code if transitioned else "INTERNAL_ERROR"
         return self._emitter.emit(
             frame,
             InvocationOutcome.FAILED,
@@ -150,11 +173,18 @@ class CapabilityExecutor:
         *,
         provider_reference: str | None = None,
     ) -> IntegrationResult:
-        if guard.required:
+        if effectful(frame.spec):
             return self._unknown_effect(
                 frame,
                 guard,
                 error_code,
+                provider_reference=provider_reference,
+            )
+        if guard.required:
+            return self._known_no_effect(
+                frame,
+                guard,
+                error_code=error_code,
                 provider_reference=provider_reference,
             )
         return self._emitter.emit(frame, InvocationOutcome.FAILED, error_code)
