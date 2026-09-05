@@ -2,7 +2,7 @@
 
 State: IN_PROGRESS / FAIL_MERGE_READINESS
 
-Current runtime verification candidate: `7bb497598248ee1ae4ebc0631f9bde30aa4ecd9c`.
+Current runtime verification candidate: `ad958a30eed5747e2ccc52969fcf8616c2ec794a`.
 
 Current machine checkpoint: `CURRENT_VERIFICATION_CHECKPOINT.json`.
 `VERIFICATION_STATE.json` records an earlier exact candidate and must not be treated as the
