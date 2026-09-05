@@ -29,10 +29,10 @@ class CapabilityInvocationTelemetry(Protocol):
 class ObservedCapabilityGateway:
     """Telemetry decorator preserving the exact gateway decision path.
 
-    Canonical capability metadata is resolved only for bounded telemetry dimensions. A
-    caller-controlled unknown capability id is deliberately represented as `spec=None` so
-    it cannot create unbounded metric labels or trace attributes. Telemetry is deliberately
-    lossy: its failures never authorize, block, replace, suppress, or rewrite gateway results.
+    Canonical capability metadata is resolved only from a frozen composition snapshot for
+    bounded telemetry dimensions. Later mutation of the caller-owned registry cannot make
+    telemetry describe a runtime-rejected capability as admitted. Telemetry remains lossy:
+    failures never authorize, block, replace, suppress, or rewrite gateway results.
     """
 
     def __init__(
@@ -42,7 +42,7 @@ class ObservedCapabilityGateway:
         telemetry: CapabilityInvocationTelemetry,
     ) -> None:
         self._gateway = gateway
-        self._registry = registry
+        self._registry = registry.frozen_snapshot()
         self._telemetry = telemetry
 
     def invoke(self, *, identity: Identity, request: IntegrationRequest) -> IntegrationResult:
