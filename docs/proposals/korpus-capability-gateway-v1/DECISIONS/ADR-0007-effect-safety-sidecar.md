@@ -34,12 +34,26 @@ exact target must be present in the same server-owned capability set, `ENABLED`,
 The target therefore also falls under the ordinary effect-safety requirement. Naming a missing,
 disabled, or read-only capability cannot satisfy rollback readiness.
 
+The compensation relation must also be **well-founded over the finite enabled capability set**.
+Let `C` be the enabled effectful capabilities and `comp: C ⇀ C` the partial function induced by
+`COMPENSATING_ACTION`. Deployment/runtime admission requires:
+
+```text
+forall c in C: not (c (comp)+ c)
+```
+
+where `(comp)+` is the transitive closure. Equivalently, the compensation graph is acyclic.
+Because `C` is finite and each declaration names at most one compensation target, acyclicity
+ensures every declaration traversal terminates at a node whose recovery mode is not another
+compensating action. This is a structural termination property only; it does **not** prove that
+a provider rollback or compensating action will succeed operationally.
+
 Every `CapabilityGateway` construction path repeats the exact safety check. Structured ports
 remain the preferred composition API, but the transitional legacy keyword-port path is not
 allowed to weaken effect safety: an enabled effectful capability without an exact-bound safety
 declaration is non-executable regardless of constructor form. Runtime composition must also
 use the same graph validation as deployment admission; preflight cannot be the only place that
-notices a hollow compensation dependency.
+notices a hollow or cyclic compensation dependency.
 
 The same declaration constrains reconciliation. Automatic reconciliation must resolve the
 exact declaration for the current capability contract and use the declared strategy only.
@@ -57,6 +71,9 @@ Those remain deployment-owned facts and therefore cannot widen policy authority.
 - Same-version local contract mutation invalidates the safety declaration.
 - A compensating-action declaration is rejected when its exact target is absent, non-enabled,
   or non-effectful; the target must carry its own valid effect safety when applicable.
+- Direct or indirect compensation cycles are rejected fail-closed before runtime execution.
+- Acyclicity proves structural termination of the declared recovery graph only; it is not
+  evidence that compensation is available, successful, atomic, or semantically complete.
 - Deployment admission and every runtime composition path enforce the same safety graph without
   turning safety metadata into authorization.
 - Automatic reconciliation cannot silently substitute one recovery strategy for another or

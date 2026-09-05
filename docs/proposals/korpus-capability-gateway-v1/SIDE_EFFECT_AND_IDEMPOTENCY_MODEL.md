@@ -59,8 +59,26 @@ validated over the complete server-owned capability graph, not as isolated strin
 - a compensating target remains an effectful capability in its own right and therefore must
   satisfy its own authorization, idempotency, evidence/audit and effect-safety constraints.
 
-A named but missing, disabled, or read-only compensation target is not rollback readiness and
+Let `C` be the finite set of enabled effectful capabilities and let `comp: C ⇀ C` map a
+`COMPENSATING_ACTION` declaration to its exact compensation target. Structural recovery
+admission requires:
+
+```text
+forall c in C: not (c (comp)+ c)
+```
+
+Therefore the compensation graph must be acyclic. Since each source has at most one target,
+finite acyclicity makes every declared compensation chain terminate at a non-compensating
+recovery node. A cycle such as `A -> B -> A` or `A -> B -> C -> A` is not a recovery plan and
 blocks deployment/runtime composition fail-closed.
+
+This well-foundedness property is deliberately narrow: it proves termination of the declared
+recovery relation, not operational rollback success. It does not imply that provider-native
+rollback will succeed, that a compensating action is semantically inverse, or that multi-step
+compensation is atomic.
+
+A named but missing, disabled, read-only, or cyclic compensation target is not rollback
+readiness and blocks deployment/runtime composition fail-closed.
 
 Reconciliation recording is not a new authority plane. Any operator/API surface that invokes
 it must first obtain canonical KORPUS authorization and must append canonical audit evidence;
