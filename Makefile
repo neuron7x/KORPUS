@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: pilot-posture machine-tevv release-freeze ci-run ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite sqlite-recovery-drill handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage selftest-falsifiability installed-units-verify canonical-verify branch-integration
+.PHONY: pilot-posture machine-tevv release-freeze ci-run ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite sqlite-recovery-drill handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage selftest-falsifiability installed-units-verify canonical-verify branch-integration owner-packet owner-packet-check mutation-delta-gate mutation-delta-gate-selftest blank-corpus-probe
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -286,6 +286,40 @@ slsa-provenance-verify:
 	test -n "$(ARTIFACT)"
 	test -n "$(STATEMENT)"
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/slsa_provenance.py verify --artifact "$(ARTIFACT)" --statement "$(STATEMENT)" --trusted-builders config/assurance/trusted-builders.v1.json $(if $(REQUIRE_TRUSTED_BUILDER),--require-trusted-builder)
+
+# Пакет власника більше не тримається рукою. Клас вади названий у §16 самого пакета:
+# документ розійшовся з виміром тричі за півдня, і гейт `source_bound` цього не бачив —
+# він звіряє ДАЙДЖЕСТ, а не те, чи числа під ним про це дерево.
+owner-packet:
+	PYTHONPATH=apps/api/src $(PY) scripts/refresh_owner_packet.py
+
+owner-packet-check:
+	PYTHONPATH=apps/api/src $(PY) scripts/refresh_owner_packet.py --check
+
+# Контур, що застосовується сам. Ратчет покриття не дає новому коду лишитись
+# невиконаним, курована мутація тримає 624 мутанти — але обидва мовчать про модуль,
+# якого в каталозі немає, а таких 162 (42% джерела, виміряно 29.08). Гейт стоїть РІВНО
+# НА ДЕЛЬТІ: правило на 162 модулях було б міграцією, перевдягненою в інваріант.
+#   make mutation-delta-gate BASE=origin/main
+mutation-delta-gate: mutation-delta-gate-selftest
+	# BASE обовʼязковий, БЕЗ дефолту. `origin/main` як дефолт робив би гейт зеленим за
+	# побудовою в лані: там HEAD і origin/main збігаються, дельта порожня, і порожня
+	# дельта дає PASS. Гейт, який не має предмета, вимірює власну присутність.
+	test -n "$(BASE)"
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_mutation_delta.py --base "$(BASE)"
+
+mutation-delta-gate-selftest:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_mutation_delta.py --selftest
+
+# Karpathy, input-independent baseline: «set all your inputs to zero. This should
+# perform worse». Ті самі СВОЇ питання проти вилученого доказового шару. Модель тему
+# знає, корпус мовчить: відповідь у цьому стані прийшла з ваг, не з цитат. Вирок — НУЛЬ,
+# без порога: поріг був би дозволом відповідати без підстави рідко.
+#   make blank-corpus-probe BASE=http://127.0.0.1:8030 TOKEN=...
+blank-corpus-probe:
+	test -n "$(BASE)"
+	test -n "$(TOKEN)"
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/probe_blank_corpus.py --base "$(BASE)" --token "$(TOKEN)"
 
 module-budget:
 	PYTHONPATH=apps/api/src $(PY) scripts/check_module_budget.py
@@ -816,7 +850,7 @@ public-health:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates package-build-identity production-observability production-inference-security production-exact-environment
+validate: mutation-delta-gate-selftest assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates package-build-identity production-observability production-inference-security production-exact-environment
 	python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py
@@ -1279,7 +1313,11 @@ deployment-debt-selftest:
 # рецептом замість заміру дала три хибні записи; реєстр 25 → 22.
 check: validate api-test api-lint eval mutation audit-closure migration-gate scale operational-gate determinism-gate stress-gate plasticity-gate web-build
 
-release: assurance snapshot validate handoff-verify-bound package
+# `owner-packet-check` стоїть ТУТ, не у `validate`: пакет власника несе дайджест
+# джерела, і будь-яка правка коду його зсуває. У `validate` цей гейт блокував би
+# кожну перевірку документом, який за побудовою відстає на одну правку. Пакет —
+# артефакт РЕЛІЗУ: там його розбіжність із виміром і є вадою, яку треба спинити.
+release: assurance snapshot validate owner-packet-check handoff-verify-bound package
 
 infra-secrets:
 	bash scripts/init_local_secrets.sh
@@ -1444,7 +1482,12 @@ evidence-refresh:
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/sync_package_build_identity.py
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_source_manifest.py --out reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json
 	$(MAKE) release-truth PY=$(PY)
-	$(MAKE) current-truth-verify PY=$(PY)
+	# Пакет власника — теж доказова поверхня, і `current-truth-verify` гейтує його
+	# `source_bound`. Доти єдиним виробником була рука, тож після кожної правки джерела
+	# лан спинявся на документі, який ніхто не оновлював. Виробник стоїть ПЕРЕД
+	# перевіркою, як і решта виробників у цьому рецепті.
+	$(MAKE) owner-packet PY=$(PY)
+	$(MAKE) current-truth-verify PY=$(PY) OUT=reports/CURRENT_TRUTH_VERIFICATION.json
 
 current-truth-verify:
 	PYTHONPATH=apps/api/src:. $(PY) scripts/verify_current_truth.py $(if $(OUT),--out "$(OUT)")

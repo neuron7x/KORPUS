@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1831,
-  "root_sha256": "cd225b3eb9cda6080d6a4a3ee62f78f8eeb27eb3b6084bd5a4290a4de48a505d",
+  "file_count": 1836,
+  "root_sha256": "7c1769000bd221060fec91f4eede2fe0be62359093d0b16936ae1bf19fbf3116",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 56855,
-      "sha256": "0fb269611ec6db2522e9846e4ec44541661bb793fffe45a33a54fcf0303e23a3",
+      "bytes": 57620,
+      "sha256": "157eb812a366ceb57dd9d3c8bdc57a3d380c2bbfd1e04b849ea1bea75e949ec0",
       "mode": "0644"
     },
     {
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 110744,
-      "sha256": "0af68569308aa3fc459b19d2cad0beed08faba2e1e52115e654b40aa6b4eb7aa",
+      "bytes": 114603,
+      "sha256": "a8bdd7eacb01966bb58c3bf2690935a988740f9cfb7c3e7e76996b79704f3fe1",
       "mode": "0644"
     },
     {
@@ -3936,6 +3936,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_mutation_delta_gate.py",
+      "bytes": 5150,
+      "sha256": "c0ddb50120fc39b88e12edec607dbf3ac96f7a1f2a77ae90368770bfca41e730",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_mutation_probe_safety.py",
       "bytes": 5068,
       "sha256": "669587856edd6c97c77e3e15d99bedb61c25684350d81a70d495ccc628468281",
@@ -7418,7 +7424,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "c24c4dcd9e50181d8ee610371f7f0e29a310c2a2e47fa9cd9da03a00d3a62b32",
+      "sha256": "e972e561c344cc1c990c55a02042e2aecee448aaa3a2ed44a6e21065cdbf4d1d",
       "mode": "0644"
     },
     {
@@ -7441,8 +7447,8 @@
     },
     {
       "path": "config/operations/gate-closure.json",
-      "bytes": 20495,
-      "sha256": "5f104a2a0cf84f7e1fdcfaa4db4a0a758fda3a7975d90e173e0beb49bfe969a9",
+      "bytes": 23202,
+      "sha256": "0ca6fbf20dce0922854bae5ea78ced145e6234ca3c78676a6585dadb360b985c",
       "mode": "0644"
     },
     {
@@ -7453,8 +7459,14 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 674198,
-      "sha256": "11a3a0811c0fb044e6d9548b0e9b900af644f3d95846dea4dbc48b422cfac3d2",
+      "bytes": 676376,
+      "sha256": "cd92b6037409fa81c396c981a8b4bb03e725178da7cecfe23b60c102377f83ca",
+      "mode": "0644"
+    },
+    {
+      "path": "config/operations/mutation-delta-exceptions.json",
+      "bytes": 505,
+      "sha256": "4802207479e5dcd7d8eaad69f97344ba3359347c2834a93a57ac465242fb3f99",
       "mode": "0644"
     },
     {
@@ -10104,6 +10116,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/probe_blank_corpus.py",
+      "bytes": 9541,
+      "sha256": "92ee9b46d2aec6ea7589b8cf1b1134374c11658748f083da5e1d7b9ee96095cc",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/probe_selftest_falsifiability.py",
       "bytes": 20975,
       "sha256": "7f8b415af85d6cacd591fc910c617cd8f3d1ce4fa5674a304228dc723a4ea942",
@@ -10204,6 +10222,12 @@
       "bytes": 2010,
       "sha256": "35f7651fdbef62ab6e1f09446952b893bdfe05f2fe6571bb9a603ae731dc8b9a",
       "mode": "0644"
+    },
+    {
+      "path": "scripts/refresh_owner_packet.py",
+      "bytes": 6898,
+      "sha256": "e23f1b0676f3d24c59d3873f8ad847712b7124fb886814d559fcf6e0d99995cf",
+      "mode": "0755"
     },
     {
       "path": "scripts/regression_collection.py",
@@ -10881,6 +10905,12 @@
       "path": "scripts/verify_installed_units.py",
       "bytes": 12824,
       "sha256": "dbbb27d27dc46605bb1644351c9155d211c2d50e990719aa89c4a41b6c58c5e5",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/verify_mutation_delta.py",
+      "bytes": 8330,
+      "sha256": "19f40ce66f59c7acb0b19ed1c345161deeaa7483c13953bd7df90c92fb7a64c7",
       "mode": "0755"
     },
     {

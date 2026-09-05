@@ -4679,6 +4679,15 @@
       "proof_lines": 0,
       "reason": "`corpus_state_epoch` у мутабельних таблицях: тригер піднімає епоху на КОЖНІЙ зміні складу доказів, і без права оновлювати її застосунок не міг би зафіксувати, що корпус зрушив між двома читаннями однієї відповіді."
     },
+    "scripts/probe_blank_corpus.py": {
+      "lines": 184,
+      "max_complexity": 9,
+      "max_function_args": 5,
+      "max_function_lines": 69,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "2026-09-06, НОВИЙ. Input-independent baseline (Karpathy): ті самі СВОЇ питання проти вилученого доказового шару. run_boundary_eval тримає чужу ТЕМУ, де мовчать і корпус, і модель; чотири одиничні контролі охороняють «без цитат — не відповідь» у МОДУЛІ. Наскрізного шляху не проходить жоден. Вирок — нуль, без порога."
+    },
     "scripts/probe_selftest_falsifiability.py": {
       "lines": 368,
       "max_complexity": 10,
@@ -4821,6 +4830,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Initial measured ceiling for retrieval-yield and Wilson uncertainty reporting"
+    },
+    "scripts/refresh_owner_packet.py": {
+      "lines": 159,
+      "max_complexity": 3,
+      "max_function_args": 2,
+      "max_function_lines": 32,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "2026-09-06, НОВИЙ. Виробник виміряних блоків пакета власника плюс --check. Клас вади названий у §16 самого пакета: документ розійшовся з виміром тричі за півдня, а гейт source_bound звіряє ДАЙДЖЕСТ, не те, чи числа під ним про це дерево."
     },
     "scripts/regression_collection.py": {
       "lines": 111,
@@ -5715,6 +5733,15 @@
       "max_nesting": 2,
       "proof_lines": 56,
       "reason": "Гейт паритету дивиться на КОЖЕН шаблон юніта в дереві, а не на перелік із одного інсталятора. Виміряно 02.09.2026: покривались два юніти, а встановлений `korpus-routine@.service` виявився зовсім іншим юнітом під тим самим іменем (`ExecStart=%h/.claude/routines/run.sh %i` проти `scripts/run_isolated_routine.py`). Гейт мовчав, бо цього імені не було в його переліку. Переліку більше немає: другий перелік розійшовся б із першим саме тоді, коли хтось додасть юніт. Плюс `substitution_agrees_with_installers` — гейт мусить підставляти корінь так само, як інсталятори, інакше червонітиме з власної причини."
+    },
+    "scripts/verify_mutation_delta.py": {
+      "lines": 156,
+      "max_complexity": 5,
+      "max_function_args": 1,
+      "max_function_lines": 20,
+      "max_nesting": 3,
+      "proof_lines": 20,
+      "reason": "2026-09-06, НОВИЙ. Гейт дельти: змінений модуль мусить мати мутанта в курованому каталозі, пройти пробу, або нести виняток із названою умовою закриття. Стоїть на ДЕЛЬТІ, бо правило на 162 некаталогізованих модулях було б міграцією, перевдягненою в інваріант. Предмет — apps/api/src + scripts: каталог покриває обидва (виміряно: apps 143, scripts 68)."
     },
     "scripts/verify_observability_contract.py": {
       "lines": 76,

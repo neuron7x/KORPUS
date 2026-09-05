@@ -83,6 +83,12 @@ repository:validate:
     # САМОЮ командою. Джерело — цей файл, прочитаний як YAML; копія переліку розійшлась би.
     - python scripts/verify_ci_mirror.py --selftest
     - python scripts/verify_ci_mirror.py
+    # Селфтест гейта дельти. Сам гейт тут НЕ стоїть: він потребує BASE, а в push-джобі
+    # база — це origin/main, з яким HEAD збігається, тож дельта була б порожня, а
+    # порожня дельта дає PASS. Гейт, що не має предмета, вимірює власну присутність.
+    # Селфтест же перевіряє те, що предмета не має: чи розбирається курований каталог,
+    # чи відхиляється виняток без умови закриття, чи вміє самоперевірка впасти.
+    - python scripts/verify_mutation_delta.py --selftest
     # OPS-004 on the only environment this job can observe: its own checkout. It proves
     # the comparator runs and that the manifest describes this tree. It is NOT evidence
     # about a cluster — that observation has to be taken on the running host, and it

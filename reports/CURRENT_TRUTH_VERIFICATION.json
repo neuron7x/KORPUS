@@ -1,8 +1,8 @@
 {
   "schema": "korpus.current-truth-verification.v2",
-  "status": "PASS",
+  "status": "FAIL",
   "release": "v0.9.7",
-  "source_tree_sha256": "b9096028195cc54f45d43174d8ca7c7edf2a4d542cf1fc03c432768efde7f20c",
+  "source_tree_sha256": "7241aefedeb488a1a9f3e49be4038080406b343271720662b79a00dd9af6f72f",
   "checks": {
     "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.present": true,
     "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.scope_named": true,
@@ -27,7 +27,7 @@
     "CLAIM_LEDGER.supported_evidence_resolves": true,
     "CLAIM_LEDGER.supported_unresolved_zero": true,
     "CLAIM_LEDGER.has_supported_claims": true,
-    "CLAIM_LEDGER.every_claim_decided_by_evidence": true,
+    "CLAIM_LEDGER.every_claim_decided_by_evidence": false,
     "BLOCKER_REGISTRY.current_state_present": true,
     "BLOCKER_REGISTRY.hard_predicate_report_current": true,
     "BLOCKER_REGISTRY.internal_executable_unresolved_zero": true,
@@ -57,5 +57,7 @@
     "PACKAGE_BUILD.present": true,
     "PACKAGE_BUILD.release_bound": true
   },
-  "failures": []
+  "failures": [
+    "CLAIM_LEDGER.every_claim_decided_by_evidence"
+  ]
 }
