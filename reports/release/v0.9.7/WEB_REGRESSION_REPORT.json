@@ -1,0 +1,34 @@
+{
+  "schema": "korpus.web-regression.v1",
+  "release": "v0.9.7",
+  "status": "PASS",
+  "steps": {
+    "lint": {
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    "test": {
+      "exit_code": 0,
+      "status": "PASS",
+      "tests": 158,
+      "pass": 158,
+      "fail": 0,
+      "skipped": 0
+    },
+    "build": {
+      "exit_code": 0,
+      "status": "PASS"
+    }
+  },
+  "tests": 158,
+  "passed": 158,
+  "failed": 0,
+  "skipped": 0,
+  "evidence_class": "LOCAL_NODE_TEST_RUNNER",
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "b9096028195cc54f45d43174d8ca7c7edf2a4d542cf1fc03c432768efde7f20c",
+    "generator": "scripts/publish_web_regression.py",
+    "generated_at": "2026-09-05T17:56:49+00:00"
+  }
+}

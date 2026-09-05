@@ -2,28 +2,63 @@
   "schema": "korpus.coverage-gap-plan.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "4186878a548e953902cdaa926d671f873de304601a753f0ab6ce4d629faf057c",
-  "statement_rate": 0.97131833,
-  "branch_rate": 0.94410569,
+  "source_tree_sha256": "b9096028195cc54f45d43174d8ca7c7edf2a4d542cf1fc03c432768efde7f20c",
+  "statement_rate": 0.97033748,
+  "branch_rate": 0.95306029,
   "minimum_statement_rate": 0.95,
   "minimum_branch_rate": 0.9,
-  "remaining_missing_branches": 220,
+  "remaining_missing_branches": 204,
   "missing_branch_ceiling": 220,
-  "missing_branch_regression": 0,
+  "missing_branch_regression": -16,
   "priority_queue": [
     {
       "path": "infrastructure/repository.py",
-      "missing_branches": 14,
-      "branch_rate": 0.865385,
+      "missing_branches": 18,
+      "branch_rate": 0.844828,
       "risk_weight": 4.0,
-      "priority": 56.0
+      "priority": 72.0
     },
     {
-      "path": "application/pec_adaptive_retrieval.py",
-      "missing_branches": 5,
-      "branch_rate": 0.642857,
+      "path": "application/answer_snapshot.py",
+      "missing_branches": 12,
+      "branch_rate": 0.142857,
       "risk_weight": 2.0,
-      "priority": 10.0
+      "priority": 24.0
+    },
+    {
+      "path": "infrastructure/corpus_snapshot.py",
+      "missing_branches": 8,
+      "branch_rate": 0.733333,
+      "risk_weight": 3.0,
+      "priority": 24.0
+    },
+    {
+      "path": "infrastructure/rls_repository.py",
+      "missing_branches": 5,
+      "branch_rate": 0.6875,
+      "risk_weight": 3.0,
+      "priority": 15.0
+    },
+    {
+      "path": "infrastructure/semantic.py",
+      "missing_branches": 5,
+      "branch_rate": 0.6875,
+      "risk_weight": 3.0,
+      "priority": 15.0
+    },
+    {
+      "path": "infrastructure/corpus_snapshot_guards.py",
+      "missing_branches": 4,
+      "branch_rate": 0.866667,
+      "risk_weight": 3.0,
+      "priority": 12.0
+    },
+    {
+      "path": "infrastructure/semantic_release.py",
+      "missing_branches": 4,
+      "branch_rate": 0.8,
+      "risk_weight": 3.0,
+      "priority": 12.0
     },
     {
       "path": "cli.py",
@@ -40,34 +75,6 @@
       "priority": 8.0
     },
     {
-      "path": "application/pec_evidence_features.py",
-      "missing_branches": 4,
-      "branch_rate": 0.714286,
-      "risk_weight": 2.0,
-      "priority": 8.0
-    },
-    {
-      "path": "application/pec_promotion_bindings.py",
-      "missing_branches": 4,
-      "branch_rate": 0.6,
-      "risk_weight": 2.0,
-      "priority": 8.0
-    },
-    {
-      "path": "application/pec_training_model.py",
-      "missing_branches": 4,
-      "branch_rate": 0.916667,
-      "risk_weight": 2.0,
-      "priority": 8.0
-    },
-    {
-      "path": "application/predictive_evidence_control.py",
-      "missing_branches": 4,
-      "branch_rate": 0.913043,
-      "risk_weight": 2.0,
-      "priority": 8.0
-    },
-    {
       "path": "application/tevv_evidence.py",
       "missing_branches": 4,
       "branch_rate": 0.777778,
@@ -77,14 +84,7 @@
     {
       "path": "application/answer_query.py",
       "missing_branches": 3,
-      "branch_rate": 0.884615,
-      "risk_weight": 2.0,
-      "priority": 6.0
-    },
-    {
-      "path": "application/billing_adjudication.py",
-      "missing_branches": 3,
-      "branch_rate": 0.9,
+      "branch_rate": 0.921053,
       "risk_weight": 2.0,
       "priority": 6.0
     },
@@ -92,13 +92,6 @@
       "path": "application/decision_sensitivity.py",
       "missing_branches": 3,
       "branch_rate": 0.5,
-      "risk_weight": 2.0,
-      "priority": 6.0
-    },
-    {
-      "path": "application/evidence.py",
-      "missing_branches": 3,
-      "branch_rate": 0.944444,
       "risk_weight": 2.0,
       "priority": 6.0
     },
@@ -138,35 +131,7 @@
       "priority": 6.0
     },
     {
-      "path": "application/pec_training_validation.py",
-      "missing_branches": 3,
-      "branch_rate": 0.785714,
-      "risk_weight": 2.0,
-      "priority": 6.0
-    },
-    {
-      "path": "application/production_hard_predicates.py",
-      "missing_branches": 3,
-      "branch_rate": 0.875,
-      "risk_weight": 2.0,
-      "priority": 6.0
-    },
-    {
       "path": "application/regression_receipt_identity.py",
-      "missing_branches": 3,
-      "branch_rate": 0.75,
-      "risk_weight": 2.0,
-      "priority": 6.0
-    },
-    {
-      "path": "application/semantic_readiness.py",
-      "missing_branches": 3,
-      "branch_rate": 0.625,
-      "risk_weight": 2.0,
-      "priority": 6.0
-    },
-    {
-      "path": "application/subscriptions.py",
       "missing_branches": 3,
       "branch_rate": 0.75,
       "risk_weight": 2.0,
@@ -208,16 +173,9 @@
       "priority": 6.0
     },
     {
-      "path": "infrastructure/embedding_provider.py",
-      "missing_branches": 2,
-      "branch_rate": 0.9,
-      "risk_weight": 3.0,
-      "priority": 6.0
-    },
-    {
       "path": "infrastructure/extraction.py",
       "missing_branches": 2,
-      "branch_rate": 0.983871,
+      "branch_rate": 0.984615,
       "risk_weight": 3.0,
       "priority": 6.0
     },
@@ -225,13 +183,6 @@
       "path": "infrastructure/gcs.py",
       "missing_branches": 2,
       "branch_rate": 0.971429,
-      "risk_weight": 3.0,
-      "priority": 6.0
-    },
-    {
-      "path": "infrastructure/identity_contracts.py",
-      "missing_branches": 2,
-      "branch_rate": 0.8,
       "risk_weight": 3.0,
       "priority": 6.0
     },
@@ -250,60 +201,11 @@
       "priority": 6.0
     },
     {
-      "path": "infrastructure/offline_pack_signer.py",
-      "missing_branches": 2,
-      "branch_rate": 0.0,
-      "risk_weight": 3.0,
-      "priority": 6.0
-    },
-    {
-      "path": "infrastructure/parser_contracts.py",
-      "missing_branches": 2,
-      "branch_rate": 0.666667,
-      "risk_weight": 3.0,
-      "priority": 6.0
-    },
-    {
       "path": "infrastructure/runtime_cloud.py",
       "missing_branches": 2,
       "branch_rate": 0.5,
       "risk_weight": 3.0,
       "priority": 6.0
-    },
-    {
-      "path": "infrastructure/semantic.py",
-      "missing_branches": 2,
-      "branch_rate": 0.8,
-      "risk_weight": 3.0,
-      "priority": 6.0
-    },
-    {
-      "path": "security/browser_cookie_policy.py",
-      "missing_branches": 1,
-      "branch_rate": 0.928571,
-      "risk_weight": 5.0,
-      "priority": 5.0
-    },
-    {
-      "path": "security/oidc_claims.py",
-      "missing_branches": 1,
-      "branch_rate": 0.954545,
-      "risk_weight": 5.0,
-      "priority": 5.0
-    },
-    {
-      "path": "security/oidc_numeric.py",
-      "missing_branches": 1,
-      "branch_rate": 0.833333,
-      "risk_weight": 5.0,
-      "priority": 5.0
-    },
-    {
-      "path": "config_policy.py",
-      "missing_branches": 4,
-      "branch_rate": 0.9375,
-      "risk_weight": 1.0,
-      "priority": 4.0
     },
     {
       "path": "application/assurance_evidence.py",
@@ -313,21 +215,14 @@
       "priority": 4.0
     },
     {
-      "path": "application/cache.py",
+      "path": "application/billing_adjudication.py",
       "missing_branches": 2,
-      "branch_rate": 0.8,
+      "branch_rate": 0.933333,
       "risk_weight": 2.0,
       "priority": 4.0
     },
     {
       "path": "application/doctrine_impact.py",
-      "missing_branches": 2,
-      "branch_rate": 0.75,
-      "risk_weight": 2.0,
-      "priority": 4.0
-    },
-    {
-      "path": "application/fingerprints.py",
       "missing_branches": 2,
       "branch_rate": 0.75,
       "risk_weight": 2.0,
@@ -344,13 +239,6 @@
       "path": "application/inference_budget.py",
       "missing_branches": 2,
       "branch_rate": 0.909091,
-      "risk_weight": 2.0,
-      "priority": 4.0
-    },
-    {
-      "path": "application/keyring.py",
-      "missing_branches": 2,
-      "branch_rate": 0.857143,
       "risk_weight": 2.0,
       "priority": 4.0
     },
@@ -406,20 +294,6 @@
     {
       "path": "application/retrieval.py",
       "missing_branches": 2,
-      "branch_rate": 0.857143,
-      "risk_weight": 2.0,
-      "priority": 4.0
-    },
-    {
-      "path": "application/retrieval_execution.py",
-      "missing_branches": 2,
-      "branch_rate": 0.75,
-      "risk_weight": 2.0,
-      "priority": 4.0
-    },
-    {
-      "path": "application/statistical_bounds.py",
-      "missing_branches": 2,
       "branch_rate": 0.909091,
       "risk_weight": 2.0,
       "priority": 4.0
@@ -439,18 +313,18 @@
       "priority": 4.0
     },
     {
-      "path": "application/ingestion.py",
-      "missing_branches": 1,
-      "branch_rate": 0.983871,
-      "risk_weight": 4.0,
-      "priority": 4.0
-    },
-    {
       "path": "infrastructure/audit_anchor.py",
       "missing_branches": 1,
       "branch_rate": 0.970588,
       "risk_weight": 4.0,
       "priority": 4.0
+    },
+    {
+      "path": "mcp/transport.py",
+      "missing_branches": 3,
+      "branch_rate": 0.625,
+      "risk_weight": 1.0,
+      "priority": 3.0
     },
     {
       "path": "model_settings.py",
@@ -544,9 +418,23 @@
       "priority": 3.0
     },
     {
+      "path": "infrastructure/retrieval_subject_query.py",
+      "missing_branches": 1,
+      "branch_rate": 0.5,
+      "risk_weight": 3.0,
+      "priority": 3.0
+    },
+    {
       "path": "infrastructure/review_transitions.py",
       "missing_branches": 1,
       "branch_rate": 0.972222,
+      "risk_weight": 3.0,
+      "priority": 3.0
+    },
+    {
+      "path": "infrastructure/semantic_coverage.py",
+      "missing_branches": 1,
+      "branch_rate": 0.75,
       "risk_weight": 3.0,
       "priority": 3.0
     },
@@ -572,9 +460,9 @@
       "priority": 3.0
     },
     {
-      "path": "config.py",
+      "path": "mcp/server.py",
       "missing_branches": 2,
-      "branch_rate": 0.9375,
+      "branch_rate": 0.909091,
       "risk_weight": 1.0,
       "priority": 2.0
     },
@@ -608,13 +496,6 @@
     },
     {
       "path": "application/contextual_projection.py",
-      "missing_branches": 1,
-      "branch_rate": 0.75,
-      "risk_weight": 2.0,
-      "priority": 2.0
-    },
-    {
-      "path": "application/evidence_admission.py",
       "missing_branches": 1,
       "branch_rate": 0.75,
       "risk_weight": 2.0,
@@ -656,6 +537,13 @@
       "priority": 2.0
     },
     {
+      "path": "application/pec_training_model.py",
+      "missing_branches": 1,
+      "branch_rate": 0.979167,
+      "risk_weight": 2.0,
+      "priority": 2.0
+    },
+    {
       "path": "application/plasticity_model_check.py",
       "missing_branches": 1,
       "branch_rate": 0.75,
@@ -663,9 +551,16 @@
       "priority": 2.0
     },
     {
-      "path": "application/provenance.py",
+      "path": "application/recovery.py",
       "missing_branches": 1,
-      "branch_rate": 0.973684,
+      "branch_rate": 0.961538,
+      "risk_weight": 2.0,
+      "priority": 2.0
+    },
+    {
+      "path": "application/retrieval_execution.py",
+      "missing_branches": 1,
+      "branch_rate": 0.875,
       "risk_weight": 2.0,
       "priority": 2.0
     },
@@ -710,6 +605,13 @@
       "branch_rate": 0.916667,
       "risk_weight": 2.0,
       "priority": 2.0
+    },
+    {
+      "path": "config_policy.py",
+      "missing_branches": 1,
+      "branch_rate": 0.984848,
+      "risk_weight": 1.0,
+      "priority": 1.0
     },
     {
       "path": "main.py",
