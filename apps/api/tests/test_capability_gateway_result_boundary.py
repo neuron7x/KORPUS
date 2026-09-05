@@ -144,7 +144,7 @@ def test_non_success_result_requires_stable_nonblank_error_code(error_code: str 
         )
 
 
-def test_present_nondigestible_provider_receipt_cannot_disappear_from_audit() -> None:
+def test_nondigestible_provider_receipt_is_internal_failure_before_audit_append() -> None:
     audit = _Audit("audit-1")
     emitter = CapabilityResultEmitter(audit)  # type: ignore[arg-type]
 
@@ -160,7 +160,7 @@ def test_present_nondigestible_provider_receipt_cannot_disappear_from_audit() ->
 
     assert audit.calls == 0
     assert result.outcome is InvocationOutcome.FAILED
-    assert result.error_code == "AUDIT_APPEND_FAILED"
+    assert result.error_code == "INTERNAL_ERROR"
     assert result.audit_record_id is None
     assert result.output is None
     assert result.evidence is None

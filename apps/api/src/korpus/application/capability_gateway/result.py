@@ -95,9 +95,11 @@ class CapabilityResultEmitter:
             evidence_digest = _evidence_digest(carried.evidence)
             provider_receipt_digest = _strict_optional_digest(carried.provider_receipt)
         except CapabilityContractError:
+            # Audit append was never attempted. Preserve fail-closed returnability without
+            # emitting false operational evidence that the canonical audit sink failed.
             return early_result(
                 InvocationOutcome.FAILED,
-                "AUDIT_APPEND_FAILED",
+                "INTERNAL_ERROR",
                 invocation_id=frame.context.invocation_id,
             )
 
