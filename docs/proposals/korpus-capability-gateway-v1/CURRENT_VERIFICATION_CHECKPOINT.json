@@ -1,0 +1,78 @@
+{
+  "schema": "korpus.capability-gateway.current-verification-checkpoint.v1",
+  "pr_number": 44,
+  "branch": "proposal/korpus-capability-gateway-v1-20260904",
+  "verification_candidate_commit": "7bb497598248ee1ae4ebc0631f9bde30aa4ecd9c",
+  "candidate_semantics": "Latest runtime-changing capability-gateway commit. This file is a later metadata checkpoint and does not recursively redefine its own verification subject.",
+  "runtime_hardening_since_previous_checkpoint": [
+    {
+      "commit": "9e600f2569eb471064341db350e654b56fe362e4",
+      "claim": "Normalize reconciliation port failures into stable fail-closed semantics before provider observation or durable mutation."
+    },
+    {
+      "commit": "124447fcc7ac963686d4dc5c83b44816596886a1",
+      "claim": "Derive HTTP status only from the revalidated public result envelope."
+    },
+    {
+      "commit": "1b95a544e58ae3f246d835bc2f0526417e35291a",
+      "claim": "Reject invalid adapter runtime result types; effectful dispatch ambiguity becomes OUTCOME_UNKNOWN."
+    },
+    {
+      "commit": "c85173f14774c9cbb2f57ea46c8a121a6e06c9ed",
+      "claim": "Reject invalid invoker runtime types at the HTTP trust boundary without payload exposure."
+    },
+    {
+      "commit": "19729dab4f1cbab35cfdf26cf4bc2d05e2b7037e",
+      "claim": "Attest durable effect reservations before dispatch: exact subject/key/capability/version/resource/input binding plus created-state coherence."
+    },
+    {
+      "commit": "7bb497598248ee1ae4ebc0631f9bde30aa4ecd9c",
+      "claim": "Attest durable effect transition results before treating persistence as successful."
+    }
+  ],
+  "live_base": {
+    "branch": "main",
+    "observed_sha": "7211854d7b04ec017bd75d9219d5f5ba2901bbe2",
+    "merge_base_sha": "0494b02ab8237cfc4145d5f24825174e691179cc",
+    "feature_ahead_by": 108,
+    "feature_behind_by": 3,
+    "relationship": "DIVERGED",
+    "main_only_delta_scope_observed": "reports/** only in compare 0494b02a..7211854d",
+    "acceptance_gate": "BASE_SYNC_REQUIRED"
+  },
+  "execution_evidence": {
+    "github_actions": {
+      "candidate_commit": "7bb497598248ee1ae4ebc0631f9bde30aa4ecd9c",
+      "workflow_runs_observed": 0,
+      "status": "EXECUTION_NOT_OBSERVED"
+    },
+    "fresh_exact_sha_clone": {
+      "attempted": true,
+      "status": "CLEAN_ROOM_EXECUTION_UNAVAILABLE",
+      "failure_class": "DNS_RESOLUTION",
+      "detail": "github.com could not be resolved in the isolated execution environment; repository checkout and test command did not execute.",
+      "test_command_executed": false
+    }
+  },
+  "truth_policy": {
+    "source_witness_is_not_execution_evidence": true,
+    "negative_control_definition_is_not_execution_evidence": true,
+    "missing_execution_is_never_pass": true,
+    "workflow_absence_is_not_code_failure": true,
+    "content_equivalence_is_not_ancestry_equivalence": true,
+    "metadata_checkpoint_does_not_verify_itself": true
+  },
+  "blocking_gates": [
+    "BASE_SYNC_REQUIRED",
+    "EXECUTION_NOT_OBSERVED",
+    "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED",
+    "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED"
+  ],
+  "verdict": "FAIL_MERGE_READINESS",
+  "authority": {
+    "merge_action": "PROHIBITED_IN_CURRENT_AGENT_SESSION",
+    "production_authority": "OWNER_ONLY",
+    "technical_validity_must_precede_merge": true
+  },
+  "historical_state_notice": "VERIFICATION_STATE.json remains historical evidence for its recorded candidate. For current candidate identity and blockers, this checkpoint is authoritative until a new exact-state verification record supersedes it."
+}
