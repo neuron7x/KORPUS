@@ -1,0 +1,28 @@
+{
+  "schema": "korpus.capability-gateway.base-sync-observation.v1",
+  "observed_at_utc": "2026-09-05T04:28:58Z",
+  "pr_number": 44,
+  "feature_branch": "proposal/korpus-capability-gateway-v1-20260904",
+  "feature_head_sha": "444b7ce877f32876fe26f279b027ea55314b3411",
+  "main_sha": "7c35f161d3f88f90f884e2274c9f7467408aa4b9",
+  "merge_base_sha": "f311e83ae632579fe370f38847b4b19e5eed5aed",
+  "feature_ahead_by": 91,
+  "feature_behind_by": 33,
+  "relationship": "DIVERGED",
+  "acceptance_gate": "BLOCKED",
+  "main_delta": {
+    "commits": 33,
+    "runtime_overlap_observed": false,
+    "integration_overlap_observed": true,
+    "integration_surfaces": [
+      "apps/api/src/korpus/application/release_claims.py",
+      "apps/api/src/korpus/application/release_truth.py",
+      "config/operations/",
+      "scripts/current_truth_admission.py",
+      "scripts/current_truth_contract.py",
+      "scripts/verify_branch_consolidation.py",
+      "scripts/verify_gate_closure.py"
+    ]
+  },
+  "interpretation": "The previously synchronized acceptance base is stale. Because main advanced by 33 commits across release-truth, gate, operations and verification surfaces, BASE_SYNC_REQUIRED is blocking until the feature candidate is re-integrated with current main and re-verified. This observation is metadata evidence only and does not itself resynchronize the branch or establish PASS."
+}
