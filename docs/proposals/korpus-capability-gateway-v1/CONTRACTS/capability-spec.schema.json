@@ -157,6 +157,24 @@
     {
       "if": {
         "properties": {
+          "effect_class": {
+            "enum": ["WRITE_REMOTE", "TRANSACTIONAL_SIDE_EFFECT", "PRIVILEGED_ADMIN"]
+          }
+        },
+        "required": ["effect_class"]
+      },
+      "then": {
+        "properties": {
+          "authorization": {
+            "properties": {"requires_explicit_effect_authorization": {"const": true}},
+            "required": ["requires_explicit_effect_authorization"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
           "authorization": {
             "properties": {"requires_explicit_effect_authorization": {"const": true}},
             "required": ["requires_explicit_effect_authorization"]
@@ -204,6 +222,28 @@
         "properties": {
           "retry": {
             "properties": {"only_safe_errors": {"const": true}}
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "effect_class": {
+            "enum": ["WRITE_REMOTE", "TRANSACTIONAL_SIDE_EFFECT", "PRIVILEGED_ADMIN"]
+          },
+          "retry": {
+            "properties": {"max_attempts": {"minimum": 2}},
+            "required": ["max_attempts"]
+          }
+        },
+        "required": ["effect_class", "retry"]
+      },
+      "then": {
+        "properties": {
+          "idempotency": {
+            "properties": {"provider_key_forwarding": {"const": true}},
+            "required": ["provider_key_forwarding"]
           }
         }
       }
