@@ -119,6 +119,23 @@ def test_effectful_multiple_attempts_are_admissible_with_provider_key_forwarding
     assert spec.idempotency.provider_key_forwarding is True
 
 
+def test_declared_evidence_profile_cannot_disable_output_digest_binding() -> None:
+    payload = _payload()
+    payload["evidence"] = EvidenceSpec(
+        profile=EvidenceProfile.SIGNED_RECEIPT,
+        bind_output_digest=False,
+    )
+
+    with pytest.raises(ValidationError, match="must bind the exact output digest"):
+        CapabilitySpec.model_validate(payload)
+
+
+def test_declared_evidence_profile_defaults_to_output_digest_binding() -> None:
+    evidence = EvidenceSpec(profile=EvidenceProfile.FACTUAL_EVIDENCE)
+
+    assert evidence.bind_output_digest is True
+
+
 def test_valid_effect_contract_remains_admissible() -> None:
     spec = CapabilitySpec.model_validate(_payload())
 
