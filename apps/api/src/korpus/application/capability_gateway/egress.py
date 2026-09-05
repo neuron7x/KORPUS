@@ -103,10 +103,13 @@ class CapabilityDataEgressGuard:
 
         if egress_class is not DataEgressClass.POLICY_GATED:
             raise RuntimeError(f"unsupported egress class: {egress_class.value}")
-        if not self._external_policy.permits(
+        permitted = self._external_policy.permits(
             identity=identity,
             spec=spec,
             max_tier=max_tier,
             logical_resource=logical_resource,
-        ):
+        )
+        if permitted is False:
             raise CapabilityEgressDenied("deployment external-data policy denied capability egress")
+        if permitted is not True:
+            raise RuntimeError("deployment external-data policy returned a non-boolean decision")

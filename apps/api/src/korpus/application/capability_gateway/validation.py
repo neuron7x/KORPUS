@@ -36,11 +36,13 @@ class ExactSchemaRegistry:
         except KeyError as exc:
             raise CapabilityContractError(f"unknown schema id: {schema_id}") from exc
         try:
-            validator(value)
+            result = validator(value)
         except CapabilityContractError:
             raise
         except (TypeError, ValueError) as exc:
             raise CapabilityContractError(f"schema validation failed: {schema_id}") from exc
+        if result is not None:
+            raise RuntimeError("schema validator returned a non-None success sentinel")
 
     def schema_ids(self) -> tuple[str, ...]:
         return tuple(sorted(self._validators))

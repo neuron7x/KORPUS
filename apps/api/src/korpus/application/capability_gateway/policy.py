@@ -83,11 +83,17 @@ class CapabilityPolicyBridge:
         if permission is None:
             raise CapabilityAuthorizationDenied(f"unmapped capability action: {action}")
         try:
-            self._policy.require(identity, permission)
+            result = self._policy.require(identity, permission)
         except AuthorizationError as exc:
             raise CapabilityAuthorizationDenied(
                 f"canonical policy denied {action} via {permission}: {exc}"
             ) from exc
+        except Exception as exc:
+            raise CapabilityPolicyIndeterminate("canonical policy could not decide") from exc
+        if result is not None:
+            raise CapabilityPolicyIndeterminate(
+                "canonical policy returned a non-None authorization sentinel"
+            )
         return CapabilityPolicyDecision(
             capability_id=spec.capability_id,
             capability_version=spec.version,
@@ -96,6 +102,32 @@ class CapabilityPolicyBridge:
             allowed=True,
             reason="canonical_policy_allowed",
         )
+
+    def _attest_action_decision(
+        self,
+        decision: object,
+        spec: CapabilitySpec,
+    ) -> CapabilityPolicyDecision:
+        expected_permission = self._action_permissions.get(spec.authorization.action)
+        if not isinstance(decision, CapabilityPolicyDecision) or expected_permission is None:
+            raise CapabilityPolicyIndeterminate("canonical action decision is invalid")
+        if decision.allowed is not True:
+            raise CapabilityPolicyIndeterminate("canonical action decision is not an explicit allow")
+        observed = (
+            decision.capability_id,
+            decision.capability_version,
+            decision.action,
+            decision.canonical_permission,
+        )
+        expected = (
+            spec.capability_id,
+            spec.version,
+            spec.authorization.action,
+            expected_permission,
+        )
+        if observed != expected:
+            raise CapabilityPolicyIndeterminate("canonical action decision binding mismatch")
+        return decision
 
     def authorize_resource(
         self,
@@ -106,7 +138,7 @@ class CapabilityPolicyBridge:
     ) -> CapabilityPolicyDecision:
         """Require both canonical action authority and exact resource authority."""
 
-        action_decision = self.authorize(identity, spec)
+        action_decision = self._attest_action_decision(self.authorize(identity, spec), spec)
         resource = logical_resource.strip()
         if not resource:
             raise CapabilityPolicyIndeterminate("logical resource is empty")
@@ -119,7 +151,7 @@ class CapabilityPolicyBridge:
             )
         try:
             allowed = authorizer(identity, spec, resource)
-        except Exception as exc:  # noqa: BLE001 - fail-closed PEP boundary over injected policy.
+        except Exception as exc:
             raise CapabilityPolicyIndeterminate(
                 f"resource policy could not decide: {mapper_id}"
             ) from exc
