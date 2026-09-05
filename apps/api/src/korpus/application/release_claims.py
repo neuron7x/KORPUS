@@ -8,7 +8,7 @@ from typing import Any
 from korpus.application.provenance import DIGEST_SCOPE, PROVENANCE_KEY
 
 
-def _binding(payload: dict[str, Any]) -> tuple[str | None, bool]:
+def binding(payload: dict[str, Any]) -> tuple[str | None, bool]:
     """Прив'язка доказу до дерева: з ВЕРХНЬОГО рівня або з канонічного конверта.
 
     Повертає `(дайджест | None, розбіжність)`.
@@ -54,7 +54,7 @@ def _claim_status(root: Path, evidence: str, source_digest: str, release: str) -
         return "INVALID_EVIDENCE"
     if "release" in payload and payload.get("release") != release:
         return "STALE_EVIDENCE"
-    bound, divergent = _binding(payload)
+    bound, divergent = binding(payload)
     if divergent:
         # Два оголошення однієї прив'язки розійшлись. Слабше не перемагає мовчки.
         return "DIVERGENT_BINDING"

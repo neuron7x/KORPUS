@@ -4769,13 +4769,13 @@
       "reason": "New 2026-08-29: projects the sharded regression merge into the preflight's backend report, which had no producer."
     },
     "scripts/publish_release_evidence.py": {
-      "lines": 137,
-      "max_complexity": 8,
+      "lines": 136,
+      "max_complexity": 9,
       "max_function_args": 2,
-      "max_function_lines": 55,
+      "max_function_lines": 58,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "New 2026-08-29: carries run artefacts into the release directory the preflight reads, refusing any bound to another tree. | 2026-09-05: 136 -> 137, рівно +1 рядок ПОВЕДІНКИ — запис `WEB_REGRESSION_REPORT.json` у мапі публікатора. Доти цей звіт оголошувався доказом `CLM-WEB`, і не писав його ЖОДЕН крок: претензія була вічним PENDING_EVIDENCE за побудовою. Прозу знято ПЕРЕД підняттям — пояснення живе в докстрінгу виробника `scripts/publish_web_regression.py`, а не в мапі."
+      "reason": "New 2026-08-29: carries run artefacts into the release directory the preflight reads, refusing any bound to another tree. | 2026-09-05: 136 -> 137, рівно +1 рядок ПОВЕДІНКИ — запис `WEB_REGRESSION_REPORT.json` у мапі публікатора. Доти цей звіт оголошувався доказом `CLM-WEB`, і не писав його ЖОДЕН крок: претензія була вічним PENDING_EVIDENCE за побудовою. Прозу знято ПЕРЕД підняттям — пояснення живе в докстрінгу виробника `scripts/publish_web_regression.py`, а не в мапі. | 2026-09-05: 137 -> 136. Ратчет ТІЛЬКИ затягується. Модуль ніс ВЛАСНЕ, слабше означення прив'язки (`_digest_of`: лише верхній рівень, `or` без виявлення розбіжності) поруч із повним у `release_claims`, яке читає ще й конверт `provenance`. Через це публікатор відхилив `WEB_REGRESSION_REPORT.json` як «bound to None», хоч журнал претензій вважав його прив'язаним — дві тотожності одного предмета. Слабшу видалено, лишилось одне означення. Складність main 8 -> 9 і довжина 55 -> 58: артефакт тепер має ТРИ розрізнювані стани замість двох — прив'язаний, застарілий і РОЗБІЖНИЙ. Розбіжність не можна згорнути в застарілість: `or` між двома оголошеннями прив'язки мовчки обирав би сильніше, а два оголошення одного факту, які розійшлись, — це стан, про який треба сказати. Одна гілка = один стан, який доти був невимовним."
     },
     "scripts/publish_web_regression.py": {
       "lines": 100,
