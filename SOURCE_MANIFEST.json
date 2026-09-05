@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1830,
-  "root_sha256": "ab38662999e1f33d722fe9e993ad670116fc4715e1d1b971afbf0470b1f154be",
+  "root_sha256": "3e0c42cac4cd21fb0762baab815974364bfcb65426fcbb9aa6be56d3f2ed4bf9",
   "files": [
     {
       "path": ".dockerignore",
@@ -3001,8 +3001,8 @@
     },
     {
       "path": "apps/api/tests/test_clean_source_release_boundary.py",
-      "bytes": 1364,
-      "sha256": "c1b3193edf8faed870df2915085f95849547e64ee6b091258a62ab08a8115e7d",
+      "bytes": 3493,
+      "sha256": "788004c403e1cd427fdf85514f5750a4b7b988e92381cac665f56e9a233d741a",
       "mode": "0644"
     },
     {
@@ -8683,8 +8683,8 @@
     },
     {
       "path": "handoff/machine/NEXT_TASKS_CURRENT.json",
-      "bytes": 815,
-      "sha256": "cd9706f7f3b362aeac9637d594ba6c4b1ed00616613d36b90db8361b858723d9",
+      "bytes": 1368,
+      "sha256": "167c49dc1b3cb037f5ce5623b7715aa644c9aa961f424b6736a01c973dbfff1c",
       "mode": "0644"
     },
     {
@@ -9961,8 +9961,8 @@
     },
     {
       "path": "scripts/package_repository.sh",
-      "bytes": 4624,
-      "sha256": "84c7f495eeae6e0cecd3fe93f585b0a7584d446b1aaee94efac580ac5b748a5c",
+      "bytes": 5025,
+      "sha256": "1ed21077474c91c204a5d11261b8011cdcaf12227b33815fc98ab339438f27cf",
       "mode": "0755"
     },
     {

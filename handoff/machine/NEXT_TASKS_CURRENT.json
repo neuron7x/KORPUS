@@ -2,7 +2,6 @@
   "schema": "korpus.next-tasks.v1",
   "release": "v0.9.7",
   "status": "REVALIDATION_REQUIRED",
-  "current_source_tree_sha256": "e7ce416b28bc2880810b4b1b3da67336de8a945f892ad5e2130df22811934916",
   "historical_full_evidence_source_tree_sha256": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
   "production_authorized": false,
   "tasks": [
@@ -16,5 +15,6 @@
     "real_postgres_rls_adversarial_execution",
     "hosted_scanners_provenance_load_recovery",
     "human_pec_independent_tevv_redteam_final_admission"
-  ]
+  ],
+  "current_source_tree_sha256_removed": "05.09.2026: поле несло e7ce416b — число, що не збігається з ЖОДНИМ із двох доменів дайджеста на 348ecc56, єдиному коміті, який його колись містив (виміряно evidence_paths 7ba9a8a1 і tracked_tree 52fb2d2a). Жодне закомічене дерево не мало такого дайджеста, тож поле не було прив'язкою. Читав його НІХТО. Слово «current» у назві поля було єдиним, що робило його схожим на вимір."
 }

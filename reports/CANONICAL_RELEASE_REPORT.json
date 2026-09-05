@@ -88,5 +88,21 @@
   "production_pec_reason": "No admissible production HUMAN judgments exist for this exact release/revision cohort.",
   "production_authorized": false,
   "external_boundary": "Current repository milestone only. Historical full verification is retained but is bound to a different source digest; current source requires fresh regression/mutation/web verification before staging promotion.",
-  "verification_state": "REVALIDATION_REQUIRED"
+  "verification_state": "REVALIDATION_REQUIRED",
+  "source_tree_sha256_attribution": {
+    "measured_at": "2026-09-05",
+    "verdict": "UNATTRIBUTABLE",
+    "claimed": "e7ce416b28bc2880810b4b1b3da67336de8a945f892ad5e2130df22811934916",
+    "measured_evidence_paths_at_348ecc56": "7ba9a8a11dafc1843273ac3630b2243b26f219ef1dfd32d9aa8089a9d2d93695",
+    "measured_tracked_tree_at_348ecc56": "52fb2d2a8ecc01bc8c6417c824ec610d3fbfaeb3d052cfa5b0f058b4af8296a9",
+    "why": "Заявлене число не збігається з жодним із двох доменів дайджеста на 348ecc56 — єдиному коміті, який його колись містив. Отже жодне ЗАКОМІЧЕНЕ дерево такого дайджеста не мало, і поле source_tree_sha256 тут не є прив'язкою до дерева.",
+    "why_it_could_not_be_current": "Цей звіт не пише жоден крок: grep по дереву знаходить самих читачів. Його status нефальсифіковний — немає дороги, якою він став би іншим, тож він не міг ані підтвердитись, ані спростуватись.",
+    "consequence": "05.09.2026 з scripts/package_repository.sh прибрано гілку KORPUS_ENGINEERING_CANDIDATE=1, яка брала дозвіл на пакування з полів engineering_release_candidate і status ЦЬОГО файла, минаючи scripts/verify_release_evidence.py. Після цього жоден гейт не читає звідси авторизацію.",
+    "where_current_truth_lives": [
+      "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json",
+      "reports/release/v0.9.7/final/CLAIM_LEDGER.json",
+      "reports/CURRENT_TRUTH_VERIFICATION.json"
+    ],
+    "not_rewritten": "Історичні поля лишено як є: заморожений запис не переписується заднім числом. Додано лише датований вимір поруч."
+  }
 }
