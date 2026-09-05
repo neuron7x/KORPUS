@@ -2,7 +2,7 @@
 
 State: IN_PROGRESS / FAIL_MERGE_READINESS
 
-Current material verification candidate: `6e753f4e172ae9f50059d04a340d1c3e8cae8523`.
+Current material verification candidate: `94321447a6bb90f4276817d978e5a65959554f15`.
 
 Current machine checkpoint: `CURRENT_VERIFICATION_CHECKPOINT.json`.
 `VERIFICATION_STATE.json` remains historical evidence for an earlier exact candidate.
@@ -15,26 +15,33 @@ Latest material safety increments:
 - durable effect reservation/transition/reconciliation attestation;
 - provider duplicate-prevention proof for effectful retries;
 - acyclic, well-founded compensation graphs with iterative O(V) verification;
-- frozen runtime snapshots of capability, adapter and `ExactSchemaRegistry` composition state.
-  Post-construction registration into caller-owned registries cannot alter the already-admitted
-  gateway executable surface or bypass the effect-safety graph checked at construction.
+- frozen runtime snapshots of capability, adapter and `ExactSchemaRegistry` composition state;
+- frozen telemetry registry snapshot against late caller mutation.
 
-Current live base: `main@340b1b27fa67e667c351572822de790f871d5458`.
-Relationship: `DIVERGED` (`ahead_by=140`, `behind_by=4`), merge base
+Static red-team finding on the exact candidate:
+`ObservedCapabilityGateway` still derives bounded capability metadata from an independently
+supplied telemetry registry rather than from the exact frozen registry consumed by the runtime
+gateway. A pre-populated divergent registry can therefore produce false operational metadata
+for the same request identity. This is not observed authorization widening, but it is an
+evidence-integrity defect and remains blocking as
+`OBSERVABILITY_RUNTIME_SNAPSHOT_BINDING_REQUIRED`.
+
+Current live base: `main@b86a3d8b4415a95b73a4855e0d0f0edab67923f8`.
+Relationship: `DIVERGED` (`ahead_by=142`, `behind_by=8`), merge base
 `0494b02ab8237cfc4145d5f24825174e691179cc`.
 
 Current blocking chain:
+`OBSERVABILITY_RUNTIME_SNAPSHOT_BINDING_REQUIRED` plus
 `BASE_SYNC_REQUIRED -> PULL_REQUEST_MERGE_CONFLICT -> CI_TRIGGER_BLOCKED -> EXECUTION_NOT_OBSERVED`.
 
-For exact candidate `6e753f4e172ae9f50059d04a340d1c3e8cae8523`:
+For exact candidate `94321447a6bb90f4276817d978e5a65959554f15`:
 - GitHub Actions workflow runs observed: `0`;
 - commit statuses observed: `0`;
-- static regression review only: no pre-existing post-Gateway registry mutation dependency found;
 - clean-room reproduction: `NOT_EXECUTED`;
 - fresh-context verification: `NOT_EXECUTED`.
 
-Static review is not promoted to a test result. No evidence from another commit is promoted to
-this candidate.
+Missing execution is not promoted to PASS, and a merge-conflict CI trigger failure is not
+misreported as a code-test failure. Evidence from another commit is not transferred.
 
 Additional blockers:
 - `CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED`
