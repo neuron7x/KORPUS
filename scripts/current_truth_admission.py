@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
+
+from korpus.application.release_truth import evidence_digest
 
 try:
     from .current_truth_contract import load_object
@@ -134,15 +135,15 @@ def blocker_state_checks(root: Path, release: str, digest: str) -> dict[str, boo
 def _evidence_inputs_current(root: Path, payload: Mapping[str, Any]) -> bool:
     """Чи зібрано реєстр саме з ТИХ файлів доказів, які лежать зараз.
 
-    Порожній запис — НЕ згода: `all([])` істинне.
+    Дайджест рахує ТА САМА функція, що його записала (`release_truth.evidence_digest`):
+    два визначення одного відношення розійшлися б мовчки — рівно той клас, який ця
+    перевірка й закриває рівнем вище. Зниклий файл дає порожній рядок, який не збігається
+    з жодним записаним дайджестом. Порожній запис — НЕ згода: `all([])` істинне.
     """
     recorded = payload.get("evidence_sha256")
     if not isinstance(recorded, Mapping) or not recorded:
         return False
-    for relative, expected in recorded.items():
-        path = root / str(relative)
-        if not path.is_file():
-            return False
-        if hashlib.sha256(path.read_bytes()).hexdigest() != str(expected):
-            return False
-    return True
+    return all(
+        evidence_digest(root / str(relative)) == str(expected)
+        for relative, expected in recorded.items()
+    )

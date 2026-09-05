@@ -101,7 +101,7 @@ def _blocker_item(
     }
 
 
-def _evidence_digest(path: Path) -> str:
+def evidence_digest(path: Path) -> str:
     """Дайджест ЗМІСТУ доказу, з якого зібрано реєстр.
 
     `source_tree_sha256` не покриває `reports/` і не має покривати — інакше доказ
@@ -152,7 +152,7 @@ def blocker_registry(root: Path, source_digest: str, release: str) -> dict[str, 
         "hard_predicates_total": len(profile.get("predicates", ())),
         "hard_predicate_report_current": current,
         "evidence_sha256": {
-            "reports/PRODUCTION_HARD_PREDICATES.json": _evidence_digest(report_path)
+            "reports/PRODUCTION_HARD_PREDICATES.json": evidence_digest(report_path)
         },
     }
 
