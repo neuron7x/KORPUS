@@ -13,25 +13,33 @@ CapabilityKey = tuple[str, str]
 
 
 class CapabilityRegistry:
-    """In-memory canonical registry for one process.
+    """Exact server-owned capability registry.
 
-    Registration is exact and immutable by `(capability_id, version)`. Executable lookup
-    refuses every lifecycle state except `ENABLED`; callers must never silently select a
-    latest version or use a discovered provider declaration as authority.
+    Registration is immutable by `(capability_id, version)`. Runtime composition consumes a
+    frozen snapshot so later mutations of a caller-owned registry cannot widen an already
+    admitted gateway instance or invalidate its effect-safety proof.
     """
 
     def __init__(self, specs: Iterable[CapabilitySpec] = ()) -> None:
         self._specs: dict[CapabilityKey, CapabilitySpec] = {}
+        self._frozen = False
         for spec in specs:
             self.register(spec)
 
     def register(self, spec: CapabilitySpec) -> None:
+        if self._frozen:
+            raise CapabilityRegistrationError("capability registry snapshot is frozen")
         key = self._key(spec.capability_id, spec.version)
         if key in self._specs:
             raise CapabilityRegistrationError(
                 f"duplicate capability declaration: {spec.capability_id}@{spec.version}"
             )
         self._specs[key] = spec
+
+    def frozen_snapshot(self) -> CapabilityRegistry:
+        snapshot = CapabilityRegistry(self.all_specs())
+        snapshot._frozen = True
+        return snapshot
 
     def describe_exact(self, capability_id: str, version: str) -> CapabilitySpec:
         try:

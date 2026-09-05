@@ -13,22 +13,31 @@ SchemaCheck = Callable[[object], None]
 class ExactSchemaRegistry:
     """Server-owned exact schema-id registry.
 
-    Capability manifests name schemas; they never provide executable validators. Unknown
-    schema ids fail closed and registration is immutable per id for the process lifetime.
+    Runtime composition consumes a frozen snapshot. The caller may continue assembling its
+    own registry, but those later registrations cannot silently alter an already admitted
+    gateway instance.
     """
 
     def __init__(self, validators: Mapping[str, SchemaCheck] | None = None) -> None:
         self._validators: dict[str, SchemaCheck] = {}
+        self._frozen = False
         for schema_id, validator in (validators or {}).items():
             self.register(schema_id, validator)
 
     def register(self, schema_id: str, validator: SchemaCheck) -> None:
+        if self._frozen:
+            raise CapabilityRegistrationError("schema registry snapshot is frozen")
         normalized = schema_id.strip()
         if not normalized:
             raise CapabilityRegistrationError("schema id must be non-empty")
         if normalized in self._validators:
             raise CapabilityRegistrationError(f"duplicate schema id: {normalized}")
         self._validators[normalized] = validator
+
+    def frozen_snapshot(self) -> ExactSchemaRegistry:
+        snapshot = ExactSchemaRegistry(self._validators)
+        snapshot._frozen = True
+        return snapshot
 
     def validate(self, schema_id: str, value: object) -> None:
         try:

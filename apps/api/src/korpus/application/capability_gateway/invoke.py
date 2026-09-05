@@ -52,6 +52,7 @@ from korpus.application.capability_gateway.types import (
     IntegrationRequest,
     InvocationContext,
 )
+from korpus.application.capability_gateway.validation import ExactSchemaRegistry
 from korpus.domain.models import Identity
 
 ResourceMapper = Callable[[Identity, CapabilitySpec, IntegrationRequest], str]
@@ -118,9 +119,19 @@ class CapabilityGateway:
         **legacy_ports: object,
     ) -> None:
         resolved = _normalize_ports(ports, legacy_ports)
+        # Runtime consumes exact composition snapshots. Caller-owned registries may continue
+        # to be assembled elsewhere, but post-construction registration must not silently
+        # widen this gateway instance after its safety admission has already been evaluated.
+        registry = resolved.registry.frozen_snapshot()
+        adapters = resolved.adapters.frozen_snapshot()
+        schemas: SchemaValidator = (
+            resolved.schemas.frozen_snapshot()
+            if isinstance(resolved.schemas, ExactSchemaRegistry)
+            else resolved.schemas
+        )
         safety = resolved.effect_safety or EffectSafetyRegistry()
-        _require_effect_safety(resolved.registry, safety)
-        self._registry = resolved.registry
+        _require_effect_safety(registry, safety)
+        self._registry = registry
         self._policy = resolved.policy
         self._resource_mappers = dict(resolved.resource_mappers)
         self._egress = resolved.egress
@@ -129,8 +140,8 @@ class CapabilityGateway:
         self._effect_safety = safety
         self._emitter = CapabilityResultEmitter(resolved.audit)
         self._executor = CapabilityExecutor(
-            adapters=resolved.adapters,
-            schemas=resolved.schemas,
+            adapters=adapters,
+            schemas=schemas,
             effects=resolved.effects,
             emitter=self._emitter,
         )

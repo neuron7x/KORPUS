@@ -71,12 +71,15 @@ class CapabilityAdapter(Protocol):
 
 
 class AdapterRegistry:
-    """Exact adapter implementation registry owned by server composition."""
+    """Exact adapter registry; runtime composition consumes a frozen identity snapshot."""
 
     def __init__(self) -> None:
         self._adapters: dict[tuple[str, str], CapabilityAdapter] = {}
+        self._frozen = False
 
     def register(self, adapter_id: str, adapter_version: str, adapter: CapabilityAdapter) -> None:
+        if self._frozen:
+            raise CapabilityRegistrationError("adapter registry snapshot is frozen")
         key = adapter_id.strip(), adapter_version.strip()
         if not all(key):
             raise CapabilityRegistrationError("adapter id/version must be non-empty")
@@ -85,6 +88,12 @@ class AdapterRegistry:
                 f"duplicate adapter implementation: {adapter_id}@{adapter_version}"
             )
         self._adapters[key] = adapter
+
+    def frozen_snapshot(self) -> AdapterRegistry:
+        snapshot = AdapterRegistry()
+        snapshot._adapters = dict(self._adapters)
+        snapshot._frozen = True
+        return snapshot
 
     def resolve(self, spec: CapabilitySpec) -> CapabilityAdapter:
         key = spec.adapter.adapter_id, spec.adapter.adapter_version
