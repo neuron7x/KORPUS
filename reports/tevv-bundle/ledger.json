@@ -1,7 +1,7 @@
 {
   "schema": "korpus.gold-annotation-ledger.v1",
   "bindings": {
-    "source_tree_sha256": "c785baa8068142b045a3b622e227bb0e4366b8536b1cf9ba9a9053decbc59614",
+    "source_tree_sha256": "4d97f08f2ec0674aa5c6a4f25313ed0a62d76ec892b427ac2337c33d875038a3",
     "release": "v0.9.7",
     "corpus_release_sha256": "REPLACE_64_HEX",
     "query_set_sha256": "074043c7e8f7af44ff4d6bda6bcb6942d1cbbc3b2e3149695e059f1b6d06aac2",

@@ -1901,13 +1901,13 @@
       "reason": "formal fail-closed assurance/release model introduced for v0.3.0; ceiling recorded at introduction"
     },
     "apps/api/src/korpus/application/release_truth.py": {
-      "lines": 154,
+      "lines": 175,
       "max_complexity": 6,
       "max_function_args": 4,
-      "max_function_lines": 34,
+      "max_function_lines": 37,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN. | 2026-09-05: реєстр блокерів тепер записує ДАЙДЖЕСТ ЗМІСТУ свого входу, а допуск його звіряє (`evidence_sha256` / `evidence_inputs_current`). Стеля піднята під ПОВЕДІНКУ, не під прозу: докстрінги скорочено перед підняттям, і залишок — функція `_evidence_digest`, перевірка `_evidence_inputs_current` і три рядки поля в реєстрі. Доведено контрприкладом: до правки main приймав підміну ЗМІСТУ входу за тим самим шляхом при незмінній прив'язці до дерева (P1 = PASS), після — FAIL. Мутація зняла ще одну ваду: зняття умови `or not recorded` не вбивало жодного тесту, бо контроль прибирав ПОЛЕ, а не лишав порожній словник."
     },
     "apps/api/src/korpus/application/request_audit_context.py": {
       "lines": 64,
@@ -3739,13 +3739,13 @@
       "reason": "v0.5.0: deterministic risk-weighted coverage ratchet with absolute uncovered-edge ceiling"
     },
     "scripts/current_truth_admission.py": {
-      "lines": 123,
+      "lines": 148,
       "max_complexity": 11,
       "max_function_args": 4,
       "max_function_lines": 26,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "WO-01, другий кінець ланцюга: `bound is None or bound == digest` зараховував артефакт без прив'язки як поточний, а `all([])` робив нуль підтриманих претензій достатнім. Додано читання конверта `provenance`, окремий стан для двох прив'язок, що розійшлись, і предикат has_supported_claims. Зростання часткове компенсоване: `claim_admission_checks` читав журнал ДВІЧІ (два читання одного файла можуть дати різний вміст), тепер один раз, і його складність упала з 14 до нижчої за `_current_json`."
+      "reason": "WO-01, другий кінець ланцюга: `bound is None or bound == digest` зараховував артефакт без прив'язки як поточний, а `all([])` робив нуль підтриманих претензій достатнім. Додано читання конверта `provenance`, окремий стан для двох прив'язок, що розійшлись, і предикат has_supported_claims. Зростання часткове компенсоване: `claim_admission_checks` читав журнал ДВІЧІ (два читання одного файла можуть дати різний вміст), тепер один раз, і його складність упала з 14 до нижчої за `_current_json`. | 2026-09-05: реєстр блокерів тепер записує ДАЙДЖЕСТ ЗМІСТУ свого входу, а допуск його звіряє (`evidence_sha256` / `evidence_inputs_current`). Стеля піднята під ПОВЕДІНКУ, не під прозу: докстрінги скорочено перед підняттям, і залишок — функція `_evidence_digest`, перевірка `_evidence_inputs_current` і три рядки поля в реєстрі. Доведено контрприкладом: до правки main приймав підміну ЗМІСТУ входу за тим самим шляхом при незмінній прив'язці до дерева (P1 = PASS), після — FAIL. Мутація зняла ще одну ваду: зняття умови `or not recorded` не вбивало жодного тесту, бо контроль прибирав ПОЛЕ, а не лишав порожній словник."
     },
     "scripts/current_truth_aliases.py": {
       "lines": 30,

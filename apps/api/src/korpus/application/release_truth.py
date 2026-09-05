@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import hashlib
 import json
 from collections.abc import Mapping
 from datetime import UTC, datetime
@@ -100,6 +101,23 @@ def _blocker_item(
     }
 
 
+def _evidence_digest(path: Path) -> str:
+    """Дайджест ЗМІСТУ доказу, з якого зібрано реєстр.
+
+    `source_tree_sha256` не покриває `reports/` і не має покривати — інакше доказ
+    знецінював би себе щоразу, як його переписують. Ціна виключення: реєстр лишається
+    «прив'язаним», коли змінився його ВХІД. Виміряно 04.09.2026 на f311e83a — реєстр і
+    його доказ зібрані в тому самому коміті з різницею шість годин, і перезбирання на
+    НЕЗМІНЕНОМУ дереві перевело 7 блокерів у CLOSED_ANCHORED непоміченим.
+
+    Відсутній файл дає порожній рядок навмисно: споживач мусить прочитати це як
+    «не виміряно», а не як збіг.
+    """
+    if not path.is_file():
+        return ""
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def blocker_registry(root: Path, source_digest: str, release: str) -> dict[str, Any]:
     profile = json.loads(
         (root / "config/assurance/production-hard-predicates-v1.json").read_text(encoding="utf-8")
@@ -133,6 +151,9 @@ def blocker_registry(root: Path, source_digest: str, release: str) -> dict[str, 
         "production_external_or_runtime_unresolved": counts.get("EXTERNAL_REQUIRED", 0),
         "hard_predicates_total": len(profile.get("predicates", ())),
         "hard_predicate_report_current": current,
+        "evidence_sha256": {
+            "reports/PRODUCTION_HARD_PREDICATES.json": _evidence_digest(report_path)
+        },
     }
 
 

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 
 try:
     from .current_truth_contract import load_object
@@ -120,4 +123,26 @@ def blocker_state_checks(root: Path, release: str, digest: str) -> dict[str, boo
         == 0,
         "BLOCKER_REGISTRY.source_bound_current": payload.get("source_tree_sha256") == digest,
         "BLOCKER_REGISTRY.release_bound_current": payload.get("release") == release,
+        # Усі перевірки вище читають те, що реєстр каже САМ ПРО СЕБЕ, і жодна не
+        # відкриває його вхід — тож підміна змісту входу за тим самим шляхом лишалась
+        # зеленою. `reports/` навмисно поза `source_tree_sha256`, тому прив'язка до
+        # дерева змісту реєстру не визначає.
+        "BLOCKER_REGISTRY.evidence_inputs_current": _evidence_inputs_current(root, payload),
     }
+
+
+def _evidence_inputs_current(root: Path, payload: Mapping[str, Any]) -> bool:
+    """Чи зібрано реєстр саме з ТИХ файлів доказів, які лежать зараз.
+
+    Порожній запис — НЕ згода: `all([])` істинне.
+    """
+    recorded = payload.get("evidence_sha256")
+    if not isinstance(recorded, Mapping) or not recorded:
+        return False
+    for relative, expected in recorded.items():
+        path = root / str(relative)
+        if not path.is_file():
+            return False
+        if hashlib.sha256(path.read_bytes()).hexdigest() != str(expected):
+            return False
+    return True

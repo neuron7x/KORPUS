@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
 from korpus.application.provenance import compute_source_digest
 from korpus.application.release_claims import claim_ledger
 
-from scripts.current_truth_admission import claim_admission_checks, owner_packet_checks
+from scripts.current_truth_admission import (
+    blocker_state_checks,
+    claim_admission_checks,
+    owner_packet_checks,
+)
 from scripts.current_truth_aliases import alias_checks
 
 
@@ -305,3 +310,110 @@ def test_the_refusal_is_about_the_claim_not_about_hex_anywhere(tmp_path: Path) -
     )
     checks = owner_packet_checks(_packet(tmp_path, body), "v0.9.7", digest)
     assert checks[f"{PACKET}.no_unverifiable_candidate"] is True
+
+
+# ── Реєстр блокерів: прив'язка до ДЕРЕВА не визначає його ЗМІСТУ.
+# Стани реєстру виводяться з reports/PRODUCTION_HARD_PREDICATES.json, а `reports/`
+# навмисно поза `source_tree_sha256` — інакше доказ знецінював би себе щоразу, як його
+# переписують. Наслідок: реєстр лишався «прив'язаним», коли змінився його вхід.
+# Виміряно 04.09.2026 на f311e83a: реєстр зібрано о 13:20, доказ перезібрано о 19:50,
+# обидва в ТОМУ САМОМУ коміті; перезбирання на незміненому дереві перевело 7 блокерів
+# EXTERNAL_REQUIRED → CLOSED_ANCHORED, і жоден гейт цього не побачив.
+
+REGISTRY = "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json"
+PREDICATES = "reports/PRODUCTION_HARD_PREDICATES.json"
+
+
+def _registry_tree(
+    tmp_path: Path, on_disk: object, recorded_of: object | None, *, drop_field: bool = False
+) -> Path:
+    """Дерево, де реєстр записує дайджест `recorded_of`, а на диску лежить `on_disk`."""
+    body = json.dumps(on_disk, ensure_ascii=False, indent=2) + "\n"
+    (tmp_path / PREDICATES).parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / PREDICATES).write_text(body, encoding="utf-8")
+    registry: dict[str, object] = {
+        "schema": "korpus.blocker-registry.v2",
+        "release": "v0.9.7",
+        "source_tree_sha256": "a" * 64,
+        "hard_predicate_report_current": True,
+        "internal_executable_unresolved": 0,
+    }
+    if not drop_field:
+        recorded = json.dumps(recorded_of, ensure_ascii=False, indent=2) + "\n"
+        registry["evidence_sha256"] = {
+            PREDICATES: hashlib.sha256(recorded.encode("utf-8")).hexdigest()
+        }
+    _write(tmp_path / REGISTRY, registry)
+    return tmp_path
+
+
+_HONEST = {"release": "v0.9.7", "externally_satisfied": 7, "states": []}
+_POISONED = {"release": "v0.9.7", "externally_satisfied": 0, "states": [{"id": "x"}]}
+
+
+def test_a_registry_built_from_other_evidence_than_the_tree_holds_is_refused(
+    tmp_path: Path,
+) -> None:
+    """Саме та вада: той самий шлях, та сама прив'язка до дерева, ІНШИЙ зміст входу.
+
+    Обидва плеча в одному тесті навмисно. Доказ не в тому, що нова перевірка червона,
+    а в тому, що всі СТАРІ лишаються зеленими — тобто без неї стан проходив цілком.
+    """
+    root = _registry_tree(tmp_path, on_disk=_POISONED, recorded_of=_HONEST)
+    checks = blocker_state_checks(root, "v0.9.7", "a" * 64)
+    assert checks["BLOCKER_REGISTRY.source_bound_current"] is True
+    assert checks["BLOCKER_REGISTRY.hard_predicate_report_current"] is True
+    assert checks["BLOCKER_REGISTRY.internal_executable_unresolved_zero"] is True
+    assert checks["BLOCKER_REGISTRY.evidence_inputs_current"] is False
+
+
+def test_a_registry_built_from_the_evidence_present_is_admitted(tmp_path: Path) -> None:
+    """Позитивне плече: перевірка мусить уміти й ПРОЙТИ, інакше вона не вимір."""
+    root = _registry_tree(tmp_path, on_disk=_HONEST, recorded_of=_HONEST)
+    checks = blocker_state_checks(root, "v0.9.7", "a" * 64)
+    assert checks["BLOCKER_REGISTRY.evidence_inputs_current"] is True
+
+
+def test_a_registry_that_names_no_inputs_is_unmeasured_not_agreed(tmp_path: Path) -> None:
+    """Порожній перелік входів читається як «не виміряно»: `all([])` істинне."""
+    root = _registry_tree(tmp_path, on_disk=_HONEST, recorded_of=_HONEST, drop_field=True)
+    checks = blocker_state_checks(root, "v0.9.7", "a" * 64)
+    assert checks["BLOCKER_REGISTRY.evidence_inputs_current"] is False
+
+
+def test_an_empty_input_map_is_unmeasured_not_agreed(tmp_path: Path) -> None:
+    """ПОРОЖНІЙ словник входів — не те саме, що відсутнє поле, і не згода.
+
+    Знайдено мутацією 05.09.2026, не читанням: зняття умови `or not recorded` не вбило
+    жодного тесту, бо контроль вище прибирає ПОЛЕ (`None`), а не лишає `{}`. Без цього
+    тесту твердження «порожній перелік читається як не виміряно» було текстом у
+    докстрінгу, якого жоден прогін не перевіряв — `all([])` істинне, і саме ця форма
+    вже коштувала нам гейта раніше.
+    """
+    root = _registry_tree(tmp_path, on_disk=_HONEST, recorded_of=_HONEST)
+    registry = json.loads((root / REGISTRY).read_text(encoding="utf-8"))
+    registry["evidence_sha256"] = {}
+    _write(root / REGISTRY, registry)
+    checks = blocker_state_checks(root, "v0.9.7", "a" * 64)
+    assert checks["BLOCKER_REGISTRY.evidence_inputs_current"] is False
+
+
+def test_a_recorded_input_that_is_missing_from_the_tree_is_refused(tmp_path: Path) -> None:
+    """Зниклий вхід — відмова, а не «нема на що скаржитись»."""
+    root = _registry_tree(tmp_path, on_disk=_HONEST, recorded_of=_HONEST)
+    (root / PREDICATES).unlink()
+    checks = blocker_state_checks(root, "v0.9.7", "a" * 64)
+    assert checks["BLOCKER_REGISTRY.evidence_inputs_current"] is False
+
+
+def test_a_digest_recorded_for_another_path_does_not_vouch_for_this_one(
+    tmp_path: Path,
+) -> None:
+    """Підміна ШЛЯХУ входу: дайджест правильний, але не про той файл, з якого зібрано."""
+    root = _registry_tree(tmp_path, on_disk=_HONEST, recorded_of=_HONEST)
+    registry = json.loads((root / REGISTRY).read_text(encoding="utf-8"))
+    digest = next(iter(registry["evidence_sha256"].values()))
+    registry["evidence_sha256"] = {"reports/SOMETHING_ELSE.json": digest}
+    _write(root / REGISTRY, registry)
+    checks = blocker_state_checks(root, "v0.9.7", "a" * 64)
+    assert checks["BLOCKER_REGISTRY.evidence_inputs_current"] is False
