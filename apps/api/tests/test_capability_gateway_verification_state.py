@@ -54,7 +54,7 @@ def test_unobserved_execution_cannot_be_encoded_as_pass() -> None:
         assert "VERIFIED" not in state
 
 
-def test_synchronized_live_base_clears_base_sync_gate() -> None:
+def test_diverged_live_base_reopens_acceptance_gate() -> None:
     ledger = _load("VERIFICATION_STATE.json")
     live_base = ledger["live_base"]
     blockers = ledger["blocking_gates"]
@@ -63,12 +63,14 @@ def test_synchronized_live_base_clears_base_sync_gate() -> None:
     assert isinstance(live_base, dict)
     assert isinstance(blockers, list)
     assert isinstance(cleared, list)
-    assert live_base["relationship"] == "SYNCHRONIZED"
-    assert live_base["feature_behind_by"] == 0
-    assert live_base["merge_base_sha"] == live_base["observed_sha"]
-    assert live_base["acceptance_gate"] == "CLEARED"
-    assert "BASE_SYNC_REQUIRED" not in blockers
-    assert "BASE_SYNC_REQUIRED" in cleared
+    assert ledger["verification_policy"]["diverged_base_blocks_acceptance"] is True
+    assert live_base["relationship"] == "DIVERGED"
+    assert isinstance(live_base["feature_behind_by"], int)
+    assert live_base["feature_behind_by"] > 0
+    assert live_base["merge_base_sha"] != live_base["observed_sha"]
+    assert live_base["acceptance_gate"] == "BLOCKED"
+    assert "BASE_SYNC_REQUIRED" in blockers
+    assert "BASE_SYNC_REQUIRED" not in cleared
 
 
 def test_runtime_anchor_candidate_and_checkpoint_are_distinct_concepts_not_forced_values() -> None:
@@ -103,12 +105,13 @@ def test_owner_authorization_is_cleared_without_promoting_technical_gates() -> N
     assert "OWNER_APPROVAL_GRANTED" in cleared
 
 
-def test_only_observed_unresolved_gates_block_merge_readiness() -> None:
+def test_all_current_unresolved_gates_block_merge_readiness() -> None:
     ledger = _load("VERIFICATION_STATE.json")
     blockers = ledger["blocking_gates"]
 
     assert isinstance(blockers, list)
     assert set(blockers) == {
+        "BASE_SYNC_REQUIRED",
         "EXECUTION_NOT_OBSERVED",
         "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED",
         "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED",
