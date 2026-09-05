@@ -529,7 +529,7 @@ def test_effectful_invalid_output_keeps_committed_effect_and_blocks_reexecution(
     assert first.output is None
     assert ledger.records[("reader", "idem-1")].state is EffectState.COMMITTED
     assert second.outcome is InvocationOutcome.FAILED
-    assert second.error_code == "IDEMPOTENT_REPLAY_REQUIRES_RECONCILIATION"
+    assert second.error_code == "IDEMPOTENT_REPLAY_COMMITTED"
     assert adapter.calls == 1
 
 
@@ -552,7 +552,7 @@ def test_effectful_missing_evidence_keeps_committed_effect_and_blocks_reexecutio
     assert first.output is None
     assert ledger.records[("reader", "idem-1")].state is EffectState.COMMITTED
     assert second.outcome is InvocationOutcome.FAILED
-    assert second.error_code == "IDEMPOTENT_REPLAY_REQUIRES_RECONCILIATION"
+    assert second.error_code == "IDEMPOTENT_REPLAY_COMMITTED"
     assert adapter.calls == 1
 
 

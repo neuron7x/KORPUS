@@ -19,8 +19,10 @@ from korpus.application.capability_gateway.effect_safety import (
 from korpus.application.capability_gateway.effects import (
     EffectGuard,
     EffectLedger,
+    EffectRecord,
     EffectState,
     IdempotencyConflict,
+    ReconciliationDisposition,
     effectful,
     prepare_effect_guard,
 )
@@ -356,17 +358,41 @@ class CapabilityGateway:
 
     def _replay_result(self, frame: InvocationFrame, guard: EffectGuard) -> IntegrationResult:
         existing = guard.reservation.record if guard.reservation is not None else None
-        pending = existing is not None and existing.state in {
-            EffectState.PENDING,
-            EffectState.OUTCOME_UNKNOWN,
-        }
-        outcome = InvocationOutcome.OUTCOME_UNKNOWN if pending else InvocationOutcome.FAILED
+        outcome, error_code = _replay_semantics(existing)
         return self._emitter.emit(
             frame,
             outcome,
-            "IDEMPOTENT_REPLAY_REQUIRES_RECONCILIATION",
+            error_code,
             ExecutionMaterial(idempotency_binding=guard.binding_digest),
         )
+
+
+def _replay_semantics(record: EffectRecord | None) -> tuple[InvocationOutcome, str]:
+    """Project durable effect state into a truthful non-executing replay result.
+
+    Reconciliation is reserved for genuinely ambiguous provider outcomes. Known terminal
+    states are reported as known facts and never mislabeled as requiring reconciliation.
+    """
+
+    if record is None:
+        return InvocationOutcome.FAILED, "INTERNAL_ERROR"
+    if record.state is EffectState.PENDING:
+        return InvocationOutcome.OUTCOME_UNKNOWN, "IDEMPOTENT_REPLAY_PENDING"
+    if record.state is EffectState.OUTCOME_UNKNOWN:
+        return (
+            InvocationOutcome.OUTCOME_UNKNOWN,
+            "IDEMPOTENT_REPLAY_REQUIRES_RECONCILIATION",
+        )
+    if record.state is EffectState.COMMITTED:
+        return InvocationOutcome.FAILED, "IDEMPOTENT_REPLAY_COMMITTED"
+    if record.state is EffectState.FAILED_KNOWN_NO_EFFECT:
+        return InvocationOutcome.FAILED, "IDEMPOTENT_REPLAY_KNOWN_NO_EFFECT"
+    if record.state is EffectState.RECONCILED:
+        if record.reconciliation_disposition is ReconciliationDisposition.CONFIRMED_COMMITTED:
+            return InvocationOutcome.FAILED, "IDEMPOTENT_REPLAY_COMMITTED"
+        if record.reconciliation_disposition is ReconciliationDisposition.CONFIRMED_NO_EFFECT:
+            return InvocationOutcome.FAILED, "IDEMPOTENT_REPLAY_KNOWN_NO_EFFECT"
+    return InvocationOutcome.FAILED, "INTERNAL_ERROR"
 
 
 def _require_effect_safety(
