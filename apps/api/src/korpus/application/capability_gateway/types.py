@@ -81,7 +81,7 @@ class EvidenceSpec(BaseModel):
 
     profile: EvidenceProfile
     freshness_seconds: int | None = Field(default=None, ge=0)
-    bind_output_digest: bool = False
+    bind_output_digest: bool = True
 
 
 class TimeoutSpec(BaseModel):
