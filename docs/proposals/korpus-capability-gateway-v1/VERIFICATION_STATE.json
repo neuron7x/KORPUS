@@ -11,16 +11,17 @@
   "denominator": 20,
   "live_base": {
     "branch": "main",
-    "observed_sha": "f311e83ae632579fe370f38847b4b19e5eed5aed",
+    "observed_at_utc": "2026-09-05T04:28:58Z",
+    "observed_sha": "7c35f161d3f88f90f884e2274c9f7467408aa4b9",
     "merge_base_sha": "f311e83ae632579fe370f38847b4b19e5eed5aed",
-    "feature_ahead_by": 90,
-    "feature_behind_by": 0,
-    "relationship": "SYNCHRONIZED",
-    "acceptance_gate": "CLEARED",
+    "feature_ahead_by": 91,
+    "feature_behind_by": 33,
+    "relationship": "DIVERGED",
+    "acceptance_gate": "BLOCKED",
     "synchronization_commit": "55b15f87a4e66dd9a2c08edec7ae1c8ec2340095",
     "runtime_overlap_observed": false,
     "integration_overlap_observed": true,
-    "basis": "The exact acceptance candidate descends from deterministic current-main synchronization and remains behind_by=0 with merge-base=f311e83."
+    "basis": "The prior synchronization event is historical only. Live comparison against main@7c35f161 shows the feature is behind by 33 commits with merge-base f311e83; current-main changes include release-truth, gate, operations and verification surfaces, so BASE_SYNC_REQUIRED is blocking until re-integration and exact-state re-verification."
   },
   "verification_policy": {
     "source_witness_is_not_execution_evidence": true,
@@ -94,8 +95,8 @@
     "status": "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED",
     "candidate_commit": "9a6188ba1375078b4724e90bc779d81af2856ffd"
   },
-  "cleared_gates": ["BASE_SYNC_REQUIRED", "OWNER_APPROVAL_GRANTED"],
-  "blocking_gates": ["EXECUTION_NOT_OBSERVED", "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED", "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED"],
+  "cleared_gates": ["OWNER_APPROVAL_GRANTED"],
+  "blocking_gates": ["BASE_SYNC_REQUIRED", "EXECUTION_NOT_OBSERVED", "CLEAN_ROOM_REPRODUCTION_NOT_EXECUTED", "FRESH_CONTEXT_VERIFICATION_NOT_EXECUTED"],
   "requirements": [
     {"id":"CGW-R001","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/registry.py","apps/api/src/korpus/application/capability_gateway/invoke.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_core.py","apps/api/tests/test_capability_gateway_invoke.py"]},
     {"id":"CGW-R002","state":"SOURCE_DEFINED_EXECUTION_NOT_OBSERVED","code_witnesses":["apps/api/src/korpus/application/capability_gateway/policy.py","apps/api/src/korpus/application/capability_gateway/invoke.py"],"control_witnesses":["apps/api/tests/test_capability_gateway_core.py","apps/api/tests/test_capability_gateway_invoke.py","apps/api/tests/test_capability_gateway_authority_boundaries.py"]},
