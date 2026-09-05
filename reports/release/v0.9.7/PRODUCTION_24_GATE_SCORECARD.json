@@ -1,20 +1,20 @@
 {
   "schema": "korpus.production-24-gate-campaign.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "b9096028195cc54f45d43174d8ca7c7edf2a4d542cf1fc03c432768efde7f20c",
+  "source_tree_sha256": "444e9ef659228635f326e5f7341adf7c2421eab05db7ef961cb2720e71569dd1",
   "status": "FAIL_CLOSED",
   "software_gates": {
     "passed": 14,
     "total": 14
   },
   "external_gates": {
-    "passed": 4,
+    "passed": 5,
     "total": 14
   },
   "combined": {
-    "passed": 18,
+    "passed": 19,
     "total": 28,
-    "percent": 64.285714
+    "percent": 67.857143
   },
   "capabilities": {
     "python": "3.12.3",
@@ -36,12 +36,12 @@
   "executions": {
     "redteam": {
       "exit_code": 1,
-      "stdout_tail": "{\n  \"schema\": \"korpus.production-gate.v1\",\n  \"gate_id\": \"redteam\",\n  \"status\": \"FAIL\",\n  \"source_tree_sha256\": \"b9096028195cc54f45d43174d8ca7c7edf2a4d542cf1fc03c432768efde7f20c\",\n  \"release\": \"v0.9.7\",\n  \"checks\": {\n    \"report_present\": false,\n    \"attestation_present\": false,\n    \"attestation_verified\": false,\n    \"trusted_signer\": false,\n    \"source_bound\": false,\n    \"release_bound\": false,\n    \"independent_class\": false,\n    \"preregistered\": false,\n    \"test_cases_structured\": false,\n    \"required_attack_families_covered\": false,\n    \"findings_structured\": false,\n    \"blocking_findings_closed\": false,\n    \"declared_status_consistent\": false\n  },\n  \"failures\": [\n    \"report_present\",\n    \"attestation_present\",\n    \"attestation_verified\",\n    \"trusted_signer\",\n    \"source_bound\",\n    \"release_bound\",\n    \"independent_class\",\n    \"preregistered\",\n    \"test_cases_structured\",\n    \"required_attack_families_covered\",\n    \"findings_structured\",\n    \"blocking_findings_closed\",\n    \"declared_status_consistent\"\n  ],\n  \"evidence_class\": \"EXTERNAL_INDEPENDENT\",\n  \"attestation_verified\": false,\n  \"trusted_signer\": false,\n  \"signer_fingerprint\": \"\",\n  \"redteam\": {\n    \"checks\": {\n      \"test_cases_structured\": false,\n      \"required_attack_families_covered\": false,\n      \"findings_structured\": false,\n      \"blocking_findings_closed\": false,\n      \"declared_status_consistent\": false\n    },\n    \"pass\": false,\n    \"required_attack_families\": [\n      \"auth_bypass\",\n      \"data_exfiltration\",\n      \"host_header\",\n      \"idor\",\n      \"injection_parser\",\n      \"privilege_escalation\",\n      \"ssrf_egress\",\n      \"tenant_escape\",\n      \"webhook_forgery_replay\"\n    ],\n    \"covered_attack_families\": [],\n    \"test_cases\": 0,\n    \"findings\": 0,\n    \"blocking_open\": []\n  }\n}\n",
+      "stdout_tail": "{\n  \"schema\": \"korpus.production-gate.v1\",\n  \"gate_id\": \"redteam\",\n  \"status\": \"FAIL\",\n  \"source_tree_sha256\": \"444e9ef659228635f326e5f7341adf7c2421eab05db7ef961cb2720e71569dd1\",\n  \"release\": \"v0.9.7\",\n  \"checks\": {\n    \"report_present\": false,\n    \"attestation_present\": false,\n    \"attestation_verified\": false,\n    \"trusted_signer\": false,\n    \"source_bound\": false,\n    \"release_bound\": false,\n    \"independent_class\": false,\n    \"preregistered\": false,\n    \"test_cases_structured\": false,\n    \"required_attack_families_covered\": false,\n    \"findings_structured\": false,\n    \"blocking_findings_closed\": false,\n    \"declared_status_consistent\": false\n  },\n  \"failures\": [\n    \"report_present\",\n    \"attestation_present\",\n    \"attestation_verified\",\n    \"trusted_signer\",\n    \"source_bound\",\n    \"release_bound\",\n    \"independent_class\",\n    \"preregistered\",\n    \"test_cases_structured\",\n    \"required_attack_families_covered\",\n    \"findings_structured\",\n    \"blocking_findings_closed\",\n    \"declared_status_consistent\"\n  ],\n  \"evidence_class\": \"EXTERNAL_INDEPENDENT\",\n  \"attestation_verified\": false,\n  \"trusted_signer\": false,\n  \"signer_fingerprint\": \"\",\n  \"redteam\": {\n    \"checks\": {\n      \"test_cases_structured\": false,\n      \"required_attack_families_covered\": false,\n      \"findings_structured\": false,\n      \"blocking_findings_closed\": false,\n      \"declared_status_consistent\": false\n    },\n    \"pass\": false,\n    \"required_attack_families\": [\n      \"auth_bypass\",\n      \"data_exfiltration\",\n      \"host_header\",\n      \"idor\",\n      \"injection_parser\",\n      \"privilege_escalation\",\n      \"ssrf_egress\",\n      \"tenant_escape\",\n      \"webhook_forgery_replay\"\n    ],\n    \"covered_attack_families\": [],\n    \"test_cases\": 0,\n    \"findings\": 0,\n    \"blocking_open\": []\n  }\n}\n",
       "stderr_tail": ""
     },
     "supply_chain": {
       "exit_code": 1,
-      "stdout_tail": "{\n  \"schema\": \"korpus.production-gate.v1\",\n  \"gate_id\": \"supply_chain\",\n  \"status\": \"FAIL\",\n  \"source_tree_sha256\": \"b9096028195cc54f45d43174d8ca7c7edf2a4d542cf1fc03c432768efde7f20c\",\n  \"release\": \"v0.9.7\",\n  \"checks\": {\n    \"exact_pins_have_hashes\": true,\n    \"source_sbom_lock_complete\": true,\n    \"security_scanners_executed_clean\": true,\n    \"security_scanners_current_commit\": false,\n    \"container_scanners_executed_clean\": true,\n    \"container_scanners_current_commit\": false,\n    \"container_sboms_valid\": false,\n    \"evidence_manifest_bound\": false,\n    \"evidence_attestation_verified\": false,\n    \"evidence_trusted_signer\": false\n  },\n  \"failures\": [\n    \"security_scanners_current_commit\",\n    \"container_scanners_current_commit\",\n    \"container_sboms_valid\",\n    \"evidence_manifest_bound\",\n    \"evidence_attestation_verified\",\n    \"evidence_trusted_signer\"\n  ],\n  \"evidence_class\": \"ATTESTED_CI_SCANNERS_PLUS_CONTAINER_SBOM\",\n  \"completeness\": \"PARTIAL\",\n  \"pinned_records\": 71,\n  \"hashed_records\": 71,\n  \"signer_fingerprint\": \"\"\n}\n",
+      "stdout_tail": "{\n  \"schema\": \"korpus.production-gate.v1\",\n  \"gate_id\": \"supply_chain\",\n  \"status\": \"FAIL\",\n  \"source_tree_sha256\": \"444e9ef659228635f326e5f7341adf7c2421eab05db7ef961cb2720e71569dd1\",\n  \"release\": \"v0.9.7\",\n  \"checks\": {\n    \"exact_pins_have_hashes\": true,\n    \"source_sbom_lock_complete\": true,\n    \"security_scanners_executed_clean\": true,\n    \"security_scanners_current_commit\": false,\n    \"container_scanners_executed_clean\": true,\n    \"container_scanners_current_commit\": false,\n    \"container_sboms_valid\": true,\n    \"evidence_manifest_bound\": false,\n    \"evidence_attestation_verified\": false,\n    \"evidence_trusted_signer\": false\n  },\n  \"failures\": [\n    \"security_scanners_current_commit\",\n    \"container_scanners_current_commit\",\n    \"evidence_manifest_bound\",\n    \"evidence_attestation_verified\",\n    \"evidence_trusted_signer\"\n  ],\n  \"evidence_class\": \"ATTESTED_CI_SCANNERS_PLUS_CONTAINER_SBOM\",\n  \"completeness\": \"PARTIAL\",\n  \"pinned_records\": 71,\n  \"hashed_records\": 71,\n  \"signer_fingerprint\": \"\"\n}\n",
       "stderr_tail": ""
     },
     "postgres_security": {
@@ -56,13 +56,14 @@
     },
     "reliability": {
       "exit_code": 1,
-      "stdout_tail": "rified\": false,\n    \"recovery_trusted_signer\": false\n  },\n  \"failures\": [\n    \"internal_fault_injection\",\n    \"load_attestation_verified\",\n    \"load_trusted_signer\",\n    \"recovery_attestation_verified\",\n    \"recovery_trusted_signer\"\n  ],\n  \"evidence_class\": \"ATTESTED_LIVE_PLUS_FAULT_INJECTION_REQUIRED\",\n  \"load_metrics\": {\n    \"load\": {\n      \"concurrency\": 4,\n      \"requests\": 75,\n      \"answered\": 75,\n      \"answered_share\": 1.0,\n      \"p50_seconds\": 1.862,\n      \"p95_seconds\": 2.546,\n      \"p99_seconds\": 2.627,\n      \"max_seconds\": 2.627,\n      \"mean_seconds\": 1.644,\n      \"statuses\": {\n        \"200\": 75\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 69,\n        \"contradictory_authoritative_evidence\": 6\n      },\n      \"refusal_reasons\": {}\n    },\n    \"spike\": {\n      \"concurrency\": 12,\n      \"requests\": 952,\n      \"answered\": 145,\n      \"answered_share\": 0.1523,\n      \"p50_seconds\": 0.06,\n      \"p95_seconds\": 2.613,\n      \"p99_seconds\": 3.746,\n      \"max_seconds\": 4.738,\n      \"mean_seconds\": 0.36,\n      \"statuses\": {\n        \"200\": 145,\n        \"429\": 53,\n        \"503\": 754\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 141,\n        \"contradictory_authoritative_evidence\": 4\n      },\n      \"refusal_reasons\": {\n        \"global_capacity_exhausted\": 754,\n        \"subject_share_exhausted\": 53\n      }\n    },\n    \"soak\": {\n      \"concurrency\": 4,\n      \"requests\": 187,\n      \"answered\": 187,\n      \"answered_share\": 1.0,\n      \"p50_seconds\": 1.678,\n      \"p95_seconds\": 2.459,\n      \"p99_seconds\": 2.683,\n      \"max_seconds\": 2.814,\n      \"mean_seconds\": 1.312,\n      \"statuses\": {\n        \"200\": 187\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 173,\n        \"contradictory_authoritative_evidence\": 14\n      },\n      \"refusal_reasons\": {}\n    }\n  },\n  \"chaos_cases\": 8,\n  \"recovery_status\": \"PASS\",\n  \"load_signer_fingerprint\": \"\",\n  \"recovery_signer_fingerprint\": \"\"\n}\n",
+      "stdout_tail": "rified\": false,\n    \"recovery_trusted_signer\": false\n  },\n  \"failures\": [\n    \"internal_fault_injection\",\n    \"load_attestation_verified\",\n    \"load_trusted_signer\",\n    \"recovery_attestation_verified\",\n    \"recovery_trusted_signer\"\n  ],\n  \"evidence_class\": \"ATTESTED_LIVE_PLUS_FAULT_INJECTION_REQUIRED\",\n  \"load_metrics\": {\n    \"load\": {\n      \"concurrency\": 4,\n      \"requests\": 81,\n      \"answered\": 81,\n      \"answered_share\": 1.0,\n      \"p50_seconds\": 1.72,\n      \"p95_seconds\": 2.363,\n      \"p99_seconds\": 2.733,\n      \"max_seconds\": 2.733,\n      \"mean_seconds\": 1.517,\n      \"statuses\": {\n        \"200\": 81\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 74,\n        \"contradictory_authoritative_evidence\": 7\n      },\n      \"refusal_reasons\": {}\n    },\n    \"spike\": {\n      \"concurrency\": 12,\n      \"requests\": 977,\n      \"answered\": 146,\n      \"answered_share\": 0.1494,\n      \"p50_seconds\": 0.059,\n      \"p95_seconds\": 2.517,\n      \"p99_seconds\": 3.582,\n      \"max_seconds\": 4.723,\n      \"mean_seconds\": 0.345,\n      \"statuses\": {\n        \"200\": 146,\n        \"429\": 60,\n        \"503\": 771\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 137,\n        \"contradictory_authoritative_evidence\": 9\n      },\n      \"refusal_reasons\": {\n        \"global_capacity_exhausted\": 771,\n        \"subject_share_exhausted\": 60\n      }\n    },\n    \"soak\": {\n      \"concurrency\": 4,\n      \"requests\": 222,\n      \"answered\": 222,\n      \"answered_share\": 1.0,\n      \"p50_seconds\": 1.282,\n      \"p95_seconds\": 2.234,\n      \"p99_seconds\": 2.558,\n      \"max_seconds\": 2.567,\n      \"mean_seconds\": 1.09,\n      \"statuses\": {\n        \"200\": 222\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 208,\n        \"contradictory_authoritative_evidence\": 14\n      },\n      \"refusal_reasons\": {}\n    }\n  },\n  \"chaos_cases\": 8,\n  \"recovery_status\": \"PASS\",\n  \"load_signer_fingerprint\": \"\",\n  \"recovery_signer_fingerprint\": \"\"\n}\n",
       "stderr_tail": ""
     },
     "exact_environment": {
-      "exit_code": 2,
-      "stdout_tail": "",
-      "stderr_tail": "usage: run_exact_environment_gate.py [-h] --profile {development,runtime}\nrun_exact_environment_gate.py: error: the following arguments are required: --profile\n"
+      "exit_code": 0,
+      "stdout_tail": "make[1]: входимо до каталогу «/home/neuro7/Desktop/Ядро основний проект Корпус»\ndocker build -f apps/api/Dockerfile -t korpus-api:exact-env .\ndocker run --rm --user root -v \"/home/neuro7/Desktop/Ядро основний проект Корпус:/src\" -w /src \\\n  -e PYTHONPATH=/src/apps/api/src:/src/scripts \\\n  korpus-api:exact-env python scripts/run_exact_environment_gate.py --profile runtime\n{\n  \"schema\": \"korpus.production-gate.v1\",\n  \"gate_id\": \"exact_environment\",\n  \"status\": \"PASS\",\n  \"source_tree_sha256\": \"444e9ef659228635f326e5f7341adf7c2421eab05db7ef961cb2720e71569dd1\",\n  \"release\": \"v0.9.7\",\n  \"checks\": {\n    \"all_locked_components_installed\": true,\n    \"all_versions_exact\": true,\n    \"no_unmanaged_distributions\": true,\n    \"production_python_exact\": true,\n    \"lock_hashes_present\": true\n  },\n  \"failures\": [],\n  \"evidence_class\": \"EXACT_PRODUCTION_IMAGE\",\n  \"profile\": \"runtime\",\n  \"python\": \"3.12.13\",\n  \"required_python\": \"3.12.13\",\n  \"implementation\": \"CPython\",\n  \"locked_components\": 55,\n  \"missing\": [],\n  \"mismatched\": {},\n  \"unmanaged_distributions\": []\n}\nmake[1]: Залишаю каталог \"/home/neuro7/Desktop/Ядро основний проект Корпус\"\n",
+      "stderr_tail": ".9 packaging-25.0 prometheus-client-0.25.0 protobuf-6.33.6 psycopg-3.3.4 psycopg-binary-3.3.4 pycparser-3.0 pydantic-2.13.4 pydantic-core-2.46.4 pydantic-settings-2.14.2 pypdf-6.16.1 python-dateutil-2.9.0.post0 python-dotenv-1.2.2 python-multipart-0.0.31 s3transfer-0.18.0 six-1.17.0 starlette-1.3.1 typing-extensions-4.15.0 typing-inspection-0.4.2 urllib3-2.7.0 uvicorn-0.48.0 uvloop-0.22.1 watchfiles-1.2.0 websockets-16.0\n#9 18.20 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.\n#9 19.08 No broken requirements found.\n#9 DONE 19.2s\n\n#10 [ 6/12] COPY apps/api/src /app/apps/api/src\n#10 DONE 0.0s\n\n#11 [ 7/12] COPY apps/api/migrations /app/apps/api/migrations\n#11 DONE 0.0s\n\n#12 [ 8/12] COPY apps/api/alembic.ini /app/apps/api/alembic.ini\n#12 DONE 0.0s\n\n#13 [ 9/12] COPY scripts /app/scripts\n#13 DONE 0.1s\n\n#14 [10/12] COPY apps/api/docker-entrypoint.sh /usr/local/bin/korpus-entrypoint\n#14 DONE 0.0s\n\n#15 [11/12] RUN groupadd --gid 10001 korpus     && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin korpus     && mkdir -p /data/objects /audit /tmp/korpus     && chown -R 10001:10001 /data /audit /tmp/korpus     && chmod 0555 /app /app/apps /app/apps/api /app/apps/api/src /app/scripts     && chmod 0555 /usr/local/bin/korpus-entrypoint     && chmod -R a+rX /app/apps/api/src /app/apps/api/migrations /app/scripts     && chmod a+r /app/apps/api/alembic.ini\n#15 DONE 0.5s\n\n#16 [12/12] WORKDIR /app\n#16 DONE 0.0s\n\n#17 exporting to image\n#17 exporting layers\n#17 exporting layers 0.6s done\n#17 writing image sha256:4df002642ede9ac5872b4bde7fec38589c0dffb24076344ce74781064755a0f6 done\n#17 naming to docker.io/library/korpus-api:exact-env done\n#17 DONE 0.6s\n",
+      "runner": "make production-exact-environment-image"
     }
   },
   "predicates": [
@@ -112,7 +113,6 @@
       "failed_external_checks": [
         "security_scanners_current_commit",
         "container_scanners_current_commit",
-        "container_sboms_valid",
         "evidence_manifest_bound"
       ],
       "waived_external_checks": [
@@ -306,15 +306,13 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": [],
-      "causal_status": "RUNTIME_UNAVAILABLE"
+      "causal_status": "PASS"
     },
     {
       "id": "pec_human_production_authority",
