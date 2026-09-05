@@ -138,12 +138,13 @@ def test_capability_spec_scalar_limits_match_runtime_model() -> None:
     assert properties["version"]["maxLength"] == 64
     assert properties["input_schema_id"]["maxLength"] == 512
     assert properties["output_schema_id"]["maxLength"] == 512
+    assert properties["evidence"]["properties"]["bind_output_digest"]["default"] is True
 
 
 def test_capability_spec_cross_field_rules_match_runtime_validator() -> None:
     rules = _capability_schema()["allOf"]
     assert isinstance(rules, list)
-    assert len(rules) == 6
+    assert len(rules) == 7
 
     effectful = {"WRITE_REMOTE", "TRANSACTIONAL_SIDE_EFFECT", "PRIVILEGED_ADMIN"}
     assert set(rules[0]["if"]["properties"]["effect_class"]["enum"]) == effectful
@@ -194,6 +195,21 @@ def test_capability_spec_cross_field_rules_match_runtime_validator() -> None:
         is True
     )
     assert "provider_key_forwarding" in rules[5]["then"]["properties"]["idempotency"]["required"]
+
+    evidence_profiles = {
+        "EXECUTION_ONLY",
+        "PROVIDER_PROVENANCE",
+        "FACTUAL_EVIDENCE",
+        "SIGNED_RECEIPT",
+    }
+    assert set(
+        rules[6]["if"]["properties"]["evidence"]["properties"]["profile"]["enum"]
+    ) == evidence_profiles
+    assert (
+        rules[6]["then"]["properties"]["evidence"]["properties"]
+        ["bind_output_digest"]["const"]
+        is True
+    )
 
 
 def test_integration_result_contract_encodes_runtime_returnability_invariants() -> None:
