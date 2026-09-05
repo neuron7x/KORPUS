@@ -3132,9 +3132,22 @@ def test_an_image_scoped_suppression_cannot_be_applied_to_another_image() -> Non
     assert lines, "container:scan більше не має рядка з --ignorefile — тест застарів"
     for line in lines:
         image = re.search(r"--input\s+(\w+)-image\.tar", line)
-        ignore = re.search(r"--ignorefile\s+\"?\S*?\.trivyignore(?:\.(\w+))?\.yaml", line)
         assert image, f"не видно, який образ сканує рядок: {line}"
-        if ignore is None or ignore.group(1) is None:
+        # Обидві форми, бо trivy приймає обидві: `--ignorefile X` і `--ignorefile=X`.
+        ignore = re.search(
+            r"--ignorefile[=\s]+\"?\S*?\.trivyignore(?:\.(\w+))?\.yaml", line
+        )
+        # «Не розпізнав» НЕ є «усе гаразд». Перша редакція мала тут `continue`, і повз
+        # неї проходили дві форми: `--ignorefile=$CI_PROJECT_DIR/...` і
+        # `--ignorefile "$WEB_IGNORES"`. Знайшов незалежний верифікатор 05.09.2026;
+        # це unknown-is-not-pass усередині гейта, написаного проти домовленостей.
+        assert ignore is not None, (
+            f"рядок згадує --ignorefile, але який саме файл — не видно: {line}. "
+            "Обсяг, невидимий із рядка, обсягом не є: назвіть файл дослівно."
+        )
+        if ignore.group(1) is None:
+            # Спільний `.trivyignore.yaml` без імені образу — законно: він не претендує
+            # на обсяг одного образу.
             continue
         assert ignore.group(1) == image.group(1), (
             f"придушення {ignore.group(1)!r} прикладено до образу {image.group(1)!r}: "
