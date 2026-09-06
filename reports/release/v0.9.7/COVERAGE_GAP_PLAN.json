@@ -2,14 +2,14 @@
   "schema": "korpus.coverage-gap-plan.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "27291a01172dfe075e03dfd9e38f9abceb881f4117d8c00b8a7452c7ad4d4893",
-  "statement_rate": 0.97015986,
-  "branch_rate": 0.95306029,
+  "source_tree_sha256": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
+  "statement_rate": 0.97063873,
+  "branch_rate": 0.95352048,
   "minimum_statement_rate": 0.95,
   "minimum_branch_rate": 0.9,
-  "remaining_missing_branches": 204,
+  "remaining_missing_branches": 202,
   "missing_branch_ceiling": 220,
-  "missing_branch_regression": -16,
+  "missing_branch_regression": -18,
   "priority_queue": [
     {
       "path": "infrastructure/repository.py",
@@ -206,13 +206,6 @@
       "branch_rate": 0.5,
       "risk_weight": 3.0,
       "priority": 6.0
-    },
-    {
-      "path": "application/assurance_evidence.py",
-      "missing_branches": 2,
-      "branch_rate": 0.5,
-      "risk_weight": 2.0,
-      "priority": 4.0
     },
     {
       "path": "application/billing_adjudication.py",

@@ -2,21 +2,22 @@
   "schema": "korpus.clean-room-remote.v1",
   "class": "REMOTE_SOURCE_FRESH_DEPENDENCIES",
   "distinguishes_from": "verify-clean-clone (клонує з локального ROOT, симлінкує батьківський .venv)",
-  "candidate_sha": "e84799f8df3fa1bd7da2487d4b5c87ed996bc16a",
+  "candidate_sha": "af0a8ddf",
   "environment": "fresh venv from remote clone",
-  "dependency_freeze_sha256": "80d3a6e036f5e9959ab51b2d9cafa104349b6d36e65b8eac12efb5f2d5fc0f44",
+  "dependency_freeze_sha256": "9d5ed9851ad4d01ac350ec48576f9fb70345770e0198bd7f9963f109b063f134",
   "pytest_exit_code": 0,
   "pytest": {
-    "tests": 4166,
+    "tests": 4175,
     "failures": 0,
     "errors": 0,
     "skipped": 48
   },
   "status": "PASS",
-  "generated_at": "2026-09-06T05:28:08.982779+00:00",
-  "source_tree_sha256": "aaf8e9fc27412bb8531e0e4aded9b7014394fff6d23b9fdc204b8cd631fd3987",
+  "generated_at": "2026-09-06T13:15:06.173885+00:00",
+  "source_tree_sha256": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
   "digest_scope": "evidence_paths",
   "release": "v0.9.7",
   "remote": "https://github.com/neuron7x/KORPUS.git",
-  "interpretation": "Репродукція з ВІДДАЛЕНОГО джерела зі свіжими залежностями з локів. Відповідає на питання, якого не ставить verify-clean-clone: чи відтворюється коміт поза цим деревом, цим venv і цією машиною. НЕ є незалежною валідацією (L9): виконавець той самий, незалежні лише вхід і інтерпретатор. Читається гейтом current_truth_admission.clean_room_checks — доти артефакт не споживався нічим."
+  "produced_by": "scripts/reproduce_clean_room.py",
+  "interpretation": "Репродукція з ВІДДАЛЕНОГО джерела зі свіжими залежностями з локів. Відповідає на питання, якого не ставить verify-clean-clone: чи відтворюється коміт поза цим деревом, цим venv і цією машиною. НЕ є незалежною валідацією (L9): виконавець той самий, незалежні лише вхід і інтерпретатор."
 }

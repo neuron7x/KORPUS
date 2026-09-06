@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "27291a01172dfe075e03dfd9e38f9abceb881f4117d8c00b8a7452c7ad4d4893",
-  "collection_digest": "d3cc51e8148c6ee912daa37dca3e4727cbf2ec778cbf4f0ec1c0336a7d9832d3",
-  "collection_count": 4170,
+  "source_digest": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
+  "collection_digest": "f5c977222f7785b69ab64243bf5d678ac172d40783e5cf735a6d913280c9de0a",
+  "collection_count": 4223,
   "shard_index": 16,
   "shard_count": 24,
-  "selected_count": 176,
+  "selected_count": 178,
   "selected_nodeids": [
     "apps/api/tests/test_admission_cannot_be_self_granted.py::test_a_correctly_attested_ground_is_accepted",
     "apps/api/tests/test_admission_register.py::test_a_ground_cleared_with_a_test_that_does_not_exist_is_refused",
@@ -150,6 +150,7 @@
     "apps/api/tests/test_predictive_evidence_control.py::test_unadmitted_leaf_and_out_of_support_fall_back",
     "apps/api/tests/test_printed_decimal_parsing.py::test_a_value_that_does_not_start_with_a_digit_is_refused[,5]",
     "apps/api/tests/test_printed_decimal_parsing.py::test_repeated_separators_are_read_as_thousands_grouping[12.345.678-12345678]",
+    "apps/api/tests/test_recovery_drill_reaches_its_measurer.py::test_the_drill_passes_every_variable_its_measurers_demand",
     "apps/api/tests/test_recovery_measurement.py::test_loss_equal_to_the_identified_fixture_is_what_the_drill_is_for",
     "apps/api/tests/test_recovery_measurement.py::test_no_report_is_not_a_pass",
     "apps/api/tests/test_regression_carry_forward.py::test_diff_records_is_deterministic",
@@ -172,7 +173,8 @@
     "apps/api/tests/test_snapshot_refuses_stale_evidence.py::test_matching_evidence_is_accepted",
     "apps/api/tests/test_span_hygiene_backend.py::test_the_backend_follows_the_form_of_the_string[korpus.sqlite3-sqlite]",
     "apps/api/tests/test_span_hygiene_backend.py::test_the_backend_follows_the_form_of_the_string[postgres://user@host/korpus-psql]",
-    "apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_marker_commit_must_match_current_pipeline_commit",
+    "apps/api/tests/test_supply_chain_evidence_boundary.py::test_a_local_scan_summary_is_not_the_ci_aggregate",
+    "apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_marker_commit_must_be_one_whose_source_is_this_tree",
     "apps/api/tests/test_telemetry_status.py::test_a_configured_endpoint_that_could_not_be_attached_says_so",
     "apps/api/tests/test_tenancy_api.py::test_conversations_are_created_listed_and_archived",
     "apps/api/tests/test_tenancy_api.py::test_the_account_endpoint_creates_on_first_call_and_is_stable",
@@ -186,9 +188,9 @@
     "apps/api/tests/test_validity_boundaries.py::test_the_search_path_withholds_a_document_before_it_takes_effect",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[60.1]"
   ],
-  "selected_digest": "7f39c892f271d8730f8f4a2db440425b1217e9d528b3c118144117d6bfaf2e73",
+  "selected_digest": "710bb1aa734f0eddb4dac5097b94af39118f4113530bc4a60d48888451afb0e4",
   "junit": {
-    "tests": 176,
+    "tests": 178,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -197,9 +199,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 17.84867,
+  "elapsed_seconds": 15.393538,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 40%]\n.............................................................ssss....... [ 81%]\n................................                                         [100%]",
+  "stdout_tail": "........................................................................ [ 40%]\n.............................................................ssss....... [ 80%]\n..................................                                       [100%]",
   "stderr_tail": ""
 }

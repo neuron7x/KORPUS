@@ -1,7 +1,7 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "27291a01172dfe075e03dfd9e38f9abceb881f4117d8c00b8a7452c7ad4d4893",
+  "source_tree_sha256": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
@@ -50,9 +50,11 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
+        "security_scanners_executed_clean",
         "security_scanners_current_commit",
         "container_scanners_current_commit",
-        "evidence_manifest_bound"
+        "evidence_manifest_bound",
+        "gate_source_bound"
       ],
       "waived_external_checks": [
         "evidence_attestation_verified",
@@ -95,7 +97,8 @@
         "tevv_admissible",
         "pass_rate",
         "null_controls",
-        "attack_families"
+        "attack_families",
+        "gate_source_bound"
       ],
       "waived_external_checks": []
     },
@@ -111,7 +114,8 @@
       "blocks_candidate": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "assessor_structured"
+        "assessor_structured",
+        "gate_source_bound"
       ],
       "waived_external_checks": [
         "independent_class",
@@ -131,7 +135,8 @@
       "blocks_candidate": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "environment_class"
+        "environment_class",
+        "gate_source_bound"
       ],
       "waived_external_checks": [
         "assessor_attestation_verified",
@@ -295,5 +300,7 @@
       "waived_external_checks": []
     }
   ],
-  "interpretation": "Software readiness and external production proof are deliberately separate. A predicate is production-satisfied only when both are true."
+  "interpretation": "Software readiness and external production proof are deliberately separate. A predicate is production-satisfied only when both are true.",
+  "evidence_surface_files": 12,
+  "context": "PRODUCTION_EVIDENCE"
 }

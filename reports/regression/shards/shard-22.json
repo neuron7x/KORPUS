@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "27291a01172dfe075e03dfd9e38f9abceb881f4117d8c00b8a7452c7ad4d4893",
-  "collection_digest": "d3cc51e8148c6ee912daa37dca3e4727cbf2ec778cbf4f0ec1c0336a7d9832d3",
-  "collection_count": 4170,
+  "source_digest": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
+  "collection_digest": "f5c977222f7785b69ab64243bf5d678ac172d40783e5cf735a6d913280c9de0a",
+  "collection_count": 4223,
   "shard_index": 22,
   "shard_count": 24,
-  "selected_count": 174,
+  "selected_count": 175,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_being_switched_off_and_not_being_an_admin_are_different_answers",
     "apps/api/tests/test_admission_cannot_be_self_granted.py::test_the_shipped_register_still_withholds",
@@ -24,6 +24,7 @@
     "apps/api/tests/test_billing_events.py::test_a_yearly_plan_advances_the_period_by_a_year",
     "apps/api/tests/test_billing_events.py::test_an_event_naming_a_subscription_this_system_never_created_is_refused[]",
     "apps/api/tests/test_billing_events.py::test_malformed_payloads_are_refused_and_change_nothing[[]]",
+    "apps/api/tests/test_blank_corpus_probe.py::test_a_non_two_hundred_is_not_an_answer_even_when_it_carries_citations",
     "apps/api/tests/test_branch_cycle2_extraction_v050.py::test_type_detection_refusal_matrix",
     "apps/api/tests/test_browser_session_refusals.py::test_a_malformed_envelope_is_refused[AAAA]",
     "apps/api/tests/test_budget_raises_are_named.py::test_named_raise_is_allowed",
@@ -184,9 +185,9 @@
     "apps/api/tests/test_v5_security_kernel.py::test_type_verification_rejects_pdf_extension_with_non_pdf_content",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_a_child_that_already_exited_is_not_signalled_again"
   ],
-  "selected_digest": "237f63e1429850bed4fd0011a77199d66a6740760a478936684e45b3aafef719",
+  "selected_digest": "8a4d89b8b99fd933d59bda65217d293b94c7e636b585d9df8f13e84c14d7dab1",
   "junit": {
-    "tests": 174,
+    "tests": 175,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -195,9 +196,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 12.547042,
+  "elapsed_seconds": 11.091935,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 41%]\n..................................................ssss.................. [ 82%]\n..............................                                           [100%]",
+  "stdout_tail": "........................................................................ [ 41%]\n...................................................ssss................. [ 82%]\n...............................                                          [100%]",
   "stderr_tail": ""
 }

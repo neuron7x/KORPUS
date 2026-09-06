@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "27291a01172dfe075e03dfd9e38f9abceb881f4117d8c00b8a7452c7ad4d4893",
-  "collection_digest": "d3cc51e8148c6ee912daa37dca3e4727cbf2ec778cbf4f0ec1c0336a7d9832d3",
-  "collection_count": 4170,
+  "source_digest": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
+  "collection_digest": "f5c977222f7785b69ab64243bf5d678ac172d40783e5cf735a6d913280c9de0a",
+  "collection_count": 4223,
   "shard_index": 18,
   "shard_count": 24,
-  "selected_count": 169,
+  "selected_count": 171,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_an_operator_can_find_the_account_by_the_subject_they_were_given",
     "apps/api/tests/test_account_administration.py::test_an_unknown_account_is_a_404_not_a_500",
@@ -32,6 +32,7 @@
     "apps/api/tests/test_canonical_declaration.py::test_the_named_branch_actually_exists_in_this_repository",
     "apps/api/tests/test_canonical_state.py::test_a_vanished_trunk_block_is_refused_unless_the_debt_was_closed",
     "apps/api/tests/test_canonical_state.py::test_unknown_is_never_a_pass",
+    "apps/api/tests/test_clean_room_admission.py::test_a_reproduction_that_ran_nothing_is_not_a_reproduction",
     "apps/api/tests/test_config_and_readiness_refusals.py::test_known_roles_and_transports_are_accepted",
     "apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening[no entitlement profile]",
     "apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening[sqlite instead of postgresql]",
@@ -106,6 +107,7 @@
     "apps/api/tests/test_mcp_server.py::test_a_token_that_cannot_be_a_jwt_is_refused_before_any_call",
     "apps/api/tests/test_model_egress.py::test_the_settings_value_maps_onto_the_posture",
     "apps/api/tests/test_more_edges.py::test_access_tier_parse_and_document_decision",
+    "apps/api/tests/test_mutation_delta_gate.py::test_a_computed_constant_is_logic_and_a_literal_one_is_not",
     "apps/api/tests/test_mutation_report_freshness.py::test_a_report_that_matches_the_catalogue_passes",
     "apps/api/tests/test_mutation_report_freshness.py::test_an_exchange_that_keeps_the_count_is_caught",
     "apps/api/tests/test_object_store_selection.py::test_gcs_mode_selects_the_gcs_store_and_keeps_quarantine_on_its_own_prefix",
@@ -179,9 +181,9 @@
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[-1.0]",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[0.0]"
   ],
-  "selected_digest": "9f7b1b0619bda300b324d531f61db5489977040e2b2a3bde011a2b8c94458da0",
+  "selected_digest": "2ced034b039809855f2081e40dd134b1152fa654fe4adbbf843c588420f721db",
   "junit": {
-    "tests": 169,
+    "tests": 171,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -190,9 +192,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 13.287414,
+  "elapsed_seconds": 12.357086,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 42%]\n........................................ssss............................ [ 85%]\n.........................                                                [100%]",
+  "stdout_tail": "........................................................................ [ 42%]\n..........................................ssss.......................... [ 84%]\n...........................                                              [100%]",
   "stderr_tail": ""
 }

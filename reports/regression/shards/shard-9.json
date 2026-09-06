@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "27291a01172dfe075e03dfd9e38f9abceb881f4117d8c00b8a7452c7ad4d4893",
-  "collection_digest": "d3cc51e8148c6ee912daa37dca3e4727cbf2ec778cbf4f0ec1c0336a7d9832d3",
-  "collection_count": 4170,
+  "source_digest": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
+  "collection_digest": "f5c977222f7785b69ab64243bf5d678ac172d40783e5cf735a6d913280c9de0a",
+  "collection_count": 4223,
   "shard_index": 9,
   "shard_count": 24,
-  "selected_count": 163,
+  "selected_count": 165,
   "selected_nodeids": [
     "apps/api/tests/test_access_oracles.py::test_the_near_duplicate_probe_still_finds_a_duplicate_the_caller_may_see",
     "apps/api/tests/test_account_administration.py::test_a_reason_short_enough_to_be_meaningless_is_refused",
@@ -28,6 +28,7 @@
     "apps/api/tests/test_auth.py::test_secret_files_are_resolved",
     "apps/api/tests/test_authority_ranking.py::test_a_comparably_responsive_official_source_still_outranks_a_better_match",
     "apps/api/tests/test_billing_events.py::test_a_verified_event_activates_and_is_recorded",
+    "apps/api/tests/test_blank_corpus_probe.py::test_two_hundred_without_citations_is_a_refusal_not_an_answer",
     "apps/api/tests/test_branch_consolidation.py::test_an_unreadable_timestamp_is_stale_not_fresh",
     "apps/api/tests/test_calibration.py::test_controlled_settings_accept_valid_profile",
     "apps/api/tests/test_citation_alignment.py::test_a_misaligned_answer_stops_instead_of_raising",
@@ -103,6 +104,7 @@
     "apps/api/tests/test_military_assurance.py::test_a_revoked_pack_is_refused_even_though_its_signature_still_verifies",
     "apps/api/tests/test_model_egress.py::test_local_only_refuses_an_unconfigured_endpoint",
     "apps/api/tests/test_model_egress.py::test_local_only_refuses_the_cloud_metadata_endpoint",
+    "apps/api/tests/test_mutation_delta_gate.py::test_an_unreadable_module_is_treated_as_carrying_logic",
     "apps/api/tests/test_mutation_report_declares_its_verdict.py::test_the_probe_exit_code_is_the_declared_verdict_not_a_second_opinion",
     "apps/api/tests/test_mutation_report_freshness.py::test_a_summary_that_disagrees_with_its_own_results_is_caught",
     "apps/api/tests/test_mutation_report_freshness.py::test_the_two_names_of_one_report_never_diverge",
@@ -173,9 +175,9 @@
     "apps/api/tests/test_validity_boundaries.py::test_sql_and_domain_agree_on_every_day_around_both_bounds",
     "apps/api/tests/test_versioning.py::test_optimistic_state_transition_kills_double_approval"
   ],
-  "selected_digest": "d8287f152c17d65727fec0e87f9c35eefcf0087ba5522495585c8a177aceead9",
+  "selected_digest": "b973911ca9c92c4a77d17e6813e65dadb4cf03782be919b42c78904bd2ea6893",
   "junit": {
-    "tests": 163,
+    "tests": 165,
     "failures": 0,
     "errors": 0,
     "skipped": 0
@@ -184,9 +186,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 9.07339,
+  "elapsed_seconds": 7.952988,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 44%]\n........................................................................ [ 88%]\n...................                                                      [100%]",
+  "stdout_tail": "........................................................................ [ 43%]\n........................................................................ [ 87%]\n.....................                                                    [100%]",
   "stderr_tail": ""
 }

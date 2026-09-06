@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "27291a01172dfe075e03dfd9e38f9abceb881f4117d8c00b8a7452c7ad4d4893",
-  "collection_digest": "d3cc51e8148c6ee912daa37dca3e4727cbf2ec778cbf4f0ec1c0336a7d9832d3",
-  "collection_count": 4170,
+  "source_digest": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
+  "collection_digest": "f5c977222f7785b69ab64243bf5d678ac172d40783e5cf735a6d913280c9de0a",
+  "collection_count": 4223,
   "shard_index": 23,
   "shard_count": 24,
-  "selected_count": 172,
+  "selected_count": 173,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_the_change_reaches_the_audit_chain_with_its_reason",
     "apps/api/tests/test_account_domain.py::test_claims_without_a_subject_are_refused",
@@ -26,6 +26,7 @@
     "apps/api/tests/test_audit_reader_seam.py::test_the_writer_and_the_verifier_share_one_canonical_form",
     "apps/api/tests/test_billing_events.py::test_the_webhook_secret_must_be_long_enough_to_be_a_secret",
     "apps/api/tests/test_billing_events.py::test_two_concurrent_deliveries_apply_once",
+    "apps/api/tests/test_blank_corpus_probe.py::test_answers_with_the_corpus_and_none_without_it_pass",
     "apps/api/tests/test_branch_consolidation.py::test_a_commented_line_is_not_an_assignment",
     "apps/api/tests/test_branch_consolidation.py::test_this_tree_has_exactly_one_alembic_head",
     "apps/api/tests/test_branch_cycle2_extraction_v050.py::test_sandbox_limits_with_and_without_nproc",
@@ -182,9 +183,9 @@
     "apps/api/tests/test_web_score_presentation.py::test_the_web_validator_enforces_the_disclaimer",
     "apps/api/tests/test_worker_service.py::test_worker_service_health_is_bound_to_worker_liveness"
   ],
-  "selected_digest": "588988870fad10cfdf970ee78afd9b292340188cb3fbed158e2ec50b724d40d8",
+  "selected_digest": "e1d274bd19dabd2b669b95b53458d29d3cad2a96fa19ef83d5d5ab25908c7e02",
   "junit": {
-    "tests": 172,
+    "tests": 173,
     "failures": 0,
     "errors": 0,
     "skipped": 2
@@ -193,9 +194,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 11.325624,
+  "elapsed_seconds": 10.458897,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 41%]\n......................................................ss................ [ 83%]\n............................                                             [100%]",
+  "stdout_tail": "........................................................................ [ 41%]\n.......................................................ss............... [ 83%]\n.............................                                            [100%]",
   "stderr_tail": ""
 }

@@ -1,9 +1,9 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-06T06:49:52.006287+00:00",
+  "generated_at": "2026-09-06T13:15:15.274292+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "aaf8e9fc27412bb8531e0e4aded9b7014394fff6d23b9fdc204b8cd631fd3987",
+  "source_tree_sha256": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
   "digest_scope": "evidence_paths",
   "items": [
     {
@@ -19,13 +19,19 @@
     },
     {
       "id": "live_vulnerability_scanners",
-      "state": "CLOSED_ANCHORED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
+      "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "container_scanners_current_commit",
+        "evidence_manifest_bound",
+        "gate_source_bound",
+        "security_scanners_current_commit",
+        "security_scanners_executed_clean"
+      ],
       "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM"
     },
     {
@@ -50,6 +56,7 @@
       "failed_external_checks": [
         "attack_families",
         "evidence_schema",
+        "gate_source_bound",
         "null_control_ledger_structured",
         "null_controls",
         "observation_ledger_structured",
@@ -71,7 +78,8 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
-        "assessor_structured"
+        "assessor_structured",
+        "gate_source_bound"
       ],
       "required_proof_class": "INTERNAL_STRUCTURALLY_SEPARATED"
     },
@@ -84,7 +92,8 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
-        "environment_class"
+        "environment_class",
+        "gate_source_bound"
       ],
       "required_proof_class": "MATCHES_FROZEN_TOPOLOGY"
     },
@@ -212,16 +221,16 @@
     }
   ],
   "counts": {
-    "EXTERNAL_REQUIRED": 7,
-    "CLOSED_ANCHORED": 7
+    "CLOSED_ANCHORED": 6,
+    "EXTERNAL_REQUIRED": 8
   },
   "internal_executable_unresolved": 0,
   "internal_missing_artifact": 0,
   "internal_stale_evidence": 0,
-  "production_external_or_runtime_unresolved": 7,
+  "production_external_or_runtime_unresolved": 8,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "ee6635f39e16e8fe276b284bd963e6310be15b37bec7be1ef21fd3de67183bd7"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "eb5a377c0bd61a7b6ab55683cc46e587e283a4ccba2f82d59069e1d33116a201"
   }
 }

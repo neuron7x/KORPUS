@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "27291a01172dfe075e03dfd9e38f9abceb881f4117d8c00b8a7452c7ad4d4893",
-  "collection_digest": "d3cc51e8148c6ee912daa37dca3e4727cbf2ec778cbf4f0ec1c0336a7d9832d3",
-  "collection_count": 4170,
+  "source_digest": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
+  "collection_digest": "f5c977222f7785b69ab64243bf5d678ac172d40783e5cf735a6d913280c9de0a",
+  "collection_count": 4223,
   "shard_index": 13,
   "shard_count": 24,
-  "selected_count": 207,
+  "selected_count": 209,
   "selected_nodeids": [
     "apps/api/tests/test_access_oracles.py::test_the_exact_duplicate_check_does_not_confirm_unreadable_content",
     "apps/api/tests/test_access_oracles.py::test_the_outsider_cannot_see_the_document_at_all",
@@ -36,6 +36,7 @@
     "apps/api/tests/test_billing_events.py::test_a_tampered_body_no_longer_matches_its_signature",
     "apps/api/tests/test_billing_events.py::test_an_event_for_an_account_that_does_not_exist_cannot_start_a_subscription",
     "apps/api/tests/test_billing_events.py::test_an_event_naming_an_unknown_subscription_is_recorded_and_refused",
+    "apps/api/tests/test_blocker_release_binding.py::test_a_registry_about_another_release_is_not_release_bound",
     "apps/api/tests/test_boundary_coverage_v5.py::test_embedding_batch_fails_closed_on_count_and_configuration",
     "apps/api/tests/test_branch_consolidation.py::test_a_report_taken_before_the_head_is_stale",
     "apps/api/tests/test_branch_cycle2_policy_control_v050.py::test_retrieval_validation_matrix",
@@ -45,6 +46,7 @@
     "apps/api/tests/test_builtin_security_gate.py::test_clean_source_passes_builtin_security_gate",
     "apps/api/tests/test_canonical_state.py::test_an_undeclared_publication_surface_is_refused",
     "apps/api/tests/test_citation_fragments.py::test_a_clause_that_opens_with_a_number_is_not_guessed_at",
+    "apps/api/tests/test_clean_room_admission.py::test_a_reproduction_with_failures_is_not_clean",
     "apps/api/tests/test_clean_source_release_boundary.py::test_package_only_metadata_cannot_expand_source_authority",
     "apps/api/tests/test_competency_repository.py::test_framework_revision_round_trip_is_exact",
     "apps/api/tests/test_config_and_readiness_refusals.py::test_a_verification_key_may_not_reuse_the_active_key_id",
@@ -217,9 +219,9 @@
     "apps/api/tests/test_verifier_resistance.py::test_every_inconsistent_shape_is_refused[killed \\u0431\\u0456\\u043b\\u044c\\u0448\\u0435]",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_starting_twice_is_refused_rather_than_orphaning_the_first_child"
   ],
-  "selected_digest": "9540183756ef957cb27c436f98aa7d7b5222524761bfc9d3e33f097e1230a200",
+  "selected_digest": "35c0130db5e420c8a70ad0cd9137db3768cb7c4bc168d893a97d37eeda7f0134",
   "junit": {
-    "tests": 207,
+    "tests": 209,
     "failures": 0,
     "errors": 0,
     "skipped": 2
@@ -228,9 +230,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 12.912933,
+  "elapsed_seconds": 10.812633,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 34%]\n........................................................................ [ 69%]\n.................ss............................................          [100%]",
+  "stdout_tail": "........................................................................ [ 34%]\n........................................................................ [ 68%]\n...................ss............................................        [100%]",
   "stderr_tail": ""
 }

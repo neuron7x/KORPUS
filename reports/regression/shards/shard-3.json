@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "27291a01172dfe075e03dfd9e38f9abceb881f4117d8c00b8a7452c7ad4d4893",
-  "collection_digest": "d3cc51e8148c6ee912daa37dca3e4727cbf2ec778cbf4f0ec1c0336a7d9832d3",
-  "collection_count": 4170,
+  "source_digest": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
+  "collection_digest": "f5c977222f7785b69ab64243bf5d678ac172d40783e5cf735a6d913280c9de0a",
+  "collection_count": 4223,
   "shard_index": 3,
   "shard_count": 24,
-  "selected_count": 184,
+  "selected_count": 187,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_only_an_administrator_may_switch_a_person_off",
     "apps/api/tests/test_admission_cannot_be_self_granted.py::test_an_unparseable_signature_date_is_refused[yesterday]",
@@ -29,6 +29,7 @@
     "apps/api/tests/test_audit_key_rotation.py::test_an_event_naming_an_unknown_key_is_invalid",
     "apps/api/tests/test_audit_key_rotation.py::test_the_new_key_signs_and_the_old_one_no_longer_can",
     "apps/api/tests/test_billing_events.py::test_a_redelivered_event_changes_nothing",
+    "apps/api/tests/test_blank_corpus_probe.py::test_spans_are_read_when_citations_are_absent",
     "apps/api/tests/test_boundary_coverage_v5.py::test_embedding_batch_preserves_cardinality_order_and_normalizes",
     "apps/api/tests/test_branch_cycle2_ratchet_v050.py::test_tuning_validation_ratchet",
     "apps/api/tests/test_branch_integration.py::test_a_branch_with_its_own_commits_must_be_named",
@@ -120,6 +121,8 @@
     "apps/api/tests/test_openai_model_adapter.py::test_composition_root_selects_openai_without_leaking_provider_into_application",
     "apps/api/tests/test_operational_policies.py::test_a_scanner_that_never_started_fails_the_policy",
     "apps/api/tests/test_operations.py::test_js_divergence_rejects_undefined_inputs[left1-right1]",
+    "apps/api/tests/test_owner_packet_refresh.py::test_a_missing_anchor_is_named_not_silently_skipped",
+    "apps/api/tests/test_owner_packet_refresh.py::test_a_packet_whose_digest_drifted_is_refused",
     "apps/api/tests/test_package_mode_integrity.py::test_a_file_the_manifest_does_not_describe_is_named_not_just_counted",
     "apps/api/tests/test_pec_act_hardening.py::test_replay_rejects_string_booleans_in_observed_outcomes",
     "apps/api/tests/test_pec_evidence_receipt_v097.py::test_evidence_receipt_rejects_source_drift",
@@ -194,9 +197,9 @@
     "apps/api/tests/test_verifier_resistance.py::test_a_run_that_mutated_nothing_is_not_proof",
     "apps/api/tests/test_verify_draft_edges.py::test_trailing_whitespace_does_not_become_an_empty_unsupported_sentence"
   ],
-  "selected_digest": "a61cf6d1679922fb00c180a5d90becf27956ce4e9e859840e315c2a1d06d96d4",
+  "selected_digest": "348e182e921f690a94f410a848c0f757efcc28078e188d8f009546c5155dd1d9",
   "junit": {
-    "tests": 184,
+    "tests": 187,
     "failures": 0,
     "errors": 0,
     "skipped": 2
@@ -205,9 +208,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 10.660435,
+  "elapsed_seconds": 9.960684,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 39%]\n..................................................ss.................... [ 78%]\n........................................                                 [100%]",
+  "stdout_tail": "........................................................................ [ 38%]\n.....................................................ss................. [ 77%]\n...........................................                              [100%]",
   "stderr_tail": ""
 }

@@ -2,7 +2,7 @@
   "schema": "korpus.production-gate.v1",
   "gate_id": "inference_security",
   "status": "PASS",
-  "source_tree_sha256": "27291a01172dfe075e03dfd9e38f9abceb881f4117d8c00b8a7452c7ad4d4893",
+  "source_tree_sha256": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
   "release": "v0.9.7",
   "checks": {
     "profile_gate_id": true,
@@ -52,6 +52,6 @@
     "errors": 0,
     "skipped": 0
   },
-  "junit_sha256": "2315e47510f9bf3608c1a56bd945f89141fea44efa0d495712d658e5f224aa03",
+  "junit_sha256": "e179383ea4b8433d3d1402beea03c74e036e7324ea6cf203a73075a76114de3b",
   "output_tail": "........................................................................ [ 92%]\n......                                                                   [100%]\n"
 }

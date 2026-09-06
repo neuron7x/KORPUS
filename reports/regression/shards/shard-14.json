@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "27291a01172dfe075e03dfd9e38f9abceb881f4117d8c00b8a7452c7ad4d4893",
-  "collection_digest": "d3cc51e8148c6ee912daa37dca3e4727cbf2ec778cbf4f0ec1c0336a7d9832d3",
-  "collection_count": 4170,
+  "source_digest": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
+  "collection_digest": "f5c977222f7785b69ab64243bf5d678ac172d40783e5cf735a6d913280c9de0a",
+  "collection_count": 4223,
   "shard_index": 14,
   "shard_count": 24,
-  "selected_count": 180,
+  "selected_count": 182,
   "selected_nodeids": [
     "apps/api/tests/test_access_control.py::test_public_identity_cannot_request_restricted_corpus",
     "apps/api/tests/test_account_administration.py::test_the_same_operator_can_put_it_back",
@@ -27,6 +27,7 @@
     "apps/api/tests/test_billing_events.py::test_an_event_naming_a_subscription_this_system_never_created_is_refused[not-a-uuid]",
     "apps/api/tests/test_billing_events.py::test_an_event_without_a_usable_timestamp_applies_but_never_advances_the_order[None]",
     "apps/api/tests/test_billing_plan_lifecycle.py::test_upserting_the_same_code_updates_rather_than_duplicating",
+    "apps/api/tests/test_blank_corpus_probe.py::test_a_two_hundred_whose_body_is_not_an_object_is_not_an_answer",
     "apps/api/tests/test_branch_consolidation.py::test_a_report_taken_after_the_head_is_current",
     "apps/api/tests/test_branch_cycle2_extraction_v050.py::test_hard_chunks_short_stride_whitespace_and_break",
     "apps/api/tests/test_branch_cycle2_policy_control_v050.py::test_query_variant_refusal_shapes[123]",
@@ -34,6 +35,7 @@
     "apps/api/tests/test_browser_oidc.py::test_logout_without_browser_csrf_pair_is_refused_even_without_session_cookie",
     "apps/api/tests/test_canonical_declaration.py::test_a_registry_that_names_nothing_refuses_instead_of_guessing[{\"canonical_branch\": \"\"}]",
     "apps/api/tests/test_citation_fragments.py::test_a_sentence_longer_than_a_citation_is_skipped_not_crashed",
+    "apps/api/tests/test_clean_room_admission.py::test_an_empty_digest_cannot_bind_a_reproduction",
     "apps/api/tests/test_client_bootstrap.py::test_bootstrap_route_returns_same_identity_and_effective_permissions",
     "apps/api/tests/test_config_and_readiness_refusals.py::test_semantic_is_not_ready_when_there_is_nothing_to_ask[None]",
     "apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening[metrics endpoint unauthenticated]",
@@ -190,9 +192,9 @@
     "apps/api/tests/test_v5_security_kernel.py::test_injection_detector_handles_zero_width_homoglyphs_and_role_markers",
     "apps/api/tests/test_versioning.py::test_competing_branch_cannot_be_approved"
   ],
-  "selected_digest": "2f62babd65002f6c8c2dc0481e6c3a22d365fd81b71c535a0ccb539966222287",
+  "selected_digest": "fc6b50e7d06334f65680133c1fca8d332a2d2d0ba4201c07dd7a4338b68ae404",
   "junit": {
-    "tests": 180,
+    "tests": 182,
     "failures": 0,
     "errors": 0,
     "skipped": 3
@@ -201,9 +203,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 14.540103,
+  "elapsed_seconds": 12.946226,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 40%]\n.........................................................sss............ [ 80%]\n....................................                                     [100%]",
+  "stdout_tail": "........................................................................ [ 39%]\n...........................................................sss.......... [ 79%]\n......................................                                   [100%]",
   "stderr_tail": ""
 }

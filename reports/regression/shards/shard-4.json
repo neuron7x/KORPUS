@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "27291a01172dfe075e03dfd9e38f9abceb881f4117d8c00b8a7452c7ad4d4893",
-  "collection_digest": "d3cc51e8148c6ee912daa37dca3e4727cbf2ec778cbf4f0ec1c0336a7d9832d3",
-  "collection_count": 4170,
+  "source_digest": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
+  "collection_digest": "f5c977222f7785b69ab64243bf5d678ac172d40783e5cf735a6d913280c9de0a",
+  "collection_count": 4223,
   "shard_index": 4,
   "shard_count": 24,
-  "selected_count": 178,
+  "selected_count": 179,
   "selected_nodeids": [
     "apps/api/tests/test_access_control.py::test_access_tier_is_enforced_in_repository_even_for_public_classification",
     "apps/api/tests/test_account_administration.py::test_an_administrator_may_still_re_enable_themselves",
@@ -21,6 +21,7 @@
     "apps/api/tests/test_audit_export.py::test_the_payload_digest_does_not_depend_on_stored_key_order",
     "apps/api/tests/test_audit_key_rotation.py::test_a_key_id_that_is_unsafe_in_a_row_or_a_command_is_refused[]",
     "apps/api/tests/test_billing_events.py::test_malformed_payloads_are_refused_and_change_nothing[{\"id\": \"x\", \"type\": \"unknown.event\", \"data\": {}}]",
+    "apps/api/tests/test_blank_corpus_probe.py::test_nothing_measured_is_unknown_not_pass",
     "apps/api/tests/test_branch_cycle2_policy_control_v050.py::test_attestation_validation_matrix",
     "apps/api/tests/test_branch_cycle2_policy_control_v050.py::test_query_variant_refusal_shapes[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]",
     "apps/api/tests/test_break_glass.py::test_a_formality_is_not_a_reason[   ]",
@@ -188,9 +189,9 @@
     "apps/api/tests/test_validity_boundaries.py::test_the_candidate_query_alone_excludes_an_invalid_version[effective_until-asked_on0]",
     "apps/api/tests/test_validity_boundaries.py::test_the_closed_interval_holds_at_both_ends[as_of4-False]"
   ],
-  "selected_digest": "684fbec1185639147a457161ff823ee1d8615f64404dea5f87c36fb4b264e907",
+  "selected_digest": "f2d01567458bfc2cd4e39487d4ba5414f5f9d22296019b69802f9665074507fe",
   "junit": {
-    "tests": 178,
+    "tests": 179,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -199,9 +200,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 13.504228,
+  "elapsed_seconds": 11.921578,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 40%]\n...........................................................s............ [ 80%]\n..................................                                       [100%]",
+  "stdout_tail": "........................................................................ [ 40%]\n............................................................s........... [ 80%]\n...................................                                      [100%]",
   "stderr_tail": ""
 }
