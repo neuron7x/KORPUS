@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1860,
-  "root_sha256": "47df21100677a19890fdbfd9a96a4bbd0758169dcbc78ea0f7c8ad8086e06633",
+  "root_sha256": "86505362cc20f1a01941c8124abdb7f07bcd87b6ae75b502f7f9aa34d7bbd42d",
   "files": [
     {
       "path": ".dockerignore",
@@ -8341,8 +8341,8 @@
     },
     {
       "path": "docs/proposals/openclaw-korpus-integration-v1/IMPLEMENTATION_PLAN.md",
-      "bytes": 9822,
-      "sha256": "56dded0f0abf694e78b6af625ef065d109d11e1a29285a9732787c0704ac71cb",
+      "bytes": 10034,
+      "sha256": "a8779f805d5ff6a41ca4ce001f562a947a4bbdf80858f1d34f6c0bbead30629d",
       "mode": "0644"
     },
     {
