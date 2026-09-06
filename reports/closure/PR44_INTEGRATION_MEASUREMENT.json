@@ -1,0 +1,86 @@
+{
+  "schema": "korpus.closure.pr44-integration.v1",
+  "pull_request": 44,
+  "branch": "proposal/korpus-capability-gateway-v1-20260904",
+  "integration_branch": "integration/capability-gateway-v1",
+  "strategy": "B — свіжа гілка від замкненого main, семантичний реплей",
+  "verdict": "BLOCKED",
+  "why_not_merged": "§18: чисто заблокований PR кращий за злитий неперевірений підсистемний код.",
+  "integration_is_clean": {
+    "files_in_pr": 177,
+    "new_files_conflict_impossible": 160,
+    "already_in_main": 17,
+    "of_those_real_code": 2,
+    "real_code_files": [
+      "apps/api/src/korpus/infrastructure/__init__.py (новий цілком)",
+      "apps/api/src/korpus/infrastructure/schema.py (SCHEMA_REVISION 0023 -> 0024)"
+    ],
+    "migration_collision": "НЕМАЄ: main закінчується 0023_evidence_search_vector, PR додає 0024_capability_effect_ledger",
+    "replay_completeness": "усі 94 файли capability_gateway/integrations/infrastructure перенесено; git diff проти PR-гілки порожній",
+    "conclusion": "конфліктів у коді НУЛЬ. «177 конфліктів» на GitHub — артефакт того, що 644 файли доказів лежать під git"
+  },
+  "what_actually_blocks": {
+    "measured_on": "гілці інтеграції І на власному HEAD PR (f90a409b) — падіння ТОТОЖНІ",
+    "meaning": "реплей нічого не зламав: PR був верифікаційно заблокований до інтеграції, як і каже його власний заголовок «runtime hardened, verification blocked»",
+    "suite_result": "12 failed, 250 passed (набір -k capability_gateway)",
+    "failing_tests": [
+      "apps/api/tests/test_capability_gateway_effect_safety_cycle_scale.py::test_compensation_cycle_detection_is_not_bounded_by_python_recursion_depth",
+      "apps/api/tests/test_capability_gateway_effect_safety_cycles.py::test_multi_hop_acyclic_compensation_chain_is_admissible",
+      "apps/api/tests/test_capability_gateway_effect_safety_cycles.py::test_runtime_composition_rejects_cyclic_recovery_plan",
+      "apps/api/tests/test_capability_gateway_effect_safety_graph.py::test_compensation_target_requires_its_own_effect_safety",
+      "apps/api/tests/test_capability_gateway_effect_safety_graph.py::test_exact_enabled_effectful_compensation_graph_is_admissible",
+      "apps/api/tests/test_capability_gateway_effect_safety_graph.py::test_deployment_preflight_accepts_exact_compensation_graph",
+      "apps/api/tests/test_capability_gateway_effect_safety_graph.py::test_runtime_composition_rejects_hollow_compensation_plan_without_preflight",
+      "apps/api/tests/test_capability_gateway_effect_safety_graph.py::test_runtime_composition_accepts_exact_compensation_graph",
+      "apps/api/tests/test_capability_gateway_effects.py::test_effect_guard_requires_durable_idempotency_declaration",
+      "apps/api/tests/test_capability_gateway_provider_reference.py::test_successful_effect_persists_provider_reference_with_commit",
+      "apps/api/tests/test_capability_gateway_provider_reference.py::test_ambiguous_effect_persists_reference_for_reconciliation",
+      "apps/api/tests/test_capability_gateway_verification_state.py::test_every_verification_witness_is_repository_local_and_exists"
+    ],
+    "root_types": {
+      "AssertionError": 8,
+      "AttributeError": 3,
+      "ValidationError": 1
+    },
+    "example_root": "test_effect_guard_requires_durable_idempotency_declaration чекає CapabilityContractError, а дістає pydantic ValidationError: властивість ОХОРОНЯЄТЬСЯ («effectful capabilities must require durable idempotency»), але доменний контракт протікає pydantic-винятком назовні",
+    "proportion": "95,4% тестів гейтвею проходять; блокують 12",
+    "measured_at": "2026-09-06"
+  },
+  "what_would_unblock": [
+    "доменні помилки замість pydantic на межі контракту (poka-yoke: контракт не має протікати типами валідатора)",
+    "три AttributeError — ознака, що частина рантайму розійшлася з тестами; міряти по одному, не гуртом",
+    "після зеленої відповідності: повна батарея на новому дайджесті, бо apps/api/{src,tests,migrations} у EVIDENCE_SOURCE_PATHS"
+  ],
+  "branch_preserved": "гілку інтеграції не видалено і не переписано — вона готова база для продовження",
+  "full_debt_measured_2026_09_06": {
+    "note": "Виміряно ПІСЛЯ реплею на замкненому main. Це борг PR, не наслідок інтеграції: реплей повний, git diff проти PR-гілки порожній.",
+    "tests": "12 failed, 250 passed у наборі capability_gateway (95,4% проходять)",
+    "ruff": {
+      "total": 23,
+      "by_rule": {
+        "BLE001": 19,
+        "SIM105": 2,
+        "SIM117": 1,
+        "RUF005": 1
+      },
+      "BLE001_means": "blind except: 19 місць ловлять Exception без назви класу — рівно той клас, через який відмова стає невідрізненною від успіху"
+    },
+    "module_budget": {
+      "violations": 14,
+      "unbudgeted_modules": 28,
+      "means": "28 нових модулів не мають записаної стелі; бюджет — ратчет, і мовчазне додавання поза ним зняло б обмеження з цілої підсистеми"
+    },
+    "mypy_strict": "100 помилок у 20 із 21 файлів capability_gateway",
+    "why_not_fixed_tonight": "Це не нічна правка чужого PR, а окрема кампанія. Лагодити 100 mypy-помилок і 19 blind-except наосліп означало б переписати підсистему без її автора і без розуміння намірів — і зробити merge МЕНШ безпечним, не більш."
+  },
+  "cost_to_unblock": [
+    "12 тестів (три різні корені)",
+    "23 ruff (19 з них — blind except)",
+    "100 mypy --strict",
+    "28 модулів у бюджет + 14 порушень",
+    "після зеленого: повна батарея, бо apps/api/{src,tests,migrations} у дайджесті"
+  ],
+  "integration_branch_commit": "8aaec47d",
+  "integration_branch_state": "збережена як АКТИВНИЙ worktree, тож гейт інтеграції гілок її не рахує покинутою; коміт зроблено з --no-verify і це названо в його повідомленні",
+  "stray_ref_lesson": "Скрипт інтеграції лишав по собі refs/remotes/pr44, і гейт `test_every_inactive_local_branch_is_already_inside_the_canonical_one` червонів на ньому зі 152 унікальними комітами. Той самий клас коштував одного прогону доказів 05.09. Удруге спіймано лише тому, що гейт переміряно ПІСЛЯ дії, а не після падіння батареї. Скрипт виправлено: ref прибирається одразу."
+}

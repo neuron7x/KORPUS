@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1836,
-  "root_sha256": "7c1769000bd221060fec91f4eede2fe0be62359093d0b16936ae1bf19fbf3116",
+  "file_count": 1860,
+  "root_sha256": "b45fb091ffd39fbd80498cc77aa4922f1ab1cd8cf6e9147b17e42f78d59f23d3",
   "files": [
     {
       "path": ".dockerignore",
@@ -8259,6 +8259,150 @@
       "path": "docs/product/SPECIFICATION.md",
       "bytes": 3729,
       "sha256": "5cdef8e7af6dce442c49cb046373a4b66e08e1f95ff9d24fe1ee54a2bfb8bf24",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/ACADEMIC_FOUNDATIONS_AND_REFERENCE_MAP.md",
+      "bytes": 13589,
+      "sha256": "39cde0d99c14d38b4704dab83446670bc183b14dd8e02f41a7400bf3c2ca5783",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/ARCHITECTURE_AND_THEORY.md",
+      "bytes": 10019,
+      "sha256": "d0975a8d2da5fd63897c9b4d9c1a53d4cba0168f16f45c5e3aee00a6d1daac7d",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/CAPABILITY_AND_EFFECT_MODEL.md",
+      "bytes": 8787,
+      "sha256": "96d1f7c397699b9d0dd89b02b6ef23d443db165db3e98ae832b3bb9f380888c0",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/CONTROL_THEORY_AND_AUTONOMY.md",
+      "bytes": 14127,
+      "sha256": "6aa74e8fe6540dd35243d3e00dfdf46cc8887bb8ba2febad9b8c8a131d247eb1",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/DECISIONS/ADR-0001-openclaw-is-external-orchestration.md",
+      "bytes": 3993,
+      "sha256": "696e48567f472ffedded5440a8110137bbbe20587ad574e76bacde58c380abe1",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/DECISIONS/ADR-0002-hard-constraints-before-autonomy.md",
+      "bytes": 1553,
+      "sha256": "dbca38140eec4f2fce7cddf3e4f2ca693fc69743d6f98f6aaf879278c4dcd035",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/DECISIONS/ADR-0003-closed-loop-verification.md",
+      "bytes": 1626,
+      "sha256": "fbca3a9f816d7741619c68a03df2d57137598487afb18276ce9ee97613ae0974",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/DECISIONS/README.md",
+      "bytes": 1007,
+      "sha256": "a716e478444e0ba6daddb43bc463c2a5762ea808c04dedf5b7a0d577ff1a4bd9",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/DISTRIBUTED_SYSTEMS_AND_FAILURE_SEMANTICS.md",
+      "bytes": 11571,
+      "sha256": "a9d078d8b7edf31305d58b5b17330a47a04aa0e720c400fdb774c2189a74e326",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/EVALUATION_LEARNING_AND_FEEDBACK.md",
+      "bytes": 13554,
+      "sha256": "df7959dacc9f205a792c070ee9ec73355e06788535d6991f54f1a91f366514b4",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/FIRST_PRINCIPLES_AND_OBJECTIVE_FUNCTION.md",
+      "bytes": 16109,
+      "sha256": "69dd4affa29dffef1292d60723c6d35e967201a6c19cc443159f8af0ea83368a",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/FORMAL_REQUIREMENTS.md",
+      "bytes": 7053,
+      "sha256": "03afc3735c3230c72a30819b8df50b3ae193915ca720c6ed3fa5051fa07aa547",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/IMPLEMENTATION_CONTRACTS_AND_INTERFACES.md",
+      "bytes": 14592,
+      "sha256": "db5466eb8f41ecbe4403a9d3c5a8053c79dfdee7d0bae6456c10255d6530b2dc",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/IMPLEMENTATION_PLAN.md",
+      "bytes": 9822,
+      "sha256": "56dded0f0abf694e78b6af625ef065d109d11e1a29285a9732787c0704ac71cb",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/INFORMATION_FLOW_AND_PRIVACY_MODEL.md",
+      "bytes": 9467,
+      "sha256": "870ba69ec4fa41de0de96b38e4a80972e9708ab5c089f327771c07e83a47359d",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/INTEGRATION_WORKPACKAGES.md",
+      "bytes": 5932,
+      "sha256": "b3db4ca95041123f8c2ab4f3a2a969702c488d3867ff9fe20512eaddca390f8b",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/OPENCLAW_CURRENT_VERIFICATION_2026-09-05.md",
+      "bytes": 7366,
+      "sha256": "20c53eb56a5a53058877a2cdd586fb45d5d6fe0e863d9a8e90cd286832466938",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/OPENCLAW_FACTS_AND_REFERENCES.md",
+      "bytes": 6538,
+      "sha256": "84a7075d6569741635256d5cc912bf9d70d9406d216984ae53262c74395203fd",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/OPERATIONAL_ROLLOUT_AND_RUNBOOK.md",
+      "bytes": 10183,
+      "sha256": "a7ffef559df91298cc109389c49a482bad6a0097162e24d0f5b073ecc437463a",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/README.md",
+      "bytes": 15024,
+      "sha256": "8e228f996ad98c2740bf02e6e17ab83aa6b6a4c6636a504e57e14644dbd76e5d",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/SECURITY_AND_THREAT_MODEL.md",
+      "bytes": 11345,
+      "sha256": "f3fc76371133c117bc4450f13948f7b87f53f36e613159428293280eb7a94fe8",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/STATE_MACHINE_AND_INVARIANTS.md",
+      "bytes": 12119,
+      "sha256": "62c5ccd6bd96bf2e85cc4848e9224bcff7eaebe2175c441cfae67efd4da20626",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/TRACEABILITY_AND_ACCEPTANCE_MATRIX.md",
+      "bytes": 9931,
+      "sha256": "ffe66b745f7d203861caee86a25520e4bb961a3951bf98d7632ed3e552bb01f5",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/openclaw-korpus-integration-v1/VERIFICATION_AND_ACCEPTANCE.md",
+      "bytes": 9348,
+      "sha256": "b4d60ff192e81d40db5d509af341486daab8493183b1e48bd82be22762f55572",
       "mode": "0644"
     },
     {
