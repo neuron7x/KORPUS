@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "a43ff4292748bb7da4ac203691e4978bceed5327546e8cbef70d69932a404633",
-  "collection_digest": "8d3e7863aa052c9a8e71dc1fde6ef91e2cc70334504e6cd1a4663b09ead836d1",
-  "collection_count": 4229,
+  "source_digest": "0be621c1f1dcd1c903401e9ffc1b703d03ae43cf6de4ecfc6eeb748015ec9510",
+  "collection_digest": "7692d3f90d17af47f3c3ef2a67cb237fd5a6615197cd501b332e9a5de3dabffe",
+  "collection_count": 4248,
   "shard_index": 21,
   "shard_count": 24,
-  "selected_count": 162,
+  "selected_count": 163,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_an_operator_can_disable_an_account_without_a_database_shell",
     "apps/api/tests/test_account_domain.py::test_an_account_record_carries_no_authorization_field",
@@ -35,6 +35,7 @@
     "apps/api/tests/test_controlled_configuration_refusals.py::test_production_api_still_refuses_browser_authentication_removal",
     "apps/api/tests/test_conversations.py::test_the_conversation_service_offers_no_way_to_turn_history_into_evidence",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_version_evidence_digest_refuses_an_empty_evidence_set",
+    "apps/api/tests/test_corpus_transport.py::test_zero_objects_hashed_is_not_a_clean_content_check",
     "apps/api/tests/test_coverage_closure_v097.py::test_pec_training_model_edge_and_candidate_branches",
     "apps/api/tests/test_coverage_closure_v097.py::test_release_claim_status_branches[None-.json-PENDING_EVIDENCE]",
     "apps/api/tests/test_coverage_closure_v097.py::test_source_digest_empty_git_tree_falls_back_to_manifest",
@@ -172,9 +173,9 @@
     "apps/api/tests/test_verifier_resistance.py::test_a_report_that_claims_a_full_kill_and_lists_a_survivor_is_refused",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_health_reports_the_child_exit_code_once_the_worker_dies"
   ],
-  "selected_digest": "4eaf06be7f760426e7d453f8f03972570524b6403ee500a8039eeb6a04292cc7",
+  "selected_digest": "8d8aa9da31cfb134994112f1919a5710c17bae9f9d6ffe6338df8163d36afe0c",
   "junit": {
-    "tests": 162,
+    "tests": 163,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -183,9 +184,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 7.774732,
+  "elapsed_seconds": 7.98812,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 44%]\n............................................s........................... [ 88%]\n..................                                                       [100%]",
+  "stdout_tail": "........................................................................ [ 44%]\n.............................................s.......................... [ 88%]\n...................                                                      [100%]",
   "stderr_tail": ""
 }

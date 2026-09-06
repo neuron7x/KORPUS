@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "a43ff4292748bb7da4ac203691e4978bceed5327546e8cbef70d69932a404633",
-  "collection_digest": "8d3e7863aa052c9a8e71dc1fde6ef91e2cc70334504e6cd1a4663b09ead836d1",
-  "collection_count": 4229,
+  "source_digest": "0be621c1f1dcd1c903401e9ffc1b703d03ae43cf6de4ecfc6eeb748015ec9510",
+  "collection_digest": "7692d3f90d17af47f3c3ef2a67cb237fd5a6615197cd501b332e9a5de3dabffe",
+  "collection_count": 4248,
   "shard_index": 8,
   "shard_count": 24,
-  "selected_count": 185,
+  "selected_count": 186,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_an_unknown_status_is_refused_by_the_contract",
     "apps/api/tests/test_admission_cannot_be_self_granted.py::test_an_unparseable_signature_date_is_refused[2026-13-01]",
@@ -48,6 +48,7 @@
     "apps/api/tests/test_corpus_release_verdict_states.py::test_the_report_always_names_whether_the_corpus_was_compared",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_corpus_read_token_rejects_truncated_or_noncanonical_release_identity[AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA]",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_token_audit_record_of_absent_token_is_absent_not_empty",
+    "apps/api/tests/test_corpus_transport.py::test_an_identical_non_empty_restore_passes",
     "apps/api/tests/test_coverage_closure_v097.py::test_gcs_json_request_failure_modes_and_close",
     "apps/api/tests/test_coverage_closure_v097.py::test_metamorphic_eval_binding_and_issue_failures",
     "apps/api/tests/test_coverage_risk_closeout_v080.py::test_non_string_billing_timestamp_is_not_coerced",
@@ -195,9 +196,9 @@
     "apps/api/tests/test_verifier_resistance.py::test_every_inconsistent_shape_is_refused[\\u0432\\u0456\\u0434\\u02bc\\u0454\\u043c\\u043d\\u0456]",
     "apps/api/tests/test_web_score_presentation.py::test_the_score_is_labelled_as_a_ranking_utility_not_a_confidence"
   ],
-  "selected_digest": "b2734e62e3afbb37637085b55b7d78906b86bcab9bdb1044716afcaebb9bd3b9",
+  "selected_digest": "242dacbf93662b31629bce61c5f252b791ca84f5efaa8953ec609404a03a3f04",
   "junit": {
-    "tests": 185,
+    "tests": 186,
     "failures": 0,
     "errors": 0,
     "skipped": 2
@@ -206,9 +207,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 12.371142,
+  "elapsed_seconds": 12.526428,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 38%]\n..............................................................ss........ [ 77%]\n.........................................                                [100%]",
+  "stdout_tail": "........................................................................ [ 38%]\n...............................................................ss....... [ 77%]\n..........................................                               [100%]",
   "stderr_tail": ""
 }

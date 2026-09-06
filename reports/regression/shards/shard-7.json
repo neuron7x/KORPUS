@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "a43ff4292748bb7da4ac203691e4978bceed5327546e8cbef70d69932a404633",
-  "collection_digest": "8d3e7863aa052c9a8e71dc1fde6ef91e2cc70334504e6cd1a4663b09ead836d1",
-  "collection_count": 4229,
+  "source_digest": "0be621c1f1dcd1c903401e9ffc1b703d03ae43cf6de4ecfc6eeb748015ec9510",
+  "collection_digest": "7692d3f90d17af47f3c3ef2a67cb237fd5a6615197cd501b332e9a5de3dabffe",
+  "collection_count": 4248,
   "shard_index": 7,
   "shard_count": 24,
-  "selected_count": 205,
+  "selected_count": 209,
   "selected_nodeids": [
     "apps/api/tests/test_answer_axes_composition.py::test_a_blind_axis_is_not_a_passed_axis",
     "apps/api/tests/test_answer_composition.py::test_an_opening_that_borrows_words_from_two_citations_is_refused",
@@ -38,6 +38,8 @@
     "apps/api/tests/test_corpus_snapshot_contract.py::test_corpus_read_token_rejects_noncanonical_authorization_scope[]",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_corpus_read_token_rejects_noncanonical_authorization_scope[bbbbbbbbbbbbbbbb]",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_corpus_read_token_rejects_truncated_or_noncanonical_release_identity[aaaaaaaaaaaaaaaa]",
+    "apps/api/tests/test_corpus_transport.py::test_a_restore_that_lost_spans_fails_and_names_the_axis",
+    "apps/api/tests/test_corpus_transport.py::test_the_survey_does_not_count_one_thing_twice",
     "apps/api/tests/test_coverage_closure_v097.py::test_gcs_json_metadata_download_bucket_and_invalid_payloads",
     "apps/api/tests/test_coverage_closure_v097.py::test_hosted_authority_canary_and_top_level",
     "apps/api/tests/test_coverage_risk_closeout_v080.py::test_oidc_scope_list_restores_required_openid_scope",
@@ -192,6 +194,8 @@
     "apps/api/tests/test_s3_object_store.py::test_s3_healthcheck_requires_versioning_and_object_lock_when_retention_enabled",
     "apps/api/tests/test_search_index.py::test_database_candidate_budget_is_a_hard_upper_bound",
     "apps/api/tests/test_selftest_coverage_self.py::test_the_checker_notices_its_own_line_is_gone",
+    "apps/api/tests/test_serving_readiness.py::test_a_healthy_and_ready_port_is_not_masked",
+    "apps/api/tests/test_serving_readiness.py::test_a_topology_that_declares_nothing_is_not_a_subject",
     "apps/api/tests/test_source_signature_refusals.py::test_a_signature_over_altered_metadata_is_refused",
     "apps/api/tests/test_span_hygiene_backend.py::test_the_backend_follows_the_form_of_the_string[/absolute/korpus.db-sqlite]",
     "apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_rejects_unverified_extra_artifact",
@@ -215,9 +219,9 @@
     "apps/api/tests/test_worker_supervisor_liveness.py::test_a_child_that_ignores_terminate_is_killed_after_the_timeout",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_stopping_without_a_child_is_a_no_op"
   ],
-  "selected_digest": "4857387a190cda62caa319a8cfb47c6e128e0a8e9e1dc197030ce80fe1f9795d",
+  "selected_digest": "ba737b7a549681c802debf5b18945588fb8da77373ce3b9f90cc94100daf6f02",
   "junit": {
-    "tests": 205,
+    "tests": 209,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -226,9 +230,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 12.881057,
+  "elapsed_seconds": 12.92784,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 35%]\n....................................................................ssss [ 70%]\n.............................................................            [100%]",
+  "stdout_tail": "........................................................................ [ 34%]\n......................................................................ss [ 68%]\nss...............................................................        [100%]",
   "stderr_tail": ""
 }

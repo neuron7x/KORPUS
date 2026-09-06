@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "a43ff4292748bb7da4ac203691e4978bceed5327546e8cbef70d69932a404633",
-  "collection_digest": "8d3e7863aa052c9a8e71dc1fde6ef91e2cc70334504e6cd1a4663b09ead836d1",
-  "collection_count": 4229,
+  "source_digest": "0be621c1f1dcd1c903401e9ffc1b703d03ae43cf6de4ecfc6eeb748015ec9510",
+  "collection_digest": "7692d3f90d17af47f3c3ef2a67cb237fd5a6615197cd501b332e9a5de3dabffe",
+  "collection_count": 4248,
   "shard_index": 18,
   "shard_count": 24,
-  "selected_count": 172,
+  "selected_count": 175,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_an_operator_can_find_the_account_by_the_subject_they_were_given",
     "apps/api/tests/test_account_administration.py::test_an_unknown_account_is_a_404_not_a_500",
@@ -40,6 +40,7 @@
     "apps/api/tests/test_corpus_release_identity.py::test_a_corpus_the_reader_cannot_reach_yields_the_empty_digest",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_release_identity_digest_commits_every_member_field[publication_date-1:2026-01-03]",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_version_evidence_digest_distinguishes_missing_from_empty_section",
+    "apps/api/tests/test_corpus_transport.py::test_mismatches_alone_fail_even_when_the_flag_says_otherwise",
     "apps/api/tests/test_coverage_closure_v097.py::test_release_claim_status_branches[{\"release\": \"v0.9.7\", \"source_digest\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}-.json-UNDECLARED_EVIDENCE]",
     "apps/api/tests/test_coverage_risk_closeout_v080.py::test_aware_audit_datetime_preserves_timezone_without_replacement",
     "apps/api/tests/test_current_truth_hardening_v094.py::test_an_empty_input_map_is_unmeasured_not_agreed",
@@ -163,6 +164,8 @@
     "apps/api/tests/test_selftest_coverage.py::test_the_real_tree_declares_the_selftests_this_gate_will_run",
     "apps/api/tests/test_semantic_integration.py::test_required_semantic_failure_never_silently_falls_back_to_lexical",
     "apps/api/tests/test_service_objectives.py::test_a_server_error_fails_the_objective",
+    "apps/api/tests/test_serving_readiness.py::test_a_service_that_answers_is_serving",
+    "apps/api/tests/test_serving_readiness.py::test_without_a_liveness_probe_the_field_claims_nothing",
     "apps/api/tests/test_source_signature_refusals.py::test_a_profile_whose_map_disagrees_with_its_key_ids_is_refused",
     "apps/api/tests/test_source_signature_refusals.py::test_a_signature_from_an_unknown_key_is_refused",
     "apps/api/tests/test_sqlite_pragmas_are_named_parameters.py::test_the_measured_defaults_reach_the_connection",
@@ -182,9 +185,9 @@
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[-1.0]",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[0.0]"
   ],
-  "selected_digest": "54d71217cd29c59a276ec889681c4cf9c9aab3f786830f4d8087f7efa30efb9e",
+  "selected_digest": "2bfdd56aeb31540a75b80bd1816273d44278d8626dbde8a0791ff5263fc5c81c",
   "junit": {
-    "tests": 172,
+    "tests": 175,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -193,9 +196,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 12.545165,
+  "elapsed_seconds": 13.232342,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 41%]\n..........................................ssss.......................... [ 83%]\n............................                                             [100%]",
+  "stdout_tail": "........................................................................ [ 41%]\n...........................................ssss......................... [ 82%]\n...............................                                          [100%]",
   "stderr_tail": ""
 }
