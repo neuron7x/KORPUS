@@ -32,9 +32,48 @@ ROOT = Path(__file__).resolve().parents[1]
 #: запускає й НІЧОГО НЕ СТВЕРДЖУЄ, лише зберігає». Отже найсильніший позитивний доказ
 #: релізу свідчив про відтворюваність АРХІВУ, а не того дерева, яке судить конвеєр.
 #: Підміна предмета, знайдена незалежною сесією 06.09.2026.
-TRUNK = "https://gitlab.com/neuron7x/korpus-platform.git"
-ARCHIVE = "https://github.com/neuron7x/KORPUS.git"
+#: Читається з оголошення, а не оголошується вдруге. Друге оголошення рухомого
+#: значення розходиться мовчки — і саме так «основа» тут уже одного разу означала
+#: архів. Перейменувати віддаленого замість цього виміряно й ВІДКИНУТО: у
+#: `branch-integration.json` 24 імені виду `origin/…`, і жодне не існує на форжі
+#: сьогодні; усі 24 описують минуле, і перейменування зробило б їх хибними.
+FORGES = json.loads((ROOT / "config/operations/forges.json").read_text(encoding="utf-8"))
+TRUNK = FORGES["forges"]["trunk"]["url"]
+ARCHIVE = FORGES["forges"]["archive"]["url"]
+
+
+def forge_class(remote: str) -> str:
+    """Роль форжа за URL, а не за іменем віддаленого в чиємусь клоні.
+
+    Ім'я `origin` у цьому дереві вказує на АРХІВ. Хто судить за іменем — судить за
+    тим, як хтось назвав віддаленого в себе; хто судить за URL — за тим, чим форж є.
+    Приймає обидві форми, http і ssh, бо в клоні може стояти будь-яка.
+    """
+    for role, declared in FORGES["forges"].items():
+        if remote in (declared["url"], declared.get("ssh")):
+            return str(role).upper()
+    return "OTHER"
 OUT = "reports/closure/CLEAN_ROOM_REPRODUCTION.json"
+
+
+def local_remotes_by_role(root: Path) -> dict[str, str]:
+    """Які віддалені ЦЬОГО клону несуть яку роль — за URL, не за іменем.
+
+    Заради цього все й робилось. Хто хоче штовхнути в основу, більше не має
+    вгадувати, чи `origin` тут означає основу: він питає й дістає ім'я, яке
+    в ЦЬОМУ клоні на неї вказує. У каноні відповідь — `{"TRUNK": "gitlab",
+    "ARCHIVE": "origin"}`, і саме ця перевернутість півдня водила доказ не туди.
+    """
+    listed = _run(["git", "-C", str(root), "remote", "-v"], root)
+    found: dict[str, str] = {}
+    for line in listed.stdout.splitlines():
+        parts = line.split()
+        if len(parts) < 2:
+            continue
+        role = forge_class(parts[1])
+        if role != "OTHER":
+            found.setdefault(role, parts[0])
+    return found
 
 
 def _run(
@@ -173,7 +212,7 @@ def main() -> int:
     parser.add_argument("--out", default=OUT)
     args = parser.parse_args()
     payload = reproduce(args.remote, args.sha)
-    payload["remote_class"] = "TRUNK" if args.remote == TRUNK else "ARCHIVE_OR_OTHER"
+    payload["remote_class"] = forge_class(args.remote)
     if args.also:
         # Незалежність ВХОДУ, а не інтерпретатора: два форжі, дві мережеві дороги, один
         # дайджест. Якщо вони розійшлися — дзеркала несуть різні дерева під одним іменем.

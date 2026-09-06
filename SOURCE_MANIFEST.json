@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1872,
-  "root_sha256": "7c13a02670a0a13208a33c79f553b84df6e636f73e0eaf2bd55f9401f2ce1cd4",
+  "file_count": 1874,
+  "root_sha256": "fb821677001900eb08c5b41398f951052dabd8f2546fcbca79e7eb2ee55ee522",
   "files": [
     {
       "path": ".dockerignore",
@@ -3543,6 +3543,12 @@
       "path": "apps/api/tests/test_foreign_supersession.py",
       "bytes": 5849,
       "sha256": "64a9bc1c4450b20e4e45dae8aa70eb220f98e2678c2e6d71eb471408c299c0c6",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_forge_roles.py",
+      "bytes": 4444,
+      "sha256": "23cfb82d92a0b791f357de298c83ccc23204421f05715e92d81e3e18170bfb76",
       "mode": "0644"
     },
     {
@@ -7500,6 +7506,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/operations/forges.json",
+      "bytes": 2370,
+      "sha256": "8e8b575d1fc4a0055bf1afb25976f312f587b5901b3d63490f0d373d5c65da95",
+      "mode": "0644"
+    },
+    {
       "path": "config/operations/gate-closure.json",
       "bytes": 24326,
       "sha256": "551abc287e97c6275d7d04db71ea88bef4e996d7b5f57ce662c0e3b297f53ab4",
@@ -7513,8 +7525,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 691107,
-      "sha256": "63f3c80eec5f2635ab7cd441e8432e21fae2c99403a9756f0ac59b99b5fffa53",
+      "bytes": 692281,
+      "sha256": "1a9d6fba50e251ad5b6e591461fabb7034578fd5b0931ee4346cc2961ea58721",
       "mode": "0644"
     },
     {
@@ -10483,8 +10495,8 @@
     },
     {
       "path": "scripts/reproduce_clean_room.py",
-      "bytes": 9197,
-      "sha256": "e1978cbe406e359872b9afe28d2383338d071b0f23ffce3caa32e2fb0bce876e",
+      "bytes": 11665,
+      "sha256": "879a0904c94efeb716ea2869a1a688a8044d6cb87e064c880e72fd1415f20211",
       "mode": "0755"
     },
     {
