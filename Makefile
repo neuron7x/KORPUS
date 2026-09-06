@@ -1317,7 +1317,13 @@ check: validate api-test api-lint eval mutation audit-closure migration-gate sca
 # джерела, і будь-яка правка коду його зсуває. У `validate` цей гейт блокував би
 # кожну перевірку документом, який за побудовою відстає на одну правку. Пакет —
 # артефакт РЕЛІЗУ: там його розбіжність із виміром і є вадою, яку треба спинити.
-release: assurance snapshot validate owner-packet-check handoff-verify-bound package
+# `assemble-assurance`, НЕ `assurance`. Друга ціль виконує run_research_assurance.py і
+# ніколи не пише reports/RESEARCH_ASSURANCE_REPORT.json, який читає
+# `handoff-verify-bound` у цьому ж рядку. Урок 06.09.2026 став ТЕКСТОМ ВІДМОВИ в
+# scripts/verify_handoff_contract.py, але не став ціллю: `make release` лишався
+# єдиною дорогою релізу, що брала хибну — усі інші (run_release_verify, release.yml,
+# .gitlab-ci.yml) уже кличуть правильну. Знайдено пошуком розбіжностей.
+release: assemble-assurance snapshot validate owner-packet-check handoff-verify-bound package
 
 infra-secrets:
 	bash scripts/init_local_secrets.sh

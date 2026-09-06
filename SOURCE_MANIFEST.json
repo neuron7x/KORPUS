@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1860,
-  "root_sha256": "e12ac3f5bc6b37bc46d94ad280f65b2e8fd7e8913e71995f767a17a0d53c9507",
+  "root_sha256": "8d831f87f8ebd75751f59edab08a2669fc8fd57029b59a3804fe909c19066584",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 114603,
-      "sha256": "a8bdd7eacb01966bb58c3bf2690935a988740f9cfb7c3e7e76996b79704f3fe1",
+      "bytes": 115267,
+      "sha256": "c63519ca9668e97e3ba33f19f79cd4a6bc810ac879cfb8c42c5fbb18dcac917f",
       "mode": "0644"
     },
     {
@@ -3535,8 +3535,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 162886,
-      "sha256": "ccbeca0f866f99bd8de8c6149e60953e72d7adaec7ae5bfe19d04075d98e5348",
+      "bytes": 165533,
+      "sha256": "c3a8b2093a5303254b26c164b28e97e94e624dc6d91a282f257ceb8916faa068",
       "mode": "0644"
     },
     {
@@ -7459,8 +7459,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 673421,
-      "sha256": "9abc2f7afc08f26a9d9b4679efe9aa06ba0387f373333279f53e6dbb242d9a76",
+      "bytes": 673800,
+      "sha256": "22c49a84b151044f16b5c599049006d277ce1a3653acaae02bca0f2fe2f0b6de",
       "mode": "0644"
     },
     {
@@ -8485,8 +8485,8 @@
     },
     {
       "path": "docs/runbooks/INCIDENT_RESPONSE.md",
-      "bytes": 1846,
-      "sha256": "14467d8113211c2ed395580fe419796d5ceac556d8f52008bddb559aeb2161b5",
+      "bytes": 4404,
+      "sha256": "2291812e8d10c4f9cafa6815ad8914cad66667d146be650859165f812411195a",
       "mode": "0644"
     },
     {
@@ -9355,8 +9355,8 @@
     },
     {
       "path": "scripts/build_system_manifest.py",
-      "bytes": 3682,
-      "sha256": "ea2fd9464159fafa55b9bfcb74974708c50b245f342e16a066fa777d091ccb16",
+      "bytes": 5026,
+      "sha256": "a9040fddfb3ece5d3d86886cb33d6009f796743e623b562aab49e7e285c82d44",
       "mode": "0644"
     },
     {
@@ -10519,8 +10519,8 @@
     },
     {
       "path": "scripts/run_external_gate_campaign.py",
-      "bytes": 8550,
-      "sha256": "42fbe6de15826ee893934dcea35a6d0b4820bc41477424d21f5f5152bb34894e",
+      "bytes": 9339,
+      "sha256": "89bebb90187312e8b1792d860cbbb64cf1b18b16d7ed5918b8c458e2a9358f75",
       "mode": "0755"
     },
     {

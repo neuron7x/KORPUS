@@ -2816,8 +2816,20 @@ def test_only_one_definition_of_what_a_source_is() -> None:
     assert not disagreements, (
         f"two definitions of a source disagree on {len(disagreements)} paths: {disagreements[:6]}"
     )
-    source = (ROOT / "scripts/source_digest.py").read_text(encoding="utf-8")
-    assert "EXCLUDED_PREFIXES" not in source, "the second exclusion list is back"
+    # Сторож читає ВСІ скрипти, а не один. Доти він дивився лише в
+    # `scripts/source_digest.py` і був зелений, поки другий перелік жив у
+    # `scripts/build_system_manifest.py` — на файл убік. Перевірка проти другого
+    # визначення, яка дивиться в одне місце, зелена саме тоді, коли друге визначення є.
+    # Розбіжність була реальна: сім шляхів, усі — звіти, які пише сам цикл релізу,
+    # тобто корінь системного маніфесту рухався без жодної зміни коду.
+    # Виміряно 06.09.2026.
+    owner = (ROOT / "scripts/manifest_paths.py").name
+    second = sorted(
+        path.relative_to(ROOT).as_posix()
+        for path in (ROOT / "scripts").rglob("*.py")
+        if path.name != owner and "EXCLUDED_PREFIXES" in path.read_text(encoding="utf-8")
+    )
+    assert not second, f"the second exclusion list is back in: {second}"
 
 
 def test_every_ukrainian_apostrophe_tokenizes_the_same() -> None:
@@ -3151,3 +3163,30 @@ def test_an_image_scoped_suppression_cannot_be_applied_to_another_image() -> Non
             f"придушення {ignore.group(1)!r} прикладено до образу {image.group(1)!r}: "
             "обсяг названий одним образом, а діє на інший"
         )
+
+
+def test_the_mandatory_gate_set_is_declared_once() -> None:
+    """Два переліки обовʼязкових кроків релізу мусять збігатися — і хтось має це міряти.
+
+    `run_release_verify.STEPS + EXTERNAL` і `RELEASE_ENVELOPE.release_candidate.
+    mandatory_gate_set` описують одне поняття. Виміряно 06.09.2026: вони збігалися
+    ДОСЛІВНО, включно з порядком — але руками, не за побудовою, і жоден тест їх не
+    звіряв.
+
+    Асиметрія небезпечна в один бік: новий крок, доданий у `STEPS` і не доданий у
+    конверт, лан прожене, а заморозка кандидата не вимагатиме — гейт мовчки перестає
+    бути обовʼязковим. Зворотний бік гучний: заморозка відмовить.
+    """
+    import importlib.util as _il
+
+    spec = _il.spec_from_file_location("run_release_verify", ROOT / "scripts/run_release_verify.py")
+    assert spec and spec.loader
+    module = _il.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    envelope = json.loads((ROOT / "RELEASE_ENVELOPE.json").read_text(encoding="utf-8"))
+    declared = set(envelope["release_candidate"]["mandatory_gate_set"])
+    lane = {name for name, _ in (*module.STEPS, *module.EXTERNAL)}
+    assert lane == declared, {
+        "у лані, але не в конверті": sorted(lane - declared),
+        "у конверті, але не в лані": sorted(declared - lane),
+    }

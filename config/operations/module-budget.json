@@ -3455,12 +3455,13 @@
       "reason": "v6.8.2 supply-chain evidence binding: initial bounded manifest builder ceiling"
     },
     "scripts/build_system_manifest.py": {
-      "lines": 102,
+      "lines": 110,
       "max_complexity": 11,
       "max_function_args": 1,
       "max_function_lines": 25,
       "max_nesting": 2,
-      "proof_lines": 0
+      "proof_lines": 0,
+      "reason": "2026-09-06: ДРУГЕ означення джерела видалено (не виправлено) — воно розходилось із каноном на семи шляхах, усі з них звіти, які пише сам цикл релізу, тож корінь маніфесту рухався без зміни коду. Сторож проти другого переліку був зелений, бо читав інший файл."
     },
     "scripts/canonical_declaration.py": {
       "lines": 70,
@@ -5030,13 +5031,13 @@
       "reason": "Гейт точного середовища. 2026-09-06 стеля 120->126: ім'я вихідного файла тепер несе профіль. Доти обидва профілі писали один шлях, і DEVELOPMENT_INTERPRETER мовчки затирав EXACT_PRODUCTION_IMAGE щоразу, коли біг validate — після лану предикат не міг бути задоволеним ніколи."
     },
     "scripts/run_external_gate_campaign.py": {
-      "lines": 230,
+      "lines": 232,
       "max_complexity": 15,
       "max_function_args": 4,
       "max_function_lines": 45,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "Кампанія зовнішніх гейтів. 2026-09-06 стеля 201->230: RUNNERS став списками аргументів, exact_environment винесено в MAKE_RUNNERS. Доти гейт кликався без обов'язкового --profile і падав з usage-помилкою, тобто предикат не мав ЖОДНОЇ машинної дороги до рішення (L5)."
+      "reason": "2026-09-06: ТРЕТЮ копію мапи гейт→файл видалено. Вона мала 7 ключів замість 14 (не бачила pec_authority і pec_canary) і мапила redteam на інший файл, ніж канон: табло казало 6/14, авторитетний звіт 7/14."
     },
     "scripts/run_handoff_liveness_probe.py": {
       "lines": 67,
