@@ -156,7 +156,11 @@ def selftest() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--base", default="origin/main")
+    # БЕЗ дефолту. Я прибрав `origin/main` лише з рецепта make і оголосив ваду
+    # закритою — а CI кличе скрипт НАПРЯМУ, тож дефолт лишався живий і давав
+    # порожню дельту з rc=0. Прибрано було не значення, а потребу його надрукувати.
+    # Виміряно незалежним аудитом 06.09.2026.
+    parser.add_argument("--base", required=True)
     parser.add_argument("--out", type=Path, default=ROOT / "var/mutation-delta-gate.json")
     parser.add_argument("--selftest", action="store_true")
     arguments = parser.parse_args()

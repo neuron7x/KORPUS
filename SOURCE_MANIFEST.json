@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1860,
-  "root_sha256": "c23e3b646a7a4d4380a621dc8e441373e446c4974b088def5ac543b18a1be2e4",
+  "root_sha256": "e12ac3f5bc6b37bc46d94ad280f65b2e8fd7e8913e71995f767a17a0d53c9507",
   "files": [
     {
       "path": ".dockerignore",
@@ -7459,8 +7459,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 674440,
-      "sha256": "c7b72a055524f63db1c56fc9f3df36da7c70f65408bdeea98a250a1bfa4358e6",
+      "bytes": 673421,
+      "sha256": "9abc2f7afc08f26a9d9b4679efe9aa06ba0387f373333279f53e6dbb242d9a76",
       "mode": "0644"
     },
     {
@@ -9475,8 +9475,8 @@
     },
     {
       "path": "scripts/check_mutation_report_freshness.py",
-      "bytes": 11493,
-      "sha256": "265aaf9cc322d59d878e76a951e24013106b14aaa763614a56c7c221d5b14fcb",
+      "bytes": 12911,
+      "sha256": "c135442ee786ba289fb0ecddb42a49b114e09b263e75e18952016a46361eca7c",
       "mode": "0755"
     },
     {
@@ -10261,8 +10261,8 @@
     },
     {
       "path": "scripts/probe_blank_corpus.py",
-      "bytes": 9541,
-      "sha256": "92ee9b46d2aec6ea7589b8cf1b1134374c11658748f083da5e1d7b9ee96095cc",
+      "bytes": 10818,
+      "sha256": "d936cb4a07941f8f4e56716316a67f7ed450733c426d6c7264f7bc6c84af47b5",
       "mode": "0755"
     },
     {
@@ -11053,8 +11053,8 @@
     },
     {
       "path": "scripts/verify_mutation_delta.py",
-      "bytes": 8330,
-      "sha256": "19f40ce66f59c7acb0b19ed1c345161deeaa7483c13953bd7df90c92fb7a64c7",
+      "bytes": 8791,
+      "sha256": "66871769f3a605b21f5f5cfb4e9d150053df3e058b7203c8b34901bd9dc22cbf",
       "mode": "0755"
     },
     {

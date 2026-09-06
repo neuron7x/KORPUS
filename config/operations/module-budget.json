@@ -3633,13 +3633,13 @@
       "reason": "Raised 136 -> 215 on 2026-08-28 to carry three added shape measurements (function length, parameter count, nesting depth). The ratchet caught its own growth first: complexity was brought back under the ceiling by extracting shape_violations rather than by raising the complexity number. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29: додано відокремлення рядків самоперевірки. Стеля карала за додані негативні контролі так само, як за роздутий код: гейт на реальних даних ARMED лише тоді, коли дані містять негативний приклад, тому синтетичні порушення в selftest — єдине місце, де гейт узагалі перевіряється. Звільнення обмежене двома умовами (ім'я + реальний диспетч --selftest) і власною стелею DEFAULT_PROOF_LINES=220. Ратчет спіймав власне зростання: main пішов на 81 рядок і складність 14 — закрито витягуванням module_violations, не підняттям числа. | 2026-08-30: +27 рядків — звільнення від стелі (`\"lines\": null`) без записаної причини тепер валить гейт. Воно виглядає однаково і коли хтось так вирішив, і коли з'явилось при механічній синхронізації чисел; різницю несе лише текст поруч."
     },
     "scripts/check_mutation_report_freshness.py": {
-      "lines": 147,
-      "max_complexity": 10,
+      "lines": 165,
+      "max_complexity": 14,
       "max_function_args": 3,
-      "max_function_lines": 31,
+      "max_function_lines": 49,
       "max_nesting": 2,
       "proof_lines": 62,
-      "reason": "Гейт на розбіжність звіту мутацій із каталогом. 2026-09-06 стеля піднята 118->146 і proof 45->62: гейт міряв НАЯВНІСТЬ провенансу, не відповідність — звіт із 64 нулями проходив як свіжий, і власний selftest вписував ті нулі як ЧИСТИЙ випадок, тож клас вади був невидимий за побудовою. Додано звіряння з дайджестом дерева (винесене в binding_problems(), щоб стеля СКЛАДНОСТІ лишилась 10) і дві отрути на прив'язку: 8->10 випадків."
+      "reason": "2026-09-06: гейт вірив самооголошеним спискам. Звіт із усіма 624 SURVIVED, killed 0 і survived [] проходив без зауважень. Тепер підсумок перераховується з results[].status."
     },
     "scripts/check_public_env_parity.py": {
       "lines": 331,
@@ -3745,7 +3745,7 @@
       "max_function_lines": 33,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "2026-09-06: незалежний верифікатор довів, що clean_room_checks стеріг ТРИ самооголошені скаляри — тризначний JSON без жодного сліду відтворення проходив усі перевірки. Додано чотири, що читають сам прогін: run_counted, run_clean, names_candidate, names_dependency_origin. Отруту верифікатора переміряно — тепер ловиться поіменно."
+      "reason": "2026-09-06: clean_room стеріг самооголошені скаляри. Додано читання слідів прогону і pytest_exit_code — єдиного числа, яке проба не складає про себе."
     },
     "scripts/current_truth_aliases.py": {
       "lines": 30,
@@ -4680,13 +4680,13 @@
       "reason": "`corpus_state_epoch` у мутабельних таблицях: тригер піднімає епоху на КОЖНІЙ зміні складу доказів, і без права оновлювати її застосунок не міг би зафіксувати, що корпус зрушив між двома читаннями однієї відповіді."
     },
     "scripts/probe_blank_corpus.py": {
-      "lines": 184,
+      "lines": 202,
       "max_complexity": 9,
       "max_function_args": 5,
       "max_function_lines": 69,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "2026-09-06, НОВИЙ. Input-independent baseline (Karpathy): ті самі СВОЇ питання проти вилученого доказового шару. run_boundary_eval тримає чужу ТЕМУ, де мовчать і корпус, і модель; чотири одиничні контролі охороняють «без цитат — не відповідь» у МОДУЛІ. Наскрізного шляху не проходить жоден. Вирок — нуль, без порога."
+      "reason": "2026-09-06: незалежний аудит довів, що проба НЕ МАЛА входу, на якому дає істинний PASS — неіснуючий corpus_ids давав 403 (відмова авторизації), а declaration рядком давав 422 на всі 40 запитів. Перенаведено на темпоральну абляцію (as_of=1900-01-01): 200, insufficient_evidence, citations []. Перший справжній вимір: 19 відповідей із корпусом, 0 без нього."
     },
     "scripts/probe_selftest_falsifiability.py": {
       "lines": 368,
@@ -5735,13 +5735,13 @@
       "reason": "Гейт паритету дивиться на КОЖЕН шаблон юніта в дереві, а не на перелік із одного інсталятора. Виміряно 02.09.2026: покривались два юніти, а встановлений `korpus-routine@.service` виявився зовсім іншим юнітом під тим самим іменем (`ExecStart=%h/.claude/routines/run.sh %i` проти `scripts/run_isolated_routine.py`). Гейт мовчав, бо цього імені не було в його переліку. Переліку більше немає: другий перелік розійшовся б із першим саме тоді, коли хтось додасть юніт. Плюс `substitution_agrees_with_installers` — гейт мусить підставляти корінь так само, як інсталятори, інакше червонітиме з власної причини."
     },
     "scripts/verify_mutation_delta.py": {
-      "lines": 156,
+      "lines": 160,
       "max_complexity": 5,
       "max_function_args": 1,
       "max_function_lines": 20,
       "max_nesting": 3,
       "proof_lines": 20,
-      "reason": "2026-09-06, НОВИЙ. Гейт дельти: змінений модуль мусить мати мутанта в курованому каталозі, пройти пробу, або нести виняток із названою умовою закриття. Стоїть на ДЕЛЬТІ, бо правило на 162 некаталогізованих модулях було б міграцією, перевдягненою в інваріант. Предмет — apps/api/src + scripts: каталог покриває обидва (виміряно: apps 143, scripts 68)."
+      "reason": "2026-09-06: дефолт --base=origin/main лишався в САМОМУ скрипті — я прибрав його лише з рецепта make, а CI кличе скрипт напряму. Тепер --base обовʼязковий там, де його читають."
     },
     "scripts/verify_observability_contract.py": {
       "lines": 76,

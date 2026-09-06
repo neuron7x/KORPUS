@@ -105,6 +105,24 @@ def problems(
         rows = report.get(key)
         if rows:
             found.append(f"звіт містить непорожній `{key}` ({len(rows)}) — це не доказ проходження")
+    # Доти перевірялися лише ці три СПИСКИ, які звіт складає САМ ПРО СЕБЕ. Виміряно
+    # 06.09.2026: звіт, де всі 624 рядки мають `status: "SURVIVED"`, `killed: 0` і
+    # власний `status: "FAIL"`, але `survived: []`, проходив без жодного зауваження —
+    # і тут, і в `verify_current_truth`. Гейт вірив підсумку замість того, щоб його
+    # перерахувати. Нижче читаються самі результати: підсумок мусить збігатися з ними.
+    outcomes: dict[str, int] = {}
+    for row in results:
+        if isinstance(row, dict):
+            outcomes[str(row.get("status"))] = outcomes.get(str(row.get("status")), 0) + 1
+    not_killed = {name: count for name, count in outcomes.items() if name != "KILLED"}
+    if not_killed:
+        found.append(f"результати містять невбитих мутантів: {not_killed} — підсумок їх не називає")
+    declared_killed = report.get("killed")
+    counted_killed = outcomes.get("KILLED", 0)
+    if isinstance(declared_killed, int) and declared_killed != counted_killed:
+        found.append(
+            f"звіт оголошує killed={declared_killed}, а результатів KILLED {counted_killed}"
+        )
     return found
 
 
