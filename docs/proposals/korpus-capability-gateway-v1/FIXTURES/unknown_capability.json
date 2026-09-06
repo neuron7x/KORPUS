@@ -1,0 +1,15 @@
+{
+  "description": "Unknown exact id.",
+  "request": {
+    "schema_version": "korpus.integration-request.v1",
+    "capability_id": "does.not.exist",
+    "capability_version": "1.0.0",
+    "input": {},
+    "idempotency_key": null,
+    "dry_run": false
+  },
+  "expected": {
+    "error_code": "CAPABILITY_UNKNOWN",
+    "adapter_calls": 0
+  }
+}

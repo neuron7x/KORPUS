@@ -1,0 +1,17 @@
+{
+  "description": "Capability-specific input schema violation.",
+  "request": {
+    "schema_version": "korpus.integration-request.v1",
+    "capability_id": "reference.public.read",
+    "capability_version": "1.0.0",
+    "input": {
+      "reference_id": 123
+    },
+    "idempotency_key": null,
+    "dry_run": false
+  },
+  "expected": {
+    "error_code": "INPUT_SCHEMA_INVALID",
+    "adapter_calls": 0
+  }
+}

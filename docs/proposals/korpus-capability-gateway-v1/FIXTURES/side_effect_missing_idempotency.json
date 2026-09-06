@@ -1,0 +1,18 @@
+{
+  "description": "Effectful call has no idempotency key.",
+  "capability_effect_class": "TRANSACTIONAL_SIDE_EFFECT",
+  "request": {
+    "schema_version": "korpus.integration-request.v1",
+    "capability_id": "workflow.external.commit",
+    "capability_version": "1.0.0",
+    "input": {
+      "item": "x"
+    },
+    "idempotency_key": null,
+    "dry_run": false
+  },
+  "expected": {
+    "error_code": "IDEMPOTENCY_REQUIRED",
+    "adapter_calls": 0
+  }
+}

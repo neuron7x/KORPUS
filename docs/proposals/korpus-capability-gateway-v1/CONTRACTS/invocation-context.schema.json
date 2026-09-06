@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:korpus:capability-gateway:v1:invocation-context",
+  "title": "KORPUS InvocationContext v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "invocation_id",
+    "actor",
+    "request_time",
+    "service_release",
+    "policy_context_digest"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "korpus.invocation-context.v1"
+    },
+    "invocation_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actor_type",
+        "subject_id"
+      ],
+      "properties": {
+        "actor_type": {
+          "enum": [
+            "user",
+            "agent",
+            "service"
+          ]
+        },
+        "subject_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "session_binding": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        }
+      }
+    },
+    "request_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "service_release": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "policy_context_digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "trace_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 64
+    },
+    "purpose": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 256
+    }
+  }
+}

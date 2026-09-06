@@ -1,0 +1,30 @@
+{
+  "description": "Evidence is beyond expiration.",
+  "evidence": {
+    "schema_version": "korpus.evidence-envelope.v1",
+    "status": "VALID",
+    "binding": {
+      "invocation_id": "11111111-1111-4111-8111-111111111111",
+      "capability_id": "reference.public.read",
+      "capability_version": "1.0.0",
+      "adapter_id": "http.reference",
+      "adapter_version": "1.0.0",
+      "output_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "provenance": {
+      "kind": "REMOTE_RESPONSE",
+      "source_refs": [
+        "provider:ref:doc-123"
+      ],
+      "provider_identity": "reference.example"
+    },
+    "observed_at": "2026-09-04T09:00:00Z",
+    "expires_at": "2026-09-04T09:05:00Z",
+    "reproducible": true,
+    "signature_ref": null
+  },
+  "validation_time": "2026-09-04T09:06:00Z",
+  "expected": {
+    "error_code": "EVIDENCE_STALE"
+  }
+}
