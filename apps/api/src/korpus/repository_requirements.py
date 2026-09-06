@@ -22,7 +22,7 @@ import re
 import subprocess
 import tomllib
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from korpus.application.requirements import Requirement
@@ -196,6 +196,14 @@ class RepositoryContext:
     init_text: str = ""
     readme: str = ""
     path_count: int = 0
+    # ЗНАМЕННИК ОБХОДУ. `path_count` ним не є і ніколи не був: він росте на КОЖНОМУ
+    # записі `rglob`, до перевірки «це файл» і до пропуску. Тобто він тотожний і коли
+    # оглянуто 2701 файл, і коли оглянуто НУЛЬ — сигнал із нульовою ентропією, який
+    # `validate_repository` друкує як «16292 paths» і який ніхто не гейтить.
+    # `files_examined` рахується ПІСЛЯ пропуску: це ті файли, яким справді поставили
+    # три питання. `roots_examined` каже, з яких верхніх тек вони прийшли.
+    files_examined: int = 0
+    roots_examined: set[str] = field(default_factory=set)
     validation_context: str = "SOURCE_CHECKOUT"
 
     def exists(self, relative: str) -> bool:
@@ -250,6 +258,12 @@ def _is_oversized_file(context: RepositoryContext, path: Path, relative: str) ->
     return path.stat().st_size > MAX_FILE_BYTES and not archival
 
 
+def _record_examined(context: RepositoryContext, inside: Path) -> None:
+    """Знаменник обходу: файл, якому справді поставили питання, і його верхня тека."""
+    context.files_examined += 1
+    context.roots_examined.add(inside.parts[0] if len(inside.parts) > 1 else "")
+
+
 def _scan_tree(context: RepositoryContext, root: Path, git_tracked: frozenset[str]) -> None:
     for path in root.rglob("*"):
         context.path_count += 1
@@ -265,6 +279,7 @@ def _scan_tree(context: RepositoryContext, root: Path, git_tracked: frozenset[st
         if any(part in SKIP_PARTS for part in inside.parts):
             continue
         relative = inside.as_posix()
+        _record_examined(context, inside)
         if _is_oversized_file(context, path, relative):
             context.oversized.append(relative)
         if path.suffix in SCANNED_SUFFIXES:
@@ -324,6 +339,157 @@ def _slug(relative: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", relative.lower()).strip("_")
 
 
+#: Що НЕ є джерелом — і ЧОМУ. Причина обов'язкова, і це не оздоба.
+#:
+#: Перелік навмисно НЕ `SKIP_PARTS`. Перша редакція фільтрувала очікування тим самим
+#: правилом, що й обхід, і не ловила нічого: отруївши правило, я зрушив обидва боки
+#: разом. Друга редакція ловила ОДНОБІЧНУ отруту, але не двобічну — незалежний суддя
+#: показав, що порада у відмові інваріанта («допиши частину в NON») сама вимикає
+#: виявлення. Виміряно на цьому дереві: отрута в обидва переліки дає 2397/2397,
+#: вимога зелена, і 311 файлів зникають безслідно.
+#:
+#: Тому виключення тепер КОШТУЄ: частина, що виключає файли, мусить бути названа тут
+#: із причиною, а `tracked_total` рахується БЕЗ жодного фільтра і слугує якорем, який
+#: не рухає жоден із переліків. Двобічна правка більше не тиха — вона вимагає слова
+#: в цьому словнику й показує зрослий `excluded` у виводі.
+NON_SOURCE_REASONS: dict[str, tuple[str, int]] = {
+    # Причина І ЧИСЛО. Саме лише слово гейт перевіряв на НАЯВНІСТЬ, не на істинність:
+    # `"korpus": "кеш"` пройшло б, і ціна приховати 311 файлів була одне слово, а
+    # брехливе слово нічим не відрізнялось від правдивого. З числом причина стає
+    # твердженням, яке звіряється з деревом: `("кеш", 311)` поруч із 311 трекованими
+    # джерельними файлами спростовує себе в самому діфі.
+    #
+    # Ціна чесності виміряна: усі чотирнадцять виключають ЗАРАЗ нуль. Вписати число
+    # коштує чотирнадцять нулів; збрехати — коштує числа, яке видно.
+    ".git": ("історія, не джерело", 0),
+    ".venv": ("встановлені залежності", 0),
+    ".terraform": ("кеш провайдерів", 0),
+    "var": ("рантайм і артефакти прогонів", 0),
+    "dist": ("збірка", 0),
+    "build": ("збірка", 0),
+    "node_modules": ("встановлені залежності", 0),
+    ".cache": ("кеш", 0),
+    ".mypy_cache": ("кеш інструмента", 0),
+    ".next": ("кеш збірки", 0),
+    ".pytest_cache": ("кеш інструмента", 0),
+    ".ruff_cache": ("кеш інструмента", 0),
+    "__pycache__": ("байт-код", 0),
+    "htmlcov": ("звіт покриття", 0),
+}
+
+#: Одна тотожність: множина виводиться зі словника, а не оголошується вдруге.
+NON_SOURCE_PARTS = frozenset(NON_SOURCE_REASONS)
+
+
+def scan_expectation(root: Path) -> dict[str, Any] | None:
+    """Скільки файлів обхід МУСИТЬ оглянути — з ЯКОРЕМ і видимим виключенням.
+
+    `tracked_total` рахується без фільтра: його не рухає ні `SKIP_PARTS`, ні
+    `NON_SOURCE_REASONS`. Саме тому падіння `expected` стає видимим як зростання
+    `excluded`, а не тихим наслідком правки переліку.
+
+    `None` — індексу git нема; тоді ця вісь НЕ ВИМІРЯНА, і її тримає лише перевірка
+    верхніх тек. Невиміряне не є пройденим.
+    """
+    listed = subprocess.run(
+        ["git", "-C", str(root), "ls-files", "-z"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if listed.returncode != 0:
+        return None
+    excluded_by_part: dict[str, int] = {}
+    expected = 0
+    total = 0
+    for name in listed.stdout.split("\0"):
+        if not name:
+            continue
+        total += 1
+        hit = next((p for p in PurePosixPath(name).parts if p in NON_SOURCE_PARTS), None)
+        if hit is None:
+            expected += 1
+        else:
+            excluded_by_part[hit] = excluded_by_part.get(hit, 0) + 1
+    head = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "--short", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return {
+        # Число без підпису старіє мовчки: свіжий вимір, прив'язаний до чужого дерева,
+        # читається як поточний. Тому дайджест їде РАЗОМ зі значенням, в одному прольоті.
+        "tree": head.stdout.strip() or "невідоме",
+        "tracked_total": total,
+        "expected": expected,
+        "excluded": total - expected,
+        "excluded_by_part": excluded_by_part,
+    }
+
+
+def tracked_expectation(root: Path) -> int | None:
+    """Тонка обгортка: скільки файлів обхід мусить оглянути."""
+    breakdown = scan_expectation(root)
+    return None if breakdown is None else int(breakdown["expected"])
+
+
+def undeclared_exclusions(context: RepositoryContext) -> list[str]:
+    """Виключення, що розходиться з ОГОЛОШЕНИМ числом, або не оголошене зовсім.
+
+    ЯКІР проти двобічної отрути. Дописати частину в обидва переліки вже не досить:
+    вона мусить нести причину І ЧИСЛО, і число звіряється з деревом. Слово гейт
+    перевіряв би на наявність; число він перевіряє на істинність.
+    """
+    breakdown = scan_expectation(context.root)
+    if breakdown is None:
+        return []
+    counts: dict[str, int] = breakdown["excluded_by_part"]
+    offenders: list[str] = []
+    for part, actual in sorted(counts.items()):
+        declared = NON_SOURCE_REASONS.get(part)
+        if declared is None:
+            offenders.append(f"{part}: виключає {actual}, причини не оголошено")
+        elif declared[1] != actual:
+            offenders.append(f"{part}: оголошено {declared[1]}, виключає {actual} — «{declared[0]}»")
+    for part, (reason, declared_count) in NON_SOURCE_REASONS.items():
+        if declared_count and part not in counts:
+            offenders.append(f"{part}: оголошено {declared_count}, виключає 0 — «{reason}»")
+    return offenders
+
+
+def blind_roots(context: RepositoryContext) -> list[str]:
+    """Верхні теки, що існують у дереві, але не дали ЖОДНОГО оглянутого файла.
+
+    Підлога знаменника, і навмисно не `files_examined > 0`. «Не нуль» — хибне
+    питання: обхід, що оглянув один файл із трьох тисяч, ту умову задовольняє й
+    лишає перевірку зеленою над майже порожнім входом. Питання має бути «чи
+    оглянуто те, що мали оглянути».
+
+    Тому міра структурна, без магічного числа: кожна верхня тека, яка Є на диску і
+    яку не пропускають за правилом, мусить дати щонайменше один оглянутий файл.
+    Тека, якої нема, нічого не вимагає; тека зі `SKIP_PARTS` пропускається законно.
+    Число не треба ратчетити — воно виводиться з дерева щоразу наново.
+
+    ЩО САМЕ ЦЕ ЛОВИТЬ, виміряно 06.09.2026: обхід, осліплений компонентою шляху,
+    віддавав `tracked_secrets`, `oversized` і `placeholders` порожніми, і
+    `validate_repository` був ЗЕЛЕНИЙ. Жодне твердження в коді не питало, чи обхід
+    узагалі щось бачив; єдине, що існувало, — `assert context.path_count > 0` у
+    тесті, і воно істинне при нульовому фактичному огляді.
+    """
+    try:
+        present = {
+            entry.name
+            for entry in context.root.iterdir()
+            if entry.is_dir() and not entry.name.startswith(".") and entry.name not in SKIP_PARTS
+        }
+    except OSError:
+        # Корінь нечитабельний — це ВІДМОВА, і вона мусить бути видимою, а не
+        # порожнім переліком, який читається як згода.
+        return ["<корінь нечитабельний>"]
+    return sorted(present - context.roots_examined)
+
+
 REPOSITORY_REQUIREMENTS: tuple[Requirement, ...] = (
     *[
         _requirement(
@@ -342,6 +508,35 @@ REPOSITORY_REQUIREMENTS: tuple[Requirement, ...] = (
         )
         for filename in REQUIRED_MIGRATIONS
     ],
+    _requirement(
+        "repo.scan.exclusion_is_declared",
+        "every path part that removes files from the expectation carries a written reason",
+        lambda c: not undeclared_exclusions(c),
+        "ЯКІР проти двобічної правки. Одностороння отрута ловилась порівнянням, а "
+        "двобічна — ні: дописати частину в ОБИДВА переліки давало 2397/2397 і зелену "
+        "вимогу, поки 311 файлів зникали. Гірше — порада у відмові інваріанта радила "
+        "саме це. Тепер виключення коштує слова в `NON_SOURCE_REASONS`, а `excluded` "
+        "видно у виводі: зміна лишається можливою, але перестає бути тихою",
+    ),
+    _requirement(
+        "repo.scan.reached_every_tracked_file",
+        "the walk examined at least as many files as git tracks outside the skipped parts",
+        lambda c: (
+            (expected := tracked_expectation(c.root)) is None or c.files_examined >= expected
+        ),
+        "структурна підлога по верхніх теках сліпа до осліплення НА ГЛИБИНІ: пропуск, що "
+        "зрізає `apps/api/src/korpus/`, лишає `apps` серед оглянутих. Виміряно 06.09.2026: "
+        "втрачено 311 файлів із 2708, і `blind_roots` віддав порожньо. Індекс git дає "
+        "співмірне число на будь-якій глибині; `None` означає дерево без індексу, де ця "
+        "вісь НЕ ВИМІРЯНА, і її тримає лише перевірка верхніх тек",
+    ),
+    _requirement(
+        "repo.scan.every_root_was_examined",
+        "the walk examined at least one file under every non-skipped top-level directory",
+        lambda c: not blind_roots(c),
+        "три питання, поставлені порожньому переліку, дають три зелені відповіді; "
+        "перевірка без знаменника не відрізняє «нічого не знайдено» від «нічого не дивилось»",
+    ),
     _requirement(
         "repo.json_documents_parse",
         "every shipped JSON contract and schema parses",

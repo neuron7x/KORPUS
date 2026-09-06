@@ -4911,8 +4911,8 @@ MUTANTS = (
     Mutant(
         "M520_A_MENTION_OF_THE_FLAG_COUNTS_AS_DECLARING_IT",
         "scripts/verify_selftest_coverage.py",
-        r'''DECLARES = re.compile(r"""add_argument\(\s*["']--selftest["']""")''',
-        'DECLARES = re.compile(r"--selftest")',
+        r'''    r"""add_argument\(\s*["']--selftest["']"""''',
+        '    r"--selftest"',
         (
             "apps/api/tests/test_selftest_coverage.py::"
             "test_discovery_finds_the_declarations_not_the_mentions",

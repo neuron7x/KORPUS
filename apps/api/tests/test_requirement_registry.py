@@ -19,6 +19,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from types import SimpleNamespace
+
 import pytest
 from korpus.application.requirements import (
     Requirement,
@@ -244,10 +246,114 @@ def test_one_walk_answers_every_filesystem_question(monkeypatch) -> None:
     context = load_repository_context(ROOT, _repository_validation_context())
 
     assert walks == 1
-    assert context.path_count > 0
+    # `path_count > 0` тут стояло і НЕ БУЛО мірою: воно росте на кожному записі
+    # `rglob`, до перевірки «це файл» і до пропуску, тож істинне й тоді, коли
+    # оглянуто нуль файлів. Виміряно на цьому дереві: 5526 пройдено, 2707 оглянуто —
+    # число, що читалось як знаменник, було вдвічі більшим за нього.
+    assert context.files_examined > 0
+    assert context.path_count > context.files_examined
     assert context.oversized == []
     assert context.placeholders == []
     assert context.tracked_secrets == []
+
+
+def test_a_blind_walk_is_not_a_clean_tree() -> None:
+    """Порожній результат обходу мусить бути ВІДМОВОЮ, а не трьома зеленими.
+
+    Клас, а не випадок. Три питання — секрети, завеликі файли, заглушки — ставляться
+    переліку, який обхід зібрав. Переліку порожньому вони дають три «нічого не
+    знайдено», нерозрізненні з «нічого не дивилось».
+
+    ВИМІРЯНО 06.09.2026: обхід, осліплений компонентою шляху розгортання, віддавав
+    усі три порожніми, і `validate_repository` був ЗЕЛЕНИЙ. Ця вимога — єдине, що
+    ставить питання про знаменник, і вона мусить ловити рівно той стан.
+    """
+    from korpus.repository_requirements import REPOSITORY_REQUIREMENTS, blind_roots
+    from korpus.repository_requirements import load_context as load_repository_context
+
+    requirement = next(
+        item for item in REPOSITORY_REQUIREMENTS if item.id == "repo.scan.every_root_was_examined"
+    )
+    context = load_repository_context(ROOT, _repository_validation_context())
+
+    # На справжньому дереві підлога тримає й не дає хибнопозитиву.
+    assert blind_roots(context) == []
+    assert requirement.holds(context) is True
+
+    # НЕГАТИВНИЙ КОНТРОЛЬ: обхід, що не оглянув нічого. Умову створено, не
+    # успадковано від середовища — інакше проба вироджується в тишу.
+    context.roots_examined = set()
+    context.files_examined = 0
+
+    assert blind_roots(context) != []
+    assert requirement.holds(context) is False
+
+    # ДУАЛ, який виправдовує ВИБІР МІРИ. Обхід, що оглянув один файл з однієї теки,
+    # задовольняє «не нуль» і лишає перевірку зеленою над майже порожнім входом —
+    # рівно та вада, від якої `not_zero_instead_of_enough`. Структурна підлога тут
+    # ще червона, бо решта тек не оглянута.
+    context.roots_examined = {"scripts"}
+    context.files_examined = 1
+
+    assert context.files_examined > 0  # «не нуль» — задоволено
+    assert requirement.holds(context) is False  # «досить» — ні
+
+
+def test_the_floor_reaches_a_blinding_at_depth_not_only_a_total_one(monkeypatch) -> None:
+    """Підлога по верхніх теках СЛІПА до осліплення на глибині — тому є друга.
+
+    Знайдено незалежним суддею-сесією і підтверджено прогоном 06.09.2026: пропуск,
+    що зрізає `apps/api/src/korpus/`, лишає `apps` серед оглянутих, бо інші файли
+    під нею обхід бачив. Втрата — 311 файлів із 2708, і `blind_roots` віддає `[]`.
+
+    Перша редакція очікування фільтрувала тим самим `SKIP_PARTS`, що й обхід, і не
+    ловила НІЧОГО: отруєння рухало обидва боки разом. Дві тотожності одного правила
+    згоджуються завжди. Тому очікування спирається на `NON_SOURCE_PARTS` — незалежне
+    оголошення, яке МУСИТЬ розійтися, коли `SKIP_PARTS` зіпсують.
+    """
+    from korpus import repository_requirements as module
+    from korpus.repository_requirements import REPOSITORY_REQUIREMENTS
+    from korpus.repository_requirements import load_context as load_repository_context
+
+    deep = next(
+        r for r in REPOSITORY_REQUIREMENTS if r.id == "repo.scan.reached_every_tracked_file"
+    )
+    shallow = next(
+        r for r in REPOSITORY_REQUIREMENTS if r.id == "repo.scan.every_root_was_examined"
+    )
+    clean = load_repository_context(ROOT, _repository_validation_context())
+
+    # УМОВА ДІЙСНОСТІ, названа явно: без git-індексу ця вісь НЕ ВИМІРЯНА, і тест
+    # про неї нічого не доводить. Мовчазний пропуск читався б як згода.
+    if module.tracked_expectation(ROOT) is None:
+        pytest.skip("дерево без git-індексу: співмірна вісь не вимірна тут")
+
+    assert deep.holds(clean) is True
+    assert shallow.holds(clean) is True
+
+    # Умову СТВОРЕНО: осліплення компонентою на глибині, справжній обхід.
+    monkeypatch.setattr(module, "SKIP_PARTS", frozenset(set(module.SKIP_PARTS) | {"korpus"}))
+    blinded = load_repository_context(ROOT, _repository_validation_context())
+
+    assert blinded.files_examined < clean.files_examined
+    assert deep.holds(blinded) is False  # співмірна ловить
+    assert shallow.holds(blinded) is True  # по верхніх теках сліпа — і це названо
+
+
+def test_the_shallow_floor_has_a_stated_validity_condition() -> None:
+    """Позитивний контроль `blind_roots == []` тримається лише на непорожньому дереві.
+
+    Умову вписано, щоб вона не зникла мовчки: на дереві з однією верхньою текою або
+    без файлів твердження було б істинним ні про що.
+    """
+    from korpus.repository_requirements import blind_roots
+    from korpus.repository_requirements import load_context as load_repository_context
+
+    context = load_repository_context(ROOT, _repository_validation_context())
+
+    assert len(context.roots_examined) >= 2, "дерево мусить мати ≥2 оглянуті верхні теки"
+    assert context.files_examined >= 100, "дерево мусить бути непорожнім"
+    assert blind_roots(context) == []
 
 
 def test_the_kubernetes_register_states_the_same_rules_as_the_gate() -> None:
@@ -396,3 +502,104 @@ def test_no_requirement_is_stated_twice_under_two_ids() -> None:
     assert [name for name, count in names.items() if count > 1] == []
     messages = Counter(requirement.message for requirement in CONTROLLED_REQUIREMENTS)
     assert [message for message, count in messages.items() if count > 1] == []
+
+
+def test_everything_the_walk_skips_is_also_outside_the_expectation() -> None:
+    """Інваріант, без якого підлога дає ХИБНЕ ЧЕРВОНЕ.
+
+    Обхід пропускає `SKIP_PARTS`; очікування виключає `NON_SOURCE_PARTS`. Якщо обхід
+    пропускає щось, чого очікування не виключає, різниця читається як недогляд, хоч
+    обхід ні в чому не винен.
+
+    ВИМІРЯНО 06.09.2026: кешів інструментів (`.pytest_cache`, `__pycache__`, `htmlcov`
+    та інших) бракувало в `NON_SOURCE_PARTS`. Закомічений файл під `.pytest_cache` дав
+    2708 проти 2709 і вимогу `False` — а це предмет `cache-in-tree`, не цієї осі.
+    Доти умова трималась на СТАНІ ДЕРЕВА (нуль трекованих під ними), не на властивості
+    міри: знайдено незалежним суддею-сесією як латентна, а не відсутня.
+
+    Зворотне включення НЕ вимагається: очікування може виключати більше, ніж обхід
+    пропускає — це лише послаблює вимогу, а не робить її хибною.
+    """
+    from korpus.repository_requirements import NON_SOURCE_PARTS, SKIP_PARTS
+
+    unmatched = sorted(set(SKIP_PARTS) - set(NON_SOURCE_PARTS))
+
+    assert unmatched == [], (
+        "обхід пропускає ці частини шляху, а очікування їх рахує. ДВІ ДОРОГИ, і вибір "
+        "між ними — рішення, не формальність: (1) частина справді не є джерелом — "
+        "додай її в `NON_SOURCE_REASONS` РАЗОМ ІЗ ПРИЧИНОЮ й поясни, чому очікування "
+        "має впасти, бо це зниження знаменника; (2) частину додали в `SKIP_PARTS` "
+        "помилково — прибери її ЗВІДТИ, і очікування лишиться на місці. "
+        "Перша дорога виключає файли з виміру назавжди; друга нічого не виключає. "
+        f"Частини: {unmatched}"
+    )
+
+
+def test_a_committed_cache_file_does_not_look_like_a_missed_file(monkeypatch, tmp_path) -> None:
+    """Дуал до інваріанта вище, на СТВОРЕНІЙ умові, а не на стані дерева.
+
+    Без цього плеча інваріант лишався б твердженням про два переліки, а не про
+    поведінку: перелік можна звести правильно й усе одно порахувати не так.
+    """
+    from korpus import repository_requirements as module
+    from korpus.repository_requirements import NON_SOURCE_PARTS
+
+    tracked = ["apps/api/src/korpus/main.py", ".pytest_cache/POISON.txt", "scripts/run_lane.py"]
+
+    def _fake(*_args, **_kwargs):
+        return SimpleNamespace(returncode=0, stdout="\x00".join(tracked) + "\x00")
+
+    monkeypatch.setattr(module.subprocess, "run", _fake)
+
+    # Кешовий файл не потрапляє в очікування, бо `.pytest_cache` у NON_SOURCE_PARTS.
+    assert ".pytest_cache" in NON_SOURCE_PARTS
+    assert module.tracked_expectation(tmp_path) == 2
+
+
+def test_declaring_a_part_on_both_sides_is_possible_but_never_silent() -> None:
+    """ЯКІР проти двобічної правки — і чесна межа того, що він робить.
+
+    Одностороння отрута ловиться порівнянням `files_examined >= expected`. Двобічна
+    НЕ ловилась: дописати частину в обидва переліки давало 2397/2397 і зелену вимогу,
+    поки 311 файлів зникали з виміру. Гірше — порада у відмові інваріанта радила саме
+    цю дорогу, тобто ліки вимикали виявлення. Знайдено незалежним суддею-сесією.
+
+    Що якір робить: `tracked_total` рахується БЕЗ фільтра, тож його не рухає жоден із
+    переліків, і виключення стає видимим числом. Що він НЕ робить: він не забороняє
+    виключення — він робить його неможливим ТИХО. Частина без причини валить вимогу;
+    частина з причиною проходить, але лишає слово в діфі й `excluded` у виводі гейта.
+    Це та сама форма, що `raised` у бюджеті модулів: зміна дозволена, замовчування — ні.
+    """
+    from korpus.repository_requirements import (
+        NON_SOURCE_REASONS,
+        REPOSITORY_REQUIREMENTS,
+        scan_expectation,
+    )
+    from korpus.repository_requirements import load_context as load_repository_context
+
+    declared = next(
+        r for r in REPOSITORY_REQUIREMENTS if r.id == "repo.scan.exclusion_is_declared"
+    )
+    context = load_repository_context(ROOT, _repository_validation_context())
+    breakdown = scan_expectation(ROOT)
+    if breakdown is None:
+        pytest.skip("дерево без git-індексу: якір не вимірний тут")
+
+    # Якір не рухається переліками: на чистому дереві виключення НЕМАЄ взагалі.
+    assert breakdown["tracked_total"] == breakdown["expected"]
+    assert breakdown["excluded"] == 0
+    assert declared.holds(context) is True
+
+    # Кожна оголошена частина несе причину І ЧИСЛО, і число звіряється з деревом.
+    # Слово гейт перевіряв би на НАЯВНІСТЬ; число він перевіряє на ІСТИННІСТЬ, тож
+    # `("кеш", 311)` поруч із 311 джерельними файлами спростовує себе в діфі.
+    for part, declared in NON_SOURCE_REASONS.items():
+        reason, count = declared
+        assert reason, f"{part}: причина без слова"
+        assert count == breakdown["excluded_by_part"].get(part, 0), (
+            f"{part}: оголошено {count}, дерево дає "
+            f"{breakdown['excluded_by_part'].get(part, 0)}"
+        )
+
+    # Підпис їде разом зі значенням: число без дайджесту старіє мовчки.
+    assert breakdown["tree"] and breakdown["tree"] != "невідоме"

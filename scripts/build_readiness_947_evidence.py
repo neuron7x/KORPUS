@@ -82,6 +82,45 @@ def _dataset_controls() -> int:
     return count
 
 
+def _targeted_state(targeted: dict[str, Any]) -> dict[str, str]:
+    """PASS / FAIL / NOT_MEASURED — три стани там, де стояв один булевий.
+
+    `targeted_ok` злипав три різні світи в одне `False`: замало відібрано, справжні
+    падіння, і «не бігало». Читач бачив хибне й висновував, що тести падають.
+
+    ВИМІРЯНО 06.09.2026 на `723d9bb4`: 48 пропущених, з них **44 через ненастроєний
+    PostgreSQL** (`test_postgres_rls_policy_state`, `..._approval_provenance`,
+    `..._role_reprovision_boundary`, `..._rls_claim_forgery` і решта тим самим).
+    Канонічний бекенд релізу — PostgreSQL (`production-v1.json`), а число готовності
+    рахується з прогону на SQLite, який НЕ МОЖЕ дати нуль пропусків. Критерій не
+    хибний і не недосяжний: його міряють там, де предмета нема.
+
+    Різниця практична, і в неї різний адресат. `FAIL` знімає інженер, полагодивши
+    тест. `NOT_MEASURED` знімає той, хто дає середовище: один прогін батареї під
+    сконфігурованим постгресом переводить 44 пропуски у виконані.
+
+    Поведінка споживача НЕ змінена: `targeted_ok` і далі істинний рівно на `PASS`.
+    Виправлено те, що звіт КАЗАВ про свою відмову, а не те, що з неї випливає.
+    """
+    if targeted["tests"] < 60:
+        return {"state": "NOT_MEASURED", "reason": f"відібрано {targeted['tests']} < 60"}
+    if targeted["failures"] or targeted["errors"]:
+        return {
+            "state": "FAIL",
+            "reason": f"падінь {targeted['failures']}, помилок {targeted['errors']}",
+        }
+    if targeted["skipped"]:
+        return {
+            "state": "NOT_MEASURED",
+            "reason": (
+                f"{targeted['skipped']} тестів пропущено: середовище прогону не має "
+                "предмета (переважно ненастроєний PostgreSQL). Невиконане не є ні "
+                "пройденим, ні проваленим"
+            ),
+        }
+    return {"state": "PASS", "reason": "цільова регресія виконана повністю"}
+
+
 def _package_evidence(path: Path | None) -> dict[str, bool]:
     if path is None or not path.is_file():
         return {}
@@ -141,16 +180,15 @@ def _context(package_evidence_path: Path | None) -> dict[str, Any]:
     carry_ok = (
         carry.get("status") == "PASS" and carry.get("target_source_tree_sha256") == source_digest
     )
-    targeted_ok = (
-        targeted["tests"] >= 60
-        and targeted["failures"] == targeted["errors"] == targeted["skipped"] == 0
-    )
+    targeted_state = _targeted_state(targeted)
+    targeted_ok = targeted_state["state"] == "PASS"
     return {
         "source_digest": source_digest,
         "release": release,
         "carry": carry,
         "carry_ok": carry_ok,
         "targeted": targeted,
+        "targeted_state": targeted_state,
         "targeted_ok": targeted_ok,
         "baseline_backend": baseline_backend,
         "coverage": coverage,

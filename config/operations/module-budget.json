@@ -3010,7 +3010,7 @@
       "lines": null,
       "max_complexity": 11,
       "max_function_args": 4,
-      "max_function_lines": 39,
+      "max_function_lines": 45,
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "Реєстр вимог росте на один запис із кожною новою властивістю репозиторію; складність і форма функцій залишаються обмеженими окремо."
@@ -3419,7 +3419,7 @@
       "reason": "binds an SBOM and a material list to the image they describe, signed, and refuses a mismatch"
     },
     "scripts/build_readiness_947_evidence.py": {
-      "lines": 524,
+      "lines": 562,
       "max_complexity": 7,
       "max_function_args": 4,
       "max_function_lines": 84,
@@ -5594,10 +5594,10 @@
       "reason": "registered 2026-08-29 (parallel session) | 2026-08-29: стеля опущена 211→160 — рядки selftest (51) більше не рахуються як програма; проби ростуть під власною стелею."
     },
     "scripts/validate_repository.py": {
-      "lines": 58,
-      "max_complexity": 4,
+      "lines": 61,
+      "max_complexity": 5,
       "max_function_args": 0,
-      "max_function_lines": 24,
+      "max_function_lines": 26,
       "max_nesting": 2,
       "proof_lines": 0
     },
@@ -5859,7 +5859,7 @@
       "proof_lines": 0
     },
     "scripts/verify_selftest_coverage.py": {
-      "lines": 195,
+      "lines": 242,
       "max_complexity": 8,
       "max_function_args": 3,
       "max_function_lines": 35,
@@ -11739,6 +11739,72 @@
         "max_function_lines": 130
       },
       "why": "проба записує ВІК кожної оголошеної служби в мить першого запиту: «холодний старт» без цього числа означав різне — 7 с дало 5,569 с, 131 с дало 1,5 с, і ратчет порівнював виміри різних систем, не маючи як це помітити"
+    },
+    {
+      "on": "2026-09-06",
+      "path": "apps/api/src/korpus/repository_requirements.py",
+      "from": {
+        "max_function_lines": 39
+      },
+      "to": {
+        "max_function_lines": 45
+      },
+      "reason": "Підлога знаменника обходу: `blind_roots` (структурна, по верхніх теках) + `scan_expectation` (співмірна, по git-індексу, ловить осліплення на будь-якій глибині) + якір `tracked_total` без фільтра з дайджестом дерева. Причина виключення несе ЧИСЛО, звірене з деревом: слово гейт перевіряв би на наявність, число — на істинність."
+    },
+    {
+      "on": "2026-09-06",
+      "path": "scripts/build_readiness_947_evidence.py",
+      "from": {
+        "lines": 524
+      },
+      "to": {
+        "lines": 562
+      },
+      "reason": "`_targeted_state`: три стани замість булевого. 48 пропущених — це NOT_MEASURED із причиною, а не False: 44 з них через ненастроєний PostgreSQL, тобто вимір у середовищі без предмета."
+    },
+    {
+      "on": "2026-09-06",
+      "path": "scripts/validate_repository.py",
+      "from": {
+        "lines": 58
+      },
+      "to": {
+        "lines": 61
+      },
+      "reason": "Друкується якір із підписом: `@<дерево>: N examined, git tracks M, excluded K`. `path_count` більше не подається читачеві як міра — він однаковий при повному огляді й при нульовому."
+    },
+    {
+      "on": "2026-09-06",
+      "path": "scripts/validate_repository.py",
+      "from": {
+        "max_complexity": 4
+      },
+      "to": {
+        "max_complexity": 5
+      },
+      "reason": "Друкується якір із підписом: `@<дерево>: N examined, git tracks M, excluded K`. `path_count` більше не подається читачеві як міра — він однаковий при повному огляді й при нульовому."
+    },
+    {
+      "on": "2026-09-06",
+      "path": "scripts/validate_repository.py",
+      "from": {
+        "max_function_lines": 24
+      },
+      "to": {
+        "max_function_lines": 26
+      },
+      "reason": "Друкується якір із підписом: `@<дерево>: N examined, git tracks M, excluded K`. `path_count` більше не подається читачеві як міра — він однаковий при повному огляді й при нульовому."
+    },
+    {
+      "on": "2026-09-06",
+      "path": "scripts/verify_selftest_coverage.py",
+      "from": {
+        "lines": 195
+      },
+      "to": {
+        "lines": 242
+      },
+      "reason": "Дві форми оголошення `--selftest` замість однієї (64→70, 69 запущено) плюс МЕЖА сліпої зони: кожна згадка або розібрана, або названа винятком."
     }
   ],
   "recorded_at": "2026-09-06",
