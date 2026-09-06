@@ -27,8 +27,8 @@
   "evidence_class": "LOCAL_NODE_TEST_RUNNER",
   "provenance": {
     "schema_version": 1,
-    "source_digest": "bad7efe1a766497a8b1430283e28a47e013d8f811496cf9d3b0a50d272db8a95",
+    "source_digest": "aaf8e9fc27412bb8531e0e4aded9b7014394fff6d23b9fdc204b8cd631fd3987",
     "generator": "scripts/publish_web_regression.py",
-    "generated_at": "2026-09-05T22:59:35+00:00"
+    "generated_at": "2026-09-06T05:12:23+00:00"
   }
 }
