@@ -28,6 +28,7 @@ container="${KORPUS_PG_CONTAINER:-korpus-pg-drill}"
 port="${KORPUS_PG_PORT:-55434}"
 password="korpus-drill-$$"
 app_password="korpus-app-$$"
+authz_password="korpus-authz-$$"
 source_db="korpus_drill"
 restored_db="korpus_drill_restore"
 
@@ -53,6 +54,13 @@ admin_url="postgresql+psycopg://postgres:${password}@127.0.0.1:${port}/${source_
 app_url="postgresql+psycopg://korpus_app:${app_password}@127.0.0.1:${port}/${source_db}"
 restored_admin_url="postgresql+psycopg://postgres:${password}@127.0.0.1:${port}/${restored_db}"
 restored_app_url="postgresql+psycopg://korpus_app:${app_password}@127.0.0.1:${port}/${restored_db}"
+# Роль БРОКЕРА. `measure_recovery.py` вимагає її з 04.09.2026, а цей скрипт востаннє
+# чіпали 12.08 — тож постгресний прогін відновлення був МЕРТВИЙ два дні: він доходив
+# до вимірювача і той відмовляв («URL брокера обов'язковий»), а предикат
+# `trusted_recovery_attestation` не мав ЖОДНОЇ дороги до закриття. Вічне PENDING —
+# це недосяжність, не очікування.
+authz_url="postgresql+psycopg://korpus_authz:${authz_password}@127.0.0.1:${port}/${source_db}"
+restored_authz_url="postgresql+psycopg://korpus_authz:${authz_password}@127.0.0.1:${port}/${restored_db}"
 
 export PYTHONPATH="$root/apps/api/src"
 export KORPUS_AUDIT_HMAC_KEY="recovery-drill-key"
@@ -60,7 +68,9 @@ export KORPUS_AUDIT_HMAC_KEY="recovery-drill-key"
 echo "== migrate =="
 ( cd apps/api && KORPUS_DATABASE_URL="$admin_url" "$python_bin" -m alembic -c alembic.ini upgrade head )
 KORPUS_DATABASE_URL="$admin_url" KORPUS_POSTGRES_APP_ROLE=korpus_app \
-  KORPUS_POSTGRES_APP_PASSWORD="$app_password" "$python_bin" scripts/prepare_postgres_role.py >/dev/null
+  KORPUS_POSTGRES_APP_PASSWORD="$app_password" \
+  KORPUS_POSTGRES_AUTHZ_ROLE=korpus_authz KORPUS_POSTGRES_AUTHZ_PASSWORD="$authz_password" \
+  "$python_bin" scripts/prepare_postgres_role.py >/dev/null
 
 echo "== seed =="
 KORPUS_RECOVERY_SEED_URL="$admin_url" "$python_bin" scripts/seed_recovery_fixture.py
@@ -134,13 +144,18 @@ restore_seconds="$("$python_bin" -c "import sys;print(float(sys.argv[2])-float(s
 # through it, because RLS does not apply to a superuser and a superuser count is a number
 # about the table rather than about what the application can recover.
 KORPUS_DATABASE_URL="$restored_admin_url" KORPUS_POSTGRES_APP_ROLE=korpus_app \
-  KORPUS_POSTGRES_APP_PASSWORD="$app_password" "$python_bin" scripts/prepare_postgres_role.py >/dev/null
+  KORPUS_POSTGRES_APP_PASSWORD="$app_password" \
+  KORPUS_POSTGRES_AUTHZ_ROLE=korpus_authz KORPUS_POSTGRES_AUTHZ_PASSWORD="$authz_password" \
+  "$python_bin" scripts/prepare_postgres_role.py >/dev/null
 
 echo "== verify =="
-KORPUS_POSTGRES_TEST_URL="$restored_app_url" "$python_bin" scripts/verify_postgres_restore.py
+KORPUS_POSTGRES_TEST_URL="$restored_app_url" KORPUS_AUTHZ_DATABASE_URL="$restored_authz_url" \
+  "$python_bin" scripts/verify_postgres_restore.py
 
 KORPUS_RECOVERY_SOURCE_URL="$app_url" \
 KORPUS_RECOVERY_RESTORED_URL="$restored_app_url" \
+KORPUS_RECOVERY_SOURCE_AUTHZ_URL="$authz_url" \
+KORPUS_RECOVERY_RESTORED_AUTHZ_URL="$restored_authz_url" \
 KORPUS_RECOVERY_BACKUP_PATH="$final" \
 KORPUS_RECOVERY_RESTORE_SECONDS="$restore_seconds" \
   "$python_bin" scripts/measure_recovery.py

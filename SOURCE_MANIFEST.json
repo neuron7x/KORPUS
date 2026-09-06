@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1865,
-  "root_sha256": "a8f43387b5417512834efc4c09b256b1e63cb51fb9496c86a3b0ac722c9427e7",
+  "file_count": 1866,
+  "root_sha256": "f5bf1e0bf495e9c7cfa61f5f5d523b66610e8bd3dabd5e4ce0ff2f20f6aea451",
   "files": [
     {
       "path": ".dockerignore",
@@ -4512,6 +4512,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_recovery_drill_reaches_its_measurer.py",
+      "bytes": 3164,
+      "sha256": "3df052473effc2448e98e47e636b3bfc0fecf65996788f72a7198c8dba680475",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_recovery_measurement.py",
       "bytes": 10145,
       "sha256": "a8db77d211a7d32e554974719dcc15b356c31336251f510ad43762117487f1ec",
@@ -5725,8 +5731,8 @@
     },
     {
       "path": "config/assurance/production-predicate-floor.json",
-      "bytes": 2683,
-      "sha256": "50f1e173220dde22447a775272bddfb41ab00be61882a7477d95cb2f0d70c7cd",
+      "bytes": 3096,
+      "sha256": "0b8b749530a1bf1fb49a17f506b40201922da3c8d2f6fae0c9496ef0fb246b4a",
       "mode": "0644"
     },
     {
@@ -10693,8 +10699,8 @@
     },
     {
       "path": "scripts/run_recovery_drill.sh",
-      "bytes": 7220,
-      "sha256": "ebc4aac6cb83b86fe7492000800abc4be3c8c3421ff9d5c7ad8db97ef991dc37",
+      "bytes": 8385,
+      "sha256": "0825d742e5173bb0db333460b0f9de108d49fc3cab586859e20e72a39be42739",
       "mode": "0755"
     },
     {
