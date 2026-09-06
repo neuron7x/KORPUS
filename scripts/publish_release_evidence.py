@@ -31,6 +31,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 
 from korpus.application.provenance import compute_source_digest  # noqa: E402
+from korpus.application.release_claims import binding  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
 #: Report name in the release directory -> the run artefact that produces it.
@@ -44,12 +45,8 @@ SOURCES = {
     "INFERENCE_SECURITY_GATE.json": "var/production/inference_security-gate.json",
     "STANDARDS_CONTROL_MAP_VERIFICATION.json": "var/standards-control-map-verification.json",
     "MUTATION_DELTA_REPORT.json": "reports/MUTATION_DELTA_REPORT.json",
+    "WEB_REGRESSION_REPORT.json": "var/web-regression.json",
 }
-
-
-def _digest_of(report: dict[str, Any]) -> str | None:
-    value = report.get("source_tree_sha256") or report.get("source_digest")
-    return value if isinstance(value, str) else None
 
 
 def coverage_projection(digest: str, release: str) -> dict[str, Any] | None:
@@ -103,7 +100,10 @@ def main() -> int:
             refused.append({"report": name, "reason": f"no artefact at {relative}"})
             continue
         report = json.loads(source.read_text(encoding="utf-8"))
-        bound = _digest_of(report)
+        bound, divergent = binding(report)
+        if divergent:
+            refused.append({"report": name, "reason": "дві прив'язки в артефакті розійшлись"})
+            continue
         if bound != digest and not args.allow_unbound:
             refused.append(
                 {

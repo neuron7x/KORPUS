@@ -106,14 +106,29 @@ def catalogued_modules() -> set[str]:
     return files
 
 
-def uncatalogued_modules() -> list[str]:
+def uncatalogued_modules(only: list[str] | None = None) -> list[str]:
+    """Некаталогізовані модулі; `only` звужує предмет до названих шляхів.
+
+    Звуження потрібне гейту дельти: без нього проба або міряє все дерево (162
+    модулі, години), або не міряє нічого. Названий предмет — умова того, щоб
+    вимір був дешевим і при цьому лишався виміром, а не вибіркою навмання.
+    Шлях, якого немає серед некаталогізованих, НЕ мовчить: він або каталогізований
+    (і тоді його міряє курована кампанія), або не існує — і це різні стани.
+    """
     catalogued = catalogued_modules()
     modules = {
         str(path.relative_to(ROOT))
         for path in SOURCE_ROOT.rglob("*.py")
         if path.name != "__init__.py" and "__pycache__" not in path.parts
     }
-    return sorted(modules - catalogued)
+    uncatalogued = modules - catalogued
+    if only is None:
+        return sorted(uncatalogued)
+    requested = set(only)
+    unknown = sorted(requested - modules)
+    if unknown:
+        raise SystemExit(f"названі шляхи не є модулями джерела: {unknown}")
+    return sorted(requested & uncatalogued)
 
 
 def seed_module(relative: str, workspace: Path) -> list[Seeded]:
@@ -246,6 +261,12 @@ def main() -> int:
         "вихід лишає мутацію в дереві, з якого імпортує живий API",
     )
     parser.add_argument("--allow-dirty", action="store_true")
+    parser.add_argument(
+        "--paths",
+        nargs="+",
+        default=None,
+        help="звузити предмет проби до названих модулів (шляхи від кореня дерева)",
+    )
     args = parser.parse_args()
 
     if LOCK.exists():
@@ -329,7 +350,7 @@ def main() -> int:
 
 
 def probe(args: argparse.Namespace, workspace: Path) -> int:
-    modules = uncatalogued_modules()
+    modules = uncatalogued_modules(args.paths)
     population: list[Seeded] = []
     for module in modules:
         population.extend(seed_module(module, workspace))

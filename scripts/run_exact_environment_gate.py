@@ -104,7 +104,18 @@ def main() -> int:
         mismatched=mismatched,
         unmanaged_distributions=extras,
     )
-    out = ROOT / "var/production/exact_environment-gate.json"
+    # Ім'я файла несе ПРОФІЛЬ. Доти обидва профілі писали один шлях, і слабший
+    # клас доказу (`DEVELOPMENT_INTERPRETER`) мовчки затирав сильніший
+    # (`EXACT_PRODUCTION_IMAGE`) щоразу, коли біг `validate`. Предикат, який
+    # вимагає `runtime`, після лану не міг бути задоволеним ніколи.
+    # Продакшенний предикат читає канонічне ім'я; профіль розробки лежить поруч
+    # і нічого не перекриває.
+    name = (
+        "exact_environment-gate.json"
+        if args.profile == "runtime"
+        else f"exact_environment-{args.profile}-gate.json"
+    )
+    out = ROOT / "var/production" / name
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(result, ensure_ascii=False, indent=2))

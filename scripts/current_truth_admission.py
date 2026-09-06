@@ -60,11 +60,8 @@ def claim_admission_checks(root: Path, release: str, digest: str) -> dict[str, b
     # Журнал читається ОДИН раз. Перша редакція викликала `load_object` двічі — і це не
     # лише подвійна робота: два читання одного файла можуть дати різний вміст, якщо між
     # ними хтось пише, і тоді два числа описують два різні журнали.
-    claims = [
-        claim
-        for claim in load_object(ledger).get("claims", ())
-        if isinstance(claim, dict) and str(claim.get("status", "")).startswith("SUPPORTED")
-    ]
+    entries = [c for c in load_object(ledger).get("claims", ()) if isinstance(c, dict)]
+    claims = [c for c in entries if str(c.get("status", "")).startswith("SUPPORTED")]
     unresolved = sum(1 for claim in claims if not _evidence_resolves(root, claim, release, digest))
     # `all([])` істинне: нуль підтриманих претензій задовольняв би обидві перевірки
     # тривіально. Порожній перелік — це UNKNOWN, а не досконалість.
@@ -73,6 +70,9 @@ def claim_admission_checks(root: Path, release: str, digest: str) -> dict[str, b
         "CLAIM_LEDGER.supported_evidence_resolves": resolved,
         "CLAIM_LEDGER.supported_unresolved_zero": resolved,
         "CLAIM_LEDGER.has_supported_claims": bool(claims),
+        # Решта онтології означає «не знаємо», не «ні»: вічне PENDING є дефектом.
+        "CLAIM_LEDGER.every_claim_decided_by_evidence": bool(entries)
+        and all(c.get("status") in ("SUPPORTED", "REFUTED_BY_EVIDENCE") for c in entries),
     }
 
 

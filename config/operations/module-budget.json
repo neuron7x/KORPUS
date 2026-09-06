@@ -1901,13 +1901,13 @@
       "reason": "formal fail-closed assurance/release model introduced for v0.3.0; ceiling recorded at introduction"
     },
     "apps/api/src/korpus/application/release_truth.py": {
-      "lines": 175,
-      "max_complexity": 6,
+      "lines": 177,
+      "max_complexity": 8,
       "max_function_args": 4,
-      "max_function_lines": 37,
+      "max_function_lines": 39,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN. | 2026-09-05: реєстр блокерів тепер записує ДАЙДЖЕСТ ЗМІСТУ свого входу, а допуск його звіряє (`evidence_sha256` / `evidence_inputs_current`). Стеля піднята під ПОВЕДІНКУ, не під прозу: докстрінги скорочено перед підняттям, і залишок — функція `_evidence_digest`, перевірка `_evidence_inputs_current` і три рядки поля в реєстрі. Доведено контрприкладом: до правки main приймав підміну ЗМІСТУ входу за тим самим шляхом при незмінній прив'язці до дерева (P1 = PASS), після — FAIL. Мутація зняла ще одну ваду: зняття умови `or not recorded` не вбивало жодного тесту, бо контроль прибирав ПОЛЕ, а не лишав порожній словник. | АУДИТ СТЕЛІ 2026-09-05 (ACTO-02 §10): контрфактичне питання поставлено — чи вміщується потрібна поведінка в стару стелю чистим рефактором. Два рефактори випробувано. ПРИЙНЯТО: виробник і перевіряльник тепер ділять ОДНЕ визначення відношення (`release_truth.evidence_digest`) — два визначення розійшлися б мовчки, тобто це той самий клас, який ця перевірка закриває рівнем вище; на розмір це не вплинуло. ВІДХИЛЕНО: винесення НЕспорідненого коду (перевірок пакета власника) заради місця — це підгонка метрики, а не вміщення потрібної поведінки. Залишковий приріст — сама поведінка: функція дайджесту, перевірка входів і поле в реєстрі; прозу скорочено ПЕРЕД підняттям. Класифікація: LEGITIMATE_CAPACITY_CHANGE."
+      "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN. | 2026-09-05: реєстр блокерів тепер записує ДАЙДЖЕСТ ЗМІСТУ свого входу, а допуск його звіряє (`evidence_sha256` / `evidence_inputs_current`). Стеля піднята під ПОВЕДІНКУ, не під прозу: докстрінги скорочено перед підняттям, і залишок — функція `_evidence_digest`, перевірка `_evidence_inputs_current` і три рядки поля в реєстрі. Доведено контрприкладом: до правки main приймав підміну ЗМІСТУ входу за тим самим шляхом при незмінній прив'язці до дерева (P1 = PASS), після — FAIL. Мутація зняла ще одну ваду: зняття умови `or not recorded` не вбивало жодного тесту, бо контроль прибирав ПОЛЕ, а не лишав порожній словник. | АУДИТ СТЕЛІ 2026-09-05 (ACTO-02 §10): контрфактичне питання поставлено — чи вміщується потрібна поведінка в стару стелю чистим рефактором. Два рефактори випробувано. ПРИЙНЯТО: виробник і перевіряльник тепер ділять ОДНЕ визначення відношення (`release_truth.evidence_digest`) — два визначення розійшлися б мовчки, тобто це той самий клас, який ця перевірка закриває рівнем вище; на розмір це не вплинуло. ВІДХИЛЕНО: винесення НЕспорідненого коду (перевірок пакета власника) заради місця — це підгонка метрики, а не вміщення потрібної поведінки. Залишковий приріст — сама поведінка: функція дайджесту, перевірка входів і поле в реєстрі; прозу скорочено ПЕРЕД підняттям. Класифікація: LEGITIMATE_CAPACITY_CHANGE. | 2026-09-05: 175 -> 177, рівно +2 рядки ПОВЕДІНКИ (проза знята першою). Реєстр став самоописним — несе поле `status`, виведене з власних чисел кон'юнктивно. Причина: `CLM-PRODUCTION-AUTH` і `CLM-INDEPENDENT` несли ВПИСАНИЙ У КОД рядок \"REFUTED\" і називали доказом цей реєстр, не читаючи з нього жодного байта. Вирок був правдивий і нефальсифіковний водночас: жоден вхід не міг зробити його іншим, тож він не був виміром. Тепер обидві претензії йдуть тим самим `_claim_status`, що й решта сімох, і зміняться, коли зовнішні предикати закриються. Складність blocker_registry 6 -> 8 і довжина 37 -> 39: вирок КОН'ЮНКТИВНИЙ, і кожна з трьох умов — окремий спосіб не бути авторизованим (звіт предикатів не про це дерево; лишились внутрішні; лишились зовнішні). Згорнути їх в одну — приховати два стани; саме заради розрізнення цих станів реєстр і існує."
     },
     "apps/api/src/korpus/application/request_audit_context.py": {
       "lines": 64,
@@ -3633,13 +3633,13 @@
       "reason": "Raised 136 -> 215 on 2026-08-28 to carry three added shape measurements (function length, parameter count, nesting depth). The ratchet caught its own growth first: complexity was brought back under the ceiling by extracting shape_violations rather than by raising the complexity number. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29: додано відокремлення рядків самоперевірки. Стеля карала за додані негативні контролі так само, як за роздутий код: гейт на реальних даних ARMED лише тоді, коли дані містять негативний приклад, тому синтетичні порушення в selftest — єдине місце, де гейт узагалі перевіряється. Звільнення обмежене двома умовами (ім'я + реальний диспетч --selftest) і власною стелею DEFAULT_PROOF_LINES=220. Ратчет спіймав власне зростання: main пішов на 81 рядок і складність 14 — закрито витягуванням module_violations, не підняттям числа. | 2026-08-30: +27 рядків — звільнення від стелі (`\"lines\": null`) без записаної причини тепер валить гейт. Воно виглядає однаково і коли хтось так вирішив, і коли з'явилось при механічній синхронізації чисел; різницю несе лише текст поруч."
     },
     "scripts/check_mutation_report_freshness.py": {
-      "lines": 118,
+      "lines": 147,
       "max_complexity": 10,
-      "max_function_args": 2,
-      "max_function_lines": 28,
+      "max_function_args": 3,
+      "max_function_lines": 31,
       "max_nesting": 2,
-      "proof_lines": 45,
-      "reason": "Гейт на розбіжність звіту мутацій із каталогом. Стеля з виміру на день додавання плюс запас на дві перевірки; кожен новий клас розбіжності — це рядок у переліку `problems`, а не гілка."
+      "proof_lines": 62,
+      "reason": "Гейт на розбіжність звіту мутацій із каталогом. 2026-09-06 стеля піднята 118->146 і proof 45->62: гейт міряв НАЯВНІСТЬ провенансу, не відповідність — звіт із 64 нулями проходив як свіжий, і власний selftest вписував ті нулі як ЧИСТИЙ випадок, тож клас вади був невидимий за побудовою. Додано звіряння з дайджестом дерева (винесене в binding_problems(), щоб стеля СКЛАДНОСТІ лишилась 10) і дві отрути на прив'язку: 8->10 випадків."
     },
     "scripts/check_public_env_parity.py": {
       "lines": 331,
@@ -4679,6 +4679,15 @@
       "proof_lines": 0,
       "reason": "`corpus_state_epoch` у мутабельних таблицях: тригер піднімає епоху на КОЖНІЙ зміні складу доказів, і без права оновлювати її застосунок не міг би зафіксувати, що корпус зрушив між двома читаннями однієї відповіді."
     },
+    "scripts/probe_blank_corpus.py": {
+      "lines": 184,
+      "max_complexity": 9,
+      "max_function_args": 5,
+      "max_function_lines": 69,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "2026-09-06, НОВИЙ. Input-independent baseline (Karpathy): ті самі СВОЇ питання проти вилученого доказового шару. run_boundary_eval тримає чужу ТЕМУ, де мовчать і корпус, і модель; чотири одиничні контролі охороняють «без цитат — не відповідь» у МОДУЛІ. Наскрізного шляху не проходить жоден. Вирок — нуль, без порога."
+    },
     "scripts/probe_selftest_falsifiability.py": {
       "lines": 368,
       "max_complexity": 10,
@@ -4698,13 +4707,13 @@
       "reason": "network probe recording what each catalogued zakon.rada URL actually returns; measured 2026-08-29 that the card variant of 548-14 carries 725 words against 66069 at /print, so HTTP 200 on the card is a source that ingests to nothing. Not a CI gate — it needs the network; validate_doctrine_catalog rule 10 holds its result offline. | 2026-08-29 the probe now captures the attachments it finds, and normalises an already-repointed /print URI so a second run does not compare /print against /print/print and report the measurement inverted by its own previous success. | 2026-08-29 records the portal's legal-status marker alongside the measurement. | 2026-08-29 samples each variant three times and scores it by the largest reading. The portal returned 736 and 5583 words for the same card minutes apart, both 200, and a single sample let the thin one repoint three sources onto the weaker variant. It also surveys unreadable captures via LibreOffice when present."
     },
     "scripts/probe_uncatalogued_mutation.py": {
-      "lines": 402,
+      "lines": 423,
       "max_complexity": 12,
       "max_function_args": 3,
-      "max_function_lines": 93,
+      "max_function_lines": 99,
       "max_nesting": 4,
       "proof_lines": 0,
-      "reason": "New 2026-08-29: samples operator mutations over the 162 modules the curated catalogue does not reach; carries the lock, the clean-tree refusal and the Wilson interval that makes a sampled rate readable. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
+      "reason": "Проба некаталогізованої мутації. 2026-09-06 стеля 402->423: додано --paths, щоб предмет проби був НАЗВАНИМ. Без цього гейт дельти або міряє все дерево (162 модулі, години), або не міряє нічого."
     },
     "scripts/process_group_control.py": {
       "lines": 53,
@@ -4770,12 +4779,21 @@
     },
     "scripts/publish_release_evidence.py": {
       "lines": 136,
-      "max_complexity": 8,
+      "max_complexity": 9,
       "max_function_args": 2,
-      "max_function_lines": 55,
+      "max_function_lines": 58,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "New 2026-08-29: carries run artefacts into the release directory the preflight reads, refusing any bound to another tree."
+      "reason": "New 2026-08-29: carries run artefacts into the release directory the preflight reads, refusing any bound to another tree. | 2026-09-05: 136 -> 137, рівно +1 рядок ПОВЕДІНКИ — запис `WEB_REGRESSION_REPORT.json` у мапі публікатора. Доти цей звіт оголошувався доказом `CLM-WEB`, і не писав його ЖОДЕН крок: претензія була вічним PENDING_EVIDENCE за побудовою. Прозу знято ПЕРЕД підняттям — пояснення живе в докстрінгу виробника `scripts/publish_web_regression.py`, а не в мапі. | 2026-09-05: 137 -> 136. Ратчет ТІЛЬКИ затягується. Модуль ніс ВЛАСНЕ, слабше означення прив'язки (`_digest_of`: лише верхній рівень, `or` без виявлення розбіжності) поруч із повним у `release_claims`, яке читає ще й конверт `provenance`. Через це публікатор відхилив `WEB_REGRESSION_REPORT.json` як «bound to None», хоч журнал претензій вважав його прив'язаним — дві тотожності одного предмета. Слабшу видалено, лишилось одне означення. Складність main 8 -> 9 і довжина 55 -> 58: артефакт тепер має ТРИ розрізнювані стани замість двох — прив'язаний, застарілий і РОЗБІЖНИЙ. Розбіжність не можна згорнути в застарілість: `or` між двома оголошеннями прив'язки мовчки обирав би сильніше, а два оголошення одного факту, які розійшлись, — це стан, про який треба сказати. Одна гілка = один стан, який доти був невимовним."
+    },
+    "scripts/publish_web_regression.py": {
+      "lines": 100,
+      "max_complexity": 8,
+      "max_function_args": 1,
+      "max_function_lines": 34,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "05.09.2026: виробник доказу CLM-WEB, якого доти не було НІ ОДНОГО. `WEB_REGRESSION_REPORT.json` оголошувався доказом і не писався жодним кроком, тож претензія була вічним PENDING_EVIDENCE за побудовою. Стелі — точний вимір при внесенні, як і решта реєстру: ратчет ставиться там, де модуль стоїть зараз, а не там, куди він міг би вирости."
     },
     "scripts/recheck_blocked_sources.py": {
       "lines": 275,
@@ -4812,6 +4830,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Initial measured ceiling for retrieval-yield and Wilson uncertainty reporting"
+    },
+    "scripts/refresh_owner_packet.py": {
+      "lines": 159,
+      "max_complexity": 3,
+      "max_function_args": 2,
+      "max_function_lines": 32,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "2026-09-06, НОВИЙ. Виробник виміряних блоків пакета власника плюс --check. Клас вади названий у §16 самого пакета: документ розійшовся з виміром тричі за півдня, а гейт source_bound звіряє ДАЙДЖЕСТ, не те, чи числа під ним про це дерево."
     },
     "scripts/regression_collection.py": {
       "lines": 111,
@@ -4994,22 +5021,22 @@
       "reason": "WS-05: два лічильники очікувань набору. `quote_ok`/`reason_ok` не відрізняли «звірено й збіглося» від «звіряти не було чого»: рядок без `expected_reason` давав True, не перевіривши нічого. Виміряно 02.09.2026 одразу після правки: очікувану ПРИЧИНУ оголошують 2 рядки з 30, очікувану цитату — 15. Вирок 30/30 лишається, але тепер несе, скільки з них мали що звіряти."
     },
     "scripts/run_exact_environment_gate.py": {
-      "lines": 120,
+      "lines": 126,
       "max_complexity": 8,
       "max_function_args": 1,
-      "max_function_lines": 56,
+      "max_function_lines": 63,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+      "reason": "Гейт точного середовища. 2026-09-06 стеля 120->126: ім'я вихідного файла тепер несе профіль. Доти обидва профілі писали один шлях, і DEVELOPMENT_INTERPRETER мовчки затирав EXACT_PRODUCTION_IMAGE щоразу, коли біг validate — після лану предикат не міг бути задоволеним ніколи."
     },
     "scripts/run_external_gate_campaign.py": {
-      "lines": 201,
+      "lines": 230,
       "max_complexity": 15,
       "max_function_args": 4,
       "max_function_lines": 45,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "v0.9.7: campaign supplies exact source/release identity to every hard predicate; measured implementation is the ratchet ceiling"
+      "reason": "Кампанія зовнішніх гейтів. 2026-09-06 стеля 201->230: RUNNERS став списками аргументів, exact_environment винесено в MAKE_RUNNERS. Доти гейт кликався без обов'язкового --profile і падав з usage-помилкою, тобто предикат не мав ЖОДНОЇ машинної дороги до рішення (L5)."
     },
     "scripts/run_handoff_liveness_probe.py": {
       "lines": 67,
@@ -5565,13 +5592,13 @@
       "reason": "Точна виміряна початкова стеля. Ловить ЕКРАНОВАНУ розмітку в цитовних прольотах: `&lt;p>` не є текстом документа ні в якій доктрині, це залишок подвійного кодування. Правило звужене після двох хибних спроб, які позначали справжню доктрину сміттям."
     },
     "scripts/verify_assurance_model.py": {
-      "lines": 962,
+      "lines": 974,
       "max_complexity": 17,
       "max_function_args": 3,
       "max_function_lines": 50,
       "max_nesting": 2,
       "proof_lines": 134,
-      "reason": "04.09.2026, §«урядування без розколу»: топологія обслуговування оголошена ДВІЧІ — у RELEASE_ENVELOPE і в профілі впевненості. Профіль твердих предикатів цілий день казав «топологія цього релізу — SQLite на loopback», поки конверт уже називав `pilot-systemd-postgres-v1` на PostgreSQL: розбіжність жила в ПРОЗІ, якої не міряв ніхто. `topology_agreement` робить її станом і в обидва боки — бекенд, «обрана й водночас виключена» топологія, юніт топології поза переліком обов'язкових до обслуговування. Рядки доказу 93→131: чотири випадки, кожен СТВОРЮЄ свою розбіжність у власному дереві; перший їх варіант був інертний, бо фікстура профілю не називала бекенду — тобто не могла задати змінну, яку перевіряє. Рядки доказу зросли на переформатуванні `ruff format`: гейт якості не входив у мою передкомітну батарею — його спіймав лан на третьому кроці й CI на `api:quality`."
+      "reason": "2026-09-06: SI розрізняє «звіт про інше джерело» і «те саме джерело, інший коміт». Доти обидва стани мали одну назву, і кожен коміт доказів знецінював засвідчення незалежності, якого не торкався."
     },
     "scripts/verify_audit.py": {
       "lines": 9,
@@ -5693,7 +5720,7 @@
       "lines": 275,
       "max_complexity": 43,
       "max_function_args": 1,
-      "max_function_lines": 183,
+      "max_function_lines": 187,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.1.1: clean-source handoff validation is separated from post-test release evidence; missing evidence remains unavailable, partial/stale evidence is refused | 2026-08-29 +3 lines: release_evidence is now asserted on. UNAVAILABLE and STALE were both printed beside status: PASS and never checked, so the first target of `make validate` was green with the release evidence absent entirely and green with it describing a different tree."
@@ -5706,6 +5733,15 @@
       "max_nesting": 2,
       "proof_lines": 56,
       "reason": "Гейт паритету дивиться на КОЖЕН шаблон юніта в дереві, а не на перелік із одного інсталятора. Виміряно 02.09.2026: покривались два юніти, а встановлений `korpus-routine@.service` виявився зовсім іншим юнітом під тим самим іменем (`ExecStart=%h/.claude/routines/run.sh %i` проти `scripts/run_isolated_routine.py`). Гейт мовчав, бо цього імені не було в його переліку. Переліку більше немає: другий перелік розійшовся б із першим саме тоді, коли хтось додасть юніт. Плюс `substitution_agrees_with_installers` — гейт мусить підставляти корінь так само, як інсталятори, інакше червонітиме з власної причини."
+    },
+    "scripts/verify_mutation_delta.py": {
+      "lines": 156,
+      "max_complexity": 5,
+      "max_function_args": 1,
+      "max_function_lines": 20,
+      "max_nesting": 3,
+      "proof_lines": 20,
+      "reason": "2026-09-06, НОВИЙ. Гейт дельти: змінений модуль мусить мати мутанта в курованому каталозі, пройти пробу, або нести виняток із названою умовою закриття. Стоїть на ДЕЛЬТІ, бо правило на 162 некаталогізованих модулях було б міграцією, перевдягненою в інваріант. Предмет — apps/api/src + scripts: каталог покриває обидва (виміряно: apps 143, scripts 68)."
     },
     "scripts/verify_observability_contract.py": {
       "lines": 76,
@@ -11339,8 +11375,128 @@
         "max_nesting": 2,
         "proof_lines": 0
       }
+    },
+    {
+      "from": 962,
+      "metric": "lines",
+      "on": "2026-09-06",
+      "path": "scripts/verify_assurance_model.py",
+      "to": 974
+    },
+    {
+      "from": 118,
+      "metric": "lines",
+      "on": "2026-09-06",
+      "path": "scripts/check_mutation_report_freshness.py",
+      "to": 118
+    },
+    {
+      "from": 45,
+      "metric": "proof_lines",
+      "on": "2026-09-06",
+      "path": "scripts/check_mutation_report_freshness.py",
+      "to": 45
+    },
+    {
+      "from": 28,
+      "metric": "max_function_lines",
+      "on": "2026-09-06",
+      "path": "scripts/check_mutation_report_freshness.py",
+      "to": 31
+    },
+    {
+      "from": 2,
+      "metric": "max_function_args",
+      "on": "2026-09-06",
+      "path": "scripts/check_mutation_report_freshness.py",
+      "to": 3
+    },
+    {
+      "from": 402,
+      "metric": "lines",
+      "on": "2026-09-06",
+      "path": "scripts/probe_uncatalogued_mutation.py",
+      "to": 402
+    },
+    {
+      "from": 93,
+      "metric": "max_function_lines",
+      "on": "2026-09-06",
+      "path": "scripts/probe_uncatalogued_mutation.py",
+      "to": 99
+    },
+    {
+      "from": 120,
+      "metric": "lines",
+      "on": "2026-09-06",
+      "path": "scripts/run_exact_environment_gate.py",
+      "to": 120
+    },
+    {
+      "from": 56,
+      "metric": "max_function_lines",
+      "on": "2026-09-06",
+      "path": "scripts/run_exact_environment_gate.py",
+      "to": 63
+    },
+    {
+      "from": 201,
+      "metric": "lines",
+      "on": "2026-09-06",
+      "path": "scripts/run_external_gate_campaign.py",
+      "to": 201
+    },
+    {
+      "from": 183,
+      "metric": "max_function_lines",
+      "on": "2026-09-06",
+      "path": "scripts/verify_handoff_contract.py",
+      "to": 187
+    },
+    {
+      "from": 118,
+      "metric": "lines",
+      "on": "2026-09-06",
+      "path": "scripts/check_mutation_report_freshness.py",
+      "to": 146
+    },
+    {
+      "from": 45,
+      "metric": "proof_lines",
+      "on": "2026-09-06",
+      "path": "scripts/check_mutation_report_freshness.py",
+      "to": 62
+    },
+    {
+      "from": 402,
+      "metric": "lines",
+      "on": "2026-09-06",
+      "path": "scripts/probe_uncatalogued_mutation.py",
+      "to": 423
+    },
+    {
+      "from": 120,
+      "metric": "lines",
+      "on": "2026-09-06",
+      "path": "scripts/run_exact_environment_gate.py",
+      "to": 126
+    },
+    {
+      "from": 201,
+      "metric": "lines",
+      "on": "2026-09-06",
+      "path": "scripts/run_external_gate_campaign.py",
+      "to": 230
+    },
+    {
+      "from": 146,
+      "metric": "lines",
+      "on": "2026-09-06",
+      "path": "scripts/check_mutation_report_freshness.py",
+      "to": 147,
+      "why": "один рядок від `ruff format` після розділення problems()/binding_problems()"
     }
   ],
-  "recorded_at": "2026-09-04",
+  "recorded_at": "2026-09-06",
   "schema_version": 1
 }

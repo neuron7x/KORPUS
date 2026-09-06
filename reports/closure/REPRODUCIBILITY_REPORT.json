@@ -1,0 +1,26 @@
+{
+  "schema": "korpus.closure.reproducibility.v1",
+  "candidate_sha": "fcc46104b40be94d9e6e08030b7a077d41d0ac0d",
+  "source_tree_sha256": "b9096028195cc54f45d43174d8ca7c7edf2a4d542cf1fc03c432768efde7f20c",
+  "digest_scope": "evidence_paths",
+  "claimed_artifact": "korpus-api container image (apps/api/Dockerfile)",
+  "verdict": "NON_REPRODUCIBLE",
+  "basis": {
+    "identical_image": false,
+    "layers_total": 15,
+    "layers_identical": 6,
+    "layers_differing": 9,
+    "source_date_epoch": 1788635390
+  },
+  "entropy_sources": [
+    "apt-get update fetches an index that changes between runs; the installed package set is not pinned by version, so two builds can install different point releases of poppler-utils or tesseract.",
+    "pip records installation timestamps in .dist-info even with --no-cache-dir and pinned hashes; the wheel contents are identical, the metadata is not."
+  ],
+  "scope_of_claim": "Дві збірки на ОДНОМУ хості, за хвилини, з тотожного дерева — найслабша форма претензії. Вона не бачить залежності, що змінилась між двома днями, ані білдера, що відрізняється між машинами. Вона мала протриматись першою, і не протрималась.",
+  "why_not_fixed_now": "§10 протоколу: лагодити лише коли артефакт справді ВИМАГАЄ відтворюваності. Жодна претензія релізу зараз на бітову тотожність образу не спирається: trusted_hosted_builder стоїть як EXTERNAL_REQUIRED, а SLSA-провенанс засвідчує походження, не побайтову рівність. Правити Dockerfile тепер означало б зсунути дайджест і знецінити всю батарею заради властивості, якої не вимагає жоден предикат.",
+  "debt": {
+    "class": "supply_chain_pin_gap",
+    "detail": "apt-get встановлює poppler-utils і tesseract без пінів версій: два образи з одного дерева можуть нести різні точкові релізи",
+    "closes_when": "коли Dockerfile пінитиме системні пакети за версією і дайджестом — робити разом із наступною зміною джерела, не окремим прогоном батареї"
+  }
+}

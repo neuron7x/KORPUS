@@ -1,0 +1,138 @@
+{
+  "schema": "korpus.closure.final-state.v2",
+  "protocol": "KORPUS-CLOSE-2026-09-05",
+  "measured_on_head": "ffb2ca8742e7164c0e35cbcf889193b5baa9e530",
+  "recorded_in": "наступний коміт: артефакт про стан дерева не може лежати в тому коміті, який описує — його запис змінює дерево",
+  "worktree_at_measurement": {
+    "dirty_entries": 5,
+    "means": "reports/ і var/ поза EVIDENCE_SOURCE_PATHS: докази не зсувають кандидата"
+  },
+  "final_source_digest": "bad7efe1a766497a8b1430283e28a47e013d8f811496cf9d3b0a50d272db8a95",
+  "digest_scope": "evidence_paths",
+  "source_digest_journey": [
+    "b9096028",
+    "ff5c8bc5",
+    "444e9ef6",
+    "75e720fc",
+    "7241aefe",
+    "bad7efe1"
+  ],
+  "source_digest_journey_note": "шість станів за одну ніч; кожна правка джерела робила всю батарею історичною. Правило «правки пакетувати» порушено пʼять разів, бо перелік правок не був повним на старті: додались ruff, module-budget (config/, отже в дайджесті), desired-state, маніфест.",
+  "release": "v0.9.7",
+  "mirrors": {
+    "local": "ffb2ca8742e7164c0e35cbcf889193b5baa9e530",
+    "origin_github": "ffb2ca8742e7164c0e35cbcf889193b5baa9e530",
+    "gitlab": "ffb2ca8742e7164c0e35cbcf889193b5baa9e530"
+  },
+  "internal_closure": {
+    "verdict": "TRUE_WITH_NAMED_DEFECTS",
+    "current_truth": "PASS",
+    "current_truth_failures": [],
+    "current_truth_checks": 52,
+    "internal_executable_unresolved": 0,
+    "blocker_counts": {
+      "EXTERNAL_REQUIRED": 7,
+      "CLOSED_ANCHORED": 7
+    },
+    "software_ready": "14/14",
+    "software_ready_means": "буквально is_file() над оголошеними software_artifacts; зміст, версія і здатність виконатись НЕ читаються (VD-7, відкрито)",
+    "externally_satisfied": 7,
+    "production_satisfied": 7,
+    "handoff_release_evidence": "BOUND",
+    "operational_gate": "rc=0",
+    "assemble_assurance": "rc=0",
+    "remote_ci": "EXECUTED_PASS — GitLab #374, 18/18 джобів на цьому кандидаті",
+    "remote_ci_history": "#372 success 18/18 (fcc46104) · #373 FAILED на verify_package_build_identity (коміт пішов без повного evidence-refresh) · #374 success 18/18",
+    "github_actions": "EXECUTION_NOT_OBSERVED — акаунт заблоковано білінгом, 0 success зі 100 прогонів"
+  },
+  "self_applying_contour": {
+    "added": [
+      "mutation-delta-gate",
+      "refresh_owner_packet",
+      "probe_blank_corpus"
+    ],
+    "first_run_findings": "гейт дельти назвав ТРИ модулі, які автор щойно правив і які не має чим спростувати: run_external_gate_campaign.py, verify_assurance_model.py, verify_handoff_contract.py",
+    "gate_closure_caught_author_twice": "три незареєстровані цілі; тоді хибний клас винятку — дефолт origin/main зробив би гейт зеленим ЗА ПОБУДОВОЮ"
+  },
+  "independent_verification": {
+    "verdict": "REJECT",
+    "class": "SEPARATE_CONTEXT_SAME_HARNESS",
+    "caveat": "НЕ третя сторона (L9): інший контекст і інший виконавець-агент, але той самий харнес, та сама машина, той самий власник. Не може задовольнити independent_tevv.",
+    "refuted_claims": 3,
+    "open_defects": [
+      "VD-5 redteam-gate без споживача",
+      "VD-6 clean-room без гейта",
+      "VD-7 software_ready = is_file()"
+    ]
+  },
+  "claims": {
+    "total": 7,
+    "by_status": {
+      "SUPPORTED": [
+        "CLM-SOURCE-INTEGRITY",
+        "CLM-REGRESSION",
+        "CLM-WEB",
+        "CLM-MUTATION",
+        "CLM-INFERENCE-SECURITY"
+      ],
+      "REFUTED_BY_EVIDENCE": [
+        "CLM-PRODUCTION-AUTH",
+        "CLM-INDEPENDENT"
+      ]
+    }
+  },
+  "mutation": {
+    "killed": 624,
+    "survived": [],
+    "caveat": "число ПРО КАТАЛОГ: 162 модулі (42% джерела) без мутантів — саме цю щілину і закриває mutation-delta-gate на дельті"
+  },
+  "load": {
+    "class": "PRODUCTION_LIKE",
+    "soak": 196,
+    "p95": 2.457
+  },
+  "recovery": {
+    "class": "PRODUCTION_LIKE",
+    "status": "PASS",
+    "rto": 10.276,
+    "rpo": 7.014,
+    "scale_class": "ci-fixture"
+  },
+  "clean_room": {
+    "class": "REMOTE_SOURCE_FRESH_DEPENDENCIES",
+    "status": "PASS",
+    "pytest": {
+      "tests": 4159,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 48
+    },
+    "caveat": "НЕ незалежна валідація (L9); артефакт не читає жоден гейт (VD-6, відкрито)"
+  },
+  "reproducibility": "NON_REPRODUCIBLE",
+  "production_authorized": false,
+  "production_authorized_reason": "сім EXTERNAL_REQUIRED предикатів потребують третьої сторони або повноважень власника; жоден локальний доказ їх не задовольняє",
+  "external_blockers": [
+    "real_domain_corpus_tevv",
+    "independent_tevv",
+    "production_like_tevv_environment",
+    "trusted_hosted_builder",
+    "trusted_release_signing",
+    "pec_human_production_authority",
+    "pec_canary_revision_admission"
+  ],
+  "smallest_next_owner_action": "розблокувати білінг GitHub або письмово визнати GitHub archive-only; решта зовнішніх потребує третьої сторони, а не рішення",
+  "artifacts": {
+    "reports/closure/CLEAN_ROOM_REPRODUCTION.json": "d36eea83d1b5800dfea73ea429ba065480c129e6b03cebe6e96a0b121c657753",
+    "reports/closure/REPRODUCIBILITY_REPORT.json": "54fb856afdc3c53301ff33177f58c368d055b922849cd38520e40b9119de63e0",
+    "reports/closure/QUALITY_MATRIX.json": "5dd1bfefd4e16dfc50a700ede06e7db067a39217685e49611d2b56253f1c1984",
+    "reports/closure/EXTERNAL_BLOCKERS.json": "8e0e4fdb883eac99b15a25a1b2c1aba7ae28a59a8bba51617e2c2e5d99963a2d",
+    "reports/closure/INDEPENDENT_VERIFICATION_VERDICT.json": "d113f83cfa32c1ed0cdf9fe04d717076d7bc160bd74138032046cc48b16c10f1",
+    "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json": "8226e4601c4286bdce160ece281d14fd2abcd0a309d2ccfc9ab85ae716dee2e5",
+    "reports/release/v0.9.7/final/CLAIM_LEDGER.json": "6201645abc32a4b5fac958bb7fc6a169453855503c9bd470f001066855a375c7",
+    "reports/PRODUCTION_HARD_PREDICATES.json": "9279478218f04b0ed1870e5daf55addd9cf278bf360044531074589fc00f1e0c",
+    "reports/CURRENT_TRUTH_VERIFICATION.json": "99dd2d6ae33edfd17e0330b5f057d9057f201074cbb5889ea6ed338ca0163a86",
+    "reports/OWNER_PILOT_RELEASE_PACKET.md": "035c365db039c3caec2e6d9b852ae8a5b3442d57488c0129901e05de7b0fc7e3",
+    "docs/assurance/CLOSURE_CAMPAIGN_2026-09-05.md": "0e35981c31d822a0cfbd823b3c2457634dcfed36a62ea173d5c09bbe4e46b999"
+  }
+}

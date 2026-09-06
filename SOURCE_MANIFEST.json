@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1829,
-  "root_sha256": "8bbb5b3452a64b2c96d22fd35b1f008b37ef6a2f826a391e3c33c0cf959738d1",
+  "file_count": 1836,
+  "root_sha256": "7c1769000bd221060fec91f4eede2fe0be62359093d0b16936ae1bf19fbf3116",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 56855,
-      "sha256": "0fb269611ec6db2522e9846e4ec44541661bb793fffe45a33a54fcf0303e23a3",
+      "bytes": 57620,
+      "sha256": "157eb812a366ceb57dd9d3c8bdc57a3d380c2bbfd1e04b849ea1bea75e949ec0",
       "mode": "0644"
     },
     {
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 110310,
-      "sha256": "78424588bdfd04846f4805d1fb42c2a5dc8d0e82f2889bad7ce933f60e9cea13",
+      "bytes": 114603,
+      "sha256": "a8bdd7eacb01966bb58c3bf2690935a988740f9cfb7c3e7e76996b79704f3fe1",
       "mode": "0644"
     },
     {
@@ -1657,8 +1657,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/release_claims.py",
-      "bytes": 6657,
-      "sha256": "bd803cf3c8f997e6fbb77cee7c3776b66fce393964ed16ba81904432c1711331",
+      "bytes": 6749,
+      "sha256": "66550411d66c3b9f4170f5c90ffcd680c458b0086d1c6da99f61ea5df2e8f401",
       "mode": "0644"
     },
     {
@@ -1681,8 +1681,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/release_truth.py",
-      "bytes": 8799,
-      "sha256": "d08a8a880f123bdd278c13cedd9d3f4107f258cbb35780306787de6eb5593510",
+      "bytes": 8914,
+      "sha256": "0e56ca399d473a531783883cba295373ef0bf7bd6e1bb61862ba5cb1e955f404",
       "mode": "0644"
     },
     {
@@ -3001,8 +3001,8 @@
     },
     {
       "path": "apps/api/tests/test_clean_source_release_boundary.py",
-      "bytes": 1364,
-      "sha256": "c1b3193edf8faed870df2915085f95849547e64ee6b091258a62ab08a8115e7d",
+      "bytes": 3493,
+      "sha256": "788004c403e1cd427fdf85514f5750a4b7b988e92381cac665f56e9a233d741a",
       "mode": "0644"
     },
     {
@@ -3139,8 +3139,8 @@
     },
     {
       "path": "apps/api/tests/test_current_truth_hardening_v094.py",
-      "bytes": 23281,
-      "sha256": "67690b7bede0675150e7225392f2f7791e4d87b66fe262234f4f2bf456224c3a",
+      "bytes": 29742,
+      "sha256": "df6dee27cc1c704ae70a8f1390a9d897864643d720250c04afb5c0e6a1d16b96",
       "mode": "0644"
     },
     {
@@ -3535,8 +3535,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 161836,
-      "sha256": "5e566f2d6a38731458966063a16838178baffafdbb6ec7254c5dcead4bfda797",
+      "bytes": 162886,
+      "sha256": "ccbeca0f866f99bd8de8c6149e60953e72d7adaec7ae5bfe19d04075d98e5348",
       "mode": "0644"
     },
     {
@@ -3933,6 +3933,12 @@
       "path": "apps/api/tests/test_more_edges.py",
       "bytes": 2291,
       "sha256": "c3e763ae494216d54cdb23e38688f8239fe2834788e3658f97d1da747b034517",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_mutation_delta_gate.py",
+      "bytes": 5150,
+      "sha256": "c0ddb50120fc39b88e12edec607dbf3ac96f7a1f2a77ae90368770bfca41e730",
       "mode": "0644"
     },
     {
@@ -7418,7 +7424,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "c24c4dcd9e50181d8ee610371f7f0e29a310c2a2e47fa9cd9da03a00d3a62b32",
+      "sha256": "e972e561c344cc1c990c55a02042e2aecee448aaa3a2ed44a6e21065cdbf4d1d",
       "mode": "0644"
     },
     {
@@ -7441,8 +7447,8 @@
     },
     {
       "path": "config/operations/gate-closure.json",
-      "bytes": 20495,
-      "sha256": "5f104a2a0cf84f7e1fdcfaa4db4a0a758fda3a7975d90e173e0beb49bfe969a9",
+      "bytes": 23202,
+      "sha256": "0ca6fbf20dce0922854bae5ea78ced145e6234ca3c78676a6585dadb360b985c",
       "mode": "0644"
     },
     {
@@ -7453,8 +7459,14 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 667451,
-      "sha256": "a105e3bc033cd2f8ccb37004ab9f81db7f11bedf0bd5ebd32bf37a1d1f368eae",
+      "bytes": 676376,
+      "sha256": "cd92b6037409fa81c396c981a8b4bb03e725178da7cecfe23b60c102377f83ca",
+      "mode": "0644"
+    },
+    {
+      "path": "config/operations/mutation-delta-exceptions.json",
+      "bytes": 505,
+      "sha256": "4802207479e5dcd7d8eaad69f97344ba3359347c2834a93a57ac465242fb3f99",
       "mode": "0644"
     },
     {
@@ -7791,6 +7803,12 @@
       "path": "docs/assurance/ASSURANCE_CASE.md",
       "bytes": 1791,
       "sha256": "7cb0bca04d74d606114d2e280446967017c82ac0554897706d5424335d78f107",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/assurance/CLOSURE_CAMPAIGN_2026-09-05.md",
+      "bytes": 10676,
+      "sha256": "0e35981c31d822a0cfbd823b3c2457634dcfed36a62ea173d5c09bbe4e46b999",
       "mode": "0644"
     },
     {
@@ -8683,8 +8701,8 @@
     },
     {
       "path": "handoff/machine/NEXT_TASKS_CURRENT.json",
-      "bytes": 815,
-      "sha256": "cd9706f7f3b362aeac9637d594ba6c4b1ed00616613d36b90db8361b858723d9",
+      "bytes": 1368,
+      "sha256": "167c49dc1b3cb037f5ce5623b7715aa644c9aa961f424b6736a01c973dbfff1c",
       "mode": "0644"
     },
     {
@@ -9313,8 +9331,8 @@
     },
     {
       "path": "scripts/check_mutation_report_freshness.py",
-      "bytes": 8405,
-      "sha256": "89b8d63e78623fe63c54802a22911904289d2a968640176ffffe7e489824f614",
+      "bytes": 11493,
+      "sha256": "265aaf9cc322d59d878e76a951e24013106b14aaa763614a56c7c221d5b14fcb",
       "mode": "0755"
     },
     {
@@ -9391,8 +9409,8 @@
     },
     {
       "path": "scripts/current_truth_admission.py",
-      "bytes": 9027,
-      "sha256": "f7a61e4a220754c23b5ea65f433946fc536bf6d19aece1782a2ee9fe243a43f7",
+      "bytes": 9309,
+      "sha256": "2909f3457eb4417b97e73a3d1618751854a45c397558f1e3c5b9dce1e5ce3ff8",
       "mode": "0644"
     },
     {
@@ -9961,8 +9979,8 @@
     },
     {
       "path": "scripts/package_repository.sh",
-      "bytes": 4624,
-      "sha256": "84c7f495eeae6e0cecd3fe93f585b0a7584d446b1aaee94efac580ac5b748a5c",
+      "bytes": 5025,
+      "sha256": "1ed21077474c91c204a5d11261b8011cdcaf12227b33815fc98ab339438f27cf",
       "mode": "0755"
     },
     {
@@ -10098,6 +10116,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/probe_blank_corpus.py",
+      "bytes": 9541,
+      "sha256": "92ee9b46d2aec6ea7589b8cf1b1134374c11658748f083da5e1d7b9ee96095cc",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/probe_selftest_falsifiability.py",
       "bytes": 20975,
       "sha256": "7f8b415af85d6cacd591fc910c617cd8f3d1ce4fa5674a304228dc723a4ea942",
@@ -10111,8 +10135,8 @@
     },
     {
       "path": "scripts/probe_uncatalogued_mutation.py",
-      "bytes": 16835,
-      "sha256": "8a6533d5c544724a0ac1470ff850230655326a7488df4a79b92583eb5fc1f068",
+      "bytes": 18211,
+      "sha256": "0ca7a33bd053149450ff7327848b989487222c67cca2da962b23a926b27bb196",
       "mode": "0755"
     },
     {
@@ -10165,8 +10189,14 @@
     },
     {
       "path": "scripts/publish_release_evidence.py",
-      "bytes": 5563,
-      "sha256": "c30ab4717b4205e7ed4574b9f25a64443fc378c18894badb994764d2441dcda6",
+      "bytes": 5684,
+      "sha256": "9022d5e0fede92d14a37e2b1c8515ef8e224f76d78264a858abb54efc32fcdc9",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/publish_web_regression.py",
+      "bytes": 4411,
+      "sha256": "f7605d9253dae9b17ca9dc64f15f4a5c2396e7cc424a58858defcd8ae81bdf9d",
       "mode": "0755"
     },
     {
@@ -10192,6 +10222,12 @@
       "bytes": 2010,
       "sha256": "35f7651fdbef62ab6e1f09446952b893bdfe05f2fe6571bb9a603ae731dc8b9a",
       "mode": "0644"
+    },
+    {
+      "path": "scripts/refresh_owner_packet.py",
+      "bytes": 6898,
+      "sha256": "e23f1b0676f3d24c59d3873f8ad847712b7124fb886814d559fcf6e0d99995cf",
+      "mode": "0755"
     },
     {
       "path": "scripts/regression_collection.py",
@@ -10333,14 +10369,14 @@
     },
     {
       "path": "scripts/run_exact_environment_gate.py",
-      "bytes": 5424,
-      "sha256": "ccf51b16e19ecea972c325c234aad726f146958180fca5987d73cf5750e86503",
+      "bytes": 6200,
+      "sha256": "03e6c8b583c8e0c15afd77bf85e28e2b261d097b820b984770e070b56f77a49c",
       "mode": "0755"
     },
     {
       "path": "scripts/run_external_gate_campaign.py",
-      "bytes": 6921,
-      "sha256": "3783769cac8e18d845574d4eacd92d139714cdef9b4d8d99a8c7af0ed8826aeb",
+      "bytes": 8550,
+      "sha256": "42fbe6de15826ee893934dcea35a6d0b4820bc41477424d21f5f5152bb34894e",
       "mode": "0755"
     },
     {
@@ -10771,8 +10807,8 @@
     },
     {
       "path": "scripts/verify_assurance_model.py",
-      "bytes": 52273,
-      "sha256": "967d22b3dcf1f25f23a2ff1a21214fa05d23c2b9369d3aefe9148891f9260860",
+      "bytes": 53366,
+      "sha256": "97ee310756c07196985cf608571c4893a24c697a2ca93dfd45e999c003ddca58",
       "mode": "0755"
     },
     {
@@ -10861,14 +10897,20 @@
     },
     {
       "path": "scripts/verify_handoff_contract.py",
-      "bytes": 14040,
-      "sha256": "bb92a7581d9c4abcb819420cb24894ef62f64987af4af4a1c68a2fcf05a5a912",
+      "bytes": 14365,
+      "sha256": "82fbe2071e327d3aab2210fe30778a25a0fc77e93680e782fb686a57a6fedba3",
       "mode": "0644"
     },
     {
       "path": "scripts/verify_installed_units.py",
       "bytes": 12824,
       "sha256": "dbbb27d27dc46605bb1644351c9155d211c2d50e990719aa89c4a41b6c58c5e5",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/verify_mutation_delta.py",
+      "bytes": 8330,
+      "sha256": "19f40ce66f59c7acb0b19ed1c345161deeaa7483c13953bd7df90c92fb7a64c7",
       "mode": "0755"
     },
     {

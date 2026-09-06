@@ -1,8 +1,8 @@
 {
   "schema": "korpus.claim-ledger.v2",
-  "generated_at": "2026-09-05T11:47:46.682454+00:00",
+  "generated_at": "2026-09-06T00:30:30.605150+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "4cb6d18912afb72b1ba08d49e807b6e4e70b4a1d930f6ac5f7058434c60cd823",
+  "source_tree_sha256": "bad7efe1a766497a8b1430283e28a47e013d8f811496cf9d3b0a50d272db8a95",
   "digest_scope": "evidence_paths",
   "claims": [
     {
@@ -14,13 +14,13 @@
     {
       "id": "CLM-REGRESSION",
       "claim": "Current backend regression is source-bound and failure-free.",
-      "status": "STALE_EVIDENCE",
+      "status": "SUPPORTED",
       "evidence": "reports/release/v0.9.7/FULL_BACKEND_REPORT.json"
     },
     {
       "id": "CLM-WEB",
       "claim": "Current web lint/build/test surface is source-bound and failure-free.",
-      "status": "PENDING_EVIDENCE",
+      "status": "SUPPORTED",
       "evidence": "reports/release/v0.9.7/WEB_REGRESSION_REPORT.json"
     },
     {
@@ -32,19 +32,19 @@
     {
       "id": "CLM-INFERENCE-SECURITY",
       "claim": "Current inference-security suite passes its declared attack surface.",
-      "status": "STALE_EVIDENCE",
+      "status": "SUPPORTED",
       "evidence": "reports/release/v0.9.7/INFERENCE_SECURITY_GATE.json"
     },
     {
       "id": "CLM-PRODUCTION-AUTH",
       "claim": "System is production-authorized.",
-      "status": "REFUTED",
+      "status": "REFUTED_BY_EVIDENCE",
       "evidence": "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json"
     },
     {
       "id": "CLM-INDEPENDENT",
       "claim": "System is independently validated.",
-      "status": "REFUTED",
+      "status": "REFUTED_BY_EVIDENCE",
       "evidence": "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json"
     }
   ]

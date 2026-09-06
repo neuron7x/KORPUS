@@ -238,8 +238,12 @@ def verify(*, require_bound: bool = True) -> dict[str, Any]:
     if require_bound and release_evidence != "BOUND":
         raise AssertionError(
             f"release evidence is {release_evidence}, not BOUND — the handoff would describe "
-            "a tree that is not this one. Run `make assurance operational-gate` against this "
-            "revision, or say plainly that the handoff is unbound."
+            "a tree that is not this one. Run `make assemble-assurance operational-gate` "
+            "against this revision, or say plainly that the handoff is unbound. "
+            "NOT `make assurance`: that target runs run_research_assurance.py and never "
+            "writes reports/RESEARCH_ASSURANCE_REPORT.json, which is the file read here — "
+            "measured 2026-09-05, the wrong advice was followed three times with rc=0 and "
+            "the verdict never moved."
         )
 
     return {

@@ -134,21 +134,23 @@ def blocker_registry(root: Path, source_digest: str, release: str) -> dict[str, 
         state: sum(item["state"] == state for item in items)
         for state in {item["state"] for item in items}
     }
+    # Обидва внутрішні стани рахуються разом: «бракує файла» і «доказ не про це дерево»
+    # однаково закриваються машиною, і саме це стверджує назва поля.
+    internal = counts.get("INTERNAL_BLOCKED", 0) + counts.get("INTERNAL_STALE_EVIDENCE", 0)
+    external = counts.get("EXTERNAL_REQUIRED", 0)
     return {
         "schema": "korpus.blocker-registry.v2",
         "generated_at": datetime.now(UTC).isoformat(),
         "release": release,
+        "status": "PASS" if current and not internal and not external else "FAIL",
         "source_tree_sha256": source_digest,
         "digest_scope": DIGEST_SCOPE,
         "items": items,
         "counts": counts,
-        # Обидва внутрішні стани рахуються разом: «бракує файла» і «доказ не про це
-        # дерево» однаково закриваються машиною, і саме це стверджує назва поля.
-        "internal_executable_unresolved": counts.get("INTERNAL_BLOCKED", 0)
-        + counts.get("INTERNAL_STALE_EVIDENCE", 0),
+        "internal_executable_unresolved": internal,
         "internal_missing_artifact": counts.get("INTERNAL_BLOCKED", 0),
         "internal_stale_evidence": counts.get("INTERNAL_STALE_EVIDENCE", 0),
-        "production_external_or_runtime_unresolved": counts.get("EXTERNAL_REQUIRED", 0),
+        "production_external_or_runtime_unresolved": external,
         "hard_predicates_total": len(profile.get("predicates", ())),
         "hard_predicate_report_current": current,
         "evidence_sha256": {

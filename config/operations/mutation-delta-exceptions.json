@@ -1,0 +1,6 @@
+{
+  "schema": "korpus.mutation-delta-exceptions.v1",
+  "note": "Виняток НЕ є дозволом: він є боргом із названою умовою закриття. Запис без closes_when відхиляється verify_mutation_delta.py — вічний виняток перетворив би реєстр боргу на список дозволів. Той самий патерн, що config/operations/gate-closure.json.",
+  "measured_at": "2026-09-05",
+  "accepted": []
+}

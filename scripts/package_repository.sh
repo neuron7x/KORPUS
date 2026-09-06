@@ -17,20 +17,15 @@ rm -f "dist/${name}.zip" "dist/${name}.zip.sha256"
 python3 "$root/scripts/check_release_identity.py"
 python3 "$root/scripts/verify_source_manifest.py"
 
-# Research evidence is mandatory for a formal research release. A canonical engineering
-# candidate may carry an explicit release report instead; production-release remains stricter.
-if [[ "${KORPUS_ENGINEERING_CANDIDATE:-0}" == "1" ]]; then
-  [[ -f reports/CANONICAL_RELEASE_REPORT.json ]] || { echo "canonical release report missing" >&2; exit 1; }
-  python3 - <<'PY'
-import json
-from pathlib import Path
-p=json.loads(Path('reports/CANONICAL_RELEASE_REPORT.json').read_text())
-if p.get('engineering_release_candidate') is not True or p.get('status') not in {'PASS_WITH_CAVEATS','PASS'}:
-    raise SystemExit('canonical release report does not authorize engineering candidate packaging')
-PY
-else
-  PYTHONPATH="$root/scripts" python3 "$root/scripts/verify_release_evidence.py"
-fi
+# 05.09.2026: тут стояла гілка `KORPUS_ENGINEERING_CANDIDATE=1`, яка МИНАЛА цю перевірку
+# і авторизувала пакування з двох полів `CANONICAL_RELEASE_REPORT.json`. Той файл не пише
+# ЖОДЕН крок: grep по дереву знаходить самих читачів, а введений він рукою одним комітом
+# 348ecc56. Тому його `status` нефальсифіковний — немає дороги, якою він став би іншим.
+# Його ж `source_tree_sha256` не збігається З ЖОДНИМ із двох доменів дайджеста на тому
+# самому коміті (виміряно: evidence_paths 7ba9a8a1, tracked_tree 52fb2d2a проти e7ce416b),
+# тож і прив'язки до дерева там немає. Змінну не виставляв ніхто в репозиторії — гілка
+# лише чекала на того, хто її виставить. Лишилась одна дорога, і вона міряє.
+PYTHONPATH="$root/scripts" python3 "$root/scripts/verify_release_evidence.py"
 
 tmp="$(mktemp -d)"
 cleanup() { rm -rf "$tmp"; }

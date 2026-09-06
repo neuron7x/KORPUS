@@ -1,0 +1,373 @@
+{
+  "schema": "korpus.production-24-gate-campaign.v1",
+  "release": "v0.9.7",
+  "source_tree_sha256": "bad7efe1a766497a8b1430283e28a47e013d8f811496cf9d3b0a50d272db8a95",
+  "status": "FAIL_CLOSED",
+  "software_gates": {
+    "passed": 14,
+    "total": 14
+  },
+  "external_gates": {
+    "passed": 5,
+    "total": 14
+  },
+  "combined": {
+    "passed": 19,
+    "total": 28,
+    "percent": 67.857143
+  },
+  "capabilities": {
+    "python": "3.12.3",
+    "tools": {
+      "docker": "/usr/bin/docker",
+      "podman": "/usr/bin/podman",
+      "psql": "/home/neuro7/.local/bin/psql",
+      "postgres": null,
+      "trivy": "/home/neuro7/.local/bin/trivy",
+      "gitleaks": "/home/neuro7/.local/bin/gitleaks",
+      "grype": null,
+      "syft": "/home/neuro7/.local/bin/syft",
+      "terraform": null,
+      "cosign": "/home/neuro7/.local/bin/cosign"
+    },
+    "test_database_url": false,
+    "trusted_builder_id": false
+  },
+  "executions": {
+    "redteam": {
+      "exit_code": 1,
+      "stdout_tail": "{\n  \"schema\": \"korpus.production-gate.v1\",\n  \"gate_id\": \"redteam\",\n  \"status\": \"FAIL\",\n  \"source_tree_sha256\": \"bad7efe1a766497a8b1430283e28a47e013d8f811496cf9d3b0a50d272db8a95\",\n  \"release\": \"v0.9.7\",\n  \"checks\": {\n    \"report_present\": false,\n    \"attestation_present\": false,\n    \"attestation_verified\": false,\n    \"trusted_signer\": false,\n    \"source_bound\": false,\n    \"release_bound\": false,\n    \"independent_class\": false,\n    \"preregistered\": false,\n    \"test_cases_structured\": false,\n    \"required_attack_families_covered\": false,\n    \"findings_structured\": false,\n    \"blocking_findings_closed\": false,\n    \"declared_status_consistent\": false\n  },\n  \"failures\": [\n    \"report_present\",\n    \"attestation_present\",\n    \"attestation_verified\",\n    \"trusted_signer\",\n    \"source_bound\",\n    \"release_bound\",\n    \"independent_class\",\n    \"preregistered\",\n    \"test_cases_structured\",\n    \"required_attack_families_covered\",\n    \"findings_structured\",\n    \"blocking_findings_closed\",\n    \"declared_status_consistent\"\n  ],\n  \"evidence_class\": \"EXTERNAL_INDEPENDENT\",\n  \"attestation_verified\": false,\n  \"trusted_signer\": false,\n  \"signer_fingerprint\": \"\",\n  \"redteam\": {\n    \"checks\": {\n      \"test_cases_structured\": false,\n      \"required_attack_families_covered\": false,\n      \"findings_structured\": false,\n      \"blocking_findings_closed\": false,\n      \"declared_status_consistent\": false\n    },\n    \"pass\": false,\n    \"required_attack_families\": [\n      \"auth_bypass\",\n      \"data_exfiltration\",\n      \"host_header\",\n      \"idor\",\n      \"injection_parser\",\n      \"privilege_escalation\",\n      \"ssrf_egress\",\n      \"tenant_escape\",\n      \"webhook_forgery_replay\"\n    ],\n    \"covered_attack_families\": [],\n    \"test_cases\": 0,\n    \"findings\": 0,\n    \"blocking_open\": []\n  }\n}\n",
+      "stderr_tail": ""
+    },
+    "supply_chain": {
+      "exit_code": 1,
+      "stdout_tail": "{\n  \"schema\": \"korpus.production-gate.v1\",\n  \"gate_id\": \"supply_chain\",\n  \"status\": \"FAIL\",\n  \"source_tree_sha256\": \"bad7efe1a766497a8b1430283e28a47e013d8f811496cf9d3b0a50d272db8a95\",\n  \"release\": \"v0.9.7\",\n  \"checks\": {\n    \"exact_pins_have_hashes\": true,\n    \"source_sbom_lock_complete\": true,\n    \"security_scanners_executed_clean\": true,\n    \"security_scanners_current_commit\": false,\n    \"container_scanners_executed_clean\": true,\n    \"container_scanners_current_commit\": false,\n    \"container_sboms_valid\": true,\n    \"evidence_manifest_bound\": false,\n    \"evidence_attestation_verified\": false,\n    \"evidence_trusted_signer\": false\n  },\n  \"failures\": [\n    \"security_scanners_current_commit\",\n    \"container_scanners_current_commit\",\n    \"evidence_manifest_bound\",\n    \"evidence_attestation_verified\",\n    \"evidence_trusted_signer\"\n  ],\n  \"evidence_class\": \"ATTESTED_CI_SCANNERS_PLUS_CONTAINER_SBOM\",\n  \"completeness\": \"PARTIAL\",\n  \"pinned_records\": 71,\n  \"hashed_records\": 71,\n  \"signer_fingerprint\": \"\"\n}\n",
+      "stderr_tail": ""
+    },
+    "postgres_security": {
+      "exit_code": 0,
+      "stdout_tail": "\\nINFO  [alembic.runtime.migration] Running upgrade 0011_audit_key_id -> 0012_tenancy, accounts, plans, subscriptions, billing events, conversations and messages\\nINFO  [alembic.runtime.migration] Running upgrade 0012_tenancy -> 0013_message_verdict, a stored answer remembers whether it was one\\nINFO  [alembic.runtime.migration] Running upgrade 0013_message_verdict -> 0014_subscription_last_event, a subscription remembers when its last applied event occurred\\nINFO  [alembic.runtime.migration] Running upgrade 0014_subscription_last_event -> 0015_plan_pricing, sellable plan pricing\\nINFO  [alembic.runtime.migration] Running upgrade 0015_plan_pricing -> 0016_learning_course_graph, persist immutable evidence-bound learning course graph\\nINFO  [alembic.runtime.migration] Running upgrade 0016_learning_course_graph -> 0017_learning_mastery, persist evidence-bound learner mastery projection\\nINFO  [alembic.runtime.migration] Running upgrade 0017_learning_mastery -> 0018_operational_competencies, persist operational competency framework revisions\\nINFO  [alembic.runtime.migration] Running upgrade 0018_operational_competencies -> 0019_temporal_corpus_snapshot, temporal corpus snapshot identity\\nINFO  [alembic.runtime.migration] Running upgrade 0019_temporal_corpus_snapshot -> 0020_rls_identity_boundary, non-forgeable PostgreSQL RLS identity boundary.\\nINFO  [alembic.runtime.migration] Running upgrade 0020_rls_identity_boundary -> 0021_alembic_version_width, widen alembic_version so a descriptive revision id is not a schema error\\nINFO  [alembic.runtime.migration] Running upgrade 0021_alembic_version_width -> 0022_approval_provenance_boundary, approval provenance privilege boundary\\nINFO  [alembic.runtime.migration] Running upgrade 0022_approval_provenance_boundary -> 0023_evidence_search_vector, stored search vector: під RLS повнотекстовий індекс недосяжний за побудовою\\n\",\n  \"static_tail\": \"...                                                                      [100%]\\n\"\n}\n",
+      "stderr_tail": ""
+    },
+    "tevv": {
+      "exit_code": 1,
+      "stdout_tail": "ld_receipt_pass\": false,\n    \"gold_receipt_digest_bound\": false,\n    \"gold_receipt_system_bound\": false\n  },\n  \"failures\": [\n    \"evidence_schema\",\n    \"preregistered\",\n    \"source_bound\",\n    \"release_bound\",\n    \"environment_class\",\n    \"independent_class\",\n    \"assessor_structured\",\n    \"assessor_attestation_verified\",\n    \"assessor_trusted_signer\",\n    \"observation_ledger_structured\",\n    \"null_control_ledger_structured\",\n    \"required_attack_families_covered\",\n    \"required_cohorts_covered\",\n    \"tevv_admissible\",\n    \"pass_rate\",\n    \"null_controls\",\n    \"attack_families\",\n    \"deployment_context_bound\",\n    \"evaluation_cues_blinded\",\n    \"dependency_failures_simulated\",\n    \"gold_receipt_present\",\n    \"gold_receipt_pass\",\n    \"gold_receipt_digest_bound\",\n    \"gold_receipt_system_bound\",\n    \"tevv:dataset declares no corpus: the run is a fixture run\",\n    \"tevv:0 observations is below the floor of 200: a point estimate from too few queries is not a measurement\",\n    \"tevv:95% interval is 1.000 wide, above the maximum 0.100: the run does not constrain the answer enough\"\n  ],\n  \"environment_class\": null,\n  \"assessor_signer_fingerprint\": \"\",\n  \"tevv\": {\n    \"schema_version\": 1,\n    \"admissible_as_tevv\": false,\n    \"calibration_status\": \"UNVALIDATED_TEST_FIXTURE\",\n    \"pass_rate_interval\": {\n      \"lower\": 0.0,\n      \"upper\": 1.0,\n      \"width\": 1.0,\n      \"confidence\": 0.95\n    },\n    \"reasons\": [\n      \"dataset declares no corpus: the run is a fixture run\",\n      \"0 observations is below the floor of 200: a point estimate from too few queries is not a measurement\",\n      \"95% interval is 1.000 wide, above the maximum 0.100: the run does not constrain the answer enough\"\n    ]\n  },\n  \"observations\": 0,\n  \"ledger_metrics\": {\n    \"observations\": 0,\n    \"passed\": 0,\n    \"citation_failures\": 0,\n    \"leakage_failures\": 0,\n    \"determinism_failures\": 0,\n    \"null_controls\": 0,\n    \"null_control_false_accepts\": 0,\n    \"attack_families\": [],\n    \"cohort_counts\": {}\n  }\n}\n",
+      "stderr_tail": ""
+    },
+    "reliability": {
+      "exit_code": 1,
+      "stdout_tail": "rified\": false,\n    \"recovery_trusted_signer\": false\n  },\n  \"failures\": [\n    \"internal_fault_injection\",\n    \"load_attestation_verified\",\n    \"load_trusted_signer\",\n    \"recovery_attestation_verified\",\n    \"recovery_trusted_signer\"\n  ],\n  \"evidence_class\": \"ATTESTED_LIVE_PLUS_FAULT_INJECTION_REQUIRED\",\n  \"load_metrics\": {\n    \"load\": {\n      \"concurrency\": 4,\n      \"requests\": 79,\n      \"answered\": 79,\n      \"answered_share\": 1.0,\n      \"p50_seconds\": 1.813,\n      \"p95_seconds\": 2.447,\n      \"p99_seconds\": 2.765,\n      \"max_seconds\": 2.765,\n      \"mean_seconds\": 1.563,\n      \"statuses\": {\n        \"200\": 79\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 75,\n        \"contradictory_authoritative_evidence\": 4\n      },\n      \"refusal_reasons\": {}\n    },\n    \"spike\": {\n      \"concurrency\": 12,\n      \"requests\": 999,\n      \"answered\": 167,\n      \"answered_share\": 0.1672,\n      \"p50_seconds\": 0.06,\n      \"p95_seconds\": 2.579,\n      \"p99_seconds\": 3.489,\n      \"max_seconds\": 4.324,\n      \"mean_seconds\": 0.341,\n      \"statuses\": {\n        \"200\": 167,\n        \"429\": 59,\n        \"503\": 773\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 158,\n        \"contradictory_authoritative_evidence\": 9\n      },\n      \"refusal_reasons\": {\n        \"global_capacity_exhausted\": 773,\n        \"subject_share_exhausted\": 59\n      }\n    },\n    \"soak\": {\n      \"concurrency\": 4,\n      \"requests\": 196,\n      \"answered\": 196,\n      \"answered_share\": 1.0,\n      \"p50_seconds\": 1.604,\n      \"p95_seconds\": 2.457,\n      \"p99_seconds\": 2.85,\n      \"max_seconds\": 2.899,\n      \"mean_seconds\": 1.249,\n      \"statuses\": {\n        \"200\": 196\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 182,\n        \"contradictory_authoritative_evidence\": 14\n      },\n      \"refusal_reasons\": {}\n    }\n  },\n  \"chaos_cases\": 8,\n  \"recovery_status\": \"PASS\",\n  \"load_signer_fingerprint\": \"\",\n  \"recovery_signer_fingerprint\": \"\"\n}\n",
+      "stderr_tail": ""
+    },
+    "exact_environment": {
+      "exit_code": 0,
+      "stdout_tail": "make[1]: входимо до каталогу «/home/neuro7/Desktop/Ядро основний проект Корпус»\ndocker build -f apps/api/Dockerfile -t korpus-api:exact-env .\ndocker run --rm --user root -v \"/home/neuro7/Desktop/Ядро основний проект Корпус:/src\" -w /src \\\n  -e PYTHONPATH=/src/apps/api/src:/src/scripts \\\n  korpus-api:exact-env python scripts/run_exact_environment_gate.py --profile runtime\n{\n  \"schema\": \"korpus.production-gate.v1\",\n  \"gate_id\": \"exact_environment\",\n  \"status\": \"PASS\",\n  \"source_tree_sha256\": \"bad7efe1a766497a8b1430283e28a47e013d8f811496cf9d3b0a50d272db8a95\",\n  \"release\": \"v0.9.7\",\n  \"checks\": {\n    \"all_locked_components_installed\": true,\n    \"all_versions_exact\": true,\n    \"no_unmanaged_distributions\": true,\n    \"production_python_exact\": true,\n    \"lock_hashes_present\": true\n  },\n  \"failures\": [],\n  \"evidence_class\": \"EXACT_PRODUCTION_IMAGE\",\n  \"profile\": \"runtime\",\n  \"python\": \"3.12.13\",\n  \"required_python\": \"3.12.13\",\n  \"implementation\": \"CPython\",\n  \"locked_components\": 55,\n  \"missing\": [],\n  \"mismatched\": {},\n  \"unmanaged_distributions\": []\n}\nmake[1]: Залишаю каталог \"/home/neuro7/Desktop/Ядро основний проект Корпус\"\n",
+      "stderr_tail": ".9 packaging-25.0 prometheus-client-0.25.0 protobuf-6.33.6 psycopg-3.3.4 psycopg-binary-3.3.4 pycparser-3.0 pydantic-2.13.4 pydantic-core-2.46.4 pydantic-settings-2.14.2 pypdf-6.16.1 python-dateutil-2.9.0.post0 python-dotenv-1.2.2 python-multipart-0.0.31 s3transfer-0.18.0 six-1.17.0 starlette-1.3.1 typing-extensions-4.15.0 typing-inspection-0.4.2 urllib3-2.7.0 uvicorn-0.48.0 uvloop-0.22.1 watchfiles-1.2.0 websockets-16.0\n#9 18.44 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.\n#9 19.28 No broken requirements found.\n#9 DONE 19.4s\n\n#10 [ 6/12] COPY apps/api/src /app/apps/api/src\n#10 DONE 0.0s\n\n#11 [ 7/12] COPY apps/api/migrations /app/apps/api/migrations\n#11 DONE 0.0s\n\n#12 [ 8/12] COPY apps/api/alembic.ini /app/apps/api/alembic.ini\n#12 DONE 0.0s\n\n#13 [ 9/12] COPY scripts /app/scripts\n#13 DONE 0.1s\n\n#14 [10/12] COPY apps/api/docker-entrypoint.sh /usr/local/bin/korpus-entrypoint\n#14 DONE 0.0s\n\n#15 [11/12] RUN groupadd --gid 10001 korpus     && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin korpus     && mkdir -p /data/objects /audit /tmp/korpus     && chown -R 10001:10001 /data /audit /tmp/korpus     && chmod 0555 /app /app/apps /app/apps/api /app/apps/api/src /app/scripts     && chmod 0555 /usr/local/bin/korpus-entrypoint     && chmod -R a+rX /app/apps/api/src /app/apps/api/migrations /app/scripts     && chmod a+r /app/apps/api/alembic.ini\n#15 DONE 0.5s\n\n#16 [12/12] WORKDIR /app\n#16 DONE 0.0s\n\n#17 exporting to image\n#17 exporting layers\n#17 exporting layers 0.5s done\n#17 writing image sha256:0f934418d283d0d5dc692695922129e5f982a14845b43705b707df5924d3548e done\n#17 naming to docker.io/library/korpus-api:exact-env done\n#17 DONE 0.5s\n",
+      "runner": "make production-exact-environment-image"
+    }
+  },
+  "predicates": [
+    {
+      "id": "external_independent_redteam",
+      "gate": "redteam",
+      "required_proof_class": "INTERNAL_ADVERSARIAL_CAMPAIGN",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
+      "missing_software_artifacts": [],
+      "failed_external_checks": [
+        "campaign_executed",
+        "pytest_passed",
+        "attack_families_declared",
+        "metadata:status"
+      ],
+      "waived_external_checks": [
+        "report_present",
+        "attestation_present",
+        "attestation_verified",
+        "trusted_signer",
+        "independent_class",
+        "preregistered",
+        "test_cases_structured",
+        "required_attack_families_covered",
+        "findings_structured",
+        "blocking_findings_closed",
+        "declared_status_consistent"
+      ],
+      "causal_status": "INDEPENDENCE_REQUIRED"
+    },
+    {
+      "id": "live_vulnerability_scanners",
+      "gate": "supply_chain",
+      "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
+      "missing_software_artifacts": [],
+      "failed_external_checks": [
+        "security_scanners_current_commit",
+        "container_scanners_current_commit",
+        "evidence_manifest_bound"
+      ],
+      "waived_external_checks": [
+        "evidence_attestation_verified",
+        "evidence_trusted_signer"
+      ],
+      "causal_status": "EXECUTED_FAIL"
+    },
+    {
+      "id": "live_postgres_rls",
+      "gate": "postgres_security",
+      "required_proof_class": "REAL_POSTGRESQL",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
+      "software_ready": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
+      "missing_software_artifacts": [],
+      "failed_external_checks": [],
+      "waived_external_checks": [],
+      "causal_status": "PASS"
+    },
+    {
+      "id": "real_domain_corpus_tevv",
+      "gate": "tevv",
+      "required_proof_class": "REAL_DOMAIN_CORPUS",
+      "disposition": "NOT_IN_RELEASE_PATH",
+      "disposition_proved": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": false,
+      "missing_software_artifacts": [],
+      "failed_external_checks": [
+        "evidence_schema",
+        "preregistered",
+        "source_bound",
+        "release_bound",
+        "observation_ledger_structured",
+        "null_control_ledger_structured",
+        "required_attack_families_covered",
+        "tevv_admissible",
+        "pass_rate",
+        "null_controls",
+        "attack_families"
+      ],
+      "waived_external_checks": [],
+      "causal_status": "EXTERNAL_INPUT_MISSING"
+    },
+    {
+      "id": "independent_tevv",
+      "gate": "tevv",
+      "required_proof_class": "INTERNAL_STRUCTURALLY_SEPARATED",
+      "disposition": "NOT_IN_RELEASE_PATH",
+      "disposition_proved": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": false,
+      "missing_software_artifacts": [],
+      "failed_external_checks": [
+        "assessor_structured"
+      ],
+      "waived_external_checks": [
+        "independent_class",
+        "assessor_attestation_verified",
+        "assessor_trusted_signer"
+      ],
+      "causal_status": "INDEPENDENCE_REQUIRED"
+    },
+    {
+      "id": "production_like_tevv_environment",
+      "gate": "tevv",
+      "required_proof_class": "MATCHES_FROZEN_TOPOLOGY",
+      "disposition": "NOT_IN_RELEASE_PATH",
+      "disposition_proved": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": false,
+      "missing_software_artifacts": [],
+      "failed_external_checks": [
+        "environment_class"
+      ],
+      "waived_external_checks": [
+        "assessor_attestation_verified",
+        "assessor_trusted_signer"
+      ],
+      "causal_status": "EXTERNAL_INPUT_MISSING"
+    },
+    {
+      "id": "production_like_load",
+      "gate": "reliability",
+      "required_proof_class": "PRODUCTION_LIKE_LOAD",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
+      "software_ready": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
+      "missing_software_artifacts": [],
+      "failed_external_checks": [],
+      "waived_external_checks": [],
+      "causal_status": "PASS"
+    },
+    {
+      "id": "trusted_load_attestation",
+      "gate": "reliability",
+      "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
+      "software_ready": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
+      "missing_software_artifacts": [],
+      "failed_external_checks": [],
+      "waived_external_checks": [
+        "load_attestation_verified",
+        "load_trusted_signer"
+      ],
+      "causal_status": "PASS"
+    },
+    {
+      "id": "trusted_recovery_attestation",
+      "gate": "reliability",
+      "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
+      "software_ready": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
+      "missing_software_artifacts": [],
+      "failed_external_checks": [],
+      "waived_external_checks": [
+        "recovery_attestation_verified",
+        "recovery_trusted_signer"
+      ],
+      "causal_status": "PASS"
+    },
+    {
+      "id": "trusted_hosted_builder",
+      "gate": "final_release",
+      "required_proof_class": "HOSTED_CI_PROVENANCE_SOURCE_BOUND",
+      "disposition": "NOT_IN_RELEASE_PATH",
+      "disposition_proved": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": false,
+      "missing_software_artifacts": [],
+      "failed_external_checks": [
+        "builder_provenance_verified",
+        "gate_source_bound",
+        "gate_release_bound"
+      ],
+      "waived_external_checks": [
+        "builder_trusted",
+        "builder_attestation_verified",
+        "builder_trusted_signer"
+      ],
+      "causal_status": "HOSTED_BUILDER_REQUIRED"
+    },
+    {
+      "id": "trusted_release_signing",
+      "gate": "final_release",
+      "required_proof_class": "OWNER_SIGNED_AT_APPROVAL",
+      "disposition": "OWNER_ACTION",
+      "disposition_proved": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": false,
+      "missing_software_artifacts": [],
+      "failed_external_checks": [
+        "release_manifest_bound",
+        "release_attestation_verified",
+        "release_trusted_signer",
+        "gate_source_bound",
+        "gate_release_bound"
+      ],
+      "waived_external_checks": [],
+      "causal_status": "TRUST_ROOT_OR_ATTESTATION_MISSING"
+    },
+    {
+      "id": "exact_python_3_12_13_environment",
+      "gate": "exact_environment",
+      "required_proof_class": "EXACT_LOCKED_ENVIRONMENT",
+      "disposition": "IN_RELEASE_PATH",
+      "disposition_proved": true,
+      "software_ready": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
+      "missing_software_artifacts": [],
+      "failed_external_checks": [],
+      "waived_external_checks": [],
+      "causal_status": "PASS"
+    },
+    {
+      "id": "pec_human_production_authority",
+      "gate": "pec_authority",
+      "required_proof_class": "HOSTED_HUMAN_EXACT_COHORT_ATTESTED",
+      "disposition": "NOT_IN_RELEASE_PATH",
+      "disposition_proved": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": false,
+      "missing_software_artifacts": [],
+      "failed_external_checks": [
+        "evidence_schema",
+        "source_bound",
+        "binding_valid",
+        "audit_trace_nonempty",
+        "training_lineage",
+        "human_judgments",
+        "hosted_evidence",
+        "attestation_verified",
+        "trusted_signer",
+        "metadata:environment_class",
+        "gate_source_bound",
+        "gate_release_bound"
+      ],
+      "waived_external_checks": [],
+      "causal_status": "EVIDENCE_MISSING"
+    },
+    {
+      "id": "pec_canary_revision_admission",
+      "gate": "pec_canary",
+      "required_proof_class": "EXACT_CLOUD_RUN_REVISION_CANARY_ATTESTED",
+      "disposition": "NOT_IN_RELEASE_PATH",
+      "disposition_proved": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": false,
+      "missing_software_artifacts": [],
+      "failed_external_checks": [
+        "authority_pass",
+        "source_bound",
+        "release_bound",
+        "exact_cloud_run_revision",
+        "minimum_samples",
+        "server_error_rate",
+        "human_judgment_admissible",
+        "metadata:environment_class",
+        "gate_source_bound",
+        "gate_release_bound"
+      ],
+      "waived_external_checks": [],
+      "causal_status": "EVIDENCE_MISSING"
+    }
+  ],
+  "production_authorized": false
+}

@@ -32,13 +32,26 @@ GATE_FILES = {
     "exact_environment": "exact_environment-gate.json",
     "final_release": "final_release-gate.json",
 }
+#: Команда, а не шлях. Голий шлях мовчки ламався там, де гейт вимагає аргумент:
+#: `run_exact_environment_gate.py` без `--profile` виходить з usage-помилкою, і
+#: предикат `exact_python_3_12_13_environment` через це не мав ЖОДНОЇ машинної
+#: дороги до рішення — вічне STALE, яке читається як очікування на людину.
+#: Виміряно 2026-09-05.
+#:
+#: `exact_environment` іде через make-ціль, бо продакшенний доказ добувається лише
+#: в ОБРАЗІ: `--profile runtime` на робочій машині зіставляв би встановлені пакети
+#: розробницького venv із рантайм-локом і був би доказом не про те середовище.
 RUNNERS = {
-    "redteam": "scripts/validate_external_redteam_evidence.py",
-    "supply_chain": "scripts/run_supply_chain_gate.py",
-    "postgres_security": "scripts/run_postgres_security_gate.py",
-    "tevv": "scripts/run_tevv_production_gate.py",
-    "reliability": "scripts/run_reliability_gate.py",
-    "exact_environment": "scripts/run_exact_environment_gate.py",
+    "redteam": ["scripts/validate_external_redteam_evidence.py"],
+    "supply_chain": ["scripts/run_supply_chain_gate.py"],
+    "postgres_security": ["scripts/run_postgres_security_gate.py"],
+    "tevv": ["scripts/run_tevv_production_gate.py"],
+    "reliability": ["scripts/run_reliability_gate.py"],
+}
+
+#: Гейти, чий доказ не добувається викликом інтерпретатора в цьому дереві.
+MAKE_RUNNERS = {
+    "exact_environment": "production-exact-environment-image",
 }
 
 
@@ -52,9 +65,9 @@ def _object(path: Path) -> dict[str, Any]:
 
 def _execute(root: Path) -> dict[str, dict[str, Any]]:
     executions: dict[str, dict[str, Any]] = {}
-    for gate, relative in RUNNERS.items():
+    for gate, argv in RUNNERS.items():
         completed = subprocess.run(
-            [sys.executable, relative],
+            [sys.executable, *argv],
             cwd=root,
             capture_output=True,
             text=True,
@@ -66,6 +79,22 @@ def _execute(root: Path) -> dict[str, dict[str, Any]]:
             "exit_code": completed.returncode,
             "stdout_tail": completed.stdout[-2000:],
             "stderr_tail": completed.stderr[-2000:],
+        }
+    for gate, target in MAKE_RUNNERS.items():
+        completed = subprocess.run(
+            ["make", target],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=3600,
+            env={**os.environ, "PYTHONPATH": str(root / "apps/api/src")},
+        )
+        executions[gate] = {
+            "exit_code": completed.returncode,
+            "stdout_tail": completed.stdout[-2000:],
+            "stderr_tail": completed.stderr[-2000:],
+            "runner": f"make {target}",
         }
     return executions
 

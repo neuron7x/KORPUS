@@ -34,6 +34,10 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+
+from korpus.application.provenance import compute_source_digest  # noqa: E402
+
 REPORT = ROOT / "reports/MUTATION_REPORT.json"
 
 
@@ -49,14 +53,39 @@ def catalogue_ids() -> set[str]:
     return {mutant.id for mutant in MUTANTS}
 
 
-def problems(report: dict[str, Any], expected: set[str]) -> list[str]:
-    found: list[str] = []
+def binding_problems(report: dict[str, Any], source_digest: str | None) -> list[str]:
+    """Чи звіт каже, про яке дерево він, і чи це ТЕ САМЕ дерево.
+
+    Винесено з `problems()` окремо не заради стилю: разом вони давали складність 13
+    при стелі 10, а стеля тут — ратчет, який не піднімають, бо функція виросла.
+    Дві різні відмови — «не сказано» і «сказано про інше» — читаються нарізно.
+    """
     provenance = report.get("provenance")
-    if not isinstance(provenance, dict) or not provenance.get("source_digest"):
-        found.append(
+    carried = provenance.get("source_digest") if isinstance(provenance, dict) else None
+    if not isinstance(provenance, dict) or not carried:
+        return [
             "звіт не несе провенансу: він не каже, яке дерево його зробило, "
             "а непідв'язаний PASS гірший за відсутній"
-        )
+        ]
+    if source_digest and carried != source_digest:
+        return [
+            f"звіт про дерево {str(carried)[:12]}, а міряємо {source_digest[:12]}: "
+            "це історичний доказ, не свіжий"
+        ]
+    return []
+
+
+def problems(
+    report: dict[str, Any], expected: set[str], source_digest: str | None = None
+) -> list[str]:
+    """Зауваження до звіту мутацій. `source_digest` — дайджест дерева, з яким звірятись.
+
+    Параметр НЕ має дефолту-заглушки навмисно: `None` означає «звіряти нема з чим», і
+    тоді прив'язка не перевіряється, а не вважається доброю. Виміряно 2026-09-06: доти
+    перевірка питала лише, чи дайджест НЕПОРОЖНІЙ, тож звіт із шістдесятьма чотирма
+    нулями проходив як свіжий. Назва цілі обіцяла свіжість, вимір давав присутність.
+    """
+    found: list[str] = binding_problems(report, source_digest)
     results = report.get("results")
     if not isinstance(results, list):
         return [*found, "у звіті немає переліку результатів — порівнювати нема з чим"]
@@ -89,7 +118,10 @@ def selftest() -> int:
     good: dict[str, Any] = {
         "mutants": 3,
         "results": [{"id": "M01"}, {"id": "M02"}, {"id": "M03"}],
-        "provenance": {"source_digest": "0" * 64},
+        # НЕ "0" * 64: доти саме це число стояло тут як ЧИСТИЙ випадок, і клас вади
+        # «звіт про інше дерево» був невидимий за побудовою — еталон оголошував отруту
+        # правильним входом.
+        "provenance": {"source_digest": "a" * 64},
         "survived": [],
         "invalid": [],
         "errors": [],
@@ -97,6 +129,17 @@ def selftest() -> int:
     rows: list[dict[str, str]] = [{"id": "M01"}, {"id": "M02"}, {"id": "M03"}]
     cases: list[tuple[str, dict[str, Any], bool]] = [
         ("чистий стан приймається", good, False),
+        # Дві отрути по ДАНИХ на прив'язку. Обидві проходили до 2026-09-06.
+        (
+            "звіт про ІНШЕ дерево не є свіжим",
+            {**good, "provenance": {"source_digest": "b" * 64}},
+            True,
+        ),
+        (
+            "дайджест-заглушка не рятує звіт",
+            {**good, "provenance": {"source_digest": "0" * 64}},
+            True,
+        ),
         (
             "мутанта додано в код, у звіті його немає",
             {**good, "results": rows[:2], "mutants": 2},
@@ -119,7 +162,10 @@ def selftest() -> int:
     ]
     failures: list[str] = []
     for name, payload, must_reject in cases:
-        rejected = bool(problems(payload, expected))
+        # Дайджест еталона передається ЯВНО: без нього дві нові отрути на
+        # прив'язку не мали б з чим звірятись і мовчки проходили б — тобто
+        # негативний контроль існував би, не бігаючи.
+        rejected = bool(problems(payload, expected, "a" * 64))
         if rejected != must_reject:
             failures.append(f"{name}: очікували {'відхилення' if must_reject else 'проходження'}")
     print(json.dumps({"selftest": len(cases), "failed": failures}, ensure_ascii=False, indent=2))
@@ -136,7 +182,7 @@ def main() -> int:
         print(json.dumps({"status": "UNKNOWN", "reason": f"немає {REPORT}"}, ensure_ascii=False))
         return 2
     report = json.loads(REPORT.read_text(encoding="utf-8"))
-    found = problems(report, catalogue_ids())
+    found = problems(report, catalogue_ids(), compute_source_digest(ROOT))
     print(
         json.dumps(
             {"status": "FAIL" if found else "PASS", "problems": found},

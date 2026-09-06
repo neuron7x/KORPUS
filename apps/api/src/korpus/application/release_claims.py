@@ -8,7 +8,7 @@ from typing import Any
 from korpus.application.provenance import DIGEST_SCOPE, PROVENANCE_KEY
 
 
-def _binding(payload: dict[str, Any]) -> tuple[str | None, bool]:
+def binding(payload: dict[str, Any]) -> tuple[str | None, bool]:
     """Прив'язка доказу до дерева: з ВЕРХНЬОГО рівня або з канонічного конверта.
 
     Повертає `(дайджест | None, розбіжність)`.
@@ -54,7 +54,7 @@ def _claim_status(root: Path, evidence: str, source_digest: str, release: str) -
         return "INVALID_EVIDENCE"
     if "release" in payload and payload.get("release") != release:
         return "STALE_EVIDENCE"
-    bound, divergent = _binding(payload)
+    bound, divergent = binding(payload)
     if divergent:
         # Два оголошення однієї прив'язки розійшлись. Слабше не перемагає мовчки.
         return "DIVERGENT_BINDING"
@@ -114,20 +114,20 @@ def claim_ledger(root: Path, source_digest: str, release: str) -> dict[str, Any]
         }
         for i, c, e in claims
     ]
+    # Доти обидві несли вписаний у код "REFUTED": правдивий і НЕФАЛЬСИФІКОВНИЙ разом.
+    registry = f"reports/release/{release}/final/BLOCKER_REGISTRY.json"
     rendered.extend(
         [
             {
-                "id": "CLM-PRODUCTION-AUTH",
-                "claim": "System is production-authorized.",
-                "status": "REFUTED",
-                "evidence": f"reports/release/{release}/final/BLOCKER_REGISTRY.json",
-            },
-            {
-                "id": "CLM-INDEPENDENT",
-                "claim": "System is independently validated.",
-                "status": "REFUTED",
-                "evidence": f"reports/release/{release}/final/BLOCKER_REGISTRY.json",
-            },
+                "id": i,
+                "claim": c,
+                "status": _claim_status(root, registry, source_digest, release),
+                "evidence": registry,
+            }
+            for i, c in (
+                ("CLM-PRODUCTION-AUTH", "System is production-authorized."),
+                ("CLM-INDEPENDENT", "System is independently validated."),
+            )
         ]
     )
     return {

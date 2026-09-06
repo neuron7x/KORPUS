@@ -1,0 +1,22 @@
+{
+  "schema": "korpus.closure.external-blockers.v1",
+  "protocol": "KORPUS-CLOSE-2026-09-05",
+  "blockers": [
+    {
+      "id": "EXTERNAL_GITHUB_BILLING_BLOCKER",
+      "claim": "GitHub Actions can provide independent hosted execution of the candidate",
+      "measurement": "100 runs sampled: success=0, failure=99, cancelled=1; jobs report runner_name=\"\", steps=0, duration 2-3s",
+      "verbatim_evidence": "The job was not started because your account is locked due to a billing issue.",
+      "evidence_source": "GET /repos/neuron7x/KORPUS/check-runs/{id}/annotations",
+      "verdict": "EXECUTION_NOT_OBSERVED",
+      "class": "EXTERNAL_REQUIRED",
+      "owner_action": "resolve the GitHub account billing lock; no repository-side change can lift it",
+      "second_order": "branch protection MUST NOT require Actions status checks while this holds — required checks that can never run would make main permanently unmergeable",
+      "rejected_workaround": {
+        "option": "self-hosted runner on the author machine",
+        "why_rejected": "L9: execution on the author's own machine is not independent reproduction; it would add attack surface and produce evidence of the class the tree already has"
+      }
+    }
+  ],
+  "trusted_ci": "GitLab only (neuron7x/korpus-platform); GitHub is archive-only and asserts nothing"
+}
