@@ -89,6 +89,9 @@ repository:validate:
     # Селфтест же перевіряє те, що предмета не має: чи розбирається курований каталог,
     # чи відхиляється виняток без умови закриття, чи вміє самоперевірка впасти.
     - python scripts/verify_mutation_delta.py --selftest
+    # Гейт живої готовності: у раннері розгортання немає, тож вирок там був би UNKNOWN.
+    # Здатність гейта ЛОВИТИ — є, і саме її перевіряє самоперевірка, як у сусідів вище.
+    - python scripts/check_serving_readiness.py --selftest
     # OPS-004 on the only environment this job can observe: its own checkout. It proves
     # the comparator runs and that the manifest describes this tree. It is NOT evidence
     # about a cluster — that observation has to be taken on the running host, and it
