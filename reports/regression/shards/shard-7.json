@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "0be621c1f1dcd1c903401e9ffc1b703d03ae43cf6de4ecfc6eeb748015ec9510",
-  "collection_digest": "7692d3f90d17af47f3c3ef2a67cb237fd5a6615197cd501b332e9a5de3dabffe",
-  "collection_count": 4248,
+  "source_digest": "cd31bb65c5471af0b7efa86395eb822be009ed6e35ba3153a2a7ee7e442bc088",
+  "collection_digest": "76ff674859f0ff2286993fc21f986156975a42734855181e4fcf35d6959aa60e",
+  "collection_count": 4263,
   "shard_index": 7,
   "shard_count": 24,
-  "selected_count": 209,
+  "selected_count": 210,
   "selected_nodeids": [
     "apps/api/tests/test_answer_axes_composition.py::test_a_blind_axis_is_not_a_passed_axis",
     "apps/api/tests/test_answer_composition.py::test_an_opening_that_borrows_words_from_two_citations_is_refused",
@@ -136,6 +136,7 @@
     "apps/api/tests/test_offline_pack.py::test_a_corpus_list_that_cannot_be_normalised_is_refused_at_the_boundary[corpora4-invalid corpus identifier]",
     "apps/api/tests/test_oidc_assurance_refusals.py::test_a_verifier_that_could_not_verify_anything_is_refused_at_construction[overrides3-explicitly pinned]",
     "apps/api/tests/test_openai_model_adapter.py::test_openai_planner_uses_responses_api_store_false_and_bearer_auth",
+    "apps/api/tests/test_owner_packet_refresh.py::test_the_generated_blocker_block_carries_its_own_provenance",
     "apps/api/tests/test_package_zip_safety.py::test_symlink_entry_is_rejected",
     "apps/api/tests/test_pec_adaptive_retrieval.py::test_plan_and_semantic_runs_the_plan_with_semantic_on",
     "apps/api/tests/test_pec_canary_admission_v097.py::test_canary_rejects_underpowered_sample",
@@ -219,9 +220,9 @@
     "apps/api/tests/test_worker_supervisor_liveness.py::test_a_child_that_ignores_terminate_is_killed_after_the_timeout",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_stopping_without_a_child_is_a_no_op"
   ],
-  "selected_digest": "ba737b7a549681c802debf5b18945588fb8da77373ce3b9f90cc94100daf6f02",
+  "selected_digest": "b1f260fe6461526fe5dfaa809fd4fc1e34b93ada6f72b9fe1bb65b36b96df410",
   "junit": {
-    "tests": 209,
+    "tests": 210,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -230,9 +231,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 12.92784,
+  "elapsed_seconds": 13.456963,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 34%]\n......................................................................ss [ 68%]\nss...............................................................        [100%]",
+  "stdout_tail": "........................................................................ [ 34%]\n.......................................................................s [ 68%]\nsss...............................................................       [100%]",
   "stderr_tail": ""
 }

@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "0be621c1f1dcd1c903401e9ffc1b703d03ae43cf6de4ecfc6eeb748015ec9510",
-  "collection_digest": "7692d3f90d17af47f3c3ef2a67cb237fd5a6615197cd501b332e9a5de3dabffe",
-  "collection_count": 4248,
+  "source_digest": "cd31bb65c5471af0b7efa86395eb822be009ed6e35ba3153a2a7ee7e442bc088",
+  "collection_digest": "76ff674859f0ff2286993fc21f986156975a42734855181e4fcf35d6959aa60e",
+  "collection_count": 4263,
   "shard_index": 14,
   "shard_count": 24,
-  "selected_count": 182,
+  "selected_count": 184,
   "selected_nodeids": [
     "apps/api/tests/test_access_control.py::test_public_identity_cannot_request_restricted_corpus",
     "apps/api/tests/test_account_administration.py::test_the_same_operator_can_put_it_back",
@@ -65,6 +65,7 @@
     "apps/api/tests/test_egress_material_ceiling.py::test_permits_material_ignores_the_ceiling_when_the_model_is_local",
     "apps/api/tests/test_embedding_migration.py::test_the_stages_never_retire_before_switching",
     "apps/api/tests/test_entitlement_gate.py::test_an_expired_period_stops_paying_without_any_event_arriving",
+    "apps/api/tests/test_entry_point_guards_are_assertions.py::test_importing_a_script_does_not_run_it[verify_mutation_delta.py]",
     "apps/api/tests/test_environment_drift.py::test_an_observation_without_a_timestamp_is_refused",
     "apps/api/tests/test_environment_drift.py::test_the_boundary_second_is_still_admissible",
     "apps/api/tests/test_environment_drift.py::test_the_script_stamps_the_observation_where_it_is_taken",
@@ -122,6 +123,7 @@
     "apps/api/tests/test_metamorphic_invariants.py::test_a_risk_rank_that_is_not_a_strict_integer_is_reported[2.0]",
     "apps/api/tests/test_metamorphic_invariants.py::test_gold_evidence_that_stopped_being_retrievable_is_reported",
     "apps/api/tests/test_military_knowledge.py::test_supersession_cycle_is_a_publication_blocker",
+    "apps/api/tests/test_military_readiness_runner.py::test_a_campaign_whose_regression_passed_is_not_punished_for_it",
     "apps/api/tests/test_model_egress.py::test_local_only_refuses_a_vendor_endpoint",
     "apps/api/tests/test_model_egress.py::test_the_permissive_posture_is_the_shipped_default",
     "apps/api/tests/test_mutation_probe_safety.py::test_signal_numbers_are_real",
@@ -192,9 +194,9 @@
     "apps/api/tests/test_v5_security_kernel.py::test_injection_detector_handles_zero_width_homoglyphs_and_role_markers",
     "apps/api/tests/test_versioning.py::test_competing_branch_cannot_be_approved"
   ],
-  "selected_digest": "fc6b50e7d06334f65680133c1fca8d332a2d2d0ba4201c07dd7a4338b68ae404",
+  "selected_digest": "c0a7793ef64702e3ed9d96fe76de10bcda47adb6c39d1f50708e66492c7ac12d",
   "junit": {
-    "tests": 182,
+    "tests": 184,
     "failures": 0,
     "errors": 0,
     "skipped": 3
@@ -203,9 +205,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 13.902317,
+  "elapsed_seconds": 13.238282,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 39%]\n...........................................................sss.......... [ 79%]\n......................................                                   [100%]",
+  "stdout_tail": "........................................................................ [ 39%]\n.............................................................sss........ [ 78%]\n........................................                                 [100%]",
   "stderr_tail": ""
 }

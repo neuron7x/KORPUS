@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "0be621c1f1dcd1c903401e9ffc1b703d03ae43cf6de4ecfc6eeb748015ec9510",
-  "collection_digest": "7692d3f90d17af47f3c3ef2a67cb237fd5a6615197cd501b332e9a5de3dabffe",
-  "collection_count": 4248,
+  "source_digest": "cd31bb65c5471af0b7efa86395eb822be009ed6e35ba3153a2a7ee7e442bc088",
+  "collection_digest": "76ff674859f0ff2286993fc21f986156975a42734855181e4fcf35d6959aa60e",
+  "collection_count": 4263,
   "shard_index": 22,
   "shard_count": 24,
-  "selected_count": 176,
+  "selected_count": 178,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_being_switched_off_and_not_being_an_admin_are_different_answers",
     "apps/api/tests/test_admission_cannot_be_self_granted.py::test_the_shipped_register_still_withholds",
@@ -62,6 +62,8 @@
     "apps/api/tests/test_entitlement_projection_refusals.py::test_a_string_audience_claim_is_accepted_when_it_matches",
     "apps/api/tests/test_entitlement_projection_refusals.py::test_an_unknown_group_contributes_nothing_rather_than_failing_open",
     "apps/api/tests/test_entitlement_revocation.py::test_revocation_on_disk_denies_the_subject_without_a_restart",
+    "apps/api/tests/test_entry_point_guards_are_assertions.py::test_a_script_run_as_a_script_actually_runs[refresh_owner_packet.py]",
+    "apps/api/tests/test_entry_point_guards_are_assertions.py::test_a_script_run_as_a_script_actually_runs[verify_mutation_delta.py]",
     "apps/api/tests/test_environment_drift.py::test_a_real_observation_still_round_trips",
     "apps/api/tests/test_environment_drift.py::test_script_observes_the_working_tree_and_matches_the_manifest",
     "apps/api/tests/test_evaluation_validity.py::test_100_percent_accuracy_is_not_enough_without_independence",
@@ -186,9 +188,9 @@
     "apps/api/tests/test_v5_security_kernel.py::test_type_verification_rejects_pdf_extension_with_non_pdf_content",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_a_child_that_already_exited_is_not_signalled_again"
   ],
-  "selected_digest": "cc38b00d6739afaccd6916119924e8f6341cab871f4a498b0bcc303832a9cc62",
+  "selected_digest": "d44928890132077edc0ee6de96c101aca910b3f0229e3155d1aabf361370f6bd",
   "junit": {
-    "tests": 176,
+    "tests": 178,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -197,9 +199,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 11.769406,
+  "elapsed_seconds": 11.32484,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 40%]\n...................................................ssss................. [ 81%]\n................................                                         [100%]",
+  "stdout_tail": "........................................................................ [ 40%]\n.....................................................ssss............... [ 80%]\n..................................                                       [100%]",
   "stderr_tail": ""
 }

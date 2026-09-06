@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "0be621c1f1dcd1c903401e9ffc1b703d03ae43cf6de4ecfc6eeb748015ec9510",
-  "collection_digest": "7692d3f90d17af47f3c3ef2a67cb237fd5a6615197cd501b332e9a5de3dabffe",
-  "collection_count": 4248,
+  "source_digest": "cd31bb65c5471af0b7efa86395eb822be009ed6e35ba3153a2a7ee7e442bc088",
+  "collection_digest": "76ff674859f0ff2286993fc21f986156975a42734855181e4fcf35d6959aa60e",
+  "collection_count": 4263,
   "shard_index": 16,
   "shard_count": 24,
-  "selected_count": 178,
+  "selected_count": 180,
   "selected_nodeids": [
     "apps/api/tests/test_admission_cannot_be_self_granted.py::test_a_correctly_attested_ground_is_accepted",
     "apps/api/tests/test_admission_register.py::test_a_ground_cleared_with_a_test_that_does_not_exist_is_refused",
@@ -59,6 +59,7 @@
     "apps/api/tests/test_engineering_readiness.py::test_dimension_evidence_that_is_not_an_object_is_refused[raw1]",
     "apps/api/tests/test_engineering_readiness.py::test_score_is_weighted_and_evidence_capped",
     "apps/api/tests/test_entitlement_gate.py::test_a_past_due_subscription_pays_for_nothing",
+    "apps/api/tests/test_entry_point_guards_are_assertions.py::test_importing_a_script_does_not_run_it[refresh_owner_packet.py]",
     "apps/api/tests/test_environment_drift.py::test_a_fresh_observation_is_admissible",
     "apps/api/tests/test_evaluation_validity.py::test_rare_event_uncertainty_blocks_tiny_zero_failure_campaign",
     "apps/api/tests/test_evidence_bases.py::test_a_base_nobody_declared_but_something_serves_is_a_rejection",
@@ -131,6 +132,7 @@
     "apps/api/tests/test_oidc_assurance_refusals.py::test_a_verifier_that_could_not_verify_anything_is_refused_at_construction[overrides0-JWKS URL must use HTTPS]",
     "apps/api/tests/test_openai_model_adapter.py::test_openai_completed_response_with_error_contributes_nothing",
     "apps/api/tests/test_openai_response_admission.py::test_partitions_that_share_a_query_id_are_rejected",
+    "apps/api/tests/test_owner_packet_refresh.py::test_no_blocking_predicate_says_so_in_words_not_by_silence",
     "apps/api/tests/test_pec_canary_admission_v097.py::test_canary_rejects_revision_mismatch",
     "apps/api/tests/test_pec_external_assurance_v097.py::test_external_assurance_rejects_untrusted_signer",
     "apps/api/tests/test_pec_promotion_bindings.py::test_a_consistent_lineage_produces_no_errors",
@@ -188,9 +190,9 @@
     "apps/api/tests/test_validity_boundaries.py::test_the_search_path_withholds_a_document_before_it_takes_effect",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[60.1]"
   ],
-  "selected_digest": "710bb1aa734f0eddb4dac5097b94af39118f4113530bc4a60d48888451afb0e4",
+  "selected_digest": "aa8c34e8c645e0824c73ed1b8c2dd240821287c0ff8c512b8acedc4ed77bcb86",
   "junit": {
-    "tests": 178,
+    "tests": 180,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -199,9 +201,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 17.907477,
+  "elapsed_seconds": 15.687899,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 40%]\n.............................................................ssss....... [ 80%]\n..................................                                       [100%]",
+  "stdout_tail": "........................................................................ [ 40%]\n...............................................................ssss..... [ 80%]\n....................................                                     [100%]",
   "stderr_tail": ""
 }

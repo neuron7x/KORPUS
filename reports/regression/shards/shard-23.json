@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "0be621c1f1dcd1c903401e9ffc1b703d03ae43cf6de4ecfc6eeb748015ec9510",
-  "collection_digest": "7692d3f90d17af47f3c3ef2a67cb237fd5a6615197cd501b332e9a5de3dabffe",
-  "collection_count": 4248,
+  "source_digest": "cd31bb65c5471af0b7efa86395eb822be009ed6e35ba3153a2a7ee7e442bc088",
+  "collection_digest": "76ff674859f0ff2286993fc21f986156975a42734855181e4fcf35d6959aa60e",
+  "collection_count": 4263,
   "shard_index": 23,
   "shard_count": 24,
-  "selected_count": 173,
+  "selected_count": 174,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_the_change_reaches_the_audit_chain_with_its_reason",
     "apps/api/tests/test_account_domain.py::test_claims_without_a_subject_are_refused",
@@ -95,6 +95,7 @@
     "apps/api/tests/test_gold_annotation.py::test_independent_agreeing_pairs_pass_without_adjudication",
     "apps/api/tests/test_gold_annotation.py::test_split_disagreement_is_rejected_before_pairing",
     "apps/api/tests/test_handoff_liveness_probe.py::test_a_poisoned_or_failed_report_is_never_rebound[report3]",
+    "apps/api/tests/test_health.py::test_matching_revisions_report_the_schema_as_current",
     "apps/api/tests/test_inference_budget.py::test_new_evidence_allows_stable_decision_to_continue",
     "apps/api/tests/test_infrastructure_hardening.py::test_ready_hides_internal_snapshot_without_metrics_token_on_public_deployment",
     "apps/api/tests/test_ingestion_queue_ownership.py::test_a_lease_that_cannot_be_honoured_is_refused[worker-1-0]",
@@ -183,9 +184,9 @@
     "apps/api/tests/test_web_score_presentation.py::test_the_web_validator_enforces_the_disclaimer",
     "apps/api/tests/test_worker_service.py::test_worker_service_health_is_bound_to_worker_liveness"
   ],
-  "selected_digest": "e1d274bd19dabd2b669b95b53458d29d3cad2a96fa19ef83d5d5ab25908c7e02",
+  "selected_digest": "c169e74548cee47e2f156c981f65f9875cb5270b6837a94266aabb2a70edde7a",
   "junit": {
-    "tests": 173,
+    "tests": 174,
     "failures": 0,
     "errors": 0,
     "skipped": 2
@@ -194,9 +195,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 10.923666,
+  "elapsed_seconds": 10.24031,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 41%]\n.......................................................ss............... [ 83%]\n.............................                                            [100%]",
+  "stdout_tail": "........................................................................ [ 41%]\n........................................................ss.............. [ 82%]\n..............................                                           [100%]",
   "stderr_tail": ""
 }

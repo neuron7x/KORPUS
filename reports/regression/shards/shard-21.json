@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "0be621c1f1dcd1c903401e9ffc1b703d03ae43cf6de4ecfc6eeb748015ec9510",
-  "collection_digest": "7692d3f90d17af47f3c3ef2a67cb237fd5a6615197cd501b332e9a5de3dabffe",
-  "collection_count": 4248,
+  "source_digest": "cd31bb65c5471af0b7efa86395eb822be009ed6e35ba3153a2a7ee7e442bc088",
+  "collection_digest": "76ff674859f0ff2286993fc21f986156975a42734855181e4fcf35d6959aa60e",
+  "collection_count": 4263,
   "shard_index": 21,
   "shard_count": 24,
-  "selected_count": 163,
+  "selected_count": 164,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_an_operator_can_disable_an_account_without_a_database_shell",
     "apps/api/tests/test_account_domain.py::test_an_account_record_carries_no_authorization_field",
@@ -116,6 +116,7 @@
     "apps/api/tests/test_operational_competency.py::test_unknown_objective_label_cannot_create_coverage",
     "apps/api/tests/test_operational_competency.py::test_unknown_role_fails_closed",
     "apps/api/tests/test_owner_packet_refresh.py::test_a_packet_whose_measured_number_drifted_is_refused",
+    "apps/api/tests/test_owner_packet_refresh.py::test_the_candidate_counter_has_a_producer",
     "apps/api/tests/test_package_build_identity.py::test_stale_source_manifest_binding_is_rejected",
     "apps/api/tests/test_pec_cli_paths.py::test_controller_export_refuses_cross_run_training_binding",
     "apps/api/tests/test_pec_evidence_features.py::test_concentration_of_a_zero_mass_is_zero_not_an_error[scores2]",
@@ -173,9 +174,9 @@
     "apps/api/tests/test_verifier_resistance.py::test_a_report_that_claims_a_full_kill_and_lists_a_survivor_is_refused",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_health_reports_the_child_exit_code_once_the_worker_dies"
   ],
-  "selected_digest": "8d8aa9da31cfb134994112f1919a5710c17bae9f9d6ffe6338df8163d36afe0c",
+  "selected_digest": "71bcf46745385afb87a9060cf6533d1985292497525326a135c7db5849ab4a18",
   "junit": {
-    "tests": 163,
+    "tests": 164,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -184,9 +185,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 7.98812,
+  "elapsed_seconds": 7.652546,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 44%]\n.............................................s.......................... [ 88%]\n...................                                                      [100%]",
+  "stdout_tail": "........................................................................ [ 43%]\n..............................................s......................... [ 87%]\n....................                                                     [100%]",
   "stderr_tail": ""
 }

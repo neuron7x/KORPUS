@@ -2,14 +2,14 @@
   "schema": "korpus.coverage-gap-plan.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "0be621c1f1dcd1c903401e9ffc1b703d03ae43cf6de4ecfc6eeb748015ec9510",
-  "statement_rate": 0.97076231,
-  "branch_rate": 0.95354186,
+  "source_tree_sha256": "cd31bb65c5471af0b7efa86395eb822be009ed6e35ba3153a2a7ee7e442bc088",
+  "statement_rate": 0.97082322,
+  "branch_rate": 0.95377185,
   "minimum_statement_rate": 0.95,
   "minimum_branch_rate": 0.9,
-  "remaining_missing_branches": 202,
+  "remaining_missing_branches": 201,
   "missing_branch_ceiling": 220,
-  "missing_branch_regression": -18,
+  "missing_branch_regression": -19,
   "priority_queue": [
     {
       "path": "infrastructure/repository.py",
@@ -338,13 +338,6 @@
       "missing_branches": 3,
       "branch_rate": 0.25,
       "risk_weight": 1.0,
-      "priority": 3.0
-    },
-    {
-      "path": "api/routes_health.py",
-      "missing_branches": 1,
-      "branch_rate": 0.916667,
-      "risk_weight": 3.0,
       "priority": 3.0
     },
     {
