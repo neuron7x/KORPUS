@@ -3250,7 +3250,7 @@
       "reason": "03.09.2026: чотири поля дайджестів винесено у функцію `source_identity()`. Перевірка «ярлик = та лінійка, що дала число» читала ГОТОВИЙ звіт, а звіт тут не збирається без postgres-дрилу — тож вона ПРОПУСКАЛАСЬ, і розбіжність ярликів жила під захистом pytest.skip. Функція викликається без жодного артефакта, отже перевірка бігає завжди; мутанти M679/M680 killed. +12 рядків — сама функція з докстрінгом."
     },
     "scripts/assemble_production_assurance.py": {
-      "lines": 109,
+      "lines": 118,
       "max_complexity": 5,
       "max_function_args": 1,
       "max_function_lines": 57,
@@ -3739,13 +3739,13 @@
       "reason": "v0.5.0: deterministic risk-weighted coverage ratchet with absolute uncovered-edge ceiling"
     },
     "scripts/current_truth_admission.py": {
-      "lines": 175,
+      "lines": 190,
       "max_complexity": 11,
       "max_function_args": 4,
-      "max_function_lines": 26,
+      "max_function_lines": 33,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "2026-09-06: VD-6/VD-7 із незалежного вироку. clean_room_checks дав споживача артефакту репродукції з remote (доти його не читало НІЩО), а звіт предикатів тепер несе означення власного числа: software_ready = is_file(), не готовність."
+      "reason": "2026-09-06: незалежний верифікатор довів, що clean_room_checks стеріг ТРИ самооголошені скаляри — тризначний JSON без жодного сліду відтворення проходив усі перевірки. Додано чотири, що читають сам прогін: run_counted, run_clean, names_candidate, names_dependency_origin. Отруту верифікатора переміряно — тепер ловиться поіменно."
     },
     "scripts/current_truth_aliases.py": {
       "lines": 30,

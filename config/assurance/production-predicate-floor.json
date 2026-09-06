@@ -1,5 +1,13 @@
 {
   "schema": "korpus.production-predicate-floor.v1",
-  "production_satisfied": 0,
-  "note": "Ratchet on external proof. Two predicates (live_postgres_rls, exact_python_3_12_13_environment) were closed on 2026-08-29 against source digest 24ead5ea and unbound by the next commit; the script exited 0 throughout because it only checked software readiness. The floor stays 0 until a gate is re-run against a tree that then stops changing, which is what closing one actually requires."
+  "production_satisfied": 7,
+  "note": "Ratchet on external proof. Підлогу піднято 0 -> 7 06.09.2026 після того, як незалежний верифікатор довів РЕГРЕСОМ, що вона інертна: він поклав отруту по даних (campaign_executed: false у var/production/redteam_internal-gate.json), закриттів стало 6 замість 7 — і УСІ гейти лану лишились зелені, бо порівняння `7 < 0` хибне завжди. Дерево з шістьма закриттями було невідрізненне від кандидата із сімома. Механізм при цьому мутаційно перевірений (M342 KILLED), але його тест підставляє синтетичні значення через monkeypatch, тож ФАКТИЧНУ підлогу не читав ніхто: механізм доведено, стан не виміряно. Попередня редакція трималася на нулі з 2026-08-29, бо предикати тоді відв'язувались наступним комітом; тепер сім із них прив'язані до aaf8e9fc і перезняті на цьому дереві.",
+  "raised": [
+    {
+      "from": 0,
+      "to": 7,
+      "on": "2026-09-06",
+      "why": "інертний сторож: доведено регресом незалежного верифікатора"
+    }
+  ]
 }

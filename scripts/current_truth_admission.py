@@ -125,11 +125,26 @@ def clean_room_checks(root: Path, digest: str) -> dict[str, bool]:
     if not path.is_file():
         return {f"{CLEAN_ROOM}.present": False}
     payload = load_object(path)
+    pytest_block = payload.get("pytest")
+    counted = isinstance(pytest_block, dict) and isinstance(pytest_block.get("tests"), int)
     return {
         f"{CLEAN_ROOM}.present": True,
         f"{CLEAN_ROOM}.status_pass": payload.get("status") == "PASS",
         f"{CLEAN_ROOM}.class_is_remote": payload.get("class") == "REMOTE_SOURCE_FRESH_DEPENDENCIES",
         f"{CLEAN_ROOM}.source_bound": bool(digest) and payload.get("source_tree_sha256") == digest,
+        # Три перевірки вище стережуть САМООГОЛОШЕНІ скаляри: тризначний JSON
+        # {status, class, source_tree_sha256} без жодного сліду відтворення проходив їх
+        # усі. Довів незалежний верифікатор 06.09.2026 — гейт був живий (усі чотири
+        # негативні контролі червоніли), але стеріг не той предмет.
+        # Нижче — сліди самого ПРОГОНУ: скільки тестів виконано, скільки впало, який
+        # коміт відтворювався і чи названо походження залежностей. Артефакт, що каже
+        # PASS без жодного з них, більше не є доказом репродукції.
+        f"{CLEAN_ROOM}.run_counted": counted and pytest_block["tests"] > 0,
+        f"{CLEAN_ROOM}.run_clean": counted
+        and pytest_block.get("failures") == 0
+        and pytest_block.get("errors") == 0,
+        f"{CLEAN_ROOM}.names_candidate": bool(payload.get("candidate_sha")),
+        f"{CLEAN_ROOM}.names_dependency_origin": bool(payload.get("dependency_freeze_sha256")),
     }
 
 

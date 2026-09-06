@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1860,
-  "root_sha256": "86505362cc20f1a01941c8124abdb7f07bcd87b6ae75b502f7f9aa34d7bbd42d",
+  "root_sha256": "c23e3b646a7a4d4380a621dc8e441373e446c4974b088def5ac543b18a1be2e4",
   "files": [
     {
       "path": ".dockerignore",
@@ -5695,8 +5695,8 @@
     },
     {
       "path": "config/assurance/production-predicate-floor.json",
-      "bytes": 484,
-      "sha256": "5516aa32234b9754fe069cb65a59c7b348601982003fea710ed5c4ef4c352de5",
+      "bytes": 1576,
+      "sha256": "5ac170f3a6d0b838cd9320e40d7ddd9552e03560a388ffc79212d748106242b4",
       "mode": "0644"
     },
     {
@@ -7459,8 +7459,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 674278,
-      "sha256": "016eacd6a65638c3f6decb1ad3896622446e05919100f1fdeb19d1be1e90331b",
+      "bytes": 674440,
+      "sha256": "c7b72a055524f63db1c56fc9f3df36da7c70f65408bdeea98a250a1bfa4358e6",
       "mode": "0644"
     },
     {
@@ -9205,8 +9205,8 @@
     },
     {
       "path": "scripts/assemble_production_assurance.py",
-      "bytes": 4205,
-      "sha256": "7cfd771a22a6217219cf1f9dd70409112fd959f44afa59de4db9dbdd3a5fd9db",
+      "bytes": 5144,
+      "sha256": "bcf5c2b72d62a9cf270947f04fadb7738e3e8940600f696cbbb453e3ac82b820",
       "mode": "0755"
     },
     {
@@ -9553,8 +9553,8 @@
     },
     {
       "path": "scripts/current_truth_admission.py",
-      "bytes": 10898,
-      "sha256": "990911bb6ca46270c01949f5bb0708c0241ef62b78cc3c57285f18ec0f3db67c",
+      "bytes": 12325,
+      "sha256": "0e33085d7be8fd13b6f485e46b34f7531557ca478f03e8b37aebba1b325472c5",
       "mode": "0644"
     },
     {
