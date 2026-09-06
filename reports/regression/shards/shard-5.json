@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "7a63744e75ff71d4ed60fcdc479482b96b6681750f0f0a576a57dae2cbc334b4",
-  "collection_digest": "6d5dc309168d923d93d6013e48480db775b12a0be269a72147c08f034021fe44",
-  "collection_count": 4264,
+  "source_digest": "db3d41d509ed61d8cd1e2701b4c541be4934f8a303d445eb0ccce78d91812692",
+  "collection_digest": "7d801cb08461b9f0a7124190cc308a094799ece9d654a9228bed4c097a6ed784",
+  "collection_count": 4273,
   "shard_index": 5,
   "shard_count": 24,
-  "selected_count": 153,
+  "selected_count": 154,
   "selected_nodeids": [
     "apps/api/tests/test_account_domain.py::test_concurrent_first_logins_converge_on_one_account",
     "apps/api/tests/test_answer_composition.py::test_a_dropped_negation_inverts_the_norm_and_the_vocabulary_rule_cannot_see_it",
@@ -132,6 +132,7 @@
     "apps/api/tests/test_public_surface.py::test_traversal_is_a_true_transitive_closure_over_every_small_graph",
     "apps/api/tests/test_query_planner_boundary.py::test_a_defect_in_an_adapter_is_not_absorbed",
     "apps/api/tests/test_readiness_evidence_builder.py::test_historical_migration_carry_requires_baseline_binding",
+    "apps/api/tests/test_readiness_evidence_builder.py::test_targeted_ok_stays_true_only_on_a_complete_run",
     "apps/api/tests/test_regression_carry_forward.py::test_diff_records_classifies_added_removed_and_modified_without_overlap",
     "apps/api/tests/test_regression_receipt_identity_v097.py::test_regression_receipt_identity_accepts_exact_freeze",
     "apps/api/tests/test_regression_shard_contract.py::test_bounded_runner_sigkills_descendant_that_ignores_sigterm",
@@ -163,9 +164,9 @@
     "apps/api/tests/test_url_policy.py::test_https_policy_refuses_ambiguous_or_credential_bearing_urls[https://example.com\\\\@evil.example/]",
     "apps/api/tests/test_v5_security_kernel.py::test_oidc_assurance_requires_acr_mfa_and_recent_authentication"
   ],
-  "selected_digest": "2173a108071cacc784de66e98932e45acbc234a2c2448ad0132a7c49e3b22050",
+  "selected_digest": "7ea3e8d86cfb463f462e4c53cf20682621aea46f8f83d184da9215105f137653",
   "junit": {
-    "tests": 153,
+    "tests": 154,
     "failures": 0,
     "errors": 0,
     "skipped": 3
@@ -174,9 +175,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 11.888251,
+  "elapsed_seconds": 12.183565,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 47%]\n.......................................sss.............................. [ 94%]\n.........                                                                [100%]",
+  "stdout_tail": "........................................................................ [ 46%]\n.......................................sss.............................. [ 93%]\n..........                                                               [100%]",
   "stderr_tail": ""
 }

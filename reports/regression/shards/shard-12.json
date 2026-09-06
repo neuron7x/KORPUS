@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "7a63744e75ff71d4ed60fcdc479482b96b6681750f0f0a576a57dae2cbc334b4",
-  "collection_digest": "6d5dc309168d923d93d6013e48480db775b12a0be269a72147c08f034021fe44",
-  "collection_count": 4264,
+  "source_digest": "db3d41d509ed61d8cd1e2701b4c541be4934f8a303d445eb0ccce78d91812692",
+  "collection_digest": "7d801cb08461b9f0a7124190cc308a094799ece9d654a9228bed4c097a6ed784",
+  "collection_count": 4273,
   "shard_index": 12,
   "shard_count": 24,
-  "selected_count": 171,
+  "selected_count": 172,
   "selected_nodeids": [
     "apps/api/tests/test_adaptation_cli_v060.py::test_cli_is_deterministic_and_emits_governed_proposal",
     "apps/api/tests/test_admission_cannot_be_self_granted.py::test_clearing_every_ground_with_forged_attestations_still_withholds",
@@ -157,6 +157,7 @@
     "apps/api/tests/test_repository_integrity_and_contention.py::test_a_sound_database_is_healthy",
     "apps/api/tests/test_repository_seams.py::test_the_query_builders_never_open_a_connection",
     "apps/api/tests/test_repository_seams.py::test_the_repository_delegates_rather_than_keeping_a_second_copy",
+    "apps/api/tests/test_requirement_registry.py::test_a_committed_cache_file_does_not_look_like_a_missed_file",
     "apps/api/tests/test_requirement_registry.py::test_every_required_service_carries_the_full_hardening_set",
     "apps/api/tests/test_retrieval_budget_semantics.py::test_an_overrun_with_nothing_found_is_still_refused",
     "apps/api/tests/test_risk_rules.py::test_every_rule_matches_its_own_examples[operational.permission_question:1]",
@@ -181,9 +182,9 @@
     "apps/api/tests/test_validity_boundaries.py::test_a_version_still_governs_on_the_last_day_it_names",
     "apps/api/tests/test_verifier_resistance.py::test_an_empty_report_is_not_proof"
   ],
-  "selected_digest": "3d102ce8bbeaff73aac2aa3bd948953b6d99cdd8b8eafc6329d0d8e0c9bf4669",
+  "selected_digest": "7843d023c8886f856a5df94e3111ae2768495748a6db99461555a65fca5d86ff",
   "junit": {
-    "tests": 171,
+    "tests": 172,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -192,9 +193,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 11.05947,
+  "elapsed_seconds": 11.220058,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 42%]\n.........................................................s.............. [ 84%]\n...........................                                              [100%]\n=============================== warnings summary ===============================\ntests/test_package_zip_safety.py::test_duplicate_name_is_rejected\n  /usr/lib/python3.12/zipfile/__init__.py:1620: UserWarning: Duplicate name: 'same.txt'\n    return self._open_to_write(zinfo, force_zip64=force_zip64)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+  "stdout_tail": "........................................................................ [ 41%]\n.........................................................s.............. [ 83%]\n............................                                             [100%]\n=============================== warnings summary ===============================\ntests/test_package_zip_safety.py::test_duplicate_name_is_rejected\n  /usr/lib/python3.12/zipfile/__init__.py:1620: UserWarning: Duplicate name: 'same.txt'\n    return self._open_to_write(zinfo, force_zip64=force_zip64)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
   "stderr_tail": ""
 }

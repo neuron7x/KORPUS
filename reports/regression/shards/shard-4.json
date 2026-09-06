@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "7a63744e75ff71d4ed60fcdc479482b96b6681750f0f0a576a57dae2cbc334b4",
-  "collection_digest": "6d5dc309168d923d93d6013e48480db775b12a0be269a72147c08f034021fe44",
-  "collection_count": 4264,
+  "source_digest": "db3d41d509ed61d8cd1e2701b4c541be4934f8a303d445eb0ccce78d91812692",
+  "collection_digest": "7d801cb08461b9f0a7124190cc308a094799ece9d654a9228bed4c097a6ed784",
+  "collection_count": 4273,
   "shard_index": 4,
   "shard_count": 24,
-  "selected_count": 180,
+  "selected_count": 182,
   "selected_nodeids": [
     "apps/api/tests/test_access_control.py::test_access_tier_is_enforced_in_repository_even_for_public_classification",
     "apps/api/tests/test_account_administration.py::test_an_administrator_may_still_re_enable_themselves",
@@ -163,6 +163,8 @@
     "apps/api/tests/test_release_verify_runner.py::test_make_steps_bind_the_current_interpreter_without_splitting_spaces",
     "apps/api/tests/test_repository_access_refusals.py::test_a_similarity_threshold_outside_the_supported_range_is_refused[0.0]",
     "apps/api/tests/test_repository_integrity_and_contention.py::test_contention_consumes_the_retry_budget_and_then_reports_it[deadlock detected]",
+    "apps/api/tests/test_requirement_registry.py::test_everything_the_walk_skips_is_also_outside_the_expectation",
+    "apps/api/tests/test_requirement_registry.py::test_the_floor_reaches_a_blinding_at_depth_not_only_a_total_one",
     "apps/api/tests/test_rescission_and_clock.py::test_withdrawal_is_dated_and_the_day_before_still_answers",
     "apps/api/tests/test_research_parameter_admission.py::test_an_unusable_information_gain_input_is_unknown_rather_than_zero",
     "apps/api/tests/test_retention_planning.py::test_a_document_past_its_period_in_a_corpus_that_permits_deletion_is_eligible",
@@ -190,9 +192,9 @@
     "apps/api/tests/test_validity_boundaries.py::test_the_candidate_query_alone_excludes_an_invalid_version[effective_until-asked_on0]",
     "apps/api/tests/test_validity_boundaries.py::test_the_closed_interval_holds_at_both_ends[as_of4-False]"
   ],
-  "selected_digest": "292a4f79889cd1820fe2e18a7ca9e22285ab11c47f082b0cce0bb9eb1016c167",
+  "selected_digest": "79dc569f9d780ef54f2a968e46faca2d3f7ac55ecb5a16933fab982eecfb7a57",
   "junit": {
-    "tests": 180,
+    "tests": 182,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -201,9 +203,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 11.483419,
+  "elapsed_seconds": 13.491953,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 40%]\n.............................................................s.......... [ 80%]\n....................................                                     [100%]",
+  "stdout_tail": "........................................................................ [ 39%]\n.............................................................s.......... [ 79%]\n......................................                                   [100%]",
   "stderr_tail": ""
 }

@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "883d286cf736056cd0e97c11f3aac6d5035e4f2865f4987f3736c7e77b19dc75",
-  "collection_digest": "6d5dc309168d923d93d6013e48480db775b12a0be269a72147c08f034021fe44",
-  "collection_count": 4264,
+  "source_digest": "db3d41d509ed61d8cd1e2701b4c541be4934f8a303d445eb0ccce78d91812692",
+  "collection_digest": "7d801cb08461b9f0a7124190cc308a094799ece9d654a9228bed4c097a6ed784",
+  "collection_count": 4273,
   "shard_index": 23,
   "shard_count": 24,
-  "selected_count": 174,
+  "selected_count": 175,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_the_change_reaches_the_audit_chain_with_its_reason",
     "apps/api/tests/test_account_domain.py::test_claims_without_a_subject_are_refused",
@@ -155,6 +155,7 @@
     "apps/api/tests/test_repository_integrity_and_contention.py::test_an_audit_head_that_moved_underneath_the_write_is_refused",
     "apps/api/tests/test_repository_register.py::test_a_secret_git_does_track_is_still_reported",
     "apps/api/tests/test_repository_seams.py::test_the_projection_carries_every_access_predicate_it_is_supposed_to",
+    "apps/api/tests/test_requirement_registry.py::test_a_blind_walk_is_not_a_clean_tree",
     "apps/api/tests/test_requirement_registry.py::test_a_failure_names_one_container_of_one_workload",
     "apps/api/tests/test_resilience.py::test_circuit_breaker_opens_then_half_open_probe_recovers",
     "apps/api/tests/test_retrieval_properties.py::test_tokenization_is_unicode_and_case_normalization_invariant",
@@ -184,9 +185,9 @@
     "apps/api/tests/test_web_score_presentation.py::test_the_web_validator_enforces_the_disclaimer",
     "apps/api/tests/test_worker_service.py::test_worker_service_health_is_bound_to_worker_liveness"
   ],
-  "selected_digest": "c169e74548cee47e2f156c981f65f9875cb5270b6837a94266aabb2a70edde7a",
+  "selected_digest": "4c26402350c889b88b8c85f5cb2af878b888ff3f63f4340b53b46974a58e8a0d",
   "junit": {
-    "tests": 174,
+    "tests": 175,
     "failures": 0,
     "errors": 0,
     "skipped": 2
@@ -195,9 +196,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 10.113851,
+  "elapsed_seconds": 11.377681,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 41%]\n........................................................ss.............. [ 82%]\n..............................                                           [100%]",
+  "stdout_tail": "........................................................................ [ 41%]\n........................................................ss.............. [ 82%]\n...............................                                          [100%]",
   "stderr_tail": ""
 }
