@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1865,
-  "root_sha256": "17408f9ca9109bb3c7f1270324a9fa06b8e4adc60a614ae0e2eb42342588573f",
+  "root_sha256": "a8f43387b5417512834efc4c09b256b1e63cb51fb9496c86a3b0ac722c9427e7",
   "files": [
     {
       "path": ".dockerignore",
@@ -7489,8 +7489,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 678548,
-      "sha256": "fe1e0a4414678788b0db4039093b363ee886db237c2a907f98c69c2c5cd3a849",
+      "bytes": 679214,
+      "sha256": "a2bd9337e3bb5e2408fb0a88169632464b0b1cc3ac8c85dcdd91823cf6cc5a7c",
       "mode": "0644"
     },
     {
@@ -10549,8 +10549,8 @@
     },
     {
       "path": "scripts/run_external_gate_campaign.py",
-      "bytes": 9339,
-      "sha256": "89bebb90187312e8b1792d860cbbb64cf1b18b16d7ed5918b8c458e2a9358f75",
+      "bytes": 11908,
+      "sha256": "19ba5959a71e79e6d948e0e08fe02168396af1798c829c5a4fc06dad41708f0a",
       "mode": "0755"
     },
     {

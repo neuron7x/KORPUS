@@ -44,7 +44,6 @@ GATE_FILES = {**DEFAULT_GATES, "final_release": "final_release-gate.json"}
 #: в ОБРАЗІ: `--profile runtime` на робочій машині зіставляв би встановлені пакети
 #: розробницького venv із рантайм-локом і був би доказом не про те середовище.
 RUNNERS = {
-    "redteam": ["scripts/validate_external_redteam_evidence.py"],
     "supply_chain": ["scripts/run_supply_chain_gate.py"],
     "postgres_security": ["scripts/run_postgres_security_gate.py"],
     "tevv": ["scripts/run_tevv_production_gate.py"],
@@ -54,6 +53,12 @@ RUNNERS = {
 #: Гейти, чий доказ не добувається викликом інтерпретатора в цьому дереві.
 MAKE_RUNNERS = {
     "exact_environment": "production-exact-environment-image",
+    # `redteam` тут, а не в RUNNERS: predicate читає `redteam_internal-gate.json`, а
+    # `validate_external_redteam_evidence.py` пише `redteam-gate.json`. Кампанія
+    # ЗАПУСКАЛА виробника, чий файл споживач не читає, і звітувала про перезняття
+    # гейта, який не перезнімався жодного разу. Виміряно 06.09.2026 — саме тому
+    # `redteam` лишався прив'язаним до попереднього дайджесту після кожної кампанії.
+    "redteam": "production-redteam-internal",
 }
 
 
@@ -65,7 +70,23 @@ def _object(path: Path) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
-def _execute(root: Path) -> dict[str, dict[str, Any]]:
+def _consumed_binding(root: Path, gate: str, digest: str) -> bool:
+    """Чи файл, який СПОЖИВАЄ предикат, описує ЦЕ дерево після запуску виробника.
+
+    Порівняння вмісту до/після тут не годиться: детермінований гейт на незмінному
+    дереві пише ті самі байти, і «не змінився» читалося б як «не запускався».
+    Питання інше — чи виробник лишив по собі доказ, прив'язаний до цього дайджесту.
+    Виміряно 06.09.2026: кампанія запускала для `redteam` виробника, який пише в
+    ІНШИЙ файл, тож споживаний лишався прив'язаним до попереднього дерева після
+    кожного «перезняття», і жодне поле про це не казало.
+    """
+    path = root / "var/production" / GATE_FILES.get(gate, "")
+    if not path.is_file():
+        return False
+    return _object(path).get("source_tree_sha256") == digest
+
+
+def _execute(root: Path, digest: str) -> dict[str, dict[str, Any]]:
     executions: dict[str, dict[str, Any]] = {}
     for gate, argv in RUNNERS.items():
         completed = subprocess.run(
@@ -81,6 +102,7 @@ def _execute(root: Path) -> dict[str, dict[str, Any]]:
             "exit_code": completed.returncode,
             "stdout_tail": completed.stdout[-2000:],
             "stderr_tail": completed.stderr[-2000:],
+            "consumed_file_bound_after": _consumed_binding(root, gate, digest),
         }
     for gate, target in MAKE_RUNNERS.items():
         completed = subprocess.run(
@@ -97,6 +119,7 @@ def _execute(root: Path) -> dict[str, dict[str, Any]]:
             "stdout_tail": completed.stdout[-2000:],
             "stderr_tail": completed.stderr[-2000:],
             "runner": f"make {target}",
+            "consumed_file_bound_after": _consumed_binding(root, gate, digest),
         }
     return executions
 
@@ -165,7 +188,7 @@ def _cause(
 
 def build(root: Path, *, execute: bool) -> dict[str, Any]:
     root = root.resolve()
-    executions = _execute(root) if execute else {}
+    executions = _execute(root, compute_source_digest(root)) if execute else {}
     gate_dir = root / "var/production"
     gates = {name: _object(gate_dir / filename) for name, filename in GATE_FILES.items()}
     profile = load_hard_predicate_profile(root / PROFILE)
@@ -196,6 +219,14 @@ def build(root: Path, *, execute: bool) -> dict[str, Any]:
         "release": release,
         "source_tree_sha256": source_digest,
         "status": "PASS" if completed == total else "FAIL_CLOSED",
+        # Виробник, який відпрацював і НЕ лишив доказу, прив'язаного до цього дерева,
+        # називається окремо: доти «кампанія відпрацювала» і «гейт перезнято» були одним
+        # твердженням, і хибним воно було мовчки.
+        "runners_that_left_no_bound_evidence": sorted(
+            gate
+            for gate, record in executions.items()
+            if not record.get("consumed_file_bound_after")
+        ),
         "software_gates": {"passed": software_pass, "total": len(states)},
         "external_gates": {"passed": external_pass, "total": len(states)},
         "combined": {
