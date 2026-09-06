@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1860,
-  "root_sha256": "8d831f87f8ebd75751f59edab08a2669fc8fd57029b59a3804fe909c19066584",
+  "root_sha256": "bf47da3a41f2ed71aa600ea5ac7175f9965f1779d6196651babcdb43949d296b",
   "files": [
     {
       "path": ".dockerignore",
@@ -3451,8 +3451,8 @@
     },
     {
       "path": "apps/api/tests/test_exception_handling_discipline.py",
-      "bytes": 5411,
-      "sha256": "ec59c30fcbb86371f3668cea37fee668be60e69587b4e13c4ee0d0b51b4e128d",
+      "bytes": 8096,
+      "sha256": "e2b57e1e5f5651fbc88ccbf8e761669b176e8f0770e05c36f30367c02b756c20",
       "mode": "0644"
     },
     {
