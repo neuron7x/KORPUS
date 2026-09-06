@@ -3739,13 +3739,13 @@
       "reason": "v0.5.0: deterministic risk-weighted coverage ratchet with absolute uncovered-edge ceiling"
     },
     "scripts/current_truth_admission.py": {
-      "lines": 149,
+      "lines": 175,
       "max_complexity": 11,
       "max_function_args": 4,
       "max_function_lines": 26,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "WO-01, другий кінець ланцюга: `bound is None or bound == digest` зараховував артефакт без прив'язки як поточний, а `all([])` робив нуль підтриманих претензій достатнім. Додано читання конверта `provenance`, окремий стан для двох прив'язок, що розійшлись, і предикат has_supported_claims. Зростання часткове компенсоване: `claim_admission_checks` читав журнал ДВІЧІ (два читання одного файла можуть дати різний вміст), тепер один раз, і його складність упала з 14 до нижчої за `_current_json`. | 2026-09-05: реєстр блокерів тепер записує ДАЙДЖЕСТ ЗМІСТУ свого входу, а допуск його звіряє (`evidence_sha256` / `evidence_inputs_current`). Стеля піднята під ПОВЕДІНКУ, не під прозу: докстрінги скорочено перед підняттям, і залишок — функція `_evidence_digest`, перевірка `_evidence_inputs_current` і три рядки поля в реєстрі. Доведено контрприкладом: до правки main приймав підміну ЗМІСТУ входу за тим самим шляхом при незмінній прив'язці до дерева (P1 = PASS), після — FAIL. Мутація зняла ще одну ваду: зняття умови `or not recorded` не вбивало жодного тесту, бо контроль прибирав ПОЛЕ, а не лишав порожній словник. | АУДИТ СТЕЛІ 2026-09-05 (ACTO-02 §10): контрфактичне питання поставлено — чи вміщується потрібна поведінка в стару стелю чистим рефактором. Два рефактори випробувано. ПРИЙНЯТО: виробник і перевіряльник тепер ділять ОДНЕ визначення відношення (`release_truth.evidence_digest`) — два визначення розійшлися б мовчки, тобто це той самий клас, який ця перевірка закриває рівнем вище; на розмір це не вплинуло. ВІДХИЛЕНО: винесення НЕспорідненого коду (перевірок пакета власника) заради місця — це підгонка метрики, а не вміщення потрібної поведінки. Залишковий приріст — сама поведінка: функція дайджесту, перевірка входів і поле в реєстрі; прозу скорочено ПЕРЕД підняттям. Класифікація: LEGITIMATE_CAPACITY_CHANGE."
+      "reason": "2026-09-06: VD-6/VD-7 із незалежного вироку. clean_room_checks дав споживача артефакту репродукції з remote (доти його не читало НІЩО), а звіт предикатів тепер несе означення власного числа: software_ready = is_file(), не готовність."
     },
     "scripts/current_truth_aliases.py": {
       "lines": 30,
@@ -5654,13 +5654,13 @@
       "reason": "новий гейт 03.09.2026: дзеркало лану читає `.gitlab-ci.yml` як YAML і вимагає для кожної команди `validate`/`check` тієї самої команди в CI; 15 негативних контролів; початковий точний вимір і є стелею"
     },
     "scripts/verify_current_truth.py": {
-      "lines": 64,
+      "lines": 68,
       "max_complexity": 4,
       "max_function_args": 1,
-      "max_function_lines": 20,
+      "max_function_lines": 23,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "v0.8.0 stale-current fail-closed verifier"
+      "reason": "2026-09-06: VD-6/VD-7 із незалежного вироку. clean_room_checks дав споживача артефакту репродукції з remote (доти його не читало НІЩО), а звіт предикатів тепер несе означення власного числа: software_ready = is_file(), не готовність."
     },
     "scripts/verify_dependency_locks.py": {
       "lines": 285,
@@ -5796,13 +5796,13 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/verify_production_hard_predicates.py": {
-      "lines": 130,
+      "lines": 139,
       "max_complexity": 6,
       "max_function_args": 1,
-      "max_function_lines": 30,
+      "max_function_lines": 40,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "v0.9.7: verifier binds every gate to the current source and release; measured implementation is the ratchet ceiling"
+      "reason": "2026-09-06: VD-6/VD-7 із незалежного вироку. clean_room_checks дав споживача артефакту репродукції з remote (доти його не читало НІЩО), а звіт предикатів тепер несе означення власного числа: software_ready = is_file(), не готовність."
     },
     "scripts/verify_public_surface.py": {
       "lines": 531,

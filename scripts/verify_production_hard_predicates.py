@@ -58,6 +58,16 @@ def build() -> dict[str, Any]:
         "profile": str(PROFILE.relative_to(ROOT)),
         "predicates_total": len(states),
         "software_ready": software_ready,
+        # ЩО САМЕ МІРЯЄ ЦЕ ЧИСЛО. `software_ready = not missing`, а `missing` — оголошені
+        # `software_artifacts`, які не проходять `is_file()`. Зміст файла, його версія і
+        # здатність виконатись НЕ читаються. Незалежний верифікатор 06.09.2026 назвав це
+        # прямо: «14/14 означає буквально файли на місці». Поле нижче стоїть у самому
+        # звіті, бо читач бачить ЗВІТ, а не цей рядок коду, і `14/14` без пояснення
+        # читається як готовність підсистеми.
+        "software_ready_means": (
+            "оголошені software_artifacts проходять is_file(); зміст, версія і здатність "
+            "виконатись не перевіряються"
+        ),
         "externally_satisfied": externally_satisfied,
         "production_satisfied": production_satisfied,
         "software_readiness_percent": round(software_ready / len(states) * 100.0, 6),

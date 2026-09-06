@@ -14,6 +14,7 @@ sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 from current_truth_admission import (  # noqa: E402
     blocker_state_checks,
     claim_admission_checks,
+    clean_room_checks,
     owner_packet_checks,
 )
 from current_truth_aliases import alias_checks  # noqa: E402
@@ -31,6 +32,9 @@ def evaluate(root: Path = ROOT) -> dict[str, Any]:
         **claim_admission_checks(root, release, digest),
         **blocker_state_checks(root, release, digest),
         **owner_packet_checks(root, release, digest),
+        # Репродукція з віддаленого джерела: доти артефакт лежав у reports/ і не
+        # впливав ні на що. Доказ без споживача не є доказом — він є документом.
+        **clean_room_checks(root, digest),
         **alias_checks(root, release),
     }
     failures = sorted(key for key, ok in checks.items() if not ok)

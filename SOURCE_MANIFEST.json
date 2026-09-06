@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1860,
-  "root_sha256": "b45fb091ffd39fbd80498cc77aa4922f1ab1cd8cf6e9147b17e42f78d59f23d3",
+  "root_sha256": "47df21100677a19890fdbfd9a96a4bbd0758169dcbc78ea0f7c8ad8086e06633",
   "files": [
     {
       "path": ".dockerignore",
@@ -7459,8 +7459,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 676376,
-      "sha256": "cd92b6037409fa81c396c981a8b4bb03e725178da7cecfe23b60c102377f83ca",
+      "bytes": 674278,
+      "sha256": "016eacd6a65638c3f6decb1ad3896622446e05919100f1fdeb19d1be1e90331b",
       "mode": "0644"
     },
     {
@@ -9553,8 +9553,8 @@
     },
     {
       "path": "scripts/current_truth_admission.py",
-      "bytes": 9309,
-      "sha256": "2909f3457eb4417b97e73a3d1618751854a45c397558f1e3c5b9dce1e5ce3ff8",
+      "bytes": 10898,
+      "sha256": "990911bb6ca46270c01949f5bb0708c0241ef62b78cc3c57285f18ec0f3db67c",
       "mode": "0644"
     },
     {
@@ -10999,8 +10999,8 @@
     },
     {
       "path": "scripts/verify_current_truth.py",
-      "bytes": 2217,
-      "sha256": "4f798123eedd782ec5b175dd5f7a9fa22a14441f0a4a084e18a70dce2d208cb2",
+      "bytes": 2552,
+      "sha256": "2339421638753182c77b7aec2fdaa8937091fc8fc27f5d452b0f896c76b7a945",
       "mode": "0755"
     },
     {
@@ -11095,8 +11095,8 @@
     },
     {
       "path": "scripts/verify_production_hard_predicates.py",
-      "bytes": 5833,
-      "sha256": "6027a9e5d9d43da100c8de3cec102e3962378045f04060ecee851b31eb44eed7",
+      "bytes": 6821,
+      "sha256": "5b1019bb659fc95ff0eaa38a7dbbd05c3bb353415081deedf0407a7f4a0c8040",
       "mode": "0755"
     },
     {

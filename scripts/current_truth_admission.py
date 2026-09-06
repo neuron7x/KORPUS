@@ -107,6 +107,32 @@ def owner_packet_checks(root: Path, release: str, digest: str) -> dict[str, bool
     }
 
 
+#: Репродукція з ВІДДАЛЕНОГО джерела зі свіжими залежностями. Артефакт існував із
+#: 05.09.2026 і не читався НІЧИМ: доказ без споживача не впливає ні на що, а виглядає
+#: як частина вироку. Назвав незалежний верифікатор (VD-6).
+CLEAN_ROOM = "reports/closure/CLEAN_ROOM_REPRODUCTION.json"
+
+
+def clean_room_checks(root: Path, digest: str) -> dict[str, bool]:
+    """Чи репродукція з remote описує ЦЕ дерево і чи вона пройшла.
+
+    Відсутність артефакта — не мовчазна згода: `present: False` блокує так само, як
+    `status != PASS`. Клас доказу перевіряється окремо, бо `verify-clean-clone` пише
+    СЛАБШИЙ клас у інший файл, і сплутати їх означало б зарахувати клон із локального
+    дерева за репродукцію з віддаленого.
+    """
+    path = root / CLEAN_ROOM
+    if not path.is_file():
+        return {f"{CLEAN_ROOM}.present": False}
+    payload = load_object(path)
+    return {
+        f"{CLEAN_ROOM}.present": True,
+        f"{CLEAN_ROOM}.status_pass": payload.get("status") == "PASS",
+        f"{CLEAN_ROOM}.class_is_remote": payload.get("class") == "REMOTE_SOURCE_FRESH_DEPENDENCIES",
+        f"{CLEAN_ROOM}.source_bound": bool(digest) and payload.get("source_tree_sha256") == digest,
+    }
+
+
 def blocker_state_checks(root: Path, release: str, digest: str) -> dict[str, bool]:
     path = root / f"reports/release/{release}/final/BLOCKER_REGISTRY.json"
     if not path.is_file():
