@@ -2,7 +2,7 @@
   "schema": "korpus.builtin-security-gate.v1",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "aaf8e9fc27412bb8531e0e4aded9b7014394fff6d23b9fdc204b8cd631fd3987",
+  "source_tree_sha256": "27291a01172dfe075e03dfd9e38f9abceb881f4117d8c00b8a7452c7ad4d4893",
   "scope": {
     "python_roots": [
       "apps/api/src/korpus",

@@ -1,16 +1,16 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "e80f2b3e75e7d6762846bb8a17919520ef6a06b38d3930962477f7d25573eb8c",
+  "source_tree_sha256": "27291a01172dfe075e03dfd9e38f9abceb881f4117d8c00b8a7452c7ad4d4893",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
   "software_ready_means": "оголошені software_artifacts проходять is_file(); зміст, версія і здатність виконатись не перевіряються",
-  "externally_satisfied": 5,
-  "production_satisfied": 5,
+  "externally_satisfied": 6,
+  "production_satisfied": 6,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 35.714286,
-  "production_completion_percent": 35.714286,
+  "external_completion_percent": 42.857143,
+  "production_completion_percent": 42.857143,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -66,14 +66,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "postgres_adversarial_suite",
-        "metadata:backend"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": []
     },
     {
