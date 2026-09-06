@@ -39,7 +39,11 @@ def _revalidate_public_result(result: IntegrationResult) -> IntegrationResult:
 
     try:
         return IntegrationResult.model_validate(result.model_dump(mode="python"))
-    except Exception:
+    except ValueError:
+        # Only pydantic runs inside this call, and both of its failure classes are ValueError
+        # subclasses: ValidationError when the round-tripped payload no longer satisfies the
+        # returnability invariants, and PydanticSerializationError when a model_construct'ed
+        # field cannot be dumped at all. Verified against pydantic 2.13.4 in this venv.
         return _failed_public_result(result.invocation_id)
 
 

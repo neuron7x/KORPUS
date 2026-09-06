@@ -22,6 +22,7 @@ from korpus.application.capability_gateway.effects import (
     EffectRecord,
     EffectState,
     IdempotencyConflict,
+    InvalidEffectReservation,
     ReconciliationDisposition,
     effectful,
     prepare_effect_guard,
@@ -29,6 +30,7 @@ from korpus.application.capability_gateway.effects import (
 from korpus.application.capability_gateway.errors import (
     CapabilityAuthorizationDenied,
     CapabilityContractError,
+    CapabilityGatewayError,
     CapabilityNotFound,
     CapabilityPolicyIndeterminate,
     CapabilityRegistrationError,
@@ -123,14 +125,21 @@ class CapabilityGateway:
         # to be assembled elsewhere, but post-construction registration must not silently
         # widen this gateway instance after its safety admission has already been evaluated.
         registry = resolved.registry.frozen_snapshot()
+        # Допуск безпеки оцінюється ПЕРЕД знімками адаптерів і схем, і порядок тут не
+        # косметика. Небезпечний план не має ставати gateway'єм узагалі, тож конструктор
+        # не сміє торкатися решти портів після того, як план уже відхилено: відмова, що
+        # настає ПІСЛЯ побічних дій, залишає позаду половину зробленого.
+        # Виміряно 06.09.2026: три тести будували порти, де решта — навмисно `object()`,
+        # бо перевіряли саме відмову; вони падали на `adapters.frozen_snapshot()`
+        # AttributeError замість того, щоб побачити названу відмову допуску.
+        safety = resolved.effect_safety or EffectSafetyRegistry()
+        _require_effect_safety(registry, safety)
         adapters = resolved.adapters.frozen_snapshot()
         schemas: SchemaValidator = (
             resolved.schemas.frozen_snapshot()
             if isinstance(resolved.schemas, ExactSchemaRegistry)
             else resolved.schemas
         )
-        safety = resolved.effect_safety or EffectSafetyRegistry()
-        _require_effect_safety(registry, safety)
         self._registry = registry
         self._policy = resolved.policy
         self._resource_mappers = dict(resolved.resource_mappers)
@@ -184,7 +193,12 @@ class CapabilityGateway:
             return early_result(InvocationOutcome.DENIED, "CAPABILITY_UNKNOWN")
         except CapabilityUnavailable:
             return early_result(InvocationOutcome.DENIED, "CAPABILITY_DISABLED")
-        except Exception:
+        except CapabilityGatewayError:
+            # No caller-supplied code runs inside this call. `self._registry` is the value of
+            # CapabilityRegistry.frozen_snapshot(), which hard-codes its own class, and the
+            # lookup only reads pydantic-validated CapabilitySpec objects out of a dict. The
+            # registry's whole declared failure family is CapabilityGatewayError, and the two
+            # members it actually raises are already named above.
             return early_result(InvocationOutcome.FAILED, "INTERNAL_ERROR")
 
     def _bind_resource(
@@ -210,7 +224,12 @@ class CapabilityGateway:
     ) -> InvocationContext | IntegrationResult:
         try:
             return build_invocation_context(identity=identity, spec=spec, request_time=started_at)
-        except Exception:
+        except (CapabilityContractError, TypeError, ValueError):
+            # Closed failure set: payload_digest raises CapabilityContractError on non-canonical
+            # JSON, int(identity.clearance)/sorted(identity.roles) raise TypeError or ValueError
+            # on a malformed identity, and the two pydantic constructions raise ValidationError,
+            # which is a ValueError. current_request_audit_context() has a default and cannot
+            # raise. No caller-supplied code runs inside this call.
             return early_result(InvocationOutcome.FAILED, "INTERNAL_ERROR")
 
     def _map_resource(
@@ -235,7 +254,12 @@ class CapabilityGateway:
                 "INPUT_SCHEMA_INVALID",
                 invocation_id=context.invocation_id,
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 - caller-supplied ResourceMapper, no nameable base
+            # `mapper` is an arbitrary Callable registered by the composition root. The three
+            # classes a mapper raises when it merely dislikes the input are named above and
+            # become REJECTED/INPUT_SCHEMA_INVALID; anything else is the mapper's own backend
+            # failing, which must fail closed as RESOURCE_MAPPING_FAILED before authorization
+            # rather than escape. test_capability_gateway_boundary_normalization drives OSError.
             return early_result(
                 InvocationOutcome.FAILED,
                 "RESOURCE_MAPPING_FAILED",
@@ -263,7 +287,10 @@ class CapabilityGateway:
                 spec=spec,
                 logical_resource=logical_resource,
             )
-        except Exception:
+        except (CapabilityContractError, TypeError, ValueError):
+            # Same closed set as _build_context: bind_invocation_resource is this package's own
+            # code, and its failures are the empty-resource ValueError it raises itself plus
+            # the payload_digest / identity-shape failures of policy_context_digest.
             return early_result(
                 InvocationOutcome.FAILED,
                 "RESOURCE_MAPPING_FAILED",
@@ -296,7 +323,13 @@ class CapabilityGateway:
                 "POLICY_UNKNOWN",
                 invocation_id=context.invocation_id,
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 - injected policy port composed of caller callables
+            # CapabilityPolicyBridge wraps a caller-supplied PolicyEngine and caller-supplied
+            # ResourceAuthorizer callables, and it is itself an injected port that tests already
+            # subclass (_PoisonedActionBridge). The two classes its own body promises are named
+            # above; anything a substituted bridge adds must still become the fail-closed
+            # POLICY_UNKNOWN, because an authorization path that raises returns no decision at
+            # all — and no decision must never be reachable as "not denied".
             return early_result(
                 InvocationOutcome.FAILED,
                 "POLICY_UNKNOWN",
@@ -306,10 +339,18 @@ class CapabilityGateway:
     def _pre_execution(self, frame: InvocationFrame) -> IntegrationResult | None:
         try:
             validate_request_binding(frame.request, frame.spec)
+        except CapabilityContractError:
+            # validate_request_binding is this package's own code; CapabilityContractError is
+            # the only class it raises, directly and through canonical_json_bytes.
+            return self._emitter.emit(frame, InvocationOutcome.REJECTED, "INPUT_SCHEMA_INVALID")
+        try:
             self._executor.validate_input(frame.spec.input_schema_id, frame.request.input)
         except (CapabilityContractError, ValueError):
             return self._emitter.emit(frame, InvocationOutcome.REJECTED, "INPUT_SCHEMA_INVALID")
-        except Exception:
+        except Exception:  # noqa: BLE001 - injected SchemaValidator port, no nameable base
+            # The validators behind SchemaValidator are caller-owned callables (jsonschema,
+            # pydantic, hand-written predicates). The blind catch is now scoped to exactly that
+            # foreign call: the request-binding check above no longer shares it.
             return self._emitter.emit(frame, InvocationOutcome.FAILED, "INTERNAL_ERROR")
         if frame.request.dry_run:
             return self._emitter.emit(frame, InvocationOutcome.REJECTED, "DRY_RUN_NOT_ADMITTED")
@@ -325,7 +366,11 @@ class CapabilityGateway:
             )
         except PermissionError:
             return self._emitter.emit(frame, InvocationOutcome.DENIED, "EGRESS_DENIED")
-        except Exception:
+        except Exception:  # noqa: BLE001 - injected CapabilityEgressGuard Protocol
+            # The guard composes a caller-supplied classification service and an external egress
+            # policy client; a classifier that fails must not become an allow, and must not
+            # escape either. test_capability_gateway_boundary_normalization drives ValueError
+            # through here and asserts EGRESS_POLICY_FAILED with the adapter never called.
             return self._emitter.emit(frame, InvocationOutcome.FAILED, "EGRESS_POLICY_FAILED")
         return None
 
@@ -338,7 +383,12 @@ class CapabilityGateway:
                 spec=frame.spec,
                 logical_resource=frame.logical_resource,
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 - injected EffectAuthorizer Protocol
+            # This is the deny-by-default seam for side effects. The authorizer is an external
+            # decision service; naming a class would mean importing its client library, and any
+            # failure to obtain an explicit allow is a denial by construction.
+            # test_capability_gateway_boundary_normalization drives OSError and asserts the
+            # ledger is never touched.
             return False
         # Authority is granted only by the protocol's literal boolean allow decision.
         # Truthy strings, integers, sentinels and provider-shaped objects fail closed.
@@ -364,7 +414,16 @@ class CapabilityGateway:
             return self._emitter.emit(frame, InvocationOutcome.REJECTED, "IDEMPOTENCY_REQUIRED")
         except IdempotencyConflict:
             return self._emitter.emit(frame, InvocationOutcome.REJECTED, "IDEMPOTENCY_CONFLICT")
-        except Exception:
+        except InvalidEffectReservation:
+            # Named on purpose: the durable ledger answered and _attest_reservation refused the
+            # answer (wrong type, non-PENDING creation, inconsistent binding, terminal provider
+            # state on a fresh reservation). That is a defect in the ledger implementation, not
+            # an outage, and it used to be indistinguishable from one inside the catch below.
+            return self._emitter.emit(frame, InvocationOutcome.FAILED, "INTERNAL_ERROR")
+        except Exception:  # noqa: BLE001 - injected durable EffectLedger port
+            # ledger.reserve() runs inside prepare_effect_guard. Its failures are database
+            # driver exceptions this application layer must not import, and a reservation that
+            # cannot be proven must stop the invocation before any provider dispatch.
             return self._emitter.emit(frame, InvocationOutcome.FAILED, "INTERNAL_ERROR")
 
     def _replay_result(self, frame: InvocationFrame, guard: EffectGuard) -> IntegrationResult:

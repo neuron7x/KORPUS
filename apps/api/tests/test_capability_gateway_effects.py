@@ -31,6 +31,7 @@ from korpus.application.capability_gateway.types import (
     TimeoutSpec,
 )
 from korpus.domain.models import Identity
+from pydantic import ValidationError
 
 
 class _MemoryLedger:
@@ -129,11 +130,27 @@ def _request(*, key: str | None = "idem-1", value: str = "x") -> IntegrationRequ
     )
 
 
+def test_an_effectful_spec_without_durable_idempotency_cannot_be_built() -> None:
+    """Перша лінія: специфікацію з такою вадою не існує — її не можна створити."""
+    with pytest.raises(ValidationError, match="durable idempotency"):
+        _spec(idempotency_required=False)
+
+
 def test_effect_guard_requires_durable_idempotency_declaration() -> None:
+    """Друга лінія: guard відмовляє НАВІТЬ якщо валідацію специфікації обійшли.
+
+    Інваріант живе у двох місцях — валідатор `CapabilitySpec` і сам guard, — і це не
+    дублювання, а глибина: `model_construct` будує модель БЕЗ валідаторів, тож перша
+    лінія обходиться одним викликом. Тест, який перевіряв лише guard через звичайний
+    конструктор, після переїзду інваріанта у валідатор став недосяжним: він падав на
+    `ValidationError` ще до виклику, і про другу лінію не свідчив нічого.
+    Виміряно 06.09.2026.
+    """
+    unchecked = _spec().model_copy(update={"idempotency": IdempotencySpec(required=False)})
     with pytest.raises(CapabilityContractError, match="durable idempotency"):
         prepare_effect_guard(
             identity=Identity(subject="writer", roles=frozenset({"admin"})),
-            spec=_spec(idempotency_required=False),
+            spec=unchecked,
             request=_request(),
             logical_resource="reference:1",
             invocation_id="inv-1",

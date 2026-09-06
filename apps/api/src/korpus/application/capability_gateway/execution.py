@@ -16,6 +16,7 @@ from korpus.application.capability_gateway.effects import (
     EffectGuard,
     EffectLedger,
     EffectState,
+    InvalidEffectTransition,
     attest_effect_transition,
     effectful,
 )
@@ -124,7 +125,14 @@ class CapabilityExecutor:
                 "ADAPTER_FAILURE",
                 provider_reference=exc.provider_reference,
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 - third-party adapter code, no nameable base
+            # `adapter` is a CapabilityAdapter Protocol implemented outside this package:
+            # httpx-based HTTP readers, MCP clients, internal callables and test doubles all
+            # qualify, and naming a base would mean importing every provider SDK the gateway
+            # is designed not to depend on. Post-dispatch the outcome is genuinely ambiguous,
+            # so an unnamed provider fault must degrade through _adapter_failure (which turns
+            # it into OUTCOME_UNKNOWN for effectful specs) rather than escape as a traceback.
+            # test_capability_gateway_boundary_normalization drives OSError through here.
             return self._adapter_failure(frame, guard, "INTERNAL_ERROR")
         if not isinstance(executed, AdapterExecutionResult):
             # Protocol typing is not runtime proof. A provider adapter may be buggy or
@@ -208,11 +216,6 @@ class CapabilityExecutor:
         material = self._material(executed, guard)
         try:
             self._schemas.validate(frame.spec.output_schema_id, executed.output)
-            if (
-                len(canonical_json_bytes(executed.output))
-                > frame.spec.data_policy.max_response_bytes
-            ):
-                raise CapabilityContractError("response payload exceeds capability maximum")
         except (CapabilityContractError, ValueError):
             return self._emitter.emit(
                 frame,
@@ -220,8 +223,33 @@ class CapabilityExecutor:
                 "OUTPUT_SCHEMA_INVALID",
                 material,
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 - injected SchemaValidator port, no nameable base
+            # `schemas` is a SchemaValidator Protocol; the validators inside it are caller-owned
+            # callables (jsonschema, pydantic, hand-written predicates). The blind catch is now
+            # scoped to exactly that foreign call — the size check below no longer shares it.
             return self._emitter.emit(frame, InvocationOutcome.FAILED, "INTERNAL_ERROR", material)
+        try:
+            oversized = (
+                len(canonical_json_bytes(executed.output))
+                > frame.spec.data_policy.max_response_bytes
+            )
+        except CapabilityContractError:
+            # canonical_json_bytes is this package's own encoder and has exactly one failure:
+            # adapter output that is not canonical JSON. That is a schema fault, not an
+            # internal one, which is why it keeps the OUTPUT_SCHEMA_INVALID projection.
+            return self._emitter.emit(
+                frame,
+                InvocationOutcome.FAILED,
+                "OUTPUT_SCHEMA_INVALID",
+                material,
+            )
+        if oversized:
+            return self._emitter.emit(
+                frame,
+                InvocationOutcome.FAILED,
+                "OUTPUT_SCHEMA_INVALID",
+                material,
+            )
         return None
 
     def _validate_evidence(
@@ -242,7 +270,14 @@ class CapabilityExecutor:
         except CapabilityContractError as exc:
             outcome, code = _evidence_failure_semantics(exc)
             return self._emitter.emit(frame, outcome, code, material)
-        except Exception:
+        except (AttributeError, OverflowError, TypeError, ValueError):
+            # validate_evidence is this package's own code, so its failure set is closed — but
+            # it reads data the adapter supplied. AdapterExecutionResult is a plain dataclass:
+            # `evidence` is annotated EvidenceEnvelope | None and never checked at runtime, so
+            # a non-envelope object yields AttributeError. A tzinfo whose utcoffset() is None
+            # survives the timezone guard and makes the datetime comparison raise TypeError.
+            # An unbounded freshness_seconds (Field(ge=0), no upper bound) makes timedelta()
+            # raise OverflowError. ValueError covers out-of-domain values from the same data.
             return self._emitter.emit(frame, InvocationOutcome.FAILED, "INTERNAL_ERROR", material)
         return self._emitter.emit(frame, InvocationOutcome.SUCCESS, None, material)
 
@@ -264,13 +299,24 @@ class CapabilityExecutor:
                 target=target,
                 provider_reference=provider_reference,
             )
+        except Exception:  # noqa: BLE001 - injected durable EffectLedger port
+            # `effects` is an EffectLedger Protocol backed by the durable store. Its failures
+            # are database driver exceptions this application layer must not import, and a
+            # compare-and-set that loses the race is a legitimate False, not a crash.
+            return False
+        try:
             attest_effect_transition(
                 record,
                 updated,
                 target=target,
                 provider_reference=provider_reference,
             )
-        except Exception:
+        except InvalidEffectTransition:
+            # This is the half that used to hide inside the blind catch above: the ledger
+            # answered, and OUR attestation refused the answer (wrong state, mutated binding,
+            # mismatched provider reference, or a smuggled reconciliation disposition).
+            # It is one named class, and conflating it with a dead database made a real
+            # defect in this PR indistinguishable from an outage.
             return False
         return True
 

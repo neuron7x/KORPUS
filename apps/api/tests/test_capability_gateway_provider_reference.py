@@ -44,20 +44,36 @@ class _Schemas:
 
 
 class _Ledger:
+    """Двійник журналу ефектів, що НЕ вигадує прив'язки.
+
+    Доти він повертав фіксовані `invocation_id`, `capability_id`, `logical_resource` і
+    дайджести, тоді як резервація нижче бере їх із кадру виклику — отже `invocation_id`
+    відрізнявся щоразу. `attest_effect_transition` бачив зміну незмінної прив'язки і
+    відхиляв перехід; гейтвей повертав OUTCOME_UNKNOWN замість SUCCESS, а причина
+    ховалася під `except Exception: return False`.
+
+    Справжній журнал прив'язки не змінює — він її зберігає. Двійник, який цього не
+    робить, перевіряє не ту систему: виміряно 06.09.2026.
+    """
+
     def __init__(self) -> None:
         self.transitions: list[dict[str, object]] = []
+        self.reserved: EffectRecord | None = None
 
     def transition(self, **kwargs: object) -> EffectRecord:
         self.transitions.append(dict(kwargs))
+        held = self.reserved
+        if held is None:
+            raise AssertionError("перехід без резервації: двійник не має що зберігати")
         return EffectRecord(
-            subject_id=str(kwargs["subject_id"]),
-            idempotency_key=str(kwargs["idempotency_key"]),
-            binding_digest="sha256:" + "1" * 64,
-            invocation_id="00000000-0000-0000-0000-000000000001",
-            capability_id="reference.provider.write",
-            capability_version="1.0.0",
-            logical_resource="reference:1",
-            input_digest="sha256:" + "2" * 64,
+            subject_id=held.subject_id,
+            idempotency_key=held.idempotency_key,
+            binding_digest=held.binding_digest,
+            invocation_id=held.invocation_id,
+            capability_id=held.capability_id,
+            capability_version=held.capability_version,
+            logical_resource=held.logical_resource,
+            input_digest=held.input_digest,
             state=EffectState(str(kwargs["target"])),
             provider_reference=(
                 str(kwargs["provider_reference"])
@@ -181,6 +197,13 @@ def _guard(frame: InvocationFrame) -> EffectGuard:
     )
 
 
+def _bind(ledger: _Ledger, guard: EffectGuard) -> EffectGuard:
+    """Журнал памʼятає рівно те, що зарезервовано, — як і справжній."""
+    assert guard.reservation is not None
+    ledger.reserved = guard.reservation.record
+    return guard
+
+
 def _executor(adapter: object, ledger: _Ledger) -> CapabilityExecutor:
     adapters = AdapterRegistry()
     adapters.register("custom.provider", "1.0.0", adapter)  # type: ignore[arg-type]
@@ -196,7 +219,7 @@ def test_successful_effect_persists_provider_reference_with_commit() -> None:
     frame = _frame()
     ledger = _Ledger()
 
-    result = _executor(_SuccessAdapter(), ledger).execute(frame, _guard(frame))
+    result = _executor(_SuccessAdapter(), ledger).execute(frame, _bind(ledger, _guard(frame)))
 
     assert result.outcome is InvocationOutcome.SUCCESS
     assert len(ledger.transitions) == 1
@@ -208,7 +231,7 @@ def test_ambiguous_effect_persists_reference_for_reconciliation() -> None:
     frame = _frame()
     ledger = _Ledger()
 
-    result = _executor(_UnknownAdapter(), ledger).execute(frame, _guard(frame))
+    result = _executor(_UnknownAdapter(), ledger).execute(frame, _bind(ledger, _guard(frame)))
 
     assert result.outcome is InvocationOutcome.OUTCOME_UNKNOWN
     assert result.error_code == "ADAPTER_TIMEOUT"

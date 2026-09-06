@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Iterator
-from contextlib import AbstractContextManager, contextmanager
+from contextlib import AbstractContextManager, contextmanager, suppress
 from typing import Protocol
 
 from korpus.application.capability_gateway.invoke import CapabilityGateway, IntegrationResult
@@ -71,14 +71,18 @@ class ObservedCapabilityGateway:
         result: IntegrationResult,
         duration_seconds: float,
     ) -> None:
-        try:
+        # `telemetry` is an injected Protocol. Prometheus clients, OTLP exporters and test
+        # doubles all satisfy it and share no exception base this module could name without
+        # taking a dependency on the exporter it is supposed to be independent of. The blind
+        # catch is the contract, not an oversight: telemetry is lossy by declaration, and
+        # test_capability_gateway_observability_isolation.py drives a RuntimeError through
+        # every one of the four telemetry entry points to prove the gateway result survives.
+        with suppress(Exception):
             self._telemetry.observe_invocation(
                 spec=spec,
                 result=result,
                 duration_seconds=duration_seconds,
             )
-        except Exception:
-            return
 
 
 @contextmanager
@@ -90,7 +94,8 @@ def _lossy_telemetry_span(
     try:
         manager = telemetry.invocation_span(spec)
         manager.__enter__()
-    except Exception:
+    except Exception:  # noqa: BLE001 - injected telemetry Protocol, see _observe_lossy
+        # A span factory or __enter__ that fails means "no span", never "no invocation".
         manager = None
 
     if manager is None:
@@ -100,13 +105,11 @@ def _lossy_telemetry_span(
     try:
         yield
     except BaseException as exc:
-        try:
+        # __exit__ belongs to the same injected span object: a failure to close it may not
+        # replace, suppress or outrank the exception the gateway is already propagating.
+        with suppress(Exception):
             manager.__exit__(type(exc), exc, exc.__traceback__)
-        except Exception:
-            pass
         raise
     else:
-        try:
+        with suppress(Exception):
             manager.__exit__(None, None, None)
-        except Exception:
-            pass

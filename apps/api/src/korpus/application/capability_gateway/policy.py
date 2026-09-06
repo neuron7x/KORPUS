@@ -82,8 +82,14 @@ class CapabilityPolicyBridge:
         permission = self._action_permissions.get(action)
         if permission is None:
             raise CapabilityAuthorizationDenied(f"unmapped capability action: {action}")
+        # PolicyEngine.require is declared `-> None`, and the check below deliberately does
+        # not trust that declaration: an engine that *returns* instead of raising must be
+        # indeterminate, never an allow. Reading the bound method through an object-returning
+        # Callable states exactly that — return types are covariant, so this is an ordinary
+        # widening, not a cast, and mypy no longer has to be told to ignore the call.
+        require: Callable[[Identity, str], object] = self._policy.require
         try:
-            result = self._policy.require(identity, permission)
+            result = require(identity, permission)
         except AuthorizationError as exc:
             raise CapabilityAuthorizationDenied(
                 f"canonical policy denied {action} via {permission}: {exc}"

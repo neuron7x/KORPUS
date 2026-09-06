@@ -220,16 +220,25 @@ def _compensation_cycle_errors(edges: Mapping[CapabilityKey, CapabilityKey]) -> 
         path_index: dict[CapabilityKey, int] = {}
         node = start
 
+        # `terminated` розрізняє ДВА виходи з обходу, які доти мали один наслідок:
+        # ланцюг просто ЗАКІНЧИВСЯ (у вузла немає вихідного ребра) і ланцюг ЗАМКНУВСЯ.
+        # Без цього прапорця перевірка нижче бачила вузол, щойно доданий у `path_index`
+        # цією ж ітерацією, і оголошувала циклом `X -> X` будь-який скінченний ланцюг:
+        # `primary -> rollback`, де rollback незворотний і компенсації не має, давав
+        # «compensation cycle detected: rollback -> rollback». Вимір 06.09.2026: шість
+        # тестів графа безпеки падали саме на цьому, і жоден із них не описував цикл.
+        terminated = False
         while node not in visited and node not in path_index:
             path_index[node] = len(path)
             path.append(node)
             target = edges.get(node)
             if target is None:
+                terminated = True
                 break
             node = target
 
-        if node in path_index:
-            cycle = path[path_index[node] :] + [node]
+        if not terminated and node in path_index:
+            cycle = [*path[path_index[node] :], node]
             rendered = " -> ".join(_format_capability_key(item) for item in cycle)
             errors.add(f"compensation cycle detected: {rendered}")
 

@@ -141,8 +141,12 @@ def _ports(
     return CapabilityGatewayPorts(
         registry=CapabilityRegistry(specs),
         policy=object(),  # type: ignore[arg-type]
-        adapters=object(),  # type: ignore[arg-type]
-        schemas=object(),  # type: ignore[arg-type]
+        # Порожні СПРАВЖНІ реєстри, не `object()`: конструктор бере з них знімок, і
+        # заглушка давала AttributeError замість того вироку, який тест міряє. Негативні
+        # випадки цього файлу все одно відсікаються раніше — допуск безпеки тепер
+        # оцінюється ДО знімків портів.
+        adapters=AdapterRegistry(),
+        schemas=ExactSchemaRegistry(),
         resource_mappers={},
         egress=object(),  # type: ignore[arg-type]
         effect_authorizer=object(),  # type: ignore[arg-type]

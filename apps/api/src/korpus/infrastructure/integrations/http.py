@@ -191,7 +191,7 @@ class GovernedHttpReadAdapter:
         return candidate
 
     @staticmethod
-    def _validate_query(query: tuple[tuple[str, str], ...]) -> list[tuple[str, str]]:
+    def _validate_query(query: tuple[tuple[str, str], ...]) -> tuple[tuple[str, str], ...]:
         result: list[tuple[str, str]] = []
         for pair in query:
             if len(pair) != 2:
@@ -202,7 +202,11 @@ class GovernedHttpReadAdapter:
             if any(char in name or char in value for char in ("\r", "\n", "\x00")):
                 raise ValueError("HTTP capability query contains control characters")
             result.append((name, value))
-        return result
+        # A tuple, not the list this used to return: httpx types `params` with an *invariant*
+        # list, so list[tuple[str, str]] was rejected against list[tuple[str, PrimitiveData]]
+        # even though every element is admissible. tuple is covariant, so the same values pass
+        # without widening the element type this validator exists to keep narrow.
+        return tuple(result)
 
     @staticmethod
     def _validate_content_type(response: httpx.Response) -> None:

@@ -251,11 +251,13 @@ def test_http_adapter_refuses_effectful_and_factual_profiles_before_network() ->
 
 
 def test_http_adapter_rejects_routing_and_framing_headers_at_composition() -> None:
-    with httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(200))) as client:
-        with pytest.raises(ValueError, match="header is forbidden"):
-            GovernedHttpReadAdapter(
-                client=client,
-                base_url="https://provider.example/api",
-                plan_builder=_plan,
-                headers={"Host": "evil.example"},
-            )
+    with (
+        httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(200))) as client,
+        pytest.raises(ValueError, match="header is forbidden"),
+    ):
+        GovernedHttpReadAdapter(
+            client=client,
+            base_url="https://provider.example/api",
+            plan_builder=_plan,
+            headers={"Host": "evil.example"},
+        )

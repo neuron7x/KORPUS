@@ -120,7 +120,13 @@ class CapabilityResultEmitter:
                 started_at=frame.started_at,
                 ended_at=datetime.now(frame.started_at.tzinfo),
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 - injected durable audit port, no nameable base
+            # `audit` is a CapabilityAuditSink Protocol. The shipped implementation is
+            # RepositoryCapabilityAuditSink over SQLAlchemy/psycopg, whose driver exceptions
+            # this application layer must not import, and other deployments substitute other
+            # sinks entirely. "The audit did not persist" must become AUDIT_APPEND_FAILED
+            # rather than escape: a returned success without a persisted audit id is exactly
+            # the outcome this emitter exists to make impossible.
             return early_result(
                 InvocationOutcome.FAILED,
                 "AUDIT_APPEND_FAILED",
