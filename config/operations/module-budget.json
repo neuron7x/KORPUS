@@ -3639,7 +3639,7 @@
       "max_function_args": 3,
       "max_function_lines": 49,
       "max_nesting": 2,
-      "proof_lines": 62,
+      "proof_lines": 76,
       "reason": "2026-09-06: гейт вірив самооголошеним спискам. Звіт із усіма 624 SURVIVED, killed 0 і survived [] проходив без зауважень. Тепер підсумок перераховується з results[].status."
     },
     "scripts/check_public_env_parity.py": {

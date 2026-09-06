@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1860,
-  "root_sha256": "e959b13ae4bb43be16272ab2093a5ce8f5d36a61e51b801befb5d0e107ec868f",
+  "root_sha256": "4c220c9dfde55400754d3f802d8e628f41ce674603c91ed99cfc7f774f988b4d",
   "files": [
     {
       "path": ".dockerignore",
@@ -3955,8 +3955,8 @@
     },
     {
       "path": "apps/api/tests/test_mutation_report_freshness.py",
-      "bytes": 3343,
-      "sha256": "b0f82668081ee89ac996053640642c056913390cf58e3a337be2fea7a6dc1566",
+      "bytes": 6196,
+      "sha256": "d6f9a26d7d5c26db5a8340fa99bbe6919c1b3e3e35c1421fb54db9e127e81246",
       "mode": "0644"
     },
     {
@@ -7460,7 +7460,7 @@
     {
       "path": "config/operations/module-budget.json",
       "bytes": 673800,
-      "sha256": "9cb7b9cb09d82bb2a2b2593fffa2dd2b643b25597a5e4e0716564d679850c0f6",
+      "sha256": "9cffa51699678c34098cd71442756e70dcd7cbadac464afbf659ff329feaa158",
       "mode": "0644"
     },
     {
@@ -9475,8 +9475,8 @@
     },
     {
       "path": "scripts/check_mutation_report_freshness.py",
-      "bytes": 12911,
-      "sha256": "c135442ee786ba289fb0ecddb42a49b114e09b263e75e18952016a46361eca7c",
+      "bytes": 13714,
+      "sha256": "fd80bc599625316d1124765274d9584101ac556aab00aff18a4452fad868fd34",
       "mode": "0755"
     },
     {
