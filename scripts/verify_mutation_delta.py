@@ -160,12 +160,18 @@ def main() -> int:
     # закритою — а CI кличе скрипт НАПРЯМУ, тож дефолт лишався живий і давав
     # порожню дельту з rc=0. Прибрано було не значення, а потребу його надрукувати.
     # Виміряно незалежним аудитом 06.09.2026.
-    parser.add_argument("--base", required=True)
+    # Обовʼязковий для КЛАСИФІКАЦІЇ, не для самоперевірки: `--selftest` не має
+    # предмета порівняння і бази не потребує. `required=True` глобально зламав його
+    # у лані — я прибрав дефолт і не прогнав другий режим. Перевірка нижче тримає
+    # обидві властивості: дефолту немає, і селфтест лишається досяжним.
+    parser.add_argument("--base")
     parser.add_argument("--out", type=Path, default=ROOT / "var/mutation-delta-gate.json")
     parser.add_argument("--selftest", action="store_true")
     arguments = parser.parse_args()
     if arguments.selftest:
         return selftest()
+    if not arguments.base:
+        parser.error("--base обовʼязковий: без бази порівняння предмет дельти не визначений")
     report = classify(arguments.base)
     report["status"] = "PASS" if not report["needs_probe"] else "NEEDS_PROBE"
     arguments.out.parent.mkdir(parents=True, exist_ok=True)
