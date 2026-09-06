@@ -829,10 +829,10 @@
       "reason": "formal fail-closed assurance/release model introduced for v0.3.0; ceiling recorded at introduction"
     },
     "apps/api/src/korpus/application/assurance_evidence.py": {
-      "lines": 165,
+      "lines": 167,
       "max_complexity": 6,
       "max_function_args": 16,
-      "max_function_lines": 45,
+      "max_function_lines": 46,
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "ACT-015: container scan evidence extraction tightened shared assurance evaluator line ceiling"
@@ -2067,7 +2067,7 @@
       "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "apps/api/src/korpus/application/supply_chain_scanners.py": {
-      "lines": 37,
+      "lines": 62,
       "max_complexity": 5,
       "max_function_args": 2,
       "max_function_lines": 16,
@@ -3518,9 +3518,9 @@
       "reason": "Ратчет на дві протилежні осі якості відповідей. Кожен новий клас порушення — рядок у переліку `problems`, а не гілка."
     },
     "scripts/check_budget_raises_are_named.py": {
-      "lines": 165,
+      "lines": 183,
       "max_complexity": 14,
-      "max_function_args": 2,
+      "max_function_args": 3,
       "max_function_lines": 40,
       "max_nesting": 3,
       "proof_lines": 0,
@@ -5382,10 +5382,10 @@
       "proof_lines": 0
     },
     "scripts/source_digest.py": {
-      "lines": 114,
+      "lines": 150,
       "max_complexity": 10,
-      "max_function_args": 1,
-      "max_function_lines": 22,
+      "max_function_args": 2,
+      "max_function_lines": 31,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.9.7 source-tree digest scope retained after null attack proved it differs intentionally from evidence-source digest | 2026-08-29 the second definition of what a source is was deleted: source_digest carried its own exclusion list and disagreed with manifest_paths.source_included on six release artefacts, which the release cycle itself rewrites — so the digest moved with no code change and BOUND was unstable by construction."
@@ -5736,7 +5736,7 @@
       "reason": "Гейт паритету дивиться на КОЖЕН шаблон юніта в дереві, а не на перелік із одного інсталятора. Виміряно 02.09.2026: покривались два юніти, а встановлений `korpus-routine@.service` виявився зовсім іншим юнітом під тим самим іменем (`ExecStart=%h/.claude/routines/run.sh %i` проти `scripts/run_isolated_routine.py`). Гейт мовчав, бо цього імені не було в його переліку. Переліку більше немає: другий перелік розійшовся б із першим саме тоді, коли хтось додасть юніт. Плюс `substitution_agrees_with_installers` — гейт мусить підставляти корінь так само, як інсталятори, інакше червонітиме з власної причини."
     },
     "scripts/verify_mutation_delta.py": {
-      "lines": 166,
+      "lines": 194,
       "max_complexity": 5,
       "max_function_args": 1,
       "max_function_lines": 26,
@@ -5797,12 +5797,12 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/verify_production_hard_predicates.py": {
-      "lines": 139,
+      "lines": 211,
       "max_complexity": 6,
-      "max_function_args": 1,
+      "max_function_args": 3,
       "max_function_lines": 40,
       "max_nesting": 1,
-      "proof_lines": 0,
+      "proof_lines": 31,
       "reason": "2026-09-06: VD-6/VD-7 із незалежного вироку. clean_room_checks дав споживача артефакту репродукції з remote (доти його не читало НІЩО), а звіт предикатів тепер несе означення власного числа: software_ready = is_file(), не готовність."
     },
     "scripts/verify_public_surface.py": {
@@ -11496,6 +11496,84 @@
       "path": "scripts/check_mutation_report_freshness.py",
       "to": 147,
       "why": "один рядок від `ruff format` після розділення problems()/binding_problems()"
+    },
+    {
+      "from": {
+        "lines": 165,
+        "max_function_lines": 45
+      },
+      "on": "2026-09-06",
+      "path": "apps/api/src/korpus/application/assurance_evidence.py",
+      "to": {
+        "lines": 167,
+        "max_function_lines": 46
+      },
+      "why": "lines: перевірка КЛАСУ підсумку сканерів: два виробники писали один файл у різних схемах, і слабший тихо ставав на місце сильнішого — скарга виходила про свіжість коміта там, де предмет походження | max_function_lines: той самий рядок усередині evaluate_supply_chain_evidence"
+    },
+    {
+      "from": {
+        "lines": 37
+      },
+      "on": "2026-09-06",
+      "path": "apps/api/src/korpus/application/supply_chain_scanners.py",
+      "to": {
+        "lines": 62
+      },
+      "why": "lines: прив'язка сканера стала виміром замість оголошення: докстрінг називає, чому множина прийнятних комітів, а не один із CI_COMMIT_SHA, плюс окрема перевірка класу підсумку"
+    },
+    {
+      "from": {
+        "lines": 114,
+        "max_function_args": 1,
+        "max_function_lines": 22
+      },
+      "on": "2026-09-06",
+      "path": "scripts/source_digest.py",
+      "to": {
+        "lines": 150,
+        "max_function_args": 2,
+        "max_function_lines": 31
+      },
+      "why": "lines: commits_with_identical_source: множина комітів, чиє джерело тотожне цьому — вимір репозиторію замість змінної середовища, якою закривався сьомий твердий предикат | max_function_lines: та сама функція: обхід історії з зупинкою на першій розбіжності джерела | max_function_args: ref і depth: предмет виміру і межа обходу — обидва мусять бути названі викликачем, бо мовчазна глибина зробила б множину функцією випадкової довжини історії"
+    },
+    {
+      "from": {
+        "lines": 166
+      },
+      "on": "2026-09-06",
+      "path": "scripts/verify_mutation_delta.py",
+      "to": {
+        "lines": 194
+      },
+      "why": "lines: дві втечі предмета закрито: перейменування (--diff-filter=AMR) і логіка в __init__.py — правило за іменем замінено правилом за формою (carries_logic)"
+    },
+    {
+      "from": {
+        "lines": 139,
+        "max_function_args": 1,
+        "proof_lines": 0
+      },
+      "on": "2026-09-06",
+      "path": "scripts/verify_production_hard_predicates.py",
+      "to": {
+        "lines": 211,
+        "max_function_args": 3,
+        "proof_lines": 31
+      },
+      "why": "lines: контекст вироку став ВИМІРЮВАНИМ: поверхня доказу рахується, і оголошення чекауту над наявним доказом відмовляється — без цього джоба CI непрохідна за побудовою, бо в раннері var/ немає | proof_lines: негативний контроль на сам контекст: обидва хибні оголошення мусять відмовляти, і доти цей гейт не мав самоперевірки взагалі | max_function_args: floor_failures(payload, context, surface): вирок залежить від ТРЬОХ виміряних величин, і сховати котрусь у глобальний стан означало б зробити її невидимою для тесту"
+    },
+    {
+      "from": {
+        "lines": 165,
+        "max_function_args": 2
+      },
+      "on": "2026-09-06",
+      "path": "scripts/check_budget_raises_are_named.py",
+      "to": {
+        "lines": 183,
+        "max_function_args": 3
+      },
+      "why": "форма {metric, to:число} не читалась ЖОДНИМ рядком, тож сумлінний запис про підняття існував у реєстрі й не рахувався: гейт вимагав причини і мовчки не бачив половини наданих. Розпізнавання винесене в _ceilings_named, щоб стеля складності лишилась на місці — піднято лише рядки і третій параметр remember"
     }
   ],
   "recorded_at": "2026-09-06",

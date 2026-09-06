@@ -3473,10 +3473,10 @@ MUTANTS = (
     Mutant(
         "M265_SCANNER_MARKER_COMMIT_REPLAY_ACCEPTED",
         "apps/api/src/korpus/application/supply_chain_scanners.py",
-        '    return bool(expected_commit) and scan.get("commit_sha") == expected_commit',
+        '    return bool(accepted_commits) and scan.get("commit_sha") in set(accepted_commits)',
         "    return True",
         (
-            "apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_marker_commit_must_match_current_pipeline_commit",
+            "apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_marker_commit_must_be_one_whose_source_is_this_tree",
         ),
     ),
     Mutant(

@@ -203,7 +203,12 @@ repository:validate:
     - PYTHONPATH=apps/api/src python scripts/validate_publication_mirrors.py
     - PYTHONPATH=apps/api/src python scripts/validate_refusal_retryability.py --selftest
     - PYTHONPATH=apps/api/src python scripts/validate_refusal_retryability.py
-    - PYTHONPATH=apps/api/src:scripts python scripts/verify_production_hard_predicates.py
+    # Раннер не має `var/` узагалі: поверхня зовнішнього доказу тут нульова, і підлога
+    # ратчета невимірювана. Контекст оголошується — і ЗВІРЯЄТЬСЯ з виміром: оголосити
+    # чекаут над деревом, де доказ лежить, скрипт відмовляється. Без цього джоба стала б
+    # непрохідною за побудовою в ту мить, коли підлогу підняли над локальним `var/`.
+    - PYTHONPATH=apps/api/src:scripts python scripts/verify_production_hard_predicates.py --selftest
+    - PYTHONPATH=apps/api/src:scripts python scripts/verify_production_hard_predicates.py --context SOURCE_CHECKOUT
     - python scripts/validate_github_actions.py
     - python scripts/validate_repository.py --context SOURCE_CHECKOUT
     - python scripts/validate_infrastructure.py

@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1860,
-  "root_sha256": "4c220c9dfde55400754d3f802d8e628f41ce674603c91ed99cfc7f774f988b4d",
+  "file_count": 1865,
+  "root_sha256": "17408f9ca9109bb3c7f1270324a9fa06b8e4adc60a614ae0e2eb42342588573f",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 57620,
-      "sha256": "157eb812a366ceb57dd9d3c8bdc57a3d380c2bbfd1e04b849ea1bea75e949ec0",
+      "bytes": 58350,
+      "sha256": "f94af54d5998f7fb5b9e22ec1d8f995c2ec2fc1f099a6f9971bd33b0f903a12e",
       "mode": "0644"
     },
     {
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 115267,
-      "sha256": "c63519ca9668e97e3ba33f19f79cd4a6bc810ac879cfb8c42c5fbb18dcac917f",
+      "bytes": 116608,
+      "sha256": "24d91f8eb7528c0319be7a167c5c1e9ee627aebec56bf102f41bd2072d4bcf60",
       "mode": "0644"
     },
     {
@@ -949,8 +949,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/assurance_evidence.py",
-      "bytes": 5570,
-      "sha256": "ad7c927ecc85279bb49ca3ceced0ffdf3922228dee8def97e5be95d4309b3b77",
+      "bytes": 5705,
+      "sha256": "05f19218eed0e8eda68c70397929102785b0045aa4c76984c635023da25391dd",
       "mode": "0644"
     },
     {
@@ -1795,8 +1795,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/supply_chain_scanners.py",
-      "bytes": 1268,
-      "sha256": "f6941ce08790b2e0d004813a3b5cd12ed0014adc8c6fa830aedddd6d18b573a3",
+      "bytes": 3234,
+      "sha256": "91c4fdcd262f202a07887bccebf5383bb9537147e6c80a49c1dc18001c97a5e0",
       "mode": "0644"
     },
     {
@@ -2862,6 +2862,18 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_blank_corpus_probe.py",
+      "bytes": 10545,
+      "sha256": "6a3a24fc29ebc6f41096969aeb9651227f86b1745226de9c9d2ad47cb371547b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_blocker_release_binding.py",
+      "bytes": 1771,
+      "sha256": "b4ece763556b45770ab3c466dece2625b981b8e4ad8de3ec41856df34072fb36",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_boundary_coverage_v5.py",
       "bytes": 21657,
       "sha256": "f5cb11fc2f83b37acb24b6e9e0aa8fa6f81b28b2bb64b1dd4ff9c92cc51ad167",
@@ -2935,8 +2947,8 @@
     },
     {
       "path": "apps/api/tests/test_budget_raises_are_named.py",
-      "bytes": 6789,
-      "sha256": "18c54df489189b8dad62ffef4255852810f539189cac5c120a67d7476c5f9765",
+      "bytes": 8343,
+      "sha256": "bff1d45dd930829c2e8ef8f3f1dc00a93205f4d51ec39489d2bdb9dc2da394c9",
       "mode": "0644"
     },
     {
@@ -2997,6 +3009,12 @@
       "path": "apps/api/tests/test_citation_fragments.py",
       "bytes": 10744,
       "sha256": "29f7b9d33dfb04650b06b9b453297e30a456c7240bf8c10238ca634bb023f302",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_clean_room_admission.py",
+      "bytes": 5757,
+      "sha256": "89509c7b1c715fae83fe0cad7a2a89206603b53146bc5dbf353a8f63ca242170",
       "mode": "0644"
     },
     {
@@ -3535,8 +3553,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 165533,
-      "sha256": "c3a8b2093a5303254b26c164b28e97e94e624dc6d91a282f257ceb8916faa068",
+      "bytes": 167891,
+      "sha256": "a0760391f691ba5ecf41fc6477c70940eff477602f3330ff2f955e4becb4b658",
       "mode": "0644"
     },
     {
@@ -3937,8 +3955,14 @@
     },
     {
       "path": "apps/api/tests/test_mutation_delta_gate.py",
-      "bytes": 5150,
-      "sha256": "c0ddb50120fc39b88e12edec607dbf3ac96f7a1f2a77ae90368770bfca41e730",
+      "bytes": 9562,
+      "sha256": "9f7f0d6328718a11687a37a6a23553c88d0f6e8354f3cb3b037f6f07661d7aea",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_mutation_delta_gate_verdict.py",
+      "bytes": 5672,
+      "sha256": "2895a7f0b9742a1764c11819936468708e2d584b6192abe93ee44d39ec354bce",
       "mode": "0644"
     },
     {
@@ -4077,6 +4101,12 @@
       "path": "apps/api/tests/test_overload_http.py",
       "bytes": 829,
       "sha256": "474d58edd134d2a741ef6b1ed8f15a84c41f80c4c91fd6883ba2554ee0ca3669",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_owner_packet_refresh.py",
+      "bytes": 7196,
+      "sha256": "d565e10406c95c468dafb335a4fdd5d313634979f8befefd565b25cbf4b70972",
       "mode": "0644"
     },
     {
@@ -4951,8 +4981,8 @@
     },
     {
       "path": "apps/api/tests/test_supply_chain_evidence_boundary.py",
-      "bytes": 4541,
-      "sha256": "0624a9e37a2647962953cfc04a81a372d76fb378e24338ab36d0a931c13dddf7",
+      "bytes": 6528,
+      "sha256": "62dc0b5adddfea2f45826e4733ae70b37dd3f6ade98e5529dd7cb096574b255d",
       "mode": "0644"
     },
     {
@@ -5695,8 +5725,8 @@
     },
     {
       "path": "config/assurance/production-predicate-floor.json",
-      "bytes": 1576,
-      "sha256": "5ac170f3a6d0b838cd9320e40d7ddd9552e03560a388ffc79212d748106242b4",
+      "bytes": 2683,
+      "sha256": "50f1e173220dde22447a775272bddfb41ab00be61882a7477d95cb2f0d70c7cd",
       "mode": "0644"
     },
     {
@@ -7405,8 +7435,8 @@
     },
     {
       "path": "config/operations/ci-mirror.json",
-      "bytes": 1331,
-      "sha256": "bb363b3c529a6a6a0d8937d65209bb5d904a22816f3c1c67478059ffab5c04ae",
+      "bytes": 2753,
+      "sha256": "2c32e19796ab66a2a84969d6e0f757efd2097bda21b7aa3cf9cc6a750346b256",
       "mode": "0644"
     },
     {
@@ -7424,7 +7454,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "e972e561c344cc1c990c55a02042e2aecee448aaa3a2ed44a6e21065cdbf4d1d",
+      "sha256": "095bf14d0fac42b826d2d18cc9f6013ee606bed4a090c57c4dfa02f6aeea28e8",
       "mode": "0644"
     },
     {
@@ -7459,8 +7489,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 673800,
-      "sha256": "9cffa51699678c34098cd71442756e70dcd7cbadac464afbf659ff329feaa158",
+      "bytes": 678548,
+      "sha256": "fe1e0a4414678788b0db4039093b363ee886db237c2a907f98c69c2c5cd3a849",
       "mode": "0644"
     },
     {
@@ -9397,8 +9427,8 @@
     },
     {
       "path": "scripts/check_budget_raises_are_named.py",
-      "bytes": 8149,
-      "sha256": "9e5b632135e0e7d4f3877e1a80509a4b14fbd61bea0d8cef0c8c3aa19f72291e",
+      "bytes": 9602,
+      "sha256": "2c8c5d52bcc210e5db3fca70650b5e5b7d04decc6f207ebd5bd18fa374a42839",
       "mode": "0755"
     },
     {
@@ -10585,8 +10615,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 319123,
-      "sha256": "9f044018f87f2c3c3704f0afffbd98a91022039982a686d2115bb6e9ce78a08c",
+      "bytes": 319133,
+      "sha256": "bc938a2b6da4de2fb76db1a9dfbce2778d1cffcbf30bcdb08206aa0d20b12171",
       "mode": "0755"
     },
     {
@@ -10723,8 +10753,8 @@
     },
     {
       "path": "scripts/run_supply_chain_gate.py",
-      "bytes": 3728,
-      "sha256": "9e00d8d0a0da63c858e6dd7041c3f70281fa44a71f8e3225552efe7633b380d1",
+      "bytes": 3790,
+      "sha256": "41616b99fc7a154b3868cf8ab151f8bd7e84a94549e8e0321af96b4b028ee335",
       "mode": "0755"
     },
     {
@@ -10741,8 +10771,8 @@
     },
     {
       "path": "scripts/security_scan.sh",
-      "bytes": 4582,
-      "sha256": "53e70355782a9df88c668cc905188d39f37f40d2fb2b8dc69371ad0bfcc72f7d",
+      "bytes": 5496,
+      "sha256": "c09f05411f03fad64dd6529e341245a5a55bb979ab21bdb4fc94d2eb5c677834",
       "mode": "0755"
     },
     {
@@ -10807,8 +10837,8 @@
     },
     {
       "path": "scripts/source_digest.py",
-      "bytes": 4631,
-      "sha256": "af31a8b1449dd138851472457883b51c93e315dade35790ea5a28ac0af722b45",
+      "bytes": 6870,
+      "sha256": "d2f8239d2b331431b67f15df615394e884dfee27717a227976686a8bff5df078",
       "mode": "0755"
     },
     {
@@ -11053,8 +11083,8 @@
     },
     {
       "path": "scripts/verify_mutation_delta.py",
-      "bytes": 9487,
-      "sha256": "627b3585a671d8cad996ac3855dbda47af71dae9a4c179e0db5efaf493ecbe14",
+      "bytes": 11126,
+      "sha256": "7cb9d91cd7959e349890062f0cf7143f87cb01ee6fae7d605d79be88b34f224b",
       "mode": "0755"
     },
     {
@@ -11095,8 +11125,8 @@
     },
     {
       "path": "scripts/verify_production_hard_predicates.py",
-      "bytes": 6821,
-      "sha256": "5b1019bb659fc95ff0eaa38a7dbbd05c3bb353415081deedf0407a7f4a0c8040",
+      "bytes": 12844,
+      "sha256": "11f886c30d2b37382c848b6693bf552554d280dfe78f8195acb928a18016f745",
       "mode": "0755"
     },
     {

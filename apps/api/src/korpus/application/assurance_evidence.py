@@ -10,6 +10,7 @@ from korpus.application.supply_chain_scanners import (
     container_scan_marker_clean,
     scanner_marker_current,
     scanner_summary_clean,
+    scanner_summary_is_ci_aggregate,
 )
 
 
@@ -122,7 +123,7 @@ def evaluate_supply_chain_evidence(
     attestation: Mapping[str, Any],
     trusted: Collection[str],
     manifest_bytes: bytes,
-    expected_commit: str,
+    accepted_commits: Collection[str],
 ) -> tuple[dict[str, bool], str, str]:
     artifacts = {name: (data, len(data)) for name, data in artifact_bytes.items()}
     attested_checks, verdict = attestation_checks(
@@ -136,11 +137,12 @@ def evaluate_supply_chain_evidence(
     checks = {
         "exact_pins_have_hashes": pins > 0 and hashes == pins,
         "source_sbom_lock_complete": source_sbom_covers_lock(source_sbom, locked),
+        "security_summary_is_ci_aggregate": scanner_summary_is_ci_aggregate(scan),
         "security_scanners_executed_clean": scanner_summary_clean(scan),
-        "security_scanners_current_commit": scanner_marker_current(scan, expected_commit),
+        "security_scanners_current_commit": scanner_marker_current(scan, accepted_commits),
         "container_scanners_executed_clean": container_scan_marker_clean(container_scan),
         "container_scanners_current_commit": scanner_marker_current(
-            container_scan, expected_commit
+            container_scan, accepted_commits
         ),
         "container_sboms_valid": valid_cyclonedx(api_sbom) and valid_cyclonedx(web_sbom),
         "evidence_manifest_bound": artifact_manifest_bound(

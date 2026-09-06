@@ -2404,12 +2404,46 @@ def test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost(
     report = {"software_ready": 3, "predicates_total": 3, "production_satisfied": 1}
     monkeypatch.setattr(gate, "ROOT", tmp_path)
     monkeypatch.setattr(gate, "build", lambda: dict(report))
+    monkeypatch.setattr(sys, "argv", ["verify_production_hard_predicates.py"])
+    # Поверхня доказу ВИМІРЮЄТЬСЯ: без жодного файла гейта дерево є чекаутом, і вирок
+    # про підлогу там невимірюваний. Щоб міряти саме порівняння, поверхня має бути.
+    surface = tmp_path / "var/production"
+    surface.mkdir(parents=True)
+    for name in gate.GATE_FILES.values():
+        (surface / name).write_text("{}", encoding="utf-8")
 
     monkeypatch.setattr(gate, "_floor", lambda: 2)
     assert gate.main() == 1, "external proof below the recorded floor did not fail the gate"
 
     monkeypatch.setattr(gate, "_floor", lambda: 1)
     assert gate.main() == 0, "a report sitting exactly on its floor must still pass"
+
+    # --report-only лишає ВИМІР і знімає ВИРОК: `release-truth` читає звіт, щоб сказати,
+    # чого бракує, і не сміє бути загейчений тим самим браком.
+    monkeypatch.setattr(gate, "_floor", lambda: 2)
+    monkeypatch.setattr(sys, "argv", ["verify_production_hard_predicates.py", "--report-only"])
+    assert gate.main() == 0
+    written = json.loads((tmp_path / "reports/PRODUCTION_HARD_PREDICATES.json").read_text("utf-8"))
+    assert written["production_satisfied"] == 1, "звіт мусить лишатись виміром, не оцінкою"
+
+
+def test_a_declared_checkout_over_a_tree_that_holds_evidence_is_refused(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Оголошення контексту не є дозволом: воно звіряється з ВИМІРОМ.
+
+    Підлогу підняли над доказом, що живе лише в ігнорованому `var/`, і той самий скрипт
+    у CI бачив нуль закриттів — джоба стала непрохідною за побудовою. Ліки — назвати
+    контекст; діра, яку ліки могли б відкрити, — оголосити чекаут там, де доказ лежить.
+    """
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import verify_production_hard_predicates as gate
+
+    assert gate.context_problem(gate.SOURCE_CHECKOUT, 14) is not None
+    assert gate.context_problem(gate.PRODUCTION_EVIDENCE, 0) is not None
+    assert gate.context_problem(gate.SOURCE_CHECKOUT, 0) is None
+    assert gate.context_problem(gate.PRODUCTION_EVIDENCE, 14) is None
+    assert gate.evidence_surface(tmp_path / "нема") == 0
 
 
 #: Єдиний законний шлях поза цим чекаутом — ОГОЛОШЕНИЙ корінь розгортання. Його читають

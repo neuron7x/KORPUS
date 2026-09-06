@@ -385,6 +385,7 @@ gate-liveness:
 		$(if $(ONLY),--only "$(ONLY)") --json "$(LIVENESS_OUT)"; \
 	rc=$$?; \
 	$(PY) -c 'import json,pathlib,subprocess,sys; p=pathlib.Path(sys.argv[1]); d=json.loads(p.read_text(encoding="utf-8")); d=d if isinstance(d,dict) else {"schema":"korpus.gate-liveness.v1","gates":d}; d["commit"]=subprocess.run(["git","rev-parse","HEAD"],capture_output=True,text=True,check=False).stdout.strip(); p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")' "$(LIVENESS_OUT)"; \
+	if [ -n "$(ONLY)" ]; then $(PY) -c 'import json,pathlib,sys; d=json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")); n=len(d.get("gates") or []); sys.exit(0) if n else sys.exit("ONLY=" + sys.argv[2] + " не вибрав ЖОДНОГО гейта: порожній вибір дає ARMED 0/0 з кодом 0, і назва неіснуючого гейта читається як здоровий вимір")' "$(LIVENESS_OUT)" "$(ONLY)" || exit 1; fi; \
 	exit $$rc
 
 # Прочитати кожне джерело каталогу один раз і записати, що саме прочитано. Потребує
@@ -850,7 +851,7 @@ public-health:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: mutation-delta-gate-selftest assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates package-build-identity production-observability production-inference-security production-exact-environment
+validate: mutation-delta-gate-selftest production-hard-predicates-selftest assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates package-build-identity production-observability production-inference-security production-exact-environment
 	python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py
@@ -1433,6 +1434,16 @@ production-exact-environment-image:
 production-hard-predicates:
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_production_hard_predicates.py
 
+production-hard-predicates-selftest:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_production_hard_predicates.py --selftest
+
+# Той самий вимір, але БЕЗ вироку про підлогу. Виміряно 06.09.2026: `release-truth`
+# вимагав, щоб предикати ПРОХОДИЛИ, — і тому реєстр блокерів не можна було перезняти
+# рівно тому, що блокери є. Той, хто каже правду про брак, був загейчений браком, про
+# який каже. Вирок лишається за `validate` і `release`; тут потрібен свіжий ВХІД.
+production-hard-predicates-report:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_production_hard_predicates.py --report-only
+
 production-sbom:
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/generate_lock_sbom.py
 
@@ -1473,7 +1484,7 @@ local-production-preflight:
 readiness-evaluate:
 	PYTHONPATH=apps/api/src:. $(PY) scripts/evaluate_engineering_readiness.py --evidence "$(EVIDENCE)" $(if $(OUT),--out "$(OUT)")
 
-release-truth: production-hard-predicates
+release-truth: production-hard-predicates-report
 	PYTHONPATH=apps/api/src:. $(PY) scripts/generate_release_truth.py
 
 # Order matters and used to be tribal knowledge. Every target that writes into `reports/`

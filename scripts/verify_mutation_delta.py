@@ -79,18 +79,46 @@ def catalogued_modules() -> set[str]:
     return files
 
 
+def carries_logic(path: Path) -> bool:
+    """Чи є в модулі щось, що можна зламати. Форма, не ім'я.
+
+    `__init__.py` виключався за ІМЕНЕМ, бо зазвичай порожній. Але порожність — це
+    властивість вмісту: пакетний файл із функцією всередині був невидимий для гейта
+    дельти цілком, а не «покритий». Правило за іменем не вміє про це знати; правило
+    за формою вміє.
+    """
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError):
+        return True
+    return any(
+        not isinstance(node, ast.Import | ast.ImportFrom | ast.Expr | ast.Assign | ast.AnnAssign)
+        or (isinstance(node, ast.Assign | ast.AnnAssign) and not _only_names(node))
+        for node in tree.body
+    )
+
+
+def _only_names(node: ast.Assign | ast.AnnAssign) -> bool:
+    """`__all__ = [...]` і подібне — оголошення, не поведінка."""
+    value = node.value
+    return value is None or isinstance(value, ast.Constant | ast.List | ast.Tuple | ast.Set)
+
+
 def changed_modules(base: str) -> list[str]:
     merge_base = _git("merge-base", base, "HEAD")
     if not merge_base:
         raise SystemExit(f"немає merge-base з {base}: предмет виміру не визначений")
-    names = _git("diff", "--name-only", "--diff-filter=AM", merge_base, "HEAD").splitlines()
+    # `R` НЕ був у фільтрі: перейменований модуль зі зміненою логікою не потрапляв у
+    # предмет узагалі. Перейменування — найдешевший спосіб винести код із-під гейта, і
+    # він не вимагав наміру: досить було посунути файл.
+    names = _git("diff", "--name-only", "--diff-filter=AMR", merge_base, "HEAD").splitlines()
     return sorted(
         name
         for name in names
         if name.startswith(SOURCE_PREFIXES)
         and name.endswith(".py")
-        and not name.endswith("__init__.py")
         and (ROOT / name).is_file()
+        and carries_logic(ROOT / name)
     )
 
 

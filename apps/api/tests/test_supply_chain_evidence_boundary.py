@@ -16,6 +16,7 @@ from korpus.application.assurance_evidence import (  # noqa: E402
 from korpus.application.supply_chain_scanners import (  # noqa: E402
     container_scan_marker_clean,
     scanner_marker_current,
+    scanner_summary_is_ci_aggregate,
 )
 
 
@@ -120,9 +121,35 @@ def test_supply_chain_manifest_rejects_unverified_extra_artifact() -> None:
     assert artifact_manifest_bound(manifest, {"a": (b"x", 1)}, source="s", release="v") is False
 
 
-def test_scanner_marker_commit_must_match_current_pipeline_commit() -> None:
+def test_scanner_marker_commit_must_be_one_whose_source_is_this_tree() -> None:
+    """Множина прийнятних комітів — ВИМІР по репозиторію, а не одне оголошення.
+
+    Коміт, що змінив лише звіти, лишає джерело тим самим, тож маркер сканера з нього
+    ще описує це дерево. Коміт, що торкнувся джерела, — вже ні. Порожня множина не
+    приймає нічого: «не змогли виміряти» не є «підходить».
+    """
     marker = {"commit_sha": "old"}
-    assert scanner_marker_current(marker, "current") is False
-    marker["commit_sha"] = "current"
-    assert scanner_marker_current(marker, "current") is True
-    assert scanner_marker_current(marker, "") is False
+    assert scanner_marker_current(marker, ("head", "reports-only")) is False
+    marker["commit_sha"] = "reports-only"
+    assert scanner_marker_current(marker, ("head", "reports-only")) is True
+    assert scanner_marker_current(marker, ()) is False
+    assert scanner_marker_current({}, ("head",)) is False
+
+
+def test_a_marker_without_a_commit_is_not_accepted_by_an_empty_string_member() -> None:
+    """Маркер без коміта дає `None`, і зарахувати його могла б лише множина з `None`."""
+    assert scanner_marker_current({"commit_sha": ""}, ("",)) is True
+    assert scanner_marker_current({"commit_sha": ""}, ("head",)) is False
+
+
+def test_a_local_scan_summary_is_not_the_ci_aggregate() -> None:
+    """Два виробники писали один файл; слабший ставав на місце сильнішого мовчки.
+
+    Виміряно 06.09.2026: `security_scan.sh` писав схему 1 у `var/security/summary.json`,
+    звідки предикат читає підсумок сканерів закріплених образів конвеєра. Скарга виходила
+    про свіжість коміта, хоч предмет — ПОХОДЖЕННЯ, і «перезніми локально» робило гірше.
+    """
+    assert scanner_summary_is_ci_aggregate({"schema_version": 2}) is True
+    assert scanner_summary_is_ci_aggregate({"schema_version": 1}) is False
+    assert scanner_summary_is_ci_aggregate({"schema_version": "2"}) is False
+    assert scanner_summary_is_ci_aggregate({}) is False
