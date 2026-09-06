@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1869,
-  "root_sha256": "f4dbd5eb5982346ccddbbf1e52d8339d3a45a05e18fadb5f64b2424df8fd769b",
+  "file_count": 1871,
+  "root_sha256": "82d8b60fdc254fbe76b0a6892c7378f1767a6d00c430d8e301fbabf2e7bc5abd",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 58710,
-      "sha256": "8d796073ae52a11399fd58a7e84239235bf376ba53ac4b7cc5bc5873d4657423",
+      "bytes": 59151,
+      "sha256": "824d4987149bc3363bc426a64e6219b16fc289d2b1f89f79fe2c5eca066b2482",
       "mode": "0644"
     },
     {
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 118160,
-      "sha256": "84f9e4948402b1cf302e730af876e250085f731335494b18dc367f46dabfc0ce",
+      "bytes": 119923,
+      "sha256": "10752f7e1f1a9a71cde54f523e1594aff29a03b82e12e340eb3dd130fd7201f2",
       "mode": "0644"
     },
     {
@@ -427,8 +427,8 @@
     },
     {
       "path": "README_FIRST.md",
-      "bytes": 2159,
-      "sha256": "e3cd3b44474194e63aac503c82507c7a333386e9684d36f5ee9dcb9739252c37",
+      "bytes": 4830,
+      "sha256": "dcec40ec817ff9648b7c684187879ea6f642cc13c72ae1d8d9d9a3e57f85fd85",
       "mode": "0644"
     },
     {
@@ -1903,8 +1903,8 @@
     },
     {
       "path": "apps/api/src/korpus/config_namespace.py",
-      "bytes": 1294,
-      "sha256": "8c487f8206b737fc2166dfce5cfb4e3f2118ab85c5e5cc1c9ba31eeb79c6160f",
+      "bytes": 2099,
+      "sha256": "814cdfe6aaeebfc9c09c2962cc9799dc29ee8619a68dea6c3e443df3300f992a",
       "mode": "0644"
     },
     {
@@ -3129,6 +3129,12 @@
       "path": "apps/api/tests/test_corpus_snapshot_contract.py",
       "bytes": 23194,
       "sha256": "7b1df7cf56d73b0b3a839ebb372b80ae3ab20435aa221144b7a8abb3320a10a0",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_corpus_transport.py",
+      "bytes": 4211,
+      "sha256": "681909448c378e7e34b86284c8715fce79f68a05c59ebdf0994915fa2e08b3a0",
       "mode": "0644"
     },
     {
@@ -4891,8 +4897,8 @@
     },
     {
       "path": "apps/api/tests/test_serving_readiness.py",
-      "bytes": 3832,
-      "sha256": "29bcb21568ae57a6785b97fb6bd4acfa7c22a32e354a952e298e04eb4aa20f46",
+      "bytes": 5779,
+      "sha256": "cc791af9b696eaa25b4cc126eb875ea9d7cb6e586ac839825d77dcf0f33bb71b",
       "mode": "0644"
     },
     {
@@ -7466,7 +7472,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "d93cb6654ef515785f8ff02d809514a5a0b08c8cf54402d25679b6492b96cc6e",
+      "sha256": "c300a0dc821915fb0698930f3343e42b0fa6c49014e336d6607c681a9bbf2d3e",
       "mode": "0644"
     },
     {
@@ -7489,8 +7495,8 @@
     },
     {
       "path": "config/operations/gate-closure.json",
-      "bytes": 23202,
-      "sha256": "0ca6fbf20dce0922854bae5ea78ced145e6234ca3c78676a6585dadb360b985c",
+      "bytes": 24326,
+      "sha256": "551abc287e97c6275d7d04db71ea88bef4e996d7b5f57ce662c0e3b297f53ab4",
       "mode": "0644"
     },
     {
@@ -7501,8 +7507,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 680455,
-      "sha256": "fd027c711dbab598a5d3406cd056b8ba3d0ce2a7c712cdde0ec7008d6cbfc3f0",
+      "bytes": 683028,
+      "sha256": "46b689152ddcf3e13c354790ec20246e221d4de12310b3cbe374c56e0edd6a78",
       "mode": "0644"
     },
     {
@@ -9547,8 +9553,8 @@
     },
     {
       "path": "scripts/check_serving_readiness.py",
-      "bytes": 6947,
-      "sha256": "bbe517aae24958420a95628f5110e647e1149728ffb50cb82503f2dd4ee1444d",
+      "bytes": 9059,
+      "sha256": "4a539b05057f51b3b75430da6eed4f1e1fc9c6472154a3851ced9635fe0e4048",
       "mode": "0755"
     },
     {
@@ -11029,8 +11035,8 @@
     },
     {
       "path": "scripts/verify_branch_integration.py",
-      "bytes": 10722,
-      "sha256": "25829ea3c3eee3653f0836ad419234f514ae25200d85c9493cde4ac21efe4063",
+      "bytes": 12127,
+      "sha256": "2ea4428a802309cd656973cad206bb30d8a816e5ce370bdcc7d4107098485e21",
       "mode": "0755"
     },
     {
@@ -11049,6 +11055,12 @@
       "path": "scripts/verify_clean_clone.sh",
       "bytes": 4652,
       "sha256": "34511c25b0cd6517391ba9dbc3db878dfa512b6248e3b3a23a086cf02f86878f",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/verify_corpus_transport.py",
+      "bytes": 8140,
+      "sha256": "76c396bc2b40e58cb511db39ad722b5c90e8f7f4e48c2427a1f6588549e393a0",
       "mode": "0755"
     },
     {

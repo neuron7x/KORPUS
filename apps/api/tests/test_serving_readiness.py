@@ -70,3 +70,35 @@ def test_a_body_that_is_not_json_does_not_break_the_verdict() -> None:
 def test_a_flat_payload_without_detail_is_still_read() -> None:
     """Не кожна відмова обгорнута в `detail`; читач мусить впоратись з обома формами."""
     assert GATE.refusing_detail('{"ready": false, "database": true}') == ["ready"]
+
+
+def test_liveness_saying_ok_while_readiness_refuses_is_named() -> None:
+    """Саме ця пара тримала простій невидимим три доби.
+
+    `/health` віддає 200 доти, доки процес живий; `/ready` відмовляв кожному запиту з
+    03.09.2026. Усе, що дивилось на сервіс, дивилось на живучість — і бачило «ок».
+    «Здоровий» і «здатний відповісти» — різні твердження.
+    """
+    live_ok = {"port": 8000, "status": 200, "body": '{"status":"ok"}'}
+    result = GATE.verdict(["u"], [8000], [REFUSING], [live_ok])
+    assert result["liveness_masking_readiness"] == [8000]
+    assert result["status"] == "FAIL"
+
+
+def test_a_port_that_is_dead_on_both_paths_is_not_masked() -> None:
+    """Дуал: зупинений сервіс видно і без цього поля. Маскування — це саме СУПЕРЕЧНІСТЬ
+    між двома пробами, а не будь-яка відмова."""
+    dead = {"port": 8000, "status": None, "body": ""}
+    assert GATE.verdict(["u"], [8000], [REFUSING], [dead])["liveness_masking_readiness"] == []
+
+
+def test_a_healthy_and_ready_port_is_not_masked() -> None:
+    live_ok = {"port": 8030, "status": 200, "body": '{"status":"ok"}'}
+    assert GATE.verdict(["u"], [8030], [OK], [live_ok])["liveness_masking_readiness"] == []
+
+
+def test_without_a_liveness_probe_the_field_claims_nothing() -> None:
+    """Відсутність другої проби не сміє читатись як «маскування немає»: це різні стани,
+    і поле мовчить лише тому, що його нічим наповнити."""
+    assert GATE.verdict(["u"], [8000], [REFUSING])["liveness_masking_readiness"] == []
+    assert GATE.verdict(["u"], [8000], [REFUSING])["status"] == "FAIL"

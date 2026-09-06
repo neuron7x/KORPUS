@@ -1,0 +1,33 @@
+{
+  "schema": "korpus.corpus-transport-rehearsal.v1",
+  "measured_at": "2026-09-06T16:20:40.088158+00:00",
+  "status": "PASS",
+  "live": {
+    "documents": 256,
+    "approved_versions": 256,
+    "spans": 31464,
+    "objects": 256,
+    "source_hash_set_sha256": "1506b4bd62ca2c5c9dd96a8dd3b35a4faa25ab766c20fe99ef02dfbbab771e46"
+  },
+  "restored": {
+    "documents": 256,
+    "approved_versions": 256,
+    "spans": 31464,
+    "objects": 256,
+    "source_hash_set_sha256": "1506b4bd62ca2c5c9dd96a8dd3b35a4faa25ab766c20fe99ef02dfbbab771e46"
+  },
+  "content_verification": {
+    "objects_checked": 256,
+    "bytes_hashed": 42751494,
+    "content_addressing_holds": true,
+    "mismatches": []
+  },
+  "checks": {
+    "restored_is_identical": true,
+    "corpus_is_not_empty": true,
+    "object_bytes_survived": true
+  },
+  "failures": [],
+  "differences": {},
+  "what_this_does_not_prove": "Що відновлений корпус ВІДПОВІДАЄ. Тут звірено тотожність вмісту; здатність відповідати міряється запитами до піднятого на ньому сервісу."
+}

@@ -2223,7 +2223,7 @@
       "reason": "ratchet ceiling lowered after production-plane decomposition | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "apps/api/src/korpus/config_namespace.py": {
-      "lines": 37,
+      "lines": 46,
       "max_complexity": 0,
       "max_function_args": 0,
       "max_function_lines": 0,
@@ -3678,12 +3678,12 @@
       "reason": "03.09.2026, ремонт META-P0: вимір на КОПІЇ бази отримував клас продакшену лише за те, що поруч живий сервіс. Предмет виміру (порт, база) тепер входить в умову. Функцію РОЗІБРАНО — `_not_production_like` віддає причину, обгортка лише вирок: довжина найдовшої функції 66→36. Складність 13 — це кількість самих правил (сім умов), а не заплутаність; далі розбирати означало б ховати перелік у таблицю лямбд. Рядки доказу 75→82: три нові негативні контролі. Доповнено 04.09.2026: без init-системи `systemctl` відсутній, і виклик кидав `FileNotFoundError`. Гілка не виконувалась ЖОДНОГО разу, доки перелік обов'язкових юнітів був порожній — правило порожнього переліку виходило раніше. Тепер відсутність init-системи дає юніту стан `unavailable`, тобто ВІДСУТНІСТЬ ПРЕДМЕТА й клас LOCAL_DEV, а не збій інструмента. Рядки доказу 82→87: негативний контроль СТВОРЮЄ свою умову порожнім PATH — перший варіант лишав у PATH саме `/usr/bin`, де `systemctl` і лежить, і був хибно зелений."
     },
     "scripts/check_serving_readiness.py": {
-      "lines": 123,
-      "max_complexity": 8,
-      "max_function_args": 3,
-      "max_function_lines": 31,
+      "lines": 159,
+      "max_complexity": 9,
+      "max_function_args": 4,
+      "max_function_lines": 41,
       "max_nesting": 2,
-      "proof_lines": 22,
+      "proof_lines": 36,
       "reason": "гейт живої готовності: свіжість коду і здатність обслуговувати — різні властивості, і друга не вимірювалась ніде; публічний сервіс ніс поточну ревізію і три доби віддавав 503 при зеленому лані розгортання"
     },
     "scripts/check_unit_exec_arguments.py": {
@@ -5646,7 +5646,7 @@
       "reason": "04.09.2026, друга правка: самоперевірка піднялась 5/10 → 9/12 отрут. Додано межу (звіт, знятий у ТУ САМУ секунду, що й HEAD, не старший), випадок «убито менше, ніж мутантів» і три випадки на гейт свіжості. Нечисту дію винесено в `_run_freshness_gate`, а результат приходить ПАРАМЕТРОМ: доти переворот `mutation is None` виживав не тому, що байдужий, а тому, що самоперевірка не могла дійти сюди, не запустивши підпроцес. Три отрути, що лишились, — усі форми `git(...) or fallback`: їх фальсифікує лише справжнє git-дерево, і це роблять `test_branch_integration` та `test_canonical_state`."
     },
     "scripts/verify_branch_integration.py": {
-      "lines": 236,
+      "lines": 253,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 64,
@@ -5671,6 +5671,15 @@
       "max_nesting": 4,
       "proof_lines": 12,
       "reason": "новий гейт 03.09.2026: дзеркало лану читає `.gitlab-ci.yml` як YAML і вимагає для кожної команди `validate`/`check` тієї самої команди в CI; 15 негативних контролів; початковий точний вимір і є стелею"
+    },
+    "scripts/verify_corpus_transport.py": {
+      "lines": 127,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 30,
+      "max_nesting": 2,
+      "proof_lines": 36,
+      "reason": "гейт переносу корпусу: 256 документів живуть лише в ігнорованому var/, тож свіжий клон дає систему з одним фікстурним документом; дорога існувала під іменем backup/restore і тому була невидима для того, хто шукає встановлення"
     },
     "scripts/verify_current_truth.py": {
       "lines": 68,
@@ -11605,6 +11614,47 @@
         "max_function_lines": 53
       },
       "why": "кампанія тепер МІРЯЄ, чи виробник лишив доказ, прив'язаний до цього дерева: для redteam вона запускала виробника, який пише в інший файл, ніж читає предикат, і звітувала про перезняття гейта, що не перезнімався жодного разу"
+    },
+    {
+      "from": {
+        "lines": 123,
+        "max_complexity": 8,
+        "max_function_args": 3,
+        "max_function_lines": 31,
+        "proof_lines": 22
+      },
+      "on": "2026-09-06",
+      "path": "scripts/check_serving_readiness.py",
+      "to": {
+        "lines": 159,
+        "max_complexity": 9,
+        "max_function_args": 4,
+        "max_function_lines": 41,
+        "proof_lines": 36
+      },
+      "why": "вимір маскування: /health віддавав 200, поки /ready відмовляв кожному — саме ця пара тримала триденний простій невидимим для будь-кого, хто питав лише про живучість"
+    },
+    {
+      "from": {
+        "lines": 37
+      },
+      "on": "2026-09-06",
+      "path": "apps/api/src/korpus/config_namespace.py",
+      "to": {
+        "lines": 46
+      },
+      "why": "три задокументовані ручки run_postgres_suite.sh (KORPUS_PG_CONTAINER/KEEP/PORT) простір імен не знав, тож користування ДОКУМЕНТОВАНИМ прапорцем валило create_app() на завантаженні conftest — документація й перевірка розходились, і мовчала саме перевірка, чиє призначення ловити розходження імен"
+    },
+    {
+      "from": {
+        "lines": 236
+      },
+      "on": "2026-09-06",
+      "path": "scripts/verify_branch_integration.py",
+      "to": {
+        "lines": 253
+      },
+      "why": "відсів символічної голови віддаленого за ПОВНИМ іменем: `%(refname:short)` для refs/remotes/origin/HEAD дає «origin», тож гейт червонів на БУДЬ-ЯКОМУ клоні й був зелений у каноні лише через відсутність предмета"
     }
   ],
   "recorded_at": "2026-09-06",

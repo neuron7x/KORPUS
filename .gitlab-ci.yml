@@ -92,6 +92,10 @@ repository:validate:
     # Гейт живої готовності: у раннері розгортання немає, тож вирок там був би UNKNOWN.
     # Здатність гейта ЛОВИТИ — є, і саме її перевіряє самоперевірка, як у сусідів вище.
     - python scripts/check_serving_readiness.py --selftest
+    # Той самий клас: перенос корпусу міряється на ЖИВОМУ корпусі, якого в раннері
+    # немає. Здатність гейта ловити — є: порожній корпус, перенесений тотожно, мусить
+    # падати, і саме це перевіряє самоперевірка.
+    - python scripts/verify_corpus_transport.py --selftest
     # OPS-004 on the only environment this job can observe: its own checkout. It proves
     # the comparator runs and that the manifest describes this tree. It is NOT evidence
     # about a cluster — that observation has to be taken on the running host, and it

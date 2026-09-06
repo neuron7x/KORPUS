@@ -32,16 +32,26 @@ from check_serving_freshness import required_units, serving_processes, unit_stat
 TIMEOUT = 10.0
 
 
-def probe(port: int, timeout: float = TIMEOUT) -> dict[str, Any]:
-    """Стан `/ready` одного порту. Недосяжність — теж стан, не відсутність виміру."""
-    url = f"http://127.0.0.1:{port}/ready"
+def probe(port: int, path: str = "/ready", timeout: float = TIMEOUT) -> dict[str, Any]:
+    """Стан одного шляху на одному порту. Недосяжність — теж стан, не брак виміру."""
+    url = f"http://127.0.0.1:{port}{path}"
     try:
         with urllib.request.urlopen(url, timeout=timeout) as response:
-            return {"port": port, "status": response.status, "body": response.read(4096).decode()}
+            return {
+                "port": port,
+                "path": path,
+                "status": response.status,
+                "body": response.read(4096).decode(),
+            }
     except urllib.error.HTTPError as error:
-        return {"port": port, "status": error.code, "body": error.read(4096).decode()}
+        return {"port": port, "path": path, "status": error.code, "body": error.read(4096).decode()}
     except OSError as error:
-        return {"port": port, "status": None, "body": f"{type(error).__name__}: {error}"}
+        return {
+            "port": port,
+            "path": path,
+            "status": None,
+            "body": f"{type(error).__name__}: {error}",
+        }
 
 
 def refusing_detail(body: str) -> list[str]:
@@ -55,10 +65,27 @@ def refusing_detail(body: str) -> list[str]:
     return sorted(key for key, value in detail.items() if value is False)
 
 
-def verdict(units: list[str], ports: list[int], probes: list[dict[str, Any]]) -> dict[str, Any]:
+def liveness_masking(ready: list[dict[str, Any]], live: list[dict[str, Any]]) -> list[int]:
+    """Порти, де живучість каже «ок», а готовність відмовляє.
+
+    Саме ця пара тримала простій невидимим три доби: усе, що дивилось на сервіс,
+    дивилось на `/health`, а він віддає 200 доти, доки процес живий. «Здоровий» і
+    «здатний відповісти» — різні твердження, і перше не є свідченням про друге.
+    """
+    healthy = {item["port"] for item in live if item["status"] == 200}
+    return sorted({item["port"] for item in ready if item["status"] != 200} & healthy)
+
+
+def verdict(
+    units: list[str],
+    ports: list[int],
+    probes: list[dict[str, Any]],
+    liveness: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Оголошено — значить мусить відповідати. Порожній перелік не є згодою."""
     serving = [item for item in probes if item["status"] == 200]
     refusing = [item for item in probes if item["status"] != 200]
+    masked = liveness_masking(probes, liveness or [])
     checks = {
         "units_declared": bool(units),
         "ports_found": bool(ports),
@@ -79,11 +106,15 @@ def verdict(units: list[str], ports: list[int], probes: list[dict[str, Any]]) ->
             }
             for item in refusing
         ],
+        "liveness_masking_readiness": masked,
         "checks": checks,
         "failures": failures,
         "interpretation": (
             "Свіжість коду не є здатністю обслуговувати. Процес, що несе поточну ревізію і "
-            "відмовляє кожному запиту, для користувача не відрізняється від зупиненого."
+            "відмовляє кожному запиту, для користувача не відрізняється від зупиненого. "
+            "`liveness_masking_readiness` називає порти, де /health каже 200, а /ready "
+            "відмовляє: саме ця пара робить простій невидимим для будь-якого спостерігача, "
+            "що питає лише про живучість."
         ),
     }
 
@@ -118,6 +149,20 @@ def selftest() -> int:
             "FAIL",
         ),
         ("неJSON-тіло не валить розбір", refusing_detail("не json"), []),
+        (
+            "живучість, що маскує готовність, названа",
+            verdict(["u"], [8000], [bad], [{"port": 8000, "status": 200, "body": "{}"}])[
+                "liveness_masking_readiness"
+            ],
+            [8000],
+        ),
+        (
+            "мертвий порт не є замаскованим",
+            verdict(["u"], [8000], [bad], [{"port": 8000, "status": None, "body": ""}])[
+                "liveness_masking_readiness"
+            ],
+            [],
+        ),
     ]
     bad_cases = [name for name, got, want in cases if got != want]
     for name in bad_cases:
@@ -134,7 +179,12 @@ def main() -> int:
     if args.selftest:
         return selftest()
     units, ports = required_units(), declared_ports()
-    payload = verdict(units, ports, [probe(port) for port in ports])
+    payload = verdict(
+        units,
+        ports,
+        [probe(port) for port in ports],
+        [probe(port, "/health") for port in ports],
+    )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(payload, ensure_ascii=False, indent=2))
