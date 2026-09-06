@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
-  "collection_digest": "f5c977222f7785b69ab64243bf5d678ac172d40783e5cf735a6d913280c9de0a",
-  "collection_count": 4223,
+  "source_digest": "a43ff4292748bb7da4ac203691e4978bceed5327546e8cbef70d69932a404633",
+  "collection_digest": "8d3e7863aa052c9a8e71dc1fde6ef91e2cc70334504e6cd1a4663b09ead836d1",
+  "collection_count": 4229,
   "shard_index": 7,
   "shard_count": 24,
-  "selected_count": 203,
+  "selected_count": 205,
   "selected_nodeids": [
     "apps/api/tests/test_answer_axes_composition.py::test_a_blind_axis_is_not_a_passed_axis",
     "apps/api/tests/test_answer_composition.py::test_an_opening_that_borrows_words_from_two_citations_is_refused",
@@ -176,6 +176,8 @@
     "apps/api/tests/test_report_input_binding.py::test_an_unchanged_report_is_not_called_stale",
     "apps/api/tests/test_repository_access_refusals.py::test_a_hash_lookup_is_scoped_to_the_document_when_one_is_given",
     "apps/api/tests/test_repository_access_refusals.py::test_identical_bytes_under_a_different_revision_are_a_different_version",
+    "apps/api/tests/test_repository_register.py::test_the_walk_is_not_silenced_by_the_directory_it_lives_under[build]",
+    "apps/api/tests/test_repository_register.py::test_the_walk_is_not_silenced_by_the_directory_it_lives_under[node_modules]",
     "apps/api/tests/test_requirement_registry.py::test_every_requirement_states_a_property_rather_than_a_complaint",
     "apps/api/tests/test_requirement_registry.py::test_the_shipped_infrastructure_register_is_satisfied",
     "apps/api/tests/test_research_parameter_admission.py::test_a_significance_level_that_is_not_a_rate_is_refused[1.5]",
@@ -213,9 +215,9 @@
     "apps/api/tests/test_worker_supervisor_liveness.py::test_a_child_that_ignores_terminate_is_killed_after_the_timeout",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_stopping_without_a_child_is_a_no_op"
   ],
-  "selected_digest": "c02c067c432bd07519e3f727dc2bc168f2c82290a95bec011ae1a2edf9c4372e",
+  "selected_digest": "4857387a190cda62caa319a8cfb47c6e128e0a8e9e1dc197030ce80fe1f9795d",
   "junit": {
-    "tests": 203,
+    "tests": 205,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -224,9 +226,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 12.718716,
+  "elapsed_seconds": 12.881057,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 35%]\n....................................................................ssss [ 70%]\n...........................................................              [100%]",
+  "stdout_tail": "........................................................................ [ 35%]\n....................................................................ssss [ 70%]\n.............................................................            [100%]",
   "stderr_tail": ""
 }

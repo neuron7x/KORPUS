@@ -2,9 +2,9 @@
   "schema": "korpus.coverage-gap-plan.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "3a014de706c1915015cc1697c66be4cc09c556e0dcb0498e8ba4a51a6d5f3ffa",
-  "statement_rate": 0.97063873,
-  "branch_rate": 0.95352048,
+  "source_tree_sha256": "a43ff4292748bb7da4ac203691e4978bceed5327546e8cbef70d69932a404633",
+  "statement_rate": 0.97076231,
+  "branch_rate": 0.95354186,
   "minimum_statement_rate": 0.95,
   "minimum_branch_rate": 0.9,
   "remaining_missing_branches": 202,
@@ -630,7 +630,7 @@
     {
       "path": "repository_requirements.py",
       "missing_branches": 1,
-      "branch_rate": 0.95,
+      "branch_rate": 0.954545,
       "risk_weight": 1.0,
       "priority": 1.0
     }
