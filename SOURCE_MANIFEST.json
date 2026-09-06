@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1866,
-  "root_sha256": "f5bf1e0bf495e9c7cfa61f5f5d523b66610e8bd3dabd5e4ce0ff2f20f6aea451",
+  "root_sha256": "d88b490bb878b938e9d750c593a17d5df5e7f18f4d7a34e5551e9a6a0968bf4c",
   "files": [
     {
       "path": ".dockerignore",
@@ -7843,8 +7843,8 @@
     },
     {
       "path": "docs/assurance/CLOSURE_CAMPAIGN_2026-09-05.md",
-      "bytes": 10676,
-      "sha256": "0e35981c31d822a0cfbd823b3c2457634dcfed36a62ea173d5c09bbe4e46b999",
+      "bytes": 20332,
+      "sha256": "8acf0cdd8a1144843ca344b5cc61783b5e6dfc7ea3a94a7c682b8077333b8741",
       "mode": "0644"
     },
     {
