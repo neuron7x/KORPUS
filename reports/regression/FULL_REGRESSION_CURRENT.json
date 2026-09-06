@@ -1,18 +1,20 @@
 {
   "schema": "korpus.regression-merge.v1",
-  "status": "PASS",
+  "status": "FAIL",
   "release_tag": "v0.9.7",
-  "source_digest": "cd31bb65c5471af0b7efa86395eb822be009ed6e35ba3153a2a7ee7e442bc088",
-  "collection_digest": "76ff674859f0ff2286993fc21f986156975a42734855181e4fcf35d6959aa60e",
-  "collection_count": 4263,
+  "source_digest": null,
+  "collection_digest": "6d5dc309168d923d93d6013e48480db775b12a0be269a72147c08f034021fe44",
+  "collection_count": 4264,
   "shards": 24,
   "junit": {
-    "tests": 4263,
+    "tests": 4264,
     "failures": 0,
     "errors": 0,
     "skipped": 45
   },
-  "failures": [],
+  "failures": [
+    "source_digest_mismatch"
+  ],
   "receipt_paths": [
     "reports/regression/shards/shard-0.json",
     "reports/regression/shards/shard-10.json",

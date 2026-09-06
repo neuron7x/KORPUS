@@ -61,10 +61,21 @@ def _objective_rows(report: dict[str, Any], checks: dict[str, bool]) -> list[dic
             "objective": objective,
             "measured": measured[predicate],
             "met": checks[predicate],
+            # УМОВА їде разом зі ЗНАЧЕННЯМ. Вирок брав `cold.get("seconds")` і не ніс
+            # віку служби, тож «холодний старт», зміряний на сервісі віком 130 секунд,
+            # проходив за визначенням, а читач вироку віку не бачив узагалі. Виміряно
+            # 06.09.2026: 7 с дало 5,569 с, 130,5 с дало 1,527 с — ім'я не тримало
+            # предмета вже не в пробі, а в тому, хто судить.
             "conditions": {
                 "phase": "cold_first_request" if predicate == "load_slo_cold_start" else "soak",
                 "concurrency": soak.get("concurrency"),
                 "requests": soak.get("requests"),
+                "answered": soak.get("answered"),
+                **(
+                    {"service_ages_seconds": cold.get("service_ages_seconds")}
+                    if predicate == "load_slo_cold_start"
+                    else {}
+                ),
             },
             "rationale": "Shared application SLO policy; provenance is evaluated separately.",
         }

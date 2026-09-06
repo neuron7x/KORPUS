@@ -132,6 +132,21 @@ def _phase(base: str, concurrency: int, seconds: float, timeout: float) -> Outco
     return outcome
 
 
+def restarted_for_this_run(ages: dict[str, float | None], probe_elapsed: float) -> dict[str, bool]:
+    """Чи кожна оголошена служба перезапущена ДЛЯ цього виміру.
+
+    Межу тут поставлено БЕЗ вибору числа: служба, старша за власний вік проби, до цього
+    виміру не перезапускалась. Це виводиться з двох виміряних величин — віку служби і
+    часу, що минув від старту проби, — і не потребує кривої «вік → латентність», якої
+    ніхто не знімав. Абсолютний зазор лишається боргом; однаковість походження — ні.
+
+    Без цього «холодний старт», зміряний на службі віком 130 с, проходив за
+    визначенням, і читач вироку не бачив, що система була тепла.
+    """
+    ceiling = probe_elapsed + 60.0
+    return {unit: (age is not None and age <= ceiling) for unit, age in ages.items()}
+
+
 def service_ages(root: Path) -> dict[str, float | None]:
     """Скільки СЕКУНД кожна оголошена служба працює на мить виміру.
 
@@ -236,6 +251,7 @@ def selftest() -> int:
 
 
 def main() -> int:
+    probe_started = time.monotonic()
     parser = argparse.ArgumentParser()
     parser.add_argument("--base", default="http://127.0.0.1:8081/api")
     parser.add_argument("--concurrency", type=int, default=4)
@@ -268,6 +284,7 @@ def main() -> int:
 
     # Cold first, deliberately: the first question after a restart pays for whatever the
     # process builds lazily, and a report that hides it describes a system nobody starts.
+    ages = service_ages(ROOT)
     cold_latency, cold_status, _, cold_refusal_reason = _ask(
         arguments.base, QUESTIONS[0], arguments.timeout
     )
@@ -302,7 +319,12 @@ def main() -> int:
             "refusal_reason": cold_refusal_reason,
             # Вік служби в мить ПЕРШОГО запиту. «Холодний» без цього числа не має
             # означення: 7 с і 131 с дають 5,569 с і 1,5 с на одній ревізії.
-            "service_ages_seconds": service_ages(ROOT),
+            "service_ages_seconds": ages,
+            # Межа без вибору числа: служба, старша за вік самої проби, до цього виміру
+            # не перезапускалась, отже вимір не є виміром холодного старту СИСТЕМИ.
+            "restarted_for_this_run": restarted_for_this_run(
+                ages, time.monotonic() - probe_started
+            ),
         },
         # Скільки РІЗНИХ суб'єктів тримала проба. Без цього числа «немає тротлінгу»
         # і «є тротлінг» — твердження про різні світи, і жоден звіт не каже, про який.

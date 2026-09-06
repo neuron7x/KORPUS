@@ -2,7 +2,7 @@
   "schema": "korpus.dependency-lock-verification.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "cd31bb65c5471af0b7efa86395eb822be009ed6e35ba3153a2a7ee7e442bc088",
+  "source_tree_sha256": "7a63744e75ff71d4ed60fcdc479482b96b6681750f0f0a576a57dae2cbc334b4",
   "digest_scope": "evidence_paths",
   "python": {
     "runtime_packages": 55,
