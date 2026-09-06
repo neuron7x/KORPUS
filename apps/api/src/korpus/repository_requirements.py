@@ -253,9 +253,18 @@ def _is_oversized_file(context: RepositoryContext, path: Path, relative: str) ->
 def _scan_tree(context: RepositoryContext, root: Path, git_tracked: frozenset[str]) -> None:
     for path in root.rglob("*"):
         context.path_count += 1
-        if not path.is_file() or any(part in SKIP_PARTS for part in path.parts):
+        if not path.is_file():
             continue
-        relative = path.relative_to(root).as_posix()
+        # Пропуск судиться по шляху ВІДНОСНО кореня, не по абсолютному. Доти вирок
+        # залежав від того, ДЕ лежить дерево: репозиторій, розгорнутий у теці з іменем
+        # `var`, `dist`, `build`, `node_modules` чи `.cache`, робив цей обхід німим —
+        # `tracked_secrets` порожній, `oversized` порожній, `placeholders` порожній, і
+        # `validate_repository` зелений. Виміряно 06.09.2026 двома деревами-близнюками:
+        # під нейтральною текою секрет знайдено, під текою `var` — ні.
+        inside = path.relative_to(root)
+        if any(part in SKIP_PARTS for part in inside.parts):
+            continue
+        relative = inside.as_posix()
         if _is_oversized_file(context, path, relative):
             context.oversized.append(relative)
         if path.suffix in SCANNED_SUFFIXES:
