@@ -8,9 +8,16 @@ Canonical engineering-closure repository snapshot — **23 August 2026**.
 
 - Behavioral source · Regression · Mutation · Web · Determinism — усе в її звіті
 - Software hard predicates: **14** (`config/assurance/production-hard-predicates-v1.json`)
-- External hard predicates: **0 із 14**, і це ЧЕСНИЙ нуль, а не невиміряний стан:
-  реєстри підписантів порожні за побудовою, тож жодна атестація не перевіряється і жодна
-  підстава не знімається. Внесення ключа — акт приймальника, не правка розробника
+- External hard predicates: число НЕ вкарбоване тут — його виробник
+  `scripts/verify_production_hard_predicates.py`, і воно стоїть у
+  `reports/PRODUCTION_HARD_PREDICATES.json` разом із підлогою ратчета
+  (`config/assurance/production-predicate-floor.json`). Станом на вимір 06.09.2026 —
+  **6 закрито при підлозі 6, 8 лишаються EXTERNAL_REQUIRED**.
+  Попередня редакція казала «0 із 14, і це ЧЕСНИЙ нуль… реєстри підписантів порожні за
+  побудовою». Виміряно: твердження хибне в обидва боки. Реєстри справді порожні, але
+  профіль ВИЛУЧАЄ атестаційні перевірки для шести предикатів (`waived_external_checks`),
+  тож нуль із порожніх реєстрів НЕ випливає — і фактично їх шість. Число без знаменника
+  й без класу читається як гарантія; тут лишається дорога до нього
 - Production authorization: **FALSE**
 > **ВИПРАВЛЕНО 02.09.2026.** Числа в цьому блоці були заморожені 23.08.2026 і подавались
 > як поточний стан. Виміряно: тестів **3814**, не 2345; мутантів **574**, не 349; шардів

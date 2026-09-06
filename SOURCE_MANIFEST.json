@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1871,
-  "root_sha256": "0937778707b1a2865806eddf0c3c98556d92b0278526f6be52da683e8a9385c5",
+  "file_count": 1872,
+  "root_sha256": "53b71ab9a03dd0370551a685d7f14f29ec94850d3ed995154fab4b83d721f0d4",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,20 +415,20 @@
     },
     {
       "path": "Makefile",
-      "bytes": 119923,
-      "sha256": "10752f7e1f1a9a71cde54f523e1594aff29a03b82e12e340eb3dd130fd7201f2",
+      "bytes": 120167,
+      "sha256": "7b08e68b98e21108e7a81213d8cd1994a373327bd711eef5f51994e52b6d6533",
       "mode": "0644"
     },
     {
       "path": "README.md",
-      "bytes": 2091,
-      "sha256": "8a17446bd4811204fc926c55a48fe92de08f3c9b89ba3139b7a52af722e2fdb6",
+      "bytes": 2569,
+      "sha256": "67522d9be6a86fcb9bf5ac3818f11253c9a4d8e7aa3b135046850560a8544fd4",
       "mode": "0644"
     },
     {
       "path": "README_FIRST.md",
-      "bytes": 4830,
-      "sha256": "dcec40ec817ff9648b7c684187879ea6f642cc13c72ae1d8d9d9a3e57f85fd85",
+      "bytes": 5590,
+      "sha256": "270f50aa8dcdc34bb0d9c7ffba3a694042b26701e6209ad65ab20af36582a538",
       "mode": "0644"
     },
     {
@@ -829,8 +829,8 @@
     },
     {
       "path": "apps/api/src/korpus/api/routes_health.py",
-      "bytes": 5268,
-      "sha256": "1cff01f1abed515662d91bbfdb3e10665b2716e78a4713d2ffce8eaa14c44879",
+      "bytes": 7806,
+      "sha256": "a0b6e4b7991d70d764bfe492efe9e349739fc2dde931d31987c9510df8f5bf98",
       "mode": "0644"
     },
     {
@@ -3013,8 +3013,8 @@
     },
     {
       "path": "apps/api/tests/test_clean_room_admission.py",
-      "bytes": 5757,
-      "sha256": "89509c7b1c715fae83fe0cad7a2a89206603b53146bc5dbf353a8f63ca242170",
+      "bytes": 7093,
+      "sha256": "67020c0f82905cf6653c32ec4082a33a1c08586f53fd1807b39dab84ca55c7b4",
       "mode": "0644"
     },
     {
@@ -3390,6 +3390,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_entry_point_guards_are_assertions.py",
+      "bytes": 4453,
+      "sha256": "bedbe294a504249bb549451f386e0f737d23ea762a9163645ce7beb07b035c52",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_environment_drift.py",
       "bytes": 14589,
       "sha256": "aac509be3581266c74296f1b4affd28ac59c59efab1db56096e68f7525a61593",
@@ -3703,8 +3709,8 @@
     },
     {
       "path": "apps/api/tests/test_health.py",
-      "bytes": 2366,
-      "sha256": "473a07ff8b9279f67468fe58209c6e649cec6088862811626bc41d0aa08cbcb1",
+      "bytes": 6591,
+      "sha256": "3698a61a1f9da17acf0bd7669e7c3dc8a6a21c93726a7626efacc2f1ff962444",
       "mode": "0644"
     },
     {
@@ -3919,8 +3925,8 @@
     },
     {
       "path": "apps/api/tests/test_military_readiness_runner.py",
-      "bytes": 1483,
-      "sha256": "b99cd8947ce4576960009a4b685a901065dea876454d4a9c68c183644a0c25d8",
+      "bytes": 3993,
+      "sha256": "eb23c78716623b5e65b1dad22b22d87b75633addd8aa64cc5cb9d56bc5724aff",
       "mode": "0644"
     },
     {
@@ -4111,8 +4117,8 @@
     },
     {
       "path": "apps/api/tests/test_owner_packet_refresh.py",
-      "bytes": 7196,
-      "sha256": "d565e10406c95c468dafb335a4fdd5d313634979f8befefd565b25cbf4b70972",
+      "bytes": 10161,
+      "sha256": "849339d815f6b6bc5f6183f3202b47dc7a2d8179fc0bae1f5b372039eda3be00",
       "mode": "0644"
     },
     {
@@ -7507,8 +7513,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 683028,
-      "sha256": "46b689152ddcf3e13c354790ec20246e221d4de12310b3cbe374c56e0edd6a78",
+      "bytes": 686156,
+      "sha256": "b8179ad818690f169efec67a169c496b82b30be3f84208c5fe299cb6af9b5ecb",
       "mode": "0644"
     },
     {
@@ -10423,8 +10429,8 @@
     },
     {
       "path": "scripts/refresh_owner_packet.py",
-      "bytes": 6898,
-      "sha256": "e23f1b0676f3d24c59d3873f8ad847712b7124fb886814d559fcf6e0d99995cf",
+      "bytes": 9302,
+      "sha256": "3036f605c64737c6bc29af8505fe84955ec174406f452644ef34d56900ca7c52",
       "mode": "0755"
     },
     {
@@ -10477,8 +10483,8 @@
     },
     {
       "path": "scripts/reproduce_clean_room.py",
-      "bytes": 7378,
-      "sha256": "9781b8429e5d59090140922d8777b52ee1da03bb2b046de5534c11e1b5332c31",
+      "bytes": 9197,
+      "sha256": "e1978cbe406e359872b9afe28d2383338d071b0f23ffce3caa32e2fb0bce876e",
       "mode": "0755"
     },
     {
@@ -10627,8 +10633,8 @@
     },
     {
       "path": "scripts/run_military_readiness_campaign.py",
-      "bytes": 7088,
-      "sha256": "e1866b1047651f177742a86154a0ee3589e6ba72963c4f8916a5c95a8e3c4a3f",
+      "bytes": 8087,
+      "sha256": "cee8df56394597e43d357728cd979de27a200aba077e5ac2a486fc773b306a6d",
       "mode": "0755"
     },
     {

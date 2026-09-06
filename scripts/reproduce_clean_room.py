@@ -27,6 +27,13 @@ from typing import Any
 from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parents[1]
+#: ОСНОВА, не архів. Перша редакція тягнула з GitHub — а власний `post-commit` цього
+#: дерева називає GitHub «дзеркало-архів: Actions заблоковані білінгом, він нічого не
+#: запускає й НІЧОГО НЕ СТВЕРДЖУЄ, лише зберігає». Отже найсильніший позитивний доказ
+#: релізу свідчив про відтворюваність АРХІВУ, а не того дерева, яке судить конвеєр.
+#: Підміна предмета, знайдена незалежною сесією 06.09.2026.
+TRUNK = "https://gitlab.com/neuron7x/korpus-platform.git"
+ARCHIVE = "https://github.com/neuron7x/KORPUS.git"
 OUT = "reports/closure/CLEAN_ROOM_REPRODUCTION.json"
 
 
@@ -156,11 +163,29 @@ def reproduce(remote: str, sha: str) -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--remote", required=True)
+    parser.add_argument("--remote", default=TRUNK)
+    parser.add_argument(
+        "--also",
+        default=None,
+        help="другий форж: збіг дайджестів двох незалежних джерел — окрема вісь",
+    )
     parser.add_argument("--sha", required=True)
     parser.add_argument("--out", default=OUT)
     args = parser.parse_args()
     payload = reproduce(args.remote, args.sha)
+    payload["remote_class"] = "TRUNK" if args.remote == TRUNK else "ARCHIVE_OR_OTHER"
+    if args.also:
+        # Незалежність ВХОДУ, а не інтерпретатора: два форжі, дві мережеві дороги, один
+        # дайджест. Якщо вони розійшлися — дзеркала несуть різні дерева під одним іменем.
+        mirror = reproduce(args.also, args.sha)
+        payload["mirror"] = {
+            "remote": args.also,
+            "source_tree_sha256": mirror["source_tree_sha256"],
+            "status": mirror["status"],
+            "digests_agree": mirror["source_tree_sha256"] == payload["source_tree_sha256"],
+        }
+        if not payload["mirror"]["digests_agree"]:
+            payload["status"] = "FAIL"
     path = ROOT / args.out
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

@@ -201,7 +201,21 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2, ensure_ascii=False))
-    return 0 if report["status"] == "PASS" else 1
+    # НЕВИКОНАНЕ НЕ Є ПРОЙДЕНИМ. Регресія жила окремим полем, і `status` її не бачив:
+    # у обмеженому обсязі вона `NOT_EXECUTED`, а кампанія віддавала 0. Тобто прогін, у
+    # якому регресію не запускали ЖОДНОГО разу, був невідрізненний від прогону, де вона
+    # пройшла. Виміряно незалежною сесією 06.09.2026.
+    regression_block = report["regression"]
+    regression_state = (
+        str(regression_block.get("status")) if isinstance(regression_block, dict) else "ABSENT"
+    )
+    if regression_state != "PASS":
+        print(
+            f"  x регресія: {regression_state} — кампанія не може звітувати PASS про набір, "
+            "якого не виконувала",
+            file=sys.stderr,
+        )
+    return 0 if report["status"] == "PASS" and regression_state == "PASS" else 1
 
 
 if __name__ == "__main__":

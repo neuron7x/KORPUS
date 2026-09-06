@@ -13,7 +13,7 @@ KORPUS is a bounded-evidence, multi-tenant knowledge/inference system with fail-
 | Determinism | `make determinism-gate` |
 | Operational engineering gate | `var/operational-gate.json` |
 | Hard predicates | `reports/PRODUCTION_HARD_PREDICATES.json` |
-| Production authorization | **false** — і це НЕ рухоме число: `production_satisfied` дорівнює нулю за побудовою, доки порожні реєстри підписантів |
+| Production authorization | **false**. Раніше тут стояло «`production_satisfied` дорівнює нулю за побудовою, доки порожні реєстри підписантів» — виміряно 06.09.2026 як хибне: профіль вилучає атестаційні перевірки для шести предикатів, і закритих шість при підлозі шість. Поточне число має виробника (`make production-hard-predicates`) і живе в `reports/PRODUCTION_HARD_PREDICATES.json`; авторизація лишається `false` з інших підстав, перелічених там |
 
 Одна команда, що дає всі ці числа разом і відмовляється міряти брудне або рухоме
 дерево: `make release-verify`.

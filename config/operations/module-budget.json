@@ -653,10 +653,10 @@
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
     },
     "apps/api/src/korpus/api/routes_health.py": {
-      "lines": 125,
+      "lines": 153,
       "max_complexity": 8,
       "max_function_args": 6,
-      "max_function_lines": 57,
+      "max_function_lines": 85,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
@@ -4842,8 +4842,8 @@
       "reason": "Initial measured ceiling for retrieval-yield and Wilson uncertainty reporting"
     },
     "scripts/refresh_owner_packet.py": {
-      "lines": 159,
-      "max_complexity": 3,
+      "lines": 185,
+      "max_complexity": 6,
       "max_function_args": 2,
       "max_function_lines": 32,
       "max_nesting": 2,
@@ -4923,11 +4923,11 @@
       "reason": "Точна виміряна початкова стеля. Ремонт уже збережених прольотів тим самим `_strip_html`, що виправлено в екстракції: фікс діє на нові, а старі лишаються такими, якими їх зберегли. Відмовляється писати, якщо ремонт зʼїдає більше половини тексту або лишає неречення."
     },
     "scripts/reproduce_clean_room.py": {
-      "lines": 172,
-      "max_complexity": 4,
+      "lines": 197,
+      "max_complexity": 5,
       "max_function_args": 3,
       "max_function_lines": 31,
-      "max_nesting": 1,
+      "max_nesting": 2,
       "proof_lines": 0,
       "reason": "виробник репродукції з віддаленого джерела; артефакт CLEAN_ROOM_REPRODUCTION.json доти не мав виробника в дереві — його клав рукою той, хто щойно провів прогін, і різниця між «прогін був» і «документ про прогін є» була невидима за побудовою"
     },
@@ -5120,10 +5120,10 @@
       "proof_lines": 0
     },
     "scripts/run_military_readiness_campaign.py": {
-      "lines": 208,
-      "max_complexity": 9,
+      "lines": 222,
+      "max_complexity": 12,
       "max_function_args": 3,
-      "max_function_lines": 49,
+      "max_function_lines": 63,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "ITER5 integrated readiness orchestrator: deterministic disjoint regression batches with fail-closed timeout/failure aggregation; exact ratchet ceiling."
@@ -11655,6 +11655,77 @@
         "lines": 253
       },
       "why": "відсів символічної голови віддаленого за ПОВНИМ іменем: `%(refname:short)` для refs/remotes/origin/HEAD дає «origin», тож гейт червонів на БУДЬ-ЯКОМУ клоні й був зелений у каноні лише через відсутність предмета"
+    },
+    {
+      "from": {
+        "lines": 125,
+        "max_function_lines": 57
+      },
+      "on": "2026-09-06",
+      "path": "apps/api/src/korpus/api/routes_health.py",
+      "to": {
+        "lines": 153,
+        "max_function_lines": 85
+      },
+      "why": "розділено ФАКТ і ПОЛІТИКУ: schema_current казав «поточна» там, де дві сусідні строки показували розбіжність ревізій — і саме на шляху ВІДМОВИ, коли читач розбирає аварію"
+    },
+    {
+      "from": {
+        "lines": 159,
+        "max_complexity": 3
+      },
+      "on": "2026-09-06",
+      "path": "scripts/refresh_owner_packet.py",
+      "to": {
+        "lines": 185,
+        "max_complexity": 6
+      },
+      "why": "лічильник блокерів кандидата дістав виробника (жив ЧОТИРМА написаннями від руки, і документ суперечив сам собі), а проліт стану блокерів розширено на заголовок — доти число оновлювалось, а дата й дайджест під ним ні"
+    },
+    {
+      "from": {
+        "lines": 208,
+        "max_complexity": 9,
+        "max_function_lines": 49
+      },
+      "on": "2026-09-06",
+      "path": "scripts/run_military_readiness_campaign.py",
+      "to": {
+        "lines": 219,
+        "max_complexity": 11,
+        "max_function_lines": 60
+      },
+      "why": "невиконана регресія більше не рахується пройденою: вона жила окремим полем, якого вирок не читав, тож прогін без жодного запуску був невідрізненний від зеленого"
+    },
+    {
+      "from": {
+        "lines": 172,
+        "max_complexity": 4,
+        "max_nesting": 1
+      },
+      "on": "2026-09-06",
+      "path": "scripts/reproduce_clean_room.py",
+      "to": {
+        "lines": 197,
+        "max_complexity": 5,
+        "max_nesting": 2
+      },
+      "why": "репродукція тягне з ОСНОВИ (GitLab), а не з архіву: власний post-commit називає GitHub дзеркалом, що «нічого не стверджує», тож найсильніший доказ свідчив про архів. Плюс друга вісь — збіг дайджестів двох незалежних форжів"
+    },
+    {
+      "from": {
+        "lines": 219,
+        "max_complexity": 11,
+        "max_function_lines": 60
+      },
+      "on": "2026-09-06",
+      "path": "scripts/run_military_readiness_campaign.py",
+      "to": {
+        "lines": 222,
+        "max_complexity": 12,
+        "max_function_lines": 63
+      },
+      "why": "стан регресії читається типобезпечно: mypy правильно відхилив індексацію поля, тип якого — обʼєднання; вирок мусить пережити звіт будь-якої форми"
     }
   ],
   "recorded_at": "2026-09-06",

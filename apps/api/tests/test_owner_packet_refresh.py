@@ -57,8 +57,19 @@ RECOVERY = {
     "lost_events": 0,
     "scale_class": "pilot",
 }
-REGISTRY = {"counts": {"internal": 0, "external": 7}}
-PREDICATES = {"software_ready": 7, "predicates_total": 14}
+REGISTRY = {
+    "counts": {"internal": 0, "external": 7},
+    "generated_at": "2026-09-06T17:20:33+00:00",
+    "source_tree_sha256": "0be621c1f1dcd1c9" + "0" * 48,
+}
+PREDICATES = {
+    "software_ready": 7,
+    "predicates_total": 14,
+    "states": [
+        {"id": "live_scanners", "blocks_candidate": True, "externally_satisfied": False},
+        {"id": "closed", "blocks_candidate": False, "externally_satisfied": True},
+    ],
+}
 
 PACKET_TEMPLATE = """# Пакет власника
 
@@ -73,7 +84,11 @@ PACKET_TEMPLATE = """# Пакет власника
 RTO **12,000 с** (відновлення 8,000 + перевірка 4,000) · RPO **0,000 с**\
  · втрачено подій 0 · клас масштабу `pilot`.
 
+### 2.6-BIS Стан блокерів (вимір 2026-09-06, дайджест `0be621c1f1dcd1c9`)
+
 `software_ready` **7 із 14**. Реєстр блокерів: **external** 7 · **internal** 0.
+
+`blocks_candidate` **1** · зовнішніх вимог **1 із 2**. Блокують: `live_scanners`.
 """
 IN_SYNC = PACKET_TEMPLATE.format(digest=DIGEST, cold="200 за **1,500 с** (стеля 5,0)")
 
@@ -175,3 +190,48 @@ def test_running_the_script_actually_runs_it() -> None:
     )
     assert done.returncode == 0, done.stdout + done.stderr
     assert "--check" in done.stdout, done.stdout
+
+
+def test_the_candidate_counter_has_a_producer(tmp_path: Path) -> None:
+    """Число блокерів кандидата жило в §3 ЧОТИРМА написаннями від руки.
+
+    Документ казав «блокерів кандидата НУЛЬ» на рядку 31 і 150, і «доки блокерів §3
+    п'ять» на рядку 241 — суперечність у межах одного файла, при `make release-freeze`,
+    що відмовляв. `source_bound` цього не бачив за побудовою: він ловить дрейф
+    ДАЙДЖЕСТА, а не дрейф ТВЕРДЖЕННЯ на однаковому дайджесті.
+    """
+    predicates = {
+        "states": [
+            {"id": "a", "blocks_candidate": True, "externally_satisfied": False},
+            {"id": "b", "blocks_candidate": False, "externally_satisfied": True},
+        ]
+    }
+    line = REFRESH.candidate_line(predicates)
+    assert "**1**" in line
+    assert "`a`" in line and "`b`" not in line
+    assert "1 із 2" in line
+
+
+def test_no_blocking_predicate_says_so_in_words_not_by_silence() -> None:
+    """Порожній перелік мусить читатись як «жодного», а не як відсутній рядок."""
+    line = REFRESH.candidate_line({"states": [{"id": "a", "externally_satisfied": True}]})
+    assert "**0**" in line
+    assert "жодного" in line
+
+
+def test_the_generated_blocker_block_carries_its_own_provenance() -> None:
+    """Число оновлювалось, а дата й дайджест під ним — ні.
+
+    Проліт починався з `software_ready`, тож заголовок над ним лишався зі штампом
+    чужого дерева, і найсвіжіший вимір стояв підписаний чужим дайджестом.
+    """
+    registry = {
+        "counts": {"CLOSED_ANCHORED": 6},
+        "generated_at": "2026-09-06T17:20:33+00:00",
+        "source_tree_sha256": "0be621c1f1dcd1c9" + "0" * 48,
+    }
+    block = REFRESH.blocker_line(registry, {"software_ready": 14, "predicates_total": 14})
+    assert block.startswith("### 2.6-BIS")
+    assert "2026-09-06" in block
+    assert "0be621c1f1dcd1c9" in block
+    assert REFRESH.BLOCKER_BLOCK.match(block), "згенерований блок не збігається з власним якорем"

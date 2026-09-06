@@ -1470,10 +1470,12 @@ production-hard-predicates:
 # клав рукою той, хто щойно провів прогін, і різниця між «прогін був» і «документ про
 # прогін є» була невидима за побудовою. Потребує мережі й хвилин, тож не в `validate`;
 # споживач вироку — `current-truth-verify`.
-#   make clean-room SHA=<коміт на віддаленому>
+#   make clean-room SHA=<коміт>            — з ОСНОВИ (GitLab)
+#   make clean-room SHA=<коміт> ALSO=<url> — плюс другий форж; збіг дайджестів
+#                                            двох незалежних джерел — окрема вісь
 clean-room:
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/reproduce_clean_room.py \
-	  --remote $(or $(REMOTE),https://github.com/neuron7x/KORPUS.git) --sha "$(SHA)"
+	  $(if $(REMOTE),--remote "$(REMOTE)") $(if $(ALSO),--also "$(ALSO)") --sha "$(SHA)"
 
 production-hard-predicates-selftest:
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_production_hard_predicates.py --selftest
