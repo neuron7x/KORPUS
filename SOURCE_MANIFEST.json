@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1872,
-  "root_sha256": "53b71ab9a03dd0370551a685d7f14f29ec94850d3ed995154fab4b83d721f0d4",
+  "root_sha256": "c81cfbce3b0a7197cfbf022c1b1921dcded4fcd66096278c45a1aa3fcdfb3acf",
   "files": [
     {
       "path": ".dockerignore",
@@ -3565,8 +3565,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 167891,
-      "sha256": "a0760391f691ba5ecf41fc6477c70940eff477602f3330ff2f955e4becb4b658",
+      "bytes": 168789,
+      "sha256": "eb4101770d91d3aa491899f988bff92e13a558bb99fba7a8a67c603f4d926a45",
       "mode": "0644"
     },
     {
@@ -7513,8 +7513,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 686156,
-      "sha256": "b8179ad818690f169efec67a169c496b82b30be3f84208c5fe299cb6af9b5ecb",
+      "bytes": 686789,
+      "sha256": "6ecc2d59b7ee3fae31d70f4423d091ad9c4acdc235a1806f9b4460b02913b860",
       "mode": "0644"
     },
     {
@@ -10063,8 +10063,8 @@
     },
     {
       "path": "scripts/load_probe.py",
-      "bytes": 17109,
-      "sha256": "1d293ded609447d3af53994c504f856229db11a3ce8d2782934fddfe1c564088",
+      "bytes": 19370,
+      "sha256": "0010946ec27acdb129cb99433919421c18e093ae669b3453e387148c8a56189b",
       "mode": "0755"
     },
     {

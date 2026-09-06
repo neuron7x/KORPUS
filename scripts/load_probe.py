@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import http.client
 import json
+import subprocess
 import sys
 import time
 import urllib.error
@@ -22,7 +23,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 sys.path.insert(0, str(ROOT / "scripts"))
-from check_serving_freshness import topology_environment_class  # noqa: E402
+from check_serving_freshness import (  # noqa: E402
+    required_units,
+    topology_environment_class,
+)
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from load_probe_lib.metrics import Outcome, refusal_reason  # noqa: E402
 from release_identity import release_tag  # noqa: E402
@@ -126,6 +130,46 @@ def _phase(base: str, concurrency: int, seconds: float, timeout: float) -> Outco
     with ThreadPoolExecutor(max_workers=concurrency) as pool:
         list(pool.map(worker, range(concurrency)))
     return outcome
+
+
+def service_ages(root: Path) -> dict[str, float | None]:
+    """Скільки СЕКУНД кожна оголошена служба працює на мить виміру.
+
+    «Холодний старт» без цього числа означає різне: виміряно 06.09.2026 — цикл бив у
+    службу віком 7 с і дістав 5,569 с, наступний прогін бив у службу віком 131 с і
+    дістав 1,5 с. Обидва звались «холодний старт». Проба успадковувала зазор, який
+    ВИПАДКОВО склався між рестартом і запуском, замість створювати свою умову.
+
+    Число не змінює вироку — воно робить два вироки ПОРІВНЮВАНИМИ. Без нього ратчет
+    порівнює виміри різних систем і не має як це помітити.
+    """
+    ages: dict[str, float | None] = {}
+    for unit in required_units(root):
+        try:
+            shown = subprocess.run(
+                [
+                    "systemctl",
+                    "--user",
+                    "show",
+                    unit,
+                    "-p",
+                    "ActiveEnterTimestampMonotonic",
+                    "--value",
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=10,
+            ).stdout.strip()
+            started = int(shown) / 1_000_000 if shown.isdigit() and shown != "0" else None
+        except (OSError, subprocess.SubprocessError, ValueError):
+            started = None
+        ages[unit] = (
+            round(time.clock_gettime(time.CLOCK_MONOTONIC) - started, 1)
+            if started is not None
+            else None
+        )
+    return ages
 
 
 def _port_of(base: str) -> int | None:
@@ -256,6 +300,9 @@ def main() -> int:
             "seconds": round(cold_latency, 3),
             "status": cold_status,
             "refusal_reason": cold_refusal_reason,
+            # Вік служби в мить ПЕРШОГО запиту. «Холодний» без цього числа не має
+            # означення: 7 с і 131 с дають 5,569 с і 1,5 с на одній ревізії.
+            "service_ages_seconds": service_ages(ROOT),
         },
         # Скільки РІЗНИХ суб'єктів тримала проба. Без цього числа «немає тротлінгу»
         # і «є тротлінг» — твердження про різні світи, і жоден звіт не каже, про який.

@@ -3224,3 +3224,16 @@ def test_the_mandatory_gate_set_is_declared_once() -> None:
         "у лані, але не в конверті": sorted(lane - declared),
         "у конверті, але не в лані": sorted(declared - lane),
     }
+
+
+def test_the_cold_start_probe_records_how_cold_it_actually_was() -> None:
+    """«Холодний старт» без віку служби — імʼя без означення.
+
+    Виміряно 06.09.2026: цикл бив у службу віком 7 с і дістав 5,569 с; наступний прогін
+    бив у службу віком 131 с і дістав 1,5 с. Обидва звались «холодний старт», обидва
+    йшли в той самий ратчет, і підлогу ставили за одним виміром, а брали за іншим.
+    Число не змінює вироку — воно робить два вироки ПОРІВНЮВАНИМИ.
+    """
+    source = (ROOT / "scripts/load_probe.py").read_text(encoding="utf-8")
+    assert "service_ages_seconds" in source
+    assert "def service_ages(" in source
