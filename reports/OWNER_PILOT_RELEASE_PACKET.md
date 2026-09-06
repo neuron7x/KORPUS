@@ -103,7 +103,7 @@ RTO **10,115 с** (відновлення 10,061 + перевірка 0,054) · 
 
 ### 2.6-BIS Стан блокерів після нічного перезняття (05.09.2026, дайджест `b9096028`)
 
-`software_ready` **14 із 14**. Реєстр блокерів: **CLOSED_ANCHORED** 6 · **EXTERNAL_REQUIRED** 8.
+`software_ready` **14 із 14**. Реєстр блокерів: **CLOSED_ANCHORED** 7 · **EXTERNAL_REQUIRED** 7.
 
 Закрито цієї ночі перезняттям на цьому дереві (`CLOSED_ANCHORED`): `live_postgres_rls`, `production_like_load`, `trusted_load_attestation`, `trusted_recovery_attestation`. Окремо закрито `exact_python_3_12_13_environment` — доказ здобуто **всередині образу** (`EXACT_PRODUCTION_IMAGE`, 55 закріплених компонентів, нічого не бракує й не розходиться), бо на робочій машині він за побудовою не має сили.
 

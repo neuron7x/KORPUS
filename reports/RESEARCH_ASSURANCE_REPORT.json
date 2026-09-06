@@ -8293,27 +8293,27 @@
     "environment_class": "PRODUCTION_LIKE",
     "environment_class_requested": "PRODUCTION_LIKE",
     "environment_class_basis": "оголошені юніти активні, несуть поточний код і є предметом виміру",
-    "source_tree_sha256": "bad7efe1a766497a8b1430283e28a47e013d8f811496cf9d3b0a50d272db8a95",
+    "source_tree_sha256": "aaf8e9fc27412bb8531e0e4aded9b7014394fff6d23b9fdc204b8cd631fd3987",
     "release": "v0.9.7",
-    "rto_seconds": 10.276,
-    "restore_seconds": 10.199,
-    "verify_seconds": 0.077,
-    "rpo_seconds": 7.014,
+    "rto_seconds": 10.115,
+    "restore_seconds": 10.061,
+    "verify_seconds": 0.054,
+    "rpo_seconds": 8.692,
     "lost_events": 0,
     "lost_documents": 5,
     "lost_documents_total": 5,
     "provenance": {
-      "backup_bytes": 22614384,
-      "plaintext_bytes": 22614342,
+      "backup_bytes": 22830272,
+      "plaintext_bytes": 22830230,
       "document_rows": 259,
       "source_document_rows": 264,
-      "audit_event_rows": 17995,
-      "source_audit_event_rows": 17995,
+      "audit_event_rows": 18440,
+      "source_audit_event_rows": 18440,
       "writes_after_backup": 5,
-      "newest_source_write": "2026-09-05T23:14:36.147617+00:00",
-      "newest_restored_write": "2026-09-05T23:14:29.133420+00:00",
+      "newest_source_write": "2026-09-06T05:32:39.019395+00:00",
+      "newest_restored_write": "2026-09-06T05:32:30.327812+00:00",
       "engine_version": "17.10 (Debian 17.10-1.pgdg13+1)",
-      "measured_at": "2026-09-05T23:14:47.656078+00:00",
+      "measured_at": "2026-09-06T05:32:50.238781+00:00",
       "backup_key_id": "korpus-pilot-drill-2026-09-05"
     },
     "interpretation": "Recovery time and loss measured against a CI fixture database. It is evidence that the drill runs and that the numbers are collected, not evidence about operational recovery: no RTO or RPO objective has been declared by anyone entitled to declare one (admission ground 2.9)."
@@ -8324,7 +8324,7 @@
     "migration": "eae7927831627259023ef1aab8264b04259807ef185a277f3dbb411cb90fc3bd",
     "scale": "065a342887a1773ac9062ad6f69d6e0b9b2a308467b1d8f34dbc07a089c9873b",
     "operational": "1403f409aeab370bfa6d6654c2d3ce4af96adfc56de4fd649d2db162e10cafc2",
-    "recovery": "de8c3f22292bf86cf257e350bcb39fe1e96f2ef54fa1c5e6df3cbf8519b9a91b"
+    "recovery": "bd5c20cb0124a859ea1b8d75bfc25cf0ec26d255b4c2ddda10fd5acb5c363630"
   },
   "quality_tooling": {
     "ruff": {
