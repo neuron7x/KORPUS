@@ -2904,9 +2904,23 @@ def test_function_words_do_not_carry_coverage() -> None:
         assert forbidden not in tokenize(question), (
             f"{forbidden!r} still carries coverage in {question!r}"
         )
-    # And the content words survive: stripping too much would refuse valid questions.
-    assert "налашт" in tokenize("як налаштувати wifi-роутер")
-    assert "пораненн" in tokenize("які виплати належать при пораненні")
+    # І змістовні слова виживають: зняти забагато означало б відмовляти на дійсних
+    # питаннях. Перевіряється ВЛАСТИВІСТЬ, не буквальний стем: раніше тут стояли рядки
+    # "налашт" і "пораненн", і другий застарів, коли стемер став замкненим щодо
+    # парадигми — «пораненні», «пораненого» та «поранення» тепер сходяться в один терм,
+    # тобто твердження впало саме тоді, коли властивість ПОКРАЩИЛАСЬ. Стала форма — це
+    # (а) непорожня основа, яка лишається початком слова, бо пошук шукає за префіксом,
+    # і (б) згода всіх форм однієї леми.
+    for word in ("налаштувати", "пораненні", "командирами"):
+        [stem] = tokenize(word)
+        assert stem and word.startswith(stem), f"{word!r} -> {stem!r} не є початком слова"
+    for family in (
+        ("пораненні", "пораненого", "поранення"),
+        ("командир", "командира", "командирами"),
+        ("налаштувати", "налаштування", "налаштувань"),
+    ):
+        stems = {tuple(tokenize(form)) for form in family}
+        assert len(stems) == 1, f"форми однієї леми дали різні терми: {family} -> {stems}"
 
 
 def test_bulk_approval_failure_does_not_end_the_run() -> None:

@@ -3570,7 +3570,7 @@ MUTANTS = (
     Mutant(
         "M276_PEC_ADMISSION_THRESHOLD_BYPASSED",
         "apps/api/src/korpus/application/evidence_admission.py",
-        "    return margins.minimum >= 0.0",
+        "    return candidate_margins(item, thresholds).admitted",
         "    return True",
         (
             "apps/api/tests/test_decision_sensitivity.py::test_boundary_margin_is_signed_distance_to_actual_retrieval_gate",
@@ -6532,6 +6532,49 @@ MUTANTS = (
             "apps/api/tests/test_provenance_without_git.py::"
             "test_an_unusable_manifest_is_not_read_as_an_empty_tracked_set",
         ),
+    ),
+    Mutant(
+        # Нічия на порозі покриття повертається в «допущено». Саме в цьому стані живий
+        # продукт відповідав на чотири чужі питання з чотирьох, і всі вони мали покриття
+        # РІВНО 0.50.
+        "M692_COVERAGE_TIE_IS_ADMITTED_AGAIN",
+        "apps/api/src/korpus/application/evidence_admission.py",
+        "    return coverage > floor",
+        "    return coverage >= floor",
+        ("apps/api/tests/test_admission_tie.py::test_coverage_exactly_at_the_floor_is_refused",),
+    ),
+    Mutant(
+        # Строгість, поширена «для симетрії» на осі КЛАСУ: `minimum_authority` дорівнює
+        # 0.46 рівно тому, що це пріор `ANALYTICAL`, а майже весь корпус саме такий.
+        "M693_ADMISSION_STRICTNESS_SPREADS_TO_THE_CLASS_AXES",
+        "apps/api/src/korpus/application/evidence_admission.py",
+        "        return self.score >= 0.0 and self.authority >= 0.0 and self.query_coverage > 0.0",
+        "        return self.score > 0.0 and self.authority > 0.0 and self.query_coverage > 0.0",
+        (
+            "apps/api/tests/test_admission_tie.py::"
+            "test_authority_exactly_at_the_floor_stays_admitted",
+        ),
+    ),
+    Mutant(
+        # Звіт про гейт розходиться з гейтом: PEC/DGC пояснювали б рішення правилом,
+        # якого рантайм не застосував — і саме на нічиї вони розійшлись би.
+        "M694_REPORTED_GATE_DIVERGES_FROM_THE_APPLIED_GATE",
+        "apps/api/src/korpus/application/evidence_admission.py",
+        "        retrieval_gate_passed=best.admitted,",
+        "        retrieval_gate_passed=minimum >= 0.0,",
+        (
+            "apps/api/tests/test_admission_tie.py::"
+            "test_the_reported_gate_is_the_applied_gate_at_the_tie",
+        ),
+    ),
+    Mutant(
+        # Словозміна і словотвір знову в одному списку: найдовший збіг виграє в однієї
+        # форми і програє в іншій, і два відмінки одного слова стають двома термами.
+        "M695_STEMMER_LOSES_PARADIGM_CLOSURE",
+        "apps/api/src/korpus/application/retrieval_math.py",
+        "    return _strip_longest(_undouble(token), DERIVATIONAL_SUFFIXES)",
+        "    return token",
+        ("apps/api/tests/test_gate_parity.py::test_function_words_do_not_carry_coverage",),
     ),
 )
 

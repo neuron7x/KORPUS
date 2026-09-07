@@ -17,6 +17,31 @@ from korpus.application.risk import RiskThresholds
 from korpus.domain.models import RetrievedEvidence
 
 
+def coverage_admits(coverage: float, floor: float) -> bool:
+    """Чи покриває цитата ПОНАД поріг питання. Рівність — не допуск.
+
+    `query_coverage` — це частка малих цілих: питання має два-чотири змістовні токени,
+    тож досяжні значення 0, 1/4, 1/3, 1/2, 2/3, 3/4, 1. Поріг 0.5 лежить РІВНО на
+    досяжному значенні, і «рівно на порозі» тут не крайовий випадок, а щільна подія.
+
+    Виміряно 07.09.2026 на замороженому наборі `evals/datasets/domain_boundary.jsonl`,
+    на живому розгортанні, усі 40 питань:
+
+        чужі, що прорвались     out-07 out-08 out-09 out-19 — покриття РІВНО 0.50, усі 4
+        свої, що відповіли      19 із 19 — покриття 0.67, 0.75 або 1.00, жодного на 0.50
+
+    Тобто клас нічиєї цілком складався з питань не про цей корпус. Цитата, яка лишає
+    рівно половину питання без відповіді, стосується не спитаного рівно настільки ж,
+    наскільки спитаного, — і вирішувати нічию на користь відповіді означає для
+    fail-closed системи обирати гірший бік помилки.
+
+    Це не новий поріг: докстрінг модуля завжди казав «a POSITIVE minimum margin means
+    the candidate is on the admitted side». Нуль не описаний ніде, а код мовчки
+    зараховував його до допущених. Тут прибрано саме цей неназваний третій випадок.
+    """
+    return coverage > floor
+
+
 @dataclass(frozen=True, slots=True)
 class CandidateAdmissionMargins:
     score: float
@@ -26,6 +51,25 @@ class CandidateAdmissionMargins:
     @property
     def minimum(self) -> float:
         return min(self.score, self.query_coverage, self.authority)
+
+    @property
+    def admitted(self) -> bool:
+        """Допуск. Нуль маржі допустимий на осях КЛАСУ й неприпустимий на осі покриття.
+
+        Це ТОЙ САМИЙ предикат, що його читає `admission_boundary_summary`, а не переказ:
+        PEC/DGC мусять міркувати про гейт, який справді застосує рантайм. Наслідок видно
+        у звіті — `minimum_admission_margin` буває нулем при хибному
+        `retrieval_gate_passed`, бо нульова маржа покриття і Є відмовою.
+
+        `minimum_authority` набуває значень 0.74, 0.46 і 0.0 — точно рівних пріоритетам
+        `APPROVED_TRAINING`, `ANALYTICAL` та `UNKNOWN`. Нульова маржа авторитету означає
+        «рівно той клас, який і є найнижчим допустимим», тобто НАВМИСНЕ включення; майже
+        весь корпус — `ANALYTICAL`, і строгість тут вимкнула б його цілком. Оцінка ж
+        неперервна, і рівність на ній практично не трапляється.
+
+        Тому строгою є рівно одна вісь — та, на якій нічия і виміряна.
+        """
+        return self.score >= 0.0 and self.authority >= 0.0 and self.query_coverage > 0.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,8 +125,7 @@ def evidence_is_eligible(
         return False
     if declares_the_subject:
         return True
-    margins = candidate_margins(item, thresholds)
-    return margins.minimum >= 0.0
+    return candidate_margins(item, thresholds).admitted
 
 
 def eligible_evidence(
@@ -131,7 +174,7 @@ def admission_boundary_summary(
     minimum = best.minimum
     return AdmissionBoundarySummary(
         structural_candidate_exists=True,
-        retrieval_gate_passed=minimum >= 0.0,
+        retrieval_gate_passed=best.admitted,
         best_score_margin=best.score,
         best_query_coverage_margin=best.query_coverage,
         best_authority_margin=best.authority,

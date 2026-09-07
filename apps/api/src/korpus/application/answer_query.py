@@ -35,7 +35,7 @@ from korpus.application.evidence import (
     starts_mid_sentence,
     verify_claim_support,
 )
-from korpus.application.evidence_admission import eligible_evidence
+from korpus.application.evidence_admission import coverage_admits, eligible_evidence
 from korpus.application.pec_retrieval import adaptive_retrieval
 from korpus.application.policy import PolicyEngine
 from korpus.application.ports import Repository, Retriever
@@ -294,7 +294,7 @@ class ExtractiveAnswerService:
         # and initialising it in the branch that uses it surfaced as an UnboundLocalError
         # on the other two rather than as a missing field.
         composition_reason = "not attempted"
-        if not claims or query_coverage < thresholds.minimum_query_coverage:
+        if not claims or not coverage_admits(query_coverage, thresholds.minimum_query_coverage):
             answer = self._abstain(
                 release_id,
                 "claim_support_gate_failed",
@@ -540,10 +540,14 @@ class ExtractiveAnswerService:
             # більше не має шляху сюди. Захист лишається як другий рубіж для корпусу,
             # зміненого поза конвеєром — саме такий і обвалив відповідь 31.08.2026.
             offered = [item for item in offered if len(item.text) <= MAX_QUOTE_CHARS]
+            # Той самий предикат, що судить допуск уривка й вирок відповіді. Три
+            # місця, які виражають одне правило кожне по-своєму, розійдуться мовчки:
+            # речення пройшло б за «>=», а відповідь упала б за «>», і причина відмови
+            # називала б не те.
             passing = [
                 candidate
                 for candidate in offered
-                if candidate.query_coverage >= thresholds.minimum_query_coverage
+                if coverage_admits(candidate.query_coverage, thresholds.minimum_query_coverage)
             ]
             # Стаття, чий ОГОЛОШЕНИЙ предмет — предмет питання, не повторює ані своєї
             # назви, ані слова «обов'язки»: заголовок каже «Обов'язки: Вивідний», а текст

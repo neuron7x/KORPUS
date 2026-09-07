@@ -325,6 +325,13 @@ module-budget:
 	PYTHONPATH=apps/api/src $(PY) scripts/check_module_budget.py
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/check_budget_raises_are_named.py
 
+# Чи зводяться дві форми одного слова до одного терма. Пошук шукає за основою, тож
+# незамкнений стемер робить називний і родовий РІЗНИМИ термами — виміряно на живому
+# продукті: називний 14/14, родовий 12/14. Гейт сам прогонить три отрути, серед них
+# стемер у стані до виправлення.
+stemmer-closure:
+	$(PY) scripts/check_stemmer_closure.py
+
 # Ruff states the same rule as EXE001/EXE002, but it reads only Python under four
 # directories: the shell scripts, Dockerfiles, Terraform and manifests had no mode check
 # at all. This reads `git ls-files`, which is the set the source manifest hashes.
@@ -851,7 +858,7 @@ public-health:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: mutation-delta-gate-selftest serving-readiness-selftest evidence-epistemics-selftest corpus-transport-selftest production-hard-predicates-selftest assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates package-build-identity production-observability production-inference-security production-exact-environment
+validate: mutation-delta-gate-selftest serving-readiness-selftest evidence-epistemics-selftest corpus-transport-selftest production-hard-predicates-selftest assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget stemmer-closure file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates package-build-identity production-observability production-inference-security production-exact-environment
 	python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py

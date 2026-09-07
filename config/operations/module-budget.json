@@ -1125,13 +1125,13 @@
       "reason": "v0.6.0: dual zero-width canonical projections close metamorphic IPI bypass; exact measured expansion | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "apps/api/src/korpus/application/evidence_admission.py": {
-      "lines": 140,
+      "lines": 183,
       "max_complexity": 4,
       "max_function_args": 3,
       "max_function_lines": 39,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "Сигнатури розширені до `Mapping[str, int] | frozenset[str]`: клас предмета став градуйованим, і виклики, які носять лише членство, лишаються чинними."
+      "reason": "Нічия на порозі покриття стала відмовою. Приріст — самі ПІДСТАВИ: числа виміру (усі 4 чужі прориви рівно на 0.50, усі 19 своїх вище) і причина, чому строгою є одна вісь із трьох. Логіка — три рядки."
     },
     "apps/api/src/korpus/application/evidence_fusion.py": {
       "lines": 141,
@@ -1970,13 +1970,13 @@
       "reason": "Клас оголошеного предмета став ГРАДУЙОВАНИМ: довжина збігу замість членства. «Командир» є підрядком «Безпосередні командири», тож бінарний клас ставив узагальнення поруч із конкретним і віддавав перемогу релевантності. Порядок уже обчислювався в `subjects_in_question` і губився при перетворенні на множину. Виміряно: `subject` 0.8352 → 0.9451. Заразом прибрано ДРУГЕ означення того самого поняття — `retrieval_hybrid` мав власну копію логіки поруч із `declared_subject`."
     },
     "apps/api/src/korpus/application/retrieval_math.py": {
-      "lines": 383,
+      "lines": 481,
       "max_complexity": 13,
       "max_function_args": 8,
       "max_function_lines": 60,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+      "reason": "Словозміну відокремлено від словотвору: змішані в одному списку, вони не давали замкненості щодо парадигми (на живому родовий 12/14). Приріст — перелік закінчень, який `ruff format` розгортає по одному в рядок, плюс підстави: чому інфінітива немає, чому «-увати» повернуто, і названий залишок (друга палаталізація, 0.18 % словника). БОРГ: морфологія заслуговує власного модуля — це окремий рефактор, не змішаний зі зміною поведінки."
     },
     "apps/api/src/korpus/application/retrieval_metrics_context.py": {
       "lines": 47,
@@ -3694,6 +3694,15 @@
       "max_nesting": 2,
       "proof_lines": 36,
       "reason": "гейт живої готовності: свіжість коду і здатність обслуговувати — різні властивості, і друга не вимірювалась ніде; публічний сервіс ніс поточну ревізію і три доби віддавав 503 при зеленому лані розгортання"
+    },
+    "scripts/check_stemmer_closure.py": {
+      "lines": 159,
+      "max_complexity": 9,
+      "max_function_args": 2,
+      "max_function_lines": 34,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Новий гейт: замкненість стемера щодо парадигми на замороженому наборі відмінків, із трьома отрутами, які він прогонить сам."
     },
     "scripts/check_unit_exec_arguments.py": {
       "lines": 169,
@@ -11901,8 +11910,30 @@
         "lines": 406
       },
       "why": "типізація самоперевірки: вісь свіжості предмета має ТРИ стани, і кортеж bool не вміщає None — mypy правильно відхилив"
+    },
+    {
+      "from": {
+        "lines": 140
+      },
+      "on": "2026-09-07",
+      "path": "apps/api/src/korpus/application/evidence_admission.py",
+      "reason": "Виміряно на живому: усі чотири чужі питання, що прорвались, мали покриття РІВНО 0.50 при порозі 0.50; усі 19 своїх відповідей — 0.67 і вище. Клас нічиєї цілком складався з чужих. Код виріс на три рядки, решта — числа й причина.",
+      "to": {
+        "lines": 183
+      }
+    },
+    {
+      "from": {
+        "lines": 383
+      },
+      "on": "2026-09-07",
+      "path": "apps/api/src/korpus/application/retrieval_math.py",
+      "reason": "Словозміна відокремлена від словотвору. Замкненість щодо парадигми 6/12 -> 12/12, родовий відмінок предмета 12/14 -> 14/14 на живому продукті, решта осей без руху.",
+      "to": {
+        "lines": 481
+      }
     }
   ],
-  "recorded_at": "2026-09-06",
+  "recorded_at": "2026-09-07",
   "schema_version": 1
 }
