@@ -44,6 +44,7 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOTS = ("apps/api/src",)
@@ -151,16 +152,40 @@ PRODUCTION_LIKE = "PRODUCTION_LIKE"
 LOCAL_DEV = "LOCAL_DEV"
 
 
-def declared_database(root: Path = ROOT) -> str:
-    """Шлях бази, оголошеної топологією релізу. Порожній рядок — не оголошено."""
+def _declared_database_block(root: Path) -> dict[str, Any]:
     try:
         payload = json.loads((root / ENVELOPE).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
-        return ""
+        return {}
     candidate = payload.get("release_candidate")
     topology = candidate.get("deployment_topology", {}) if isinstance(candidate, dict) else {}
     database = topology.get("database", {}) if isinstance(topology, dict) else {}
-    return str(database.get("path") or "")
+    return database if isinstance(database, dict) else {}
+
+
+def declared_database(root: Path = ROOT) -> str:
+    """Шлях бази, оголошеної топологією релізу. Порожній рядок — не оголошено."""
+    return str(_declared_database_block(root).get("path") or "")
+
+
+def declared_endpoint(root: Path = ROOT) -> str:
+    """`host:port/ім'я` бази, оголошеної топологією, для не-файлових бекендів.
+
+    Топологія цього релізу — `pilot-systemd-postgres-v1`, і предмет там не файл:
+    вона називає `bind` і `name`. Обидва потрібні. Самого `bind` мало: службова база
+    в ТОМУ САМОМУ контейнері має ту саму точку підключення, тож дриль на ній
+    зараховувався б як вимір продакшенної.
+    """
+    block = _declared_database_block(root)
+    bind, name = str(block.get("bind") or ""), str(block.get("name") or "")
+    return f"{bind}/{name}" if bind and name else ""
+
+
+def _dsn_endpoint(url: str) -> str:
+    """`host:port/ім'я` з DSN, або порожній рядок, якщо прочитати не вдалось."""
+    parsed = urlsplit(url)
+    host, port, name = parsed.hostname, parsed.port, parsed.path.lstrip("/")
+    return f"{host}:{port}/{name}" if host and port and name else ""
 
 
 def _not_production_like(root: Path, port: int | None, database: str | None) -> str | None:
@@ -199,15 +224,23 @@ def subject_refusal(root: Path, database: str, declared: str) -> str | None:
     перша умова відмовляє завжди, і будь-яка перевірка нижче лишалась би НЕДОСЯЖНОЮ —
     тест на неї був би зелений незалежно від того, чи вона взагалі є.
     """
+    if not database.startswith("/"):
+        # Не-файловий предмет звіряється з ТОЧКОЮ ПІДКЛЮЧЕННЯ, оголошеною топологією.
+        # Доти сюди приходив `None` — і перевірка пропускалась ЦІЛКОМ, тобто дриль у
+        # одноразовому контейнері діставав клас продакшену від сусідніх живих служб,
+        # яких він не торкався. Рівно те, проти чого написаний докстрінг
+        # `topology_environment_class`. Невідомий предмет — не дозвіл.
+        endpoint = declared_endpoint(root)
+        if not endpoint:
+            return "топологія не називає точки підключення — предмет звірити нема з чим"
+        measured = _dsn_endpoint(database)
+        if not measured:
+            return f"предмет виміру {database} не читається як точка підключення"
+        if measured != endpoint:
+            return f"міряна база {measured} не є базою топології {endpoint}"
+        return None
     if not declared:
         return "топологія не називає бази — предмет виміру звірити нема з чим"
-    if not database.startswith("/"):
-        # Предмет, який не є файлом (URL PostgreSQL тощо), звірити з оголошеним ШЛЯХОМ
-        # неможливо. Доти сюди приходив `None` — і перевірка пропускалась ЦІЛКОМ, тобто
-        # дриль у одноразовому контейнері діставав клас продакшену від сусідніх живих
-        # служб, яких він не торкався. Рівно те, проти чого написаний докстрінг
-        # `topology_environment_class`. Невідомий предмет — не дозвіл.
-        return f"предмет виміру {database} не є файлом бази топології {declared}"
     if Path(database).resolve() != (root / declared).resolve():
         return f"міряна база {database} не є базою топології {declared}"
     return None

@@ -92,42 +92,56 @@ def test_the_newest_source_is_the_one_the_server_would_have_to_hold() -> None:
     assert path.startswith("apps/api/src/")
 
 
-def test_a_postgres_subject_is_refused_against_a_declared_file_database() -> None:
-    """Невідомий предмет — не дозвіл.
+def test_a_scratch_database_in_the_production_container_is_refused() -> None:
+    """Точка підключення збігається, ПРЕДМЕТ — ні.
 
-    `_database_path` віддавав `None` для будь-якого не-SQLite URL, і звірка предмета
-    пропускалась ЦІЛКОМ: дриль відновлення в одноразовому контейнері діставав клас
-    PRODUCTION_LIKE за те, що поруч працюють живі служби, яких він не торкався. Це
-    рівно та підміна, проти якої написаний докстрінг `topology_environment_class`, і
-    для SQLite вона вже була закрита — для PostgreSQL ні.
+    Сторож `topology_environment_class` існує рівно щоб прогін на дев-машині не ставав
+    доказом про продакшен. Але `_database_path` віддавав `None` для будь-якого
+    не-SQLite URL, а `None` означало «предмета немає», і звірка пропускалась ЦІЛКОМ:
+    дриль відновлення в одноразовому контейнері діставав PRODUCTION_LIKE за те, що
+    поруч працюють живі служби, яких він не торкався.
 
-    Перевіряється ЧИСТА функція з оголошеною базою на вході: у цьому дереві топологія
-    бази не називає, тож усередині `_not_production_like` ця гілка недосяжна, і тест
-    над нею був би зелений навіть із вимкненим правилом.
+    Найтонший випадок саме цей: службова база в ТОМУ САМОМУ контейнері має ту саму
+    точку підключення. Тому топологія оголошує `bind` І `name`, а звірка порівнює
+    обидва.
     """
     from check_serving_freshness import subject_refusal
 
-    reason = subject_refusal(
-        ROOT, "postgresql+psycopg://u:p@127.0.0.1:55461/korpus_drill", "var/runtime/korpus.db"
-    )
-    assert reason is not None and "не є файлом" in reason
+    reason = subject_refusal(ROOT, "postgresql+psycopg://u:p@127.0.0.1:55440/korpus_drill", "")
+    assert reason is not None and "korpus_drill" in reason
 
 
-def test_the_declared_file_itself_is_accepted() -> None:
+def test_the_declared_pilot_database_is_accepted() -> None:
     """Негативний контроль: правило карає ЧУЖИЙ предмет, а не саму наявність виміру."""
+    from check_serving_freshness import declared_endpoint, subject_refusal
+
+    endpoint = declared_endpoint(ROOT)
+    assert endpoint, "топологія мусить називати точку підключення, інакше правило порожнє"
+    host_port, _, name = endpoint.partition("/")
+    assert subject_refusal(ROOT, f"postgresql+psycopg://u:p@{host_port}/{name}", "") is None
+
+
+def test_the_same_name_in_another_container_is_refused() -> None:
     from check_serving_freshness import subject_refusal
 
-    declared = "var/runtime/korpus.db"
-    assert subject_refusal(ROOT, str((ROOT / declared).resolve()), declared) is None
+    assert subject_refusal(ROOT, "postgresql+psycopg://u:p@127.0.0.1:55463/korpus", "") is not None
 
 
-def test_another_file_is_refused_too() -> None:
+def test_a_subject_that_is_not_a_readable_endpoint_is_refused() -> None:
+    """Нечитаний предмет — не дозвіл."""
+    from check_serving_freshness import subject_refusal
+
+    assert subject_refusal(ROOT, "not-a-dsn", "") is not None
+
+
+def test_a_file_subject_is_still_compared_against_the_declared_path() -> None:
+    """Файловий бекенд не втратив своєї звірки, коли додали не-файловий."""
     from check_serving_freshness import subject_refusal
 
     assert subject_refusal(ROOT, "/tmp/other.db", "var/runtime/korpus.db") is not None
-
-
-def test_a_topology_that_declares_no_database_refuses_every_subject() -> None:
-    from check_serving_freshness import subject_refusal
-
-    assert subject_refusal(ROOT, "/tmp/any.db", "") is not None
+    assert (
+        subject_refusal(
+            ROOT, str((ROOT / "var/runtime/korpus.db").resolve()), "var/runtime/korpus.db"
+        )
+        is None
+    )

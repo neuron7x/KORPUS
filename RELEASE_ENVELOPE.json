@@ -43,7 +43,9 @@
           "korpus_app (не суперкористувач, без BYPASSRLS)",
           "korpus_authz",
           "korpus_review"
-        ]
+        ],
+        "name": "korpus",
+        "name_basis": "KORPUS_DATABASE_URL у ~/.local/state/korpus-pilot/api.env, тобто те, що обслуговує оголошений юніт. Ім'я оголошене окремо від `bind`, бо інакше дриль на службовій базі в ТОМУ САМОМУ контейнері зараховувався б як вимір продакшенної: точка підключення збігається, предмет — ні."
       },
       "not_in_this_release": [
         "gcp-cloud-run",

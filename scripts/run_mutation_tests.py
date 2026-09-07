@@ -6575,11 +6575,11 @@ MUTANTS = (
         # дриль у одноразовому контейнері кредитується сусідніми живими службами.
         "M696_FOREIGN_SUBJECT_IS_CREDITED_AS_PRODUCTION_LIKE",
         "scripts/check_serving_freshness.py",
-        '    if not database.startswith("/"):',
-        "    if False:",
+        "        if measured != endpoint:",
+        "        if False:",
         (
             "apps/api/tests/test_serving_freshness.py::"
-            "test_a_postgres_subject_is_refused_against_a_declared_file_database",
+            "test_a_scratch_database_in_the_production_container_is_refused",
         ),
     ),
     Mutant(
