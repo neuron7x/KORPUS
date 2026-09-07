@@ -190,10 +190,18 @@ DERIVATIONAL_SUFFIXES = tuple(
 #: число — воно виміряне там, не підібране тут.
 MIN_STEM_CHARS = 4
 
-#: Стелю ітерації названо, щоб цикл був скінченним за конструкцією, а не за вірою в те,
-#: що закінчення колись скінчаться. Три — бо найдовший спостережений ланцюг має два
-#: («проводиться» → «проводить» → «провод»), і третій крок лишає запас на один невідомий.
-MAX_INFLECTION_ROUNDS = 3
+#: Стеля ітерації. Цикл скінченний за конструкцією: кожен оберт або коротшає, або
+#: зупиняється. Ітерується ВСЯ пара ступенів, не лише перший, і це виправлення:
+#: словотвір лишає по собі закінчення («територіального» → «територіальн» → «територі»),
+#: яке словозміна зняла б, тож функція не мала нерухомої точки — `stem(stem(x)) != stem(x)`
+#: на 2 словах заморожених наборів і на «бронепробиваемости» після першої спроби.
+#: Ідемпотентність тепер вимірюється гейтом `check_stemmer_closure` над усіма
+#: `evals/datasets/*.jsonl`: 70 226 слів.
+#:
+#: Чотири — бо найдовший спостережений ланцюг має три оберти, і четвертий лишає запас
+#: на один невідомий. Стеля названа, щоб цикл був скінченним за конструкцією, а не за
+#: вірою в те, що закінчення колись скінчаться.
+MAX_INFLECTION_ROUNDS = 4
 
 
 #: Every apostrophe Ukrainian is written with, folded to one. zakon.rada publishes U+2019;
@@ -233,11 +241,13 @@ def _ukrainian_stem(token: str) -> str:
     if len(token) < 5 or not any("а" <= char <= "я" or char in "іїєґ" for char in token):
         return token
     for _ in range(MAX_INFLECTION_ROUNDS):
-        shorter = _strip_longest(token, INFLECTIONAL_ENDINGS)
+        shorter = _strip_longest(
+            _undouble(_strip_longest(token, INFLECTIONAL_ENDINGS)), DERIVATIONAL_SUFFIXES
+        )
         if shorter == token:
-            break
+            return token
         token = shorter
-    return _strip_longest(_undouble(token), DERIVATIONAL_SUFFIXES)
+    return token
 
 
 def raw_tokens(text: str) -> list[str]:

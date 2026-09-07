@@ -157,6 +157,34 @@ gates:
     target: reports/RESEARCH_ASSURANCE_REPORT.json
     find: '"tracked_tree_sha256":'
     payload: '"unused_tree_sha256":'
+- name: stemmer-closure
+  run:
+  - env
+  - PYTHONPATH=apps/api/src
+  - {python}
+  - scripts/check_stemmer_closure.py
+  timeout: 600
+  ignore:
+  - var
+  - htmlcov
+  - node_modules
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  poisons:
+  - name: словозміну вимкнено — форми одного слова стають різними термами
+    kind: replace
+    target: apps/api/src/korpus/application/retrieval_math.py
+    find: '_undouble(_strip_longest(token, INFLECTIONAL_ENDINGS)), DERIVATIONAL_SUFFIXES'
+    payload: '_undouble(token), DERIVATIONAL_SUFFIXES'
+  - name: нерухома точка -> один оберт; словотвір лишає закінчення незнятим
+    kind: replace
+    target: apps/api/src/korpus/application/retrieval_math.py
+    find: '    for _ in range(MAX_INFLECTION_ROUNDS):'
+    payload: '    for _ in range(1):'
+  - name: набір відмінків зник — правило над порожньою множиною
+    kind: delete
+    target: evals/datasets/subject_inflection.jsonl
 - name: module-budget
   run:
   - env

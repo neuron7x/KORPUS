@@ -72,6 +72,49 @@ def paradigm_pairs(path: Path) -> list[tuple[str, str, str]]:
     return pairs
 
 
+def frozen_vocabulary(root: Path) -> list[str]:
+    """Кожне українське слово із заморожених наборів оцінок. Не вигадане — заморожене."""
+    words: set[str] = set()
+    for path in sorted((root / "evals/datasets").rglob("*.jsonl")):
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            for value in row.values():
+                if isinstance(value, str):
+                    words.update(raw_tokens(value))
+    return sorted(words)
+
+
+def not_idempotent(words: list[str], stem: Callable[[str], str]) -> list[dict[str, str]]:
+    """Слова, для яких `stem(stem(x)) != stem(x)`. Властивість НЕРУХОМОЇ ТОЧКИ.
+
+    Заморожений набір відмінків задіює лише один крок зняття словозміни: усі його
+    пари сходяться ще до словотвору. Виміряно 08.09.2026 пробою живості — мутація
+    «нерухома точка -> один крок» ВИЖИЛА, тобто гейт не бачив половини конструкції,
+    заради якої існує.
+
+    Ідемпотентність цього не потребує парних даних і ловить саме той випадок:
+    «проводиться» несе два закінчення поспіль («ся», далі «ять»), тож при одному
+    кроці стем сам має стем, і рівність ламається.
+
+    ПОПУЛЯЦІЯ — усі заморожені набори оцінок, а не набір відмінків. Виміряно
+    08.09.2026: над 24 словами набору відмінків мутація «один крок» ВИЖИЛА, бо
+    жодна роль там не несе двох закінчень поспіль. Правило над популяцією, яка не
+    містить випадку, — правило без зубів. Слова беруться з `evals/datasets/*.jsonl`:
+    вони заморожені, є в дереві завжди (гейт біжить у CI без корпусу) і містять
+    дієслівні форми, яких у ролях немає.
+    """
+    return [
+        {"word": word, "once": stem(word), "twice": stem(stem(word))}
+        for word in words
+        if stem(stem(word)) != stem(word)
+    ]
+
+
 def divergent(
     pairs: list[tuple[str, str, str]], stem: Callable[[str], str]
 ) -> list[dict[str, str]]:
@@ -126,17 +169,21 @@ def main() -> int:
     arguments = parser.parse_args()
 
     pairs = paradigm_pairs(arguments.set)
+    words = frozen_vocabulary(ROOT)
     survived = selftest(pairs)
     failures = divergent(pairs, _ukrainian_stem)
+    unstable = not_idempotent(words, _ukrainian_stem)
     report = {
         "schema": "korpus.stemmer-closure.v1",
         "set": str(arguments.set.relative_to(ROOT)),
         "pairs": len(pairs),
         "converged": len(pairs) - len(failures),
         "divergent": failures,
+        "words_checked_for_idempotence": len(words),
+        "not_idempotent": unstable,
         "poisons_run": len(list(_poisons())),
         "poisons_survived": survived,
-        "status": "PASS" if not failures and not survived and pairs else "FAIL",
+        "status": ("PASS" if not failures and not survived and not unstable and pairs else "FAIL"),
     }
     if arguments.json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
@@ -144,6 +191,9 @@ def main() -> int:
         print(f"пар форм однієї леми: {report['pairs']}")
         print(f"зведено до одного терма: {report['converged']}/{report['pairs']}")
         print(f"отрут прогнано: {report['poisons_run']} · вижило: {len(survived)}")
+        print(f"ідемпотентних: {len(words) - len(unstable)}/{len(words)}")
+        for item in unstable:
+            print(f"  НЕ НЕРУХОМА ТОЧКА {item['word']}: {item['once']} -> {item['twice']}")
         for item in failures:
             print(
                 f"  РОЗБІЖНІСТЬ {item['id']}: {item['nominative']}->{item['left']} "

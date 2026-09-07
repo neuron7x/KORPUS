@@ -840,6 +840,21 @@ def selftest() -> int:
     return 1 if bad else 0
 
 
+def _provenance() -> dict[str, str]:
+    """Дайджест дерева, генератор і мить зняття. Без цього вирок не має віку."""
+    from datetime import UTC, datetime
+
+    sys.path.insert(0, str(ROOT / "apps/api/src"))
+    from korpus.application.provenance import compute_source_digest
+
+    return {
+        "schema_version": "1",
+        "source_digest": compute_source_digest(ROOT),
+        "generator": "scripts/verify_gate_closure.py",
+        "generated_at": datetime.now(UTC).replace(microsecond=0).isoformat(),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--makefile", type=Path, default=MAKEFILE)
@@ -873,6 +888,12 @@ def main() -> int:
         "verification_targets": len(targets),
         "accepted_gaps": len(_named(registry)),
         "findings": findings,
+        # Вирок без походження не має віку: `var/gate-closure.json` читали як опис
+        # ЦЬОГО дерева, а він міг бути знятий будь-коли й на будь-якій ревізії, і
+        # жодна перевірка не могла цього побачити. Дайджест береться тим самим
+        # обчислювачем, що й у решти доказів, тож «про інше дерево» стає видимим
+        # так само, як і для них.
+        "provenance": _provenance(),
     }
     arguments.out.parent.mkdir(parents=True, exist_ok=True)
     arguments.out.write_text(

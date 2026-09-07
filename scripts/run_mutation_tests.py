@@ -6587,8 +6587,8 @@ MUTANTS = (
         # форми і програє в іншій, і два відмінки одного слова стають двома термами.
         "M695_STEMMER_LOSES_PARADIGM_CLOSURE",
         "apps/api/src/korpus/application/retrieval_math.py",
-        "    return _strip_longest(_undouble(token), DERIVATIONAL_SUFFIXES)",
-        "    return token",
+        "            _undouble(_strip_longest(token, INFLECTIONAL_ENDINGS)), DERIVATIONAL_SUFFIXES",
+        "            _undouble(token), DERIVATIONAL_SUFFIXES",
         ("apps/api/tests/test_gate_parity.py::test_function_words_do_not_carry_coverage",),
     ),
 )

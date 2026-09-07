@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2038,
-  "root_sha256": "b0507fc56ba6814466b54d134ed128e1c0c982c857f99de469063e43e7d4d78e",
+  "root_sha256": "13921a159501196d41cabfc65b391aa7b6ea9bcd9221e7c1abaeb6eaa042ca81",
   "files": [
     {
       "path": ".dockerignore",
@@ -1867,8 +1867,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/retrieval_math.py",
-      "bytes": 18700,
-      "sha256": "05e9eeeb6451dc84a887845ef465738333409a7bc74f5e9a5fb85704f06cfee4",
+      "bytes": 19567,
+      "sha256": "90912650a50a4872589af76258691598193d8106f171c84262b00519b86577b2",
       "mode": "0644"
     },
     {
@@ -7957,14 +7957,14 @@
     },
     {
       "path": "config/operations/gate-liveness.yaml",
-      "bytes": 18180,
-      "sha256": "ce11568cacaf2c90c353b49bb55d12b9099d0a078649b77a12065075d8abf258",
+      "bytes": 19258,
+      "sha256": "4a3f93622f99a40ef0ce4851f5b223189ace8b7fc4d96e97b20c617420abafc8",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 716907,
-      "sha256": "15e854b2281660b79426a0d93f1b538bd773fa3c76910b769b63e0834651a5b0",
+      "bytes": 719009,
+      "sha256": "0cd3d0086992f82d98f3ace1750a9c074c6838f4b9db97120eada4d4bc17730b",
       "mode": "0644"
     },
     {
@@ -10555,8 +10555,8 @@
     },
     {
       "path": "scripts/check_stemmer_closure.py",
-      "bytes": 7479,
-      "sha256": "63535a4dc3c927109ea4dbbdcf2869ed950267ae3214c49f57084a2f80dda3f3",
+      "bytes": 10582,
+      "sha256": "e40cb2710453c4e3d4f1ce1b0abca5c7a8b9d2c2e5e678f8c72c10a670fff939",
       "mode": "0755"
     },
     {
@@ -11647,8 +11647,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 322845,
-      "sha256": "63ac0942c345b5eeb756c5f594e9d595d825abe8588517716ac70cfd59720d91",
+      "bytes": 322903,
+      "sha256": "23a6806315b099d65995a2efe5c63b63195d96a300f657fee75d5393fef3def1",
       "mode": "0755"
     },
     {
@@ -12091,8 +12091,8 @@
     },
     {
       "path": "scripts/verify_gate_closure.py",
-      "bytes": 46219,
-      "sha256": "710d44ab6f3f2e36ec41abdf8651818ba07da0cbf7962f1a688309030d7c24c2",
+      "bytes": 47413,
+      "sha256": "e97112ab9fe43256d2b68a18354a761f5e0423a23a5bad72e9df949ac47707d8",
       "mode": "0755"
     },
     {
