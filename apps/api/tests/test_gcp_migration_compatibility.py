@@ -98,6 +98,46 @@ def test_non_null_add_without_server_default_is_rejected(tmp_path: Path) -> None
     assert any("server_default" in item for item in report["findings"])
 
 
+def test_alter_on_a_table_this_migration_creates_is_allowed(tmp_path: Path) -> None:
+    """Ревізія N-1 не знає про таблицю, народжену в цьому ж `upgrade()`.
+
+    `ALTER TABLE … ENABLE ROW LEVEL SECURITY` над НАЯВНОЮ таблицею звужує те, що бачить
+    стара ревізія застосунку — саме через це 0020 визнали нерозширювальним. Над щойно
+    створеною таблицею воно не може зачепити нікого: старий код до неї не звертається.
+    Заборона на дієслово не розрізняла цих випадків.
+    """
+    root = _copy_surface(tmp_path)
+    _future(
+        root,
+        "op.create_table('widgets', sa.Column('id', sa.String(), primary_key=True))\n"
+        "op.execute('ALTER TABLE widgets ENABLE ROW LEVEL SECURITY')",
+    )
+    report = evaluate(root)
+    assert report["status"] == "PASS", report
+
+
+def test_alter_on_a_table_this_migration_does_not_create_is_rejected(tmp_path: Path) -> None:
+    """Негативний контроль до дозволу вище: без нього він пропускав би будь-який ALTER."""
+    root = _copy_surface(tmp_path)
+    _future(root, "op.execute('ALTER TABLE accounts ENABLE ROW LEVEL SECURITY')")
+    report = evaluate(root)
+    assert report["status"] == "FAIL"
+    assert any("accounts" in item for item in report["findings"]), report["findings"]
+
+
+def test_alter_whose_table_name_is_not_literal_is_rejected(tmp_path: Path) -> None:
+    """Невідоме ім'я не дає дозволу: інакше f-рядок обходив би перевірку."""
+    root = _copy_surface(tmp_path)
+    _future(
+        root,
+        "op.create_table('widgets', sa.Column('id', sa.String(), primary_key=True))\n"
+        "table = 'accounts'\n"
+        "op.execute(f'ALTER TABLE {table} ENABLE ROW LEVEL SECURITY')",
+    )
+    report = evaluate(root)
+    assert report["status"] == "FAIL", report
+
+
 def test_raw_sql_future_migration_is_rejected_by_default(tmp_path: Path) -> None:
     root = _copy_surface(tmp_path)
     _future(root, "op.execute('DROP TABLE accounts')")

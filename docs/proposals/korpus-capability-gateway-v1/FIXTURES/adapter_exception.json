@@ -1,0 +1,12 @@
+{
+  "description": "Synthetic adapter failure.",
+  "adapter_fixture": {
+    "raise": "RuntimeError",
+    "message": "synthetic provider failure"
+  },
+  "expected": {
+    "error_code": "ADAPTER_FAILURE",
+    "outcome": "FAILED",
+    "audit_required": true
+  }
+}

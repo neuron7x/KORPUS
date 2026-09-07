@@ -505,16 +505,51 @@
       "to": {
         "max_function_lines": 36
       }
+    },
+    {
+      "new_modules": [
+        "apps/api/src/korpus/api/routes_integrations.py",
+        "apps/api/src/korpus/application/capability_gateway/__init__.py",
+        "apps/api/src/korpus/application/capability_gateway/adapters.py",
+        "apps/api/src/korpus/application/capability_gateway/audit.py",
+        "apps/api/src/korpus/application/capability_gateway/context.py",
+        "apps/api/src/korpus/application/capability_gateway/contracts.py",
+        "apps/api/src/korpus/application/capability_gateway/effect_safety.py",
+        "apps/api/src/korpus/application/capability_gateway/effects.py",
+        "apps/api/src/korpus/application/capability_gateway/egress.py",
+        "apps/api/src/korpus/application/capability_gateway/errors.py",
+        "apps/api/src/korpus/application/capability_gateway/evidence.py",
+        "apps/api/src/korpus/application/capability_gateway/execution.py",
+        "apps/api/src/korpus/application/capability_gateway/invoke.py",
+        "apps/api/src/korpus/application/capability_gateway/mcp_admission.py",
+        "apps/api/src/korpus/application/capability_gateway/observed.py",
+        "apps/api/src/korpus/application/capability_gateway/policy.py",
+        "apps/api/src/korpus/application/capability_gateway/preflight.py",
+        "apps/api/src/korpus/application/capability_gateway/reconciliation.py",
+        "apps/api/src/korpus/application/capability_gateway/registry.py",
+        "apps/api/src/korpus/application/capability_gateway/result.py",
+        "apps/api/src/korpus/application/capability_gateway/types.py",
+        "apps/api/src/korpus/application/capability_gateway/validation.py",
+        "apps/api/src/korpus/infrastructure/capability_effect_ledger.py",
+        "apps/api/src/korpus/infrastructure/capability_effect_schema.py",
+        "apps/api/src/korpus/infrastructure/capability_observability.py",
+        "apps/api/src/korpus/infrastructure/integrations/__init__.py",
+        "apps/api/src/korpus/infrastructure/integrations/http.py",
+        "apps/api/src/korpus/infrastructure/integrations/internal.py"
+      ],
+      "note": "Нові модулі PR#44 внесено з виміряними стелями дня інтеграції.",
+      "on": "2026-09-07"
     }
   ],
   "modules": {
     "apps/api/src/korpus/__init__.py": {
-      "lines": 1,
+      "lines": 7,
       "max_complexity": 0,
       "max_function_args": 0,
       "max_function_lines": 0,
       "max_nesting": 0,
-      "proof_lines": 0
+      "proof_lines": 0,
+      "reason": "PR#44: під `mypy --strict` псевдонім не є експортом, доки не оголошений — `from korpus import __version__` давав attr-defined при наявному атрибуті. `__all__` це ТВЕРДЖЕННЯ, не придушення."
     },
     "apps/api/src/korpus/api/__init__.py": {
       "lines": 0,
@@ -669,6 +704,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Exact ceiling after authenticated inference limits and fallback disclosure"
+    },
+    "apps/api/src/korpus/api/routes_integrations.py": {
+      "lines": 103,
+      "max_complexity": 7,
+      "max_function_args": 3,
+      "max_function_lines": 32,
+      "max_nesting": 6,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
     },
     "apps/api/src/korpus/api/routes_offline.py": {
       "lines": 79,
@@ -905,6 +949,195 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
+    },
+    "apps/api/src/korpus/application/capability_gateway/__init__.py": {
+      "lines": 10,
+      "max_complexity": 0,
+      "max_function_args": 0,
+      "max_function_lines": 0,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/adapters.py": {
+      "lines": 115,
+      "max_complexity": 8,
+      "max_function_args": 5,
+      "max_function_lines": 21,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/audit.py": {
+      "lines": 133,
+      "max_complexity": 1,
+      "max_function_args": 15,
+      "max_function_lines": 57,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/context.py": {
+      "lines": 89,
+      "max_complexity": 2,
+      "max_function_args": 6,
+      "max_function_lines": 24,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/contracts.py": {
+      "lines": 51,
+      "max_complexity": 6,
+      "max_function_args": 2,
+      "max_function_lines": 13,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/effect_safety.py": {
+      "lines": 251,
+      "max_complexity": 12,
+      "max_function_args": 8,
+      "max_function_lines": 58,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/effects.py": {
+      "lines": 364,
+      "max_complexity": 12,
+      "max_function_args": 9,
+      "max_function_lines": 67,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/egress.py": {
+      "lines": 115,
+      "max_complexity": 9,
+      "max_function_args": 5,
+      "max_function_lines": 45,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/errors.py": {
+      "lines": 35,
+      "max_complexity": 1,
+      "max_function_args": 2,
+      "max_function_lines": 3,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/evidence.py": {
+      "lines": 149,
+      "max_complexity": 28,
+      "max_function_args": 5,
+      "max_function_lines": 64,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/execution.py": {
+      "lines": 342,
+      "max_complexity": 8,
+      "max_function_args": 5,
+      "max_function_lines": 60,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/invoke.py": {
+      "lines": 522,
+      "max_complexity": 12,
+      "max_function_args": 5,
+      "max_function_lines": 40,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/mcp_admission.py": {
+      "lines": 113,
+      "max_complexity": 10,
+      "max_function_args": 3,
+      "max_function_lines": 39,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/observed.py": {
+      "lines": 119,
+      "max_complexity": 6,
+      "max_function_args": 4,
+      "max_function_lines": 30,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/policy.py": {
+      "lines": 182,
+      "max_complexity": 8,
+      "max_function_args": 4,
+      "max_function_lines": 43,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/preflight.py": {
+      "lines": 106,
+      "max_complexity": 15,
+      "max_function_args": 7,
+      "max_function_lines": 56,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/reconciliation.py": {
+      "lines": 190,
+      "max_complexity": 25,
+      "max_function_args": 8,
+      "max_function_lines": 106,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/registry.py": {
+      "lines": 70,
+      "max_complexity": 3,
+      "max_function_args": 3,
+      "max_function_lines": 9,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/result.py": {
+      "lines": 182,
+      "max_complexity": 11,
+      "max_function_args": 5,
+      "max_function_lines": 67,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/types.py": {
+      "lines": 212,
+      "max_complexity": 15,
+      "max_function_args": 2,
+      "max_function_lines": 32,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/application/capability_gateway/validation.py": {
+      "lines": 61,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 13,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
     },
     "apps/api/src/korpus/application/checkout.py": {
       "lines": 85,
@@ -2310,12 +2543,13 @@
       "proof_lines": 0
     },
     "apps/api/src/korpus/infrastructure/__init__.py": {
-      "lines": 0,
+      "lines": 10,
       "max_complexity": 0,
       "max_function_args": 0,
       "max_function_lines": 0,
       "max_nesting": 0,
-      "proof_lines": 0
+      "proof_lines": 0,
+      "reason": "PR#44: фрагменти фізичної схеми поза `schema.py` імпортуються заздалегідь, щоб канонічна `metadata` була повною до ініціалізації репозиторію чи читання alembic. Поведінкові адаптери сюди НЕ вносяться."
     },
     "apps/api/src/korpus/infrastructure/anthropic_planner.py": {
       "lines": 176,
@@ -2369,6 +2603,33 @@
       "max_function_lines": 82,
       "max_nesting": 2,
       "proof_lines": 0
+    },
+    "apps/api/src/korpus/infrastructure/capability_effect_ledger.py": {
+      "lines": 298,
+      "max_complexity": 16,
+      "max_function_args": 9,
+      "max_function_lines": 82,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/infrastructure/capability_effect_schema.py": {
+      "lines": 45,
+      "max_complexity": 0,
+      "max_function_args": 0,
+      "max_function_lines": 0,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/infrastructure/capability_observability.py": {
+      "lines": 121,
+      "max_complexity": 4,
+      "max_function_args": 4,
+      "max_function_lines": 27,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
     },
     "apps/api/src/korpus/infrastructure/competency_repository.py": {
       "lines": 193,
@@ -2537,6 +2798,33 @@
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/integrations/__init__.py": {
+      "lines": 5,
+      "max_complexity": 0,
+      "max_function_args": 0,
+      "max_function_lines": 0,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/infrastructure/integrations/http.py": {
+      "lines": 274,
+      "max_complexity": 12,
+      "max_function_args": 5,
+      "max_function_lines": 45,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
+    },
+    "apps/api/src/korpus/infrastructure/integrations/internal.py": {
+      "lines": 85,
+      "max_complexity": 6,
+      "max_function_args": 5,
+      "max_function_lines": 45,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
     },
     "apps/api/src/korpus/infrastructure/learning_progress_schema.py": {
       "lines": 27,
@@ -4159,13 +4447,13 @@
       "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
     },
     "scripts/gcp/validate_migration_compatibility.py": {
-      "lines": 216,
+      "lines": 255,
       "max_complexity": 13,
       "max_function_args": 4,
-      "max_function_lines": 25,
+      "max_function_lines": 39,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": "Правило «лише розширення» судило МЕХАНІЗМ, а не властивість: забороняло `op.execute` цілком, хоч це єдиний спосіб створити тригер у alembic і водночас спосіб знести таблицю. `CREATE TRIGGER` і `DROP TABLE` були нерозрізненні. Тепер судиться дієслово оператора, а нечитаний аргумент не проходить — невідоме не є дозволом."
+      "reason": "Гейт навчено відрізняти `ALTER TABLE` над таблицею, яку створює ця сама міграція, від ALTER над наявною: перше нікого не звужує, бо ревізія N-1 про таблицю не знає, друге — саме те, через що 0020 визнали нерозширювальним. Приріст — розбір імені таблиці, підстава й три негативні контролі."
     },
     "scripts/gcp/validate_terraform_structure.py": {
       "lines": 115,
@@ -4195,13 +4483,13 @@
       "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/gcp/verify_live_postgres.py": {
-      "lines": 410,
+      "lines": 422,
       "max_complexity": 12,
       "max_function_args": 3,
       "max_function_lines": 83,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+      "reason": "PR#44: оголошено четвертий клас грантів `EFFECT_TRANSITION_TABLES` (SELECT/INSERT/UPDATE без DELETE). Перелік класів закритий навмисно — без цього рядка живий гейт мовчки не перевіряв би таблицю, яку застосунок уже пише."
     },
     "scripts/generate_desired_state.py": {
       "lines": 97,
@@ -4699,13 +4987,13 @@
       "reason": "Примітиви керування ролями, по одному твердженню на функцію. Найважливіший — `revoke_all_memberships`: переприв'язка мусить ЗНИЩУВАТИ застаріле членство, інакше роль зберігає права, яких їй уже не давали."
     },
     "scripts/prepare_postgres_role.py": {
-      "lines": 435,
+      "lines": 448,
       "max_complexity": 4,
       "max_function_args": 2,
       "max_function_lines": 7,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "`corpus_state_epoch` у мутабельних таблицях: тригер піднімає епоху на КОЖНІЙ зміні складу доказів, і без права оновлювати її застосунок не міг би зафіксувати, що корпус зрушив між двома читаннями однієї відповіді."
+      "reason": "PR#44: `capability_effects` дістає SELECT/INSERT/UPDATE без DELETE — стерта резервація ідемпотентності дозволяє повторити побічну дію, яка може бути незворотною. Окремий перелік, бо предмет інший за аудит."
     },
     "scripts/probe_blank_corpus.py": {
       "lines": 202,
@@ -11931,6 +12219,51 @@
       "reason": "Словозміна відокремлена від словотвору. Замкненість щодо парадигми 6/12 -> 12/12, родовий відмінок предмета 12/14 -> 14/14 на живому продукті, решта осей без руху.",
       "to": {
         "lines": 481
+      }
+    },
+    {
+      "on": "2026-09-07",
+      "path": "apps/api/src/korpus/__init__.py",
+      "reason": "PR#44: під `mypy --strict` псевдонім не є експортом, доки не оголошений — `from korpus import __version__` давав attr-defined при наявному атрибуті. `__all__` це ТВЕРДЖЕННЯ, не придушення.",
+      "to": {
+        "lines": 7
+      }
+    },
+    {
+      "on": "2026-09-07",
+      "path": "apps/api/src/korpus/infrastructure/__init__.py",
+      "reason": "PR#44: фрагменти фізичної схеми поза `schema.py` імпортуються заздалегідь, щоб канонічна `metadata` була повною до ініціалізації репозиторію чи читання alembic. Поведінкові адаптери сюди НЕ вносяться.",
+      "to": {
+        "lines": 10
+      }
+    },
+    {
+      "from": {
+        "lines": 216,
+        "max_function_lines": 25
+      },
+      "on": "2026-09-07",
+      "path": "scripts/gcp/validate_migration_compatibility.py",
+      "reason": "Гейт навчено відрізняти `ALTER TABLE` над таблицею, яку створює ця сама міграція, від ALTER над наявною: перше нікого не звужує, бо ревізія N-1 про таблицю не знає, друге — саме те, через що 0020 визнали нерозширювальним. Приріст — розбір імені таблиці, підстава й три негативні контролі. Функція `_execute_is_expanding` виросла 25→39 рядків: у ній тепер лежить розбір імені таблиці та підстава, чому ALTER над власною таблицею розширювальний, а над чужою — ні.",
+      "to": {
+        "lines": 255,
+        "max_function_lines": 39
+      }
+    },
+    {
+      "on": "2026-09-07",
+      "path": "scripts/gcp/verify_live_postgres.py",
+      "reason": "PR#44: оголошено четвертий клас грантів `EFFECT_TRANSITION_TABLES` (SELECT/INSERT/UPDATE без DELETE). Перелік класів закритий навмисно — без цього рядка живий гейт мовчки не перевіряв би таблицю, яку застосунок уже пише.",
+      "to": {
+        "lines": 422
+      }
+    },
+    {
+      "on": "2026-09-07",
+      "path": "scripts/prepare_postgres_role.py",
+      "reason": "PR#44: `capability_effects` дістає SELECT/INSERT/UPDATE без DELETE — стерта резервація ідемпотентності дозволяє повторити побічну дію, яка може бути незворотною. Окремий перелік, бо предмет інший за аудит.",
+      "to": {
+        "lines": 448
       }
     }
   ],

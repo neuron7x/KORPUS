@@ -61,6 +61,14 @@ READ_WRITE_TABLES = (
     "operational_role_tasks",
     "operational_task_competencies",
 )
+#: Стан, що ПЕРЕХОДИТЬ, але не стирається. `capability_effects` — реєстр ідемпотентності
+#: побічних дій: рядок вставляється в `PENDING` і переходить у `COMMITTED`,
+#: `FAILED_KNOWN_NO_EFFECT`, `OUTCOME_UNKNOWN` або `RECONCILED`. DELETE не видається
+#: НАВМИСНО, і це та сама межа, що й у міграції 0024, яка не створює DELETE-політики:
+#: подвійна побічна дія може бути операційно незворотною, тож стерти резервацію означає
+#: дозволити її повторити. Окремий перелік, а не `AUDIT_MUTABLE_TABLES`, бо набір прав
+#: збігається випадково, а предмет інший — це продуктовий стан, не слід аудиту.
+EFFECT_TRANSITION_TABLES = ("capability_effects",)
 AUDIT_APPEND_TABLES = ("audit_events",)
 AUDIT_MUTABLE_TABLES = ("audit_anchor_outbox", "audit_heads", "corpus_state_epoch")
 #: Епоха стану корпусу мутабельна за призначенням: тригер піднімає її на КОЖНІЙ
@@ -210,6 +218,13 @@ with engine.connect() as connection:
             text(f"GRANT SELECT, INSERT ON TABLE {quoted_identifier(table_name)} TO {role_sql}")
         )
     for table_name in AUDIT_MUTABLE_TABLES:
+        connection.execute(
+            text(
+                f"GRANT SELECT, INSERT, UPDATE ON TABLE "
+                f"{quoted_identifier(table_name)} TO {role_sql}"
+            )
+        )
+    for table_name in EFFECT_TRANSITION_TABLES:
         connection.execute(
             text(
                 f"GRANT SELECT, INSERT, UPDATE ON TABLE "
