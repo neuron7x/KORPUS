@@ -532,6 +532,15 @@ api:postgres-and-restore:
 
 secret:scan:
   stage: security
+  # `needs: []` — не оптимізація, а виправлення замкненого кола. Сканери стоять у
+  # стадії `security`, четвертій; GitLab пропускає пізніші стадії після падіння
+  # ранішої. Тому щойно `repository:validate` червонів, сканери НЕ БІГЛИ, а предикат
+  # `live_vulnerability_scanners` вимагає саме їхніх маркерів — і робив `validate`
+  # червоним. Виміряно 07.09.2026: конвеєри #407–#409, стадія security «skipped».
+  # Сканування джерела не залежить від валідації репозиторію ні в чому: gitleaks
+  # читає історію, pip-audit — локи. Залежність була наслідком порядку стадій, а не
+  # предмета, і саме вона робила предикат недосяжним після будь-якої правки джерела.
+  needs: []
   # GitLab clones 20 commits deep by default. gitleaks fingerprints are
   # commit:file:rule:line, so under a shallow clone the CSV findings are attributed to
   # whichever commit happens to be the boundary — the baseline stops matching and six
@@ -560,6 +569,15 @@ secret:scan:
 
 python:audit:
   stage: security
+  # `needs: []` — не оптимізація, а виправлення замкненого кола. Сканери стоять у
+  # стадії `security`, четвертій; GitLab пропускає пізніші стадії після падіння
+  # ранішої. Тому щойно `repository:validate` червонів, сканери НЕ БІГЛИ, а предикат
+  # `live_vulnerability_scanners` вимагає саме їхніх маркерів — і робив `validate`
+  # червоним. Виміряно 07.09.2026: конвеєри #407–#409, стадія security «skipped».
+  # Сканування джерела не залежить від валідації репозиторію ні в чому: gitleaks
+  # читає історію, pip-audit — локи. Залежність була наслідком порядку стадій, а не
+  # предмета, і саме вона робила предикат недосяжним після будь-якої правки джерела.
+  needs: []
   image: python:3.12.13-slim-bookworm@sha256:4766d8b510c428e595d74b9cc5bbb2fae8e26316fffb4adc89908d79aacd58a2
   before_script:
     - python -m pip install 'pip-audit==2.10.1'
@@ -581,6 +599,15 @@ python:audit:
 
 infrastructure:scan:
   stage: security
+  # `needs: []` — не оптимізація, а виправлення замкненого кола. Сканери стоять у
+  # стадії `security`, четвертій; GitLab пропускає пізніші стадії після падіння
+  # ранішої. Тому щойно `repository:validate` червонів, сканери НЕ БІГЛИ, а предикат
+  # `live_vulnerability_scanners` вимагає саме їхніх маркерів — і робив `validate`
+  # червоним. Виміряно 07.09.2026: конвеєри #407–#409, стадія security «skipped».
+  # Сканування джерела не залежить від валідації репозиторію ні в чому: gitleaks
+  # читає історію, pip-audit — локи. Залежність була наслідком порядку стадій, а не
+  # предмета, і саме вона робила предикат недосяжним після будь-якої правки джерела.
+  needs: []
   image:
     name: aquasec/trivy:0.70.0@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e
     entrypoint: [""]
@@ -611,6 +638,15 @@ security:summary:
 
 source:sbom:
   stage: security
+  # `needs: []` — не оптимізація, а виправлення замкненого кола. Сканери стоять у
+  # стадії `security`, четвертій; GitLab пропускає пізніші стадії після падіння
+  # ранішої. Тому щойно `repository:validate` червонів, сканери НЕ БІГЛИ, а предикат
+  # `live_vulnerability_scanners` вимагає саме їхніх маркерів — і робив `validate`
+  # червоним. Виміряно 07.09.2026: конвеєри #407–#409, стадія security «skipped».
+  # Сканування джерела не залежить від валідації репозиторію ні в чому: gitleaks
+  # читає історію, pip-audit — локи. Залежність була наслідком порядку стадій, а не
+  # предмета, і саме вона робила предикат недосяжним після будь-якої правки джерела.
+  needs: []
   image:
     # -debug carries a busybox shell. The plain tag is distroless, and GitLab
     # needs `sh` to run a job script: both syft jobs died with
