@@ -59,7 +59,14 @@ def _grant_contract() -> dict[str, set[str]]:
             if isinstance(element, ast.Constant) and isinstance(element.value, str)
         }
         out[target.id] = values
-    required = {"READ_WRITE_TABLES", "AUDIT_APPEND_TABLES", "AUDIT_MUTABLE_TABLES"}
+    #: Перелік ЗАКРИТИЙ навмисно: новий клас грантів мусить бути оголошений і тут,
+    #: інакше живий гейт мовчки не перевіряв би таблиці, які застосунок уже пише.
+    required = {
+        "READ_WRITE_TABLES",
+        "AUDIT_APPEND_TABLES",
+        "AUDIT_MUTABLE_TABLES",
+        "EFFECT_TRANSITION_TABLES",
+    }
     if set(out) != required:
         raise RuntimeError(f"PostgreSQL grant contract is unreadable or drifted: {sorted(out)}")
     return out
@@ -79,6 +86,11 @@ def _expected_grants(contract: dict[str, set[str]]) -> dict[str, set[str]]:
     for table in contract["AUDIT_APPEND_TABLES"]:
         expected[table] = {"SELECT", "INSERT"}
     for table in contract["AUDIT_MUTABLE_TABLES"]:
+        expected[table] = {"SELECT", "INSERT", "UPDATE"}
+    # Ті самі права, інший предмет: стан побічної дії ПЕРЕХОДИТЬ, але не стирається —
+    # DELETE не видається, бо стерта резервація ідемпотентності дозволяє повторити дію,
+    # яка може бути операційно незворотною.
+    for table in contract["EFFECT_TRANSITION_TABLES"]:
         expected[table] = {"SELECT", "INSERT", "UPDATE"}
     expected["alembic_version"] = {"SELECT"}
     return expected

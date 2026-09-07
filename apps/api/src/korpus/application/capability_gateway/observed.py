@@ -77,6 +77,7 @@ class ObservedCapabilityGateway:
         # catch is the contract, not an oversight: telemetry is lossy by declaration, and
         # test_capability_gateway_observability_isolation.py drives a RuntimeError through
         # every one of the four telemetry entry points to prove the gateway result survives.
+        # LOSSY-BY-CONTRACT: test_capability_gateway_observability_isolation.py
         with suppress(Exception):
             self._telemetry.observe_invocation(
                 spec=spec,
@@ -96,6 +97,7 @@ def _lossy_telemetry_span(
         manager.__enter__()
     except Exception:  # noqa: BLE001 - injected telemetry Protocol, see _observe_lossy
         # A span factory or __enter__ that fails means "no span", never "no invocation".
+        # LOSSY-BY-CONTRACT: test_capability_gateway_observability_isolation.py
         manager = None
 
     if manager is None:
@@ -107,9 +109,11 @@ def _lossy_telemetry_span(
     except BaseException as exc:
         # __exit__ belongs to the same injected span object: a failure to close it may not
         # replace, suppress or outrank the exception the gateway is already propagating.
+        # LOSSY-BY-CONTRACT: test_capability_gateway_observability_isolation.py
         with suppress(Exception):
             manager.__exit__(type(exc), exc, exc.__traceback__)
         raise
     else:
+        # LOSSY-BY-CONTRACT: test_capability_gateway_observability_isolation.py
         with suppress(Exception):
             manager.__exit__(None, None, None)

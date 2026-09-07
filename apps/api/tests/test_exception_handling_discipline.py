@@ -25,6 +25,7 @@ its gates, its reports and its aggregator, and would find in its runtime next.
 from __future__ import annotations
 
 import ast
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -55,6 +56,40 @@ def _records(handler: ast.ExceptHandler) -> bool:
     return False
 
 
+#: Стани, які не можна сплутати з успіхом. Перелік ЗАКРИТИЙ і оголошений тут, а не
+#: виведений із коду: назви станів — відкрита множина, і матчер по ній пускав би все,
+#: що містить схоже слово. Порівняння йде по ЦІЛОМУ сегменту імені (розбитому по
+#: не-літерах), тож `no_errors_expected` не читається як `ERROR`.
+NON_SUCCESS_SEGMENTS = frozenset(
+    {"FAILED", "FAILURE", "REJECTED", "ERROR", "UNKNOWN", "DENIED", "UNAVAILABLE", "INVALID"}
+)
+
+
+def _names_a_failure(value: ast.expr) -> bool:
+    """Чи називає повернений вираз стан відмови ДОСЛІВНО.
+
+    Правило дозволяє «повернути значення, яке не сплутати з успіхом», але детектор
+    бачив лише константи, тож `return early_result(InvocationOutcome.FAILED, …)` —
+    деградація у вигляді виклику — читалась як мовчазне глушіння. Це хиба детектора,
+    не коду: він міряв ФОРМУ повернення, а не властивість, яку охороняє.
+
+    Приймається лише те, де стан названо: атрибут перелічення (`InvocationOutcome.FAILED`)
+    або рядок коду помилки (`"AUDIT_APPEND_FAILED"`). Виклик, що нічого не називає,
+    лишається відмовою — невідоме не є дозволом.
+    """
+    for node in ast.walk(value):
+        segments: list[str] = []
+        if isinstance(node, ast.Attribute):
+            segments = re.split(r"[^A-Za-z]+", node.attr.upper())
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            segments = re.split(r"[^A-Za-z]+", node.value.upper())
+        elif isinstance(node, ast.Name):
+            segments = re.split(r"[^A-Za-z]+", node.id.upper())
+        if set(segments) & NON_SUCCESS_SEGMENTS:
+            return True
+    return False
+
+
 def _returns_only_non_success(handler: ast.ExceptHandler) -> bool:
     """True when every `return` in the handler yields a value meaning "not ok"."""
     returns = [node for node in ast.walk(handler) if isinstance(node, ast.Return)]
@@ -75,8 +110,34 @@ def _returns_only_non_success(handler: ast.ExceptHandler) -> bool:
                 continue
             if isinstance(constant, int) and constant != 0:
                 continue  # a non-zero exit code is a failure the caller can see
+            return False
+        if _names_a_failure(value):
+            continue
         return False
     return True
+
+
+#: Єдиний спосіб для широкого обробника НЕ деградувати й НЕ записати: назвати доказ,
+#: що збій не доходить до виклику. Не вільний пропуск — гейт перевіряє, що названий файл
+#: існує. Потреба з'явилась із телеметрією: вона оголошена втратною, у цьому дереві немає
+#: логування взагалі (жодного `logging` в `apps/api/src/korpus`), а канал запису цієї
+#: підсистеми — аудит рішення, до якого збій ЕКСПОРТЕРА не належить. Виняток без імені
+#: доказу був би тим самим мовчазним глушінням, лише з коментарем.
+LOSSY_MARKER = re.compile(r"LOSSY-BY-CONTRACT:\s*(?P<proof>[A-Za-z0-9_./-]+\.py)")
+TESTS_ROOT = ROOT / "apps/api/tests"
+
+
+def _lossy_contract_proof(path: str, line: int, source: dict[str, list[str]]) -> str | None:
+    """Ім'я доказу, названого поруч із обробником, якщо такий файл справді існує."""
+    if path not in source:
+        source[path] = (ROOT / path).read_text(encoding="utf-8").splitlines()
+    lines = source[path]
+    window = lines[max(0, line - 2) : line + 12]
+    for text in window:
+        found = LOSSY_MARKER.search(text)
+        if found and (TESTS_ROOT / Path(found.group("proof")).name).is_file():
+            return found.group("proof")
+    return None
 
 
 def _handlers() -> list[tuple[str, int, ast.ExceptHandler]]:
@@ -131,8 +192,11 @@ def _broad_suppressions() -> list[tuple[str, int, str]]:
 
 def test_a_broad_suppress_is_judged_like_a_broad_handler() -> None:
     """Інакше `ruff --fix` знімає правило, не змінивши жодної поведінки."""
+    source: dict[str, list[str]] = {}
     offenders = [
-        f"{path}:{line} suppress({caught})" for path, line, caught in _broad_suppressions()
+        f"{path}:{line} suppress({caught})"
+        for path, line, caught in _broad_suppressions()
+        if not _lossy_contract_proof(path, line, source)
     ]
     assert not offenders, (
         "ці місця глушать усе через contextlib.suppress — семантично це той самий "
@@ -149,15 +213,69 @@ def test_there_are_broad_handlers_to_judge() -> None:
 
 
 def test_no_broad_handler_turns_a_fault_into_evidence_of_health() -> None:
+    source: dict[str, list[str]] = {}
     offenders = [
         f"{path}:{line}"
         for path, line, handler in _handlers()
-        if not (_reraises(handler) or _records(handler) or _returns_only_non_success(handler))
+        if not (
+            _reraises(handler)
+            or _records(handler)
+            or _returns_only_non_success(handler)
+            or _lossy_contract_proof(path, line, source)
+        )
     ]
     assert not offenders, (
-        "these handlers catch everything and neither re-raise, degrade, nor record — "
-        f"the caller cannot tell a fault from a success: {offenders}"
+        "these handlers catch everything and neither re-raise, degrade, record, nor name "
+        f"a proof that the failure never reaches the caller: {offenders}"
     )
+
+
+def test_a_lossy_contract_must_name_a_proof_that_exists() -> None:
+    """Негативний контроль: виняток, що вказує в порожнечу, винятком не є."""
+    source = {
+        "apps/api/tests/test_exception_handling_discipline.py": [
+            "# LOSSY-BY-CONTRACT: test_that_was_never_written.py",
+        ]
+    }
+    assert (
+        _lossy_contract_proof("apps/api/tests/test_exception_handling_discipline.py", 1, source)
+        is None
+    )
+
+
+def test_a_lossy_contract_naming_a_real_proof_is_accepted() -> None:
+    source = {"x": ["# LOSSY-BY-CONTRACT: test_capability_gateway_observability_isolation.py"]}
+    assert _lossy_contract_proof("x", 1, source) is not None
+
+
+def test_a_returned_call_that_names_a_failure_state_counts_as_degradation() -> None:
+    """Позитивний бік розширеного детектора."""
+    tree = ast.parse(
+        "try:\n    pass\nexcept Exception:\n"
+        "    return early_result(InvocationOutcome.FAILED, 'AUDIT_APPEND_FAILED')\n"
+    )
+    handler = next(n for n in ast.walk(tree) if isinstance(n, ast.ExceptHandler))
+    assert _returns_only_non_success(handler)
+
+
+def test_a_returned_call_that_names_nothing_is_still_refused() -> None:
+    """Негативний контроль: без нього дозвіл вище пускав би будь-який виклик."""
+    tree = ast.parse("try:\n    pass\nexcept Exception:\n    return build(frame, guard)\n")
+    handler = next(n for n in ast.walk(tree) if isinstance(n, ast.ExceptHandler))
+    assert not _returns_only_non_success(handler)
+
+
+def test_a_failure_word_inside_a_longer_word_is_not_a_failure_state() -> None:
+    """Сегмент, а не підрядок: інакше `no_errors_expected` читалось би як ERROR."""
+    tree = ast.parse("try:\n    pass\nexcept Exception:\n    return build(noerrors=True)\n")
+    handler = next(n for n in ast.walk(tree) if isinstance(n, ast.ExceptHandler))
+    assert not _returns_only_non_success(handler)
+
+
+def test_a_returned_success_constant_is_still_refused() -> None:
+    tree = ast.parse("try:\n    pass\nexcept Exception:\n    return True\n")
+    handler = next(n for n in ast.walk(tree) if isinstance(n, ast.ExceptHandler))
+    assert not _returns_only_non_success(handler)
 
 
 def test_no_bare_except_hides_which_failure_occurred() -> None:

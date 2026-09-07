@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1878,
-  "root_sha256": "0be2170573cba1e8a3e865743b2bd14583fb1cb9a9d9512da852e4c481141b52",
+  "file_count": 2038,
+  "root_sha256": "e0bb0e611680a57ef6649eadb4b77a4d09842f8f60baf9ddca7bdf4ea22c431f",
   "files": [
     {
       "path": ".dockerignore",
@@ -708,6 +708,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/migrations/versions/0024_capability_effect_ledger.py",
+      "bytes": 3900,
+      "sha256": "2f16151740595d600fc4bbbc1e0578c0c0397bf5064f0ab2c55598cc089e3354",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/pyproject.toml",
       "bytes": 3439,
       "sha256": "30eee35c4235066f5f8c56960815c5e9264cc50f704d4bae94626c1d303642b2",
@@ -727,8 +733,8 @@
     },
     {
       "path": "apps/api/src/korpus/__init__.py",
-      "bytes": 58,
-      "sha256": "3be9d510fe36faf95cb0012927c044cceae9612826a3073625d835df5cb3e6c8",
+      "bytes": 455,
+      "sha256": "c13c30f507fd08fbecf16022c3bda152d1f32192d2306f0ef6daf3f63efbcee5",
       "mode": "0644"
     },
     {
@@ -837,6 +843,12 @@
       "path": "apps/api/src/korpus/api/routes_inference.py",
       "bytes": 2903,
       "sha256": "6a4da081c8516efa150d2f0589ea226dacff8e3f2d2f240fcb9ac49520dcb43a",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/api/routes_integrations.py",
+      "bytes": 4816,
+      "sha256": "bde05637c5f30f7657a37697ebd5841eeccceb91254921406941fa0f4ff78f56",
       "mode": "0644"
     },
     {
@@ -999,6 +1011,132 @@
       "path": "apps/api/src/korpus/application/calibration.py",
       "bytes": 9617,
       "sha256": "148587eae7f7ec4122d914ecf5b5e1440be078a794430ec66567c67569f50c34",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/__init__.py",
+      "bytes": 474,
+      "sha256": "c9a5b8047e83e110120cf8a76365e1d623f6ebfd6643f68413f7098190c118d7",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/adapters.py",
+      "bytes": 4017,
+      "sha256": "94bb2a7124838f455362abbfc39e70b7ca514a7b8f3c3da946e1c3d4f1b05c2c",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/audit.py",
+      "bytes": 4496,
+      "sha256": "8059218b030655ed05001d78f914705c38ac73f935b556f350b8d0e980f38eaf",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/context.py",
+      "bytes": 2747,
+      "sha256": "47dae7fa1dd0f3bf299af1067db94f59bebd0bdddd2973935941199564cb60e9",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/contracts.py",
+      "bytes": 1906,
+      "sha256": "604f9075c9d32d39c84fa94b3bf0fc864a67203b60ad673862421de3a090f9e5",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/effect_safety.py",
+      "bytes": 10270,
+      "sha256": "61ea35a52d3cb754f3ec831fad208cbfcd8423b546ba4af9cf3eafc7d319cef0",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/effects.py",
+      "bytes": 11931,
+      "sha256": "3c81406b993b2be01c032b97559a516a151ea6a6a5e39711759d6a218b26f51e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/egress.py",
+      "bytes": 3529,
+      "sha256": "62efda2a4d428556ecbfc52c1f1f6734529011f5b29011fb755964dde3f88f26",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/errors.py",
+      "bytes": 913,
+      "sha256": "e1b1773687b56483d37df09b82676846108b8347aa89998ff51ebde61eb71f9b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/evidence.py",
+      "bytes": 6300,
+      "sha256": "d9b3b441c8d8b4b1ed5fe07fed47ee13c035ee935ab09e8f8412ccbadef1ff42",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/execution.py",
+      "bytes": 13599,
+      "sha256": "b5dcdfd55a70f6db950c740cfd5539283e1a17a9a60b39d02192c8d8819b9bce",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/invoke.py",
+      "bytes": 23541,
+      "sha256": "d4c62759185870250488a4d96fe316880280459165fb505eb1b50a7b1b4a0f60",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/mcp_admission.py",
+      "bytes": 4023,
+      "sha256": "fdae716461e87c7dad9337eb188cf1c3cce746dbd4d1403293f0a6c77b0b2dbf",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/observed.py",
+      "bytes": 4871,
+      "sha256": "e5d8de8ca2d9d9d4ce4f0c2bfa76a4e969b78ae10f5ff29abe908f874741de05",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/policy.py",
+      "bytes": 7644,
+      "sha256": "86c8a62780b71a89de74ce14c68b370d9e4ac3baabf33e9d2de08f7f170ae9c2",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/preflight.py",
+      "bytes": 4387,
+      "sha256": "5687b25a7fc0957139807256ea1241d753f5757a1b088559aed6156fc64bec8e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/reconciliation.py",
+      "bytes": 7649,
+      "sha256": "3dd8356a32b17bb5f00f4b571f5feed094286d635ea196b304e1c011315c6009",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/registry.py",
+      "bytes": 2642,
+      "sha256": "453fd0f3abc6685055d9eb0487e764a93c56683e94844b196c3309022050e98d",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/result.py",
+      "bytes": 7038,
+      "sha256": "f901a30cd4f36578b70f2f2916aada9826b1438b31945715a8501a91986181a2",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/types.py",
+      "bytes": 7154,
+      "sha256": "bc52e4f7e0bf984c931fb5b79c1c4ddde27ad6606e4557a875274e9cd46ac113",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/capability_gateway/validation.py",
+      "bytes": 2444,
+      "sha256": "20065ab6b5d7595c5542f6000ffcab8c8120d3ef6a81756236d14d31c9fd8e7e",
       "mode": "0644"
     },
     {
@@ -1963,8 +2101,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/__init__.py",
-      "bytes": 0,
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 387,
+      "sha256": "559bbaad4be3637071ae95ea18eb283f09ea6514dd651a4fcc751bfff9e93c0f",
       "mode": "0644"
     },
     {
@@ -2001,6 +2139,24 @@
       "path": "apps/api/src/korpus/infrastructure/billing_repository.py",
       "bytes": 16935,
       "sha256": "d58b654562fbbfe34beafb26032beb4b2cc5e513404c527ca132c62a376e4a81",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/capability_effect_ledger.py",
+      "bytes": 12802,
+      "sha256": "ebbedf4a178e47709748a6fe1e05e30615cd56f125c157304c8189eb49ccb124",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/capability_effect_schema.py",
+      "bytes": 1879,
+      "sha256": "552a4e43b4e62440c1160d7ad74e39546742df64c884e721aec5fadae859b889",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/capability_observability.py",
+      "bytes": 4792,
+      "sha256": "1e344fd8e82279ed5394a19a94c69535c92d726d39fb6c47b7b15acfac028c61",
       "mode": "0644"
     },
     {
@@ -2115,6 +2271,24 @@
       "path": "apps/api/src/korpus/infrastructure/ingestion_schema.py",
       "bytes": 1610,
       "sha256": "1b044d7dfc86978e10c5319a64920f9d2bec0eb34a91548aaec9d3eef21090e0",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/integrations/__init__.py",
+      "bytes": 228,
+      "sha256": "adeae02e6ad0ece0e9d691bf5a2463ccbf55a8d4266a40d4b536cd8e871fd4af",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/integrations/http.py",
+      "bytes": 10968,
+      "sha256": "46f9c4e784b5deba5ec414d31787a6668d1c9a48ca8f1e7ff5582d841b1b7fae",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/integrations/internal.py",
+      "bytes": 3208,
+      "sha256": "8cfeb014bbc5042538b6b3ad37f4257c7914ef2e0f5ffa696c46bf06073dc348",
       "mode": "0644"
     },
     {
@@ -2305,8 +2479,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/schema.py",
-      "bytes": 9997,
-      "sha256": "f82fd6f9288831cbd0a765acfb088c2adee965dcdc8550554835849921bf4c95",
+      "bytes": 9999,
+      "sha256": "3d582181df634b55553a0baf4e9608e1ade76693f825f36e1a2d44c46e2b0b7f",
       "mode": "0644"
     },
     {
@@ -2887,8 +3061,8 @@
     },
     {
       "path": "apps/api/tests/test_branch_consolidation.py",
-      "bytes": 5582,
-      "sha256": "6b584b5a6c468e42e51cb240fb43a578283cd5d2a9adf57629c8cc3f69474aab",
+      "bytes": 6200,
+      "sha256": "4d232b91b574c189aad96fa3856ff1a222bf6b10ca1f9592f3fe324f5ab35e25",
       "mode": "0644"
     },
     {
@@ -2991,6 +3165,258 @@
       "path": "apps/api/tests/test_canonical_state.py",
       "bytes": 16501,
       "sha256": "6eecebfa8dcf50abdf977bc5ec39ddb82adf2094baa1fed03c8d4b7885fc78fb",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_effect_ledger.py",
+      "bytes": 7394,
+      "sha256": "cfe4f7c64e53460a38d12ad784305bb9bac600aa91e7de05b972ee3fff78946c",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_effect_schema_boundary.py",
+      "bytes": 2624,
+      "sha256": "63c8ed43168672cdc72d156a530b5c900f071aee0c8111c3b9e71eab29052032",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_adapter_registration.py",
+      "bytes": 1850,
+      "sha256": "8047f539a94d3f0914b7966bc17102873b05d513605f7118fd895546ce3e8499",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_adapter_result_boundary.py",
+      "bytes": 9578,
+      "sha256": "06e3014ae8bb8fb3df0b6f5801798c39e5b9f0376b9423bd1a98fe0c325454ce",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_adapters_evidence.py",
+      "bytes": 8091,
+      "sha256": "ef4235068a05909e09c8d601b1273a9b94d0bf8cd5f7223986b9b4fa1f236bf2",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_api_surface.py",
+      "bytes": 7369,
+      "sha256": "3d8162e9d6d739f10ae4a6b09e7385dd6778b72b3a343b9adf311da260a293d7",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_authority_boundaries.py",
+      "bytes": 6485,
+      "sha256": "7bf68d2458298f99fdaf20c6fd56494976ee9cfe2a40fc36ad7c81c45d31da4a",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_boundary_normalization.py",
+      "bytes": 12223,
+      "sha256": "52575b59eb516459c8d4acd12bb51ac729915d12724d276bbb281b2577f08331",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_composition_snapshots.py",
+      "bytes": 9491,
+      "sha256": "594989ce6d47b14b43be6b36610a9c7ebaaa9ede97e44861d8aec3227761c998",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_context_audit.py",
+      "bytes": 6719,
+      "sha256": "75818a55a80b7b7e0deb05ca655374bc064d725507f6645d6574b1aede35b51a",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_contract_parity.py",
+      "bytes": 8709,
+      "sha256": "de83bceb9e17cad3ea5b38c4ba68060853af4da9b4e754c9448ef56e91bc5bec",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_core.py",
+      "bytes": 8716,
+      "sha256": "d7b7de1f9e85c89b70b2b229ae504735220207296bd679bb15bf92b5242569b0",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_effect_reservation_attestation.py",
+      "bytes": 5978,
+      "sha256": "77b6b2524e562cb81dd7d00b6e1c1937eddb6fdadc8676adadea4579a3f23984",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_effect_safety.py",
+      "bytes": 9359,
+      "sha256": "aace4eb39e760b9195c5fc2b4d3dbf13b4817263b7491e9791a6c8860f451380",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_effect_safety_cycle_scale.py",
+      "bytes": 1008,
+      "sha256": "184d8aca43082eca84a00acdc2e8483c04e7516a67f8a6386a4d40e0fc3c37fb",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_effect_safety_cycles.py",
+      "bytes": 5628,
+      "sha256": "517db1127e1bd8f3613b44605349b49ceab11912814616b4f8e870b0a1c0a14e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_effect_safety_graph.py",
+      "bytes": 9792,
+      "sha256": "e6eb0d8814a0cacb3f0cc6cd601f1f7ea144ecf45384d0d795e18a9786a19270",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_effect_transition_attestation.py",
+      "bytes": 4031,
+      "sha256": "6578e0e0f7afc53949999d3782758cc3ea6bac4f0a678ac08c7975ebde89cb5c",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_effects.py",
+      "bytes": 9400,
+      "sha256": "bff56d9f07e05f7683ae825ed85ad5da00c10ea15923a08ee787a11e075fb11d",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_http_adapter.py",
+      "bytes": 9438,
+      "sha256": "bc59bbaf2c99115202e555ab1dd8819f1eb5f9310f30e6c796a3e03b7473c814",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_http_runtime_boundary.py",
+      "bytes": 1426,
+      "sha256": "cad4104c51563dfd4c2dac9c0760bf0d4c944708a90b9f3466115181cd6c6a9b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_internal_adapter.py",
+      "bytes": 7258,
+      "sha256": "02c162fc118d89932714ea6dd27b65237b1c81ea4668a45cf2110d715c15eb1c",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_invoke.py",
+      "bytes": 20090,
+      "sha256": "4cbfabfa29d3231907047e32379a7d91a6ce3ea92d64d8949d85ec4f7ff2bfbc",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_mcp_admission.py",
+      "bytes": 6644,
+      "sha256": "7050f6c0e36d24c10b464dfc36787c7cdb1dedae152095fca0c187e1bc8f8252",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_missing_adapter_state.py",
+      "bytes": 6322,
+      "sha256": "bc6833dc9ec6975bb76425a8d2763be7139efadcc97af3f3fd735a362cbb9c8e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_observability.py",
+      "bytes": 4619,
+      "sha256": "c865e63115a0911a494064b99b3b9dab22021fbe70ab363a994d745c81e81b0c",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_observability_isolation.py",
+      "bytes": 4290,
+      "sha256": "3ff85b064165923a6e4707b094d7fb00fa87d1d09d537bc7681027372b3fd7fa",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_observability_snapshot.py",
+      "bytes": 4870,
+      "sha256": "6034e9a541b57ce46607d1dcc3380cb7aa015c9875fa74b1e5c605fc51ff2a55",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_port_return_attestation.py",
+      "bytes": 5938,
+      "sha256": "2032b7202bee1c6ffc67752c42a1d95e0fdb940b0e1519aeec98b6a0b7877516",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_preflight.py",
+      "bytes": 5640,
+      "sha256": "fbf85c4eb559ae50c43cc63ce0796191edf217059d5dfe88360071790b5f1520",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_provider_reference.py",
+      "bytes": 9241,
+      "sha256": "246b7ecea9089a08fa3bf40243bc815569de0516b6546c3f055e0d55a3c65b0b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_read_idempotency.py",
+      "bytes": 8497,
+      "sha256": "827b6cc2c6ac4a72d8538086dcfa4f58211028dd8bb747b980d4ccd36856419e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_reconciliation.py",
+      "bytes": 12819,
+      "sha256": "0edfa390cd95078dd909d86c1f08f8c45da31763c54ba9705fe7b88a1cc50430",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_reconciliation_boundaries.py",
+      "bytes": 6489,
+      "sha256": "1fa8c4cba35e43f3914a4d9487e73fd60d31ac3266bec2f10e820ef635731b0a",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_reconciliation_persistence_attestation.py",
+      "bytes": 6210,
+      "sha256": "f33c4efeb1798b4952490a67fb8c8bb19be3d1ce4899b5a5770bab938ae5320e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_replay_semantics.py",
+      "bytes": 4939,
+      "sha256": "b95ff5b3b26689d665771ad8f489d7ab6efc6ef133e62e40b51af86562b0b10f",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_result_boundary.py",
+      "bytes": 5474,
+      "sha256": "c4b2aa173de7d30bb0220b7685c0d153ca0fb0c46dfc8dab71944b1dbffbeaaa",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_schema_registration.py",
+      "bytes": 1143,
+      "sha256": "270d1546567dff1b1ddaf3a61238a374a7150f1c5bd46487e2f19c97208ab81e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_spec_invariants.py",
+      "bytes": 5277,
+      "sha256": "055d3d2b98f413d5a110732118f94cd72fbb0bd7ef8015357eddc2e89a2fd57d",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_validation_egress.py",
+      "bytes": 6076,
+      "sha256": "9fc47c02ceb79664772e5ebcfc2ac0fb7a2f37236b4d674c93e216e035be4174",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_verification_consistency.py",
+      "bytes": 2918,
+      "sha256": "4a8c0a2ec2cf61a0bb42b92140c965281c21a2dc188e8b3bc1cc6b1b44351294",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_verification_state.py",
+      "bytes": 7666,
+      "sha256": "ef7675ed0bbb73fbf370e2604ee638b0ed8ac03bec6e155eff8c557660d4c9d0",
       "mode": "0644"
     },
     {
@@ -3493,8 +3919,8 @@
     },
     {
       "path": "apps/api/tests/test_exception_handling_discipline.py",
-      "bytes": 8096,
-      "sha256": "e2b57e1e5f5651fbc88ccbf8e761669b176e8f0770e05c36f30367c02b756c20",
+      "bytes": 14604,
+      "sha256": "6ff5a21d6c86121cfc3c94a30394f9786b1ad54ff8828b6fde975cc8adf70530",
       "mode": "0644"
     },
     {
@@ -3625,8 +4051,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_migration_compatibility.py",
-      "bytes": 4412,
-      "sha256": "817ebb0955e9088a395725f238738114984c202d84691431d0fdbd146acc6b59",
+      "bytes": 6509,
+      "sha256": "f2cca4388b663b669296d6f8ca3948ba1e13ed8c04ee713354238f77f83957ba",
       "mode": "0644"
     },
     {
@@ -7537,8 +7963,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 697100,
-      "sha256": "bc025ed5dd2d4fa6b9e9782e47216dfaa8c603f9d82aa3e60c61c79520e5f6ee",
+      "bytes": 716210,
+      "sha256": "ec8a3976d313d41862c695a0bf7b7754f6c0fc65afbb907cb27dc26df5d9328e",
       "mode": "0644"
     },
     {
@@ -7597,8 +8023,8 @@
     },
     {
       "path": "config/production/migration-policy.json",
-      "bytes": 7087,
-      "sha256": "6dbe20a52c5ff7f1201ce3ae89cf36103d8852f86b0596145d7f66395668ae61",
+      "bytes": 8547,
+      "sha256": "323b53f6967e713b47f87b898bacce0cb5eacfda436e4bca4f33f119e2d4ed43",
       "mode": "0644"
     },
     {
@@ -7825,8 +8251,8 @@
     },
     {
       "path": "docs/architecture/DATA_MODEL.md",
-      "bytes": 8949,
-      "sha256": "7733f23337fa5d66b5a0de0c55f54a05eb0519afc69463d3d900ce0e47e202bf",
+      "bytes": 9297,
+      "sha256": "a0fa6995b1150f883800f7284b75ecea336ec8d869eb33a89474cc51f0dcb945",
       "mode": "0644"
     },
     {
@@ -8337,6 +8763,540 @@
       "path": "docs/product/SPECIFICATION.md",
       "bytes": 3729,
       "sha256": "5cdef8e7af6dce442c49cb046373a4b66e08e1f95ff9d24fe1ee54a2bfb8bf24",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/.draft-pr",
+      "bytes": 13,
+      "sha256": "8ea5e61bdfbbbbf9902e52da9e32fd56877a33aa66b7fbbb83b9fa7f83aeb9bb",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/ACCEPTANCE_CRITERIA.md",
+      "bytes": 1909,
+      "sha256": "3a963fd62059ff86573dee1ace2bcfd4b535e719a177a07bd564b367063907e9",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_ARCHITECTURE.md",
+      "bytes": 952,
+      "sha256": "a551d0d5e52a1d7e0cd352e722aee2a471af1a45430c2ac15ec8f2a50f31a8a2",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/00_orchestrator.md",
+      "bytes": 369,
+      "sha256": "ccad10923e0adcbba36693bd4636881cf476795201afd4efcf396716e7ed6d4a",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/01_repo_forensics_agent.md",
+      "bytes": 314,
+      "sha256": "7797908c12d4ff6f12d77e60c90146543fc5d947953400b96c9dc725b0741246",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/02_architecture_agent.md",
+      "bytes": 276,
+      "sha256": "a4c91a910c8c774b9264ee2b52c59d72ace2962da911faae3fd6fe3a3aca0ee8",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/03_contract_agent.md",
+      "bytes": 267,
+      "sha256": "c51300651212a893b7e80b428693f1715bc46fee1c2cdba231b08e1e06b24409",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/04_policy_security_agent.md",
+      "bytes": 269,
+      "sha256": "268d84824128686ea37274e873cef17182cb7b1ae4cce288b9ed6ffd2edf904e",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/05_adapter_mcp_agent.md",
+      "bytes": 221,
+      "sha256": "77bc031b77860c3ae820885bbf0a696a1ebf0d9f1697d645079da52c948bc58f",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/06_side_effect_agent.md",
+      "bytes": 236,
+      "sha256": "c720b6c9df55a9b1e4735702a40aa523e62fd2127a904987671834cadcacf6bb",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/07_evidence_audit_agent.md",
+      "bytes": 213,
+      "sha256": "b4e66335a21e16c2c559f08c5803360c3c783e939da74608c6ce3ca23b163f9a",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/08_observability_agent.md",
+      "bytes": 216,
+      "sha256": "c8ae2d58bdb08885c4e4c333cc2bebe917b809f265a81ab6a656afc037ddf36f",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/09_test_falsification_agent.md",
+      "bytes": 222,
+      "sha256": "a24eb99d2c9e8b03eec28247984f2f217046027acdb677da1981f840ac8ad644",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/10_integration_verifier_agent.md",
+      "bytes": 287,
+      "sha256": "cbb81c89551f352ce7812d996e35d4ef4749d784d0a050842b94a63dab13ee10",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/11_clean_room_reproducer_agent.md",
+      "bytes": 216,
+      "sha256": "5372c8332619105ef366505fc25c2c20d0e8da88590ae219cfd1716704e736d4",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/AGENT_SPECS/12_release_handoff_agent.md",
+      "bytes": 260,
+      "sha256": "f385c6d2679405143024607f8bce957fa101a3ef969b75ce130d06dc37fa827a",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/ARCHITECTURE.md",
+      "bytes": 2101,
+      "sha256": "44f42b779e73595d88ec14f8895ee9562bdb88bd38e9f575d59d02893f59a81c",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/BASE_SYNC_BLOCKER.md",
+      "bytes": 1121,
+      "sha256": "09d2dc2fa80c0163eccdb42be9bb7eae896bc9db2a61867bc144984b459fe844",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/BASE_SYNC_OBSERVATION_2026-09-05.json",
+      "bytes": 1533,
+      "sha256": "164eb1ac4713909d367d07b49c1ca76bba694d86170114fa90e80e9b53b65048",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/BIBLIOGRAPHY.md",
+      "bytes": 4065,
+      "sha256": "c74c9a05f03f5fa58dd0031952e18fb534e002443c8a49d376be32a8536e389a",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/BRANCH_MANIFEST.json",
+      "bytes": 17545,
+      "sha256": "74f8d98c95e8b60fdc0cb79b0ab1f6951b320f2279fdfcca56ef79a303c03a74",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CAPABILITY_MODEL.md",
+      "bytes": 1538,
+      "sha256": "507812176ff4109681f4d77ee66317516769863f3928d6653af5ebbba573249c",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CODE_AGENT_EXECUTION_ORDER.md",
+      "bytes": 2654,
+      "sha256": "2594aa13d91ada4a621e8600da8b598957fcfbdc6cdbb38d158c471f68087204",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONFORMANCE_PROFILE.md",
+      "bytes": 591,
+      "sha256": "cf8ca147a781460e71a42612eb9b938580fd5d6bf045a683740cc0a70cd0db13",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/README.md",
+      "bytes": 419,
+      "sha256": "e1ad6fdf5e274118e964e6f73b49a0affbed53881f1169bbfaac41dc3fd0815a",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/audit-record.schema.json",
+      "bytes": 2463,
+      "sha256": "618fa242854d00139832e1089d716218f46a62757ce939f5c48cb474613133f8",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/capability-manifest.example.yaml",
+      "bytes": 954,
+      "sha256": "6c19dd431450183c55f5819a2377560a21bbd79cce355da1b3504b77d7339458",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/capability-spec.schema.json",
+      "bytes": 7421,
+      "sha256": "61688320457543e49a9f0f96d2b32cb2ccb2b955bb8f4c5ff1ed0a2e39abb8a6",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/evidence-envelope.schema.json",
+      "bytes": 1962,
+      "sha256": "e0118295d48024e6b5f932799461504c9d098ecdf48587e489801e38e1ef87cb",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/integration-request.schema.json",
+      "bytes": 857,
+      "sha256": "a00807c5d2eefab97591a95e51c002f423ef847a99f3c22202b1d2c7140cb929",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/integration-result.schema.json",
+      "bytes": 1907,
+      "sha256": "549ed8c35eea2490472fd0635de207d8d786d91711e9bcdc7f2cb3dd8c32d703",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CONTRACTS/invocation-context.schema.json",
+      "bytes": 1613,
+      "sha256": "f203f12e6311d051f855ea1fa4ecf78403ad91b15fa93be84844135eb8798f39",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/CURRENT_VERIFICATION_CHECKPOINT.json",
+      "bytes": 3160,
+      "sha256": "b71866552beb9985c6e7fa54e7f1cbd63218a42bca193ec81fe799e0736b810c",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/DECISIONS/ADR-0001-additive-gateway.md",
+      "bytes": 340,
+      "sha256": "58b4160e916c340eb4c7c02646388f6496584d07225d908543f65e69ba020a46",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/DECISIONS/ADR-0002-policy-before-execution.md",
+      "bytes": 250,
+      "sha256": "e032ac00690b3e52df6c402923d65c4c84c1b00be34a49e85febbbfd7ca14bbf",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/DECISIONS/ADR-0003-no-parallel-authority-stack.md",
+      "bytes": 291,
+      "sha256": "dcd88044c7d5f0a2aad0a2c0099a172837a927ff8870c23f01e651dac4559bfe",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/DECISIONS/ADR-0004-side-effect-idempotency.md",
+      "bytes": 301,
+      "sha256": "e1c2b7b442496b12881fe0c70c04006df5b99c249e86f6aa0648d4635ffe13ea",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/DECISIONS/ADR-0005-structural-agent-separation.md",
+      "bytes": 247,
+      "sha256": "09b3768b3ff565cea477463226bf700f5e1a0595533d23c81e44014f76e3e094",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/DECISIONS/ADR-0006-mcp-as-adapter-not-authority.md",
+      "bytes": 259,
+      "sha256": "db0e8bcb9fd07e2b22b2168981b0a7316cc9a1f33915638fbeb406b72c5ff29d",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/DECISIONS/ADR-0007-effect-safety-sidecar.md",
+      "bytes": 5149,
+      "sha256": "2e4bef1ca2fefa48690f1c9ac153bacef5588bf22e4b46047f4e22ba3bdb9e22",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/ERROR_SEMANTICS.md",
+      "bytes": 1080,
+      "sha256": "27b1a952130e95fd89d9fab035fe5104e65f0e25a042becef7d4c5a567d2fd78",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/EVIDENCE_AND_AUDIT_MODEL.md",
+      "bytes": 1459,
+      "sha256": "1bafb93c0822881b83d41f6aae81b735823af630fbc9700e4210733af64c8d79",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/EXAMPLE_EXECUTION_TRACES.md",
+      "bytes": 752,
+      "sha256": "79ceb1f9e0184cdf3e15af33eb2a32612489a52162c5a7368cdd87fc7ef44be6",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/README.md",
+      "bytes": 257,
+      "sha256": "364ea649463918652bd0efd8740299deb9cd4a633eb47b1b0bb2ec65555b11f9",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/adapter_exception.json",
+      "bytes": 261,
+      "sha256": "1d212390f7fdc8f6eb945234521750d62925c18b93343b072d272358125e51fb",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/malformed_input.json",
+      "bytes": 407,
+      "sha256": "6c392e807bde564b92b5f63ebd8233e61abfb7e9ca2840da8d79497b4bed08ff",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/missing_evidence.json",
+      "bytes": 253,
+      "sha256": "1330ccf9861db49a5ffe146de515f8c051b2da7fc92d1a95cc7690d578fda923",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/policy_denied.json",
+      "bytes": 436,
+      "sha256": "89c1f0abe0261c5f47d64d8eec482d47903e068d9b9005feb4f397b837c63af8",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/side_effect_missing_idempotency.json",
+      "bytes": 455,
+      "sha256": "1c56607cdce93e3f9a8164b27466318230d18a3f2c4724f615dccb9776b1a2b8",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/spoofed_trust_metadata.json",
+      "bytes": 486,
+      "sha256": "11532b0b5f8fbe2b36c9deabc8ca8f848e0bffaae0cc62e4132fb9bc99f4a817",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/stale_evidence.json",
+      "bytes": 900,
+      "sha256": "92e2f679f3b23e91c442664fcfd7f02342a3a690604649d9aa902bb0f16ca123",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/unknown_capability.json",
+      "bytes": 341,
+      "sha256": "0c66bf0367cd4ed1fdec76af375cc0f21adc489f1d8feccfcf0bf4d8dc27f150",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/valid_read_only.json",
+      "bytes": 381,
+      "sha256": "40d7173f29bc03df7f85bb7eab37cdedf10fd0e1e53d8607fe1959b7575518e6",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FIXTURES/wrong_subject_binding.json",
+      "bytes": 334,
+      "sha256": "45e467588415b9448cc4763d9b1fd430800e921057c354bf5eab60379341ef06",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/FUNCTION_CATALOG.md",
+      "bytes": 2422,
+      "sha256": "29087bb69c8bdd229b540457d9d6064d7ae00e59fccfc4298a97455854d530e6",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/IMPLEMENTATION_CAMPAIGN.md",
+      "bytes": 1690,
+      "sha256": "cc0ab7231c0df432e4de9c59ed0fea6d42c0e3ede22248b4a1c28c5685b1b0a6",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/IMPLEMENTATION_GRAPH.yaml",
+      "bytes": 1080,
+      "sha256": "d396bcff63a9b4acc753231a562f3956132446482e8313bb1fbb07335b6b10d5",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/IMPLEMENTATION_PR_MARKER.md",
+      "bytes": 123,
+      "sha256": "078e9bbec1124f837a25260b5b53dcb6df5825db6b55ecd1150b941aaef3f66b",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/IMPLEMENTATION_STATUS.md",
+      "bytes": 1359,
+      "sha256": "2b434d802a11d30dca257699703d4388c5e2725e2464c148aaafe5dd28033bbe",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/IMPLEMENTATION_TARGET_MAP.md",
+      "bytes": 1124,
+      "sha256": "175a63501bf6f523ace716eb30f853031be806b48c0f8663268272a54f620f1f",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/IMPLEMENTATION_WORKPACKAGES.md",
+      "bytes": 1771,
+      "sha256": "9c3bc00ad9545001f4b940c805d5a82b508f54bfa7d07dc11bdaf118e101a089",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/MCP_AND_EXTERNAL_ADAPTER_MODEL.md",
+      "bytes": 1415,
+      "sha256": "8716b7debd66d257bf4f29a6ff6ac32a1005ceb36feaeb35d1487a9fea3bd3c5",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/MERGE_COMMITS_PLAN.md",
+      "bytes": 745,
+      "sha256": "85f25040ec09b775624d82b592c48668e08f1b220d8ab4c6362478e583a79cae",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/MERGE_GUIDE.md",
+      "bytes": 880,
+      "sha256": "2293f52fc484d64ec60ef19381841bbc381fa7c4be391b63acbd44fdb5eaa53e",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/MIGRATION_AND_COMPATIBILITY.md",
+      "bytes": 860,
+      "sha256": "47c14eb6bf2371a7f04672398cb3220f0ce625743c57310a86a91ae064a6f76d",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/NEGATIVE_CONTROLS.md",
+      "bytes": 1359,
+      "sha256": "7c4b42a8b73f07e794fc7b07f4c9e7c2045465514cd3ec086176a34b549f2dec",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/NON_NORMATIVE_REFERENCE_PSEUDOCODE.md",
+      "bytes": 1521,
+      "sha256": "b91531eafd9d3e7749b52218f8d3bbf7baf6e9df308ccc87473314dc8ad399db",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/OBSERVABILITY.md",
+      "bytes": 746,
+      "sha256": "7db2b97302f6490f190faa1175e8ddc6fa2b47ff5c600a479b1166958a352082",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/README.md",
+      "bytes": 2462,
+      "sha256": "f9284bbd91af08e4a321a8bdcc23bdb844e85919e76cbcb3cea30e83155f403f",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/RELEASE_AND_MERGE_PROTOCOL.md",
+      "bytes": 854,
+      "sha256": "23dbeea4a3bb08bab1c636b4000c1be3bbbad2592f0a05c78d85da8e356df071",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/REPOSITORY_ANALYSIS.md",
+      "bytes": 2153,
+      "sha256": "34bd972c06987399430b271cd8c635c9df48fff06d2ca8ec4d8ec5c1c8d7667d",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/REQUIREMENTS.json",
+      "bytes": 3439,
+      "sha256": "b51a131c3147d2d84f84ebbda5e8f849cc988424685bf5b2a5efad07d87fa944",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/RISK_REGISTER.md",
+      "bytes": 1026,
+      "sha256": "599a26b0b64275c81b8b2290b5e16cc74718629236ea82c843e145931d53397e",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/SCOPE_AND_NON_GOALS.md",
+      "bytes": 1158,
+      "sha256": "e34d15337598ac110404436d65655821acc51184fc5e3f74db08458c96288703",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/SECURITY_AND_POLICY_MODEL.md",
+      "bytes": 1411,
+      "sha256": "6894f8a63f4a0af98c2f57e083507f6b073c07767e9c44bbf005cbad7ae0192d",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/SIDE_EFFECT_AND_IDEMPOTENCY_MODEL.md",
+      "bytes": 4279,
+      "sha256": "8b39c126d5130426af16f894290e6798e413681563353accfe08370a61a165c2",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/STATE_MACHINE.md",
+      "bytes": 755,
+      "sha256": "08d4863a32bc313b08b6d1b3bfed4000d13dbef96b438ca3c6a12fcc98d5163e",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/TEST_STRATEGY.md",
+      "bytes": 1299,
+      "sha256": "c2a11dbef34254b32ecae320a9c47be4b0707dac0af1b19ccf0cfdc6f262be72",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/THREAT_MODEL.md",
+      "bytes": 1427,
+      "sha256": "cbb02f66e9628c49af89145f53cdb2c47fc95e2f6acf22f2baa4c54e3d068e48",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/TRACEABILITY_MATRIX.md",
+      "bytes": 895,
+      "sha256": "64423d63645b7771e230b71b4e8959d847eb5b618170ec8d4d1909c6ae365bca",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/VERIFICATION_STATE.json",
+      "bytes": 14614,
+      "sha256": "0d53d4252f795c7d32d12d95ea5657d1f182f994b8fd4d2dcb562a7f8aeef37c",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_00_REPO_BASELINE.md",
+      "bytes": 1206,
+      "sha256": "5677f26e5a5d3e29c90ccc7ee1c9a2926d77cf05948dab9efc8186546d1495db",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_01_ARCHITECTURE_APPROVAL.md",
+      "bytes": 1195,
+      "sha256": "d168fd3549271f6be4c7ebdc02eed157ae6209d26fff44307cccef646b0914f2",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_02_CONTRACT_FREEZE.md",
+      "bytes": 1190,
+      "sha256": "47b9bddf53defce9d6e5b1279926b70b08651d45cc89eadeb27b87755535ccab",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_03_POLICY_SECURITY_REVIEW.md",
+      "bytes": 1190,
+      "sha256": "36eb272788fc9cb05c521e928e55c3b1f3f7cdaaccdb5f521f95d1e7d23b7ac3",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_04_IMPLEMENTATION_COMPLETE.md",
+      "bytes": 1189,
+      "sha256": "3063eee46371d07b8162ccf019b486fec56d31c985dd65a41fb1d0df9f71ff3e",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_05_NEGATIVE_CONTROL_VERIFICATION.md",
+      "bytes": 1193,
+      "sha256": "e3570b02f2529d1c9fe6ac63a2d0e5a8838fd4a6bec13e4c6f1bece005499928",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_06_INTEGRATION_ACCEPTANCE.md",
+      "bytes": 1186,
+      "sha256": "e338f66e43ccd9de2a0b18a65d1d3b190e680a3eca8b4a80d8c1df71eb51e412",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/proposals/korpus-capability-gateway-v1/WORK_ACTS/ACT_07_RELEASE_CANDIDATE_HANDOFF.md",
+      "bytes": 1189,
+      "sha256": "ff9a1ebb83cca2f8251c126a85208c1e1c1b7b0fff85b882f79607a25308f4f8",
       "mode": "0644"
     },
     {
@@ -9961,8 +10921,8 @@
     },
     {
       "path": "scripts/gcp/validate_migration_compatibility.py",
-      "bytes": 8492,
-      "sha256": "141fd743bb69db00114ba92e42f0f6b1b5777714049472a7a2dcd1d18fab2247",
+      "bytes": 10924,
+      "sha256": "c7a71a6bcb91ee5d825e54314ba73b4892255f3a1d920136acf2f374afeaca6f",
       "mode": "0755"
     },
     {
@@ -9985,8 +10945,8 @@
     },
     {
       "path": "scripts/gcp/verify_live_postgres.py",
-      "bytes": 15065,
-      "sha256": "35bacf425de8c3c8d8de775027ccf01550cfc03973a4047950cf0a8c2d4fa4f3",
+      "bytes": 15912,
+      "sha256": "f7b20456930534a5470b51b7c1709c024068dcea6949b56bfad6835fc183681c",
       "mode": "0755"
     },
     {
@@ -10351,8 +11311,8 @@
     },
     {
       "path": "scripts/prepare_postgres_role.py",
-      "bytes": 22799,
-      "sha256": "56038fd5949d69e7b26bab8dbfa5a09e38e4b62e637e9f851fcc6c49cec3661f",
+      "bytes": 24028,
+      "sha256": "5280513c4d774f1b2787510ddd649c25858d4fd0aa4ff6fd065693913833e8e5",
       "mode": "0755"
     },
     {
@@ -10687,8 +11647,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 322199,
-      "sha256": "182a97828f53337930e401d3c334181d16c02220448a71c9db92455bb435c41b",
+      "bytes": 322201,
+      "sha256": "10f5bd1ac388ec1104651ad6d7a94e479d16fac39f14e693b546f512333835eb",
       "mode": "0755"
     },
     {

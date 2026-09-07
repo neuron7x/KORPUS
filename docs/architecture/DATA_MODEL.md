@@ -147,3 +147,4 @@ Required learning invariants:
 | `operational_competencies` | atomic competencies defined by a framework revision |
 | `operational_role_tasks` | role-to-required-task edges inside the same framework revision |
 | `operational_task_competencies` | conjunctive task-to-required-competency edges inside the same framework revision |
+| `capability_effects` | резервація ідемпотентності керованої побічної дії: стан переходить PENDING → COMMITTED / FAILED_KNOWN_NO_EFFECT / OUTCOME_UNKNOWN → RECONCILED, рядок прив'язаний до незабутнього RLS-суб'єкта і НЕ видаляється |

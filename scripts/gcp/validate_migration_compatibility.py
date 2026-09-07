@@ -93,11 +93,44 @@ def _verify_baseline(current: dict[str, Path], baseline: dict[str, str]) -> list
 _EXPANDING_VERBS = ("create ",)
 
 
-def _execute_is_expanding(node: ast.Call) -> str | None:
+def _created_tables(upgrade: ast.FunctionDef) -> frozenset[str]:
+    """Таблиці, які ця сама міграція й створює, за літеральним першим аргументом.
+
+    Нелітеральне ім'я сюди не потрапляє: невідоме ім'я не дає дозволу нічому.
+    """
+    names: set[str] = set()
+    for node in ast.walk(upgrade):
+        if not isinstance(node, ast.Call) or _op_call_name(node) != "create_table":
+            continue
+        if node.args and isinstance(node.args[0], ast.Constant):
+            value = node.args[0].value
+            if isinstance(value, str):
+                names.add(value.lower())
+    return frozenset(names)
+
+
+def _altered_table(statement: str) -> str | None:
+    """Ім'я таблиці в `ALTER TABLE <ім'я> …`, якщо його видно дослівно."""
+    words = statement.split()
+    if len(words) >= 3 and words[0] == "alter" and words[1] == "table":
+        return words[2].strip('"').lower()
+    return None
+
+
+def _execute_is_expanding(node: ast.Call, created: frozenset[str] = frozenset()) -> str | None:
     """None означає «розширювальне і дозволене»; рядок — причину відмови.
 
     Нелітеральний аргумент НЕ проходить: судити його зсередини неможливо, а
     невідоме не є дозволом.
+
+    `ALTER TABLE` пропускається РІВНО тоді, коли таблицю створює ця сама міграція.
+    Різниця не формальна. `ALTER TABLE documents ENABLE ROW LEVEL SECURITY` звужує те,
+    що бачить ревізія N-1, — саме так 0020 і був визнаний нерозширювальним, із жорсткою
+    послідовністю «мігрувати, потім підняти новий код». `ALTER TABLE capability_effects
+    …` над таблицею, народженою в цьому ж `upgrade()`, не може зачепити нікого: ревізія
+    N-1 про цю таблицю не знає й жодного запиту до неї не робить. Заборона на дієслово
+    не розрізняла цих випадків, тобто перевірка з іменем «expand-only» міряла механізм,
+    а не властивість, яку охороняє.
     """
     if not node.args:
         return "op.execute without a statement"
@@ -116,6 +149,11 @@ def _execute_is_expanding(node: ast.Call) -> str | None:
     statement = " ".join(parts).lstrip().lower()
     if statement.startswith(_EXPANDING_VERBS):
         return None
+    table = _altered_table(statement)
+    if table is not None:
+        if table in created:
+            return None
+        return f"op.execute(ALTER TABLE {table} …) над таблицею, якої ця міграція не створює"
     verb = statement.split(" ", 1)[0] or "?"
     return f"op.execute({verb.upper()} …)"
 
@@ -125,12 +163,13 @@ def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[
     if upgrade is None:
         return [f"future migration has no upgrade(): {relative}"]
     findings: list[str] = []
+    created = _created_tables(upgrade)
     for node in ast.walk(upgrade):
         if not isinstance(node, ast.Call):
             continue
         opname = _op_call_name(node)
         if opname in forbidden:
-            reason = _execute_is_expanding(node) if opname == "execute" else "op." + opname
+            reason = _execute_is_expanding(node, created) if opname == "execute" else "op." + opname
             if reason is not None:
                 findings.append(f"future migration is not expand-only: {relative}: {reason}")
         reason = _unsafe_add_column(node)
