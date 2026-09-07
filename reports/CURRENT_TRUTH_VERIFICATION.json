@@ -41,7 +41,7 @@
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.present": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.status_pass": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.class_is_remote": true,
-    "reports/closure/CLEAN_ROOM_REPRODUCTION.json.source_bound": false,
+    "reports/closure/CLEAN_ROOM_REPRODUCTION.json.source_bound": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.run_counted": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.run_clean": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.names_candidate": true,
@@ -67,7 +67,6 @@
   },
   "failures": [
     "BLOCKER_REGISTRY.internal_executable_unresolved_zero",
-    "CLAIM_LEDGER.every_claim_decided_by_evidence",
-    "reports/closure/CLEAN_ROOM_REPRODUCTION.json.source_bound"
+    "CLAIM_LEDGER.every_claim_decided_by_evidence"
   ]
 }
