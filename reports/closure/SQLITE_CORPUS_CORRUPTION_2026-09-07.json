@@ -1,0 +1,55 @@
+{
+  "schema": "korpus.closure.incident.v1",
+  "id": "sqlite-corpus-corruption-2026-09-07",
+  "detected_at": "2026-09-07T20:36:39Z",
+  "detected_by": "korpus-public-api.service відмовився стартувати: sqlalchemy DatabaseError «database disk image is malformed» на UPDATE audit_anchor_outbox",
+  "subject": "var/runtime/corpus-v6-20260807/korpus.db",
+  "damage": {
+    "integrity_check": "invalid page number 66966 (Tree 4); 2nd reference to page ×100+ (Tree 5); Child page depth differs",
+    "vacuum_into": "ВІДМОВА — database disk image is malformed",
+    "sqlite3_recover": "НЕДОСТУПНО — збірка без sqlite_dbpage"
+  },
+  "recovery_path": [
+    "пошкоджений файл збережено недоторканим (korpus.db.corrupt-in-place, korpus.db.corrupt-2026-09-07)",
+    "`.dump` через SELECT обійшов пошкоджені дерева; дамп обірвався ROLLBACK",
+    "ROLLBACK замінено на COMMIT, завантажено в чисту базу",
+    "integrity_check нової бази: ok"
+  ],
+  "what_survived": {
+    "documents": 256,
+    "document_versions": 256,
+    "evidence_spans": 31464,
+    "audit_events": 20663
+  },
+  "restored_copy": {
+    "documents": 256,
+    "document_versions": 256,
+    "evidence_spans": 31464,
+    "audit_events": 20144
+  },
+  "what_was_lost": {
+    "audit_events": "215 подій, послідовності 20056..20270 включно",
+    "audit_anchor_outbox": 13,
+    "corpus": "НІЧОГО — 256 документів, 256 версій, 31464 прольоти цілі",
+    "audit_chain_integrity": "первинні 20055 подій цілі, розривів у послідовності НУЛЬ, first_invalid_sequence: null"
+  },
+  "why_the_ledger_says_so": "Голову не переписано. `audit_heads` показував 20270 при 20055 подіях, і саме це `verify-audit` назвав «database audit head mismatch». Розрив 20056..20270 лишається видимим назавжди — тамперостійкий леджер існує рівно щоб втрата не зникла тихо. Система вилікувалась сама: монотонний писар продовжив із 20271, голова пережене якір (20286), і `/ready` повернувся в 200 без жодної правки записів.",
+  "backup_gap_found": {
+    "measured": "бекап 06.09 підписаний key_id `pilot-corpus`, а реєстр ~/.local/state/korpus-public/backup-keys.json знає лише `korpus-local-2026-08`",
+    "consequence": "вчорашній бекап НЕ розшифровується наявними ключами: InvalidTag",
+    "closed_by": "новий бекап знято ключем ІЗ РЕЄСТРУ і перевірено ВІДНОВЛЕННЯМ"
+  },
+  "fresh_backup": {
+    "file": "var/backups/sqlite/korpus-20260907T204145.885616Z.tar.enc",
+    "key_id": "korpus-local-2026-08",
+    "bytes": 316569642,
+    "restore_verified": "integrity ok · 256 документів · 256 схвалених · 31464 прольоти"
+  },
+  "residual_debt": [
+    "215 подій аудиту втрачено безповоротно — розрив у послідовності є частиною запису",
+    "бекап 06.09 лишається нерозшифровуваним: ключ `pilot-corpus` поза реєстром",
+    "restore_sqlite попереджає «could not bring the restored schema to head» (копія на 0022)",
+    "розгортання стоїть на 0022 при коді, що чекає 0024 — міграція перед підняттям потрібна"
+  ],
+  "source_tree_sha256": "d6bb27811aac665c09999e7d0441f746b66a5a04de1ed0be7d366ee53d73e3ce"
+}
