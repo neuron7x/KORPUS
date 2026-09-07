@@ -18,6 +18,7 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from korpus.application.fingerprints import simhash64, simhash_similarity
 from korpus.application.ingestion import ExtractionSettings
 from korpus.application.policy import PolicyEngine
 from korpus.composition import build_ingestion_service
@@ -36,7 +37,29 @@ from korpus.infrastructure.object_store import LocalObjectStore
 from korpus.main import create_app
 from korpus.security.auth import get_identity
 
-RESTRICTED_TEXT = "Дистанція між укриттями має бути не менше 300 метрів.\n"
+#: Підлога, з якою `find_near_duplicate` порівнює схожість (значення за замовчуванням у
+#: `ports.find_near_duplicate`). Названа тут, щоб проби нижче могли ЗМІРЯТИ свою
+#: передумову, а не повірити в неї.
+NEAR_DUPLICATE_FLOOR = 0.90
+
+#: Шість речень, а не одне, і це виправлення проби, а не косметика. Тут стояв рядок на
+#: сім токенів із коментарем «one word changed gives similarity 0.90625, over the 0.90
+#: floor». На такій довжині simhash64 з одиничними вагами міряє власний шум: одна
+#: замінена лексема перевертає від двох до восьми бітів залежно від того, які значення
+#: дав blake2b. 07.09.2026, коли стемер став замкненим щодо парадигми, та сама пара дала
+#: 0.875 — НИЖЧЕ підлоги, — і проба перестала знаходити будь-що незалежно від того, чи
+#: фільтр компартментів на місці. Мутант M185_NEAR_DUPLICATE_PROBE_IGNORES_COMPARTMENTS
+#: вижив: безпековий негативний контроль тримався на шестибітному збігу. Довжина дає
+#: запас, а `assert` нижче робить передумову ВИМІРЯНОЮ — якщо вона колись знову впаде,
+#: тест скаже це прямо, замість тихо охороняти ніщо.
+RESTRICTED_TEXT = (
+    "Дистанція між укриттями має бути не менше 300 метрів.\n"
+    "Укриття обладнуються у смузі оборони батальйону.\n"
+    "Місця розташування погоджуються з начальником інженерної служби.\n"
+    "Маскування виконується до початку робіт і перевіряється щодоби.\n"
+    "Відповідальність за стан укриттів несе командир підрозділу.\n"
+    "Запас води та засобів медичної допомоги створюється завчасно.\n"
+)
 
 ADMIN = Identity(
     subject="admin",
@@ -237,8 +260,15 @@ def test_the_near_duplicate_probe_is_not_a_graded_content_oracle(
         assert client.app.state.repository.list_documents(probe) == []
 
         # A *near* guess, not the exact bytes: the exact-hash path is its own oracle and
-        # has its own test below. One word changed gives similarity 0.90625, over the
-        # 0.90 floor, so a probe that was not scoped would name the hidden version.
+        # has its own test below. Передумова ОБЧИСЛЮЄТЬСЯ: якщо здогад не перетинає
+        # підлогу, твердження нижче проходить тому, що проба не знайшла б нічого й без
+        # жодного фільтра, — і мутант на фільтр вижив би непоміченим. Саме так і сталося
+        # 07.09.2026.
+        guess_text = RESTRICTED_TEXT.replace("укриттями", "спорудами")
+        assert (
+            simhash_similarity(simhash64(RESTRICTED_TEXT), simhash64(guess_text))
+            >= NEAR_DUPLICATE_FLOOR
+        ), "здогад нижче підлоги схожості: проба нічого не знайде і без фільтра"
         guess = service.ingest(
             probe,
             DocumentCreate(
@@ -250,7 +280,7 @@ def test_the_near_duplicate_probe_is_not_a_graded_content_oracle(
             VersionCreate(revision="1", authority=AuthorityClass.UNKNOWN),
             "guess.txt",
             "text/plain",
-            RESTRICTED_TEXT.replace("укриттями", "спорудами").encode("utf-8"),
+            guess_text.encode("utf-8"),
         )
 
         assert guess.version.near_duplicate_of_version_id != hidden.version.id
@@ -356,6 +386,13 @@ def test_the_near_duplicate_probe_still_finds_a_duplicate_the_caller_may_see(
         "Виявлені недоліки усуваються у строк, визначений старшим начальником.\n"
     )
 
+    # Та сама виміряна передумова, що й у пробі-оракулі вище: близькість здогаду —
+    # властивість, яку треба ЗМІРЯТИ, бо вона залежить від токенізації.
+    near_text = text.replace("командиром", "керівником")
+    assert simhash_similarity(simhash64(text), simhash64(near_text)) >= NEAR_DUPLICATE_FLOOR, (
+        "проба перестала бути близьким дублікатом: тест нижче міряв би не те"
+    )
+
     first = service.ingest(
         OUTSIDER,
         DocumentCreate(
@@ -380,8 +417,7 @@ def test_the_near_duplicate_probe_still_finds_a_duplicate_the_caller_may_see(
         VersionCreate(revision="1", authority=AuthorityClass.OFFICIAL_UA),
         "open-again.txt",
         "text/plain",
-        # Одне слово змінено; на цій довжині схожість 1.00000 при підлозі 0.90.
-        text.replace("командиром", "керівником").encode("utf-8"),
+        near_text.encode("utf-8"),
     )
 
     assert second.version.near_duplicate_of_version_id == first.version.id
