@@ -74,13 +74,27 @@ def compare(template: str, live: str | None) -> dict[str, object]:
         return {
             "verdict": "UNKNOWN",
             "detail": "край не запущений або docker недоступний — не виміряно",
+            "lines_compared": 0,
             "divergent_lines": [],
         }
     masked = mask(live)
+    compared = len(template.splitlines())
+    if not compared:
+        # Порожній шаблон збігається з порожнім краєм, і рівність дає PASS над НУЛЕМ
+        # порівняних рядків. Знайдено 07.09.2026 гейтом епістеміки доказу: артефакт ніс
+        # `divergent_lines: []` і жодного числа про те, що саме порівняно, тож «291 рядок
+        # збігся» і «не порівняно нічого» були в ньому нерозрізненні. `all([])` істинне.
+        return {
+            "verdict": "FAIL",
+            "detail": "шаблон порожній: збіг із порожнім краєм не є паритетом",
+            "lines_compared": 0,
+            "divergent_lines": [],
+        }
     if masked == template:
         return {
             "verdict": "PASS",
-            "detail": "розгорнуте є рендером цього шаблона",
+            "detail": f"розгорнуте є рендером цього шаблона ({compared} рядків)",
+            "lines_compared": compared,
             "divergent_lines": [],
         }
     expected = template.splitlines()
@@ -98,6 +112,7 @@ def compare(template: str, live: str | None) -> dict[str, object]:
     return {
         "verdict": "FAIL",
         "detail": "розгорнутий конфіг не є рендером поточного шаблона",
+        "lines_compared": compared,
         "divergent_lines": divergent,
     }
 

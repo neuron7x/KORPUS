@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1874,
-  "root_sha256": "5b457f2846ef9d0eb11cfd90e31b9a4f42a34438b5c83b0edb84e2ab57fb3ae9",
+  "file_count": 1876,
+  "root_sha256": "b9538b1ac8cc071b2646bd6fd11adb4800c1b9baffabc37a705ed0f4b9e71557",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 59923,
-      "sha256": "aa10400787aa90140fa4a47cc1f314124aeeeb2b53ff18d2a2b14559a4f4d21d",
+      "bytes": 60481,
+      "sha256": "a527f7a302190774013744e53dbf5f06510032b9abafe0bfd302cc61419d09ab",
       "mode": "0644"
     },
     {
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 122258,
-      "sha256": "8022703c40a81b77455682b9d15a0f66d1cccb711854f1ee206fb6738ce34c1a",
+      "bytes": 123121,
+      "sha256": "54ea95045b7d3ce810477c77ab2cfa67955f2815a03c5f4335f4c1236ae84830",
       "mode": "0644"
     },
     {
@@ -3423,6 +3423,12 @@
       "path": "apps/api/tests/test_evidence_class_order_has_no_effect.py",
       "bytes": 5930,
       "sha256": "1cfb74c577716b0eb812a543ae2399440f6e74f516245c3d6bde2403b58f628c",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_evidence_epistemics.py",
+      "bytes": 5905,
+      "sha256": "61f95748dd92f9ffa5227a495f71c0c062ae40bab77835582a9dcbe65973f5ec",
       "mode": "0644"
     },
     {
@@ -7484,7 +7490,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "575d40c18eb04606b7bdeb10725245093239441fc4885f22a01f8fdb643ef577",
+      "sha256": "9a9d0486e5f7f7fdb18c59af1b3db797f42fe2bd1a0509e268654589b14cbb0e",
       "mode": "0644"
     },
     {
@@ -7513,8 +7519,8 @@
     },
     {
       "path": "config/operations/gate-closure.json",
-      "bytes": 24326,
-      "sha256": "551abc287e97c6275d7d04db71ea88bef4e996d7b5f57ce662c0e3b297f53ab4",
+      "bytes": 25369,
+      "sha256": "2d998cd54d48d3ae807844c3cf8c61c2b454b1877bfd0cb93f9310c6fefa114c",
       "mode": "0644"
     },
     {
@@ -7525,8 +7531,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 692816,
-      "sha256": "58b31b4bfb6350036086c8ccc792fe16a426db43d03650d68801061a2c4819d8",
+      "bytes": 694578,
+      "sha256": "17226bed705fc60893534fc73b9e9d35d8ee52fcc0a7db51a1de07b7de197c2e",
       "mode": "0644"
     },
     {
@@ -9505,14 +9511,20 @@
     },
     {
       "path": "scripts/check_edge_config_parity.py",
-      "bytes": 8601,
-      "sha256": "fbcfcf6d4a250b03f43a7c161fbafbcee174e05dcceb2bb95fa2760400a0314f",
+      "bytes": 9617,
+      "sha256": "669ec52e50db8c920d8492f258d14a5867e350921850fdea2d552c8afea44197",
       "mode": "0755"
     },
     {
       "path": "scripts/check_environment_drift.py",
       "bytes": 7283,
       "sha256": "e63c62c430e3014d2c3d4e804531b2e730f41cfa24213d72ac2422d06448f908",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/check_evidence_epistemics.py",
+      "bytes": 23678,
+      "sha256": "91bb9964200208763ae9992f6d889b1f4fc6e6d882773b1121cf9f2d0f800232",
       "mode": "0755"
     },
     {
