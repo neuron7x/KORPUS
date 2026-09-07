@@ -90,3 +90,44 @@ def test_the_newest_source_is_the_one_the_server_would_have_to_hold() -> None:
 
     assert stamp > 0
     assert path.startswith("apps/api/src/")
+
+
+def test_a_postgres_subject_is_refused_against_a_declared_file_database() -> None:
+    """Невідомий предмет — не дозвіл.
+
+    `_database_path` віддавав `None` для будь-якого не-SQLite URL, і звірка предмета
+    пропускалась ЦІЛКОМ: дриль відновлення в одноразовому контейнері діставав клас
+    PRODUCTION_LIKE за те, що поруч працюють живі служби, яких він не торкався. Це
+    рівно та підміна, проти якої написаний докстрінг `topology_environment_class`, і
+    для SQLite вона вже була закрита — для PostgreSQL ні.
+
+    Перевіряється ЧИСТА функція з оголошеною базою на вході: у цьому дереві топологія
+    бази не називає, тож усередині `_not_production_like` ця гілка недосяжна, і тест
+    над нею був би зелений навіть із вимкненим правилом.
+    """
+    from check_serving_freshness import subject_refusal
+
+    reason = subject_refusal(
+        ROOT, "postgresql+psycopg://u:p@127.0.0.1:55461/korpus_drill", "var/runtime/korpus.db"
+    )
+    assert reason is not None and "не є файлом" in reason
+
+
+def test_the_declared_file_itself_is_accepted() -> None:
+    """Негативний контроль: правило карає ЧУЖИЙ предмет, а не саму наявність виміру."""
+    from check_serving_freshness import subject_refusal
+
+    declared = "var/runtime/korpus.db"
+    assert subject_refusal(ROOT, str((ROOT / declared).resolve()), declared) is None
+
+
+def test_another_file_is_refused_too() -> None:
+    from check_serving_freshness import subject_refusal
+
+    assert subject_refusal(ROOT, "/tmp/other.db", "var/runtime/korpus.db") is not None
+
+
+def test_a_topology_that_declares_no_database_refuses_every_subject() -> None:
+    from check_serving_freshness import subject_refusal
+
+    assert subject_refusal(ROOT, "/tmp/any.db", "") is not None

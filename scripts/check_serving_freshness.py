@@ -188,11 +188,28 @@ def _not_production_like(root: Path, port: int | None, database: str | None) -> 
     if port is not None and port not in ports:
         return f"міряний порт {port} не серед портів топології {ports}"
     if database is not None:
-        declared = declared_database(root)
-        if not declared:
-            return "топологія не називає бази — предмет виміру звірити нема з чим"
-        if Path(database).resolve() != (root / declared).resolve():
-            return f"міряна база {database} не є базою топології {declared}"
+        return subject_refusal(root, database, declared_database(root))
+    return None
+
+
+def subject_refusal(root: Path, database: str, declared: str) -> str | None:
+    """Причина, чому ПРЕДМЕТ виміру не є базою топології, або None.
+
+    Винесено окремо, щоб мати негативний контроль. У дереві без оголошеної бази
+    перша умова відмовляє завжди, і будь-яка перевірка нижче лишалась би НЕДОСЯЖНОЮ —
+    тест на неї був би зелений незалежно від того, чи вона взагалі є.
+    """
+    if not declared:
+        return "топологія не називає бази — предмет виміру звірити нема з чим"
+    if not database.startswith("/"):
+        # Предмет, який не є файлом (URL PostgreSQL тощо), звірити з оголошеним ШЛЯХОМ
+        # неможливо. Доти сюди приходив `None` — і перевірка пропускалась ЦІЛКОМ, тобто
+        # дриль у одноразовому контейнері діставав клас продакшену від сусідніх живих
+        # служб, яких він не торкався. Рівно те, проти чого написаний докстрінг
+        # `topology_environment_class`. Невідомий предмет — не дозвіл.
+        return f"предмет виміру {database} не є файлом бази топології {declared}"
+    if Path(database).resolve() != (root / declared).resolve():
+        return f"міряна база {database} не є базою топології {declared}"
     return None
 
 

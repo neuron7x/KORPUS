@@ -174,7 +174,11 @@ def main() -> int:
     requested = os.getenv("KORPUS_RECOVERY_ENVIRONMENT_CLASS", "CI_FIXTURE")
     # Предмет виміру — база, яку навчання справді торкалось. Без цього прогін на копії
     # отримував би клас продакшену лише за те, що поруч живий сервіс.
-    measured = topology_environment_class(ROOT, database=_database_path(source_url))
+    # ПРЕДМЕТ передається завжди, а не лише коли він файл. Доти `_database_path`
+    # віддавав `None` для PostgreSQL, і сторож пропускав звірку предмета цілком:
+    # прогін у одноразовому контейнері діставав клас продакшену за те, що поруч
+    # працюють живі служби. Невідомий предмет тепер відмовляє, а не кредитує.
+    measured = topology_environment_class(ROOT, database=_database_path(source_url) or source_url)
     environment_class = (
         requested
         if requested not in {"PRODUCTION_LIKE", "PRODUCTION"}

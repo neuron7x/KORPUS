@@ -6571,6 +6571,18 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # Предмет виміру, який не є базою топології, знову дістає клас продакшену:
+        # дриль у одноразовому контейнері кредитується сусідніми живими службами.
+        "M696_FOREIGN_SUBJECT_IS_CREDITED_AS_PRODUCTION_LIKE",
+        "scripts/check_serving_freshness.py",
+        '    if not database.startswith("/"):',
+        "    if False:",
+        (
+            "apps/api/tests/test_serving_freshness.py::"
+            "test_a_postgres_subject_is_refused_against_a_declared_file_database",
+        ),
+    ),
+    Mutant(
         # Словозміна і словотвір знову в одному списку: найдовший збіг виграє в однієї
         # форми і програє в іншій, і два відмінки одного слова стають двома термами.
         "M695_STEMMER_LOSES_PARADIGM_CLOSURE",
