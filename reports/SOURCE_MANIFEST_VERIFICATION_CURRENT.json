@@ -1,10 +1,10 @@
 {
   "valid": true,
-  "files": 1878,
-  "root_sha256": "0be2170573cba1e8a3e865743b2bd14583fb1cb9a9d9512da852e4c481141b52",
+  "files": 2038,
+  "root_sha256": "e0bb0e611680a57ef6649eadb4b77a4d09842f8f60baf9ddca7bdf4ea22c431f",
   "failures": [],
   "schema": "korpus.source-manifest-verification.v1",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "d39063341b4e685701dac4c71aa23c6f47d3fdcd7d401510e7ddbcd4b950cb1f"
+  "source_tree_sha256": "a495c73442c4509bdff62ddaccf4785a6c5e02aded211459fd3639e509d82453"
 }
