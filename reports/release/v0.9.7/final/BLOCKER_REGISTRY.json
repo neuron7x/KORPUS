@@ -1,9 +1,9 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-07T21:19:12.069298+00:00",
+  "generated_at": "2026-09-07T21:46:47.875010+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "86aaa42b0ccc57c26836b051adcc9e4c5b5ca6416d19ff5e4a905643fde390c8",
+  "source_tree_sha256": "67a7b04382d16152134d8ef4bb72a7cb06df059c7b1f29ebf8d20da046d91446",
   "digest_scope": "evidence_paths",
   "items": [
     {
@@ -220,8 +220,8 @@
   ],
   "counts": {
     "CLOSED_ANCHORED": 5,
-    "INTERNAL_STALE_EVIDENCE": 1,
-    "EXTERNAL_REQUIRED": 8
+    "EXTERNAL_REQUIRED": 8,
+    "INTERNAL_STALE_EVIDENCE": 1
   },
   "internal_executable_unresolved": 1,
   "internal_missing_artifact": 0,
@@ -230,6 +230,6 @@
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "bd19ef52693ed75507c5907b14674fc050f737cbca019d5d6dbe12c5a4bdfcc0"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "d7a25b22d1a20e7fc1b17e736a1c4fe4b25f0e2661dc5591ab0f36f42504fa1c"
   }
 }

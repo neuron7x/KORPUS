@@ -2,7 +2,7 @@
   "schema": "korpus.current-truth-verification.v2",
   "status": "FAIL",
   "release": "v0.9.7",
-  "source_tree_sha256": "86aaa42b0ccc57c26836b051adcc9e4c5b5ca6416d19ff5e4a905643fde390c8",
+  "source_tree_sha256": "67a7b04382d16152134d8ef4bb72a7cb06df059c7b1f29ebf8d20da046d91446",
   "checks": {
     "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.present": true,
     "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.scope_named": true,
@@ -41,7 +41,7 @@
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.present": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.status_pass": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.class_is_remote": true,
-    "reports/closure/CLEAN_ROOM_REPRODUCTION.json.source_bound": true,
+    "reports/closure/CLEAN_ROOM_REPRODUCTION.json.source_bound": false,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.run_counted": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.run_clean": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.names_candidate": true,
@@ -67,6 +67,7 @@
   },
   "failures": [
     "BLOCKER_REGISTRY.internal_executable_unresolved_zero",
-    "CLAIM_LEDGER.every_claim_decided_by_evidence"
+    "CLAIM_LEDGER.every_claim_decided_by_evidence",
+    "reports/closure/CLEAN_ROOM_REPRODUCTION.json.source_bound"
   ]
 }
