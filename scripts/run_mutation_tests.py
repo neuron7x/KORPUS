@@ -6534,21 +6534,22 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        # Нічия на порозі покриття повертається в «допущено». Саме в цьому стані живий
-        # продукт відповідав на чотири чужі питання з чотирьох, і всі вони мали покриття
-        # РІВНО 0.50.
-        "M692_COVERAGE_TIE_IS_ADMITTED_AGAIN",
+        # Нічию на порозі покриття віддано мовчанню. Це та сама правка, яку я зробила
+        # 07.09.2026 і зняла: на межі домену вона давала чужі 4/20 -> 0/20, але
+        # заморожений `safe-source-after-injection` стоїть РІВНО на 0.500 і мусить
+        # відповісти. Мутант лишає цю помилку неповторюваною мовчки.
+        "M692_COVERAGE_TIE_IS_GIVEN_TO_SILENCE",
         "apps/api/src/korpus/application/evidence_admission.py",
-        "    return coverage > floor",
         "    return coverage >= floor",
-        ("apps/api/tests/test_admission_tie.py::test_coverage_exactly_at_the_floor_is_refused",),
+        "    return coverage > floor",
+        ("apps/api/tests/test_admission_tie.py::test_coverage_exactly_at_the_floor_is_admitted",),
     ),
     Mutant(
         # Строгість, поширена «для симетрії» на осі КЛАСУ: `minimum_authority` дорівнює
         # 0.46 рівно тому, що це пріор `ANALYTICAL`, а майже весь корпус саме такий.
         "M693_ADMISSION_STRICTNESS_SPREADS_TO_THE_CLASS_AXES",
         "apps/api/src/korpus/application/evidence_admission.py",
-        "        return self.score >= 0.0 and self.authority >= 0.0 and self.query_coverage > 0.0",
+        "        return self.score >= 0.0 and self.authority >= 0.0 and self.query_coverage >= 0.0",
         "        return self.score > 0.0 and self.authority > 0.0 and self.query_coverage > 0.0",
         (
             "apps/api/tests/test_admission_tie.py::"
@@ -6557,11 +6558,13 @@ MUTANTS = (
     ),
     Mutant(
         # Звіт про гейт розходиться з гейтом: PEC/DGC пояснювали б рішення правилом,
-        # якого рантайм не застосував — і саме на нічиї вони розійшлись би.
+        # якого рантайм не застосував. Мутація саме на сталу `True`, а не на
+        # `minimum >= 0.0`: друга ЕКВІВАЛЕНТНА, доки всі три осі інклюзивні, і мутант,
+        # який ніщо не може вбити, бреше про те, що каталог охороняє.
         "M694_REPORTED_GATE_DIVERGES_FROM_THE_APPLIED_GATE",
         "apps/api/src/korpus/application/evidence_admission.py",
         "        retrieval_gate_passed=best.admitted,",
-        "        retrieval_gate_passed=minimum >= 0.0,",
+        "        retrieval_gate_passed=True,",
         (
             "apps/api/tests/test_admission_tie.py::"
             "test_the_reported_gate_is_the_applied_gate_at_the_tie",

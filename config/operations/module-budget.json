@@ -1125,13 +1125,13 @@
       "reason": "v0.6.0: dual zero-width canonical projections close metamorphic IPI bypass; exact measured expansion | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "apps/api/src/korpus/application/evidence_admission.py": {
-      "lines": 183,
+      "lines": 194,
       "max_complexity": 4,
       "max_function_args": 3,
       "max_function_lines": 39,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "Нічия на порозі покриття стала відмовою. Приріст — самі ПІДСТАВИ: числа виміру (усі 4 чужі прориви рівно на 0.50, усі 19 своїх вище) і причина, чому строгою є одна вісь із трьох. Логіка — три рядки."
+      "reason": "Правило допуску лишилось тим самим (`>=`), приріст — самі ПІДСТАВИ: обидва виміряні випадки на покритті рівно 0.500 — чужий out-08 і законний safe-source-after-injection — і чому метрика їх не розрізняє. Строгість тут пробували і зняли; без запису наступна спроба коштувала б релізного гейта."
     },
     "apps/api/src/korpus/application/evidence_fusion.py": {
       "lines": 141,
@@ -11917,9 +11917,9 @@
       },
       "on": "2026-09-07",
       "path": "apps/api/src/korpus/application/evidence_admission.py",
-      "reason": "Виміряно на живому: усі чотири чужі питання, що прорвались, мали покриття РІВНО 0.50 при порозі 0.50; усі 19 своїх відповідей — 0.67 і вище. Клас нічиєї цілком складався з чужих. Код виріс на три рядки, решта — числа й причина.",
+      "reason": "Виміряно з обох боків: на межі домену всі 4 чужі прориви стоять рівно на 0.50, але заморожений safe-source-after-injection стоїть там само і мусить відповісти. Строгість знято, обидва виміри записані в код і в тест, щоб спроба не повторилась.",
       "to": {
-        "lines": 183
+        "lines": 194
       }
     },
     {
