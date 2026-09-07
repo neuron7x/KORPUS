@@ -2,12 +2,12 @@
   "schema": "korpus.regression-merge.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "9f21bd76403e56987539e2dc5ca11c2507f694e90120bd398d75a4fa836de82e",
-  "collection_digest": "6d5969f6a999ba2f723112ae0cac69cba14936da97f177ed880132e43f73ff87",
-  "collection_count": 4276,
+  "source_digest": "d13f80217b69aef3c0b8b855b4e4d3348e98d52318131af6aeee0ca90a186375",
+  "collection_digest": "06ff1304ce7873feb3044b95dd626b23f6785d64aade3af40770395b0798ecdf",
+  "collection_count": 4284,
   "shards": 24,
   "junit": {
-    "tests": 4276,
+    "tests": 4284,
     "failures": 0,
     "errors": 0,
     "skipped": 45

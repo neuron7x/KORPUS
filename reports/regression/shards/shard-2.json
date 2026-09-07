@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "9f21bd76403e56987539e2dc5ca11c2507f694e90120bd398d75a4fa836de82e",
-  "collection_digest": "6d5969f6a999ba2f723112ae0cac69cba14936da97f177ed880132e43f73ff87",
-  "collection_count": 4276,
+  "source_digest": "d13f80217b69aef3c0b8b855b4e4d3348e98d52318131af6aeee0ca90a186375",
+  "collection_digest": "06ff1304ce7873feb3044b95dd626b23f6785d64aade3af40770395b0798ecdf",
+  "collection_count": 4284,
   "shard_index": 2,
   "shard_count": 24,
-  "selected_count": 191,
+  "selected_count": 192,
   "selected_nodeids": [
     "apps/api/tests/test_access_oracles.py::test_the_near_duplicate_probe_is_not_a_graded_content_oracle[classification-document2-reader2]",
     "apps/api/tests/test_account_domain.py::test_identity_claims_carrying_authorization_are_refused_not_filtered",
@@ -72,6 +72,7 @@
     "apps/api/tests/test_environment_drift.py::test_script_reports_a_deleted_artefact_as_unobserved",
     "apps/api/tests/test_evidence_bases.py::test_relative_evidence_base_paths_bind_to_the_runtime_root",
     "apps/api/tests/test_evidence_class_order_has_no_effect.py::test_the_flags_do_change_the_ceiling",
+    "apps/api/tests/test_evidence_epistemics.py::test_the_five_axes_are_not_reducible_to_one_another",
     "apps/api/tests/test_evidence_provenance.py::test_malformed_provenance_is_not_provenance[block5]",
     "apps/api/tests/test_evidence_provenance.py::test_stamp_requires_a_generator",
     "apps/api/tests/test_evidence_registry.py::test_a_deleted_test_inside_an_existing_file_is_reported",
@@ -201,9 +202,9 @@
     "apps/api/tests/test_worker_service.py::test_worker_service_fails_health_when_worker_exits",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_the_health_endpoint_turns_503_when_the_worker_is_gone"
   ],
-  "selected_digest": "1bf0409d5952da69263199598cee28b03bdda24c3d60871cc4b74de5f421ac7b",
+  "selected_digest": "5946549e1d9597c121638068f353bb69e3c54da113817be304a484b1181dd9dc",
   "junit": {
-    "tests": 191,
+    "tests": 192,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -212,9 +213,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 10.356494,
+  "elapsed_seconds": 9.954165,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 37%]\n.....................................................................s.. [ 75%]\n...............................................                          [100%]",
+  "stdout_tail": "........................................................................ [ 37%]\n......................................................................s. [ 75%]\n................................................                         [100%]",
   "stderr_tail": ""
 }

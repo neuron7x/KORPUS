@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "9f21bd76403e56987539e2dc5ca11c2507f694e90120bd398d75a4fa836de82e",
-  "collection_digest": "6d5969f6a999ba2f723112ae0cac69cba14936da97f177ed880132e43f73ff87",
-  "collection_count": 4276,
+  "source_digest": "d13f80217b69aef3c0b8b855b4e4d3348e98d52318131af6aeee0ca90a186375",
+  "collection_digest": "06ff1304ce7873feb3044b95dd626b23f6785d64aade3af40770395b0798ecdf",
+  "collection_count": 4284,
   "shard_index": 4,
   "shard_count": 24,
-  "selected_count": 182,
+  "selected_count": 184,
   "selected_nodeids": [
     "apps/api/tests/test_access_control.py::test_access_tier_is_enforced_in_repository_even_for_public_classification",
     "apps/api/tests/test_account_administration.py::test_an_administrator_may_still_re_enable_themselves",
@@ -69,6 +69,8 @@
     "apps/api/tests/test_environment_drift.py::test_desired_state_is_read_from_the_manifest_not_the_working_tree",
     "apps/api/tests/test_evidence_bases.py::test_a_declaration_that_says_the_same_about_a_base_that_differs_fails",
     "apps/api/tests/test_evidence_bases.py::test_the_same_document_under_a_new_identifier_is_visible_as_different",
+    "apps/api/tests/test_evidence_epistemics.py::test_a_failing_verdict_over_zero_is_not_the_same_defect",
+    "apps/api/tests/test_evidence_epistemics.py::test_prose_is_not_a_population",
     "apps/api/tests/test_evidence_stores.py::test_the_config_default_must_not_be_the_served_store",
     "apps/api/tests/test_external_gate_campaign.py::test_campaign_does_not_confuse_missing_postgres_with_executed_failure",
     "apps/api/tests/test_extraction_type_confusion.py::test_a_clean_pdf_is_not_marked_lenient",
@@ -192,9 +194,9 @@
     "apps/api/tests/test_validity_boundaries.py::test_the_candidate_query_alone_excludes_an_invalid_version[effective_until-asked_on0]",
     "apps/api/tests/test_validity_boundaries.py::test_the_closed_interval_holds_at_both_ends[as_of4-False]"
   ],
-  "selected_digest": "79dc569f9d780ef54f2a968e46faca2d3f7ac55ecb5a16933fab982eecfb7a57",
+  "selected_digest": "86c9fffeee241658f50c67e6ac3127b5b1c0c07b1412f763009e31621f1bcc5b",
   "junit": {
-    "tests": 182,
+    "tests": 184,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -203,9 +205,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 16.350825,
+  "elapsed_seconds": 14.898353,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 39%]\n.............................................................s.......... [ 79%]\n......................................                                   [100%]",
+  "stdout_tail": "........................................................................ [ 39%]\n...............................................................s........ [ 78%]\n........................................                                 [100%]",
   "stderr_tail": ""
 }

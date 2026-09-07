@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "9f21bd76403e56987539e2dc5ca11c2507f694e90120bd398d75a4fa836de82e",
-  "collection_digest": "6d5969f6a999ba2f723112ae0cac69cba14936da97f177ed880132e43f73ff87",
-  "collection_count": 4276,
+  "source_digest": "d13f80217b69aef3c0b8b855b4e4d3348e98d52318131af6aeee0ca90a186375",
+  "collection_digest": "06ff1304ce7873feb3044b95dd626b23f6785d64aade3af40770395b0798ecdf",
+  "collection_count": 4284,
   "shard_index": 23,
   "shard_count": 24,
-  "selected_count": 175,
+  "selected_count": 176,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_the_change_reaches_the_audit_chain_with_its_reason",
     "apps/api/tests/test_account_domain.py::test_claims_without_a_subject_are_refused",
@@ -72,6 +72,7 @@
     "apps/api/tests/test_embedding_provider_admission.py::test_a_model_id_that_is_not_one_is_refused[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]",
     "apps/api/tests/test_engineering_readiness.py::test_a_profile_or_evidence_without_dimension_mappings_is_refused[dimensions]",
     "apps/api/tests/test_entitlement_gate.py::test_an_active_subscription_permits_only_what_it_pays_for",
+    "apps/api/tests/test_evidence_epistemics.py::test_provenance_is_found_nested",
     "apps/api/tests/test_evidence_freshness.py::test_a_consumer_is_stale_when_an_input_moved_even_though_the_tree_did_not",
     "apps/api/tests/test_evidence_provenance.py::test_malformed_provenance_is_not_provenance[block4]",
     "apps/api/tests/test_exception_handling_discipline.py::test_no_broad_handler_turns_a_fault_into_evidence_of_health",
@@ -185,9 +186,9 @@
     "apps/api/tests/test_web_score_presentation.py::test_the_web_validator_enforces_the_disclaimer",
     "apps/api/tests/test_worker_service.py::test_worker_service_health_is_bound_to_worker_liveness"
   ],
-  "selected_digest": "4c26402350c889b88b8c85f5cb2af878b888ff3f63f4340b53b46974a58e8a0d",
+  "selected_digest": "c2ede7da2d73abbcfab3ad3a999e69ac3a70de2f91ccdd85b5bcdf687e3ed826",
   "junit": {
-    "tests": 175,
+    "tests": 176,
     "failures": 0,
     "errors": 0,
     "skipped": 2
@@ -196,9 +197,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 11.746181,
+  "elapsed_seconds": 12.38529,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 41%]\n........................................................ss.............. [ 82%]\n...............................                                          [100%]",
+  "stdout_tail": "........................................................................ [ 40%]\n.........................................................ss............. [ 81%]\n................................                                         [100%]",
   "stderr_tail": ""
 }

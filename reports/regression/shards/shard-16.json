@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "9f21bd76403e56987539e2dc5ca11c2507f694e90120bd398d75a4fa836de82e",
-  "collection_digest": "6d5969f6a999ba2f723112ae0cac69cba14936da97f177ed880132e43f73ff87",
-  "collection_count": 4276,
+  "source_digest": "d13f80217b69aef3c0b8b855b4e4d3348e98d52318131af6aeee0ca90a186375",
+  "collection_digest": "06ff1304ce7873feb3044b95dd626b23f6785d64aade3af40770395b0798ecdf",
+  "collection_count": 4284,
   "shard_index": 16,
   "shard_count": 24,
-  "selected_count": 180,
+  "selected_count": 181,
   "selected_nodeids": [
     "apps/api/tests/test_admission_cannot_be_self_granted.py::test_a_correctly_attested_ground_is_accepted",
     "apps/api/tests/test_admission_register.py::test_a_ground_cleared_with_a_test_that_does_not_exist_is_refused",
@@ -64,6 +64,7 @@
     "apps/api/tests/test_evaluation_validity.py::test_rare_event_uncertainty_blocks_tiny_zero_failure_campaign",
     "apps/api/tests/test_evidence_bases.py::test_a_base_nobody_declared_but_something_serves_is_a_rejection",
     "apps/api/tests/test_evidence_bases.py::test_a_declaration_of_difference_that_stopped_being_true_fails",
+    "apps/api/tests/test_evidence_epistemics.py::test_the_counter_is_judged_by_exclusion_not_inclusion",
     "apps/api/tests/test_evidence_provenance.py::test_digest_ignores_documentation_so_the_gate_stays_signal",
     "apps/api/tests/test_evidence_source_binding.py::test_the_committed_digest_binds_to_itself",
     "apps/api/tests/test_evidence_stores.py::test_an_optional_store_may_be_absent",
@@ -190,9 +191,9 @@
     "apps/api/tests/test_validity_boundaries.py::test_the_search_path_withholds_a_document_before_it_takes_effect",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[60.1]"
   ],
-  "selected_digest": "aa8c34e8c645e0824c73ed1b8c2dd240821287c0ff8c512b8acedc4ed77bcb86",
+  "selected_digest": "11e8d636c3bdde093905fdb27afea143bddbbf044d2dd4f8231098f1489db96c",
   "junit": {
-    "tests": 180,
+    "tests": 181,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -201,9 +202,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 17.755708,
+  "elapsed_seconds": 15.402139,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 40%]\n...............................................................ssss..... [ 80%]\n....................................                                     [100%]",
+  "stdout_tail": "........................................................................ [ 39%]\n................................................................ssss.... [ 79%]\n.....................................                                    [100%]",
   "stderr_tail": ""
 }

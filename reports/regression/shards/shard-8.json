@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "9f21bd76403e56987539e2dc5ca11c2507f694e90120bd398d75a4fa836de82e",
-  "collection_digest": "6d5969f6a999ba2f723112ae0cac69cba14936da97f177ed880132e43f73ff87",
-  "collection_count": 4276,
+  "source_digest": "d13f80217b69aef3c0b8b855b4e4d3348e98d52318131af6aeee0ca90a186375",
+  "collection_digest": "06ff1304ce7873feb3044b95dd626b23f6785d64aade3af40770395b0798ecdf",
+  "collection_count": 4284,
   "shard_index": 8,
   "shard_count": 24,
-  "selected_count": 186,
+  "selected_count": 187,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_an_unknown_status_is_refused_by_the_contract",
     "apps/api/tests/test_admission_cannot_be_self_granted.py::test_an_unparseable_signature_date_is_refused[2026-13-01]",
@@ -78,6 +78,7 @@
     "apps/api/tests/test_environment_drift.py::test_an_empty_out_argument_is_a_named_refusal_not_a_traceback",
     "apps/api/tests/test_environment_drift.py::test_blocked_reason_counts_every_state",
     "apps/api/tests/test_environment_drift.py::test_present_but_unreadable_is_unobserved_not_drift",
+    "apps/api/tests/test_evidence_epistemics.py::test_a_stale_subject_is_distinguished_from_an_absent_one",
     "apps/api/tests/test_evidence_fusion.py::test_conflicting_outcomes_remain_explicit",
     "apps/api/tests/test_evidence_source_binding.py::test_absence_and_mismatch_are_named_apart[None-assurance evidence source digest is missing or malformed]",
     "apps/api/tests/test_evidence_source_binding.py::test_absence_and_mismatch_are_named_apart[aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-assurance evidence source digest does not match committed HEAD]",
@@ -196,9 +197,9 @@
     "apps/api/tests/test_verifier_resistance.py::test_every_inconsistent_shape_is_refused[\\u0432\\u0456\\u0434\\u02bc\\u0454\\u043c\\u043d\\u0456]",
     "apps/api/tests/test_web_score_presentation.py::test_the_score_is_labelled_as_a_ranking_utility_not_a_confidence"
   ],
-  "selected_digest": "242dacbf93662b31629bce61c5f252b791ca84f5efaa8953ec609404a03a3f04",
+  "selected_digest": "2c1144c2c699b77b435fa26a3189438366340bdea96f348eac87efdaea9a8e65",
   "junit": {
-    "tests": 186,
+    "tests": 187,
     "failures": 0,
     "errors": 0,
     "skipped": 2
@@ -207,9 +208,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 12.351583,
+  "elapsed_seconds": 12.834734,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 38%]\n...............................................................ss....... [ 77%]\n..........................................                               [100%]",
+  "stdout_tail": "........................................................................ [ 38%]\n................................................................ss...... [ 77%]\n...........................................                              [100%]",
   "stderr_tail": ""
 }

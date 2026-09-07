@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "9f21bd76403e56987539e2dc5ca11c2507f694e90120bd398d75a4fa836de82e",
-  "collection_digest": "6d5969f6a999ba2f723112ae0cac69cba14936da97f177ed880132e43f73ff87",
-  "collection_count": 4276,
+  "source_digest": "d13f80217b69aef3c0b8b855b4e4d3348e98d52318131af6aeee0ca90a186375",
+  "collection_digest": "06ff1304ce7873feb3044b95dd626b23f6785d64aade3af40770395b0798ecdf",
+  "collection_count": 4284,
   "shard_index": 10,
   "shard_count": 24,
-  "selected_count": 188,
+  "selected_count": 189,
   "selected_nodeids": [
     "apps/api/tests/test_adaptation_cli_v060.py::test_cli_refuses_malformed_or_unbounded_state",
     "apps/api/tests/test_admission_subject_share.py::test_the_default_still_isolates_tenants",
@@ -81,6 +81,7 @@
     "apps/api/tests/test_entry_point_guards_are_assertions.py::test_a_script_run_as_a_script_actually_runs[probe_blank_corpus.py]",
     "apps/api/tests/test_environment_drift.py::test_manifest_without_records_refuses_rather_than_returning_empty",
     "apps/api/tests/test_evaluation_validity.py::test_a_non_finite_measurement_is_refused_before_it_is_sorted[inf]",
+    "apps/api/tests/test_evidence_epistemics.py::test_a_verdict_over_an_empty_population_is_named",
     "apps/api/tests/test_evidence_provenance.py::test_gate_script_exits_nonzero_on_foreign_evidence",
     "apps/api/tests/test_evidence_provenance.py::test_malformed_provenance_is_not_provenance[block2]",
     "apps/api/tests/test_evidence_stores.py::test_unknown_is_never_a_pass",
@@ -198,9 +199,9 @@
     "apps/api/tests/test_url_policy.py::test_https_policy_refuses_ambiguous_or_credential_bearing_urls[https://user:pass@example.com]",
     "apps/api/tests/test_validity_boundaries.py::test_the_closed_interval_holds_at_both_ends[as_of1-True]"
   ],
-  "selected_digest": "ae0f22e8e9e4584431151076d6c4d06cfc41ec017e669ff585af2889a90645c8",
+  "selected_digest": "93ac604dc03404016a8f63de26cd5e0ebe2cdd076307246a89d793c7f501faca",
   "junit": {
-    "tests": 188,
+    "tests": 189,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -209,9 +210,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 12.98995,
+  "elapsed_seconds": 15.214853,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 38%]\n....................................................................s... [ 76%]\n............................................                             [100%]",
+  "stdout_tail": "........................................................................ [ 38%]\n.....................................................................s.. [ 76%]\n.............................................                            [100%]",
   "stderr_tail": ""
 }

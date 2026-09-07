@@ -1,9 +1,9 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-07T09:33:42.599157+00:00",
+  "generated_at": "2026-09-07T10:56:15.822347+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "9f21bd76403e56987539e2dc5ca11c2507f694e90120bd398d75a4fa836de82e",
+  "source_tree_sha256": "d13f80217b69aef3c0b8b855b4e4d3348e98d52318131af6aeee0ca90a186375",
   "digest_scope": "evidence_paths",
   "items": [
     {
@@ -19,13 +19,16 @@
     },
     {
       "id": "live_vulnerability_scanners",
-      "state": "CLOSED_ANCHORED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
+      "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "container_scanners_current_commit",
+        "security_scanners_current_commit"
+      ],
       "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM"
     },
     {
@@ -215,16 +218,16 @@
     }
   ],
   "counts": {
-    "EXTERNAL_REQUIRED": 7,
-    "CLOSED_ANCHORED": 7
+    "EXTERNAL_REQUIRED": 8,
+    "CLOSED_ANCHORED": 6
   },
   "internal_executable_unresolved": 0,
   "internal_missing_artifact": 0,
   "internal_stale_evidence": 0,
-  "production_external_or_runtime_unresolved": 7,
+  "production_external_or_runtime_unresolved": 8,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "e9b7c0af3f924a4fd7a25bd25e76112375a68d1260ddf1c5e6da9b10f805cb91"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "a52ffe7a2cefa10514536daeba33f85706a8af82054b53388222c098a18311f4"
   }
 }
