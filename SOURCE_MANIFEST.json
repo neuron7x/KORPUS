@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2038,
-  "root_sha256": "13921a159501196d41cabfc65b391aa7b6ea9bcd9221e7c1abaeb6eaa042ca81",
+  "file_count": 2039,
+  "root_sha256": "df7705e1863ada44895f55cd0210ed0bbb9f18d4eb34292e6dbd2d008e1944e8",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 123696,
-      "sha256": "66559636d13988a658be9e2d032bcc7b77f8b5e4742406c52d5e792ca957545e",
+      "bytes": 124573,
+      "sha256": "043cadd0b60cce97b8fbc6a2e5d70e9c88ec0d0f25799e42f457435957fdfe2c",
       "mode": "0644"
     },
     {
@@ -7963,8 +7963,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 719009,
-      "sha256": "0cd3d0086992f82d98f3ace1750a9c074c6838f4b9db97120eada4d4bc17730b",
+      "bytes": 719742,
+      "sha256": "456277cff8ec53cf969dbe0cdd660329883c4be2b4e7973a7ec37189680215a1",
       "mode": "0644"
     },
     {
@@ -10701,6 +10701,12 @@
       "path": "scripts/export_state_contracts.py",
       "bytes": 3105,
       "sha256": "017a5c0239ddd951fdae2a44060d15f7a646b251cb3a036de784159577624514",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/fetch_ci_scanner_markers.py",
+      "bytes": 5755,
+      "sha256": "1363ab547880b5ce1acca0b7766be2a65c89cba19007e73a1e80db9512d0a0bd",
       "mode": "0755"
     },
     {

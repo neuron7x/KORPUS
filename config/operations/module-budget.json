@@ -539,6 +539,13 @@
       ],
       "note": "Нові модулі PR#44 внесено з виміряними стелями дня інтеграції.",
       "on": "2026-09-07"
+    },
+    {
+      "new_modules": [
+        "scripts/fetch_ci_scanner_markers.py"
+      ],
+      "note": "Виробник маркерів сканерів внесено з виміряною стелею дня.",
+      "on": "2026-09-08"
     }
   ],
   "modules": {
@@ -4193,6 +4200,15 @@
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
+    },
+    "scripts/fetch_ci_scanner_markers.py": {
+      "lines": 128,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 26,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Новий виробник: маркери сканерів із конвеєра у var/security/ з перевіркою, що джоб біг на коміті з тотожним джерелом. Доти єдиним виробником була рука."
     },
     "scripts/fetch_drive_public.py": {
       "lines": 447,

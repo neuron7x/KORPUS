@@ -332,6 +332,17 @@ module-budget:
 stemmer-closure:
 	$(PY) scripts/check_stemmer_closure.py
 
+# Маркери сканерів із конвеєра — у `var/security/`, з перевіркою, що джоб біг на
+# коміті з ТОТОЖНИМ джерелом. Доти єдиним виробником була рука, і різниця між
+# «сканер відпрацював на цьому коді» та «файл про це є» була невидима за побудовою.
+# Не в `validate`: потребує мережі й конвеєра. Споживач вироку —
+# `verify_production_hard_predicates` (предикат `live_vulnerability_scanners`).
+#   make ci-scanner-markers PIPELINE=<id>
+ci-scanner-markers:
+	@test -n "$(PIPELINE)" || (echo "PIPELINE is required" >&2; exit 2)
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/fetch_ci_scanner_markers.py \
+	  --pipeline "$(PIPELINE)" $(if $(DRY),--dry-run)
+
 # Ruff states the same rule as EXE001/EXE002, but it reads only Python under four
 # directories: the shell scripts, Dockerfiles, Terraform and manifests had no mode check
 # at all. This reads `git ls-files`, which is the set the source manifest hashes.
