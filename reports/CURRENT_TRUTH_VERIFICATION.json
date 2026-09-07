@@ -2,7 +2,7 @@
   "schema": "korpus.current-truth-verification.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "db3d41d509ed61d8cd1e2701b4c541be4934f8a303d445eb0ccce78d91812692",
+  "source_tree_sha256": "7286d9b7d06fe46ca1dc0ffa1779895fdd4fad929feabd172df8f67d3ce6dcbd",
   "checks": {
     "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.present": true,
     "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.scope_named": true,

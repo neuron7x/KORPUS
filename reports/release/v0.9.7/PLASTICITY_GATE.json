@@ -2,7 +2,7 @@
   "schema": "korpus.plasticity-model-check.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "db3d41d509ed61d8cd1e2701b4c541be4934f8a303d445eb0ccce78d91812692",
+  "source_tree_sha256": "7286d9b7d06fe46ca1dc0ffa1779895fdd4fad929feabd172df8f67d3ce6dcbd",
   "policy_path": "config/operations/plasticity-policy.json",
   "policy_sha256": "1bfef00253584d83e084d29501459e862b8ca4ca0b5e94b2c86082e5015dae7c",
   "states_checked": 6912,
