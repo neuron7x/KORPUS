@@ -4,8 +4,23 @@
   "supply_chain_ed25519_public_key_sha256": [],
   "interpretation": "Empty by default. Production evidence cannot pass until independently governed assessor, environment, supply-chain, hosted-builder, production-assurance and release signer fingerprints are explicitly admitted.",
   "production_assurance_ed25519_public_key_sha256": [],
-  "release_ed25519_public_key_sha256": [],
+  "release_ed25519_public_key_sha256": [
+    "aa7d6cddb19350149c4fc01f737f5a651b17398404fcf0aad0c6b7690198818e"
+  ],
   "tevv_ed25519_public_key_sha256": [],
   "hosted_builder_ed25519_public_key_sha256": [],
-  "pec_ed25519_public_key_sha256": []
+  "pec_ed25519_public_key_sha256": [],
+  "admitted_fingerprint_provenance": {
+    "aa7d6cddb19350149c4fc01f737f5a651b17398404fcf0aad0c6b7690198818e": {
+      "role": "release_ed25519_public_key_sha256",
+      "admitted_on": "2026-09-07",
+      "held_by": "власник релізу",
+      "key_location": "korpus-signer (uid 997), /var/lib/korpus-signer, mode 700",
+      "independence": "НЕ НЕЗАЛЕЖНИЙ",
+      "why_this_must_be_written_here": "Реєстр існує заради НЕЗАЛЕЖНОГО врядування — це сказано в його ж `interpretation`. Допущений відбиток належить власникові релізу, тобто тій самій стороні, що випускає. Механізм від цього працює: підпис доводить, що маніфест не змінено кимось без ключа. Але «довірений підписант» тут означає «ключ, який власник визнав своїм», а не «третя сторона засвідчила». Без цього рядка наступний читач візьме перше за друге, і реєстр почне стверджувати про себе те, чого не робить.",
+      "what_it_closes": "release_trusted_signer",
+      "what_it_does_not_close": "separation_of_duties у `final_release_authorization`: він вимагає, щоб відбиток збирача НЕ ДОРІВНЮВАВ відбитку релізу. Власник соло, другої сторони не існує, тож ця перевірка лишається невиконаною й ВИДИМОЮ — як і решта предикатів, виведених зі знаменника з названою підставою. Другий ключ тієї самої особи задовольнив би механізм і зробив би його твердження хибним.",
+      "rotation": "ключ бойовий; ротація перед продакшеном лишається за власником"
+    }
+  }
 }

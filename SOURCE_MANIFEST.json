@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1874,
-  "root_sha256": "8ec8f6daa102fd3d82781f0f57c06d74866d5afd6f9b40bca9d1b8575d189002",
+  "root_sha256": "c3edff3ae46a438bd6be72ce84fafd3be642b9fe0d17526209e08287f74fa6e2",
   "files": [
     {
       "path": ".dockerignore",
@@ -5821,8 +5821,8 @@
     },
     {
       "path": "config/assurance/trusted-assurance-signers.json",
-      "bytes": 610,
-      "sha256": "ade86301b3aa3813367fdd31dc167a0d3121343dddd7ee68b5fc81313c29fb51",
+      "bytes": 2812,
+      "sha256": "b6fa39672bffb7e5ca067cd4064a1932354fc850a5d665e8e7cb3b287e2a040a",
       "mode": "0644"
     },
     {
