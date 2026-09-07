@@ -2,7 +2,7 @@
   "schema": "korpus.current-truth-verification.v2",
   "status": "FAIL",
   "release": "v0.9.7",
-  "source_tree_sha256": "967e45bdf5ae40dc20a43113bec04c6ff6bdbad7b64b65b7757e0556fd236583",
+  "source_tree_sha256": "d36479fda500f8fc669f3f8a4d073cf9ebe4a3cd1399a83535a276f69675accf",
   "checks": {
     "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.present": true,
     "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.scope_named": true,
@@ -30,7 +30,7 @@
     "CLAIM_LEDGER.every_claim_decided_by_evidence": false,
     "BLOCKER_REGISTRY.current_state_present": true,
     "BLOCKER_REGISTRY.hard_predicate_report_current": true,
-    "BLOCKER_REGISTRY.internal_executable_unresolved_zero": false,
+    "BLOCKER_REGISTRY.internal_executable_unresolved_zero": true,
     "BLOCKER_REGISTRY.source_bound_current": true,
     "BLOCKER_REGISTRY.release_bound_current": true,
     "BLOCKER_REGISTRY.evidence_inputs_current": true,
@@ -41,7 +41,7 @@
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.present": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.status_pass": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.class_is_remote": true,
-    "reports/closure/CLEAN_ROOM_REPRODUCTION.json.source_bound": true,
+    "reports/closure/CLEAN_ROOM_REPRODUCTION.json.source_bound": false,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.run_counted": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.run_clean": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.names_candidate": true,
@@ -66,7 +66,7 @@
     "PACKAGE_BUILD.release_bound": true
   },
   "failures": [
-    "BLOCKER_REGISTRY.internal_executable_unresolved_zero",
-    "CLAIM_LEDGER.every_claim_decided_by_evidence"
+    "CLAIM_LEDGER.every_claim_decided_by_evidence",
+    "reports/closure/CLEAN_ROOM_REPRODUCTION.json.source_bound"
   ]
 }
