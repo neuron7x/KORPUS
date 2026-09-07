@@ -33,6 +33,21 @@ BUDGET = "config/operations/module-budget.json"
 CEILINGS = ("lines", "max_complexity", "max_function_lines", "max_function_args", "max_nesting")
 
 
+def _ceilings_named(to: object, metric: object) -> tuple[tuple[str, int], ...]:
+    """Пари (стеля, число), які НАЗИВАЄ один запис — у будь-якій із прийнятих форм.
+
+    Форма `{"metric": "lines", "to": 147}` не розпізнавалась ЖОДНИМ рядком: читач
+    вимагав, щоб `to` був словником. Запис існував, читався людиною як названа причина —
+    і не рахувався. Виміряно 06.09.2026: саме цією формою записана остання дюжина
+    підняттів, тобто гейт вимагав причини і мовчки не бачив половини наданих.
+    """
+    if isinstance(to, int) and not isinstance(to, bool):
+        return ((str(metric), to),) if metric in CEILINGS else ()
+    if not isinstance(to, dict):
+        return ()
+    return tuple((key, to[key]) for key in CEILINGS if isinstance(to.get(key), int))
+
+
 def _recorded_raises(document: dict[str, Any]) -> dict[str, set[tuple[str, int]]]:
     """Стелі, ЗАПИСАНІ в `raised`, прив'язані до шляху і до самого числа.
 
@@ -49,26 +64,29 @@ def _recorded_raises(document: dict[str, Any]) -> dict[str, set[tuple[str, int]]
     """
     recorded: dict[str, set[tuple[str, int]]] = {}
 
-    def remember(path: object, to: object) -> None:
-        if not isinstance(path, str) or not isinstance(to, dict):
-            return
-        for key in CEILINGS:
-            value = to.get(key)
-            if isinstance(value, int):
-                recorded.setdefault(path, set()).add((key, value))
+    def remember(path: object, to: object, metric: object = None) -> None:
+        # `setdefault` до перевірки створював порожній запис для шляху, який нічого не
+        # назвав: реєстр відрізняв «названо нуль стель» від «не згадано» лише формою.
+        named = _ceilings_named(to, metric) if isinstance(path, str) else ()
+        if named and isinstance(path, str):
+            recorded.setdefault(path, set()).update(named)
 
     for record in document.get("raised", ()):
         if not isinstance(record, dict):
             continue
-        remember(record.get("path"), record.get("to"))
+        remember(record.get("path"), record.get("to"), record.get("metric"))
         for path in record.get("paths", ()) or ():
-            remember(path, record.get("to"))
+            remember(path, record.get("to"), record.get("metric"))
         for nested in (*(record.get("entries") or ()), *(record.get("changes") or ())):
             if isinstance(nested, dict):
                 # Вкладений запис має право нести власне число; якщо він його не несе,
                 # береться число зовнішнього запису — інакше сумлінна вкладена форма
                 # втратила б чинність через те, де саме лежить `to`.
-                remember(nested.get("path"), nested.get("to") or record.get("to"))
+                remember(
+                    nested.get("path"),
+                    nested.get("to") or record.get("to"),
+                    nested.get("metric") or record.get("metric"),
+                )
     return recorded
 
 

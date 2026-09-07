@@ -35,10 +35,26 @@ ROOT = Path(__file__).resolve().parent.parent
 SCHEMA = "korpus.selftest-coverage.v1"
 TIMEOUT = 180
 
-#: Оголошення прапорця в парсері аргументів, а не будь-яка згадка рядка. Згадка
-#: трапляється в документації й у повідомленнях про вжиток, і рахувати її означало б
-#: вимагати самоперевірки від скрипта, який її не має.
-DECLARES = re.compile(r"""add_argument\(\s*["']--selftest["']""")
+#: Оголошення прапорця, а не згадка. Форм ДВІ, і доти гейт знав одну: шість скриптів
+#: розбирають `sys.argv` напряму, і гейт їх не бачив, звітуючи «жодної пропущеної» —
+#: твердження про власний регекс, не про дерево. Вимір і межа:
+#: `test_selftest_coverage.test_discovery_finds_the_declarations_not_the_mentions`.
+DECLARES = re.compile(
+    r"""add_argument\(\s*["']--selftest["']"""
+    r"""|["']--selftest["']\s+in\s+sys\.argv"""
+)
+
+#: Згадують прапорець, не оголошуючи. Іменовані навмисно: без переліку ширший регекс
+#: лише змінив би одну сліпу зону на іншу, а третя форма зникла б так само мовчки.
+MENTIONS_WITHOUT_DECLARING = {
+    # Константа, якою цей скрипт шукає прапорець У ЧУЖИХ модулях, не у власному.
+    "scripts/check_module_budget.py",
+    # Рядки-мутанти: літерал усередині мутацій, які скрипт СІЄ в чужий код.
+    "scripts/run_mutation_tests.py",
+}
+
+#: Будь-яка згадка літерала — знаменник, проти якого міряється повнота розбору.
+MENTIONS = re.compile(r"""["']--selftest["']""")
 
 
 def declaring(root: Path = ROOT) -> list[str]:
@@ -50,9 +66,39 @@ def declaring(root: Path = ROOT) -> list[str]:
     return found
 
 
+def undeclared_mentions(root: Path = ROOT) -> list[str]:
+    """Межа сліпої зони: згадка, форму якої гейт не розібрав і яка не названа.
+
+    Без неї «нуль пропущених» нерозрізненний із «я не дивився».
+    """
+    declared = set(declaring(root))
+    unseen: list[str] = []
+    for path in sorted((root / "scripts").glob("*.py")):
+        name = f"scripts/{path.name}"
+        if name in declared or name in MENTIONS_WITHOUT_DECLARING:
+            continue
+        if MENTIONS.search(path.read_text(encoding="utf-8", errors="ignore")):
+            unseen.append(name)
+    return unseen
+
+
 #: Єдиний скрипт поза власною гарантією: запустити свій `--selftest` усередині себе
 #: означало б нескінченну рекурсію.
 SELF = "scripts/verify_selftest_coverage.py"
+
+
+def _blind_spot_is_bounded(root: Path = ROOT) -> dict[str, Any]:
+    """Чи не з'явилась форма оголошення, якої цей гейт не розбирає."""
+    unseen = undeclared_mentions(root)
+    return {
+        "check": "no_unparsed_declaration_form",
+        "verdict": "PASS" if not unseen else "FAIL",
+        "detail": (
+            "кожна згадка `--selftest` або розібрана як оголошення, або названа винятком"
+            if not unseen
+            else f"форма оголошення не розібрана, і ці скрипти не бігають ніде: {unseen}"
+        ),
+    }
 
 
 def _self_is_covered(root: Path = ROOT) -> dict[str, Any]:
@@ -218,7 +264,8 @@ def main() -> int:
 
     expected = [s for s in declaring(arguments.root) if s != SELF]
     results = [run_one(script, arguments.root) for script in expected]
-    findings = [*assess(results, expected), _self_is_covered(arguments.root)]
+    bounds = [_self_is_covered(arguments.root), _blind_spot_is_bounded(arguments.root)]
+    findings = [*assess(results, expected), *bounds]
     overall = verdict(findings)
     report = {
         "schema": SCHEMA,

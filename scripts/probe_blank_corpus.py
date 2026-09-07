@@ -48,20 +48,38 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
-#: Корпус, якого не існує. Запит із ним доходить до ретривера і повертається
-#: порожнім — це і є «вхід, поставлений у нуль». Неіснуючий ідентифікатор кращий
-#: за порожній рядок: порожній може бути витлумачений як «усі корпуси».
-BLANK_CORPUS = "__blank_input_baseline__"
+#: Абляція ДОКАЗОВОГО ШАРУ в часі, а не за ідентифікатором.
+#:
+#: Перша редакція слала `corpus_ids` на неіснуючий корпус і вважала це нульовим
+#: входом. Виміряно 06.09.2026 на живому пілоті: така форма дає HTTP 403
+#: `requested_corpora_not_held` — відмову АВТОРИЗАЦІЇ, а не порожню підставу. Проба
+#: не створювала своєї умови, тож не мала входу, на якому дала б істинний PASS:
+#: обидві осі виходили нульовими і вирок вироджувався в UNKNOWN назавжди.
+#:
+#: `as_of` у минуле лишає запит цілком легітимним — той самий суб'єкт, той самий
+#: корпус, та сама авторизація — і прибирає рівно одне: чинність доказів на ту дату.
+#: Виміряно там же: 200, `status: insufficient_evidence`, `citations: []`,
+#: `retrieval_score: 0.0`. Це і є вхід, поставлений у нуль.
+BLANK_AS_OF = "1900-01-01"
+
+#: Декларація оператора — ОБ'ЄКТ, а не рядок. Перша редакція слала рядок і діставала
+#: 422 на кожен із сорока запитів; сорок відмов валідації читались як «нуль
+#: відповідей» і давали хибно спокійний вирок.
+PROBE_DECLARATION = {
+    "given_name": "Проба",
+    "family_name": "Базова",
+    "specialty": "input-independent baseline",
+}
 
 TRANSPORT_FAILURE = "TRANSPORT_FAILURE"
 
 
-def ask(base: str, question: str, token: str, corpus: str | None, timeout: float) -> dict[str, Any]:
+def ask(base: str, question: str, token: str, ablate: bool, timeout: float) -> dict[str, Any]:
     body = json.dumps(
         {
             "text": question,
-            "declaration": "blank-input-baseline",
-            **({"corpus": corpus} if corpus else {}),
+            "declaration": PROBE_DECLARATION,
+            **({"as_of": BLANK_AS_OF} if ablate else {}),
         }
     ).encode("utf-8")
     request = urllib.request.Request(
@@ -139,12 +157,12 @@ def main() -> int:
     token = arguments.token[0]
     real, blank, transport = [], [], 0
     for question in in_corpus:
-        got = ask(arguments.base, question, token, None, arguments.timeout)
+        got = ask(arguments.base, question, token, False, arguments.timeout)
         if got["status"] == TRANSPORT_FAILURE:
             transport += 1
             continue
         real.append(answered(got))
-        blanked = ask(arguments.base, question, token, BLANK_CORPUS, arguments.timeout)
+        blanked = ask(arguments.base, question, token, True, arguments.timeout)
         if blanked["status"] == TRANSPORT_FAILURE:
             transport += 1
             continue

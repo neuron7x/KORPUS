@@ -1,15 +1,16 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "bad7efe1a766497a8b1430283e28a47e013d8f811496cf9d3b0a50d272db8a95",
+  "source_tree_sha256": "d39063341b4e685701dac4c71aa23c6f47d3fdcd7d401510e7ddbcd4b950cb1f",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
-  "externally_satisfied": 7,
-  "production_satisfied": 7,
+  "software_ready_means": "оголошені software_artifacts проходять is_file(); зміст, версія і здатність виконатись не перевіряються",
+  "externally_satisfied": 0,
+  "production_satisfied": 0,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 50.0,
-  "production_completion_percent": 50.0,
+  "external_completion_percent": 0.0,
+  "production_completion_percent": 0.0,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -18,11 +19,13 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
-      "blocks_candidate": false,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "waived_external_checks": [
         "report_present",
         "attestation_present",
@@ -44,11 +47,13 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
-      "blocks_candidate": false,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "waived_external_checks": [
         "evidence_attestation_verified",
         "evidence_trusted_signer"
@@ -61,11 +66,13 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
-      "blocks_candidate": false,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "waived_external_checks": []
     },
     {
@@ -90,7 +97,8 @@
         "tevv_admissible",
         "pass_rate",
         "null_controls",
-        "attack_families"
+        "attack_families",
+        "gate_source_bound"
       ],
       "waived_external_checks": []
     },
@@ -106,7 +114,8 @@
       "blocks_candidate": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "assessor_structured"
+        "assessor_structured",
+        "gate_source_bound"
       ],
       "waived_external_checks": [
         "independent_class",
@@ -126,7 +135,8 @@
       "blocks_candidate": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "environment_class"
+        "environment_class",
+        "gate_source_bound"
       ],
       "waived_external_checks": [
         "assessor_attestation_verified",
@@ -140,11 +150,13 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
-      "blocks_candidate": false,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "waived_external_checks": []
     },
     {
@@ -154,11 +166,13 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
-      "blocks_candidate": false,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "waived_external_checks": [
         "load_attestation_verified",
         "load_trusted_signer"
@@ -171,11 +185,13 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
-      "blocks_candidate": false,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "waived_external_checks": [
         "recovery_attestation_verified",
         "recovery_trusted_signer"
@@ -230,11 +246,13 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
-      "blocks_candidate": false,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "waived_external_checks": []
     },
     {
@@ -290,5 +308,7 @@
       "waived_external_checks": []
     }
   ],
-  "interpretation": "Software readiness and external production proof are deliberately separate. A predicate is production-satisfied only when both are true."
+  "interpretation": "Software readiness and external production proof are deliberately separate. A predicate is production-satisfied only when both are true.",
+  "evidence_surface_files": 12,
+  "context": "PRODUCTION_EVIDENCE"
 }

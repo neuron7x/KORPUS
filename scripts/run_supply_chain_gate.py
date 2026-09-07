@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import sys
 from pathlib import Path
@@ -15,6 +14,7 @@ from korpus.application.assurance_trust import trusted_fingerprints  # noqa: E40
 from korpus.application.production_assurance import gate_payload  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
+from source_digest import commits_with_identical_source  # noqa: E402
 
 PIN = re.compile(r"^([A-Za-z0-9_.-]+)==([^\\\s]+)")
 LOCKS = (ROOT / "apps/api/requirements.runtime.lock", ROOT / "apps/api/requirements.dev.lock")
@@ -71,7 +71,7 @@ def main() -> int:
         attestation=_json(attestation_path),
         trusted=trusted,
         manifest_bytes=manifest_path.read_bytes() if manifest_path.is_file() else b"",
-        expected_commit=os.getenv("CI_COMMIT_SHA", ""),
+        accepted_commits=commits_with_identical_source(),
     )
     failures = [name for name, ok in checks.items() if not ok]
     result = gate_payload(

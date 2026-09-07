@@ -1,5 +1,48 @@
 {
   "schema": "korpus.production-predicate-floor.v1",
-  "production_satisfied": 0,
-  "note": "Ratchet on external proof. Two predicates (live_postgres_rls, exact_python_3_12_13_environment) were closed on 2026-08-29 against source digest 24ead5ea and unbound by the next commit; the script exited 0 throughout because it only checked software readiness. The floor stays 0 until a gate is re-run against a tree that then stops changing, which is what closing one actually requires."
+  "production_satisfied": 7,
+  "note": "Ratchet on external proof. Історія числа за одну добу 06.09.2026: 0 → 7 → 6, і КОЖЕН крок має вимір за собою. 0 → 7: незалежний верифікатор довів регресом, що підлога інертна — отрута по даних знизила закриття до шести, і всі гейти лишились зелені, бо `7 < 0` хибне завжди. 7 → 6: сьоме закриття (supply_chain) трималось на `os.getenv(\"CI_COMMIT_SHA\")` — у раннері це вимір, у локальній оболонці РУЧНА ДЕКЛАРАЦІЯ; механізм замінено на вимір репозиторію. Шість — це те, що перезняте на цьому дереві ЧЕСНО: redteam (внутрішня змагальна кампанія), postgres_security, exact_environment (в образі), production_like_load, trusted_load_attestation і trusted_recovery_attestation. Останній ледь не був утрачений назавжди: постгресний прогін відновлення був МЕРТВИЙ із 04.09, бо вимірювач почав вимагати роль брокера, а прогін її не створював — предикат не мав жодної дороги до закриття, і це читалось як очікування на людину. 07.09.2026 підлогу повернено 6 → 7: умову закриття, записану при зниженні, виконав зелений конвеєр, і сканерні маркери прив'язані до кандидата ВИМІРОМ множини комітів із тотожним джерелом, а не змінною середовища.",
+  "raised": [
+    {
+      "from": 0,
+      "to": 7,
+      "on": "2026-09-06",
+      "why": "інертний сторож: доведено регресом незалежного верифікатора"
+    },
+    {
+      "from": 5,
+      "to": 6,
+      "on": "2026-09-06",
+      "why": "маршрут, що був недосяжний, полагоджено: `run_recovery_drill.sh` тепер створює роль korpus_authz і передає обидва URL брокера, тож `trusted_recovery_attestation` закривається виміром класу середовища, а не оголошенням"
+    },
+    {
+      "from": 6,
+      "to": 7,
+      "on": "2026-09-07",
+      "why": "`closes_when`, записаний при зниженні 7 → 6, СПРАВДИВСЯ дослівно: «зелений конвеєр видасть маркери сканерів на джерелі, тотожному кандидатові». Конвеєр 2824715887 на 43be88ad — 18/18 success. Маркери витягнуто з нього самого (джоби security:summary і container:scan), обидва несуть commit_sha=43be88ad053deb8bd187a48c0d084b9c06d496a8, і цей коміт входить у виміряну множину `commits_with_identical_source()`. Тобто прив'язка тепер вимір, а не експорт CI_COMMIT_SHA, через який число колись і впало.",
+      "evidence": {
+        "pipeline": 2824715887,
+        "pipeline_status": "success 18/18",
+        "candidate_commit": "43be88ad053deb8bd187a48c0d084b9c06d496a8",
+        "markers": [
+          "var/security/summary.json (schema_version 2)",
+          "var/security/ci-container-scan.json"
+        ],
+        "gate_failures_remaining": [
+          "evidence_attestation_verified",
+          "evidence_trusted_signer"
+        ],
+        "why_those_do_not_block": "профіль ВИЛУЧАЄ їх (`waived_external_checks`): реєстри підписантів порожні за побудовою, і це МЕЖА врядування, не дефект інженерії"
+      }
+    }
+  ],
+  "lowered": [
+    {
+      "from": 7,
+      "to": 6,
+      "on": "2026-09-06",
+      "why": "записане 7 спиралось на змінну середовища, а не на вимір: сьомий предикат закривався експортом CI_COMMIT_SHA у локальній оболонці. Ратчет не можна тримати на числі, здобутому оголошенням — воно робить підлогу недосяжною чесним шляхом і тому першою ж чесною батареєю стає хибним блокером",
+      "closes_when": "зелений конвеєр видасть маркери сканерів на джерелі, тотожному кандидатові, і run_supply_chain_gate.py зарахує їх виміром, а не оголошенням"
+    }
+  ]
 }

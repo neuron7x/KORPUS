@@ -41,7 +41,17 @@ PREDICATES = ROOT / "reports/PRODUCTION_HARD_PREDICATES.json"
 DIGEST_LINE = re.compile(r"^\*\*ДАЙДЖЕСТ ДЖЕРЕЛА:\*\* `([0-9a-f]{64})`", re.MULTILINE)
 LOAD_TABLE = re.compile(r"\| холодний перший \|.*?\n\| сплеск \|[^\n]*\n", re.S)
 RECOVERY_LINE = re.compile(r"^RTO \*\*[^\n]*\n", re.MULTILINE)
-BLOCKER_BLOCK = re.compile(r"^`software_ready` \*\*[^\n]*\n", re.MULTILINE)
+#: Заголовок ВХОДИТЬ у проліт навмисно. Доти блок починався з `software_ready`, тож
+#: `--check` оновлював ЧИСЛО і не чіпав дату й дайджест, якими це число підписане:
+#: найсвіжіший вимір стояв під штампом чужого дерева (`b9096028` при дереві `0be621c1`),
+#: і читач прив'язував правильне число до неправильного предмета. Виміряно незалежною
+#: сесією 06.09.2026: проліт накривав 10 рядків із 680, і жодне твердження про число
+#: блокерів у них не потрапляло.
+#: Лічильник кандидата. Він жив у §3 ЧОТИРМА написаннями від руки («блокерів кандидата
+#: нуль» проти «доки блокерів §3 п'ять»), і документ суперечив сам собі в межах одного
+#: файла. Рішення власника про ОБСЯГ лишається прозою; лічильник має виробника.
+CANDIDATE_LINE = re.compile(r"^`blocks_candidate` \*\*[^\n]*\n", re.MULTILINE)
+BLOCKER_BLOCK = re.compile(r"^### 2\.6-BIS [^\n]*\n\n`software_ready` \*\*[^\n]*\n", re.MULTILINE)
 
 
 def _json(path: Path) -> dict[str, Any]:
@@ -86,9 +96,24 @@ def blocker_line(registry: dict[str, Any], predicates: dict[str, Any]) -> str:
     counts = " · ".join(
         f"**{name}** {value}" for name, value in sorted(registry.get("counts", {}).items())
     )
+    stamp = str(registry.get("generated_at", ""))[:10] or "дата не записана"
+    digest = str(registry.get("source_tree_sha256", ""))[:16] or "дайджест не записаний"
     return (
+        f"### 2.6-BIS Стан блокерів (вимір {stamp}, дайджест `{digest}`)\n\n"
         f"`software_ready` **{predicates.get('software_ready')} із "
         f"{predicates.get('predicates_total')}**. Реєстр блокерів: {counts}.\n"
+    )
+
+
+def candidate_line(predicates: dict[str, Any]) -> str:
+    """Скільки предикатів БЛОКУЮТЬ кандидата — і які саме."""
+    states = [row for row in predicates.get("states", []) if isinstance(row, dict)]
+    blocking = sorted(str(row.get("id")) for row in states if row.get("blocks_candidate"))
+    external = sum(1 for row in states if not row.get("externally_satisfied"))
+    named = ", ".join(f"`{name}`" for name in blocking) if blocking else "жодного"
+    return (
+        f"`blocks_candidate` **{len(blocking)}** · зовнішніх вимог "
+        f"**{external} із {len(states)}**. Блокують: {named}.\n"
     )
 
 
@@ -114,6 +139,7 @@ def render(text: str) -> str:
         (LOAD_TABLE, load_table(load), "таблиця навантаження"),
         (RECOVERY_LINE, recovery_line(recovery), "числа відновлення"),
         (BLOCKER_BLOCK, blocker_line(registry, predicates), "стан блокерів"),
+        (CANDIDATE_LINE, candidate_line(predicates), "лічильник кандидата"),
     ):
         if not pattern.search(text):
             raise SystemExit(f"якоря немає в пакеті: {label}")

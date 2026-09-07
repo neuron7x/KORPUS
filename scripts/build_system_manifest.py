@@ -4,23 +4,31 @@ import argparse
 import hashlib
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXCLUDED_PREFIXES = (
-    ".git/",
-    "var/",
-    "dist/",
-    "reports/",
-    "handoff/evidence/",
-    ".pytest_cache/",
-    "apps/web/dist/",
-)
-EXCLUDED_NAMES = {"SOURCE_MANIFEST.json", "DISTRIBUTION_MANIFEST.json", "REPOSITORY_MANIFEST.json"}
+sys.path.insert(0, str(ROOT / "scripts"))
+from manifest_paths import source_included  # noqa: E402
 
 
 def _included(relative: str) -> bool:
-    return relative not in EXCLUDED_NAMES and not relative.startswith(EXCLUDED_PREFIXES)
+    """Одне означення того, що є джерелом, — канонічне `manifest_paths.source_included`.
+
+    Тут стояв ДРУГИЙ перелік виключень, і він розходився з каноном на СІМИ шляхах:
+    `.verdict-ledger.jsonl`, `CANONICAL_RELEASE_REPORT.{json,md}`, `PACKAGE_BOUNDARY.md`,
+    `PACKAGE_BUILD.json`, `FULL_SSOT_PACKAGE_RECEIPT.json` і `LINEAGE/.../SOURCE_MANIFEST.json`
+    — тобто рівно ті файли, які пише сам цикл релізу. Наслідок той самий, що вже полагодили
+    для `source_digest`: корінь системного маніфесту зсувався щоразу, коли перезаписувався
+    будь-який реліз-звіт, БЕЗ жодної зміни коду, і це число вже лежить у `var/eval-report.json`
+    через `run_evals.py`, звідки його бере збірка забезпечення.
+
+    Сторож проти повернення другого переліку існував і був зелений: він читав
+    `scripts/source_digest.py` і не бачив цього файла. Перевірка проти другого визначення,
+    яка дивиться лише в одне місце, зелена саме тоді, коли друге визначення є.
+    Знайдено пошуком розбіжностей 06.09.2026.
+    """
+    return source_included(Path(relative))
 
 
 def _git_tracked_files() -> tuple[list[Path], str] | None:

@@ -2,8 +2,8 @@
   "schema": "korpus.coverage-report.v1",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "bad7efe1a766497a8b1430283e28a47e013d8f811496cf9d3b0a50d272db8a95",
-  "statement_coverage_percent": 97.016,
-  "branch_coverage_percent": 95.306,
+  "source_tree_sha256": "d13f80217b69aef3c0b8b855b4e4d3348e98d52318131af6aeee0ca90a186375",
+  "statement_coverage_percent": 97.0968,
+  "branch_coverage_percent": 95.4212,
   "measured_from": "var/coverage-union.json"
 }

@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: pilot-posture machine-tevv release-freeze ci-run ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite sqlite-recovery-drill handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage selftest-falsifiability installed-units-verify canonical-verify branch-integration owner-packet owner-packet-check mutation-delta-gate mutation-delta-gate-selftest blank-corpus-probe
+.PHONY: pilot-posture machine-tevv release-freeze ci-run ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-load-probe nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite sqlite-recovery-drill handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage selftest-falsifiability installed-units-verify canonical-verify branch-integration owner-packet owner-packet-check mutation-delta-gate mutation-delta-gate-selftest blank-corpus-probe clean-room serving-readiness serving-readiness-selftest evidence-epistemics evidence-epistemics-selftest corpus-pack corpus-install corpus-transport-rehearsal corpus-transport-selftest
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -325,6 +325,13 @@ module-budget:
 	PYTHONPATH=apps/api/src $(PY) scripts/check_module_budget.py
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/check_budget_raises_are_named.py
 
+# Чи зводяться дві форми одного слова до одного терма. Пошук шукає за основою, тож
+# незамкнений стемер робить називний і родовий РІЗНИМИ термами — виміряно на живому
+# продукті: називний 14/14, родовий 12/14. Гейт сам прогонить три отрути, серед них
+# стемер у стані до виправлення.
+stemmer-closure:
+	$(PY) scripts/check_stemmer_closure.py
+
 # Ruff states the same rule as EXE001/EXE002, but it reads only Python under four
 # directories: the shell scripts, Dockerfiles, Terraform and manifests had no mode check
 # at all. This reads `git ls-files`, which is the set the source manifest hashes.
@@ -385,6 +392,7 @@ gate-liveness:
 		$(if $(ONLY),--only "$(ONLY)") --json "$(LIVENESS_OUT)"; \
 	rc=$$?; \
 	$(PY) -c 'import json,pathlib,subprocess,sys; p=pathlib.Path(sys.argv[1]); d=json.loads(p.read_text(encoding="utf-8")); d=d if isinstance(d,dict) else {"schema":"korpus.gate-liveness.v1","gates":d}; d["commit"]=subprocess.run(["git","rev-parse","HEAD"],capture_output=True,text=True,check=False).stdout.strip(); p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")' "$(LIVENESS_OUT)"; \
+	if [ -n "$(ONLY)" ]; then $(PY) -c 'import json,pathlib,sys; d=json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")); n=len(d.get("gates") or []); sys.exit(0) if n else sys.exit("ONLY=" + sys.argv[2] + " не вибрав ЖОДНОГО гейта: порожній вибір дає ARMED 0/0 з кодом 0, і назва неіснуючого гейта читається як здоровий вимір")' "$(LIVENESS_OUT)" "$(ONLY)" || exit 1; fi; \
 	exit $$rc
 
 # Прочитати кожне джерело каталогу один раз і записати, що саме прочитано. Потребує
@@ -850,7 +858,7 @@ public-health:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: mutation-delta-gate-selftest assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates package-build-identity production-observability production-inference-security production-exact-environment
+validate: mutation-delta-gate-selftest serving-readiness-selftest evidence-epistemics-selftest corpus-transport-selftest production-hard-predicates-selftest assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget stemmer-closure file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates package-build-identity production-observability production-inference-security production-exact-environment
 	python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py
@@ -872,6 +880,28 @@ restore-postgres:
 #   KORPUS_BACKUP_ENCRYPTION_KEY_FILE=... KORPUS_BACKUP_KEY_ID=... make backup-sqlite
 sqlite-recovery-drill:
 	PYTHONPATH=apps/api/src:scripts PYTHON=$(PY) scripts/run_sqlite_recovery_drill.sh
+
+# ВСТАНОВЛЕННЯ, не бекап. Механізм той самий, ім'я інше — і саме ім'я було дефектом.
+# Виміряно 06.09.2026 незалежним аудитом: «дороги дістати корпус НЕМАЄ» (пробували
+# `offline-pack` — 503, і `import-corpus` — маніфесту в дереві нема), тоді як дорога
+# існувала й працює. `make bootstrap` інжестить ОДИН фікстурний файл, тож свіжий клон
+# дає систему з одним демонстраційним документом, і запрошена людина бачить саме її.
+# Репетиція наскрізно: reports/closure/CORPUS_TRANSPORT_REHEARSAL.json — 256 документів,
+# 256 схвалених, 31464 прольоти, 256 об'єктів перехешовано у ВІДНОВЛЕНІЙ копії.
+#   KORPUS_BACKUP_ENCRYPTION_KEY_FILE=... KORPUS_BACKUP_KEY_ID=... make corpus-pack
+#   KORPUS_BACKUP_ENCRYPTION_KEY_FILE=... make corpus-install PACK=<файл> INTO=var/runtime/корпус
+corpus-pack: backup-sqlite
+
+corpus-install:
+	test -n "$(PACK)" || { echo "PACK=<пакет .tar.enc> обовʼязковий" >&2; exit 2; }
+	scripts/restore_sqlite.sh "$(PACK)" "$(or $(INTO),var/restored)"
+
+corpus-transport-selftest:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_corpus_transport.py --selftest
+
+corpus-transport-rehearsal:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_corpus_transport.py \
+	  $(if $(LIVE),--live "$(LIVE)") $(if $(RESTORED),--restored "$(RESTORED)")
 
 backup-sqlite:
 	scripts/backup_sqlite.sh
@@ -1251,13 +1281,35 @@ branch-consolidation:
 	$(PY) scripts/verify_branch_consolidation.py --selftest
 	$(PY) scripts/verify_branch_consolidation.py $(if $(CANONICAL),--canonical "$(CANONICAL)")
 
-check-nightly:
+# Аргументи прольоту навантаження названі ТУТ, а не в рядку лану. Доти вони стояли
+# в рецепті `check-nightly`, і тому `make` гнав пробу з 8 с, а бігун за ТИМ САМИМ
+# оголошенням викликав би `make load-probe` без змінних — з дефолтами 30/60 с.
+# Оголошений лан і виконуваний розходились мовчки; обгортка робить їх одним.
+nightly-load-probe:
+	$(MAKE) load-probe PY=$(PY) SECONDS=8 SOAK_SECONDS=8 CONCURRENCY=3 SPIKE=8
+
+# Рядки `$(MAKE)` нижче — ОГОЛОШЕННЯ лану, яке читає `run_lane.lane_targets`.
+# Виконує їх БІГУН, а не `make`, і це виправлення вади, не смак.
+#
+# ВИМІРЯНО 06.09.2026: `korpus-nightly-gates.service` о 05:11:06 упав rc=2 на ПЕРШОМУ
+# кроці — `cache-in-tree` знайшов `.mypy_cache` у дереві. `make` спиняється на першій
+# відмові, тож дев'ять із десяти наступних кроків НЕ ВИКОНАЛИСЬ, а з ними 23 перевірочні
+# цілі, які не живуть на жодній іншій дорозі: `gate-liveness`, `mutation-probe`,
+# `verify-clean-clone`, `coverage-ratchet`, `selftest-falsifiability`, `corpus-axes`.
+# Один кеш-файл щодня знімав із чергування чверть усього нагляду.
+#
 # ПЕРШИМ, і це не порядок за смаком: гейт про недосяжність сам мусить бути досяжним.
-# Поставлений після чогось червоного, він розділив би долю тих 26, про які й розповідає.
+# Задум збережено — хибним був не порядок, а те, що перший крок міг спинити решту.
+# Бігун доходить до кінця й віддає трійку {пройшло, впало, НЕ ЗАПУСКАЛОСЬ}, і падає,
+# якщо ненульове бодай одне з трьох: невиконане не є пройденим.
+#
+# NIGHTLY_DIRECT=1 повертає послідовний прогін для налагодження одного кроку.
+check-nightly:
+ifeq ($(NIGHTLY_DIRECT),1)
 	$(MAKE) lane-report PY=$(PY)
 	$(MAKE) nightly-evidence PY=$(PY)
 	$(MAKE) check-deployment PY=$(PY)
-	$(MAKE) load-probe PY=$(PY) SECONDS=8 SOAK_SECONDS=8 CONCURRENCY=3 SPIKE=8
+	$(MAKE) nightly-load-probe PY=$(PY)
 	$(MAKE) corpus-axes PY=$(PY)
 	$(MAKE) gate-liveness PY=$(PY)
 	$(MAKE) mutation-probe PY=$(PY)
@@ -1273,6 +1325,10 @@ check-nightly:
 # міг, і жодна з них не була б помічена тут: локальний лан зелений в усіх чотирьох.
 # ВІДСУТНІЙ docker — це ВІДМОВА, не пропуск: гейт, який тихо не біжить, ним не є.
 	$(MAKE) postgres-suite PY=$(PY)
+else
+	$(PY) scripts/run_lane.py --selftest
+	$(PY) scripts/run_lane.py --lane check-nightly --timeout $(or $(NIGHTLY_TIMEOUT),7200)
+endif
 
 # Мутація — ОСТАННІЙ продюсер: її звіт єдиний в'яжеться до дайджесту джерела, тож
 # будь-що після неї робить його звітом про інше дерево.
@@ -1299,7 +1355,26 @@ pilot-posture:
 # запитом до живого процесу, тож вони описують ПРОЦЕС, а не дерево. Гейт існував із
 # власним негативним контролем і не входив у жоден лан: виміряно 02.09.2026, він був
 # передумовою лише `answer-quality`, який теж не входив нікуди.
-check-deployment: serving-freshness edge-config-parity assurance-model runtime-corpus-audit corpus-integrity audit-verify deployment-debt evidence-stores pilot-posture
+check-deployment: serving-freshness serving-readiness edge-config-parity assurance-model runtime-corpus-audit corpus-integrity audit-verify deployment-debt evidence-stores pilot-posture
+
+# Свіжість коду і здатність обслуговувати — РІЗНІ властивості, і друга не вимірювалась
+# ніде. Виміряно 06.09.2026: публічний сервіс ніс поточну ревізію і три доби віддавав
+# 503 КОЖНОМУ запиту, а лан розгортання лишався зелений, бо питав лише про ревізію.
+# Чи кожен артефакт доказу знає, ПРО ЩО він, ЗА ЯКИХ УМОВ і хто його читає. Гейт не
+# питає, чи вирок правильний — він питає, чи артефакт здатен бути неправильним у спосіб,
+# який хтось помітить. Пʼять осей, кожна з власним експериментом; `--independence` —
+# негативний контроль самої таксономії, здатний зняти вісь.
+evidence-epistemics:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/check_evidence_epistemics.py --independence
+
+evidence-epistemics-selftest:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/check_evidence_epistemics.py --selftest
+
+serving-readiness:
+	$(PY) scripts/check_serving_readiness.py
+
+serving-readiness-selftest:
+	$(PY) scripts/check_serving_readiness.py --selftest
 
 deployment-debt:
 	$(PY) scripts/check_deployment_debt.py
@@ -1317,7 +1392,13 @@ check: validate api-test api-lint eval mutation audit-closure migration-gate sca
 # джерела, і будь-яка правка коду його зсуває. У `validate` цей гейт блокував би
 # кожну перевірку документом, який за побудовою відстає на одну правку. Пакет —
 # артефакт РЕЛІЗУ: там його розбіжність із виміром і є вадою, яку треба спинити.
-release: assurance snapshot validate owner-packet-check handoff-verify-bound package
+# `assemble-assurance`, НЕ `assurance`. Друга ціль виконує run_research_assurance.py і
+# ніколи не пише reports/RESEARCH_ASSURANCE_REPORT.json, який читає
+# `handoff-verify-bound` у цьому ж рядку. Урок 06.09.2026 став ТЕКСТОМ ВІДМОВИ в
+# scripts/verify_handoff_contract.py, але не став ціллю: `make release` лишався
+# єдиною дорогою релізу, що брала хибну — усі інші (run_release_verify, release.yml,
+# .gitlab-ci.yml) уже кличуть правильну. Знайдено пошуком розбіжностей.
+release: assemble-assurance snapshot validate owner-packet-check handoff-verify-bound package
 
 infra-secrets:
 	bash scripts/init_local_secrets.sh
@@ -1427,6 +1508,28 @@ production-exact-environment-image:
 production-hard-predicates:
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_production_hard_predicates.py
 
+# Репродукція кандидата з ВІДДАЛЕНОГО джерела зі свіжими залежностями. Артефакт
+# `reports/closure/CLEAN_ROOM_REPRODUCTION.json` доти не мав виробника в дереві: його
+# клав рукою той, хто щойно провів прогін, і різниця між «прогін був» і «документ про
+# прогін є» була невидима за побудовою. Потребує мережі й хвилин, тож не в `validate`;
+# споживач вироку — `current-truth-verify`.
+#   make clean-room SHA=<коміт>            — з ОСНОВИ (GitLab)
+#   make clean-room SHA=<коміт> ALSO=<url> — плюс другий форж; збіг дайджестів
+#                                            двох незалежних джерел — окрема вісь
+clean-room:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/reproduce_clean_room.py \
+	  $(if $(REMOTE),--remote "$(REMOTE)") $(if $(ALSO),--also "$(ALSO)") --sha "$(SHA)"
+
+production-hard-predicates-selftest:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_production_hard_predicates.py --selftest
+
+# Той самий вимір, але БЕЗ вироку про підлогу. Виміряно 06.09.2026: `release-truth`
+# вимагав, щоб предикати ПРОХОДИЛИ, — і тому реєстр блокерів не можна було перезняти
+# рівно тому, що блокери є. Той, хто каже правду про брак, був загейчений браком, про
+# який каже. Вирок лишається за `validate` і `release`; тут потрібен свіжий ВХІД.
+production-hard-predicates-report:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_production_hard_predicates.py --report-only
+
 production-sbom:
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/generate_lock_sbom.py
 
@@ -1467,7 +1570,7 @@ local-production-preflight:
 readiness-evaluate:
 	PYTHONPATH=apps/api/src:. $(PY) scripts/evaluate_engineering_readiness.py --evidence "$(EVIDENCE)" $(if $(OUT),--out "$(OUT)")
 
-release-truth: production-hard-predicates
+release-truth: production-hard-predicates-report
 	PYTHONPATH=apps/api/src:. $(PY) scripts/generate_release_truth.py
 
 # Order matters and used to be tribal knowledge. Every target that writes into `reports/`

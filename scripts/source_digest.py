@@ -19,6 +19,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "apps/api/src"))
+
+from korpus.application.provenance_surface import EVIDENCE_SOURCE_PATHS
 from manifest_paths import source_included
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -86,6 +89,39 @@ def _archive_paths() -> list[Path]:
             raise RuntimeError(f"source-manifest hash mismatch: {relative}")
         paths.append(Path(relative))
     return sorted(paths, key=lambda value: value.as_posix())
+
+
+def commits_with_identical_source(ref: str = "HEAD", depth: int = 64) -> tuple[str, ...]:
+    """Коміти, чиє ДЖЕРЕЛО не відрізняється від дерева `ref`. Вимір, не оголошення.
+
+    Маркер сканера несе коміт, на якому сканер біг. Споживач порівнював його з
+    `os.getenv("CI_COMMIT_SHA")` — тобто предикат закривався тим, хто експортував
+    змінну. Виміряно 06.09.2026: сьомий твердий предикат КОРПУСа стояв саме на цьому,
+    і локально інакше закритись не міг, бо порожня змінна дає `False` завжди.
+
+    Тут та сама властивість вимірюється git'ом по тих самих шляхах, з яких рахується
+    дайджест джерела: коміт, який змінив лише `reports/`, лишається прийнятним (сканер
+    бачив те саме джерело), а коміт, який торкнувся джерела, — ні. Перша ж розбіжність
+    спиняє обхід: далі в історії тотожність могла б повернутись випадково, і зарахувати
+    її означало б прийняти доказ про інше дерево через збіг.
+    """
+    try:
+        head = _git("rev-parse", ref).decode().strip()
+        history = _git("rev-list", f"--max-count={depth}", head).decode().split()
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return ()
+    accepted = [head]
+    for commit in history[1:]:
+        same = subprocess.run(
+            ["git", "diff", "--quiet", commit, head, "--", *EVIDENCE_SOURCE_PATHS],
+            cwd=ROOT,
+            capture_output=True,
+            check=False,
+        )
+        if same.returncode != 0:
+            break
+        accepted.append(commit)
+    return tuple(accepted)
 
 
 def included_paths(ref: str = "HEAD") -> list[Path]:

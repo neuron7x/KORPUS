@@ -92,6 +92,54 @@ def _handlers() -> list[tuple[str, int, ast.ExceptHandler]]:
     return found
 
 
+def _broad_suppressions() -> list[tuple[str, int, str]]:
+    """`with suppress(Exception)` — той самий сліпий обробник, лише іншим вузлом AST.
+
+    Знайдено 06.09.2026 незалежним аудитом: правило вище обходить лише
+    `ast.ExceptHandler`, тож `try/except Exception: pass` воно карає, а семантично
+    тотожний `with contextlib.suppress(Exception):` не бачить зовсім. Наслідок гірший
+    за пропущений випадок: автофікс `ruff SIM105` перетворює перше на друге, тобто
+    ЛІНТЕР МОВЧКИ ВИМИКАЄ ЦЕЙ ГЕЙТ. Два правила дерева конфліктували, і конфлікт
+    розв'язувався на користь того, яке нічого не міряє.
+
+    Вузькі `suppress(OSError)` тут ні до чого — карається лише той самий клас
+    широти, що й у `_is_broad`.
+    """
+    found: list[tuple[str, int, str]] = []
+    for root in SOURCES:
+        for path in sorted(root.rglob("*.py")):
+            if "__pycache__" in path.parts:
+                continue
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.With):
+                    continue
+                for item in node.items:
+                    call = item.context_expr
+                    if not isinstance(call, ast.Call):
+                        continue
+                    name = getattr(call.func, "attr", getattr(call.func, "id", ""))
+                    if name != "suppress":
+                        continue
+                    caught = {getattr(arg, "id", "") for arg in call.args}
+                    if caught & {"Exception", "BaseException"}:
+                        found.append(
+                            (str(path.relative_to(ROOT)), node.lineno, ", ".join(sorted(caught)))
+                        )
+    return found
+
+
+def test_a_broad_suppress_is_judged_like_a_broad_handler() -> None:
+    """Інакше `ruff --fix` знімає правило, не змінивши жодної поведінки."""
+    offenders = [
+        f"{path}:{line} suppress({caught})" for path, line, caught in _broad_suppressions()
+    ]
+    assert not offenders, (
+        "ці місця глушать усе через contextlib.suppress — семантично це той самий "
+        f"сліпий обробник, лише невидимий для правила вище: {offenders}"
+    )
+
+
 def test_there_are_broad_handlers_to_judge() -> None:
     """The dual. A rule over an empty set is a rule that has never been applied."""
     assert len(_handlers()) >= 10, (

@@ -653,10 +653,10 @@
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
     },
     "apps/api/src/korpus/api/routes_health.py": {
-      "lines": 125,
+      "lines": 153,
       "max_complexity": 8,
       "max_function_args": 6,
-      "max_function_lines": 57,
+      "max_function_lines": 85,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
@@ -829,10 +829,10 @@
       "reason": "formal fail-closed assurance/release model introduced for v0.3.0; ceiling recorded at introduction"
     },
     "apps/api/src/korpus/application/assurance_evidence.py": {
-      "lines": 165,
+      "lines": 167,
       "max_complexity": 6,
       "max_function_args": 16,
-      "max_function_lines": 45,
+      "max_function_lines": 46,
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "ACT-015: container scan evidence extraction tightened shared assurance evaluator line ceiling"
@@ -1125,13 +1125,13 @@
       "reason": "v0.6.0: dual zero-width canonical projections close metamorphic IPI bypass; exact measured expansion | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "apps/api/src/korpus/application/evidence_admission.py": {
-      "lines": 140,
+      "lines": 194,
       "max_complexity": 4,
       "max_function_args": 3,
       "max_function_lines": 39,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "Сигнатури розширені до `Mapping[str, int] | frozenset[str]`: клас предмета став градуйованим, і виклики, які носять лише членство, лишаються чинними."
+      "reason": "Правило допуску лишилось тим самим (`>=`), приріст — самі ПІДСТАВИ: обидва виміряні випадки на покритті рівно 0.500 — чужий out-08 і законний safe-source-after-injection — і чому метрика їх не розрізняє. Строгість тут пробували і зняли; без запису наступна спроба коштувала б релізного гейта."
     },
     "apps/api/src/korpus/application/evidence_fusion.py": {
       "lines": 141,
@@ -1970,13 +1970,13 @@
       "reason": "Клас оголошеного предмета став ГРАДУЙОВАНИМ: довжина збігу замість членства. «Командир» є підрядком «Безпосередні командири», тож бінарний клас ставив узагальнення поруч із конкретним і віддавав перемогу релевантності. Порядок уже обчислювався в `subjects_in_question` і губився при перетворенні на множину. Виміряно: `subject` 0.8352 → 0.9451. Заразом прибрано ДРУГЕ означення того самого поняття — `retrieval_hybrid` мав власну копію логіки поруч із `declared_subject`."
     },
     "apps/api/src/korpus/application/retrieval_math.py": {
-      "lines": 383,
+      "lines": 481,
       "max_complexity": 13,
       "max_function_args": 8,
       "max_function_lines": 60,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+      "reason": "Словозміну відокремлено від словотвору: змішані в одному списку, вони не давали замкненості щодо парадигми (на живому родовий 12/14). Приріст — перелік закінчень, який `ruff format` розгортає по одному в рядок, плюс підстави: чому інфінітива немає, чому «-увати» повернуто, і названий залишок (друга палаталізація, 0.18 % словника). БОРГ: морфологія заслуговує власного модуля — це окремий рефактор, не змішаний зі зміною поведінки."
     },
     "apps/api/src/korpus/application/retrieval_metrics_context.py": {
       "lines": 47,
@@ -2067,7 +2067,7 @@
       "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "apps/api/src/korpus/application/supply_chain_scanners.py": {
-      "lines": 37,
+      "lines": 62,
       "max_complexity": 5,
       "max_function_args": 2,
       "max_function_lines": 16,
@@ -2223,7 +2223,7 @@
       "reason": "ratchet ceiling lowered after production-plane decomposition | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "apps/api/src/korpus/config_namespace.py": {
-      "lines": 37,
+      "lines": 46,
       "max_complexity": 0,
       "max_function_args": 0,
       "max_function_lines": 0,
@@ -3010,7 +3010,7 @@
       "lines": null,
       "max_complexity": 11,
       "max_function_args": 4,
-      "max_function_lines": 39,
+      "max_function_lines": 45,
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "Реєстр вимог росте на один запис із кожною новою властивістю репозиторію; складність і форма функцій залишаються обмеженими окремо."
@@ -3250,7 +3250,7 @@
       "reason": "03.09.2026: чотири поля дайджестів винесено у функцію `source_identity()`. Перевірка «ярлик = та лінійка, що дала число» читала ГОТОВИЙ звіт, а звіт тут не збирається без postgres-дрилу — тож вона ПРОПУСКАЛАСЬ, і розбіжність ярликів жила під захистом pytest.skip. Функція викликається без жодного артефакта, отже перевірка бігає завжди; мутанти M679/M680 killed. +12 рядків — сама функція з докстрінгом."
     },
     "scripts/assemble_production_assurance.py": {
-      "lines": 109,
+      "lines": 118,
       "max_complexity": 5,
       "max_function_args": 1,
       "max_function_lines": 57,
@@ -3419,7 +3419,7 @@
       "reason": "binds an SBOM and a material list to the image they describe, signed, and refuses a mismatch"
     },
     "scripts/build_readiness_947_evidence.py": {
-      "lines": 524,
+      "lines": 562,
       "max_complexity": 7,
       "max_function_args": 4,
       "max_function_lines": 84,
@@ -3455,12 +3455,13 @@
       "reason": "v6.8.2 supply-chain evidence binding: initial bounded manifest builder ceiling"
     },
     "scripts/build_system_manifest.py": {
-      "lines": 102,
+      "lines": 110,
       "max_complexity": 11,
       "max_function_args": 1,
       "max_function_lines": 25,
       "max_nesting": 2,
-      "proof_lines": 0
+      "proof_lines": 0,
+      "reason": "2026-09-06: ДРУГЕ означення джерела видалено (не виправлено) — воно розходилось із каноном на семи шляхах, усі з них звіти, які пише сам цикл релізу, тож корінь маніфесту рухався без зміни коду. Сторож проти другого переліку був зелений, бо читав інший файл."
     },
     "scripts/canonical_declaration.py": {
       "lines": 70,
@@ -3517,9 +3518,9 @@
       "reason": "Ратчет на дві протилежні осі якості відповідей. Кожен новий клас порушення — рядок у переліку `problems`, а не гілка."
     },
     "scripts/check_budget_raises_are_named.py": {
-      "lines": 165,
+      "lines": 183,
       "max_complexity": 14,
-      "max_function_args": 2,
+      "max_function_args": 3,
       "max_function_lines": 40,
       "max_nesting": 3,
       "proof_lines": 0,
@@ -3580,10 +3581,10 @@
       "reason": "04.09.2026: додано другу поверхню досяжності (юніти рантайму + скрипти-гейти) і руку ВИЯВЛЕННЯ повз реєстр. Доти гейт звіряв власне оголошення: 2 підсистеми, 9 модулів, rate 1.0 — при 31 неоголошеному сплячому модулі. Плюс 10 нових негативних контролів."
     },
     "scripts/check_edge_config_parity.py": {
-      "lines": 139,
-      "max_complexity": 7,
+      "lines": 154,
+      "max_complexity": 8,
       "max_function_args": 2,
-      "max_function_lines": 31,
+      "max_function_lines": 46,
       "max_nesting": 2,
       "proof_lines": 37,
       "reason": "новий гейт: паритет розгорнутого краю з шаблоном дерева; початковий точний вимір і є стелею ратчета"
@@ -3596,6 +3597,15 @@
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "04.09.2026: порожній аргумент дав НАЗВАНУ відмову замість IsADirectoryError. Трейсбек і відмова — різні речі: код повернення від непійманого винятку не відрізняє «знайдено дрейф» від «не змогла запуститись»."
+    },
+    "scripts/check_evidence_epistemics.py": {
+      "lines": 406,
+      "max_complexity": 9,
+      "max_function_args": 3,
+      "max_function_lines": 23,
+      "max_nesting": 4,
+      "proof_lines": 81,
+      "reason": "гейт епістеміки доказу: пʼять осей, кожна з власним експериментом; судить не правильність вироку, а здатність артефакта бути неправильним помітно"
     },
     "scripts/check_evidence_freshness.py": {
       "lines": 160,
@@ -3633,13 +3643,13 @@
       "reason": "Raised 136 -> 215 on 2026-08-28 to carry three added shape measurements (function length, parameter count, nesting depth). The ratchet caught its own growth first: complexity was brought back under the ceiling by extracting shape_violations rather than by raising the complexity number. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29: додано відокремлення рядків самоперевірки. Стеля карала за додані негативні контролі так само, як за роздутий код: гейт на реальних даних ARMED лише тоді, коли дані містять негативний приклад, тому синтетичні порушення в selftest — єдине місце, де гейт узагалі перевіряється. Звільнення обмежене двома умовами (ім'я + реальний диспетч --selftest) і власною стелею DEFAULT_PROOF_LINES=220. Ратчет спіймав власне зростання: main пішов на 81 рядок і складність 14 — закрито витягуванням module_violations, не підняттям числа. | 2026-08-30: +27 рядків — звільнення від стелі (`\"lines\": null`) без записаної причини тепер валить гейт. Воно виглядає однаково і коли хтось так вирішив, і коли з'явилось при механічній синхронізації чисел; різницю несе лише текст поруч."
     },
     "scripts/check_mutation_report_freshness.py": {
-      "lines": 147,
-      "max_complexity": 10,
+      "lines": 165,
+      "max_complexity": 14,
       "max_function_args": 3,
-      "max_function_lines": 31,
+      "max_function_lines": 49,
       "max_nesting": 2,
-      "proof_lines": 62,
-      "reason": "Гейт на розбіжність звіту мутацій із каталогом. 2026-09-06 стеля піднята 118->146 і proof 45->62: гейт міряв НАЯВНІСТЬ провенансу, не відповідність — звіт із 64 нулями проходив як свіжий, і власний selftest вписував ті нулі як ЧИСТИЙ випадок, тож клас вади був невидимий за побудовою. Додано звіряння з дайджестом дерева (винесене в binding_problems(), щоб стеля СКЛАДНОСТІ лишилась 10) і дві отрути на прив'язку: 8->10 випадків."
+      "proof_lines": 76,
+      "reason": "2026-09-06: гейт вірив самооголошеним спискам. Звіт із усіма 624 SURVIVED, killed 0 і survived [] проходив без зауважень. Тепер підсумок перераховується з results[].status."
     },
     "scripts/check_public_env_parity.py": {
       "lines": 331,
@@ -3675,6 +3685,24 @@
       "max_nesting": 3,
       "proof_lines": 87,
       "reason": "03.09.2026, ремонт META-P0: вимір на КОПІЇ бази отримував клас продакшену лише за те, що поруч живий сервіс. Предмет виміру (порт, база) тепер входить в умову. Функцію РОЗІБРАНО — `_not_production_like` віддає причину, обгортка лише вирок: довжина найдовшої функції 66→36. Складність 13 — це кількість самих правил (сім умов), а не заплутаність; далі розбирати означало б ховати перелік у таблицю лямбд. Рядки доказу 75→82: три нові негативні контролі. Доповнено 04.09.2026: без init-системи `systemctl` відсутній, і виклик кидав `FileNotFoundError`. Гілка не виконувалась ЖОДНОГО разу, доки перелік обов'язкових юнітів був порожній — правило порожнього переліку виходило раніше. Тепер відсутність init-системи дає юніту стан `unavailable`, тобто ВІДСУТНІСТЬ ПРЕДМЕТА й клас LOCAL_DEV, а не збій інструмента. Рядки доказу 82→87: негативний контроль СТВОРЮЄ свою умову порожнім PATH — перший варіант лишав у PATH саме `/usr/bin`, де `systemctl` і лежить, і був хибно зелений."
+    },
+    "scripts/check_serving_readiness.py": {
+      "lines": 159,
+      "max_complexity": 9,
+      "max_function_args": 4,
+      "max_function_lines": 41,
+      "max_nesting": 2,
+      "proof_lines": 36,
+      "reason": "гейт живої готовності: свіжість коду і здатність обслуговувати — різні властивості, і друга не вимірювалась ніде; публічний сервіс ніс поточну ревізію і три доби віддавав 503 при зеленому лані розгортання"
+    },
+    "scripts/check_stemmer_closure.py": {
+      "lines": 159,
+      "max_complexity": 9,
+      "max_function_args": 2,
+      "max_function_lines": 34,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Новий гейт: замкненість стемера щодо парадигми на замороженому наборі відмінків, із трьома отрутами, які він прогонить сам."
     },
     "scripts/check_unit_exec_arguments.py": {
       "lines": 169,
@@ -3739,13 +3767,13 @@
       "reason": "v0.5.0: deterministic risk-weighted coverage ratchet with absolute uncovered-edge ceiling"
     },
     "scripts/current_truth_admission.py": {
-      "lines": 149,
+      "lines": 190,
       "max_complexity": 11,
       "max_function_args": 4,
-      "max_function_lines": 26,
+      "max_function_lines": 33,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "WO-01, другий кінець ланцюга: `bound is None or bound == digest` зараховував артефакт без прив'язки як поточний, а `all([])` робив нуль підтриманих претензій достатнім. Додано читання конверта `provenance`, окремий стан для двох прив'язок, що розійшлись, і предикат has_supported_claims. Зростання часткове компенсоване: `claim_admission_checks` читав журнал ДВІЧІ (два читання одного файла можуть дати різний вміст), тепер один раз, і його складність упала з 14 до нижчої за `_current_json`. | 2026-09-05: реєстр блокерів тепер записує ДАЙДЖЕСТ ЗМІСТУ свого входу, а допуск його звіряє (`evidence_sha256` / `evidence_inputs_current`). Стеля піднята під ПОВЕДІНКУ, не під прозу: докстрінги скорочено перед підняттям, і залишок — функція `_evidence_digest`, перевірка `_evidence_inputs_current` і три рядки поля в реєстрі. Доведено контрприкладом: до правки main приймав підміну ЗМІСТУ входу за тим самим шляхом при незмінній прив'язці до дерева (P1 = PASS), після — FAIL. Мутація зняла ще одну ваду: зняття умови `or not recorded` не вбивало жодного тесту, бо контроль прибирав ПОЛЕ, а не лишав порожній словник. | АУДИТ СТЕЛІ 2026-09-05 (ACTO-02 §10): контрфактичне питання поставлено — чи вміщується потрібна поведінка в стару стелю чистим рефактором. Два рефактори випробувано. ПРИЙНЯТО: виробник і перевіряльник тепер ділять ОДНЕ визначення відношення (`release_truth.evidence_digest`) — два визначення розійшлися б мовчки, тобто це той самий клас, який ця перевірка закриває рівнем вище; на розмір це не вплинуло. ВІДХИЛЕНО: винесення НЕспорідненого коду (перевірок пакета власника) заради місця — це підгонка метрики, а не вміщення потрібної поведінки. Залишковий приріст — сама поведінка: функція дайджесту, перевірка входів і поле в реєстрі; прозу скорочено ПЕРЕД підняттям. Класифікація: LEGITIMATE_CAPACITY_CHANGE."
+      "reason": "2026-09-06: clean_room стеріг самооголошені скаляри. Додано читання слідів прогону і pytest_exit_code — єдиного числа, яке проба не складає про себе."
     },
     "scripts/current_truth_aliases.py": {
       "lines": 30,
@@ -4318,10 +4346,10 @@
       "reason": "registered 2026-08-29: shared ISO-date parser, extracted after an equivalent-input probe found three gates rejecting a valid datetime and accepting compact and week-numbered forms"
     },
     "scripts/load_probe.py": {
-      "lines": 276,
+      "lines": 345,
       "max_complexity": 13,
       "max_function_args": 4,
-      "max_function_lines": 127,
+      "max_function_lines": 137,
       "max_nesting": 2,
       "proof_lines": 48,
       "reason": "04.09.2026, ДВА контрприклади незалежного верифікатора, обидва однієї форми — число рахується над множиною, яку хтось мовчки звузив майже до порожньої. (1) Сторож проби навантаження питав `>0`, а не «досить»: ОДНА відповідь 200 зі 101 206 давала всі тринадцять перевірок гейта надійності зеленими, бо кожне число про затримку бралося з відмов 401 на дверях; рейтинг лише по 200 теж проходить — вибірка з одного елемента дає p95, що дорівнює цьому елементу, — тож ліки на ЗНАМЕННИКУ: підлога 0.95 на частку відповіданих, і сама частка виходить у звіт. (2) `_latest_protected_write` — шосте й єдине непереведене місце — читало RPO без брокера: `documents` під RLS дає нуль внеску, `audit_events` RLS не має, тож RPO рахувався з самого журналу аудиту. Відновлення, що втратило всі документи, але відновило ланцюг, дало б «нічого не втрачено». Доповнено 04.09.2026: ліки жили в коді й НЕ жили в гейті — контрприклад верифікатора («одна відповідь 200 зі 101 206 проходить сторожа») був ручним, і проби, яка ловить це НА ЗАПУСКУ, не існувало. Тепер `--selftest` із семи випадків: одна зі ста не є виміром, рівно підлога проходить, на волосину нижче — відмова, обидві фази судяться. Рядки доказу 0→48."
@@ -4680,13 +4708,13 @@
       "reason": "`corpus_state_epoch` у мутабельних таблицях: тригер піднімає епоху на КОЖНІЙ зміні складу доказів, і без права оновлювати її застосунок не міг би зафіксувати, що корпус зрушив між двома читаннями однієї відповіді."
     },
     "scripts/probe_blank_corpus.py": {
-      "lines": 184,
+      "lines": 202,
       "max_complexity": 9,
       "max_function_args": 5,
       "max_function_lines": 69,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "2026-09-06, НОВИЙ. Input-independent baseline (Karpathy): ті самі СВОЇ питання проти вилученого доказового шару. run_boundary_eval тримає чужу ТЕМУ, де мовчать і корпус, і модель; чотири одиничні контролі охороняють «без цитат — не відповідь» у МОДУЛІ. Наскрізного шляху не проходить жоден. Вирок — нуль, без порога."
+      "reason": "2026-09-06: незалежний аудит довів, що проба НЕ МАЛА входу, на якому дає істинний PASS — неіснуючий corpus_ids давав 403 (відмова авторизації), а declaration рядком давав 422 на всі 40 запитів. Перенаведено на темпоральну абляцію (as_of=1900-01-01): 200, insufficient_evidence, citations []. Перший справжній вимір: 19 відповідей із корпусом, 0 без нього."
     },
     "scripts/probe_selftest_falsifiability.py": {
       "lines": 368,
@@ -4832,8 +4860,8 @@
       "reason": "Initial measured ceiling for retrieval-yield and Wilson uncertainty reporting"
     },
     "scripts/refresh_owner_packet.py": {
-      "lines": 159,
-      "max_complexity": 3,
+      "lines": 185,
+      "max_complexity": 6,
       "max_function_args": 2,
       "max_function_lines": 32,
       "max_nesting": 2,
@@ -4911,6 +4939,15 @@
       "max_nesting": 2,
       "proof_lines": 47,
       "reason": "Точна виміряна початкова стеля. Ремонт уже збережених прольотів тим самим `_strip_html`, що виправлено в екстракції: фікс діє на нові, а старі лишаються такими, якими їх зберегли. Відмовляється писати, якщо ремонт зʼїдає більше половини тексту або лишає неречення."
+    },
+    "scripts/reproduce_clean_room.py": {
+      "lines": 238,
+      "max_complexity": 5,
+      "max_function_args": 3,
+      "max_function_lines": 31,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "виробник репродукції з віддаленого джерела; артефакт CLEAN_ROOM_REPRODUCTION.json доти не мав виробника в дереві — його клав рукою той, хто щойно провів прогін, і різниця між «прогін був» і «документ про прогін є» була невидима за побудовою"
     },
     "scripts/respan_from_source.py": {
       "lines": 265,
@@ -5030,13 +5067,13 @@
       "reason": "Гейт точного середовища. 2026-09-06 стеля 120->126: ім'я вихідного файла тепер несе профіль. Доти обидва профілі писали один шлях, і DEVELOPMENT_INTERPRETER мовчки затирав EXACT_PRODUCTION_IMAGE щоразу, коли біг validate — після лану предикат не міг бути задоволеним ніколи."
     },
     "scripts/run_external_gate_campaign.py": {
-      "lines": 230,
+      "lines": 263,
       "max_complexity": 15,
       "max_function_args": 4,
-      "max_function_lines": 45,
+      "max_function_lines": 53,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "Кампанія зовнішніх гейтів. 2026-09-06 стеля 201->230: RUNNERS став списками аргументів, exact_environment винесено в MAKE_RUNNERS. Доти гейт кликався без обов'язкового --profile і падав з usage-помилкою, тобто предикат не мав ЖОДНОЇ машинної дороги до рішення (L5)."
+      "reason": "2026-09-06: ТРЕТЮ копію мапи гейт→файл видалено. Вона мала 7 ключів замість 14 (не бачила pec_authority і pec_canary) і мапила redteam на інший файл, ніж канон: табло казало 6/14, авторитетний звіт 7/14."
     },
     "scripts/run_handoff_liveness_probe.py": {
       "lines": 67,
@@ -5101,10 +5138,10 @@
       "proof_lines": 0
     },
     "scripts/run_military_readiness_campaign.py": {
-      "lines": 208,
-      "max_complexity": 9,
+      "lines": 222,
+      "max_complexity": 12,
       "max_function_args": 3,
-      "max_function_lines": 49,
+      "max_function_lines": 63,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "ITER5 integrated readiness orchestrator: deterministic disjoint regression batches with fail-closed timeout/failure aggregation; exact ratchet ceiling."
@@ -5329,10 +5366,10 @@
       "reason": "04.09.2026: контекст RLS кладеться БРОКЕРОМ, і прив'язка тепер ОДНА на дерево (`scripts/rls_context.py`). Доти навчання відновлення кликало `set_config('korpus.*')` — протокол, якого схема 0020 більше не читає, — тож `korpus_app` бачив НУЛЬ документів: `document_rows: 0`, `writes_after_backup: 0` і, як наслідок, `lost_documents: 0`, тобто число, яке не могло вийти іншим. Виміряно і в CI, і локально на пілоті. Друга вада того самого виміру: ідентифікатори записів «після бекапу» стабільні (uuid5) і вставка йде `ON CONFLICT DO NOTHING`, тож на базі, де навчання вже було, ці записи ЛЕЖАЛИ В БЕКАПІ й втрата знову виходила нульовою. Тепер фаза «до бекапу» прибирає їх ПЕРЕД зняттям копії. Після ремонту: writes_after_backup 5, lost_documents 5 — результат, який міг вийти іншим."
     },
     "scripts/service_objectives.py": {
-      "lines": 108,
-      "max_complexity": 5,
+      "lines": 119,
+      "max_complexity": 6,
       "max_function_args": 2,
-      "max_function_lines": 30,
+      "max_function_lines": 41,
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "what the deployment promises, judged against what it was measured doing | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
@@ -5381,10 +5418,10 @@
       "proof_lines": 0
     },
     "scripts/source_digest.py": {
-      "lines": 114,
+      "lines": 150,
       "max_complexity": 10,
-      "max_function_args": 1,
-      "max_function_lines": 22,
+      "max_function_args": 2,
+      "max_function_lines": 31,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.9.7 source-tree digest scope retained after null attack proved it differs intentionally from evidence-source digest | 2026-08-29 the second definition of what a source is was deleted: source_digest carried its own exclusion list and disagreed with manifest_paths.source_included on six release artefacts, which the release cycle itself rewrites — so the digest moved with no code change and BOUND was unstable by construction."
@@ -5575,10 +5612,10 @@
       "reason": "registered 2026-08-29 (parallel session) | 2026-08-29: стеля опущена 211→160 — рядки selftest (51) більше не рахуються як програма; проби ростуть під власною стелею."
     },
     "scripts/validate_repository.py": {
-      "lines": 58,
-      "max_complexity": 4,
+      "lines": 61,
+      "max_complexity": 5,
       "max_function_args": 0,
-      "max_function_lines": 24,
+      "max_function_lines": 26,
       "max_nesting": 2,
       "proof_lines": 0
     },
@@ -5627,7 +5664,7 @@
       "reason": "04.09.2026, друга правка: самоперевірка піднялась 5/10 → 9/12 отрут. Додано межу (звіт, знятий у ТУ САМУ секунду, що й HEAD, не старший), випадок «убито менше, ніж мутантів» і три випадки на гейт свіжості. Нечисту дію винесено в `_run_freshness_gate`, а результат приходить ПАРАМЕТРОМ: доти переворот `mutation is None` виживав не тому, що байдужий, а тому, що самоперевірка не могла дійти сюди, не запустивши підпроцес. Три отрути, що лишились, — усі форми `git(...) or fallback`: їх фальсифікує лише справжнє git-дерево, і це роблять `test_branch_integration` та `test_canonical_state`."
     },
     "scripts/verify_branch_integration.py": {
-      "lines": 236,
+      "lines": 253,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 64,
@@ -5653,14 +5690,23 @@
       "proof_lines": 12,
       "reason": "новий гейт 03.09.2026: дзеркало лану читає `.gitlab-ci.yml` як YAML і вимагає для кожної команди `validate`/`check` тієї самої команди в CI; 15 негативних контролів; початковий точний вимір і є стелею"
     },
+    "scripts/verify_corpus_transport.py": {
+      "lines": 127,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 30,
+      "max_nesting": 2,
+      "proof_lines": 36,
+      "reason": "гейт переносу корпусу: 256 документів живуть лише в ігнорованому var/, тож свіжий клон дає систему з одним фікстурним документом; дорога існувала під іменем backup/restore і тому була невидима для того, хто шукає встановлення"
+    },
     "scripts/verify_current_truth.py": {
-      "lines": 64,
+      "lines": 68,
       "max_complexity": 4,
       "max_function_args": 1,
-      "max_function_lines": 20,
+      "max_function_lines": 23,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "v0.8.0 stale-current fail-closed verifier"
+      "reason": "2026-09-06: VD-6/VD-7 із незалежного вироку. clean_room_checks дав споживача артефакту репродукції з remote (доти його не читало НІЩО), а звіт предикатів тепер несе означення власного числа: software_ready = is_file(), не готовність."
     },
     "scripts/verify_dependency_locks.py": {
       "lines": 285,
@@ -5735,13 +5781,13 @@
       "reason": "Гейт паритету дивиться на КОЖЕН шаблон юніта в дереві, а не на перелік із одного інсталятора. Виміряно 02.09.2026: покривались два юніти, а встановлений `korpus-routine@.service` виявився зовсім іншим юнітом під тим самим іменем (`ExecStart=%h/.claude/routines/run.sh %i` проти `scripts/run_isolated_routine.py`). Гейт мовчав, бо цього імені не було в його переліку. Переліку більше немає: другий перелік розійшовся б із першим саме тоді, коли хтось додасть юніт. Плюс `substitution_agrees_with_installers` — гейт мусить підставляти корінь так само, як інсталятори, інакше червонітиме з власної причини."
     },
     "scripts/verify_mutation_delta.py": {
-      "lines": 156,
+      "lines": 194,
       "max_complexity": 5,
       "max_function_args": 1,
-      "max_function_lines": 20,
+      "max_function_lines": 26,
       "max_nesting": 3,
       "proof_lines": 20,
-      "reason": "2026-09-06, НОВИЙ. Гейт дельти: змінений модуль мусить мати мутанта в курованому каталозі, пройти пробу, або нести виняток із названою умовою закриття. Стоїть на ДЕЛЬТІ, бо правило на 162 некаталогізованих модулях було б міграцією, перевдягненою в інваріант. Предмет — apps/api/src + scripts: каталог покриває обидва (виміряно: apps 143, scripts 68)."
+      "reason": "2026-09-06: дефолт --base=origin/main лишався в САМОМУ скрипті — я прибрав його лише з рецепта make, а CI кличе скрипт напряму. Тепер --base обовʼязковий там, де його читають."
     },
     "scripts/verify_observability_contract.py": {
       "lines": 76,
@@ -5796,13 +5842,13 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/verify_production_hard_predicates.py": {
-      "lines": 130,
+      "lines": 211,
       "max_complexity": 6,
-      "max_function_args": 1,
-      "max_function_lines": 30,
+      "max_function_args": 3,
+      "max_function_lines": 40,
       "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "v0.9.7: verifier binds every gate to the current source and release; measured implementation is the ratchet ceiling"
+      "proof_lines": 31,
+      "reason": "2026-09-06: VD-6/VD-7 із незалежного вироку. clean_room_checks дав споживача артефакту репродукції з remote (доти його не читало НІЩО), а звіт предикатів тепер несе означення власного числа: software_ready = is_file(), не готовність."
     },
     "scripts/verify_public_surface.py": {
       "lines": 531,
@@ -5831,7 +5877,7 @@
       "proof_lines": 0
     },
     "scripts/verify_selftest_coverage.py": {
-      "lines": 195,
+      "lines": 242,
       "max_complexity": 8,
       "max_function_args": 3,
       "max_function_lines": 35,
@@ -11495,8 +11541,399 @@
       "path": "scripts/check_mutation_report_freshness.py",
       "to": 147,
       "why": "один рядок від `ruff format` після розділення problems()/binding_problems()"
+    },
+    {
+      "from": {
+        "lines": 165,
+        "max_function_lines": 45
+      },
+      "on": "2026-09-06",
+      "path": "apps/api/src/korpus/application/assurance_evidence.py",
+      "to": {
+        "lines": 167,
+        "max_function_lines": 46
+      },
+      "why": "lines: перевірка КЛАСУ підсумку сканерів: два виробники писали один файл у різних схемах, і слабший тихо ставав на місце сильнішого — скарга виходила про свіжість коміта там, де предмет походження | max_function_lines: той самий рядок усередині evaluate_supply_chain_evidence"
+    },
+    {
+      "from": {
+        "lines": 37
+      },
+      "on": "2026-09-06",
+      "path": "apps/api/src/korpus/application/supply_chain_scanners.py",
+      "to": {
+        "lines": 62
+      },
+      "why": "lines: прив'язка сканера стала виміром замість оголошення: докстрінг називає, чому множина прийнятних комітів, а не один із CI_COMMIT_SHA, плюс окрема перевірка класу підсумку"
+    },
+    {
+      "from": {
+        "lines": 114,
+        "max_function_args": 1,
+        "max_function_lines": 22
+      },
+      "on": "2026-09-06",
+      "path": "scripts/source_digest.py",
+      "to": {
+        "lines": 150,
+        "max_function_args": 2,
+        "max_function_lines": 31
+      },
+      "why": "lines: commits_with_identical_source: множина комітів, чиє джерело тотожне цьому — вимір репозиторію замість змінної середовища, якою закривався сьомий твердий предикат | max_function_lines: та сама функція: обхід історії з зупинкою на першій розбіжності джерела | max_function_args: ref і depth: предмет виміру і межа обходу — обидва мусять бути названі викликачем, бо мовчазна глибина зробила б множину функцією випадкової довжини історії"
+    },
+    {
+      "from": {
+        "lines": 166
+      },
+      "on": "2026-09-06",
+      "path": "scripts/verify_mutation_delta.py",
+      "to": {
+        "lines": 194
+      },
+      "why": "lines: дві втечі предмета закрито: перейменування (--diff-filter=AMR) і логіка в __init__.py — правило за іменем замінено правилом за формою (carries_logic)"
+    },
+    {
+      "from": {
+        "lines": 139,
+        "max_function_args": 1,
+        "proof_lines": 0
+      },
+      "on": "2026-09-06",
+      "path": "scripts/verify_production_hard_predicates.py",
+      "to": {
+        "lines": 211,
+        "max_function_args": 3,
+        "proof_lines": 31
+      },
+      "why": "lines: контекст вироку став ВИМІРЮВАНИМ: поверхня доказу рахується, і оголошення чекауту над наявним доказом відмовляється — без цього джоба CI непрохідна за побудовою, бо в раннері var/ немає | proof_lines: негативний контроль на сам контекст: обидва хибні оголошення мусять відмовляти, і доти цей гейт не мав самоперевірки взагалі | max_function_args: floor_failures(payload, context, surface): вирок залежить від ТРЬОХ виміряних величин, і сховати котрусь у глобальний стан означало б зробити її невидимою для тесту"
+    },
+    {
+      "from": {
+        "lines": 165,
+        "max_function_args": 2
+      },
+      "on": "2026-09-06",
+      "path": "scripts/check_budget_raises_are_named.py",
+      "to": {
+        "lines": 183,
+        "max_function_args": 3
+      },
+      "why": "форма {metric, to:число} не читалась ЖОДНИМ рядком, тож сумлінний запис про підняття існував у реєстрі й не рахувався: гейт вимагав причини і мовчки не бачив половини наданих. Розпізнавання винесене в _ceilings_named, щоб стеля складності лишилась на місці — піднято лише рядки і третій параметр remember"
+    },
+    {
+      "from": {
+        "lines": 232,
+        "max_function_lines": 45
+      },
+      "on": "2026-09-06",
+      "path": "scripts/run_external_gate_campaign.py",
+      "to": {
+        "lines": 263,
+        "max_function_lines": 53
+      },
+      "why": "кампанія тепер МІРЯЄ, чи виробник лишив доказ, прив'язаний до цього дерева: для redteam вона запускала виробника, який пише в інший файл, ніж читає предикат, і звітувала про перезняття гейта, що не перезнімався жодного разу"
+    },
+    {
+      "from": {
+        "lines": 123,
+        "max_complexity": 8,
+        "max_function_args": 3,
+        "max_function_lines": 31,
+        "proof_lines": 22
+      },
+      "on": "2026-09-06",
+      "path": "scripts/check_serving_readiness.py",
+      "to": {
+        "lines": 159,
+        "max_complexity": 9,
+        "max_function_args": 4,
+        "max_function_lines": 41,
+        "proof_lines": 36
+      },
+      "why": "вимір маскування: /health віддавав 200, поки /ready відмовляв кожному — саме ця пара тримала триденний простій невидимим для будь-кого, хто питав лише про живучість"
+    },
+    {
+      "from": {
+        "lines": 37
+      },
+      "on": "2026-09-06",
+      "path": "apps/api/src/korpus/config_namespace.py",
+      "to": {
+        "lines": 46
+      },
+      "why": "три задокументовані ручки run_postgres_suite.sh (KORPUS_PG_CONTAINER/KEEP/PORT) простір імен не знав, тож користування ДОКУМЕНТОВАНИМ прапорцем валило create_app() на завантаженні conftest — документація й перевірка розходились, і мовчала саме перевірка, чиє призначення ловити розходження імен"
+    },
+    {
+      "from": {
+        "lines": 236
+      },
+      "on": "2026-09-06",
+      "path": "scripts/verify_branch_integration.py",
+      "to": {
+        "lines": 253
+      },
+      "why": "відсів символічної голови віддаленого за ПОВНИМ іменем: `%(refname:short)` для refs/remotes/origin/HEAD дає «origin», тож гейт червонів на БУДЬ-ЯКОМУ клоні й був зелений у каноні лише через відсутність предмета"
+    },
+    {
+      "from": {
+        "lines": 125,
+        "max_function_lines": 57
+      },
+      "on": "2026-09-06",
+      "path": "apps/api/src/korpus/api/routes_health.py",
+      "to": {
+        "lines": 153,
+        "max_function_lines": 85
+      },
+      "why": "розділено ФАКТ і ПОЛІТИКУ: schema_current казав «поточна» там, де дві сусідні строки показували розбіжність ревізій — і саме на шляху ВІДМОВИ, коли читач розбирає аварію"
+    },
+    {
+      "from": {
+        "lines": 159,
+        "max_complexity": 3
+      },
+      "on": "2026-09-06",
+      "path": "scripts/refresh_owner_packet.py",
+      "to": {
+        "lines": 185,
+        "max_complexity": 6
+      },
+      "why": "лічильник блокерів кандидата дістав виробника (жив ЧОТИРМА написаннями від руки, і документ суперечив сам собі), а проліт стану блокерів розширено на заголовок — доти число оновлювалось, а дата й дайджест під ним ні"
+    },
+    {
+      "from": {
+        "lines": 208,
+        "max_complexity": 9,
+        "max_function_lines": 49
+      },
+      "on": "2026-09-06",
+      "path": "scripts/run_military_readiness_campaign.py",
+      "to": {
+        "lines": 219,
+        "max_complexity": 11,
+        "max_function_lines": 60
+      },
+      "why": "невиконана регресія більше не рахується пройденою: вона жила окремим полем, якого вирок не читав, тож прогін без жодного запуску був невідрізненний від зеленого"
+    },
+    {
+      "from": {
+        "lines": 172,
+        "max_complexity": 4,
+        "max_nesting": 1
+      },
+      "on": "2026-09-06",
+      "path": "scripts/reproduce_clean_room.py",
+      "to": {
+        "lines": 197,
+        "max_complexity": 5,
+        "max_nesting": 2
+      },
+      "why": "репродукція тягне з ОСНОВИ (GitLab), а не з архіву: власний post-commit називає GitHub дзеркалом, що «нічого не стверджує», тож найсильніший доказ свідчив про архів. Плюс друга вісь — збіг дайджестів двох незалежних форжів"
+    },
+    {
+      "from": {
+        "lines": 219,
+        "max_complexity": 11,
+        "max_function_lines": 60
+      },
+      "on": "2026-09-06",
+      "path": "scripts/run_military_readiness_campaign.py",
+      "to": {
+        "lines": 222,
+        "max_complexity": 12,
+        "max_function_lines": 63
+      },
+      "why": "стан регресії читається типобезпечно: mypy правильно відхилив індексацію поля, тип якого — обʼєднання; вирок мусить пережити звіт будь-якої форми"
+    },
+    {
+      "from": {
+        "lines": 276,
+        "max_function_lines": 127
+      },
+      "on": "2026-09-06",
+      "path": "scripts/load_probe.py",
+      "to": {
+        "lines": 323,
+        "max_function_lines": 130
+      },
+      "why": "проба записує ВІК кожної оголошеної служби в мить першого запиту: «холодний старт» без цього числа означав різне — 7 с дало 5,569 с, 131 с дало 1,5 с, і ратчет порівнював виміри різних систем, не маючи як це помітити"
+    },
+    {
+      "from": {
+        "max_function_lines": 39
+      },
+      "on": "2026-09-06",
+      "path": "apps/api/src/korpus/repository_requirements.py",
+      "reason": "Підлога знаменника обходу: `blind_roots` (структурна, по верхніх теках) + `scan_expectation` (співмірна, по git-індексу, ловить осліплення на будь-якій глибині) + якір `tracked_total` без фільтра з дайджестом дерева. Причина виключення несе ЧИСЛО, звірене з деревом: слово гейт перевіряв би на наявність, число — на істинність.",
+      "to": {
+        "max_function_lines": 45
+      }
+    },
+    {
+      "from": {
+        "lines": 524
+      },
+      "on": "2026-09-06",
+      "path": "scripts/build_readiness_947_evidence.py",
+      "reason": "`_targeted_state`: три стани замість булевого. 48 пропущених — це NOT_MEASURED із причиною, а не False: 44 з них через ненастроєний PostgreSQL, тобто вимір у середовищі без предмета.",
+      "to": {
+        "lines": 562
+      }
+    },
+    {
+      "from": {
+        "lines": 58
+      },
+      "on": "2026-09-06",
+      "path": "scripts/validate_repository.py",
+      "reason": "Друкується якір із підписом: `@<дерево>: N examined, git tracks M, excluded K`. `path_count` більше не подається читачеві як міра — він однаковий при повному огляді й при нульовому.",
+      "to": {
+        "lines": 61
+      }
+    },
+    {
+      "from": {
+        "max_complexity": 4
+      },
+      "on": "2026-09-06",
+      "path": "scripts/validate_repository.py",
+      "reason": "Друкується якір із підписом: `@<дерево>: N examined, git tracks M, excluded K`. `path_count` більше не подається читачеві як міра — він однаковий при повному огляді й при нульовому.",
+      "to": {
+        "max_complexity": 5
+      }
+    },
+    {
+      "from": {
+        "max_function_lines": 24
+      },
+      "on": "2026-09-06",
+      "path": "scripts/validate_repository.py",
+      "reason": "Друкується якір із підписом: `@<дерево>: N examined, git tracks M, excluded K`. `path_count` більше не подається читачеві як міра — він однаковий при повному огляді й при нульовому.",
+      "to": {
+        "max_function_lines": 26
+      }
+    },
+    {
+      "from": {
+        "lines": 195
+      },
+      "on": "2026-09-06",
+      "path": "scripts/verify_selftest_coverage.py",
+      "reason": "Дві форми оголошення `--selftest` замість однієї (64→70, 69 запущено) плюс МЕЖА сліпої зони: кожна згадка або розібрана, або названа винятком.",
+      "to": {
+        "lines": 242
+      }
+    },
+    {
+      "from": {
+        "lines": 323,
+        "max_function_lines": 130
+      },
+      "on": "2026-09-06",
+      "path": "scripts/load_probe.py",
+      "to": {
+        "lines": 345,
+        "max_function_lines": 137
+      },
+      "why": "межа походження умови без вибору числа: служба, старша за вік самої проби, до цього виміру не перезапускалась — виводиться з двох виміряних величин і не потребує кривої"
+    },
+    {
+      "from": {
+        "lines": 108,
+        "max_complexity": 5,
+        "max_function_lines": 30
+      },
+      "on": "2026-09-06",
+      "path": "scripts/service_objectives.py",
+      "to": {
+        "lines": 119,
+        "max_complexity": 6,
+        "max_function_lines": 41
+      },
+      "why": "вирок несе УМОВУ разом зі значенням: доти «холодний старт» на сервісі віком 130 с проходив за визначенням, а читач вироку віку не бачив"
+    },
+    {
+      "from": {
+        "lines": 197
+      },
+      "on": "2026-09-06",
+      "path": "scripts/reproduce_clean_room.py",
+      "reason": "Роль форжа читається з ОДНОГО оголошення `config/operations/forges.json` і визначається за URL, а не за іменем віддаленого. Ім'я `origin` у цьому дереві вказує на АРХІВ, і саме тому доказ репродукції півдня знімався з форжа, який сам себе називає таким, що нічого не стверджує. Перейменувати `origin` виміряно й ВІДКИНУТО: у `branch-integration.json` 24 імені виду `origin/…`, жодне не існує на форжі сьогодні — усі описують минуле, і перейменування зробило б їх хибними. Додано `local_remotes_by_role`: інструмент ПИТАЄ, який віддалений у цьому клоні є основою, замість вгадувати за іменем.",
+      "to": {
+        "lines": 236
+      }
+    },
+    {
+      "from": {
+        "lines": 236
+      },
+      "on": "2026-09-07",
+      "path": "scripts/reproduce_clean_room.py",
+      "to": {
+        "lines": 238
+      },
+      "why": "ролі форжів читаються з config/operations/forges.json замість другого оголошення URL: саме друге оголошення рухомого значення розходиться мовчки, і саме так «основа» тут одного разу вже означала архів"
+    },
+    {
+      "from": {
+        "lines": 139,
+        "max_complexity": 7,
+        "max_function_lines": 31
+      },
+      "on": "2026-09-07",
+      "path": "scripts/check_edge_config_parity.py",
+      "to": {
+        "lines": 154,
+        "max_complexity": 8,
+        "max_function_lines": 46
+      },
+      "why": "артефакт несе ЧИСЛО порівняних рядків: доти порожній шаблон проти порожнього краю давав PASS, і «291 рядок збігся» було нерозрізненне з «не порівняно нічого»"
+    },
+    {
+      "from": {
+        "lines": 402
+      },
+      "on": "2026-09-07",
+      "path": "scripts/check_evidence_epistemics.py",
+      "to": {
+        "lines": 402
+      },
+      "why": "пакет епістеміки доказу 07.09.2026"
+    },
+    {
+      "from": {
+        "lines": 402
+      },
+      "on": "2026-09-07",
+      "path": "scripts/check_evidence_epistemics.py",
+      "to": {
+        "lines": 406
+      },
+      "why": "типізація самоперевірки: вісь свіжості предмета має ТРИ стани, і кортеж bool не вміщає None — mypy правильно відхилив"
+    },
+    {
+      "from": {
+        "lines": 140
+      },
+      "on": "2026-09-07",
+      "path": "apps/api/src/korpus/application/evidence_admission.py",
+      "reason": "Виміряно з обох боків: на межі домену всі 4 чужі прориви стоять рівно на 0.50, але заморожений safe-source-after-injection стоїть там само і мусить відповісти. Строгість знято, обидва виміри записані в код і в тест, щоб спроба не повторилась.",
+      "to": {
+        "lines": 194
+      }
+    },
+    {
+      "from": {
+        "lines": 383
+      },
+      "on": "2026-09-07",
+      "path": "apps/api/src/korpus/application/retrieval_math.py",
+      "reason": "Словозміна відокремлена від словотвору. Замкненість щодо парадигми 6/12 -> 12/12, родовий відмінок предмета 12/14 -> 14/14 на живому продукті, решта осей без руху.",
+      "to": {
+        "lines": 481
+      }
     }
   ],
-  "recorded_at": "2026-09-06",
+  "recorded_at": "2026-09-07",
   "schema_version": 1
 }

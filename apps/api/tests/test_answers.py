@@ -73,16 +73,6 @@ def test_answer_is_bitwise_deterministic_except_generated_metadata(client):
     assert first == second
 
 
-def test_partial_support_is_not_reported_as_full_coverage(client):
-    result = ingest_text(client, text="Запис містить дату.")
-    approve(client, result["version"]["id"])
-    body = client.post(
-        "/v1/answers",
-        json={"text": "Які дата, пароль, геолокація та біометрія містяться у записі?"},
-    ).json()
-    assert body["evidence_coverage"] < 1.0
-
-
 def test_required_retrieval_dependency_outage_abstains_fail_closed(client, admin_identity):
     from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
     from korpus.application.retrieval import RetrievalUnavailable

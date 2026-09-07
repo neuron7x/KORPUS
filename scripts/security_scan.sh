@@ -21,7 +21,12 @@ cd "$root"
 out="${KORPUS_SECURITY_REPORT_DIR:-var/security}"
 mkdir -p "$out"
 worst=0
-summary="$out/summary.json"
+# НЕ `summary.json`: цей файл — доказ від сканерів, що бігли у ЗАКРІПЛЕНИХ образах
+# конвеєра, і його збирає `aggregate_ci_security_summary.py` зі схемою 2 та комітом.
+# Виміряно 06.09.2026: цей скрипт писав туди ж схему 1 без коміта, тихо ПІДМІНЮЮЧИ
+# сильніший клас доказу слабшим під тим самим іменем — і сьомий твердий предикат упав
+# від власної батареї. Локальний прогін пише поруч і називає себе.
+summary="$out/local-summary.json"
 
 note() { printf '%s\n' "$*" >&2; }
 record() {
@@ -83,11 +88,14 @@ fi
 
 python3 - "$out" "$summary" "$worst" <<'PY'
 import json
+import subprocess
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
 directory, summary, worst = Path(sys.argv[1]), Path(sys.argv[2]), int(sys.argv[3])
+head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True)
+commit = head.stdout.strip() if head.returncode == 0 else ""
 results = [
     json.loads(line)
     for line in (directory / ".results").read_text(encoding="utf-8").splitlines()
@@ -97,7 +105,9 @@ summary.write_text(
     json.dumps(
         {
             "schema_version": 1,
+            "class": "LOCAL_SCANNERS",
             "ran_at": datetime.now(UTC).isoformat(),
+            "commit_sha": commit,
             "scanners": results,
             "worst_exit_code": worst,
             # 127 is "the scanner is not installed", which is not a clean scan. Recording

@@ -17,7 +17,9 @@ Before implementation:
 5. explicitly exclude PR #44 from mutation/merge unless separately authorized.
 
 Deliverables:
-- `OPENCLAW_INTEGRATION_BASELINE.json`;
+- OPENCLAW_INTEGRATION_BASELINE.json — an artifact this plan will PRODUCE; it does
+  not exist in the tree yet, and is deliberately not written as a path reference so
+  that `check_document_references` is not asked to resolve a file nobody has made;
 - current KORPUS MCP tool inventory;
 - current OpenClaw protocol/capability snapshot;
 - threat-model checksum/reference.

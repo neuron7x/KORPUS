@@ -2404,12 +2404,46 @@ def test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost(
     report = {"software_ready": 3, "predicates_total": 3, "production_satisfied": 1}
     monkeypatch.setattr(gate, "ROOT", tmp_path)
     monkeypatch.setattr(gate, "build", lambda: dict(report))
+    monkeypatch.setattr(sys, "argv", ["verify_production_hard_predicates.py"])
+    # Поверхня доказу ВИМІРЮЄТЬСЯ: без жодного файла гейта дерево є чекаутом, і вирок
+    # про підлогу там невимірюваний. Щоб міряти саме порівняння, поверхня має бути.
+    surface = tmp_path / "var/production"
+    surface.mkdir(parents=True)
+    for name in gate.GATE_FILES.values():
+        (surface / name).write_text("{}", encoding="utf-8")
 
     monkeypatch.setattr(gate, "_floor", lambda: 2)
     assert gate.main() == 1, "external proof below the recorded floor did not fail the gate"
 
     monkeypatch.setattr(gate, "_floor", lambda: 1)
     assert gate.main() == 0, "a report sitting exactly on its floor must still pass"
+
+    # --report-only лишає ВИМІР і знімає ВИРОК: `release-truth` читає звіт, щоб сказати,
+    # чого бракує, і не сміє бути загейчений тим самим браком.
+    monkeypatch.setattr(gate, "_floor", lambda: 2)
+    monkeypatch.setattr(sys, "argv", ["verify_production_hard_predicates.py", "--report-only"])
+    assert gate.main() == 0
+    written = json.loads((tmp_path / "reports/PRODUCTION_HARD_PREDICATES.json").read_text("utf-8"))
+    assert written["production_satisfied"] == 1, "звіт мусить лишатись виміром, не оцінкою"
+
+
+def test_a_declared_checkout_over_a_tree_that_holds_evidence_is_refused(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Оголошення контексту не є дозволом: воно звіряється з ВИМІРОМ.
+
+    Підлогу підняли над доказом, що живе лише в ігнорованому `var/`, і той самий скрипт
+    у CI бачив нуль закриттів — джоба стала непрохідною за побудовою. Ліки — назвати
+    контекст; діра, яку ліки могли б відкрити, — оголосити чекаут там, де доказ лежить.
+    """
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import verify_production_hard_predicates as gate
+
+    assert gate.context_problem(gate.SOURCE_CHECKOUT, 14) is not None
+    assert gate.context_problem(gate.PRODUCTION_EVIDENCE, 0) is not None
+    assert gate.context_problem(gate.SOURCE_CHECKOUT, 0) is None
+    assert gate.context_problem(gate.PRODUCTION_EVIDENCE, 14) is None
+    assert gate.evidence_surface(tmp_path / "нема") == 0
 
 
 #: Єдиний законний шлях поза цим чекаутом — ОГОЛОШЕНИЙ корінь розгортання. Його читають
@@ -2816,8 +2850,20 @@ def test_only_one_definition_of_what_a_source_is() -> None:
     assert not disagreements, (
         f"two definitions of a source disagree on {len(disagreements)} paths: {disagreements[:6]}"
     )
-    source = (ROOT / "scripts/source_digest.py").read_text(encoding="utf-8")
-    assert "EXCLUDED_PREFIXES" not in source, "the second exclusion list is back"
+    # Сторож читає ВСІ скрипти, а не один. Доти він дивився лише в
+    # `scripts/source_digest.py` і був зелений, поки другий перелік жив у
+    # `scripts/build_system_manifest.py` — на файл убік. Перевірка проти другого
+    # визначення, яка дивиться в одне місце, зелена саме тоді, коли друге визначення є.
+    # Розбіжність була реальна: сім шляхів, усі — звіти, які пише сам цикл релізу,
+    # тобто корінь системного маніфесту рухався без жодної зміни коду.
+    # Виміряно 06.09.2026.
+    owner = (ROOT / "scripts/manifest_paths.py").name
+    second = sorted(
+        path.relative_to(ROOT).as_posix()
+        for path in (ROOT / "scripts").rglob("*.py")
+        if path.name != owner and "EXCLUDED_PREFIXES" in path.read_text(encoding="utf-8")
+    )
+    assert not second, f"the second exclusion list is back in: {second}"
 
 
 def test_every_ukrainian_apostrophe_tokenizes_the_same() -> None:
@@ -2858,9 +2904,23 @@ def test_function_words_do_not_carry_coverage() -> None:
         assert forbidden not in tokenize(question), (
             f"{forbidden!r} still carries coverage in {question!r}"
         )
-    # And the content words survive: stripping too much would refuse valid questions.
-    assert "налашт" in tokenize("як налаштувати wifi-роутер")
-    assert "пораненн" in tokenize("які виплати належать при пораненні")
+    # І змістовні слова виживають: зняти забагато означало б відмовляти на дійсних
+    # питаннях. Перевіряється ВЛАСТИВІСТЬ, не буквальний стем: раніше тут стояли рядки
+    # "налашт" і "пораненн", і другий застарів, коли стемер став замкненим щодо
+    # парадигми — «пораненні», «пораненого» та «поранення» тепер сходяться в один терм,
+    # тобто твердження впало саме тоді, коли властивість ПОКРАЩИЛАСЬ. Стала форма — це
+    # (а) непорожня основа, яка лишається початком слова, бо пошук шукає за префіксом,
+    # і (б) згода всіх форм однієї леми.
+    for word in ("налаштувати", "пораненні", "командирами"):
+        [stem] = tokenize(word)
+        assert stem and word.startswith(stem), f"{word!r} -> {stem!r} не є початком слова"
+    for family in (
+        ("пораненні", "пораненого", "поранення"),
+        ("командир", "командира", "командирами"),
+        ("налаштувати", "налаштування", "налаштувань"),
+    ):
+        stems = {tuple(tokenize(form)) for form in family}
+        assert len(stems) == 1, f"форми однієї леми дали різні терми: {family} -> {stems}"
 
 
 def test_bulk_approval_failure_does_not_end_the_run() -> None:
@@ -3151,3 +3211,43 @@ def test_an_image_scoped_suppression_cannot_be_applied_to_another_image() -> Non
             f"придушення {ignore.group(1)!r} прикладено до образу {image.group(1)!r}: "
             "обсяг названий одним образом, а діє на інший"
         )
+
+
+def test_the_mandatory_gate_set_is_declared_once() -> None:
+    """Два переліки обовʼязкових кроків релізу мусять збігатися — і хтось має це міряти.
+
+    `run_release_verify.STEPS + EXTERNAL` і `RELEASE_ENVELOPE.release_candidate.
+    mandatory_gate_set` описують одне поняття. Виміряно 06.09.2026: вони збігалися
+    ДОСЛІВНО, включно з порядком — але руками, не за побудовою, і жоден тест їх не
+    звіряв.
+
+    Асиметрія небезпечна в один бік: новий крок, доданий у `STEPS` і не доданий у
+    конверт, лан прожене, а заморозка кандидата не вимагатиме — гейт мовчки перестає
+    бути обовʼязковим. Зворотний бік гучний: заморозка відмовить.
+    """
+    import importlib.util as _il
+
+    spec = _il.spec_from_file_location("run_release_verify", ROOT / "scripts/run_release_verify.py")
+    assert spec and spec.loader
+    module = _il.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    envelope = json.loads((ROOT / "RELEASE_ENVELOPE.json").read_text(encoding="utf-8"))
+    declared = set(envelope["release_candidate"]["mandatory_gate_set"])
+    lane = {name for name, _ in (*module.STEPS, *module.EXTERNAL)}
+    assert lane == declared, {
+        "у лані, але не в конверті": sorted(lane - declared),
+        "у конверті, але не в лані": sorted(declared - lane),
+    }
+
+
+def test_the_cold_start_probe_records_how_cold_it_actually_was() -> None:
+    """«Холодний старт» без віку служби — імʼя без означення.
+
+    Виміряно 06.09.2026: цикл бив у службу віком 7 с і дістав 5,569 с; наступний прогін
+    бив у службу віком 131 с і дістав 1,5 с. Обидва звались «холодний старт», обидва
+    йшли в той самий ратчет, і підлогу ставили за одним виміром, а брали за іншим.
+    Число не змінює вироку — воно робить два вироки ПОРІВНЮВАНИМИ.
+    """
+    source = (ROOT / "scripts/load_probe.py").read_text(encoding="utf-8")
+    assert "service_ages_seconds" in source
+    assert "def service_ages(" in source

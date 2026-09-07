@@ -15,6 +15,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
+from assemble_production_assurance import DEFAULT_GATES  # noqa: E402
 from korpus.application.production_hard_predicates import (  # noqa: E402
     evaluate_hard_predicates,
     load_hard_predicate_profile,
@@ -23,15 +24,16 @@ from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
 PROFILE = "config/assurance/production-hard-predicates-v1.json"
-GATE_FILES = {
-    "redteam": "redteam-gate.json",
-    "supply_chain": "supply_chain-gate.json",
-    "postgres_security": "postgres_security-gate.json",
-    "tevv": "tevv-gate.json",
-    "reliability": "reliability-gate.json",
-    "exact_environment": "exact_environment-gate.json",
-    "final_release": "final_release-gate.json",
-}
+#: ТРЕТЯ копія мапи гейт→файл жила тут і розходилася з каноном у двох вимірах:
+#: вона мала 7 ключів замість 14 (не бачила `pec_authority` і `pec_canary`, на які
+#: профіль має предикати) і мапила `redteam` на `redteam-gate.json`, тоді як канон —
+#: на `redteam_internal-gate.json`. На диску це РІЗНІ файли з різними вироками:
+#: перший `status FAIL` / EXTERNAL_INDEPENDENT, другий `status PASS` /
+#: INTERNAL_ADVERSARIAL. Табло кампанії казало 6/14, авторитетний звіт — 7/14.
+#: Копія видалена, а не виправлена: `verify_production_hard_predicates.py` уже
+#: будує свою мапу саме так, і третьої бути не мусить.
+#: Знайдено пошуком розбіжностей 06.09.2026.
+GATE_FILES = {**DEFAULT_GATES, "final_release": "final_release-gate.json"}
 #: Команда, а не шлях. Голий шлях мовчки ламався там, де гейт вимагає аргумент:
 #: `run_exact_environment_gate.py` без `--profile` виходить з usage-помилкою, і
 #: предикат `exact_python_3_12_13_environment` через це не мав ЖОДНОЇ машинної
@@ -42,7 +44,6 @@ GATE_FILES = {
 #: в ОБРАЗІ: `--profile runtime` на робочій машині зіставляв би встановлені пакети
 #: розробницького venv із рантайм-локом і був би доказом не про те середовище.
 RUNNERS = {
-    "redteam": ["scripts/validate_external_redteam_evidence.py"],
     "supply_chain": ["scripts/run_supply_chain_gate.py"],
     "postgres_security": ["scripts/run_postgres_security_gate.py"],
     "tevv": ["scripts/run_tevv_production_gate.py"],
@@ -52,6 +53,12 @@ RUNNERS = {
 #: Гейти, чий доказ не добувається викликом інтерпретатора в цьому дереві.
 MAKE_RUNNERS = {
     "exact_environment": "production-exact-environment-image",
+    # `redteam` тут, а не в RUNNERS: predicate читає `redteam_internal-gate.json`, а
+    # `validate_external_redteam_evidence.py` пише `redteam-gate.json`. Кампанія
+    # ЗАПУСКАЛА виробника, чий файл споживач не читає, і звітувала про перезняття
+    # гейта, який не перезнімався жодного разу. Виміряно 06.09.2026 — саме тому
+    # `redteam` лишався прив'язаним до попереднього дайджесту після кожної кампанії.
+    "redteam": "production-redteam-internal",
 }
 
 
@@ -63,7 +70,23 @@ def _object(path: Path) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
-def _execute(root: Path) -> dict[str, dict[str, Any]]:
+def _consumed_binding(root: Path, gate: str, digest: str) -> bool:
+    """Чи файл, який СПОЖИВАЄ предикат, описує ЦЕ дерево після запуску виробника.
+
+    Порівняння вмісту до/після тут не годиться: детермінований гейт на незмінному
+    дереві пише ті самі байти, і «не змінився» читалося б як «не запускався».
+    Питання інше — чи виробник лишив по собі доказ, прив'язаний до цього дайджесту.
+    Виміряно 06.09.2026: кампанія запускала для `redteam` виробника, який пише в
+    ІНШИЙ файл, тож споживаний лишався прив'язаним до попереднього дерева після
+    кожного «перезняття», і жодне поле про це не казало.
+    """
+    path = root / "var/production" / GATE_FILES.get(gate, "")
+    if not path.is_file():
+        return False
+    return _object(path).get("source_tree_sha256") == digest
+
+
+def _execute(root: Path, digest: str) -> dict[str, dict[str, Any]]:
     executions: dict[str, dict[str, Any]] = {}
     for gate, argv in RUNNERS.items():
         completed = subprocess.run(
@@ -79,6 +102,7 @@ def _execute(root: Path) -> dict[str, dict[str, Any]]:
             "exit_code": completed.returncode,
             "stdout_tail": completed.stdout[-2000:],
             "stderr_tail": completed.stderr[-2000:],
+            "consumed_file_bound_after": _consumed_binding(root, gate, digest),
         }
     for gate, target in MAKE_RUNNERS.items():
         completed = subprocess.run(
@@ -95,6 +119,7 @@ def _execute(root: Path) -> dict[str, dict[str, Any]]:
             "stdout_tail": completed.stdout[-2000:],
             "stderr_tail": completed.stderr[-2000:],
             "runner": f"make {target}",
+            "consumed_file_bound_after": _consumed_binding(root, gate, digest),
         }
     return executions
 
@@ -163,7 +188,7 @@ def _cause(
 
 def build(root: Path, *, execute: bool) -> dict[str, Any]:
     root = root.resolve()
-    executions = _execute(root) if execute else {}
+    executions = _execute(root, compute_source_digest(root)) if execute else {}
     gate_dir = root / "var/production"
     gates = {name: _object(gate_dir / filename) for name, filename in GATE_FILES.items()}
     profile = load_hard_predicate_profile(root / PROFILE)
@@ -194,6 +219,14 @@ def build(root: Path, *, execute: bool) -> dict[str, Any]:
         "release": release,
         "source_tree_sha256": source_digest,
         "status": "PASS" if completed == total else "FAIL_CLOSED",
+        # Виробник, який відпрацював і НЕ лишив доказу, прив'язаного до цього дерева,
+        # називається окремо: доти «кампанія відпрацювала» і «гейт перезнято» були одним
+        # твердженням, і хибним воно було мовчки.
+        "runners_that_left_no_bound_evidence": sorted(
+            gate
+            for gate, record in executions.items()
+            if not record.get("consumed_file_bound_after")
+        ),
         "software_gates": {"passed": software_pass, "total": len(states)},
         "external_gates": {"passed": external_pass, "total": len(states)},
         "combined": {

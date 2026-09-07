@@ -105,6 +105,24 @@ def problems(
         rows = report.get(key)
         if rows:
             found.append(f"звіт містить непорожній `{key}` ({len(rows)}) — це не доказ проходження")
+    # Доти перевірялися лише ці три СПИСКИ, які звіт складає САМ ПРО СЕБЕ. Виміряно
+    # 06.09.2026: звіт, де всі 624 рядки мають `status: "SURVIVED"`, `killed: 0` і
+    # власний `status: "FAIL"`, але `survived: []`, проходив без жодного зауваження —
+    # і тут, і в `verify_current_truth`. Гейт вірив підсумку замість того, щоб його
+    # перерахувати. Нижче читаються самі результати: підсумок мусить збігатися з ними.
+    outcomes: dict[str, int] = {}
+    for row in results:
+        if isinstance(row, dict):
+            outcomes[str(row.get("status"))] = outcomes.get(str(row.get("status")), 0) + 1
+    not_killed = {name: count for name, count in outcomes.items() if name != "KILLED"}
+    if not_killed:
+        found.append(f"результати містять невбитих мутантів: {not_killed} — підсумок їх не називає")
+    declared_killed = report.get("killed")
+    counted_killed = outcomes.get("KILLED", 0)
+    if isinstance(declared_killed, int) and declared_killed != counted_killed:
+        found.append(
+            f"звіт оголошує killed={declared_killed}, а результатів KILLED {counted_killed}"
+        )
     return found
 
 
@@ -117,7 +135,12 @@ def selftest() -> int:
     expected = {"M01", "M02", "M03"}
     good: dict[str, Any] = {
         "mutants": 3,
-        "results": [{"id": "M01"}, {"id": "M02"}, {"id": "M03"}],
+        "killed": 3,
+        "results": [
+            {"id": "M01", "status": "KILLED"},
+            {"id": "M02", "status": "KILLED"},
+            {"id": "M03", "status": "KILLED"},
+        ],
         # НЕ "0" * 64: доти саме це число стояло тут як ЧИСТИЙ випадок, і клас вади
         # «звіт про інше дерево» був невидимий за побудовою — еталон оголошував отруту
         # правильним входом.
@@ -126,7 +149,16 @@ def selftest() -> int:
         "invalid": [],
         "errors": [],
     }
-    rows: list[dict[str, str]] = [{"id": "M01"}, {"id": "M02"}, {"id": "M03"}]
+    # Рядки несуть `status`, бо його несе СПРАВЖНІЙ звіт: у
+    # `reports/MUTATION_REPORT.json` усі 624 результати мають `KILLED`. Доти еталон
+    # мав лише `id`, і перевірка «підсумок мусить збігатися з результатами» читала
+    # три рядки як невбитих — валила ВЛАСНИЙ чистий випадок. Той самий еталон у
+    # спрощеній формі стояв у трьох місцях; це третє.
+    rows: list[dict[str, str]] = [
+        {"id": "M01", "status": "KILLED"},
+        {"id": "M02", "status": "KILLED"},
+        {"id": "M03", "status": "KILLED"},
+    ]
     cases: list[tuple[str, dict[str, Any], bool]] = [
         ("чистий стан приймається", good, False),
         # Дві отрути по ДАНИХ на прив'язку. Обидві проходили до 2026-09-06.

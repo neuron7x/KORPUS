@@ -16,6 +16,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
+import pytest
 from korpus.repository_requirements import load_context
 
 
@@ -143,3 +144,42 @@ def test_full_ssot_allows_only_oversized_lineage_archive(tmp_path: Path) -> None
     assert load_context(root, "FULL_SSOT_DISTRIBUTION").oversized == []
     (root / "payload.bin").write_bytes(b"x" * 5_000_001)
     assert load_context(root, "FULL_SSOT_DISTRIBUTION").oversized == ["payload.bin"]
+
+
+@pytest.mark.parametrize("enclosing", ["var", "dist", "build", "node_modules", ".cache"])
+def test_the_walk_is_not_silenced_by_the_directory_it_lives_under(
+    tmp_path: Path, enclosing: str
+) -> None:
+    """Вирок мусить залежати від ВМІСТУ дерева, не від того, де воно лежить.
+
+    Пропуск судився по АБСОЛЮТНОМУ шляху, тож репозиторій, розгорнутий під текою з
+    іменем зі `SKIP_PARTS`, робив цей обхід німим цілком: секретів нуль, завеликих
+    нуль, заглушок нуль — і `validate_repository` зелений. Виміряно 06.09.2026 двома
+    деревами-близнюками: під нейтральною текою секрет знайдено, під текою `var` — ні.
+    Це fail-open у безпековій перевірці, а не косметика.
+    """
+    root = _tree(tmp_path / enclosing / "korpus")
+    subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+    (root / "infra/secrets/postgres_password.txt").write_text("hunter2", encoding="utf-8")
+    subprocess.run(
+        ["git", "add", "-f", "infra/secrets/postgres_password.txt"], cwd=root, check=True
+    )
+    (root / "LINEAGE").mkdir()
+    (root / "LINEAGE/archive.zip").write_bytes(b"x" * 5_000_001)
+
+    context = load_context(root, "SOURCE_CHECKOUT")
+    assert context.tracked_secrets == ["infra/secrets/postgres_password.txt"]
+    assert context.oversized == ["LINEAGE/archive.zip"]
+
+
+def test_a_skipped_directory_inside_the_tree_is_still_skipped(tmp_path: Path) -> None:
+    """Дуал: правило мусить лишатись правилом там, де воно про предмет.
+
+    Без цього плеча попередній тест задовольнявся б обходом, який не пропускає нічого,
+    і `var/` усередині дерева почав би червонити кожен прогін.
+    """
+    root = _tree(tmp_path)
+    (root / "var").mkdir()
+    (root / "var/huge.bin").write_bytes(b"x" * 5_000_001)
+
+    assert load_context(root, "SOURCE_CHECKOUT").oversized == []

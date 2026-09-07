@@ -3473,10 +3473,10 @@ MUTANTS = (
     Mutant(
         "M265_SCANNER_MARKER_COMMIT_REPLAY_ACCEPTED",
         "apps/api/src/korpus/application/supply_chain_scanners.py",
-        '    return bool(expected_commit) and scan.get("commit_sha") == expected_commit',
+        '    return bool(accepted_commits) and scan.get("commit_sha") in set(accepted_commits)',
         "    return True",
         (
-            "apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_marker_commit_must_match_current_pipeline_commit",
+            "apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_marker_commit_must_be_one_whose_source_is_this_tree",
         ),
     ),
     Mutant(
@@ -3570,7 +3570,7 @@ MUTANTS = (
     Mutant(
         "M276_PEC_ADMISSION_THRESHOLD_BYPASSED",
         "apps/api/src/korpus/application/evidence_admission.py",
-        "    return margins.minimum >= 0.0",
+        "    return candidate_margins(item, thresholds).admitted",
         "    return True",
         (
             "apps/api/tests/test_decision_sensitivity.py::test_boundary_margin_is_signed_distance_to_actual_retrieval_gate",
@@ -4911,8 +4911,8 @@ MUTANTS = (
     Mutant(
         "M520_A_MENTION_OF_THE_FLAG_COUNTS_AS_DECLARING_IT",
         "scripts/verify_selftest_coverage.py",
-        r'''DECLARES = re.compile(r"""add_argument\(\s*["']--selftest["']""")''',
-        'DECLARES = re.compile(r"--selftest")',
+        r'''    r"""add_argument\(\s*["']--selftest["']"""''',
+        '    r"--selftest"',
         (
             "apps/api/tests/test_selftest_coverage.py::"
             "test_discovery_finds_the_declarations_not_the_mentions",
@@ -6532,6 +6532,52 @@ MUTANTS = (
             "apps/api/tests/test_provenance_without_git.py::"
             "test_an_unusable_manifest_is_not_read_as_an_empty_tracked_set",
         ),
+    ),
+    Mutant(
+        # Нічию на порозі покриття віддано мовчанню. Це та сама правка, яку я зробила
+        # 07.09.2026 і зняла: на межі домену вона давала чужі 4/20 -> 0/20, але
+        # заморожений `safe-source-after-injection` стоїть РІВНО на 0.500 і мусить
+        # відповісти. Мутант лишає цю помилку неповторюваною мовчки.
+        "M692_COVERAGE_TIE_IS_GIVEN_TO_SILENCE",
+        "apps/api/src/korpus/application/evidence_admission.py",
+        "    return coverage >= floor",
+        "    return coverage > floor",
+        ("apps/api/tests/test_admission_tie.py::test_coverage_exactly_at_the_floor_is_admitted",),
+    ),
+    Mutant(
+        # Строгість, поширена «для симетрії» на осі КЛАСУ: `minimum_authority` дорівнює
+        # 0.46 рівно тому, що це пріор `ANALYTICAL`, а майже весь корпус саме такий.
+        "M693_ADMISSION_STRICTNESS_SPREADS_TO_THE_CLASS_AXES",
+        "apps/api/src/korpus/application/evidence_admission.py",
+        "        return self.score >= 0.0 and self.authority >= 0.0 and self.query_coverage >= 0.0",
+        "        return self.score > 0.0 and self.authority > 0.0 and self.query_coverage > 0.0",
+        (
+            "apps/api/tests/test_admission_tie.py::"
+            "test_authority_exactly_at_the_floor_stays_admitted",
+        ),
+    ),
+    Mutant(
+        # Звіт про гейт розходиться з гейтом: PEC/DGC пояснювали б рішення правилом,
+        # якого рантайм не застосував. Мутація саме на сталу `True`, а не на
+        # `minimum >= 0.0`: друга ЕКВІВАЛЕНТНА, доки всі три осі інклюзивні, і мутант,
+        # який ніщо не може вбити, бреше про те, що каталог охороняє.
+        "M694_REPORTED_GATE_DIVERGES_FROM_THE_APPLIED_GATE",
+        "apps/api/src/korpus/application/evidence_admission.py",
+        "        retrieval_gate_passed=best.admitted,",
+        "        retrieval_gate_passed=True,",
+        (
+            "apps/api/tests/test_admission_tie.py::"
+            "test_the_reported_gate_is_the_applied_gate_at_the_tie",
+        ),
+    ),
+    Mutant(
+        # Словозміна і словотвір знову в одному списку: найдовший збіг виграє в однієї
+        # форми і програє в іншій, і два відмінки одного слова стають двома термами.
+        "M695_STEMMER_LOSES_PARADIGM_CLOSURE",
+        "apps/api/src/korpus/application/retrieval_math.py",
+        "    return _strip_longest(_undouble(token), DERIVATIONAL_SUFFIXES)",
+        "    return token",
+        ("apps/api/tests/test_gate_parity.py::test_function_words_do_not_carry_coverage",),
     ),
 )
 

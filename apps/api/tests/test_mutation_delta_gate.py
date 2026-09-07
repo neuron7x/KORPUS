@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import importlib.util
+import inspect
 import json
 from pathlib import Path
 
@@ -110,3 +111,77 @@ def test_the_selftest_is_wired_and_can_fail(monkeypatch: pytest.MonkeyPatch) -> 
 
     monkeypatch.setattr(GATE, "catalogued_modules", _empty_catalogue)
     assert GATE.selftest() == 1
+
+
+def test_a_path_mentioned_only_in_a_comment_is_not_catalogued(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Розбір проти пошуку підрядком — виміряно, а не оголошено.
+
+    Тест вище НАЗИВАЄ цю властивість і не бачить її: заміна `catalogued_modules`
+    на регулярку по тексту каталогу лишає всі сім контролів зеленими, хоч на
+    доставленому каталозі AST дає 214 шляхів, а регулярка 626. Тут різниця стає
+    спостережною: шлях, згаданий у коментарі, і рядок, що не є другим аргументом
+    `Mutant`, каталогізованими не є.
+    """
+    catalogue = tmp_path / "run_mutation_tests.py"
+    catalogue.write_text(
+        "from x import Mutant\n"
+        '# колись замутувати "apps/api/src/korpus/application/__mention_only__.py"\n'
+        'ALSO = "scripts/__string_but_not_a_mutant__.py"\n'
+        'MUTANTS = [Mutant("id", "apps/api/src/korpus/application/real.py", 1, "a", "b")]\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(GATE, "CATALOGUE", catalogue)
+    assert GATE.catalogued_modules() == {"apps/api/src/korpus/application/real.py"}
+
+
+def test_the_shipped_registry_is_present_and_well_formed() -> None:
+    """Присутність реєстру — окреме твердження, і його не робив ніхто.
+
+    `load_exceptions` на відсутньому файлі повертає {} — це СУВОРІШЕ і правильно,
+    але тест «доставлений реєстр читається» лишався зеленим після ВИДАЛЕННЯ
+    реєстру: він читав порожнечу і не бачив різниці.
+    """
+    assert GATE.EXCEPTIONS.is_file(), f"реєстру винятків немає: {GATE.EXCEPTIONS}"
+    payload = json.loads(GATE.EXCEPTIONS.read_text(encoding="utf-8"))
+    assert payload.get("schema") == "korpus.mutation-delta-exceptions.v1"
+    assert isinstance(payload.get("accepted"), list)
+    for entry in payload["accepted"]:
+        assert entry.get("closes_when"), entry
+
+
+def test_a_package_file_with_a_function_is_part_of_the_subject(tmp_path: Path) -> None:
+    """`__init__.py` виключався за ІМЕНЕМ; логіка всередині нього була невидима.
+
+    Виміряно 06.09.2026 як одна з чотирьох втеч предмета гейта дельти. Правило за
+    іменем не вміє відрізнити порожній пакетний файл від пакетного файла з функцією —
+    це властивість ВМІСТУ.
+    """
+    empty = tmp_path / "empty.py"
+    empty.write_text("from __future__ import annotations\n\n__all__ = ['x']\n", encoding="utf-8")
+    assert GATE.carries_logic(empty) is False
+
+    logic = tmp_path / "logic.py"
+    logic.write_text("def decide(value: int) -> bool:\n    return value > 0\n", encoding="utf-8")
+    assert GATE.carries_logic(logic) is True
+
+
+def test_a_computed_constant_is_logic_and_a_literal_one_is_not(tmp_path: Path) -> None:
+    """Присвоєння виклику може впасти й може бути зламане; список рядків — ні."""
+    computed = tmp_path / "computed.py"
+    computed.write_text("import os\n\nROOT = os.environ['HOME']\n", encoding="utf-8")
+    assert GATE.carries_logic(computed) is True
+
+
+def test_an_unreadable_module_is_treated_as_carrying_logic(tmp_path: Path) -> None:
+    """Нерозібраний файл — невідомість, а невідомість не є порожністю."""
+    broken = tmp_path / "broken.py"
+    broken.write_text("def (:\n", encoding="utf-8")
+    assert GATE.carries_logic(broken) is True
+
+
+def test_the_delta_subject_includes_renames() -> None:
+    """`--diff-filter=AM` мовчки випускав `R`: перейменування виносило модуль з-під гейта."""
+    source = inspect.getsource(GATE.changed_modules)
+    assert "--diff-filter=AMR" in source, "перейменований модуль мусить лишатись предметом"

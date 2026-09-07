@@ -89,6 +89,18 @@ repository:validate:
     # Селфтест же перевіряє те, що предмета не має: чи розбирається курований каталог,
     # чи відхиляється виняток без умови закриття, чи вміє самоперевірка впасти.
     - python scripts/verify_mutation_delta.py --selftest
+    # Гейт живої готовності: у раннері розгортання немає, тож вирок там був би UNKNOWN.
+    # Здатність гейта ЛОВИТИ — є, і саме її перевіряє самоперевірка, як у сусідів вище.
+    - python scripts/check_serving_readiness.py --selftest
+    # Епістеміка доказу: повний прогін читає `var/`, якого в раннері немає, тож вирок
+    # там був би про порожнє дерево. Здатність гейта ловити — є, і саме її перевіряє
+    # самоперевірка: двадцять чотири випадки, серед них дві регресії на власні
+    # хибнопозитиви перших редакцій.
+    - python scripts/check_evidence_epistemics.py --selftest
+    # Той самий клас: перенос корпусу міряється на ЖИВОМУ корпусі, якого в раннері
+    # немає. Здатність гейта ловити — є: порожній корпус, перенесений тотожно, мусить
+    # падати, і саме це перевіряє самоперевірка.
+    - python scripts/verify_corpus_transport.py --selftest
     # OPS-004 on the only environment this job can observe: its own checkout. It proves
     # the comparator runs and that the manifest describes this tree. It is NOT evidence
     # about a cluster — that observation has to be taken on the running host, and it
@@ -128,6 +140,9 @@ repository:validate:
     # A ratchet on module size, function shape and complexity: growth fails, shrinking is free.
     - python scripts/check_module_budget.py
     - PYTHONPATH=scripts python scripts/check_budget_raises_are_named.py
+    # Замкненість стемера щодо парадигми: незведені форми одного слова — це два різні
+    # терми, і питання, поставлене живою людиною, шукає не те, що оголосив заголовок.
+    - python scripts/check_stemmer_closure.py
     # Permissions as a rule over every tracked file. Ruff states it for Python under four
     # directories; the shell scripts, Dockerfiles, Terraform and manifests had no check.
     - python scripts/check_file_modes.py
@@ -203,7 +218,12 @@ repository:validate:
     - PYTHONPATH=apps/api/src python scripts/validate_publication_mirrors.py
     - PYTHONPATH=apps/api/src python scripts/validate_refusal_retryability.py --selftest
     - PYTHONPATH=apps/api/src python scripts/validate_refusal_retryability.py
-    - PYTHONPATH=apps/api/src:scripts python scripts/verify_production_hard_predicates.py
+    # Раннер не має `var/` узагалі: поверхня зовнішнього доказу тут нульова, і підлога
+    # ратчета невимірювана. Контекст оголошується — і ЗВІРЯЄТЬСЯ з виміром: оголосити
+    # чекаут над деревом, де доказ лежить, скрипт відмовляється. Без цього джоба стала б
+    # непрохідною за побудовою в ту мить, коли підлогу підняли над локальним `var/`.
+    - PYTHONPATH=apps/api/src:scripts python scripts/verify_production_hard_predicates.py --selftest
+    - PYTHONPATH=apps/api/src:scripts python scripts/verify_production_hard_predicates.py --context SOURCE_CHECKOUT
     - python scripts/validate_github_actions.py
     - python scripts/validate_repository.py --context SOURCE_CHECKOUT
     - python scripts/validate_infrastructure.py
@@ -645,7 +665,13 @@ container:build:
     paths:
       - api-image.tar
       - web-image.tar
-    expire_in: 1 day
+    # Образ їде АРТЕФАКТОМ, бо реєстр контейнерів порожній (`containerRegistrySize = 0`),
+    # і саме він дає 190,6 з 212,6 МБ на конвеєр — 89,7 %. Виміряно 06.09.2026:
+    # артефакти джобів 2054 МБ із 2138 МБ усього сховища проєкту (96 %), стеля 5 ГБ.
+    # При добовому терміні поріг — близько 22 конвеєри на добу; 04.09 їх було 46.
+    # Артефакт потрібен лише джобам verify-image ТОГО САМОГО конвеєра, тож години
+    # вистачає з запасом, а поріг підіймається приблизно вдесятеро.
+    expire_in: 3 hours
 
 container:scan:
   stage: verify-image

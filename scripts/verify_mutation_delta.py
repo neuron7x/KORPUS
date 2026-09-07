@@ -79,18 +79,46 @@ def catalogued_modules() -> set[str]:
     return files
 
 
+def carries_logic(path: Path) -> bool:
+    """Чи є в модулі щось, що можна зламати. Форма, не ім'я.
+
+    `__init__.py` виключався за ІМЕНЕМ, бо зазвичай порожній. Але порожність — це
+    властивість вмісту: пакетний файл із функцією всередині був невидимий для гейта
+    дельти цілком, а не «покритий». Правило за іменем не вміє про це знати; правило
+    за формою вміє.
+    """
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError):
+        return True
+    return any(
+        not isinstance(node, ast.Import | ast.ImportFrom | ast.Expr | ast.Assign | ast.AnnAssign)
+        or (isinstance(node, ast.Assign | ast.AnnAssign) and not _only_names(node))
+        for node in tree.body
+    )
+
+
+def _only_names(node: ast.Assign | ast.AnnAssign) -> bool:
+    """`__all__ = [...]` і подібне — оголошення, не поведінка."""
+    value = node.value
+    return value is None or isinstance(value, ast.Constant | ast.List | ast.Tuple | ast.Set)
+
+
 def changed_modules(base: str) -> list[str]:
     merge_base = _git("merge-base", base, "HEAD")
     if not merge_base:
         raise SystemExit(f"немає merge-base з {base}: предмет виміру не визначений")
-    names = _git("diff", "--name-only", "--diff-filter=AM", merge_base, "HEAD").splitlines()
+    # `R` НЕ був у фільтрі: перейменований модуль зі зміненою логікою не потрапляв у
+    # предмет узагалі. Перейменування — найдешевший спосіб винести код із-під гейта, і
+    # він не вимагав наміру: досить було посунути файл.
+    names = _git("diff", "--name-only", "--diff-filter=AMR", merge_base, "HEAD").splitlines()
     return sorted(
         name
         for name in names
         if name.startswith(SOURCE_PREFIXES)
         and name.endswith(".py")
-        and not name.endswith("__init__.py")
         and (ROOT / name).is_file()
+        and carries_logic(ROOT / name)
     )
 
 
@@ -156,12 +184,22 @@ def selftest() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--base", default="origin/main")
+    # БЕЗ дефолту. Я прибрав `origin/main` лише з рецепта make і оголосив ваду
+    # закритою — а CI кличе скрипт НАПРЯМУ, тож дефолт лишався живий і давав
+    # порожню дельту з rc=0. Прибрано було не значення, а потребу його надрукувати.
+    # Виміряно незалежним аудитом 06.09.2026.
+    # Обовʼязковий для КЛАСИФІКАЦІЇ, не для самоперевірки: `--selftest` не має
+    # предмета порівняння і бази не потребує. `required=True` глобально зламав його
+    # у лані — я прибрав дефолт і не прогнав другий режим. Перевірка нижче тримає
+    # обидві властивості: дефолту немає, і селфтест лишається досяжним.
+    parser.add_argument("--base")
     parser.add_argument("--out", type=Path, default=ROOT / "var/mutation-delta-gate.json")
     parser.add_argument("--selftest", action="store_true")
     arguments = parser.parse_args()
     if arguments.selftest:
         return selftest()
+    if not arguments.base:
+        parser.error("--base обовʼязковий: без бази порівняння предмет дельти не визначений")
     report = classify(arguments.base)
     report["status"] = "PASS" if not report["needs_probe"] else "NEEDS_PROBE"
     arguments.out.parent.mkdir(parents=True, exist_ok=True)

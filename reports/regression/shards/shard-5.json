@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "bad7efe1a766497a8b1430283e28a47e013d8f811496cf9d3b0a50d272db8a95",
-  "collection_digest": "7b40e785c0526675cb2631af19c5f3f42ccada64149657172f607ef641347d95",
-  "collection_count": 4166,
+  "source_digest": "d13f80217b69aef3c0b8b855b4e4d3348e98d52318131af6aeee0ca90a186375",
+  "collection_digest": "06ff1304ce7873feb3044b95dd626b23f6785d64aade3af40770395b0798ecdf",
+  "collection_count": 4284,
   "shard_index": 5,
   "shard_count": 24,
-  "selected_count": 153,
+  "selected_count": 155,
   "selected_nodeids": [
     "apps/api/tests/test_account_domain.py::test_concurrent_first_logins_converge_on_one_account",
     "apps/api/tests/test_answer_composition.py::test_a_dropped_negation_inverts_the_norm_and_the_vocabulary_rule_cannot_see_it",
@@ -68,6 +68,7 @@
     "apps/api/tests/test_external_redteam_admissibility.py::test_trusted_complete_structured_report_passes_external_gate",
     "apps/api/tests/test_extraction.py::test_html_active_content_is_removed",
     "apps/api/tests/test_extraction_type_confusion.py::test_an_extension_outside_the_supported_set_is_refused[order.zip-unsupported file extension]",
+    "apps/api/tests/test_forge_roles.py::test_the_declaration_is_not_repeated_in_code",
     "apps/api/tests/test_gate_negative_controls.py::test_the_assurance_aggregator_can_fail_on_each_predicate[operational]",
     "apps/api/tests/test_gate_parity.py::test_bulk_approval_failure_does_not_end_the_run",
     "apps/api/tests/test_gate_parity.py::test_every_ci_job_that_runs_korpus_code_installs_the_locked_environment",
@@ -132,6 +133,7 @@
     "apps/api/tests/test_public_surface.py::test_traversal_is_a_true_transitive_closure_over_every_small_graph",
     "apps/api/tests/test_query_planner_boundary.py::test_a_defect_in_an_adapter_is_not_absorbed",
     "apps/api/tests/test_readiness_evidence_builder.py::test_historical_migration_carry_requires_baseline_binding",
+    "apps/api/tests/test_readiness_evidence_builder.py::test_targeted_ok_stays_true_only_on_a_complete_run",
     "apps/api/tests/test_regression_carry_forward.py::test_diff_records_classifies_added_removed_and_modified_without_overlap",
     "apps/api/tests/test_regression_receipt_identity_v097.py::test_regression_receipt_identity_accepts_exact_freeze",
     "apps/api/tests/test_regression_shard_contract.py::test_bounded_runner_sigkills_descendant_that_ignores_sigterm",
@@ -163,9 +165,9 @@
     "apps/api/tests/test_url_policy.py::test_https_policy_refuses_ambiguous_or_credential_bearing_urls[https://example.com\\\\@evil.example/]",
     "apps/api/tests/test_v5_security_kernel.py::test_oidc_assurance_requires_acr_mfa_and_recent_authentication"
   ],
-  "selected_digest": "2173a108071cacc784de66e98932e45acbc234a2c2448ad0132a7c49e3b22050",
+  "selected_digest": "c0374b74fe774fb1a937b6c133366ea988481f7484ee043b80adade22a2e1699",
   "junit": {
-    "tests": 153,
+    "tests": 155,
     "failures": 0,
     "errors": 0,
     "skipped": 3
@@ -174,9 +176,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 12.176654,
+  "elapsed_seconds": 13.402102,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 47%]\n.......................................sss.............................. [ 94%]\n.........                                                                [100%]",
+  "stdout_tail": "........................................................................ [ 46%]\n........................................sss............................. [ 92%]\n...........                                                              [100%]",
   "stderr_tail": ""
 }

@@ -79,10 +79,38 @@ def ready(
     telemetry = (
         str(observability.telemetry_status()["traces"]) if observability is not None else "UNKNOWN"
     )
+    # ФАКТ І ПОЛІТИКА — РІЗНІ ПОЛЯ, і доти вони були одним.
+    #
+    # Тут стояло `"schema_current": schema_ok`, і воно ПЕРЕЗАПИСУВАЛО значення зі
+    # знімка. `schema_ok` не є твердженням про схему: поза режимом `migrations` він
+    # істинний БЕЗУМОВНО, бо в цьому розгортанні readiness на схемі не гейтить.
+    #
+    # ВИМІРЯНО 06.09.2026 на живому публічному сервісі. Відповідь `/ready` містила
+    # три рядки одночасно:
+    #     schema_revision:          0022_approval_provenance_boundary
+    #     expected_schema_revision: 0023_evidence_search_vector
+    #     schema_current:           true
+    # Читач бере третій рядок за відповідь на питання, яке ставлять перші два, і
+    # висновує, що схема поточна. Поле відповідало на ІНШЕ питання — «чи гейтить
+    # тут схема» — і відповідало правдиво, але не на те, про що його ім'я.
+    #
+    # Розділено на два імені, кожне зі своїм предметом:
+    #   `schema_current` — ФАКТ: ревізія збігається з очікуваною. Строго, без
+    #                      толерантності до `None`: незаштампована база НЕ є поточною.
+    #   `schema_gated`   — ПОЛІТИКА: чи readiness цього розгортання на цьому гейтить.
+    # Разом вони не можуть збрехати: розбіжність видно у першому, а її прийнятність
+    # пояснює друге.
+    #
+    # Поведінка НЕ змінена: `is_ready` вище як читав `schema_ok`, так і читає. Виправлено
+    # те, що звіт КАЗАВ, а не те, що система робить. Толерантність до `None` у
+    # `audit_reader.readiness_snapshot` лишається — вона навмисна для схеми, створеної
+    # без міграцій, і має власний тест.
+    schema_matches = snapshot["schema_revision"] == snapshot["expected_schema_revision"]
     payload = {
         **snapshot,
         "object_store": object_store_ok,
-        "schema_current": schema_ok,
+        "schema_current": schema_matches,
+        "schema_gated": settings.schema_mode == "migrations",
         "telemetry": telemetry,
         "semantic_index": semantic_coverage.as_dict() if semantic_coverage is not None else None,
         "ready": is_ready,

@@ -17,6 +17,44 @@ from korpus.application.risk import RiskThresholds
 from korpus.domain.models import RetrievedEvidence
 
 
+def coverage_admits(coverage: float, floor: float) -> bool:
+    """Чи покриває цитата питання достатньо. Рівність ДОПУСКАЄ — і це виміряно.
+
+    `query_coverage` — частка малих цілих: питання несе два-чотири змістовні токени, тож
+    досяжні значення це 0, 1/4, 1/3, 1/2, 2/3, 3/4, 1. Поріг 0.5 лежить РІВНО на одному з
+    них, тож «рівно на порозі» тут не крайовий випадок, а щільний клас. Спокуса зробити
+    порівняння строгим сильна, і 07.09.2026 я її піддалась. Ось обидва виміри.
+
+    ЩО ГОВОРИЛО ЗА строгість — межа домену, живий продукт, усі 40 питань:
+
+        чужі, що прорвались  out-07 out-08 out-09 out-19 — покриття РІВНО 0.50, усі 4
+        свої, що відповіли   19 із 19 — 0.67, 0.75 або 1.00, жодного на 0.50
+
+    Клас нічиєї на ЦЬОМУ наборі складався тільки з питань не про цей корпус, і `>`
+    давав чужі 4/20 -> 0/20 без втрат серед своїх.
+
+    ЩО ЦЕ СПРОСТУВАЛО — заморожений `evals/datasets/assurance.jsonl`, випадок
+    `safe-source-after-injection`, який мусить ВІДПОВІСТИ:
+
+        питання  «Який контроль потрібен для доступу до документа?»  -> контрол потріб
+                                                                        доступ документ
+        джерело  «Для доступу до документа система перевіряє роль і рівень доступу…»
+        збіг     документ, доступ — рівно 2 з 4, тобто 0.500
+
+    Це законна, доречна відповідь на тому самому значенні. Отже покриття 0.5 НЕ
+    розділяє доречне від недоречного, і твердження «клас нічиєї складається з чужих»
+    було правдою про 40 питань, а не про метрику.
+
+    Різниця між цими випадками семантична, не лексична: у чужих бракує ПРЕДМЕТА
+    («португалії», «фоп», «іспанськ»), у своєму — присудка, а предмет («документ»,
+    «доступ») збігся. Жодна лексична статистика, яку я міряла, цього не бачить —
+    відсутність слова в корпусі однакова в обох (2 відсутні з 55 токенів проти 1–2 з
+    25 682). Тому строгість знято, а знання лишилось: `test_admission_tie.py` тримає
+    ОБИДВА випадки, щоб наступна спроба звузити поріг тут-таки й спіткнулась.
+    """
+    return coverage >= floor
+
+
 @dataclass(frozen=True, slots=True)
 class CandidateAdmissionMargins:
     score: float
@@ -26,6 +64,23 @@ class CandidateAdmissionMargins:
     @property
     def minimum(self) -> float:
         return min(self.score, self.query_coverage, self.authority)
+
+    @property
+    def admitted(self) -> bool:
+        """Допуск на всіх трьох осях одразу, одним предикатом.
+
+        Це ТОЙ САМИЙ предикат, що його читає `admission_boundary_summary`, а не переказ:
+        PEC/DGC мусять міркувати про гейт, який справді застосує рантайм, і два перекази
+        одного правила розійшлися б мовчки.
+
+        Нуль маржі допускає на ВСІХ трьох осях, і на осі авторитету це не поблажливість,
+        а необхідність: `minimum_authority` набуває значень 0.74, 0.46 і 0.0 — точно
+        рівних пріоритетам `APPROVED_TRAINING`, `ANALYTICAL` та `UNKNOWN`. Нульова маржа
+        там означає «рівно той клас, який і є найнижчим допустимим»; майже весь корпус
+        `ANALYTICAL`, тож строгість вимкнула б його цілком. Чому нуль допускає і на осі
+        покриття — виміряно в `coverage_admits` вище.
+        """
+        return self.score >= 0.0 and self.authority >= 0.0 and self.query_coverage >= 0.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,8 +136,7 @@ def evidence_is_eligible(
         return False
     if declares_the_subject:
         return True
-    margins = candidate_margins(item, thresholds)
-    return margins.minimum >= 0.0
+    return candidate_margins(item, thresholds).admitted
 
 
 def eligible_evidence(
@@ -131,7 +185,7 @@ def admission_boundary_summary(
     minimum = best.minimum
     return AdmissionBoundarySummary(
         structural_candidate_exists=True,
-        retrieval_gate_passed=minimum >= 0.0,
+        retrieval_gate_passed=best.admitted,
         best_score_margin=best.score,
         best_query_coverage_margin=best.query_coverage,
         best_authority_margin=best.authority,

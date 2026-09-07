@@ -27,10 +27,33 @@ def _git(*args: str, root: Path = ROOT) -> str | None:
 
 
 def refs(root: Path = ROOT) -> list[str]:
+    """Гілки дерева без символічних голів віддалених.
+
+    Відсіювати треба за ПОВНИМ іменем, не за коротким. `%(refname:short)` для
+    `refs/remotes/origin/HEAD` дає «origin» — без скісної риски й без «HEAD», — тож
+    фільтр по короткому імені його не бачив, і символічний вказівник на голову
+    віддаленого рахувався звичайною гілкою. Далі `rev-list canonical..origin` дає
+    ненульове число, і гейт оголошує покинуту роботу там, де її нема.
+
+    ВИМІРЯНО 06.09.2026: `git clone` створює цей реф ЗАВЖДИ, тож перевірка червоніла
+    на будь-якому клоні й була зелена в каноні лише тому, що канон не є клоном. Тобто
+    зелена через ВІДСУТНІСТЬ ПРЕДМЕТА, а не через його стан — рівно те, що ця
+    перевірка мала б ловити в інших.
+    """
     listed = _git(
-        "for-each-ref", "--format=%(refname:short)", "refs/heads", "refs/remotes", root=root
+        "for-each-ref",
+        "--format=%(refname)%09%(refname:short)",
+        "refs/heads",
+        "refs/remotes",
+        root=root,
     )
-    return sorted({name for name in (listed or "").split() if not name.endswith("/HEAD")})
+    names: set[str] = set()
+    for line in (listed or "").splitlines():
+        full, _, short = line.partition("\t")
+        if not short or full.endswith("/HEAD"):
+            continue
+        names.add(short)
+    return sorted(names)
 
 
 def active_worktree_branches(root: Path = ROOT) -> set[str]:

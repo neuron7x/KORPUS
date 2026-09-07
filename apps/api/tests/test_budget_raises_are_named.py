@@ -114,3 +114,30 @@ def test_the_real_repository_has_no_unnamed_raise_against_head() -> None:
 
     after = json.loads((MODULE.ROOT / MODULE.BUDGET).read_text(encoding="utf-8"))
     assert MODULE.raises_without_a_reason(before, after) == []
+
+
+def test_a_record_that_names_its_metric_beside_a_plain_number_counts() -> None:
+    """Форма `{"metric": "lines", "to": 147}` не розпізнавалась ЖОДНИМ рядком.
+
+    `remember` вимагав, щоб `to` був словником, тож сумлінний запис із метрикою поруч
+    існував у реєстрі, читався людиною як названа причина — і не рахувався. Докстрінг
+    при цьому обіцяв, що лишаються всі шість форм. Виміряно 06.09.2026: саме цією
+    формою записана остання дюжина підняттів.
+    """
+    named = MODULE._recorded_raises(
+        {"raised": [{"path": "a.py", "metric": "lines", "from": 10, "to": 12}]}
+    )
+    assert named == {"a.py": {("lines", 12)}}
+
+
+def test_a_number_beside_a_metric_that_is_not_a_ceiling_names_nothing() -> None:
+    """Інакше будь-яке число під будь-яким ключем зараховувало б будь-яке підняття."""
+    assert MODULE._recorded_raises({"raised": [{"path": "c.py", "metric": "щось", "to": 9}]}) == {}
+    assert (
+        MODULE._recorded_raises({"raised": [{"path": "c.py", "metric": "lines", "to": True}]}) == {}
+    )
+
+
+def test_the_dict_form_still_counts_after_the_scalar_form_was_added() -> None:
+    named = MODULE._recorded_raises({"raised": [{"path": "b.py", "to": {"lines": 5}}]})
+    assert named == {"b.py": {("lines", 5)}}
