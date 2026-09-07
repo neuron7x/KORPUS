@@ -677,6 +677,17 @@ source:sbom:
 
 container:build:
   stage: build
+  # `needs: []` з тієї ж причини, що й у сканерів, і з названою ціною. Образ
+  # збирається з ДЖЕРЕЛА і нічого не споживає від стадії `validate`; залежність
+  # створював лише порядок стадій. Наслідок був структурний: `container:scan` дає
+  # єдиний маркер `var/security/ci-container-scan.json`, якого вимагає предикат
+  # `live_vulnerability_scanners`, а той входить у реєстр блокерів, який гейтить
+  # `repository:validate`. Тобто після будь-якої правки джерела маркер ставав
+  # недосяжним — вічне PENDING, яке це дерево називає вадою, а не очікуванням.
+  # ЦІНА названа: kaniko збирає два образи на кожному конвеєрі, а не лише на
+  # зелених. Обмін свідомий — сканування того, що ми відвантажили б, коштує менше
+  # за предикат, який не має дороги до закриття.
+  needs: []
   # kaniko, not rootless buildkit. Buildkit needs a nested mount namespace, and on a
   # plain docker executor that fails twice over: first the seccomp profile blocks
   # `fork/exec /proc/self/exe`, then `mount src=proc` is refused outright. Both are

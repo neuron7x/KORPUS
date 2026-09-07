@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2038,
-  "root_sha256": "e0d3acc00cd98908f7557f125005e3fa67f9e8cfd2eb0c10ff287b9c932bbcfc",
+  "root_sha256": "b0507fc56ba6814466b54d134ed128e1c0c982c857f99de469063e43e7d4d78e",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 65118,
-      "sha256": "c3252d5689a39f310d6ed93a2ab0f2e8ea2f80f4d367be5e59f638694c88088c",
+      "bytes": 66362,
+      "sha256": "c573944c009e53b35169dee76c5ca395494d5c9d2c1a36c4e995d6b6d42f1170",
       "mode": "0644"
     },
     {
@@ -7922,7 +7922,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "f79bf6e4c08485390a390672343f901e113239c56e4d5a318f3a8cb05a5b0185",
+      "sha256": "4e6b2709e4ca845b29dd0a468cf2295d34759e2ecf93089df36c2492f72d2286",
       "mode": "0644"
     },
     {
