@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2056,
-  "root_sha256": "d2925772e83f29befdeb0b1f6dd611ab759bc37fccba8e2de1d9d46a8afe7435",
+  "root_sha256": "cca878e6b6a80d95bec3c9652be03310fabf1657f38a19235929a2957e4b7510",
   "files": [
     {
       "path": ".dockerignore",
@@ -6289,8 +6289,8 @@
     },
     {
       "path": "config/assurance/production-predicate-floor.json",
-      "bytes": 5011,
-      "sha256": "cb732d8149763df6a170ce335221c4c44f5b571c711afb5924389d7fea490529",
+      "bytes": 7245,
+      "sha256": "10a1bacdc1a3f2faeee676e59b76822048245bac8f059849bd8fec980771bda5",
       "mode": "0644"
     },
     {
@@ -11833,8 +11833,8 @@
     },
     {
       "path": "scripts/run_recovery_drill.sh",
-      "bytes": 8385,
-      "sha256": "0825d742e5173bb0db333460b0f9de108d49fc3cab586859e20e72a39be42739",
+      "bytes": 8804,
+      "sha256": "c46ee6a7d425b6696e0f88478a221faef16ac56269d8cdf7682b1d023261c8f9",
       "mode": "0755"
     },
     {
