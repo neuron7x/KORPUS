@@ -36,6 +36,46 @@ def _load(path: Path) -> dict[str, Any]:
     return value
 
 
+def same_subject(primary: dict[str, Any], secondary: dict[str, Any]) -> str | None:
+    """Причина, чому два прогони описують РІЗНІ дерева, або None.
+
+    Злиття зіставляє гілки за (файл, дуга), а дуга — це пара НОМЕРІВ РЯДКІВ. Якщо два
+    прогони зняті на різних деревах, зсув коду робить старі дуги випадково збіжними з
+    новим кодом, і вони зараховуються як покриті. Помилка йде в НЕБЕЗПЕЧНИЙ бік:
+    покриття завищується, а ратчет читає саме це число.
+
+    Виміряно 08.09.2026. `var/coverage-postgres.json` був знятий 06.09, до злиття
+    керованого шару спроможностей (16 407 рядків). Обʼєднання з ним давало 233
+    непокриті гілки; після перезняття ПостгреSQL на цьому ж дереві — 247. Чотирнадцять
+    «покритих» гілок існували лише як збіг номерів.
+
+    Перевірка не потребує стороннього провенансу: якщо дерева ті самі, перелік файлів і
+    кількість тверджень у кожному збігаються. Розбіжність тут — не «трохи інший
+    прогін», а інший предмет.
+    """
+    left, right = primary.get("files", {}), secondary.get("files", {})
+    only_left = sorted(set(left) - set(right))
+    only_right = sorted(set(right) - set(left))
+    if only_left or only_right:
+        return (
+            "прогони описують різні дерева: файлів лише в первинному "
+            f"{len(only_left)}, лише у вторинному {len(only_right)}; "
+            f"напр. {(only_left or only_right)[:2]}"
+        )
+    shifted = [
+        path
+        for path, entry in left.items()
+        if entry.get("summary", {}).get("num_statements")
+        != right[path].get("summary", {}).get("num_statements")
+    ]
+    if shifted:
+        return (
+            f"прогони описують різні дерева: у {len(shifted)} файлах різна кількість "
+            f"тверджень; напр. {sorted(shifted)[:2]}"
+        )
+    return None
+
+
 def merge(primary: dict[str, Any], secondary: dict[str, Any]) -> dict[str, Any]:
     merged: dict[str, Any] = json.loads(json.dumps(primary))
     files: dict[str, Any] = merged["files"]
@@ -101,7 +141,12 @@ def main() -> int:
             print(json.dumps({"status": "FAIL", "reason": f"missing coverage report: {path}"}))
             return 1
 
-    merged = merge(_load(args.primary), _load(args.secondary))
+    primary, secondary = _load(args.primary), _load(args.secondary)
+    divergence = same_subject(primary, secondary)
+    if divergence is not None:
+        print(json.dumps({"status": "FAIL", "reason": divergence}, ensure_ascii=False))
+        return 1
+    merged = merge(primary, secondary)
     args.out.write_text(json.dumps(merged) + "\n", encoding="utf-8")
     totals = merged["totals"]
     print(

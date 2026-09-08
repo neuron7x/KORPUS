@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2049,
-  "root_sha256": "5d952043edd01f6edf8320c471c26e99cdadc5e503ea7aa51b5d801b2ffc2bb8",
+  "file_count": 2051,
+  "root_sha256": "a7d5f2c84217a2e333b59e5fc08322ca5443e5c5039ccc370a9e8aba70d60627",
   "files": [
     {
       "path": ".dockerignore",
@@ -3624,6 +3624,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_corpus_snapshot_integrity.py",
+      "bytes": 5193,
+      "sha256": "5345e97eae6361624dc93b4c7a073ed69e7953d03a1d413d05e6c84bbf6773fa",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_corpus_transport.py",
       "bytes": 4211,
       "sha256": "681909448c378e7e34b86284c8715fce79f68a05c59ebdf0994915fa2e08b3a0",
@@ -3633,6 +3639,12 @@
       "path": "apps/api/tests/test_coverage_closure_v097.py",
       "bytes": 56495,
       "sha256": "d70e2d847ec2f11384e55bc287a82b9d006873822908b43f26cbdfb953ae1ac8",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_coverage_merge_subject.py",
+      "bytes": 3137,
+      "sha256": "136fbf38d17cd5a7895f673b523033dcd6db668438221a0210a773a17a16f7ea",
       "mode": "0644"
     },
     {
@@ -8023,8 +8035,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 719742,
-      "sha256": "456277cff8ec53cf969dbe0cdd660329883c4be2b4e7973a7ec37189680215a1",
+      "bytes": 721233,
+      "sha256": "4f56347ba266bbdba66af7cd29ce06e2139a07e905c0d361260208bdb1f247c6",
       "mode": "0644"
     },
     {
@@ -11197,8 +11209,8 @@
     },
     {
       "path": "scripts/merge_dialect_coverage.py",
-      "bytes": 5342,
-      "sha256": "681ebe6af2e8bf80600ffd00d11d320f6acbcb967975de725e7f164c5a5f8a21",
+      "bytes": 8100,
+      "sha256": "10ba8b7bb7f93d23dd9e8d05d5d6e56705f0c0b349125e32c3e70bb994dd8cfc",
       "mode": "0755"
     },
     {
