@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2056,
-  "root_sha256": "cca878e6b6a80d95bec3c9652be03310fabf1657f38a19235929a2957e4b7510",
+  "file_count": 2058,
+  "root_sha256": "d622041ec823fc6607d85d8de12f4279c2e6f4fbc26bc08fafef620c9fbb04f6",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 66362,
-      "sha256": "c573944c009e53b35169dee76c5ca395494d5c9d2c1a36c4e995d6b6d42f1170",
+      "bytes": 67004,
+      "sha256": "1d35d84ab295c71dede4e49f95869c243c604ccaa98846c7a70970cf16a2ab17",
       "mode": "0644"
     },
     {
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 125533,
-      "sha256": "cdcc35817749ef7a531ca7af8fa9373de6d365825810251c774230297cfce081",
+      "bytes": 126473,
+      "sha256": "3a3e142ccc46f66f6627cfaf8c3aa37862f4959e8dd3464a6a8aa9c2d09417b3",
       "mode": "0644"
     },
     {
@@ -6240,6 +6240,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/assurance/admission-differential-protocol.v1.json",
+      "bytes": 4196,
+      "sha256": "d8a24de5d6077559ecdac378847a2deda8799440cbe7bb6708e2573dbd5088e3",
+      "mode": "0644"
+    },
+    {
       "path": "config/assurance/engineering-readiness-87.v1.json",
       "bytes": 4252,
       "sha256": "067c7ae4e6a62f694961315d2014c0cbc3c81441ce844ee0de3b6e30d5ec3f95",
@@ -8018,7 +8024,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "4e6b2709e4ca845b29dd0a468cf2295d34759e2ecf93089df36c2492f72d2286",
+      "sha256": "866e83909ff91446b135108be72d7b50997e174b87f31bf3b24577eceb5e6aab",
       "mode": "0644"
     },
     {
@@ -8059,8 +8065,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 723632,
-      "sha256": "b9ac053a282cfadfc67f59518322b497e7a4ae43aefb2261c1393776abe4db43",
+      "bytes": 724415,
+      "sha256": "a028af3578cc94453dad0058b5d7b100b4b7bd75a5cca1bb3c0188d0dbd24901",
       "mode": "0644"
     },
     {
@@ -11631,6 +11637,12 @@
       "path": "scripts/rls_context.py",
       "bytes": 5833,
       "sha256": "2026ec8f4f8e5be2cae6622f802017c2701e452120d8fc8dd21067e306feee18",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/run_admission_differential.py",
+      "bytes": 13942,
+      "sha256": "217a0029a5bfbb2f54909f2d6ef05000ca83530b6cc3041e5fdbae57b14a1131",
       "mode": "0755"
     },
     {

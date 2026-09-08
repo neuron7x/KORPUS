@@ -143,6 +143,11 @@ repository:validate:
     # Замкненість стемера щодо парадигми: незведені форми одного слова — це два різні
     # терми, і питання, поставлене живою людиною, шукає не те, що оголосив заголовок.
     - python scripts/check_stemmer_closure.py
+    # Друга реалізація присуду допуску проти виробничої, на преєстрованій сітці. Нуль
+    # розбіжностей є твердженням про предмет ЛИШЕ при recall негативного контролю 1.0,
+    # тому самоперевірка стоїть ПЕРЕД прогоном, а не поруч із ним.
+    - PYTHONPATH=$CI_PROJECT_DIR:$CI_PROJECT_DIR/apps/api/src python scripts/run_admission_differential.py --selftest
+    - PYTHONPATH=$CI_PROJECT_DIR:$CI_PROJECT_DIR/apps/api/src python scripts/run_admission_differential.py
     # Permissions as a rule over every tracked file. Ruff states it for Python under four
     # directories; the shell scripts, Dockerfiles, Terraform and manifests had no check.
     - python scripts/check_file_modes.py
