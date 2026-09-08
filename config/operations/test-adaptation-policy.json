@@ -4,7 +4,7 @@
     "minimum_statement_rate": 0.95,
     "minimum_branch_rate": 0.9,
     "maximum_missing_branch_regression": 0,
-    "baseline_missing_branches": 220
+    "baseline_missing_branches": 212
   },
   "determinism": {
     "python_hash_seeds": [

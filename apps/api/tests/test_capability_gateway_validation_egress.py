@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from enum import StrEnum
+
 import pytest
 from korpus.application.capability_gateway.egress import (
     CapabilityDataEgressGuard,
@@ -180,3 +182,119 @@ def test_policy_gated_requires_deployment_policy_allow() -> None:
         request=_request(),
         logical_resource="reference:1",
     )
+
+
+class _FutureEgressClass(StrEnum):
+    """Клас виносу, доданий у майбутньому й НЕ врахований сторожем."""
+
+    STREAMING = "STREAMING"
+
+
+def _spec_with_egress_class(egress: object) -> CapabilitySpec:
+    base = _spec(egress=DataEgressClass.POLICY_GATED)
+    return base.model_copy(
+        update={"data_policy": base.data_policy.model_copy(update={"egress_class": egress})}
+    )
+
+
+def test_public_only_admits_public_material_without_asking_deployment_policy() -> None:
+    policy = _ExternalPolicy(False)
+    guard = CapabilityDataEgressGuard(_Classifier(AccessTier.PUBLIC), policy)
+
+    guard.check(
+        identity=Identity(subject="reader", roles=frozenset({"user"})),
+        spec=_spec(egress=DataEgressClass.PUBLIC_ONLY),
+        request=_request(),
+        logical_resource="reference:1",
+    )
+
+    assert policy.calls == 0
+
+
+def test_classification_resolver_that_returns_a_non_tier_is_not_compared() -> None:
+    """Строкове «restricted» порівнялось би з AccessTier помилкою — або, гірше, ні."""
+
+    class _WrongShape:
+        def classify_request(self, **kwargs: object) -> AccessTier:
+            del kwargs
+            return "restricted"  # type: ignore[return-value]
+
+    guard = CapabilityDataEgressGuard(_WrongShape(), _ExternalPolicy(True))
+
+    with pytest.raises(RuntimeError, match="invalid tier"):
+        guard.check(
+            identity=Identity(subject="reader", roles=frozenset({"user"})),
+            spec=_spec(egress=DataEgressClass.PUBLIC_ONLY),
+            request=_request(),
+            logical_resource="reference:1",
+        )
+
+
+def test_unhandled_egress_class_fails_closed_instead_of_falling_through() -> None:
+    """Новий член DataEgressClass без правила у сторожі мусить спинити виклик."""
+    policy = _ExternalPolicy(True)
+    guard = CapabilityDataEgressGuard(_Classifier(AccessTier.PUBLIC), policy)
+
+    with pytest.raises(RuntimeError, match="unsupported egress class: STREAMING"):
+        guard.check(
+            identity=Identity(subject="reader", roles=frozenset({"user"})),
+            spec=_spec_with_egress_class(_FutureEgressClass.STREAMING),
+            request=_request(),
+            logical_resource="reference:1",
+        )
+
+    assert policy.calls == 0
+
+
+def test_declared_egress_class_still_reaches_the_deployment_policy() -> None:
+    """Негативний контроль: підміна класу через model_copy не ламає звичайний шлях."""
+    policy = _ExternalPolicy(True)
+    guard = CapabilityDataEgressGuard(_Classifier(AccessTier.RESTRICTED), policy)
+
+    guard.check(
+        identity=Identity(subject="reader", roles=frozenset({"user"})),
+        spec=_spec_with_egress_class(DataEgressClass.POLICY_GATED),
+        request=_request(),
+        logical_resource="reference:1",
+    )
+
+    assert policy.calls == 1
+
+
+def test_deployment_policy_that_returns_a_non_boolean_is_refused() -> None:
+    class _Ambiguous:
+        def permits(self, **kwargs: object) -> bool:
+            del kwargs
+            return 1  # type: ignore[return-value]
+
+    guard = CapabilityDataEgressGuard(_Classifier(AccessTier.RESTRICTED), _Ambiguous())
+
+    with pytest.raises(RuntimeError, match="non-boolean"):
+        guard.check(
+            identity=Identity(subject="reader", roles=frozenset({"user"})),
+            spec=_spec(egress=DataEgressClass.POLICY_GATED),
+            request=_request(),
+            logical_resource="reference:1",
+        )
+
+
+def test_a_validator_that_already_speaks_the_contract_language_is_not_rewrapped() -> None:
+    """Власна `CapabilityContractError` валідатора несе ТОЧНУ причину — її не можна стерти
+    загальним «schema validation failed»."""
+
+    def reject(value: object) -> None:
+        del value
+        raise CapabilityContractError("reference_id must be a canonical document id")
+
+    registry = ExactSchemaRegistry({"urn:korpus:test:v1": reject})
+
+    with pytest.raises(CapabilityContractError, match="canonical document id"):
+        registry.validate("urn:korpus:test:v1", {"x": 1})
+
+
+def test_a_validator_that_returns_a_success_sentinel_is_refused() -> None:
+    """`-> None` означає None. Будь-яке повернення — інший контракт, не «так»."""
+    registry = ExactSchemaRegistry({"urn:korpus:test:v1": lambda value: "ok"})
+
+    with pytest.raises(RuntimeError, match="non-None success sentinel"):
+        registry.validate("urn:korpus:test:v1", {"x": 1})

@@ -1,6 +1,17 @@
 {
   "lowered": [
     {
+      "from": {
+        "lines": 70
+      },
+      "on": "2026-09-08",
+      "path": "apps/api/src/korpus/application/capability_gateway/registry.py",
+      "reason": "Знято `CapabilityRegistry.versions()`: жодного виклику в src, tests, scripts і контрактах. Перелічування версій спроможності — ще й поверхня розкриття, тож покривати його тестом означало б доводити мертвий код.",
+      "to": {
+        "lines": 63
+      }
+    },
+    {
       "new_modules": [
         "apps/api/src/korpus/application/answer_retrieval_gate.py",
         "apps/api/src/korpus/application/pec_adaptive_retrieval.py",
@@ -994,10 +1005,10 @@
       "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
     },
     "apps/api/src/korpus/application/capability_gateway/contracts.py": {
-      "lines": 51,
+      "lines": 53,
       "max_complexity": 6,
       "max_function_args": 2,
-      "max_function_lines": 13,
+      "max_function_lines": 14,
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
@@ -1048,7 +1059,7 @@
       "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
     },
     "apps/api/src/korpus/application/capability_gateway/execution.py": {
-      "lines": 342,
+      "lines": 347,
       "max_complexity": 8,
       "max_function_args": 5,
       "max_function_lines": 60,
@@ -1111,7 +1122,7 @@
       "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
     },
     "apps/api/src/korpus/application/capability_gateway/registry.py": {
-      "lines": 70,
+      "lines": 63,
       "max_complexity": 3,
       "max_function_args": 3,
       "max_function_lines": 9,
@@ -1120,10 +1131,10 @@
       "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
     },
     "apps/api/src/korpus/application/capability_gateway/result.py": {
-      "lines": 182,
+      "lines": 188,
       "max_complexity": 11,
       "max_function_args": 5,
-      "max_function_lines": 67,
+      "max_function_lines": 69,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "PR#44: керований шар спроможностей. Стелі — ТОЧНІ виміри дня інтеграції, не запас: ратчет далі дозволяє лише зменшення."
@@ -6245,6 +6256,43 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+    {
+      "from": {
+        "lines": 51,
+        "max_function_lines": 13
+      },
+      "on": "2026-09-08",
+      "path": "apps/api/src/korpus/application/capability_gateway/contracts.py",
+      "reason": "Три двері, крізь які виклик виходив зі шлюзу НЕОБРОБЛЕНИМ трейсбеком, знайдені тестами покриття 08.09.2026 і закриті іменованими відмовами. (1) `canonical_json_bytes` кодував ПОЗА власним `try`: одиночний сурогат давав UnicodeEncodeError повз єдиний оголошений клас відмови — а на цей клас посилаються `_validate_output`, `_bind_context` і емітер. (2) `_evidence_digest` кликав `.model_dump` на тому, що адаптер поклав у `AdapterExecutionResult.evidence`: словник давав AttributeError, `model_construct`ований конверт — PydanticSerializationError. (3) `_validate_output` ніс недайджестований вихід далі в емітер, де той самий дайджест падав удруге, і вирок OUTPUT_SCHEMA_INVALID мовчки ставав голим INTERNAL_ERROR БЕЗ рядка аудиту. Приріст — умови відмов і по два-три рядки пояснення на кожну; успішний шлях не змінено. Тут — двері (1).",
+      "to": {
+        "lines": 53,
+        "max_function_lines": 14
+      }
+    },
+    {
+      "from": {
+        "lines": 182,
+        "max_function_lines": 67
+      },
+      "on": "2026-09-08",
+      "path": "apps/api/src/korpus/application/capability_gateway/result.py",
+      "reason": "Три двері, крізь які виклик виходив зі шлюзу НЕОБРОБЛЕНИМ трейсбеком, знайдені тестами покриття 08.09.2026 і закриті іменованими відмовами. (1) `canonical_json_bytes` кодував ПОЗА власним `try`: одиночний сурогат давав UnicodeEncodeError повз єдиний оголошений клас відмови — а на цей клас посилаються `_validate_output`, `_bind_context` і емітер. (2) `_evidence_digest` кликав `.model_dump` на тому, що адаптер поклав у `AdapterExecutionResult.evidence`: словник давав AttributeError, `model_construct`ований конверт — PydanticSerializationError. (3) `_validate_output` ніс недайджестований вихід далі в емітер, де той самий дайджест падав удруге, і вирок OUTPUT_SCHEMA_INVALID мовчки ставав голим INTERNAL_ERROR БЕЗ рядка аудиту. Приріст — умови відмов і по два-три рядки пояснення на кожну; успішний шлях не змінено. Тут — двері (2).",
+      "to": {
+        "lines": 188,
+        "max_function_lines": 69
+      }
+    },
+    {
+      "from": {
+        "lines": 342
+      },
+      "on": "2026-09-08",
+      "path": "apps/api/src/korpus/application/capability_gateway/execution.py",
+      "reason": "Три двері, крізь які виклик виходив зі шлюзу НЕОБРОБЛЕНИМ трейсбеком, знайдені тестами покриття 08.09.2026 і закриті іменованими відмовами. (1) `canonical_json_bytes` кодував ПОЗА власним `try`: одиночний сурогат давав UnicodeEncodeError повз єдиний оголошений клас відмови — а на цей клас посилаються `_validate_output`, `_bind_context` і емітер. (2) `_evidence_digest` кликав `.model_dump` на тому, що адаптер поклав у `AdapterExecutionResult.evidence`: словник давав AttributeError, `model_construct`ований конверт — PydanticSerializationError. (3) `_validate_output` ніс недайджестований вихід далі в емітер, де той самий дайджест падав удруге, і вирок OUTPUT_SCHEMA_INVALID мовчки ставав голим INTERNAL_ERROR БЕЗ рядка аудиту. Приріст — умови відмов і по два-три рядки пояснення на кожну; успішний шлях не змінено. Тут — двері (3).",
+      "to": {
+        "lines": 347
+      }
+    },
     {
       "from": {
         "lines": 275
@@ -12324,72 +12372,8 @@
         "max_complexity": 11,
         "max_function_lines": 36
       }
-    },
-    {
-      "from": {
-        "lines": 481,
-        "max_complexity": 13,
-        "max_function_lines": 60
-      },
-      "on": "2026-09-08",
-      "path": "apps/api/src/korpus/application/retrieval_math.py",
-      "reason": "Ітерується ВСЯ пара ступенів до нерухомої точки, не лише словозміна: словотвір лишав по собі закінчення («територіального» → «територіальн» → «територі»), тож функція не мала нерухомої точки. Виміряно на 70 226 словах заморожених наборів: було 70 224 ідемпотентних, стало 70 226.",
-      "to": {
-        "lines": 491,
-        "max_complexity": 13,
-        "max_function_lines": 60
-      }
-    },
-    {
-      "from": {
-        "lines": 159,
-        "max_complexity": 9,
-        "max_function_lines": 34,
-        "max_nesting": 3
-      },
-      "on": "2026-09-08",
-      "path": "scripts/check_stemmer_closure.py",
-      "reason": "Додано властивість НЕРУХОМОЇ ТОЧКИ над усіма `evals/datasets/*.jsonl`. Причина названа: над 24 словами набору відмінків мутація «один оберт» ВИЖИЛА — правило над популяцією, яка не містить випадку, не має зубів. Проба живості: ARMED 4/4.",
-      "to": {
-        "lines": 209,
-        "max_complexity": 9,
-        "max_function_lines": 41,
-        "max_nesting": 4
-      }
-    },
-    {
-      "from": {
-        "lines": 706,
-        "max_complexity": 17,
-        "max_function_lines": 77
-      },
-      "on": "2026-09-08",
-      "path": "scripts/verify_gate_closure.py",
-      "reason": "Вирок гейт-закриття дістав ПОХОДЖЕННЯ: дайджест дерева, генератор і мить зняття. Доти `var/gate-closure.json` читали як опис ЦЬОГО дерева, а він міг бути знятий будь-коли й на будь-якій ревізії — і жодна перевірка цього не бачила.",
-      "to": {
-        "lines": 727,
-        "max_complexity": 17,
-        "max_function_lines": 77
-      }
-    },
-    {
-      "from": {
-        "lines": 125,
-        "max_complexity": 10,
-        "max_function_lines": 51,
-        "max_nesting": 2
-      },
-      "on": "2026-09-08",
-      "path": "scripts/merge_dialect_coverage.py",
-      "reason": "Додано сторожа ПРЕДМЕТА: злиття зіставляє гілки за номерами рядків, тож прогони з різних дерев дають випадкові збіги й ЗАВИЩУЮТЬ покриття. Виміряно: обʼєднання зі звітом дводенної давнини давало 233 непокриті гілки, після перезняття обох діалектів на одному дереві — 247. Чотирнадцять «покритих» існували лише як збіг номерів.",
-      "to": {
-        "lines": 170,
-        "max_complexity": 10,
-        "max_function_lines": 51,
-        "max_nesting": 2
-      }
     }
   ],
-  "recorded_at": "2026-09-07",
+  "recorded_at": "2026-09-08",
   "schema_version": 1
 }

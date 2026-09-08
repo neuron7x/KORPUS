@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime
 from typing import Protocol
 
@@ -237,11 +238,15 @@ class CapabilityExecutor:
             # canonical_json_bytes is this package's own encoder and has exactly one failure:
             # adapter output that is not canonical JSON. That is a schema fault, not an
             # internal one, which is why it keeps the OUTPUT_SCHEMA_INVALID projection.
+            # The output is dropped because it has just been PROVEN undigestible: carried
+            # into the emitter it fails there too, and this verdict degrades to a bare
+            # INTERNAL_ERROR with no audit row at all (measured 08.09.2026). A non-SUCCESS
+            # result never exposes output, so nothing is lost.
             return self._emitter.emit(
                 frame,
                 InvocationOutcome.FAILED,
                 "OUTPUT_SCHEMA_INVALID",
-                material,
+                replace(material, output=None),
             )
         if oversized:
             return self._emitter.emit(

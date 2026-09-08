@@ -255,3 +255,59 @@ def test_runtime_composition_accepts_exact_compensation_graph() -> None:
     gateway = CapabilityGateway(_ports([primary, target], safety))
 
     assert isinstance(gateway, CapabilityGateway)
+
+
+@pytest.mark.parametrize("mode", [CompensationMode.NONE, CompensationMode.PROVIDER_NATIVE])
+def test_compensation_identity_is_valid_only_for_a_compensating_action(
+    mode: CompensationMode,
+) -> None:
+    """Названа спроможність відкоту при режимі, який її не викликає, — мертва обіцянка.
+
+    Оператор прочитав би її як план відкоту; жоден шлях виконання її не торкнеться.
+    """
+    primary = _spec("reference.safety.primary")
+    target = _spec("reference.safety.rollback")
+
+    with pytest.raises(ValueError, match="valid only for COMPENSATING_ACTION"):
+        EffectSafetyDeclaration.for_spec(
+            primary,
+            compensation_mode=mode,
+            irreversible=True,
+            reconciliation_mode=ReconciliationMode.MANUAL,
+            compensation_capability_id=target.capability_id,
+            compensation_capability_version=target.version,
+            operator_rationale="Declares a rollback that its own mode never invokes.",
+        )
+
+
+def test_a_duplicate_effect_safety_declaration_is_refused() -> None:
+    """Дві декларації на один ключ — два різні тлумачення однієї дії."""
+    primary = _spec("reference.safety.primary")
+    registry = EffectSafetyRegistry([_irreversible(primary)])
+
+    with pytest.raises(CapabilityRegistrationError, match="duplicate effect safety declaration"):
+        registry.register(_irreversible(primary))
+
+
+@pytest.mark.parametrize(
+    "field",
+    ["compensation_capability_id", "compensation_capability_version"],
+)
+def test_an_incomplete_compensation_identity_is_reported_by_the_graph(field: str) -> None:
+    """Конструктор цього стану не пускає — перевірка боронить запис ПОВЗ конструктор.
+
+    `model_construct`, десеріалізація чи чужий реєстр можуть віддати декларацію, чия
+    напівназвана ціль відкоту не резолвиться ні в що: граф мусить назвати це помилкою,
+    а не мовчки пропустити спроможність без плану відкоту.
+    """
+    primary = _spec("reference.safety.primary")
+    target = _spec("reference.safety.rollback")
+    declaration = _compensated(primary, target)
+    object.__setattr__(declaration, field, None)
+    safety = EffectSafetyRegistry([declaration, _irreversible(target)])
+
+    errors = effect_safety_graph_errors([primary, target], safety)
+
+    assert errors == (
+        "reference.safety.primary@1.0.0: compensation capability identity is incomplete",
+    )

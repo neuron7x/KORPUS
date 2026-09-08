@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from math import nan
 
+import pytest
 from korpus.application.capability_gateway.mcp_admission import (
     ApprovedMcpMapping,
     DiscoveredMcpTool,
@@ -213,3 +215,50 @@ def test_nonfinite_mcp_schema_is_quarantined_not_hashed() -> None:
 
     assert decision.reason == "schema_not_canonical"
     assert decision.observed_schema_digest is None
+
+
+def _quarantined(spec: CapabilitySpec, approved: ApprovedMcpMapping) -> str:
+    decision = assess_mcp_mapping(spec=spec, approved=approved, discovered=_discovered())
+    assert decision.status is McpAdmissionStatus.QUARANTINE
+    assert decision.admitted is False
+    return decision.reason
+
+
+def test_a_non_mcp_capability_is_quarantined_before_any_comparison() -> None:
+    """Порівняння з відкриттям MCP має сенс лише для спроможності, яка НИМ і є."""
+    spec = _spec().model_copy(update={"provider_type": ProviderType.HTTP})
+
+    assert _quarantined(spec, _mapping()) == "provider_type_not_mcp"
+
+
+@pytest.mark.parametrize(
+    "lifecycle",
+    [
+        CapabilityLifecycle.DISCOVERED_UNTRUSTED,
+        CapabilityLifecycle.DECLARED,
+        CapabilityLifecycle.VALIDATED,
+        CapabilityLifecycle.DISABLED,
+        CapabilityLifecycle.QUARANTINED,
+        CapabilityLifecycle.RETIRED,
+    ],
+)
+def test_a_capability_that_is_not_enabled_is_quarantined(lifecycle: CapabilityLifecycle) -> None:
+    """Збіг із відкриттям не вмикає спроможність: життєвий цикл — локальне рішення."""
+    spec = _spec().model_copy(update={"lifecycle": lifecycle})
+    approved = _mapping()
+
+    assert _quarantined(spec, approved) == "capability_not_enabled"
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("capability_id", "reference.mcp.other"),
+        ("capability_version", "2.0.0"),
+    ],
+)
+def test_an_approval_bound_to_another_capability_is_quarantined(field: str, value: str) -> None:
+    """Затвердження — не вільний папір: воно прив'язане до ТОЧНОЇ пари id@version."""
+    approved = replace(_mapping(), **{field: value})
+
+    assert _quarantined(_spec(), approved) == "local_capability_binding_mismatch"

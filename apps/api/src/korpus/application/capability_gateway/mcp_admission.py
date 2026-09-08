@@ -56,14 +56,14 @@ class McpAdmissionDecision:
 
 
 def mcp_input_schema_digest(schema: object) -> str:
-    """Digest provider schema as canonical JSON or fail closed on non-finite/non-JSON data."""
+    """Digest provider schema as canonical JSON or fail closed on non-finite/non-JSON data.
 
-    try:
-        return payload_digest(schema)
-    except CapabilityContractError:
-        raise
-    except (TypeError, ValueError) as exc:
-        raise CapabilityContractError("MCP input schema is not canonical JSON") from exc
+    `canonical_json_bytes` already normalizes every encoding failure into
+    `CapabilityContractError`; the second translation that used to live here could not fire
+    on any input (08.09.2026) and was removed rather than covered by an impossible test.
+    """
+
+    return payload_digest(schema)
 
 
 def mcp_local_contract_digest(spec: CapabilitySpec) -> str:

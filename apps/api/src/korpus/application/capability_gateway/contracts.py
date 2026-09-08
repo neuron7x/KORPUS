@@ -16,9 +16,11 @@ def canonical_json_bytes(value: object) -> bytes:
             ensure_ascii=False,
             allow_nan=False,
         )
+        # Кодування — всередині сторожа: одиночний сурогат відкидає лише `.encode`,
+        # і UnicodeEncodeError виходив повз єдиний оголошений клас відмови (08.09.2026).
+        return text.encode("utf-8")
     except (TypeError, ValueError) as exc:
         raise CapabilityContractError("payload is not canonical JSON") from exc
-    return text.encode("utf-8")
 
 
 def payload_digest(value: object) -> str:

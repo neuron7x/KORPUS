@@ -94,9 +94,11 @@ class CapabilityResultEmitter:
             output_digest = _strict_optional_digest(carried.output)
             evidence_digest = _evidence_digest(carried.evidence)
             provider_receipt_digest = _strict_optional_digest(carried.provider_receipt)
-        except CapabilityContractError:
+        except (CapabilityContractError, ValueError):
             # Audit append was never attempted. Preserve fail-closed returnability without
             # emitting false operational evidence that the canonical audit sink failed.
+            # ValueError: a `model_construct`ed envelope makes `model_dump` raise
+            # PydanticSerializationError, which escaped this method until 08.09.2026.
             return early_result(
                 InvocationOutcome.FAILED,
                 "INTERNAL_ERROR",
@@ -170,9 +172,13 @@ def _valid_audit_record_id(value: object) -> bool:
     )
 
 
-def _evidence_digest(evidence: EvidenceEnvelope | None) -> str | None:
+def _evidence_digest(evidence: object | None) -> str | None:
     if evidence is None:
         return None
+    if not isinstance(evidence, EvidenceEnvelope):
+        # Adapter-supplied and never checked at runtime: a dict here used to reach
+        # `.model_dump` and raise AttributeError out of the gateway (08.09.2026).
+        raise CapabilityContractError("execution material evidence is not an evidence envelope")
     return _strict_optional_digest(evidence.model_dump(mode="json"))
 
 

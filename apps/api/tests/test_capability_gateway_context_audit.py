@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
+import pytest
 from korpus.application.capability_gateway.audit import (
     InvocationOutcome,
     RepositoryCapabilityAuditSink,
@@ -201,3 +202,23 @@ def test_repository_audit_sink_writes_to_canonical_audit_port() -> None:
         logical_resource="reference:1",
     )
     assert payload["outcome"] == "SUCCESS"
+
+
+def test_binding_an_empty_logical_resource_is_refused() -> None:
+    """Порожній ресурс дав би дайджест контексту, що не адресує нічого."""
+    identity = Identity(subject="reader", roles=frozenset({"user"}))
+    spec = _spec()
+    context = build_invocation_context(
+        identity=identity,
+        spec=spec,
+        request_time=datetime(2026, 9, 4, 11, 0, tzinfo=UTC),
+    )
+
+    for blank in ("", "   ", "\t\n"):
+        with pytest.raises(ValueError, match="logical resource must be non-empty"):
+            bind_invocation_resource(
+                context,
+                identity=identity,
+                spec=spec,
+                logical_resource=blank,
+            )

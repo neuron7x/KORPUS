@@ -55,13 +55,6 @@ class CapabilityRegistry:
             )
         return spec
 
-    def versions(self, capability_id: str) -> tuple[str, ...]:
-        return tuple(
-            sorted(
-                version for registered_id, version in self._specs if registered_id == capability_id
-            )
-        )
-
     def all_specs(self) -> tuple[CapabilitySpec, ...]:
         return tuple(self._specs[key] for key in sorted(self._specs))
 

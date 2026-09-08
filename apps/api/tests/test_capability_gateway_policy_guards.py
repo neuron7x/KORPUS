@@ -89,3 +89,68 @@ def test_a_registered_callable_returning_true_is_accepted() -> None:
     """Негативний контроль: сторожі карають негідний вхід, а не сам шлях."""
     decision = _bridge().authorize_resource(_identity(), _spec(), logical_resource="reference:1")
     assert decision.allowed is True
+
+
+class _BrokenEngine:
+    """Канонічна політика, що падає не своєю помилкою."""
+
+    def require(self, identity: object, permission: str) -> None:
+        del identity, permission
+        raise RuntimeError("policy backend is unreachable")
+
+
+class _SilentEngine:
+    """Політика, що ПОВЕРТАЄ замість того, щоб кинути — тобто не вирішила нічого."""
+
+    def require(self, identity: object, permission: str) -> object:
+        del identity, permission
+        return "allowed"
+
+
+def test_a_policy_backend_failure_is_indeterminate_not_an_allow() -> None:
+    """Помилка інфраструктури не є дозволом і не є відмовою — вона третій стан."""
+    bridge = CapabilityPolicyBridge(
+        _BrokenEngine(),  # type: ignore[arg-type]
+        action_permissions={ACTION: PERMISSION},
+        resource_authorizers={"reference_resource_v1": lambda i, s, r: True},
+    )
+
+    with pytest.raises(CapabilityPolicyIndeterminate, match="could not decide"):
+        bridge.authorize(_identity(), _spec())
+
+
+def test_a_policy_that_returns_instead_of_raising_is_indeterminate() -> None:
+    """`require` оголошений `-> None`; будь-яке повернення означає інший контракт."""
+    bridge = CapabilityPolicyBridge(
+        _SilentEngine(),  # type: ignore[arg-type]
+        action_permissions={ACTION: PERMISSION},
+        resource_authorizers={"reference_resource_v1": lambda i, s, r: True},
+    )
+
+    with pytest.raises(CapabilityPolicyIndeterminate, match="non-None authorization sentinel"):
+        bridge.authorize(_identity(), _spec())
+
+
+class _ForgingBridge(CapabilityPolicyBridge):
+    """Підклас, чий `authorize` повертає не рішення — перевіряє, чи довіряє собі
+    `authorize_resource`."""
+
+    def __init__(self, forged: object, **kwargs: object) -> None:
+        super().__init__(PolicyEngine(), **kwargs)  # type: ignore[arg-type]
+        self._forged = forged
+
+    def authorize(self, identity: object, spec: object) -> object:  # type: ignore[override]
+        del identity, spec
+        return self._forged
+
+
+def test_authorize_resource_does_not_trust_its_own_action_decision_object() -> None:
+    """Статичний тип каже «CapabilityPolicyDecision»; рантайм цього не доводить."""
+    bridge = _ForgingBridge(
+        {"allowed": True},
+        action_permissions={ACTION: PERMISSION},
+        resource_authorizers={"reference_resource_v1": lambda i, s, r: True},
+    )
+
+    with pytest.raises(CapabilityPolicyIndeterminate, match="action decision is invalid"):
+        bridge.authorize_resource(_identity(), _spec(), logical_resource="reference:1")

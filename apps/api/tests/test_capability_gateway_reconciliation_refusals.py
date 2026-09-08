@@ -100,3 +100,67 @@ def test_a_ledger_that_cannot_answer_preserves_ambiguity() -> None:
 
     with pytest.raises(ReconciliationIndeterminate):
         _reconcile(ledger=_Unavailable(_record()), resolver=_Resolver())
+
+
+def test_an_observation_without_a_provider_reference_is_accepted() -> None:
+    """Провайдер може підтвердити наслідок, не назвавши свого посилання."""
+    observation = ReconciliationObservation(
+        disposition=ReconciliationDisposition.CONFIRMED_NO_EFFECT
+    )
+    assert observation.provider_reference is None
+
+
+def test_a_record_bound_to_another_subject_is_a_conflict() -> None:
+    """Реєстр міг віддати чужий запис; звіряння суб'єкта — окрема межа, не наслідок пошуку."""
+
+    class _Careless(_Ledger):
+        def get(self, *, subject_id: str, idempotency_key: str):
+            del subject_id, idempotency_key
+            return self.record
+
+    foreign = _record()
+    object.__setattr__(foreign, "subject_id", "someone-else")
+    ledger = _Careless(foreign)
+    with pytest.raises(ReconciliationConflict, match="subject binding mismatch"):
+        _reconcile(ledger=ledger, resolver=_Resolver())
+
+
+def test_a_resolver_whose_mode_is_not_an_enum_is_a_conflict() -> None:
+    """Рядок «PROVIDER_STATUS_QUERY» дорівнював би режимові лише на вигляд."""
+    resolver = _Resolver()
+    resolver.reconciliation_mode = "PROVIDER_STATUS_QUERY"  # type: ignore[assignment]
+
+    with pytest.raises(ReconciliationConflict, match="resolver mode is invalid"):
+        _reconcile(ledger=_Ledger(_record()), resolver=resolver)
+
+
+def test_a_resolver_that_declares_indeterminacy_keeps_its_own_verdict() -> None:
+    """Резольвер, який САМ каже «не знаю», не має бути переказаний загальним «не вирішив»."""
+    resolver = _Resolver(error=ReconciliationIndeterminate("provider is mid-failover"))
+
+    with pytest.raises(ReconciliationIndeterminate, match="mid-failover"):
+        _reconcile(ledger=_Ledger(_record()), resolver=resolver)
+
+
+def test_an_observation_of_the_wrong_type_preserves_ambiguity() -> None:
+    """Резольвер — впорскуваний порт: анотація не доводить, що він повернув спостереження."""
+
+    class _WrongShape(_Resolver):
+        def observe(self, **kwargs: object) -> ReconciliationObservation:
+            del kwargs
+            return {"disposition": "CONFIRMED_COMMITTED"}  # type: ignore[return-value]
+
+    with pytest.raises(ReconciliationIndeterminate, match="invalid observation"):
+        _reconcile(ledger=_Ledger(_record()), resolver=_WrongShape())
+
+
+def test_a_conflict_raised_by_the_durable_compare_and_set_is_not_rewritten() -> None:
+    """Реєстр уже назвав ТОЧНУ причину розходження — загальне «CAS failed» стерло б її."""
+
+    class _Conflicting(_Ledger):
+        def reconcile(self, **kwargs: object):
+            del kwargs
+            raise ReconciliationConflict("effect was reconciled by a concurrent operator")
+
+    with pytest.raises(ReconciliationConflict, match="concurrent operator"):
+        _reconcile(ledger=_Conflicting(_record()), resolver=_Resolver())

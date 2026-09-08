@@ -36,6 +36,8 @@ def _spec(
     provider: ProviderType = ProviderType.INTERNAL,
     egress: DataEgressClass = DataEgressClass.NONE,
     effect: EffectClass = EffectClass.READ_LOCAL,
+    lifecycle: CapabilityLifecycle = CapabilityLifecycle.ENABLED,
+    input_schema_id: str = "urn:korpus:test:preflight-input:v1",
 ) -> CapabilitySpec:
     return CapabilitySpec(
         schema_version="korpus.capability-spec.v1",
@@ -45,7 +47,7 @@ def _spec(
         provider_type=provider,
         adapter=AdapterSpec(adapter_id="preflight.adapter", adapter_version="1.0.0"),
         effect_class=effect,
-        input_schema_id="urn:korpus:test:preflight-input:v1",
+        input_schema_id=input_schema_id,
         output_schema_id="urn:korpus:test:preflight-output:v1",
         authorization=AuthorizationSpec(
             action="integration:reference:read",
@@ -60,7 +62,7 @@ def _spec(
             max_request_bytes=1024,
             max_response_bytes=1024,
         ),
-        lifecycle=CapabilityLifecycle.ENABLED,
+        lifecycle=lifecycle,
     )
 
 
@@ -156,3 +158,71 @@ def test_internal_provider_cannot_claim_remote_transport_semantics() -> None:
     )
 
     assert any("cannot declare a remote effect class" in error for error in preflight.errors())
+
+
+@pytest.mark.parametrize(
+    "lifecycle",
+    [
+        CapabilityLifecycle.DISCOVERED_UNTRUSTED,
+        CapabilityLifecycle.DECLARED,
+        CapabilityLifecycle.VALIDATED,
+        CapabilityLifecycle.DISABLED,
+        CapabilityLifecycle.QUARANTINED,
+        CapabilityLifecycle.RETIRED,
+    ],
+)
+def test_preflight_judges_only_what_deployment_will_actually_serve(
+    lifecycle: CapabilityLifecycle,
+) -> None:
+    """Незапущена спроможність не має композиції, тож і зауважень до неї бути не може."""
+    preflight = _preflight(
+        _spec(lifecycle=lifecycle),
+        register_adapter=False,
+        include_output_schema=False,
+        include_mapper=False,
+        include_action=False,
+        include_resource_authorizer=False,
+    )
+
+    assert preflight.errors() == ()
+    preflight.require_valid()
+
+
+def test_the_same_incomplete_capability_is_reported_once_enabled() -> None:
+    """Негативний контроль: пропуск дає ENABLED, а не порожній реєстр."""
+    preflight = _preflight(
+        _spec(lifecycle=CapabilityLifecycle.ENABLED),
+        register_adapter=False,
+        include_output_schema=False,
+        include_mapper=False,
+        include_action=False,
+        include_resource_authorizer=False,
+    )
+
+    assert len(preflight.errors()) == 5
+
+
+def test_unregistered_input_schema_is_reported_by_name() -> None:
+    preflight = _preflight(_spec(input_schema_id="urn:korpus:test:absent-input:v1"))
+
+    assert preflight.errors() == (
+        "reference.preflight.read@1.0.0: input schema is not registered: "
+        "urn:korpus:test:absent-input:v1",
+    )
+    with pytest.raises(CapabilityRegistrationError, match="input schema is not registered"):
+        preflight.require_valid()
+
+
+@pytest.mark.parametrize(
+    "egress",
+    [
+        DataEgressClass.PUBLIC_ONLY,
+        DataEgressClass.POLICY_GATED,
+        DataEgressClass.RESTRICTED_NO_EGRESS,
+    ],
+)
+def test_internal_provider_must_declare_egress_none(egress: DataEgressClass) -> None:
+    """Внутрішній постачальник із будь-яким виносом даних — помилка композиції."""
+    preflight = _preflight(_spec(provider=ProviderType.INTERNAL, egress=egress))
+
+    assert any("internal provider must declare data egress NONE" in e for e in preflight.errors())

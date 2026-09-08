@@ -328,3 +328,119 @@ def test_a_ledger_returning_a_non_canonical_state_is_refused() -> None:
 
     with pytest.raises(InvalidEffectReservation, match="state is not canonical"):
         prepare_effect_guard(**_guard_kwargs(_Broken()))  # type: ignore[arg-type]
+
+
+INPUT_DIGEST = "sha256:" + "2" * 64
+
+
+def _bound(spec: object, request: object, identity: object, **overrides: object) -> EffectRecord:
+    """Запис, ТОЧНО зв'язаний із тим самим викликом, який його атестує.
+
+    Інакше перевірка впала б на звірянні полів зв'язування й ніколи не дійшла б до
+    правила, заради якого написаний тест.
+    """
+    fields: dict[str, object] = {
+        "subject_id": identity.subject,  # type: ignore[attr-defined]
+        "idempotency_key": request.idempotency_key,  # type: ignore[attr-defined]
+        "binding_digest": BINDING,
+        "invocation_id": INVOCATION,
+        "capability_id": spec.capability_id,  # type: ignore[attr-defined]
+        "capability_version": spec.version,  # type: ignore[attr-defined]
+        "logical_resource": "reference:1",
+        "input_digest": INPUT_DIGEST,
+        "state": EffectState.PENDING,
+    }
+    fields.update(overrides)
+    return EffectRecord(**fields)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("provider_reference", "provider:42"),
+        ("reconciliation_disposition", ReconciliationDisposition.CONFIRMED_COMMITTED),
+    ],
+)
+def test_a_newly_created_reservation_cannot_already_carry_terminal_provider_state(
+    field: str,
+    value: object,
+) -> None:
+    """Щойно створена резервація не могла ще нічого спостерігати у провайдера.
+
+    Якби могла, реєстр повернув би ЧУЖУ дію під виглядом нової: `created=True` тоді
+    означало б «я її щойно завів», а поля свідчили б, що вона вже десь виконана.
+    """
+    from korpus.application.capability_gateway.effects import (
+        InvalidEffectReservation,
+        _attest_reservation,
+    )
+    from korpus.domain.models import Identity
+
+    from apps.api.tests.test_capability_gateway_port_return_attestation import _request, _spec
+
+    identity = Identity(subject="writer", roles=frozenset({"admin"}))
+    spec, request = _spec(), _request()
+    record = _bound(spec, request, identity)
+    object.__setattr__(record, field, value)
+    with pytest.raises(InvalidEffectReservation, match="terminal provider state"):
+        _attest_reservation(
+            EffectReservation(record=record, created=True),
+            identity=identity,
+            spec=spec,
+            request=request,
+            logical_resource="reference:1",
+            invocation_id=INVOCATION,
+            input_digest=INPUT_DIGEST,
+            binding_digest=BINDING,
+        )
+
+
+def test_a_newly_created_reservation_must_be_pending_and_ours() -> None:
+    """Створена, але вже не PENDING — це знайдена чужа дія, видана за власну."""
+    from korpus.application.capability_gateway.effects import (
+        InvalidEffectReservation,
+        _attest_reservation,
+    )
+    from korpus.domain.models import Identity
+
+    from apps.api.tests.test_capability_gateway_port_return_attestation import _request, _spec
+
+    identity = Identity(subject="writer", roles=frozenset({"admin"}))
+    spec, request = _spec(), _request()
+    record = _bound(spec, request, identity, state=EffectState.COMMITTED)
+    with pytest.raises(InvalidEffectReservation, match="is not PENDING"):
+        _attest_reservation(
+            EffectReservation(record=record, created=True),
+            identity=identity,
+            spec=spec,
+            request=request,
+            logical_resource="reference:1",
+            invocation_id=INVOCATION,
+            input_digest=INPUT_DIGEST,
+            binding_digest=BINDING,
+        )
+
+
+def test_a_clean_new_reservation_is_accepted() -> None:
+    """Негативний контроль: правило карає ТЕРМІНАЛЬНИЙ стан, а не створення."""
+    from korpus.application.capability_gateway.effects import _attest_reservation
+    from korpus.domain.models import Identity
+
+    from apps.api.tests.test_capability_gateway_port_return_attestation import _request, _spec
+
+    identity = Identity(subject="writer", roles=frozenset({"admin"}))
+    spec, request = _spec(), _request()
+    reservation = EffectReservation(record=_bound(spec, request, identity), created=True)
+    assert (
+        _attest_reservation(
+            reservation,
+            identity=identity,
+            spec=spec,
+            request=request,
+            logical_resource="reference:1",
+            invocation_id=INVOCATION,
+            input_digest=INPUT_DIGEST,
+            binding_digest=BINDING,
+        )
+        is reservation
+    )
