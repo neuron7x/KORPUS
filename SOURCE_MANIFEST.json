@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2060,
-  "root_sha256": "3ab6f2af95173c410c89394719ecfc21d55de0b750649465c85c1ed1020adc6c",
+  "root_sha256": "5a4e06df39974c0c7072c6e8f7393edac17cb477d3879ce7db5e960b3ad1d27d",
   "files": [
     {
       "path": ".dockerignore",
@@ -8071,8 +8071,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 727775,
-      "sha256": "7710f6a7ba5a21c63831c81e76f9e7488fb4d15ec91b0271a4eaac236c75579c",
+      "bytes": 730195,
+      "sha256": "5ccd0590a4b89bbd8e6281744a5253a691c39932b336404a5d123be085772e27",
       "mode": "0644"
     },
     {
@@ -11203,8 +11203,8 @@
     },
     {
       "path": "scripts/measure_corpus_integrity.py",
-      "bytes": 18339,
-      "sha256": "26c12833264175c4df68b2626e6f4898d4b642ce14f57d3e5e9391504c110a9b",
+      "bytes": 19119,
+      "sha256": "e50589bd495c3900096323e3517cf32ec2beea8d5f6b95884c5e6c37bc810292",
       "mode": "0755"
     },
     {
@@ -11527,8 +11527,8 @@
     },
     {
       "path": "scripts/recover_sqlite_corpus.py",
-      "bytes": 13029,
-      "sha256": "031f98ba84a89893aae79438e6dc3449bd1ac5da982a1c9e1dfe6860febe84ae",
+      "bytes": 15131,
+      "sha256": "d787e33194d3c018ae20e191405a7c8d279d6aaa27e5c81f7e89352051c9a47d",
       "mode": "0755"
     },
     {

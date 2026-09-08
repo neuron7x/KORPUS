@@ -39,14 +39,28 @@ from typing import Any
 DERIVED_FROM_CHAIN = "audit_heads"
 
 
+class SchemaUnreadable(RuntimeError):
+    """Дерево СХЕМИ не обходиться, тож переліку таблиць не існує.
+
+    Виміряно 08.09.2026 на ТРЕТЬОМУ пошкодженні за добу: `select name from sqlite_master`
+    кинув `database disk image is malformed`, і обидва споживачі цієї функції — вимірювач
+    цілісності й це відновлення — падали трейсбеком там, де мали винести вирок. Названий
+    клас робить межу видимою: це відновлення переносить ДЕРЕВА за схемою, тож без схеми
+    воно не має предмета, і дорога тут одна — відновлення з бекапа.
+    """
+
+
 def unreadable_tables(connection: sqlite3.Connection) -> list[str]:
     """Таблиці, чиє дерево не обходиться. Вимір, а не перелік."""
-    names = [
-        str(row[0])
-        for row in connection.execute(
-            "select name from sqlite_master where type='table' order by name"
-        )
-    ]
+    try:
+        names = [
+            str(row[0])
+            for row in connection.execute(
+                "select name from sqlite_master where type='table' order by name"
+            )
+        ]
+    except sqlite3.DatabaseError as error:
+        raise SchemaUnreadable(f"{type(error).__name__}: {error}") from error
     damaged: list[str] = []
     for name in names:
         try:
@@ -238,7 +252,30 @@ def main() -> int:
         parser.error("--source і --target обов'язкові поза --selftest")
 
     source = sqlite3.connect(f"file:{arguments.source}?mode=ro", uri=True, timeout=30)
-    damaged = unreadable_tables(source)
+    try:
+        damaged = unreadable_tables(source)
+    except SchemaUnreadable as error:
+        source.close()
+        print(
+            json.dumps(
+                {
+                    "source": str(arguments.source),
+                    "status": "REFUSED",
+                    "refusals": [
+                        f"дерево схеми не обходиться ({error}): переліку таблиць не існує, "
+                        "а це відновлення переносить дерева ЗА СХЕМОЮ — предмета немає"
+                    ],
+                    "road": (
+                        "відновлення з бекапа: scripts/restore_sqlite.sh <backup.tar.enc> "
+                        "<каталог>. Втрата — усе, що записано після знімка, і вона мусить "
+                        "лишитись видимою в послідовності журналу"
+                    ),
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 1
     head = head_from_chain(source)
     source.close()
     problems = refusals(arguments.source, arguments.target, damaged)

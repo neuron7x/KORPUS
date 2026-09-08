@@ -146,8 +146,17 @@ def physical_integrity(database: Path) -> dict[str, Any]:
         check = rows[0] if rows == ["ok"] else "; ".join(rows)
     except sqlite3.DatabaseError as error:
         check = f"{type(error).__name__}: {error}"
-    damaged = unreadable_tables(connection)
-    connection.close()
+    try:
+        damaged = unreadable_tables(connection)
+    except sqlite3.DatabaseError as error:
+        # Саме дерево СХЕМИ не обходиться, тож перелічити пошкоджені таблиці нема з чого.
+        # Виміряно 08.09.2026 на третьому пошкодженні за добу: `select ... from
+        # sqlite_master` кинув ту саму помилку. Вимірювач, який тут ПАДАЄ, лишає читача
+        # без вироку рівно там, де вирок найпотрібніший — тому це відмова, не виняток.
+        damaged = ["<sqlite_master недосяжна>"]
+        check = f"{check} | перелік таблиць: {type(error).__name__}: {error}"
+    finally:
+        connection.close()
     return {"readable": check == "ok" and not damaged, "quick_check": check, "damaged": damaged}
 
 
