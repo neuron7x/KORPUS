@@ -40,6 +40,13 @@ ignore = ["RUF001", "RUF002", "RUF003", "E501"]
 "apps/api/migrations/versions/*" = ["I001"]
 # The package-level version alias is a public runtime contract consumed externally.
 "apps/api/src/korpus/__init__.py" = ["F401"]
+# Той самий довід, що й для тестів, і для того самого роду коду. Чотири осі присуду
+# приватні НАВМИСНО: публічна поверхня модуля — `adjudicate` і `presentation`. Цей
+# верифікатор існує рівно щоб перевірити твердження, які модуль пише про ті приватні
+# осі («ця вісь уміє тільки схвалювати або утримуватись»), і дійти до них інакше не
+# можна. Опублікувати їх заради лінтера означало б, що перевірка ЗРУШИЛА предмет —
+# верифікатор перевіряв би поверхню, написану для верифікатора.
+"scripts/run_adjudication_properties.py" = ["SLF001"]
 
 # --- BLE001: four degradation boundaries, not four oversights -----------------
 # Each site below turns an arbitrary failure into a *reported* degraded state and

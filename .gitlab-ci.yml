@@ -148,6 +148,10 @@ repository:validate:
     # тому самоперевірка стоїть ПЕРЕД прогоном, а не поруч із ним.
     - PYTHONPATH=$CI_PROJECT_DIR:$CI_PROJECT_DIR/apps/api/src python scripts/run_admission_differential.py --selftest
     - PYTHONPATH=$CI_PROJECT_DIR:$CI_PROJECT_DIR/apps/api/src python scripts/run_admission_differential.py
+    # Твердження модуля присуду про САМОГО СЕБЕ. Композиція — вичерпно, осі — на
+    # заморожених наборах плюс оголошені свідки.
+    - PYTHONPATH=$CI_PROJECT_DIR:$CI_PROJECT_DIR/apps/api/src python scripts/run_adjudication_properties.py --selftest
+    - PYTHONPATH=$CI_PROJECT_DIR:$CI_PROJECT_DIR/apps/api/src python scripts/run_adjudication_properties.py
     # Permissions as a rule over every tracked file. Ruff states it for Python under four
     # directories; the shell scripts, Dockerfiles, Terraform and manifests had no check.
     - python scripts/check_file_modes.py

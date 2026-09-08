@@ -1,0 +1,102 @@
+{
+  "schema": "korpus.adjudication-properties.v1",
+  "declared_on": "2026-09-08",
+  "subject": "korpus.application.answer_adjudication",
+  "question": "Чи робить модуль присуду те, що САМ про себе каже? Кожне твердження взяте з його докстрінгів дослівно.",
+  "why_this_shape": "Це не друга реалізація, а формалізація ВЛАСНОЇ прози модуля. Диференціал ловить розбіжність двох виражень; тут ловиться розбіжність між кодом і твердженням, яке про нього написане — клас, на якому це дерево вже спотикалось (тест звіряв НАПИСАННЯ і був зелений, поки твердження з його ж докстрінга було хибне).",
+  "why_preregistered": "Твердження і те, що їх спростовує, зафіксовані ДО прогону і прив'язані хешем. Інакше перелік властивостей можна дібрати під те, що вже проходить.",
+  "claims": [
+    {
+      "id": "supported_requires_two_and_no_rejection",
+      "quoted": "`supported` лише коли дві незалежні осі схвалили і жодна не відхилила",
+      "domain": "вичерпно: усі 3^4 = 81 кортежів вироків",
+      "falsified_by": "кортеж, де presentation == supported при менш ніж двох SUPPORTS або за наявності DOES_NOT_SUPPORT, і навпаки"
+    },
+    {
+      "id": "one_rejection_dominates",
+      "quoted": "Відхилення однієї осі важить більше за згоду решти",
+      "domain": "вичерпно: 81 кортеж",
+      "falsified_by": "кортеж із хоча б одним DOES_NOT_SUPPORT, чий присуд не contested"
+    },
+    {
+      "id": "abstention_never_raises_confidence",
+      "quoted": "UNKNOWN не є PASS. Вісь, яка не може винести вирок, каже CANNOT_ADJUDICATE, і це ніколи не підвищує впевненість",
+      "domain": "вичерпно: кожна заміна одного SUPPORTS на CANNOT_ADJUDICATE у кожному з 81 кортежів",
+      "order": "contested < tangential < supported",
+      "falsified_by": "ДВІ умови. (1) кортеж, чий присуд `supported` при менш ніж двох ВИРОКАХ SUPPORTS — тобто утримання зарахувалось як згода; (2) заміна SUPPORTS на CANNOT_ADJUDICATE, після якої присуд СТАВ вищим за порядком",
+      "strengthened_by_negative_control": "Перша редакція мала лише умову (2). Мутант `abstention_counts_as_support` її ПРОХОДИВ: під ним заміна нічого не змінює, бо обидва вироки лічені однаково. Формалізація була слабша за прозу, яку цитує. Умову (1) додано ДО першого прогону над продуктом — жодного вердикту про предмет на слабшій редакції не записано."
+    },
+    {
+      "id": "composition_is_order_independent",
+      "quoted": "Кілька НЕЗАЛЕЖНИХ осей судять про одну цитату (незалежність означає, що порядок не є входом)",
+      "domain": "вичерпно: усі перестановки кожного з 81 кортежів",
+      "falsified_by": "перестановка, що змінює присуд"
+    },
+    {
+      "id": "interrogative_never_rejects",
+      "quoted": "ця вісь уміє тільки схвалювати або утримуватись",
+      "domain": "справжні пари питання-цитата із заморожених наборів evals/datasets",
+      "falsified_by": "пара, на якій вісь повертає DOES_NOT_SUPPORT"
+    },
+    {
+      "id": "contrast_spares_quotes_carrying_both_categories",
+      "quoted": "Речення, що згадує обидві, не відхиляється",
+      "domain": "справжні пари питання-цитата ПЛЮС шість оголошених свідків: заморожені набори не містять ЖОДНОЇ пари цього класу",
+      "falsified_by": "відхилення цитати, яка несе І запитану категорію, І протилежну",
+      "population_must_be_nonempty": "Виміряно 08.09.2026: на самому корпусі мутант `contrast_ignores_presence` НЕ ловився, бо популяція класу порожня, а `all([])` істинне. Свідки — не добір під результат, а створення УМОВИ перевірки; перший узятий дослівно з докстрінга самої осі. Розмір популяції друкується в звіті, щоб порожнеча була видима."
+    },
+    {
+      "id": "unrecognised_kind_abstains",
+      "quoted": "None означає «не знаю», і далі інтеррогативна вісь утримується",
+      "domain": "справжні пари, де question_kind повертає None",
+      "falsified_by": "невпізнаний тип питання, на якому вісь не утрималась"
+    },
+    {
+      "id": "lexical_abstains_only_for_declared_subject",
+      "quoted": "документ оголосив предмет питання; покриття тут структурно сліпе (утримання лише в цьому випадку)",
+      "domain": "сітка покриттів і порогів × subject_declared",
+      "falsified_by": "утримання лексичної осі без оголошеного предмета, або відмова при оголошеному предметі й покритті нижче порога"
+    }
+  ],
+  "negative_control": {
+    "why": "Вісім зелених властивостей без насіяних вад доводять лише, що прогін відбувся. Кожен мутант нижче мусить бути спійманий НАЗВАНОЮ властивістю.",
+    "mutants": [
+      {
+        "id": "one_axis_is_enough",
+        "breaks": "supported_requires_two_and_no_rejection"
+      },
+      {
+        "id": "rejection_ignored",
+        "breaks": "one_rejection_dominates"
+      },
+      {
+        "id": "abstention_counts_as_support",
+        "breaks": "abstention_never_raises_confidence"
+      },
+      {
+        "id": "first_axis_decides",
+        "breaks": "composition_is_order_independent"
+      },
+      {
+        "id": "interrogative_rejects_on_absence",
+        "breaks": "interrogative_never_rejects"
+      },
+      {
+        "id": "contrast_ignores_presence",
+        "breaks": "contrast_spares_quotes_carrying_both_categories"
+      },
+      {
+        "id": "interrogative_supports_unknown_kind",
+        "breaks": "unrecognised_kind_abstains"
+      },
+      {
+        "id": "lexical_abstains_always",
+        "breaks": "lexical_abstains_only_for_declared_subject"
+      }
+    ]
+  },
+  "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+  "ceiling": "rank 4. Вичерпність тут стосується КОМПОЗИЦІЇ (81 кортеж і всі перестановки — повний домен), а не осей: їхні твердження перевіряються на заморожених наборах, тобто на вибірці. Артефакт може лише знижувати впевненість і не засвідчує відсутності вад поза перевіреним доменом.",
+  "amended_on": "2026-09-08",
+  "amendment_provenance": "Обидві правди вище знайдені НЕГАТИВНИМ КОНТРОЛЕМ до першого прогону над продуктом: recall 0.75 показав, що дві з восьми властивостей слабші за твердження, які вони цитують. Правки роблять твердження СИЛЬНІШИМИ, а домен БІЛЬШИМ — напрям, протилежний добору під результат. Порядок подій записаний тут саме для того, щоб його можна було перевірити, а не приймати на слово."
+}

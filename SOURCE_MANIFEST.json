@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2058,
-  "root_sha256": "d622041ec823fc6607d85d8de12f4279c2e6f4fbc26bc08fafef620c9fbb04f6",
+  "file_count": 2060,
+  "root_sha256": "10de6698a2fbc60865c25838251299c4733d568c26ca4cc09ccee54e98a22150",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 67004,
-      "sha256": "1d35d84ab295c71dede4e49f95869c243c604ccaa98846c7a70970cf16a2ab17",
+      "bytes": 67461,
+      "sha256": "6a28815d52f57742dffe6eb175f36e731e735e3ffe5de422d45bb6b98310a78e",
       "mode": "0644"
     },
     {
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 126473,
-      "sha256": "3a3e142ccc46f66f6627cfaf8c3aa37862f4959e8dd3464a6a8aa9c2d09417b3",
+      "bytes": 127404,
+      "sha256": "0538757afaa438e962a98eb68e004bcb35e1fce761575f408ccbb1bc4c2c4ed8",
       "mode": "0644"
     },
     {
@@ -6240,6 +6240,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/assurance/adjudication-properties.v1.json",
+      "bytes": 8866,
+      "sha256": "a3d7a87c3bbff3d6f5cb1571d83142382acf4dcf944869c4a35f942423267281",
+      "mode": "0644"
+    },
+    {
       "path": "config/assurance/admission-differential-protocol.v1.json",
       "bytes": 4196,
       "sha256": "d8a24de5d6077559ecdac378847a2deda8799440cbe7bb6708e2573dbd5088e3",
@@ -8024,7 +8030,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "866e83909ff91446b135108be72d7b50997e174b87f31bf3b24577eceb5e6aab",
+      "sha256": "ed3af2871ebb8eddd521a57bb53beb3a53dc6ee307d8ed2da3cd6bfe9b40ce48",
       "mode": "0644"
     },
     {
@@ -8065,8 +8071,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 724415,
-      "sha256": "a028af3578cc94453dad0058b5d7b100b4b7bd75a5cca1bb3c0188d0dbd24901",
+      "bytes": 725339,
+      "sha256": "ceebbefdafeb54544cb4fd2c00d95ec4378b7eb3ae8cd9f7a9729bbc6144055e",
       "mode": "0644"
     },
     {
@@ -10321,8 +10327,8 @@
     },
     {
       "path": "ruff.toml",
-      "bytes": 8227,
-      "sha256": "207cb269c194f13ffd520e9fb0a4c6f458347e442c50f7b7f2102c5b6a51e752",
+      "bytes": 9127,
+      "sha256": "227dc294d19d64b641ef8dee0b7492a742dd2d45143dd37515f0cd7ea57b6718",
       "mode": "0644"
     },
     {
@@ -11637,6 +11643,12 @@
       "path": "scripts/rls_context.py",
       "bytes": 5833,
       "sha256": "2026ec8f4f8e5be2cae6622f802017c2701e452120d8fc8dd21067e306feee18",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/run_adjudication_properties.py",
+      "bytes": 21298,
+      "sha256": "2e07923322b463d4ea6dd7ee7a64ab247ee8327bbcfa1ab82b35d970ff4c4b53",
       "mode": "0755"
     },
     {
