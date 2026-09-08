@@ -181,9 +181,12 @@ def selftest() -> int:
         )
         try:
             SignedRestoreCodec(b"y" * 32).decode(json.loads(target.read_text(encoding="utf-8")))
-            problems.append("запис прочитано ЧУЖИМ ключем аудиту")
         except RestoreRecordError:
-            pass
+            refused = True
+        else:
+            refused = False
+        if not refused:
+            problems.append("запис прочитано ЧУЖИМ ключем аудиту")
     print(
         json.dumps(
             {"selftest": "korpus.restore-attestation", "cases": 6, "failures": problems},

@@ -199,12 +199,15 @@ def kill_arm(
             child.wait(timeout=10)
     elapsed = time.monotonic() - started
     after = integrity(database)
+    head_error: str | None = None
     try:
         connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True, timeout=30)
         head = int(connection.execute("select sequence from audit_heads").fetchone()[0])
         connection.close()
-    except sqlite3.DatabaseError:
+    except sqlite3.DatabaseError as error:
+        # -1 читалося б як «голови немає». Причина мусить лишитись у звіті.
         head = -1
+        head_error = f"{type(error).__name__}: {error}"
     for suffix in ("", "-wal", "-shm"):
         target = Path(str(database) + suffix)
         if target.exists():
@@ -217,6 +220,7 @@ def kill_arm(
         "kill_interval_seconds": interval,
         "seconds": round(elapsed, 1),
         "head_sequence_after": head,
+        "head_read_error": head_error,
         "intact_after": after["intact"],
         "damage": None if after["intact"] else after,
     }
@@ -241,13 +245,21 @@ def integrity(database: Path) -> dict[str, Any]:
     return {"intact": check == "ok" and not damaged, "quick_check": check, "damaged": damaged}
 
 
-def read_until_killed(database: str, mmap_mib: int) -> None:
+def read_until_killed(database: str, mmap_mib: int, journal: Path) -> None:
     """Читач: скани корпусу і FTS, доки його не спинять.
 
     Останнє, чого бракувало плечам: у продакшені ЗАПИС журналу йде ОДНОЧАСНО з важким
     читанням — пошуком по прольотах і повнотекстовим індексом. Читач сам собою бази не
     псує, але тримає сторінки в кеші, конкурує за памʼять (машина свопить) і змушує WAL
-    до контрольних точок під навантаженням. Це єдина неперевірена комбінація.
+    до контрольних точок під навантаженням.
+
+    ТУТ ЖИЛА ВАДА САМОГО ІНСТРУМЕНТА, знайдена гейтом «голий pass» 08.09.2026: читач
+    ковтав `sqlite3.DatabaseError` мовчки, а його потік помилок ішов у DEVNULL. Саме цим
+    класом приходить «database disk image is malformed» — тобто проба глушила РІВНО той
+    сигнал, заради якого існує, і плече з пошкодженням посеред прогону виглядало б чистим,
+    якби файл устиг полагодитись відкатом WAL. Тепер кожна помилка бази лягає в журнал,
+    який батько збирає у звіт; блокування (`OperationalError`) відділені, бо це черга, а
+    не подія досліду.
     """
     scans = (
         "select count(*) from evidence_spans where text like '%порядок%'",
@@ -260,15 +272,51 @@ def read_until_killed(database: str, mmap_mib: int) -> None:
         try:
             connection = connect(Path(database), mmap_mib)
             connection.execute(scans[index % len(scans)]).fetchone()
-        except sqlite3.DatabaseError:
-            pass
+        except sqlite3.DatabaseError as error:
+            # Правило ЗАМКНЕНЕ: `sqlite3.DatabaseError` рівно цього типу — це коди без
+            # власного підкласу, серед них SQLITE_CORRUPT і SQLITE_NOTADB. Шукати
+            # «malformed» у тексті означало б матчити ВІДКРИТУ множину повідомлень.
+            record = {
+                "at": datetime.now(UTC).isoformat(),
+                "class": type(error).__name__,
+                "error": str(error),
+                "corruption_signal": type(error) is sqlite3.DatabaseError,
+                "contention": isinstance(error, sqlite3.OperationalError),
+            }
+            with journal.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(record, ensure_ascii=False) + "\n")
         finally:
             index += 1
             if connection is not None:
                 connection.close()
 
 
-def _spawn_reader(database: Path, mmap_mib: int) -> subprocess.Popen[bytes]:
+def reader_findings(journal: Path) -> dict[str, Any]:
+    """Що читачі БАЧИЛИ під час прогону. Порожній журнал — теж вимір, і він названий."""
+    if not journal.is_file():
+        return {"observed": 0, "corruption": 0, "locked": 0, "first": []}
+    lines = [line for line in journal.read_text(encoding="utf-8").splitlines() if line.strip()]
+    entries = [json.loads(line) for line in lines]
+    corruption = [entry for entry in entries if entry.get("corruption_signal")]
+    return {
+        "observed": len(entries),
+        "corruption": len(corruption),
+        "other": len(entries) - len(corruption),
+        "first": corruption[:5],
+    }
+
+
+def damage_of(after: dict[str, Any], readers_saw: dict[str, Any]) -> dict[str, Any] | None:
+    """Дві незалежні дороги до вироку «пошкоджено»: підсумкова перевірка і те, що бачив
+    читач ПОСЕРЕД прогону. Друга ловить подію, яку файл міг пережити відкатом WAL."""
+    if not after["intact"]:
+        return after
+    if readers_saw["corruption"]:
+        return {"seen_by_readers": readers_saw["first"]}
+    return None
+
+
+def _spawn_reader(database: Path, mmap_mib: int, journal: Path) -> subprocess.Popen[bytes]:
     return subprocess.Popen(
         [
             sys.executable,
@@ -278,6 +326,8 @@ def _spawn_reader(database: Path, mmap_mib: int) -> subprocess.Popen[bytes]:
             str(database),
             "--mmap-mib",
             str(mmap_mib),
+            "--reader-journal",
+            str(journal),
         ],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -298,7 +348,9 @@ def arm(
     shutil.copyfile(source, database)
     before = integrity(database)
     started = time.monotonic()
-    reader_children = [_spawn_reader(database, mmap_mib) for _ in range(readers)]
+    journal = workdir / f"{name}.reader-errors.jsonl"
+    journal.unlink(missing_ok=True)
+    reader_children = [_spawn_reader(database, mmap_mib, journal) for _ in range(readers)]
     per_writer = max(1, transactions // writers)
     with ProcessPoolExecutor(max_workers=writers) as pool:
         futures = [
@@ -312,6 +364,7 @@ def arm(
         child.wait(timeout=10)
     elapsed = time.monotonic() - started
     after = integrity(database)
+    readers_saw = reader_findings(journal)
     size = database.stat().st_size
     for suffix in ("", "-wal", "-shm"):
         target = Path(str(database) + suffix)
@@ -330,7 +383,11 @@ def arm(
         "bytes_after": size,
         "intact_before": before["intact"],
         "intact_after": after["intact"],
-        "damage": None if after["intact"] else after,
+        # Пошкодження, побачене ПОСЕРЕД прогону, — раніший і сильніший доказ, ніж
+        # підсумкова перевірка: файл міг полагодитись відкатом WAL, і тоді підсумок
+        # мовчить про подію, яка сталася.
+        "readers_observed": readers_saw,
+        "damage": damage_of(after, readers_saw),
     }
 
 
@@ -352,6 +409,13 @@ def selftest() -> int:
             "create table audit_anchor_outbox (sequence bigint primary key, head_hash varchar(64),"
             " created_at datetime, delivered_at datetime);"
             "insert into audit_heads values (1, 0, 'seed');"
+            "create table evidence_spans (id integer primary key, text text);"
+            "create table document_versions (id integer primary key);"
+            "create virtual table evidence_fts using fts5(text);"
+        )
+        connection.executemany(
+            "insert into evidence_spans (text) values (?)",
+            [(f"порядок виконання {index} " + "x" * 400,) for index in range(4000)],
         )
         connection.commit()
         connection.close()
@@ -371,9 +435,44 @@ def selftest() -> int:
             broken.write_bytes(bytes(raw))
         if integrity(broken)["intact"]:
             problems.append("обнулена сторінка не виявлена — дослід сліпий до пошкодження")
+
+        # Сенсор читача мусить мати ВЛАСНИЙ негативний контроль: без нього «читачі нічого
+        # не бачили» означало б лише, що ніхто не дивився. Читача пускають на СВІДОМО
+        # зіпсовану базу; порожній журнал тут — відмова самоперевірки.
+        # Пошкодження в `broken` лягло на сторінку 4 (службове дерево): quick_check його
+        # бачить, а СКАНИ читача — ні. Це виміряна МЕЖА сенсора, і саме тому для нього
+        # готується окрема жертва: сторінка посеред даних `evidence_spans`, тобто там,
+        # куди читач справді ходить. Сенсор ловить те, що лежить на його дорозі, і не
+        # претендує бути повним — повнота лишається за quick_check.
+        seen_by_reader = work / "reader-visible.db"
+        shutil.copyfile(database, seen_by_reader)
+        raw = bytearray(seen_by_reader.read_bytes())
+        middle = (len(raw) // page) // 2
+        raw[page * middle : page * (middle + 1)] = b"\x00" * page
+        seen_by_reader.write_bytes(bytes(raw))
+
+        journal = work / "sensor.jsonl"
+        child = _spawn_reader(seen_by_reader, 0, journal)
+        time.sleep(2.0)
+        child.kill()
+        child.wait(timeout=10)
+        seen = reader_findings(journal)
+        if seen["corruption"] < 1:
+            problems.append(
+                f"читач не поклав пошкодження в журнал: {seen} — сенсор мовчить про те, "
+                "заради чого існує"
+            )
+
+        clean_journal = work / "clean-sensor.jsonl"
+        quiet = _spawn_reader(database, 0, clean_journal)
+        time.sleep(2.0)
+        quiet.kill()
+        quiet.wait(timeout=10)
+        if reader_findings(clean_journal)["corruption"]:
+            problems.append("читач оголосив пошкодження на ЦІЛІЙ базі")
     print(
         json.dumps(
-            {"selftest": "korpus.sqlite-corruption-repro", "cases": 3, "failures": problems},
+            {"selftest": "korpus.sqlite-corruption-repro", "cases": 5, "failures": problems},
             ensure_ascii=False,
         )
     )
@@ -382,7 +481,13 @@ def selftest() -> int:
 
 def _emit(arguments: argparse.Namespace, arms: list[dict[str, Any]], *, kills: int = 0) -> int:
     """Один звіт для обох родів плечей. Вирок і його тлумачення живуть в ОДНОМУ місці."""
-    reproduced = [entry for entry in arms if not entry["intact_after"]]
+    # Плече вважається таким, що ВІДТВОРИЛО, і тоді, коли підсумкова перевірка чиста, а
+    # читач бачив пошкодження посеред прогону: подія сталася, хоч би файл і полагодився.
+    reproduced = [
+        entry
+        for entry in arms
+        if not entry["intact_after"] or entry.get("readers_observed", {}).get("corruption")
+    ]
     budget: dict[str, Any] = {"writers": arguments.writers}
     if kills:
         budget["kills_per_arm"] = kills
@@ -430,6 +535,20 @@ def _emit(arguments: argparse.Namespace, arms: list[dict[str, Any]], *, kills: i
     return 0
 
 
+def run_child_mode(parser: argparse.ArgumentParser, arguments: argparse.Namespace) -> int | None:
+    """Внутрішні режими писаря і читача. None — «це не дочірній режим»."""
+    if arguments.writer_child:
+        write_until_killed(str(arguments.source), arguments.mmap_mib)
+        return 0
+    if not arguments.reader_child:
+        return None
+    if arguments.reader_journal is None:
+        # Читач без журналу знову ковтав би помилки мовчки — рівно та вада, яку тут лікували.
+        parser.error("--reader-journal обовʼязковий у режимі читача")
+    read_until_killed(str(arguments.source), arguments.mmap_mib, arguments.reader_journal)
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path)
@@ -440,17 +559,15 @@ def main() -> int:
     parser.add_argument("--selftest", action="store_true")
     parser.add_argument("--writer-child", action="store_true", help="внутрішній режим писаря")
     parser.add_argument("--reader-child", action="store_true", help="внутрішній режим читача")
+    parser.add_argument("--reader-journal", type=Path, help="куди читач кладе помилки бази")
     parser.add_argument("--readers", type=int, default=0)
     parser.add_argument("--mmap-mib", type=int, default=PRODUCTION_MMAP_MIB)
     parser.add_argument("--kills", type=int, default=0, help="обриви писаря на плече")
     parser.add_argument("--kill-interval", type=float, default=1.0)
     arguments = parser.parse_args()
-    if arguments.writer_child:
-        write_until_killed(str(arguments.source), arguments.mmap_mib)
-        return 0
-    if arguments.reader_child:
-        read_until_killed(str(arguments.source), arguments.mmap_mib)
-        return 0
+    child = run_child_mode(parser, arguments)
+    if child is not None:
+        return child
     if arguments.selftest:
         return selftest()
     if arguments.source is None or not arguments.source.is_file():
