@@ -1,6 +1,6 @@
 """The layering, read off the import graph rather than asserted in a document.
 
-`docs/architecture/SYSTEM_V5.md` states the layers. Until 2026-08-06 nothing checked
+`docs/architecture/SYSTEM.md` states the current boundaries. Until 2026-08-06 nothing checked
 them, and the graph had drifted: `application/ingestion.py` imported the parser
 functions and `application/ingestion_jobs.py` imported `SqlRepository` and
 `SqlIngestionJobQueue` — the two classes that hold every transaction and every
@@ -14,8 +14,8 @@ method from reaching for `queue.engine` and opening a connection outside the ses
 context that sets the RLS identity.
 
 The rule is stated once here, as data, and every violation is reported together. Reading
-the graph is what makes this a check rather than a claim: an `import` is exactly the
-dependency, and there is no way to have one without the checker seeing it.
+the graph exposes static dependencies, including relative and deferred imports.
+Dynamic import calls are outside this check.
 """
 
 from __future__ import annotations

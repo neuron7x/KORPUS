@@ -102,6 +102,30 @@ bypass evidence admission.
 12. Release evidence must bind the exact committed source tree.
 13. Final distribution contents must match the distribution manifest exactly.
 
+## Executable composition boundaries
+
+`korpus.answer_composition.build_answer_service` owns answer-policy, retriever and
+model-adapter composition; the HTTP dependency delegates to this root. One calibration
+profile read supplies both answer thresholds and retrieval/cache identity. Explicitly
+injected model adapters are selected by identity (`is not None`), never truthiness.
+
+The architecture tests resolve absolute, parent-package and relative static imports,
+including deferred imports and package initializers. MCP is a transport layer alongside
+HTTP, not an unrestricted composition root. The Retriever port is included in the
+concrete-implementation check. Dynamic import calls are outside this static check.
+
+Capability invocation attests the returned resource-policy decision before reservation
+or dispatch. Injected schema validators must return exactly `None` on success; any
+other return fails closed on both input and output. Output validation failure after a
+committed effect preserves its committed ledger state to prevent duplicate dispatch.
+
+The governed HTTP read adapter checks a monotonic total deadline before transport,
+between body chunks, at EOF and before returning decoded evidence. Plan-building time
+reduces the initial transport timeout. This is a result-admission deadline, **not a
+preemptive wall-clock bound**: a blocked synchronous transport call is not interrupted.
+
+Verification and remaining limits: `ISSUE_46_BOUNDARY_FIXES.md`.
+
 ## Extraction threshold
 
 A service may be extracted from the modular monolith only after:
