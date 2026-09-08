@@ -1,9 +1,9 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-07T23:38:56.828062+00:00",
+  "generated_at": "2026-09-08T04:47:45.053804+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "d36479fda500f8fc669f3f8a4d073cf9ebe4a3cd1399a83535a276f69675accf",
+  "source_tree_sha256": "677b84b4442030a9c5050819d1124669d7ca1fa4cccbc0601ccfbb97224d80e2",
   "digest_scope": "evidence_paths",
   "items": [
     {
@@ -19,24 +19,29 @@
     },
     {
       "id": "live_vulnerability_scanners",
-      "state": "CLOSED_ANCHORED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
+      "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "container_scanners_current_commit",
+        "security_scanners_current_commit"
+      ],
       "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM"
     },
     {
       "id": "live_postgres_rls",
-      "state": "CLOSED_ANCHORED",
+      "state": "INTERNAL_STALE_EVIDENCE",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "machine_closable": false,
-      "failed_external_checks": [],
+      "externally_satisfied": false,
+      "machine_closable": true,
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "required_proof_class": "REAL_POSTGRESQL"
     },
     {
@@ -217,16 +222,17 @@
     }
   ],
   "counts": {
-    "CLOSED_ANCHORED": 6,
-    "EXTERNAL_REQUIRED": 8
+    "EXTERNAL_REQUIRED": 9,
+    "CLOSED_ANCHORED": 4,
+    "INTERNAL_STALE_EVIDENCE": 1
   },
-  "internal_executable_unresolved": 0,
+  "internal_executable_unresolved": 1,
   "internal_missing_artifact": 0,
-  "internal_stale_evidence": 0,
-  "production_external_or_runtime_unresolved": 8,
+  "internal_stale_evidence": 1,
+  "production_external_or_runtime_unresolved": 9,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "55c6d6dd1abf144e931d25baf6f6fbe422d4a71c56c63ca56e320e469c9ffdf7"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "c0f7fd63ac38149b86deabf2ec6fc2751c32c40f9b52ef080fd2cb8f154de353"
   }
 }

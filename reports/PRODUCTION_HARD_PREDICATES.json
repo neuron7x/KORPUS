@@ -1,16 +1,16 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "d36479fda500f8fc669f3f8a4d073cf9ebe4a3cd1399a83535a276f69675accf",
+  "source_tree_sha256": "677b84b4442030a9c5050819d1124669d7ca1fa4cccbc0601ccfbb97224d80e2",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
   "software_ready_means": "оголошені software_artifacts проходять is_file(); зміст, версія і здатність виконатись не перевіряються",
-  "externally_satisfied": 6,
-  "production_satisfied": 6,
+  "externally_satisfied": 4,
+  "production_satisfied": 4,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 42.857143,
-  "production_completion_percent": 42.857143,
+  "external_completion_percent": 28.571429,
+  "production_completion_percent": 28.571429,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -45,11 +45,14 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
-      "blocks_candidate": false,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "security_scanners_current_commit",
+        "container_scanners_current_commit"
+      ],
       "waived_external_checks": [
         "evidence_attestation_verified",
         "evidence_trusted_signer"
@@ -62,11 +65,13 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
-      "blocks_candidate": false,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "waived_external_checks": []
     },
     {

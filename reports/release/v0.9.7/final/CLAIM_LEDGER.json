@@ -1,8 +1,8 @@
 {
   "schema": "korpus.claim-ledger.v2",
-  "generated_at": "2026-09-07T23:38:56.833121+00:00",
+  "generated_at": "2026-09-08T04:47:45.062223+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "d36479fda500f8fc669f3f8a4d073cf9ebe4a3cd1399a83535a276f69675accf",
+  "source_tree_sha256": "677b84b4442030a9c5050819d1124669d7ca1fa4cccbc0601ccfbb97224d80e2",
   "digest_scope": "evidence_paths",
   "claims": [
     {
@@ -26,7 +26,7 @@
     {
       "id": "CLM-MUTATION",
       "claim": "Declared full mutation catalogue has no surviving valid mutants.",
-      "status": "SUPPORTED",
+      "status": "STALE_EVIDENCE",
       "evidence": "reports/MUTATION_FULL_CATALOGUE_CURRENT.json"
     },
     {

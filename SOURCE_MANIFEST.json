@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2055,
-  "root_sha256": "6f13143f94dddc5e18841367714967b02c42e3b0e702dc57bbc2c969d835b2bc",
+  "file_count": 2056,
+  "root_sha256": "94f43b0c2cb6d7e5f080cab608563b3e8ac22542940bb74627fc7a0a96cb68cd",
   "files": [
     {
       "path": ".dockerignore",
@@ -8059,8 +8059,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 723153,
-      "sha256": "0f03e2664abc91cad02a351f5f9da8f5c4b7c2877463109c09f548ebf5b0d9aa",
+      "bytes": 723632,
+      "sha256": "b9ac053a282cfadfc67f59518322b497e7a4ae43aefb2261c1393776abe4db43",
       "mode": "0644"
     },
     {
@@ -11514,6 +11514,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/recover_sqlite_corpus.py",
+      "bytes": 13029,
+      "sha256": "031f98ba84a89893aae79438e6dc3449bd1ac5da982a1c9e1dfe6860febe84ae",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/recut_span_boundaries.py",
       "bytes": 13388,
       "sha256": "69eb50dcc038a7b0451b6c4ee05bf452521bc9a283f584c4aee7baf2a127f510",
@@ -11611,8 +11617,8 @@
     },
     {
       "path": "scripts/restore_sqlite.sh",
-      "bytes": 4860,
-      "sha256": "b8d592b7edb723f4d7e98ebc31ae27782b4eb6f6728cebf206688d1eb1c64f7c",
+      "bytes": 6576,
+      "sha256": "2701699ec9c5e28aa69a3b60fbde85002c6ec8d1244dae5c65a1988bd891446b",
       "mode": "0755"
     },
     {

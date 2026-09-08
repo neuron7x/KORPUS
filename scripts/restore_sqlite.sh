@@ -13,6 +13,19 @@ umask 077
 script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 root="$(CDPATH= cd -- "$script_dir/.." && pwd)"
 
+# Той самий інтерпретатор, що й у решти дерева. Доти міграція відновленої копії йшла
+# системним `python3`, у якому alembic не встановлений: крок падав на ІМПОРТІ, а
+# попередження казало «could not bring the restored schema to head» — тобто називало
+# наслідок, якого не міряло. Виміряно 08.09.2026: копія БУЛА на head, а попередження
+# стояло в кожному звіті про відновлення.
+if [[ -n "${PYTHON:-}" ]]; then
+  python_bin="$PYTHON"
+elif [[ -x "$root/apps/api/.venv/bin/python" ]]; then
+  python_bin="$root/apps/api/.venv/bin/python"
+else
+  python_bin="$(command -v python3 || command -v python)"
+fi
+
 backup="${1:?usage: restore_sqlite.sh <backup.tar.enc> <target-dir>}"
 target="${2:?usage: restore_sqlite.sh <backup.tar.enc> <target-dir>}"
 : "${KORPUS_BACKUP_ENCRYPTION_KEY_FILE:?KORPUS_BACKUP_ENCRYPTION_KEY_FILE is required}"
@@ -24,7 +37,7 @@ manifest="$backup.json"
 # Before decrypting, not after. The manifest is authenticated with the same key, so a
 # file that was swapped is caught here rather than by whatever the archive turns out to
 # contain.
-python3 "$root/scripts/backup_manifest.py" verify \
+"$python_bin" "$root/scripts/backup_manifest.py" verify \
   --manifest "$manifest" \
   --key-file "$KORPUS_BACKUP_ENCRYPTION_KEY_FILE" \
   --expected-file "$(basename "$backup")" \
@@ -46,17 +59,27 @@ rm -f "$archive"
 
 database="$target/korpus.db"
 [[ -f "$database" ]] || { echo "the archive contains no korpus.db" >&2; exit 65; }
+# АБСОЛЮТНИЙ шлях, і саме тут. Нижче цей шлях розкривався ВСЕРЕДИНІ підоболонки, яка
+# вже зробила `cd apps/api`, тож відносний `var/restored/...` не існував з її каталогу,
+# `cd` падав, і підстановка валила крок цілком. Виміряно 08.09.2026: разом із системним
+# `python3` без alembic це давало ДВІ незалежні поломки, і обидві ховалися за
+# `>/dev/null 2>&1`, лишаючи одне попередження, що називало не свою причину.
+database="$(cd "$(dirname "$database")" && pwd)/$(basename "$database")"
 
 # A backup carries the schema it was taken with. Restoring it to a newer build gives a
 # corpus that opens, passes an integrity check, answers questions — and fails on the
 # first write that needs a column added since. Found on 2026-08-07 by restoring the
 # shipped bundle. The restore brings the schema forward, or says it could not.
 if [[ -f "$root/apps/api/alembic.ini" ]]; then
+  if ! "$python_bin" -c "import alembic" >/dev/null 2>&1; then
+    echo "warning: alembic is not importable by $python_bin; restored schema NOT checked" >&2
+  else
   (
     cd "$root/apps/api"
-    KORPUS_DATABASE_URL="sqlite:///$(cd "$(dirname "$database")" && pwd)/$(basename "$database")" \
-      PYTHONPATH="$root/apps/api/src" python3 -m alembic -c alembic.ini upgrade head
+    KORPUS_DATABASE_URL="sqlite:///$database" \
+      PYTHONPATH="$root/apps/api/src" "$python_bin" -m alembic -c alembic.ini upgrade head
   ) >/dev/null 2>&1 || echo "warning: could not bring the restored schema to head" >&2
+  fi
 fi
 
 # The check that makes this a restore rather than a file copy: the database opens, its

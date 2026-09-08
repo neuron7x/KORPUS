@@ -5156,6 +5156,15 @@
       "proof_lines": 115,
       "reason": "04.09.2026: вирок про прогін закриває NOT_EXECUTED. `required_jobs` живе в конверті, і ніхто не звіряв його з самим `.gitlab-ci.yml`. Виміряно: `gcp:production-contract` біжить БЕЗУМОВНО і ганяє три верифікатори, а серед обов'язкових його не було. Поки він падає, його ловить `failed`; але джоб, що НЕ ЗАПУСТИВСЯ (skipped/created), не є ні впалим, ні відсутнім серед обов'язкових — і прогін лишався б PASS із невиконаною перевіркою. Три факти про один набір джобів (required/unconditional/excused) зведено в `JobCatalogue`, бо трьома параметрами вони тягли форму `adjudicate` за стелю. +4 негативні контролі, з них один валиться при знятті умови."
     },
+    "scripts/recover_sqlite_corpus.py": {
+      "lines": 223,
+      "max_complexity": 11,
+      "max_function_args": 3,
+      "max_function_lines": 44,
+      "max_nesting": 3,
+      "proof_lines": 40,
+      "reason": "Новий виробник відновлення обслуговуваного SQLite-корпусу після пошкодження окремих дерев (08.09.2026). Стеля — ТОЧНИЙ вимір дня появи, не запас."
+    },
     "scripts/recut_span_boundaries.py": {
       "lines": 203,
       "max_complexity": 14,

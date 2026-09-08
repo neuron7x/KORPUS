@@ -58,9 +58,9 @@
       "https://crfm.stanford.edu/helm/capabilities/latest/"
     ]
   },
-  "system_manifest_sha256": "6f24cf8f854d16252f8abcb8f762fe0c10f925834e62d627ca05e88787da1e6b",
-  "system_manifest_root_sha256": "d9fccfdf2ca543159a6616fba25f9a22dcaa4214817c3452c4d2f4b4ab17185f",
-  "source_commit": "43be88ad053deb8bd187a48c0d084b9c06d496a8",
+  "system_manifest_sha256": "28fcde3f06e2dbaecefdedef816bf0ca63a0edf639184f36b509950d42d3039b",
+  "system_manifest_root_sha256": "5a18ce65d5f60fb6fc5fb83b1de1634a24da9c2c87c1e76bb803d53742a05297",
+  "source_commit": "d72bdd7023b973ee03272ef5d9b666df4373ca0f",
   "calibration_status": "UNVALIDATED_TEST_FIXTURE",
   "tevv": {
     "schema_version": 1,
@@ -82,7 +82,7 @@
   "total": 30,
   "pass_rate": 1.0,
   "status_accuracy": 1.0,
-  "citation_checks": 17,
+  "citation_checks": 18,
   "quote_expectations": 15,
   "reason_expectations": 2,
   "citation_failures": 0,
@@ -153,11 +153,12 @@
       "reason_ok": true,
       "leaked": false,
       "deterministic": true,
-      "retrieval_score": 0.5589475397011967,
-      "query_coverage": 0.75,
+      "retrieval_score": 0.5865911708694552,
+      "query_coverage": 1.0,
       "decision_reason": "extractive_claims_passed_calibrated_gates",
       "claims": [
-        "Перед використанням документа користувач зобов’язаний перевірити його редакцію, чинність і джерело оприлюднення."
+        "Перед використанням документа користувач зобов’язаний перевірити його редакцію, чинність і джерело оприлюднення.",
+        "Для доступу до документа система перевіряє роль і рівень доступу користувача."
       ]
     },
     {
@@ -201,7 +202,7 @@
       "reason_ok": true,
       "leaked": false,
       "deterministic": true,
-      "retrieval_score": 0.526231365205258,
+      "retrieval_score": 0.6781498791700292,
       "query_coverage": 1.0,
       "decision_reason": "extractive_claims_passed_calibrated_gates",
       "claims": [
@@ -293,7 +294,7 @@
       "reason_ok": true,
       "leaked": false,
       "deterministic": true,
-      "retrieval_score": 0.2849592080605233,
+      "retrieval_score": 0.3918449054949155,
       "query_coverage": 0.0,
       "decision_reason": "retrieval_gate_failed",
       "claims": []
@@ -552,8 +553,8 @@
   ],
   "provenance": {
     "schema_version": 1,
-    "source_digest": "db3d41d509ed61d8cd1e2701b4c541be4934f8a303d445eb0ccce78d91812692",
+    "source_digest": "529cebea9e89ef6ee545b46337eee9f076a79809d65473bdd9de5a4954b9507d",
     "generator": "scripts/run_evals.py",
-    "generated_at": "2026-09-07T02:17:22+00:00"
+    "generated_at": "2026-09-08T02:17:58+00:00"
   }
 }
