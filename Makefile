@@ -1592,6 +1592,7 @@ production-hard-predicates:
 #   make clean-room SHA=<коміт> ALSO=<url> — плюс другий форж; збіг дайджестів
 #                                            двох незалежних джерел — окрема вісь
 clean-room:
+	@test -n "$(SHA)" || (echo "SHA is required: make clean-room SHA=<коміт>" >&2; exit 2)
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/reproduce_clean_room.py \
 	  $(if $(REMOTE),--remote "$(REMOTE)") $(if $(ALSO),--also "$(ALSO)") --sha "$(SHA)"
 
