@@ -42,6 +42,22 @@ Python: канонічний `apps/api/.venv/bin/python` (Python 3.12); `PYTHONP
 
 ## Межі результату
 
+Незалежний verifier, окремий worktree `a6bfa47f828f624eb3c2356ba475608edf62803c`
+(ті самі два source-коміти): **PASS_WITH_CAVEATS**, блокувальних дефектів не виявлено.
+Власний прогін: **82 composition/architecture + 511 gateway passed**, exit 0.
+Чотири baseline/current порівняння policy/retriever та дві перевірки порядку
+calibration-before-factories пройшли. Мутації в пам'яті: M43 убито;
+schema/policy/deadline дали відповідно **14/9/8 очікуваних падінь**, exit 1.
+Мутантів не збережено у source. Ruff/mypy/module-budget: exit 0.
+
+Незалежний HTTP probe: deadline **20 ms**, блокування **80 ms** → відмова через
+**81.16 / 80.61 ms** для headers/chunk. Це підтверджує межу нижче.
+
+GitHub PR: https://github.com/neuron7x/KORPUS/pull/47 (draft).
+Hosted CI на `bbe97dec`: jobs не стартували через **account billing lock**;
+це повідомлення annotations для `repository-contract`, `research-assurance` і
+`dependency-review`, не висновок із відсутніх логів.
+
 A7 забороняє приймати прострочений результат, але **не перериває заблокований
 синхронний transport**. Жорстка верхня межа wall-clock зайнятості worker лишається
 незакритою; для неї потрібен transport із підтримкою скасування.
