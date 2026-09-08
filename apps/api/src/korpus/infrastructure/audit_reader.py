@@ -21,6 +21,7 @@ from __future__ import annotations
 import hmac
 import json
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy import Engine, func, select
@@ -31,6 +32,12 @@ from korpus.domain.models import AuditVerification, Identity
 from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchorStore
 from korpus.infrastructure.audit_canonical import audit_canonical
 from korpus.infrastructure.audit_event_view import audit_event_view
+from korpus.infrastructure.audit_restore import (
+    RestoreRecord,
+    read_record,
+    restore_summary,
+    rollback_accounted,
+)
 
 
 def iso(value: datetime) -> str:
@@ -217,6 +224,48 @@ class AuditReader:
             rows = connection.execute(statement).mappings().all()
         return [audit_event_view(row) for row in rows]
 
+    def _restore_record(self) -> RestoreRecord | None:
+        """Запис відкату лежить ПОРУЧ із якорем: пояснення живе там, де предмет."""
+        anchor_path = getattr(self.anchor_store, "path", None)
+        if anchor_path is None:
+            return None
+        return read_record(Path(anchor_path).with_suffix(".restore"), self.audit_key)
+
+    def _rollback_state(
+        self,
+        *,
+        anchor_sequence: int,
+        anchor_hash: str,
+        head_sequence: int,
+        anchor_not_ahead: bool,
+    ) -> tuple[RestoreRecord | None, bool]:
+        """Відкат журналу — законна подія (відновлення з бекапа), і доти вона не мала чим
+        себе назвати: єдиною дорогою було стерти якір, тобто знищити доказ. Запис поруч
+        із якорем цю дорогу замінює на підписану й назавжди видиму.
+
+        Читається ЗАВЖДИ, а не лише коли якір попереду: присутність запису при цілому
+        якорі — теж факт, який має бути в знімку. Хеш точки відновлення береться з
+        ланцюга лише тоді, коли розрив справді є; без розриву доводити нема чого, і
+        зайвий запит до бази на кожну пробу готовності — не безкоштовний.
+        """
+        record = self._restore_record()
+        rollback_point_hash: str | None = None
+        if record is not None and not anchor_not_ahead:
+            with self.engine.connect() as connection:
+                rollback_point_hash = connection.execute(
+                    select(self._audits.c.event_hash).where(
+                        self._audits.c.sequence == record.restored_head_sequence
+                    )
+                ).scalar_one_or_none()
+        accounted = rollback_accounted(
+            record,
+            anchor_sequence=anchor_sequence,
+            anchor_hash=anchor_hash,
+            head_sequence=head_sequence,
+            hash_at_restore_point=rollback_point_hash,
+        )
+        return record, accounted
+
     def readiness_snapshot(
         self, *, max_pending_events: int, max_pending_age_seconds: float
     ) -> dict[str, object]:
@@ -263,6 +312,13 @@ class AuditReader:
                 )
             ).scalar_one()
 
+        restore_record, rollback_is_accounted = self._rollback_state(
+            anchor_sequence=int(anchor.sequence),
+            anchor_hash=anchor.head_hash,
+            head_sequence=int(head_sequence),
+            anchor_not_ahead=anchor_not_ahead,
+        )
+
         if anchor.sequence == 0:
             anchor_matches_history = anchor.head_hash == "0" * 64
         elif anchor_not_ahead:
@@ -288,13 +344,21 @@ class AuditReader:
             "anchor_matches_history": anchor_matches_history,
             "anchor_gap_events": anchor_gap,
             "anchor_gap_recoverable": anchor_recoverable,
+            # Розрив НЕ ховається: він лишається в знімку разом із записом, який його
+            # пояснює. «Пояснено» — не «не було».
+            "rollback_events": max(0, int(anchor.sequence) - int(head_sequence)),
+            "rollback_accounted": rollback_is_accounted,
+            "restore_record": restore_summary(restore_record),
             "pending_anchor_events": int(pending_count),
             "oldest_pending_seconds": oldest_age,
             "outbox_within_budget": pending_ok,
             "ready": bool(
                 database_ok
-                and anchor_not_ahead
-                and anchor_matches_history
+                # Дві умови якоря знімає РІВНО перевірений запис відкату і нічого інше:
+                # без нього, з підробленим MAC, із чужим якорем або з точкою, якої нема в
+                # ланцюгу — поведінка та сама, що й була.
+                and (anchor_not_ahead or rollback_is_accounted)
+                and (anchor_matches_history or rollback_is_accounted)
                 and anchor_recoverable
                 and pending_ok
             ),

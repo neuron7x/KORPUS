@@ -2606,13 +2606,22 @@
       "reason": "v0.6.0: stable integrity-chain audit read projection"
     },
     "apps/api/src/korpus/infrastructure/audit_reader.py": {
-      "lines": 301,
+      "lines": 365,
       "max_complexity": 16,
       "max_function_args": 11,
       "max_function_lines": 105,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "v0.6.0: audit event projection extracted; ratchet lowered"
+      "reason": "Читання підписаного запису відкату: `_rollback_state` + виклик у знімку готовності. Стеля функції й складність НЕ піднімались — `readiness_snapshot` розібрано, найгіршою лишилась незмінна `verify_audit` (16/105)."
+    },
+    "apps/api/src/korpus/infrastructure/audit_restore.py": {
+      "lines": 158,
+      "max_complexity": 6,
+      "max_function_args": 5,
+      "max_function_lines": 20,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Новий модуль: підписаний запис законного відкату журналу. Точний поточний вимір — стеля ратчета."
     },
     "apps/api/src/korpus/infrastructure/billing_repository.py": {
       "lines": 386,
@@ -3563,6 +3572,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "03.09.2026: мапа гейт→файл стала ЄДИНОЮ на дерево, і `redteam` показує на внутрішню кампанію. +4 рядки — причина цієї заміни, записана там, де вона діє."
+    },
+    "scripts/attest_restore.py": {
+      "lines": 208,
+      "max_complexity": 7,
+      "max_function_args": 7,
+      "max_function_lines": 40,
+      "max_nesting": 2,
+      "proof_lines": 68,
+      "reason": "Новий виробник: атестація відновлення з бекапа з шістьма відмовами і самоперевіркою. main розібрано на build_parser/assess замість підняття стелі функції."
     },
     "scripts/attribute_audit_keys.py": {
       "lines": 159,
@@ -12464,6 +12482,19 @@
         "max_complexity": 11,
         "max_function_lines": 36
       }
+    },
+    {
+      "closes_when": "COD-001 розсічено далі й читання журналу від'єднано від `SqlRepository`; доти 365 — виміряне число, не бюджет на зростання.",
+      "from": 301,
+      "metric": "lines",
+      "new_modules": [
+        "apps/api/src/korpus/infrastructure/audit_restore.py",
+        "scripts/attest_restore.py"
+      ],
+      "on": "2026-09-08",
+      "path": "apps/api/src/korpus/infrastructure/audit_reader.py",
+      "reason": "Відкат журналу після законного відновлення з бекапа доти не мав чим себе назвати: єдиною дорогою до готовності було СТЕРТИ якір, тобто знищити доказ, заради якого якір існує. +64 рядки — це читання підписаного запису (`_rollback_state`) і його поява у знімку готовності поруч із розривом, який лишається видимим. Стеля функції (105) і складність (16) не рухались: `readiness_snapshot` розібрано, і найгіршою функцією лишилась незмінна `verify_audit`.",
+      "to": 365
     }
   ],
   "recorded_at": "2026-09-08",

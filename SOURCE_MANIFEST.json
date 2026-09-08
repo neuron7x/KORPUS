@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2061,
-  "root_sha256": "7a16f2ce02e422776376a9b81d5b915a66b85884672e6ab9f1d2ba1c53551fcc",
+  "file_count": 2064,
+  "root_sha256": "1c7a83b5ade1a37c593ddab2c4f255b1ac2a8d8af87ed80aa7a638ec5d24af0b",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 128627,
-      "sha256": "a59f05c224e004c07a957f06af101ce6509bd2f1e13b404265a654d53919ebc2",
+      "bytes": 129681,
+      "sha256": "6ec577567d9cb47fccb5e7aed2f16a8d6f2a0e787a2412ece962a63e993e8847",
       "mode": "0644"
     },
     {
@@ -2131,8 +2131,14 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/audit_reader.py",
-      "bytes": 13159,
-      "sha256": "804ff60eceec7bb2ef47ee56c47a95f38cc53bcf0bc18db8de6d74e3f21a602e",
+      "bytes": 16792,
+      "sha256": "65ccc974647a3640d524f6211dddbe4fd27f8066d0a6ca7b0842d24da325beb8",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/audit_restore.py",
+      "bytes": 7993,
+      "sha256": "b2a3170b52cd7660608facefbfa1aa1c15599ae2380b939fcae3c4c70ec27bcb",
       "mode": "0644"
     },
     {
@@ -3021,6 +3027,12 @@
       "path": "apps/api/tests/test_audit_reader_seam.py",
       "bytes": 7587,
       "sha256": "df21401ab81060045273f30472da5e6c555011dc44dcb390ec592254bb700bef",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_audit_restore_record.py",
+      "bytes": 7788,
+      "sha256": "e93608539ad12048e37c232396515f4438d130e05c39b705c943e2fc8846e774",
       "mode": "0644"
     },
     {
@@ -8071,8 +8083,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 732552,
-      "sha256": "216013eabf9d3ccf9def6e590c92e2c9e216fa035f6cadef182eaa203e04ad35",
+      "bytes": 735047,
+      "sha256": "0d2ea837a46c032a1feaa3949d5c49bd5d81131ab50c98ca8a1cfce2f23fa4bc",
       "mode": "0644"
     },
     {
@@ -10353,6 +10365,12 @@
       "path": "scripts/assemble_production_assurance.py",
       "bytes": 5144,
       "sha256": "bcf5c2b72d62a9cf270947f04fadb7738e3e8940600f696cbbb453e3ac82b820",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/attest_restore.py",
+      "bytes": 12209,
+      "sha256": "5da3a314841392400d4f741351cedf73c400b037e092b07a34655e5b443bc347",
       "mode": "0755"
     },
     {
