@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2045,
-  "root_sha256": "582f98ce9ba608ae79559f2e228100f84620449f1b7629f294fb82a564c46fd5",
+  "file_count": 2049,
+  "root_sha256": "5d952043edd01f6edf8320c471c26e99cdadc5e503ea7aa51b5d801b2ffc2bb8",
   "files": [
     {
       "path": ".dockerignore",
@@ -2916,6 +2916,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_answer_snapshot_authority.py",
+      "bytes": 5488,
+      "sha256": "b947434727542a9110433dd8779dbd14eca800777226cdd38f8aed24f18e0caf",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_answers.py",
       "bytes": 9444,
       "sha256": "1b2bcb1b15096296ea07e1475726d9bc00bc80cbea065e1ae9c6b19a1fdb56ff",
@@ -3289,8 +3295,8 @@
     },
     {
       "path": "apps/api/tests/test_capability_gateway_effects_port_returns.py",
-      "bytes": 7159,
-      "sha256": "13a7a2cdf53666782a900b8d0781e2648e4e8546efda8893205e266fee206b81",
+      "bytes": 15657,
+      "sha256": "8963481763fe2aa2b43eb076afa9bb88809eb90ec24a47df25141c0a9d0a668e",
       "mode": "0644"
     },
     {
@@ -3324,9 +3330,21 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_capability_gateway_internal_adapter_refusals.py",
+      "bytes": 2736,
+      "sha256": "1b3970c657344f963029999026fc702da5ac7cd484bd103b9036929822be0450",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_capability_gateway_invoke.py",
       "bytes": 20090,
       "sha256": "4cbfabfa29d3231907047e32379a7d91a6ce3ea92d64d8949d85ec4f7ff2bfbc",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_invoke_projections.py",
+      "bytes": 4599,
+      "sha256": "4f86c0aa4342e99fc5427bfda91d97df88fd3c96f14f67e4a8cf2b22bfae34f6",
       "mode": "0644"
     },
     {
@@ -3453,6 +3471,12 @@
       "path": "apps/api/tests/test_capability_gateway_verification_state.py",
       "bytes": 7666,
       "sha256": "ef7675ed0bbb73fbf370e2604ee638b0ed8ac03bec6e155eff8c557660d4c9d0",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_observability_dimensions.py",
+      "bytes": 2629,
+      "sha256": "ea63b10fd0ffcdc01de640b05453575980811a5d82dca405667c8066d0a8bd57",
       "mode": "0644"
     },
     {

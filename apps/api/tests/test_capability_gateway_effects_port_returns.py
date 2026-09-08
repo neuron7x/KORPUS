@@ -143,3 +143,188 @@ def test_a_reservation_whose_created_flag_is_not_boolean_is_refused() -> None:
             input_digest="sha256:" + "2" * 64,
             binding_digest=BINDING,
         )
+
+
+def _reconciled(**overrides: object) -> EffectRecord:
+    base: dict[str, object] = {
+        "state": EffectState.RECONCILED,
+        "reconciliation_disposition": ReconciliationDisposition.CONFIRMED_COMMITTED,
+        "provider_reference": "provider:42",
+    }
+    base.update(overrides)
+    return _record(**base)
+
+
+def test_a_reconciled_result_that_is_not_a_record_is_refused() -> None:
+    """Узгодження теж повертає порт, і теж не є істиною через анотацію типу."""
+    from korpus.application.capability_gateway.effects import attest_reconciled_effect
+
+    with pytest.raises(InvalidEffectTransition, match="invalid reconciled record type"):
+        attest_reconciled_effect(
+            _record(),
+            {"state": "RECONCILED"},
+            disposition=ReconciliationDisposition.CONFIRMED_COMMITTED,
+            provider_reference="provider:42",
+        )
+
+
+def test_reconciliation_that_changed_immutable_binding_is_refused() -> None:
+    from korpus.application.capability_gateway.effects import attest_reconciled_effect
+
+    with pytest.raises(InvalidEffectTransition, match="immutable reservation binding"):
+        attest_reconciled_effect(
+            _record(),
+            _reconciled(logical_resource="reference:99"),
+            disposition=ReconciliationDisposition.CONFIRMED_COMMITTED,
+            provider_reference="provider:42",
+        )
+
+
+def test_reconciliation_that_did_not_persist_reconciled_state_is_refused() -> None:
+    from korpus.application.capability_gateway.effects import attest_reconciled_effect
+
+    updated = _record(state=EffectState.COMMITTED, provider_reference="provider:42")
+    with pytest.raises(InvalidEffectTransition, match="did not persist RECONCILED"):
+        attest_reconciled_effect(
+            _record(),
+            updated,
+            disposition=ReconciliationDisposition.CONFIRMED_COMMITTED,
+            provider_reference="provider:42",
+        )
+
+
+def test_reconciliation_with_a_different_disposition_is_refused() -> None:
+    """Записане розпорядження мусить бути ТИМ, яке спостерігав провайдер."""
+    from korpus.application.capability_gateway.effects import attest_reconciled_effect
+
+    with pytest.raises(InvalidEffectTransition, match="disposition does not match"):
+        attest_reconciled_effect(
+            _record(),
+            _reconciled(reconciliation_disposition=ReconciliationDisposition.CONFIRMED_NO_EFFECT),
+            disposition=ReconciliationDisposition.CONFIRMED_COMMITTED,
+            provider_reference="provider:42",
+        )
+
+
+def test_reconciliation_with_a_different_provider_reference_is_refused() -> None:
+    from korpus.application.capability_gateway.effects import attest_reconciled_effect
+
+    with pytest.raises(InvalidEffectTransition, match="provider reference does not match"):
+        attest_reconciled_effect(
+            _record(),
+            _reconciled(provider_reference="provider:other"),
+            disposition=ReconciliationDisposition.CONFIRMED_COMMITTED,
+            provider_reference="provider:42",
+        )
+
+
+def test_a_faithful_reconciliation_is_accepted() -> None:
+    """Негативний контроль: перевірки карають РОЗБІЖНІСТЬ, не саме узгодження."""
+    from korpus.application.capability_gateway.effects import attest_reconciled_effect
+
+    updated = _reconciled()
+    assert (
+        attest_reconciled_effect(
+            _record(),
+            updated,
+            disposition=ReconciliationDisposition.CONFIRMED_COMMITTED,
+            provider_reference="provider:42",
+        )
+        is updated
+    )
+
+
+def test_effect_binding_without_an_idempotency_key_is_refused() -> None:
+    """Прив'язка ефекту без ключа ідемпотентності не адресує жодної резервації."""
+    from korpus.application.capability_gateway.contracts import CapabilityContractError
+    from korpus.application.capability_gateway.effects import effect_binding_digest
+    from korpus.domain.models import Identity
+
+    from apps.api.tests.test_capability_gateway_port_return_attestation import _request, _spec
+
+    with pytest.raises(CapabilityContractError, match="requires an idempotency key"):
+        effect_binding_digest(
+            identity=Identity(subject="writer", roles=frozenset({"admin"})),
+            spec=_spec(),
+            request=_request(),
+            logical_resource="reference:1",
+        )
+
+
+def _guard_kwargs(ledger: object, **overrides: object) -> dict[str, object]:
+    from korpus.domain.models import Identity
+
+    from apps.api.tests.test_capability_gateway_effects import _request as _effect_request
+    from apps.api.tests.test_capability_gateway_effects import _spec as _effect_spec
+
+    kwargs: dict[str, object] = {
+        "identity": Identity(subject="writer", roles=frozenset({"admin"})),
+        "spec": _effect_spec(),
+        "request": _effect_request(),
+        "logical_resource": "reference:1",
+        "invocation_id": INVOCATION,
+        "ledger": ledger,
+        "explicit_effect_authorized": True,
+    }
+    kwargs.update(overrides)
+    return kwargs
+
+
+def test_an_effectful_invocation_without_an_idempotency_key_is_refused() -> None:
+    """Ефектний виклик без ключа не має чим боронитись від повтору."""
+    from korpus.application.capability_gateway.contracts import CapabilityContractError
+    from korpus.application.capability_gateway.effects import prepare_effect_guard
+
+    from apps.api.tests.test_capability_gateway_effects import _MemoryLedger
+    from apps.api.tests.test_capability_gateway_effects import _request as _effect_request
+
+    with pytest.raises(CapabilityContractError, match="requires an idempotency key"):
+        prepare_effect_guard(
+            **_guard_kwargs(_MemoryLedger(), request=_effect_request(key=None))  # type: ignore[arg-type]
+        )
+
+
+def test_a_ledger_returning_a_non_record_reservation_is_refused() -> None:
+    """Порт віддав резервацію без запису — це не «порожній результат», це відмова."""
+    from korpus.application.capability_gateway.effects import (
+        InvalidEffectReservation,
+        prepare_effect_guard,
+    )
+
+    class _Broken:
+        def reserve(self, **kwargs: object) -> EffectReservation:
+            reservation = EffectReservation(record=_record(), created=True)
+            object.__setattr__(reservation, "record", {"state": "PENDING"})
+            return reservation
+
+    with pytest.raises(InvalidEffectReservation, match="invalid record type"):
+        prepare_effect_guard(**_guard_kwargs(_Broken()))  # type: ignore[arg-type]
+
+
+def test_a_ledger_returning_a_non_canonical_state_is_refused() -> None:
+    """Стан поза перелічення — не «інший стан», а неканонічний."""
+    from korpus.application.capability_gateway.effects import (
+        InvalidEffectReservation,
+        prepare_effect_guard,
+    )
+
+    class _Broken:
+        def reserve(self, **kwargs: object) -> EffectReservation:
+            # Запис будується З САМИХ АРГУМЕНТІВ: інакше спрацьовує попередня перевірка
+            # прив'язки, і тест міряв би не ту умову.
+            record = EffectRecord(
+                subject_id=kwargs["subject_id"],  # type: ignore[arg-type]
+                idempotency_key=kwargs["idempotency_key"],  # type: ignore[arg-type]
+                binding_digest=kwargs["binding_digest"],  # type: ignore[arg-type]
+                invocation_id=kwargs["invocation_id"],  # type: ignore[arg-type]
+                capability_id=kwargs["capability_id"],  # type: ignore[arg-type]
+                capability_version=kwargs["capability_version"],  # type: ignore[arg-type]
+                logical_resource=kwargs["logical_resource"],  # type: ignore[arg-type]
+                input_digest=kwargs["input_digest"],  # type: ignore[arg-type]
+                state=EffectState.PENDING,
+            )
+            object.__setattr__(record, "state", "PENDING")
+            return EffectReservation(record=record, created=False)
+
+    with pytest.raises(InvalidEffectReservation, match="state is not canonical"):
+        prepare_effect_guard(**_guard_kwargs(_Broken()))  # type: ignore[arg-type]
