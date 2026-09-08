@@ -2,7 +2,7 @@
   "schema": "korpus.clean-room-remote.v1",
   "class": "REMOTE_SOURCE_FRESH_DEPENDENCIES",
   "distinguishes_from": "verify-clean-clone (клонує з локального ROOT, симлінкує батьківський .venv)",
-  "candidate_sha": "25d4aef424e6d19b92f29a5a2d9dc457ef1c65ed",
+  "candidate_sha": "42ad433bf7753fd7a4b30f3dcf8aa9f5b032d2f4",
   "environment": "fresh venv from remote clone",
   "dependency_freeze_sha256": "9d5ed9851ad4d01ac350ec48576f9fb70345770e0198bd7f9963f109b063f134",
   "pytest_exit_code": 0,
@@ -13,8 +13,8 @@
     "skipped": 48
   },
   "status": "PASS",
-  "generated_at": "2026-09-08T06:32:45.240931+00:00",
-  "source_tree_sha256": "6f30e518cdbe918760d91dde177f0963caeb0703f124c3b710d6489829af73ed",
+  "generated_at": "2026-09-08T08:21:38.880472+00:00",
+  "source_tree_sha256": "8042c4189b4567be619fd85ce733fb05d71f8b09798065976b1925227a1a0ef4",
   "digest_scope": "evidence_paths",
   "release": "v0.9.7",
   "remote": "https://gitlab.com/neuron7x/korpus-platform.git",
@@ -23,7 +23,7 @@
   "remote_class": "TRUNK",
   "mirror": {
     "remote": "git@github.com:neuron7x/KORPUS.git",
-    "source_tree_sha256": "6f30e518cdbe918760d91dde177f0963caeb0703f124c3b710d6489829af73ed",
+    "source_tree_sha256": "8042c4189b4567be619fd85ce733fb05d71f8b09798065976b1925227a1a0ef4",
     "status": "PASS",
     "digests_agree": true
   }

@@ -2,7 +2,7 @@
   "schema": "korpus.regression-merge.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "6f30e518cdbe918760d91dde177f0963caeb0703f124c3b710d6489829af73ed",
+  "source_digest": "8042c4189b4567be619fd85ce733fb05d71f8b09798065976b1925227a1a0ef4",
   "collection_digest": "6ed47d7d9a8182daedea92151f9bb07e1a9232c1b0cbe20f2817a5b79456bfaa",
   "collection_count": 4826,
   "shards": 24,
