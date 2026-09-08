@@ -2,14 +2,14 @@
   "schema": "korpus.coverage-gap-plan.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "d13f80217b69aef3c0b8b855b4e4d3348e98d52318131af6aeee0ca90a186375",
-  "statement_rate": 0.97096831,
-  "branch_rate": 0.95421245,
+  "source_tree_sha256": "6f30e518cdbe918760d91dde177f0963caeb0703f124c3b710d6489829af73ed",
+  "statement_rate": 0.97267615,
+  "branch_rate": 0.95696305,
   "minimum_statement_rate": 0.95,
   "minimum_branch_rate": 0.9,
-  "remaining_missing_branches": 200,
-  "missing_branch_ceiling": 220,
-  "missing_branch_regression": -20,
+  "remaining_missing_branches": 212,
+  "missing_branch_ceiling": 212,
+  "missing_branch_regression": 0,
   "priority_queue": [
     {
       "path": "infrastructure/repository.py",
@@ -20,17 +20,17 @@
     },
     {
       "path": "application/answer_snapshot.py",
-      "missing_branches": 12,
-      "branch_rate": 0.142857,
+      "missing_branches": 8,
+      "branch_rate": 0.428571,
       "risk_weight": 2.0,
-      "priority": 24.0
+      "priority": 16.0
     },
     {
       "path": "infrastructure/corpus_snapshot.py",
-      "missing_branches": 8,
-      "branch_rate": 0.733333,
+      "missing_branches": 5,
+      "branch_rate": 0.833333,
       "risk_weight": 3.0,
-      "priority": 24.0
+      "priority": 15.0
     },
     {
       "path": "infrastructure/rls_repository.py",
@@ -59,6 +59,20 @@
       "branch_rate": 0.8,
       "risk_weight": 3.0,
       "priority": 12.0
+    },
+    {
+      "path": "repository_requirements.py",
+      "missing_branches": 9,
+      "branch_rate": 0.785714,
+      "risk_weight": 1.0,
+      "priority": 9.0
+    },
+    {
+      "path": "infrastructure/capability_effect_ledger.py",
+      "missing_branches": 3,
+      "branch_rate": 0.916667,
+      "risk_weight": 3.0,
+      "priority": 9.0
     },
     {
       "path": "cli.py",
@@ -208,6 +222,13 @@
       "priority": 6.0
     },
     {
+      "path": "application/assurance_evidence.py",
+      "missing_branches": 2,
+      "branch_rate": 0.5,
+      "risk_weight": 2.0,
+      "priority": 4.0
+    },
+    {
       "path": "application/billing_adjudication.py",
       "missing_branches": 2,
       "branch_rate": 0.933333,
@@ -292,6 +313,13 @@
       "priority": 4.0
     },
     {
+      "path": "application/retrieval_math.py",
+      "missing_branches": 2,
+      "branch_rate": 0.958333,
+      "risk_weight": 2.0,
+      "priority": 4.0
+    },
+    {
       "path": "application/training_progression.py",
       "missing_branches": 2,
       "branch_rate": 0.857143,
@@ -341,6 +369,13 @@
       "priority": 3.0
     },
     {
+      "path": "api/routes_health.py",
+      "missing_branches": 1,
+      "branch_rate": 0.916667,
+      "risk_weight": 3.0,
+      "priority": 3.0
+    },
+    {
       "path": "api/routes_review.py",
       "missing_branches": 1,
       "branch_rate": 0.75,
@@ -355,6 +390,13 @@
       "priority": 3.0
     },
     {
+      "path": "infrastructure/audit_reader.py",
+      "missing_branches": 1,
+      "branch_rate": 0.964286,
+      "risk_weight": 3.0,
+      "priority": 3.0
+    },
+    {
       "path": "infrastructure/embedding_envelope.py",
       "missing_branches": 1,
       "branch_rate": 0.875,
@@ -365,6 +407,13 @@
       "path": "infrastructure/gcp_identity.py",
       "missing_branches": 1,
       "branch_rate": 0.916667,
+      "risk_weight": 3.0,
+      "priority": 3.0
+    },
+    {
+      "path": "infrastructure/integrations/http.py",
+      "missing_branches": 1,
+      "branch_rate": 0.981481,
       "risk_weight": 3.0,
       "priority": 3.0
     },
@@ -495,6 +544,13 @@
       "priority": 2.0
     },
     {
+      "path": "application/extraction_quality.py",
+      "missing_branches": 1,
+      "branch_rate": 0.916667,
+      "risk_weight": 2.0,
+      "priority": 2.0
+    },
+    {
       "path": "application/final_release_authorization.py",
       "missing_branches": 1,
       "branch_rate": 0.5,
@@ -554,13 +610,6 @@
       "path": "application/retrieval_hybrid.py",
       "missing_branches": 1,
       "branch_rate": 0.9,
-      "risk_weight": 2.0,
-      "priority": 2.0
-    },
-    {
-      "path": "application/retrieval_math.py",
-      "missing_branches": 1,
-      "branch_rate": 0.97619,
       "risk_weight": 2.0,
       "priority": 2.0
     },

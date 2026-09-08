@@ -1,9 +1,9 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-08T04:47:45.053804+00:00",
+  "generated_at": "2026-09-08T06:23:47.883143+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "677b84b4442030a9c5050819d1124669d7ca1fa4cccbc0601ccfbb97224d80e2",
+  "source_tree_sha256": "6f30e518cdbe918760d91dde177f0963caeb0703f124c3b710d6489829af73ed",
   "digest_scope": "evidence_paths",
   "items": [
     {
@@ -27,21 +27,20 @@
       "machine_closable": false,
       "failed_external_checks": [
         "container_scanners_current_commit",
+        "gate_source_bound",
         "security_scanners_current_commit"
       ],
       "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM"
     },
     {
       "id": "live_postgres_rls",
-      "state": "INTERNAL_STALE_EVIDENCE",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "machine_closable": true,
-      "failed_external_checks": [
-        "gate_source_bound"
-      ],
+      "externally_satisfied": true,
+      "machine_closable": false,
+      "failed_external_checks": [],
       "required_proof_class": "REAL_POSTGRESQL"
     },
     {
@@ -222,17 +221,16 @@
     }
   ],
   "counts": {
-    "EXTERNAL_REQUIRED": 9,
-    "CLOSED_ANCHORED": 4,
-    "INTERNAL_STALE_EVIDENCE": 1
+    "CLOSED_ANCHORED": 5,
+    "EXTERNAL_REQUIRED": 9
   },
-  "internal_executable_unresolved": 1,
+  "internal_executable_unresolved": 0,
   "internal_missing_artifact": 0,
-  "internal_stale_evidence": 1,
+  "internal_stale_evidence": 0,
   "production_external_or_runtime_unresolved": 9,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "c0f7fd63ac38149b86deabf2ec6fc2751c32c40f9b52ef080fd2cb8f154de353"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "17981c09a8d8416713ff59ce3204ed02514147d87d56c072121671b2639eead2"
   }
 }

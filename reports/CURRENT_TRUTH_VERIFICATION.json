@@ -2,7 +2,7 @@
   "schema": "korpus.current-truth-verification.v2",
   "status": "FAIL",
   "release": "v0.9.7",
-  "source_tree_sha256": "677b84b4442030a9c5050819d1124669d7ca1fa4cccbc0601ccfbb97224d80e2",
+  "source_tree_sha256": "6f30e518cdbe918760d91dde177f0963caeb0703f124c3b710d6489829af73ed",
   "checks": {
     "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.present": true,
     "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.scope_named": true,
@@ -27,10 +27,10 @@
     "CLAIM_LEDGER.supported_evidence_resolves": true,
     "CLAIM_LEDGER.supported_unresolved_zero": true,
     "CLAIM_LEDGER.has_supported_claims": true,
-    "CLAIM_LEDGER.every_claim_decided_by_evidence": false,
+    "CLAIM_LEDGER.every_claim_decided_by_evidence": true,
     "BLOCKER_REGISTRY.current_state_present": true,
     "BLOCKER_REGISTRY.hard_predicate_report_current": true,
-    "BLOCKER_REGISTRY.internal_executable_unresolved_zero": false,
+    "BLOCKER_REGISTRY.internal_executable_unresolved_zero": true,
     "BLOCKER_REGISTRY.source_bound_current": true,
     "BLOCKER_REGISTRY.release_bound_current": true,
     "BLOCKER_REGISTRY.evidence_inputs_current": true,
@@ -66,8 +66,6 @@
     "PACKAGE_BUILD.release_bound": true
   },
   "failures": [
-    "BLOCKER_REGISTRY.internal_executable_unresolved_zero",
-    "CLAIM_LEDGER.every_claim_decided_by_evidence",
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.source_bound"
   ]
 }
