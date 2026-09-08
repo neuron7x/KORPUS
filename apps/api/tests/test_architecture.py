@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import ast
 from collections import defaultdict
+from importlib.util import resolve_name
 from pathlib import Path
 from uuid import uuid4
 
@@ -38,6 +39,7 @@ LAYERS: dict[str, int] = {
     "security": 1,
     "infrastructure": 2,
     "api": 3,
+    "mcp": 3,
 }
 
 #: Modules directly under `korpus/` are the composition root: `composition.py` wires the
@@ -70,8 +72,14 @@ def _imports(path: Path) -> list[tuple[str, int]]:
     found: list[tuple[str, int]] = []
     tree = ast.parse(path.read_text(encoding="utf-8"))
     for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module:
-            found.append((node.module, node.lineno))
+        if isinstance(node, ast.ImportFrom):
+            module = node.module or ""
+            if node.level:
+                relative = path.relative_to(SRC).with_suffix("")
+                package = ".".join(("korpus", *relative.parts[:-1]))
+                module = resolve_name("." * node.level + module, package)
+            found.append((module, node.lineno))
+            found.extend((f"{module}.{alias.name}", node.lineno) for alias in node.names)
         elif isinstance(node, ast.Import):
             found.extend((alias.name, node.lineno) for alias in node.names)
     return found
@@ -152,6 +160,7 @@ def test_every_port_the_application_declares_has_an_implementation() -> None:
     assert protocols, "application/ports.py declares no protocols — this test is stale"
 
     import korpus.composition  # noqa: F401  (imports the adapters it wires)
+    from korpus.application.retrieval import HybridLexicalRetriever
     from korpus.infrastructure.extraction import DocumentExtractor
     from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
     from korpus.infrastructure.object_store import LocalObjectStore
@@ -162,10 +171,9 @@ def test_every_port_the_application_declares_has_an_implementation() -> None:
         "Extractor": DocumentExtractor,
         "IngestionJobQueue": SqlIngestionJobQueue,
         "ObjectStore": LocalObjectStore,
+        "Retriever": HybridLexicalRetriever,
     }
-    unimplemented = [
-        name for name in protocols if name not in implementations and name not in {"Retriever"}
-    ]
+    unimplemented = [name for name in protocols if name not in implementations]
     assert not unimplemented, f"these ports have no adapter named here: {unimplemented}"
 
     # Structural, not nominal: Protocol conformance is what the type checker enforces,
