@@ -4706,13 +4706,13 @@
       "reason": "Гейт звіряє записану голову журналу; ідентичність корпусу її БІЛЬШЕ НЕ містить. Перша версія включала — і живий сервер, що пише подію на кожну відповідь, робив усі звіти про корпус несвіжими за секунди. Свіжість звіту мусить залежати від того, ПРО ЩО він."
     },
     "scripts/measure_corpus_integrity.py": {
-      "lines": 206,
+      "lines": 297,
       "max_complexity": 12,
       "max_function_args": 2,
-      "max_function_lines": 47,
+      "max_function_lines": 56,
       "max_nesting": 2,
-      "proof_lines": 46,
-      "reason": "Ідентичність корпусу, похідна від ЗМІСТУ: голова журналу, лічильники, сума хешів прольотів і дайджест посилань. Не sha256 файла — той рухається від VACUUM і сторінкового кешу, яких жодна вісь не міряє; не mtime — його рухає `touch`."
+      "proof_lines": 52,
+      "reason": "Гейт звався ЦІЛІСНІСТЮ і не питав, чи файл читається. Доведено 08.09.2026 на СПРАВЖНЬОМУ артефакті інциденту: цей самий скрипт над `korpus.db.malformed-in-place-2026-09-08` — файлом, чиє пошкодження на годину поклало службу, — повертав MEASURED, простежуваність 0.965 і дослівність 1.0, бо пошкодження сиділо в `audit_heads`, а `document_versions` і `evidence_spans` читались бездоганно. Приріст — вісь читаності (quick_check + обхід кожного дерева запуском), стан MALFORMED окремо від UNKNOWN, і п'ять випадків негативного контролю з отрутою по ДАНИХ: обнулення сторінки b-дерева дає той самий підпис, що й інцидент. Не винесено в окремий скрипт навмисно: розділити «цілісність» на два виробники означало б відтворити саме ту ваду, де ім'я обіцяє більше, ніж міряє один файл."
     },
     "scripts/measure_declared_coverage.py": {
       "lines": 332,
@@ -6283,6 +6283,19 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+    {
+      "from": {
+        "lines": 206,
+        "max_function_lines": 47
+      },
+      "on": "2026-09-08",
+      "path": "scripts/measure_corpus_integrity.py",
+      "reason": "Гейт звався ЦІЛІСНІСТЮ і не питав, чи файл читається. Доведено 08.09.2026 на СПРАВЖНЬОМУ артефакті інциденту: цей самий скрипт над `korpus.db.malformed-in-place-2026-09-08` — файлом, чиє пошкодження на годину поклало службу, — повертав MEASURED, простежуваність 0.965 і дослівність 1.0, бо пошкодження сиділо в `audit_heads`, а `document_versions` і `evidence_spans` читались бездоганно. Приріст — вісь читаності (quick_check + обхід кожного дерева запуском), стан MALFORMED окремо від UNKNOWN, і п'ять випадків негативного контролю з отрутою по ДАНИХ: обнулення сторінки b-дерева дає той самий підпис, що й інцидент. Не винесено в окремий скрипт навмисно: розділити «цілісність» на два виробники означало б відтворити саме ту ваду, де ім'я обіцяє більше, ніж міряє один файл.",
+      "to": {
+        "lines": 297,
+        "max_function_lines": 56
+      }
+    },
     {
       "from": {
         "lines": 51,

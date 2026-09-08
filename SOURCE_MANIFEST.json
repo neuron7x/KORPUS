@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2060,
-  "root_sha256": "10de6698a2fbc60865c25838251299c4733d568c26ca4cc09ccee54e98a22150",
+  "root_sha256": "3ab6f2af95173c410c89394719ecfc21d55de0b750649465c85c1ed1020adc6c",
   "files": [
     {
       "path": ".dockerignore",
@@ -8071,8 +8071,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 725339,
-      "sha256": "ceebbefdafeb54544cb4fd2c00d95ec4378b7eb3ae8cd9f7a9729bbc6144055e",
+      "bytes": 727775,
+      "sha256": "7710f6a7ba5a21c63831c81e76f9e7488fb4d15ec91b0271a4eaac236c75579c",
       "mode": "0644"
     },
     {
@@ -11203,8 +11203,8 @@
     },
     {
       "path": "scripts/measure_corpus_integrity.py",
-      "bytes": 12782,
-      "sha256": "5679f89b32f93074c71f5bf4614d2df4718d74c6ac09ec17fa1ce4fb58749f89",
+      "bytes": 18339,
+      "sha256": "26c12833264175c4df68b2626e6f4898d4b642ce14f57d3e5e9391504c110a9b",
       "mode": "0755"
     },
     {

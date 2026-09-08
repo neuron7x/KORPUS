@@ -38,11 +38,16 @@ import json
 import re
 import sqlite3
 import sys
+import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from recover_sqlite_corpus import unreadable_tables  # noqa: E402
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from corpus_identity import inputs_digest, report_inputs  # noqa: E402
@@ -118,7 +123,51 @@ def span_quality(spans: list[tuple[str, str]], sources: dict[str, str]) -> dict[
     }
 
 
+def physical_integrity(database: Path) -> dict[str, Any]:
+    """Чи ЧИТАЄТЬСЯ файл узагалі — вісь, якої тут не було, і саме її бракувало.
+
+    Виміряно 08.09.2026 на справжньому артефакті інциденту: цей самий скрипт над файлом
+    `korpus.db.malformed-in-place-2026-09-08` — тим, чиє пошкодження на годину поклало
+    службу, — повертав `MEASURED`, простежуваність 0.965 і дослівність 1.0. Причина не
+    в порозі: пошкодження сиділо в `audit_heads`, а `document_versions` і
+    `evidence_spans` читались бездоганно. Гейт звався ЦІЛІСНІСТЮ і міряв ЗМІСТОВНУ
+    вірність, ніколи не питаючи, чи ціле дерево обходиться.
+
+    Перелік пошкоджених дерев береться з `recover_sqlite_corpus`, а не пишеться вдруге:
+    два перекази одного вимірювання розійшлися б мовчки, і саме той модуль уже вміє
+    знаходити їх ЗАПУСКОМ `select count(*)`, а не переліком.
+    """
+    try:
+        connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True, timeout=30)
+    except sqlite3.Error as error:
+        return {"readable": False, "quick_check": f"{type(error).__name__}: {error}", "damaged": []}
+    try:
+        rows = [str(row[0]) for row in connection.execute("pragma quick_check(20)")]
+        check = rows[0] if rows == ["ok"] else "; ".join(rows)
+    except sqlite3.DatabaseError as error:
+        check = f"{type(error).__name__}: {error}"
+    damaged = unreadable_tables(connection)
+    connection.close()
+    return {"readable": check == "ok" and not damaged, "quick_check": check, "damaged": damaged}
+
+
 def measure(database: Path, object_root: Path) -> dict[str, Any]:
+    physical = physical_integrity(database)
+    if not physical["readable"]:
+        # Fail-closed і РАНО: змістовні частки над нечитаним файлом були б виміром над
+        # тим, що вже не є предметом. Стан окремий від UNKNOWN — це не «не міряли», це
+        # «поміряли і воно поламане».
+        return {
+            "schema": "korpus.corpus-integrity.v1",
+            "ran_at": datetime.now(UTC).isoformat(),
+            "database": str(database),
+            "status": "MALFORMED",
+            "physical_integrity": physical,
+            "cannot_judge": [
+                "Змістовні осі не рахуються над нечитаним файлом: частка над пошкодженим "
+                "деревом описує вцілілу частину, а не корпус."
+            ],
+        }
     connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
     versions = [row[0] for row in connection.execute("select source_uri from document_versions")]
     sources: dict[str, str] = {}
@@ -143,6 +192,7 @@ def measure(database: Path, object_root: Path) -> dict[str, Any]:
         "inputs": report_inputs(database, Path(__file__).resolve()),
         "inputs_digest": inputs_digest(report_inputs(database, Path(__file__).resolve())),
         "status": "MEASURED" if versions and spans else "UNKNOWN",
+        "physical_integrity": physical,
         "citation_traceability": traceability(versions),
         "span_sentence_start": span_quality(spans, sources),
         "span_source_fidelity": {
@@ -157,6 +207,47 @@ def measure(database: Path, object_root: Path) -> dict[str, Any]:
             "міряється тотожність тексту, не осмисленість межі.",
         ],
     }
+
+
+def _physical_selftest() -> list[str]:
+    """Негативний контроль осі читаності: отрута по ДАНИХ, не по коду.
+
+    Сторінка 4 обнуляється навмисно — це середина b-дерева, а не заголовок: обнулення
+    першої сторінки дало б «file is not a database», тобто ІНШИЙ клас відмови, і
+    перевірка проходила б повз той, який стався насправді. Підпис збігається з інцидентом
+    дослівно: `database disk image is malformed`.
+    """
+    problems: list[str] = []
+    with tempfile.TemporaryDirectory() as directory:
+        database = Path(directory) / "probe.db"
+        connection = sqlite3.connect(str(database))
+        connection.execute("create table wide (id integer primary key, blob text)")
+        connection.executemany(
+            "insert into wide values (?, ?)", [(index, "x" * 400) for index in range(400)]
+        )
+        connection.execute("create index ix_wide on wide(blob)")
+        connection.commit()
+        page_size = int(connection.execute("pragma page_size").fetchone()[0])
+        connection.close()
+
+        clean = physical_integrity(database)
+        if not clean["readable"]:
+            problems.append(f"ціла база оголошена нечитаною: {clean}")
+
+        raw = bytearray(database.read_bytes())
+        raw[page_size * 3 : page_size * 4] = b"\x00" * page_size
+        database.write_bytes(bytes(raw))
+
+        damaged = physical_integrity(database)
+        if damaged["readable"]:
+            problems.append("обнулена сторінка b-дерева не виявлена")
+        if "malformed" not in damaged["quick_check"]:
+            problems.append(f"підпис відмови не той: {damaged['quick_check']}")
+        if damaged["damaged"] != ["wide"]:
+            problems.append(f"пошкоджене дерево не назване: {damaged['damaged']}")
+        if measure(database, Path(directory))["status"] != "MALFORMED":
+            problems.append("вимір над пошкодженим файлом не відмовився")
+    return problems
 
 
 def selftest() -> int:
@@ -197,9 +288,15 @@ def selftest() -> int:
         for name, items, field, want in span_cases
         if span_quality(items, source)[field] != want
     ]
+    physical = _physical_selftest()
+    failures += physical
     print(
         json.dumps(
-            {"selftest": len(cases) + len(span_cases), "failed": failures},
+            {
+                "selftest": len(cases) + len(span_cases) + 5,
+                "physical_integrity_cases": 5,
+                "failed": failures,
+            },
             ensure_ascii=False,
             indent=2,
         )
