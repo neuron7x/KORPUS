@@ -4,6 +4,7 @@ import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from time import monotonic
 from urllib.parse import unquote, urlsplit
 
 import httpx
@@ -53,14 +54,15 @@ class HttpReadPlan:
 HttpReadPlanBuilder = Callable[[Mapping[str, object], str], HttpReadPlan]
 
 
-class GovernedHttpReadAdapter:
-    """Bounded same-origin HTTPS GET adapter for READ_REMOTE capabilities.
+def _remaining(deadline: float) -> float:
+    remaining = deadline - monotonic()
+    if remaining <= 0:
+        raise AdapterExecutionFailed("HTTP total deadline exceeded")
+    return remaining
 
-    The adapter deliberately does not implement writes. Generic HTTP cannot infer whether
-    a timeout or arbitrary 4xx/5xx response proves that a provider-side effect did not
-    commit; effectful providers require a provider-specific adapter with explicit commit
-    and reconciliation semantics.
-    """
+
+class GovernedHttpReadAdapter:
+    """Bounded same-origin HTTPS GET adapter; effectful capabilities are unsupported."""
 
     def __init__(
         self,
@@ -83,6 +85,7 @@ class GovernedHttpReadAdapter:
         context: InvocationContext,
         logical_resource: str,
     ) -> AdapterExecutionResult:
+        deadline = monotonic() + spec.timeouts.total_ms / 1000.0
         self._validate_spec(spec)
         try:
             plan = self._plan_builder(request.input, logical_resource)
@@ -90,15 +93,13 @@ class GovernedHttpReadAdapter:
             query = self._validate_query(plan.query)
         except (TypeError, ValueError, RuntimeError) as exc:
             raise AdapterExecutionFailed("HTTP request plan rejected") from exc
-
-        timeout = spec.timeouts.total_ms / 1000.0
         try:
             with self._client.stream(
                 "GET",
                 url,
                 params=query,
                 headers=self._headers,
-                timeout=timeout,
+                timeout=_remaining(deadline),
                 follow_redirects=False,
             ) as response:
                 if 300 <= response.status_code < 400:
@@ -106,12 +107,11 @@ class GovernedHttpReadAdapter:
                 if not 200 <= response.status_code < 300:
                     raise AdapterExecutionFailed("HTTP provider returned non-success status")
                 self._validate_content_type(response)
-                body = self._read_bounded(response, spec.data_policy.max_response_bytes)
+                body = self._read_bounded(response, spec.data_policy.max_response_bytes, deadline)
         except AdapterExecutionFailed:
             raise
         except httpx.TransportError as exc:
             raise AdapterExecutionFailed("HTTP provider unavailable") from exc
-
         try:
             output = json.loads(body)
             output_digest = payload_digest(output)
@@ -119,6 +119,7 @@ class GovernedHttpReadAdapter:
             raise AdapterExecutionFailed("HTTP provider returned invalid JSON") from exc
 
         evidence = self._evidence(spec, context, output_digest, url)
+        _remaining(deadline)
         return AdapterExecutionResult(output=output, evidence=evidence)
 
     @staticmethod
@@ -202,10 +203,6 @@ class GovernedHttpReadAdapter:
             if any(char in name or char in value for char in ("\r", "\n", "\x00")):
                 raise ValueError("HTTP capability query contains control characters")
             result.append((name, value))
-        # A tuple, not the list this used to return: httpx types `params` with an *invariant*
-        # list, so list[tuple[str, str]] was rejected against list[tuple[str, PrimitiveData]]
-        # even though every element is admissible. tuple is covariant, so the same values pass
-        # without widening the element type this validator exists to keep narrow.
         return tuple(result)
 
     @staticmethod
@@ -215,7 +212,8 @@ class GovernedHttpReadAdapter:
             raise AdapterExecutionFailed("HTTP provider response is not JSON")
 
     @staticmethod
-    def _read_bounded(response: httpx.Response, maximum: int) -> bytes:
+    def _read_bounded(response: httpx.Response, maximum: int, deadline: float) -> bytes:
+        _remaining(deadline)
         declared = response.headers.get("content-length")
         if declared is not None:
             try:
@@ -228,9 +226,11 @@ class GovernedHttpReadAdapter:
 
         body = bytearray()
         for chunk in response.iter_bytes():
+            _remaining(deadline)
             body.extend(chunk)
             if len(body) > maximum:
                 raise AdapterExecutionFailed("HTTP provider response exceeds configured maximum")
+        _remaining(deadline)
         return bytes(body)
 
     def _evidence(

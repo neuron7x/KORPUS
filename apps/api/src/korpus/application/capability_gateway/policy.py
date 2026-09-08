@@ -109,7 +109,7 @@ class CapabilityPolicyBridge:
             reason="canonical_policy_allowed",
         )
 
-    def _attest_action_decision(
+    def attest_decision(
         self,
         decision: object,
         spec: CapabilitySpec,
@@ -146,7 +146,7 @@ class CapabilityPolicyBridge:
     ) -> CapabilityPolicyDecision:
         """Require both canonical action authority and exact resource authority."""
 
-        action_decision = self._attest_action_decision(self.authorize(identity, spec), spec)
+        action_decision = self.attest_decision(self.authorize(identity, spec), spec)
         resource = logical_resource.strip()
         if not resource:
             raise CapabilityPolicyIndeterminate("logical resource is empty")
