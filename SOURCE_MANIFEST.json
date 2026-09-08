@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2039,
-  "root_sha256": "df7705e1863ada44895f55cd0210ed0bbb9f18d4eb34292e6dbd2d008e1944e8",
+  "file_count": 2045,
+  "root_sha256": "582f98ce9ba608ae79559f2e228100f84620449f1b7629f294fb82a564c46fd5",
   "files": [
     {
       "path": ".dockerignore",
@@ -3174,6 +3174,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_capability_effect_ledger_refusals.py",
+      "bytes": 5671,
+      "sha256": "7a1e461d6d12fd77d856e8360f673de2973841e3c24a69da5d7b932101e13f00",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_capability_effect_schema_boundary.py",
       "bytes": 2624,
       "sha256": "63c8ed43168672cdc72d156a530b5c900f071aee0c8111c3b9e71eab29052032",
@@ -3282,9 +3288,27 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_capability_gateway_effects_port_returns.py",
+      "bytes": 7159,
+      "sha256": "13a7a2cdf53666782a900b8d0781e2648e4e8546efda8893205e266fee206b81",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_evidence_refusals.py",
+      "bytes": 8696,
+      "sha256": "18d98c2d92896384ff25c42876c8f1f65d437c13d1288f8a72aaa96ca6fe7d27",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_capability_gateway_http_adapter.py",
       "bytes": 9438,
       "sha256": "bc59bbaf2c99115202e555ab1dd8819f1eb5f9310f30e6c796a3e03b7473c814",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_http_refusals.py",
+      "bytes": 14042,
+      "sha256": "3215ec1010fac1fcd2fe0d3e93cd1235e49651b8a437abf5ef20247390788681",
       "mode": "0644"
     },
     {
@@ -3336,6 +3360,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_capability_gateway_policy_guards.py",
+      "bytes": 4844,
+      "sha256": "4e382cc4e90ed6e159cd9c9c80fa8c9fbf194ac2df42d255ff224a84bfefff4b",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_capability_gateway_port_return_attestation.py",
       "bytes": 5938,
       "sha256": "2032b7202bee1c6ffc67752c42a1d95e0fdb940b0e1519aeec98b6a0b7877516",
@@ -3375,6 +3405,12 @@
       "path": "apps/api/tests/test_capability_gateway_reconciliation_persistence_attestation.py",
       "bytes": 6210,
       "sha256": "f33c4efeb1798b4952490a67fb8c8bb19be3d1ce4899b5a5770bab938ae5320e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_reconciliation_refusals.py",
+      "bytes": 4544,
+      "sha256": "b7938cd90ad658faa12c631950a27cc2966f2ad576817f719d015e1ff32a85b8",
       "mode": "0644"
     },
     {
