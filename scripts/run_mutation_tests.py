@@ -6591,6 +6591,91 @@ MUTANTS = (
         "            _undouble(token), DERIVATIONAL_SUFFIXES",
         ("apps/api/tests/test_gate_parity.py::test_function_words_do_not_carry_coverage",),
     ),
+    Mutant(
+        # Підпис запису відкату не перевіряється: будь-хто, хто може покласти файл поруч
+        # із якорем, отримує ГОТОВНІСТЬ після довільного відкату. Це вся вартість підпису.
+        "M697_RESTORE_RECORD_MAC_NOT_VERIFIED",
+        "apps/api/src/korpus/infrastructure/audit_restore.py",
+        "        if not hmac.compare_digest(self.mac(record), supplied):",
+        "        if False:",
+        (
+            "apps/api/tests/test_audit_restore_record.py::test_a_forged_record_does_not_account_for_anything",
+        ),
+    ),
+    Mutant(
+        # Відсутність запису читається як пояснений відкат — тобто мовчазне затирання
+        # якоря, рівно те, заради заміни чого запис і зроблено.
+        "M698_MISSING_RESTORE_RECORD_ACCOUNTS_FOR_THE_ROLLBACK",
+        "apps/api/src/korpus/infrastructure/audit_restore.py",
+        "    if record is None:\n        return False",
+        "    if record is None:\n        return True",
+        (
+            "apps/api/tests/test_audit_restore_record.py::test_a_rollback_without_a_record_stays_not_ready",
+        ),
+    ),
+    Mutant(
+        # Запис перестає бути прив'язаним до НОМЕРА якоря і стає багаторазовим дозволом
+        # на будь-який наступний відкат.
+        "M699_RESTORE_RECORD_NOT_BOUND_TO_THE_ANCHOR_SEQUENCE",
+        "apps/api/src/korpus/infrastructure/audit_restore.py",
+        "    if record.superseded_anchor_sequence != anchor_sequence:",
+        "    if False:",
+        (
+            "apps/api/tests/test_audit_restore_record.py::test_the_record_is_bound_to_the_anchor_number_not_only_to_its_hash",
+        ),
+    ),
+    Mutant(
+        # Те саме з боку хеша: номер збігається, вміст якоря інший — і це приймається.
+        "M700_RESTORE_RECORD_NOT_BOUND_TO_THE_ANCHOR_HASH",
+        "apps/api/src/korpus/infrastructure/audit_restore.py",
+        "    if not hmac.compare_digest(record.superseded_anchor_hash, anchor_hash):",
+        "    if False:",
+        (
+            "apps/api/tests/test_audit_restore_record.py::test_the_record_is_bound_to_the_anchor_hash_not_only_to_its_number",
+        ),
+    ),
+    Mutant(
+        # Точка відновлення попереду голови: запис пояснює те, чого в журналі ще нема.
+        "M701_RESTORE_POINT_BEYOND_THE_HEAD_ACCEPTED",
+        "apps/api/src/korpus/infrastructure/audit_restore.py",
+        "    if record.restored_head_sequence > head_sequence:",
+        "    if False:",
+        (
+            "apps/api/tests/test_audit_restore_record.py::test_a_restore_point_beyond_the_head_is_refused_even_if_the_hash_agrees",
+        ),
+    ),
+    Mutant(
+        # Події з тим номером у ланцюгу НЕМА, і замість відмови це стає згодою:
+        # порожній вхід знову читається як пройдена перевірка.
+        "M702_RESTORE_POINT_ABSENT_FROM_THE_CHAIN_ACCEPTED",
+        "apps/api/src/korpus/infrastructure/audit_restore.py",
+        "    if hash_at_restore_point is None:",
+        "    if False:",
+        (
+            "apps/api/tests/test_audit_restore_record.py::test_a_restore_point_absent_from_the_chain_is_refused",
+        ),
+    ),
+    Mutant(
+        # Сам доказ належності до ланцюга прибрано: запис приймається без звірки хеша.
+        "M703_RESTORE_POINT_HASH_NOT_COMPARED",
+        "apps/api/src/korpus/infrastructure/audit_restore.py",
+        "    return hmac.compare_digest(record.restored_head_hash, hash_at_restore_point)",
+        "    return True",
+        (
+            "apps/api/tests/test_audit_restore_record.py::test_a_restore_point_with_another_hash_is_refused",
+        ),
+    ),
+    Mutant(
+        # Запис, що не описує відкату, приймається при створенні — і тоді він діє як
+        # постійний дозвіл на розбіжність якоря з головою.
+        "M704_RECORD_THAT_DESCRIBES_NO_ROLLBACK_IS_SIGNED",
+        "apps/api/src/korpus/infrastructure/audit_restore.py",
+        "        if record.superseded_anchor_sequence <= record.restored_head_sequence:",
+        "        if False:",
+        (
+            "apps/api/tests/test_audit_restore_record.py::test_a_record_that_describes_no_rollback_is_refused_at_construction",
+        ),
+    ),
 )
 
 

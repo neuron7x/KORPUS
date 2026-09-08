@@ -21,6 +21,7 @@ from korpus.infrastructure.audit_restore import (
     RestoreRecord,
     RestoreRecordError,
     SignedRestoreCodec,
+    rollback_accounted,
 )
 from korpus.infrastructure.repository import SqlRepository
 
@@ -173,3 +174,63 @@ def test_a_record_that_describes_no_rollback_is_refused_at_construction() -> Non
     codec = SignedRestoreCodec(KEY.encode("utf-8"))
     with pytest.raises(RestoreRecordError, match="does not describe a rollback"):
         codec.encode(_record(10, "c" * 64, 10))
+
+
+# Кожна умова `rollback_accounted` мусить мати ВЛАСНОГО свідка. Через знімок готовності
+# цього не досягти: у справжній базі номер поза ланцюгом і хеш поза ланцюгом настають
+# РАЗОМ, тож одна умова прикриває другу і мутант у прикритій виживає. Тому нижче — прямі
+# проби чистої функції, де кожен вхід задається окремо.
+def _accounted(
+    *,
+    record: RestoreRecord | None = None,
+    anchor_sequence: int = 500,
+    anchor_hash: str = "f" * 64,
+    head_sequence: int = 10,
+    hash_at_restore_point: str | None = "c" * 64,
+) -> bool:
+    if record is None:
+        record = RestoreRecord(
+            backup_file="korpus-probe.tar.enc",
+            backup_manifest_sha256="a" * 64,
+            restored_head_sequence=10,
+            restored_head_hash="c" * 64,
+            superseded_anchor_sequence=500,
+            superseded_anchor_hash="f" * 64,
+            restored_at="2026-09-08T15:20:18Z",
+        )
+    return rollback_accounted(
+        record,
+        anchor_sequence=anchor_sequence,
+        anchor_hash=anchor_hash,
+        head_sequence=head_sequence,
+        hash_at_restore_point=hash_at_restore_point,
+    )
+
+
+def test_the_clean_case_is_accounted() -> None:
+    """Позитивний контроль: без нього кожна проба нижче була б зеленою і порожньою."""
+    assert _accounted() is True
+
+
+def test_the_record_is_bound_to_the_anchor_number_not_only_to_its_hash() -> None:
+    """Той самий хеш під ІНШИМ номером — окремий свідок для перевірки номера."""
+    assert _accounted(anchor_sequence=501) is False
+
+
+def test_the_record_is_bound_to_the_anchor_hash_not_only_to_its_number() -> None:
+    """Той самий номер із ІНШИМ хешем — окремий свідок для перевірки хеша."""
+    assert _accounted(anchor_hash="e" * 64) is False
+
+
+def test_a_restore_point_beyond_the_head_is_refused_even_if_the_hash_agrees() -> None:
+    """Голова нижча за точку відновлення: запис пояснював би те, чого ще не сталося."""
+    assert _accounted(head_sequence=9) is False
+
+
+def test_a_restore_point_absent_from_the_chain_is_refused() -> None:
+    """Немає події з тим номером — немає чого порівнювати; мовчазне True тут заборонене."""
+    assert _accounted(hash_at_restore_point=None) is False
+
+
+def test_a_restore_point_with_another_hash_is_refused() -> None:
+    assert _accounted(hash_at_restore_point="d" * 64) is False
