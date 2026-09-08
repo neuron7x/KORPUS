@@ -6676,6 +6676,39 @@ MUTANTS = (
             "apps/api/tests/test_audit_restore_record.py::test_a_record_that_describes_no_rollback_is_refused_at_construction",
         ),
     ),
+    Mutant(
+        # Друга дорога до вироку зникає: пошкодження, яке БАЧИВ читач посеред прогону,
+        # перестає рахуватись, якщо файл устиг полагодитись відкатом WAL. Звіт зелений,
+        # подія стерта.
+        "M705_WHAT_THE_READER_SAW_STOPS_BEING_DAMAGE",
+        "scripts/reproduce_sqlite_corruption.py",
+        '    if readers_saw["corruption"]:\n        return {"seen_by_readers": readers_saw["first"]}',
+        "    if False:\n        return None",
+        (
+            "apps/api/tests/test_corruption_repro_verdict.py::test_what_the_reader_saw_is_damage_even_when_the_file_ends_clean",
+        ),
+    ),
+    Mutant(
+        # Підсумкова перевірка перестає бути шкодою — лишається сама лише думка читача.
+        "M706_FINAL_INTEGRITY_CHECK_STOPS_BEING_DAMAGE",
+        "scripts/reproduce_sqlite_corruption.py",
+        '    if not after["intact"]:\n        return after',
+        "    if False:\n        return after",
+        (
+            "apps/api/tests/test_corruption_repro_verdict.py::test_a_broken_file_reports_the_final_check",
+        ),
+    ),
+    Mutant(
+        # Вирок звіту перестає читати журнал читача: REPRODUCED знову залежить лише від
+        # стану ПІСЛЯ можливого самолікування файла.
+        "M707_VERDICT_IGNORES_WHAT_THE_READERS_OBSERVED",
+        "scripts/reproduce_sqlite_corruption.py",
+        '        if not entry["intact_after"] or entry.get("readers_observed", {}).get("corruption")',
+        '        if not entry["intact_after"]',
+        (
+            "apps/api/tests/test_corruption_repro_verdict.py::test_the_verdict_is_reproduced_when_only_the_reader_saw_it",
+        ),
+    ),
 )
 
 

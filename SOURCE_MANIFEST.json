@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2064,
-  "root_sha256": "1d09a2df7f57b4b379825ae5abc4354724c103b077cceecd815d22e40a2e5ca7",
+  "file_count": 2065,
+  "root_sha256": "a67d923b3ce2909640c8f7d82d58d0e71ed1a87f0aa49a671fe4043ad6eaf3f4",
   "files": [
     {
       "path": ".dockerignore",
@@ -3669,6 +3669,12 @@
       "path": "apps/api/tests/test_corpus_transport.py",
       "bytes": 4211,
       "sha256": "681909448c378e7e34b86284c8715fce79f68a05c59ebdf0994915fa2e08b3a0",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_corruption_repro_verdict.py",
+      "bytes": 3690,
+      "sha256": "150a6659ba11af4e823412823175a1f2e290ff91fee41e2220ad0810fda2a9c1",
       "mode": "0644"
     },
     {
@@ -11803,8 +11809,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 327699,
-      "sha256": "629b073dc32c01b7e35a5ea602134d265d15aa2dc800a18bec155cd4cee3cb85",
+      "bytes": 329630,
+      "sha256": "1d8e0fbf66f4fd09a4d52d5823dbe373ae9cfd70b2536c8e5e32195480bace95",
       "mode": "0755"
     },
     {
