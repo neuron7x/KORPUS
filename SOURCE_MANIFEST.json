@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2060,
-  "root_sha256": "5a4e06df39974c0c7072c6e8f7393edac17cb477d3879ce7db5e960b3ad1d27d",
+  "file_count": 2061,
+  "root_sha256": "10c85d2920d576e56cbde4abd817a8e77f643ca2dc80ff135986509aafc0156d",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 127404,
-      "sha256": "0538757afaa438e962a98eb68e004bcb35e1fce761575f408ccbb1bc4c2c4ed8",
+      "bytes": 128177,
+      "sha256": "e9b68f8ef28cd542ee6a71c7e2b83bddd08bda5c45d6168910cfb43c4e773bfb",
       "mode": "0644"
     },
     {
@@ -8071,8 +8071,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 730195,
-      "sha256": "5ccd0590a4b89bbd8e6281744a5253a691c39932b336404a5d123be085772e27",
+      "bytes": 731091,
+      "sha256": "69d9594e808d8c7b315164af3affd013d340e9d83da280ca5940abcb9982ecc7",
       "mode": "0644"
     },
     {
@@ -11601,6 +11601,12 @@
       "path": "scripts/reproduce_clean_room.py",
       "bytes": 11667,
       "sha256": "2657b1363539ffe0221c6f20624b19c29d920c78d217e39a4998a6adb9c8de21",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/reproduce_sqlite_corruption.py",
+      "bytes": 15716,
+      "sha256": "24ca9766b3de9096b576ee9376e943cc1b5896025aa111bff9e2e51a772ec202",
       "mode": "0755"
     },
     {
