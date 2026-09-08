@@ -21,6 +21,7 @@ from korpus.infrastructure.audit_restore import (
     RestoreRecord,
     RestoreRecordError,
     SignedRestoreCodec,
+    read_record,
     rollback_accounted,
 )
 from korpus.infrastructure.repository import SqlRepository
@@ -234,3 +235,75 @@ def test_a_restore_point_absent_from_the_chain_is_refused() -> None:
 
 def test_a_restore_point_with_another_hash_is_refused() -> None:
     assert _accounted(hash_at_restore_point="d" * 64) is False
+
+
+# Ратчет покриття 08.09.2026 назвав три гілки, яких не бачив ЖОДЕН тест, і всі три —
+# ВІДМОВИ. Відмова без свідка не відрізняється від відсутньої: код стоїть, вирок ніхто
+# не міряв. Нижче кожна дістає свого.
+def _payload(**overrides: object) -> dict[str, object]:
+    codec = SignedRestoreCodec(KEY.encode("utf-8"))
+    payload = codec.encode(_record(10, "c" * 64, 500))
+    payload.update(overrides)
+    return payload
+
+
+def test_a_record_of_another_schema_is_refused() -> None:
+    with pytest.raises(RestoreRecordError, match="unreadable"):
+        SignedRestoreCodec(KEY.encode("utf-8")).decode(_payload(schema=2))
+
+
+def test_a_record_missing_a_field_is_refused() -> None:
+    payload = _payload()
+    del payload["restored_head_hash"]
+    with pytest.raises(RestoreRecordError, match="unreadable"):
+        SignedRestoreCodec(KEY.encode("utf-8")).decode(payload)
+
+
+def test_a_negative_sequence_is_refused_at_construction() -> None:
+    codec = SignedRestoreCodec(KEY.encode("utf-8"))
+    with pytest.raises(RestoreRecordError, match="negative sequence"):
+        codec.encode(_record(-1, "c" * 64, 500))
+
+
+def test_a_hash_of_the_wrong_length_is_refused_at_construction() -> None:
+    """64 шістнадцяткові знаки — не стиль, а форма предмета: коротший хеш не з ланцюга."""
+    codec = SignedRestoreCodec(KEY.encode("utf-8"))
+    with pytest.raises(RestoreRecordError, match="invalid hash"):
+        codec.encode(_record(10, "c" * 63, 500))
+
+
+def test_an_unreadable_file_is_not_a_record(tmp_path: Path) -> None:
+    """Нечитане і непідписане однаково НЕ приймаються — і однаково мовчки, без винятку."""
+    target = tmp_path / "anchor.restore"
+    target.write_text("{це не json", encoding="utf-8")
+    assert read_record(target, KEY.encode("utf-8")) is None
+
+
+def test_a_file_that_is_json_but_not_a_record_is_not_a_record(tmp_path: Path) -> None:
+    target = tmp_path / "anchor.restore"
+    target.write_text(json.dumps({"schema": 1}), encoding="utf-8")
+    assert read_record(target, KEY.encode("utf-8")) is None
+
+
+def test_a_missing_file_is_not_a_record(tmp_path: Path) -> None:
+    assert read_record(tmp_path / "absent.restore", KEY.encode("utf-8")) is None
+
+
+class _StoreWithoutAPath:
+    """Якір, що живе не у файловій системі (як віддалений у GCS) — атрибута `path` нема."""
+
+
+def test_an_anchor_store_without_a_path_carries_no_record(
+    tmp_path: Path, admin_identity: object
+) -> None:
+    """Якщо якір не файл, запису відкату нема ЗВІДКИ взяти.
+
+    Мовчазне `None` тут єдине правильне: вигадати шлях означало б шукати пояснення
+    відкату не там, де живе предмет. Підміняється саме сховище, а не його поле —
+    занулення `path` у файловому сховищі ламає сам якір, і тоді проба міряла б падіння
+    замість гілки.
+    """
+    repository = _repository(tmp_path)
+    reader = repository._audit_reader
+    reader.anchor_store = _StoreWithoutAPath()  # type: ignore[assignment]
+    assert reader._restore_record() is None

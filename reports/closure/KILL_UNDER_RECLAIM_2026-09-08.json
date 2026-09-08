@@ -1,0 +1,59 @@
+{
+  "schema": "korpus.sqlite-corruption-repro.v1",
+  "status": "NOT_MEASURED",
+  "mode": "kill_during_write",
+  "source": "var/runtime/corpus-v6-20260807/korpus.db",
+  "declared_budget": {
+    "writers": 2,
+    "kills_per_arm": 120,
+    "kill_interval_seconds": 1.0,
+    "why": "сторож перезапускає службу ЩОХВИЛИНИ, поки вона нездорова, тож обрив писаря посеред запису — не рідкість, а штатний стан інциденту. SQLite обіцяє, що це безпечно; плече перевіряє саме обіцянку"
+  },
+  "arms": [
+    {
+      "arm": "kill_mmap_production",
+      "mmap_mib": 256,
+      "writers": 2,
+      "kills": 120,
+      "kill_interval_seconds": 1.0,
+      "seconds": 120.4,
+      "head_sequence_after": 150138,
+      "intact_after": true,
+      "damage": null
+    },
+    {
+      "arm": "kill_mmap_disabled",
+      "mmap_mib": 0,
+      "writers": 2,
+      "kills": 120,
+      "kill_interval_seconds": 1.0,
+      "seconds": 120.4,
+      "head_sequence_after": 140259,
+      "intact_after": true,
+      "damage": null
+    }
+  ],
+  "single_variable": "mmap_size",
+  "environment": {
+    "sqlite": "3.45.1",
+    "page_cache_mib_per_connection": 64,
+    "cpu_count": 16
+  },
+  "interpretation": "REPRODUCED називає плече, на якому пошкодження сталося, і це вже гіпотеза з доказом. NOT_MEASURED не є виправданням підозрюваного: він каже лише, що оголошеного бюджету не вистачило.",
+  "generated_at": "2026-09-08T18:18:53.781177+00:00",
+  "condition_NOT_achieved": {
+    "intended": "обрив писаря SIGKILL ПІД ТИМ САМИМ поверненням сторінок, що й у досліді обсягу",
+    "measured": {
+      "memory_events_max": 0,
+      "workingset_refault_file": 100296,
+      "compare_with_volume_run": {
+        "memory_events_max": 108067,
+        "workingset_refault_file": 3713873
+      }
+    },
+    "verdict": "УМОВИ НЕ СТВОРЕНО. Стелю cgroup не пробито ЖОДНОГО разу, повернень сторінок у 37 разів менше: писарів убивають щосекунди, тож робочий набір не встигає вирости до стелі. Отже це НЕ нова комбінація «обрив + тиск», а повтор уже зробленого досліду обриву з невикористаною стелею памʼяті поруч",
+    "why_it_matters": "Проба, що успадкувала умову від середовища замість створити її, вироджується МОВЧКИ і звітує зеленим про те, чого не міряла. Записати «обрив під тиском не відтворив» було б хибним твердженням про світ при правдивих числах",
+    "what_would_create_it": "Тримати сталий тиск НЕЗАЛЕЖНО від писарів — окремий споживач памʼяті в тому ж cgroup, що безперервно читає базу, поки писарів убивають. Це інший інструмент, не параметр цього"
+  },
+  "status_qualified": "NOT_MEASURED (обрив) + CONDITION_NOT_CREATED (тиск)"
+}

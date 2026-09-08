@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2065,
-  "root_sha256": "a67d923b3ce2909640c8f7d82d58d0e71ed1a87f0aa49a671fe4043ad6eaf3f4",
+  "file_count": 2067,
+  "root_sha256": "46ae1efa261dfc8f9a32cc6e8fe11dd965261cc227af469666598695a8cf7e0c",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 129681,
-      "sha256": "6ec577567d9cb47fccb5e7aed2f16a8d6f2a0e787a2412ece962a63e993e8847",
+      "bytes": 130466,
+      "sha256": "12df526b679be9ec4bbd11c330c4d20ee77b72fe90d34e3806cd731992989b49",
       "mode": "0644"
     },
     {
@@ -3031,8 +3031,8 @@
     },
     {
       "path": "apps/api/tests/test_audit_restore_record.py",
-      "bytes": 10665,
-      "sha256": "0b960aa2db9d7e293539f23f36f904819e90750d80b129fc6966f0b6148c5c3a",
+      "bytes": 14205,
+      "sha256": "7fe66cabc05ff74fcdf5bb4110dfbb2f36f2d33d2a431d94f1fbe30cd874ea2c",
       "mode": "0644"
     },
     {
@@ -3795,6 +3795,12 @@
       "path": "apps/api/tests/test_deterministic_plasticity_v060.py",
       "bytes": 9091,
       "sha256": "5be7e75488480124787963aff4323d742a574d7f6e019aa8c583211d8be348d8",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_dialect_coverage_producers_agree.py",
+      "bytes": 6365,
+      "sha256": "24802ed03dffa2131c2432d6bdd785dae1ed068150326d2caacbc5b926ad0006",
       "mode": "0644"
     },
     {
@@ -11859,6 +11865,12 @@
       "path": "scripts/run_plasticity_gate.py",
       "bytes": 2371,
       "sha256": "b6761dfeabd68086604482e7e69cab4351a736b2056d091df386432389b61568",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/run_postgres_coverage.sh",
+      "bytes": 6169,
+      "sha256": "3d6382c217849bb3bde697ec1ea707d09518b17f64e24b1c346a370d217da4ed",
       "mode": "0755"
     },
     {

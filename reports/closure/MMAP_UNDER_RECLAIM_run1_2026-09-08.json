@@ -1,0 +1,79 @@
+{
+  "schema": "korpus.sqlite-corruption-repro.v1",
+  "status": "NOT_MEASURED",
+  "mode": "write_volume",
+  "source": "/home/neuro7/Desktop/Ядро основний проект Корпус/var/runtime/corpus-v6-20260807/korpus.db",
+  "declared_budget": {
+    "writers": 2,
+    "transactions_per_arm": 200000,
+    "readers_per_arm": 4,
+    "why": "продакшен записав ≈11 700 подій за одинадцять годин переривчастого навантаження і зруйнувався тричі за добу; бюджет плеча стиснює приблизно той самий обсяг запису в хвилини, щоб частота події стала спостережною"
+  },
+  "arms": [
+    {
+      "arm": "mmap_production",
+      "mmap_mib": 256,
+      "writers": 2,
+      "readers": 4,
+      "transactions_requested": 200000,
+      "transactions_committed": 200000,
+      "lock_contention_events": 0,
+      "seconds": 350.7,
+      "rate_per_second": 570.3,
+      "bytes_after": 476315648,
+      "intact_before": true,
+      "intact_after": true,
+      "damage": null
+    },
+    {
+      "arm": "mmap_disabled",
+      "mmap_mib": 0,
+      "writers": 2,
+      "readers": 4,
+      "transactions_requested": 200000,
+      "transactions_committed": 200000,
+      "lock_contention_events": 0,
+      "seconds": 406.1,
+      "rate_per_second": 492.5,
+      "bytes_after": 476327936,
+      "intact_before": true,
+      "intact_after": true,
+      "damage": null
+    }
+  ],
+  "single_variable": "mmap_size",
+  "environment": {
+    "sqlite": "3.45.1",
+    "page_cache_mib_per_connection": 64,
+    "cpu_count": 16
+  },
+  "interpretation": "REPRODUCED називає плече, на якому пошкодження сталося, і це вже гіпотеза з доказом. NOT_MEASURED не є виправданням підозрюваного: він каже лише, що оголошеного бюджету не вистачило.",
+  "generated_at": "2026-09-08T18:13:36.667427+00:00",
+  "preregistration_sha256": "d5b708af5252c39ae7057a1bf714ad20a1b4ac5fc9ce6e792646e53e8f595c43",
+  "condition_measured_not_declared": {
+    "why": "«Під тиском» без лічильників — слово. Нижче — стан cgroup, знятий кожні 20 с протягом обох плечей.",
+    "memory_max_bytes": 805306368,
+    "ceiling_hits_memory_events_max": 108067,
+    "workingset_refault_file": 3713873,
+    "oom_kill": 0,
+    "reading": "3,7 млн файлових сторінок ВИКИНУТО і повернуто з диска, стелю пробито 108 тисяч разів, і при цьому НІКОГО не вбито. Тобто міряли саме повернення сторінок, а не обрив процесу — умова, заради якої дослід і ставився"
+  },
+  "deviations_from_the_protocol": [
+    "Плечі задає сам відтворювач (`mmap_production`/`mmap_disabled`); верхньорівневий --mmap-mib керує лише дочірніми процесами і був прибраний з обгортки.",
+    "Стеля 160М із протоколу дала ABORTED за 20 с (cgroup убив процес із anon-rss 43 МБ — шість процесів у 160 МБ не вміщаються). Перезнято на 768М за правилом вироку, записаним ДО прогону."
+  ],
+  "verdict_in_words": "НЕ ВІДТВОРИЛОСЬ на бюджеті 200 000 транзакцій на плече при 3,7 млн повернень сторінок. Це NOT_MEASURED, а не виправдання: 08.09 я вже записав один чистий повтор як послаблення гіпотези, і за одинадцять годин вона справдилась утретє. Гіпотеза «mmap + повернення сторінок» лишається живою, але тепер має названу межу, нижче якої вона не спостерігається",
+  "side_measurement_contradicts_an_earlier_one": {
+    "now_under_memory_cap": {
+      "mmap_256": 570.3,
+      "mmap_0": 492.5,
+      "delta": "+15.8% НА КОРИСТЬ mmap"
+    },
+    "earlier_without_cap": {
+      "mmap_256": 486,
+      "mmap_0": 529,
+      "delta": "-8% ПРОТИ mmap"
+    },
+    "reading": "Той самий інструмент, ті самі плечі, ПРОТИЛЕЖНИЙ знак. Різниця в умові: під стелею памʼяті mmap уникає подвійного буферування (сторінковий кеш + власний кеш SQLite) і виграє; при достатку памʼяті програє. Обидва виміри n=1, тож жоден не є властивістю. Записано як РОЗХОДЖЕННЯ, а не як нове число"
+  }
+}
