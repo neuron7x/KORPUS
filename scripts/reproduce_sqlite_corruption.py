@@ -38,6 +38,7 @@ import json
 import os
 import shutil
 import sqlite3
+import subprocess
 import sys
 import tempfile
 import time
@@ -141,6 +142,86 @@ def write_batch(database: str, mmap_mib: int, transactions: int) -> tuple[int, i
     return done, locked
 
 
+def write_until_killed(database: str, mmap_mib: int) -> None:
+    """Писар, який пише, доки його не вбʼють. Існує саме щоб бути вбитим посеред запису."""
+    while True:
+        write_batch(database, mmap_mib, 200)
+
+
+def _spawn_writer(database: Path, mmap_mib: int) -> subprocess.Popen[bytes]:
+    return subprocess.Popen(
+        [
+            sys.executable,
+            str(Path(__file__).resolve()),
+            "--writer-child",
+            "--source",
+            str(database),
+            "--mmap-mib",
+            str(mmap_mib),
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def kill_arm(
+    source: Path,
+    workdir: Path,
+    name: str,
+    mmap_mib: int,
+    kills: int,
+    interval: float,
+    writers: int,
+) -> dict[str, Any]:
+    """Плече з ОБРИВОМ писаря. Прогноз SQLite однозначний: цілісність мусить вистояти.
+
+    Це перевірка ДОВГОВІЧНОСТІ, не навантаження. `synchronous=FULL` і WAL обіцяють, що
+    SIGKILL посеред запису не псує файл. Якщо пошкодження зʼявиться ТУТ, зламана не база,
+    а обіцянка носія про запис на стабільний носій — і це пояснювало б усі три інциденти,
+    бо сторож перезапускає службу щохвилини, поки вона нездорова.
+    """
+    database = workdir / f"{name}.db"
+    shutil.copyfile(source, database)
+    started = time.monotonic()
+    killed = 0
+    children = [_spawn_writer(database, mmap_mib) for _ in range(writers)]
+    try:
+        while killed < kills:
+            time.sleep(interval)
+            victim = children.pop(0)
+            victim.kill()
+            victim.wait(timeout=10)
+            killed += 1
+            children.append(_spawn_writer(database, mmap_mib))
+    finally:
+        for child in children:
+            child.kill()
+            child.wait(timeout=10)
+    elapsed = time.monotonic() - started
+    after = integrity(database)
+    try:
+        connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True, timeout=30)
+        head = int(connection.execute("select sequence from audit_heads").fetchone()[0])
+        connection.close()
+    except sqlite3.DatabaseError:
+        head = -1
+    for suffix in ("", "-wal", "-shm"):
+        target = Path(str(database) + suffix)
+        if target.exists():
+            target.unlink()
+    return {
+        "arm": name,
+        "mmap_mib": mmap_mib,
+        "writers": writers,
+        "kills": killed,
+        "kill_interval_seconds": interval,
+        "seconds": round(elapsed, 1),
+        "head_sequence_after": head,
+        "intact_after": after["intact"],
+        "damage": None if after["intact"] else after,
+    }
+
+
 def integrity(database: Path) -> dict[str, Any]:
     try:
         connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True, timeout=30)
@@ -160,14 +241,64 @@ def integrity(database: Path) -> dict[str, Any]:
     return {"intact": check == "ok" and not damaged, "quick_check": check, "damaged": damaged}
 
 
+def read_until_killed(database: str, mmap_mib: int) -> None:
+    """Читач: скани корпусу і FTS, доки його не спинять.
+
+    Останнє, чого бракувало плечам: у продакшені ЗАПИС журналу йде ОДНОЧАСНО з важким
+    читанням — пошуком по прольотах і повнотекстовим індексом. Читач сам собою бази не
+    псує, але тримає сторінки в кеші, конкурує за памʼять (машина свопить) і змушує WAL
+    до контрольних точок під навантаженням. Це єдина неперевірена комбінація.
+    """
+    scans = (
+        "select count(*) from evidence_spans where text like '%порядок%'",
+        "select count(*) from evidence_fts where evidence_fts match 'командир'",
+        "select count(*) from document_versions",
+    )
+    index = 0
+    while True:
+        connection = None
+        try:
+            connection = connect(Path(database), mmap_mib)
+            connection.execute(scans[index % len(scans)]).fetchone()
+        except sqlite3.DatabaseError:
+            pass
+        finally:
+            index += 1
+            if connection is not None:
+                connection.close()
+
+
+def _spawn_reader(database: Path, mmap_mib: int) -> subprocess.Popen[bytes]:
+    return subprocess.Popen(
+        [
+            sys.executable,
+            str(Path(__file__).resolve()),
+            "--reader-child",
+            "--source",
+            str(database),
+            "--mmap-mib",
+            str(mmap_mib),
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
 def arm(
-    source: Path, workdir: Path, name: str, mmap_mib: int, transactions: int, writers: int
+    source: Path,
+    workdir: Path,
+    name: str,
+    mmap_mib: int,
+    transactions: int,
+    writers: int,
+    readers: int = 0,
 ) -> dict[str, Any]:
     """Одне плече. Копія свіжа, щоб плечі не успадковували станів одне одного."""
     database = workdir / f"{name}.db"
     shutil.copyfile(source, database)
     before = integrity(database)
     started = time.monotonic()
+    reader_children = [_spawn_reader(database, mmap_mib) for _ in range(readers)]
     per_writer = max(1, transactions // writers)
     with ProcessPoolExecutor(max_workers=writers) as pool:
         futures = [
@@ -176,6 +307,9 @@ def arm(
         results = [future.result() for future in futures]
     committed = sum(done for done, _ in results)
     locked = sum(blocked for _, blocked in results)
+    for child in reader_children:
+        child.kill()
+        child.wait(timeout=10)
     elapsed = time.monotonic() - started
     after = integrity(database)
     size = database.stat().st_size
@@ -187,6 +321,7 @@ def arm(
         "arm": name,
         "mmap_mib": mmap_mib,
         "writers": writers,
+        "readers": readers,
         "transactions_requested": per_writer * writers,
         "transactions_committed": committed,
         "lock_contention_events": locked,
@@ -245,55 +380,34 @@ def selftest() -> int:
     return 1 if problems else 0
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", type=Path)
-    parser.add_argument("--transactions", type=int, default=200_000)
-    parser.add_argument("--writers", type=int, default=2)
-    parser.add_argument("--workdir", type=Path, default=ROOT / "var/corruption-repro")
-    parser.add_argument("--out", type=Path, default=ROOT / "var/corruption-repro.json")
-    parser.add_argument("--selftest", action="store_true")
-    arguments = parser.parse_args()
-    if arguments.selftest:
-        return selftest()
-    if arguments.source is None or not arguments.source.is_file():
-        parser.error("--source мусить називати наявний файл бази")
-
-    arguments.workdir.mkdir(parents=True, exist_ok=True)
-    arms = [
-        arm(
-            arguments.source,
-            arguments.workdir,
-            "mmap_production",
-            PRODUCTION_MMAP_MIB,
-            arguments.transactions,
-            arguments.writers,
-        ),
-        arm(
-            arguments.source,
-            arguments.workdir,
-            "mmap_disabled",
-            0,
-            arguments.transactions,
-            arguments.writers,
-        ),
-    ]
+def _emit(arguments: argparse.Namespace, arms: list[dict[str, Any]], *, kills: int = 0) -> int:
+    """Один звіт для обох родів плечей. Вирок і його тлумачення живуть в ОДНОМУ місці."""
     reproduced = [entry for entry in arms if not entry["intact_after"]]
+    budget: dict[str, Any] = {"writers": arguments.writers}
+    if kills:
+        budget["kills_per_arm"] = kills
+        budget["kill_interval_seconds"] = arguments.kill_interval
+        budget["why"] = (
+            "сторож перезапускає службу ЩОХВИЛИНИ, поки вона нездорова, тож обрив писаря "
+            "посеред запису — не рідкість, а штатний стан інциденту. SQLite обіцяє, що це "
+            "безпечно; плече перевіряє саме обіцянку"
+        )
+    else:
+        budget["transactions_per_arm"] = arguments.transactions
+        budget["readers_per_arm"] = arguments.readers
+        budget["why"] = (
+            "продакшен записав ≈11 700 подій за одинадцять годин переривчастого "
+            "навантаження і зруйнувався тричі за добу; бюджет плеча стиснює приблизно той "
+            "самий обсяг запису в хвилини, щоб частота події стала спостережною"
+        )
     report = {
         "schema": "korpus.sqlite-corruption-repro.v1",
         # Нуль пошкоджень при названому бюджеті — НЕ «не руйнується». Це «не виміряно на
         # цьому бюджеті», і різниця тут коштувала одного пошкодження.
         "status": "REPRODUCED" if reproduced else "NOT_MEASURED",
+        "mode": "kill_during_write" if kills else "write_volume",
         "source": str(arguments.source),
-        "declared_budget": {
-            "transactions_per_arm": arguments.transactions,
-            "writers": arguments.writers,
-            "why": (
-                "продакшен записав ≈11 700 подій за одинадцять годин переривчастого "
-                "навантаження і зруйнувався тричі за добу; бюджет плеча стиснює приблизно "
-                "той самий обсяг запису в хвилини, щоб частота події стала спостережною"
-            ),
-        },
+        "declared_budget": budget,
         "arms": arms,
         "single_variable": "mmap_size",
         "environment": {
@@ -314,6 +428,78 @@ def main() -> int:
     )
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--source", type=Path)
+    parser.add_argument("--transactions", type=int, default=200_000)
+    parser.add_argument("--writers", type=int, default=2)
+    parser.add_argument("--workdir", type=Path, default=ROOT / "var/corruption-repro")
+    parser.add_argument("--out", type=Path, default=ROOT / "var/corruption-repro.json")
+    parser.add_argument("--selftest", action="store_true")
+    parser.add_argument("--writer-child", action="store_true", help="внутрішній режим писаря")
+    parser.add_argument("--reader-child", action="store_true", help="внутрішній режим читача")
+    parser.add_argument("--readers", type=int, default=0)
+    parser.add_argument("--mmap-mib", type=int, default=PRODUCTION_MMAP_MIB)
+    parser.add_argument("--kills", type=int, default=0, help="обриви писаря на плече")
+    parser.add_argument("--kill-interval", type=float, default=1.0)
+    arguments = parser.parse_args()
+    if arguments.writer_child:
+        write_until_killed(str(arguments.source), arguments.mmap_mib)
+        return 0
+    if arguments.reader_child:
+        read_until_killed(str(arguments.source), arguments.mmap_mib)
+        return 0
+    if arguments.selftest:
+        return selftest()
+    if arguments.source is None or not arguments.source.is_file():
+        parser.error("--source мусить називати наявний файл бази")
+
+    arguments.workdir.mkdir(parents=True, exist_ok=True)
+    if arguments.kills:
+        arms = [
+            kill_arm(
+                arguments.source,
+                arguments.workdir,
+                "kill_mmap_production",
+                PRODUCTION_MMAP_MIB,
+                arguments.kills,
+                arguments.kill_interval,
+                arguments.writers,
+            ),
+            kill_arm(
+                arguments.source,
+                arguments.workdir,
+                "kill_mmap_disabled",
+                0,
+                arguments.kills,
+                arguments.kill_interval,
+                arguments.writers,
+            ),
+        ]
+        return _emit(arguments, arms, kills=arguments.kills)
+    arms = [
+        arm(
+            arguments.source,
+            arguments.workdir,
+            "mmap_production",
+            PRODUCTION_MMAP_MIB,
+            arguments.transactions,
+            arguments.writers,
+            arguments.readers,
+        ),
+        arm(
+            arguments.source,
+            arguments.workdir,
+            "mmap_disabled",
+            0,
+            arguments.transactions,
+            arguments.writers,
+            arguments.readers,
+        ),
+    ]
+    return _emit(arguments, arms)
 
 
 if __name__ == "__main__":

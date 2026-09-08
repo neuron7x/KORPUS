@@ -5274,13 +5274,13 @@
       "reason": "виробник репродукції з віддаленого джерела; артефакт CLEAN_ROOM_REPRODUCTION.json доти не мав виробника в дереві — його клав рукою той, хто щойно провів прогін, і різниця між «прогін був» і «документ про прогін є» була невидима за побудовою"
     },
     "scripts/reproduce_sqlite_corruption.py": {
-      "lines": 276,
-      "max_complexity": 10,
-      "max_function_args": 6,
-      "max_function_lines": 69,
+      "lines": 462,
+      "max_complexity": 12,
+      "max_function_args": 7,
+      "max_function_lines": 70,
       "max_nesting": 3,
       "proof_lines": 44,
-      "reason": "Новий виробник: спроба відтворити пошкодження бази на КОПІЇ, з бюджетом, оголошеним до прогону, і однією змінною (08.09.2026). `main` довша за дефолтні 60 рядків тому, що в ній лежить сам ЗАПИС досліду — оголошений бюджет, його звʼязок із продакшеном, назва єдиної змінної й тлумачення вироку NOT_MEASURED. Винести це в дані означало б відірвати умови досліду від його результату."
+      "reason": "Гарнес виріс із одного роду плечей до ТРЬОХ, і кожен спростовує свою гіпотезу: обсяг запису, обрив писаря посеред запису (перевірка довговічності), запис ОДНОЧАСНО з важким читанням і FTS. Три спростовні досліди в одному файлі навмисно: вони ділять предмет, прагми, вимір цілісності й тлумачення вироку NOT_MEASURED — розрізати їх означало б розвести умови досліду з його результатом. Виміряно 08.09.2026: усі три дали NOT_MEASURED, і саме тому вони мусять лишитись запускними, а не описаними."
     },
     "scripts/respan_from_source.py": {
       "lines": 265,
@@ -6292,6 +6292,23 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+    {
+      "from": {
+        "lines": 276,
+        "max_complexity": 10,
+        "max_function_args": 6,
+        "max_function_lines": 69
+      },
+      "on": "2026-09-08",
+      "path": "scripts/reproduce_sqlite_corruption.py",
+      "reason": "Гарнес виріс із одного роду плечей до ТРЬОХ, і кожен спростовує свою гіпотезу: обсяг запису, обрив писаря посеред запису (перевірка довговічності), запис ОДНОЧАСНО з важким читанням і FTS. Три спростовні досліди в одному файлі навмисно: вони ділять предмет, прагми, вимір цілісності й тлумачення вироку NOT_MEASURED — розрізати їх означало б розвести умови досліду з його результатом. Виміряно 08.09.2026: усі три дали NOT_MEASURED, і саме тому вони мусять лишитись запускними, а не описаними.",
+      "to": {
+        "lines": 462,
+        "max_complexity": 12,
+        "max_function_args": 7,
+        "max_function_lines": 70
+      }
+    },
     {
       "from": {
         "lines": 223,

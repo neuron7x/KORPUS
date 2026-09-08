@@ -925,10 +925,15 @@ adjudication-properties:
 # і однією змінною (mmap_size). Не в `validate`: дослід коштує чверть години і не є
 # твердженням про дерево. Джерело обовʼязкове й ніколи не є обслуговуваним файлом.
 #   make corruption-repro SOURCE=<копія.db> [TRANSACTIONS=500000]
+# Три роди плечей, кожен спростовує свою гіпотезу:
+#   TRANSACTIONS=N            обсяг запису
+#   TRANSACTIONS=N READERS=4  запис ОДНОЧАСНО з важким читанням і FTS
+#   KILLS=120                 обрив писаря посеред запису (перевірка довговічності)
 corruption-repro:
 	PYTHONPATH=apps/api/src:. $(PY) scripts/reproduce_sqlite_corruption.py --selftest
 	PYTHONPATH=apps/api/src:. $(PY) scripts/reproduce_sqlite_corruption.py \
-	  --source "$(SOURCE)" $(if $(TRANSACTIONS),--transactions $(TRANSACTIONS))
+	  --source "$(SOURCE)" $(if $(TRANSACTIONS),--transactions $(TRANSACTIONS)) \
+	  $(if $(READERS),--readers $(READERS)) $(if $(KILLS),--kills $(KILLS))
 
 # ВСТАНОВЛЕННЯ, не бекап. Механізм той самий, ім'я інше — і саме ім'я було дефектом.
 # Виміряно 06.09.2026 незалежним аудитом: «дороги дістати корпус НЕМАЄ» (пробували

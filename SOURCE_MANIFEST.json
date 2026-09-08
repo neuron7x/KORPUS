@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2061,
-  "root_sha256": "10c85d2920d576e56cbde4abd817a8e77f643ca2dc80ff135986509aafc0156d",
+  "root_sha256": "7a16f2ce02e422776376a9b81d5b915a66b85884672e6ab9f1d2ba1c53551fcc",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 128177,
-      "sha256": "e9b68f8ef28cd542ee6a71c7e2b83bddd08bda5c45d6168910cfb43c4e773bfb",
+      "bytes": 128627,
+      "sha256": "a59f05c224e004c07a957f06af101ce6509bd2f1e13b404265a654d53919ebc2",
       "mode": "0644"
     },
     {
@@ -8071,8 +8071,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 731091,
-      "sha256": "69d9594e808d8c7b315164af3affd013d340e9d83da280ca5940abcb9982ecc7",
+      "bytes": 732552,
+      "sha256": "216013eabf9d3ccf9def6e590c92e2c9e216fa035f6cadef182eaa203e04ad35",
       "mode": "0644"
     },
     {
@@ -11605,8 +11605,8 @@
     },
     {
       "path": "scripts/reproduce_sqlite_corruption.py",
-      "bytes": 15716,
-      "sha256": "24ca9766b3de9096b576ee9376e943cc1b5896025aa111bff9e2e51a772ec202",
+      "bytes": 23191,
+      "sha256": "5cee000ae0be494c22e2fbd16fcb8af335250e81b47a04ed76e9b1dbe2532f07",
       "mode": "0755"
     },
     {
