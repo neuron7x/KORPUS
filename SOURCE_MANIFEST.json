@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2071,
-  "root_sha256": "24f4c87ef152e84480560f525c0c83786990425bb288c88637bdbab9b54e540d",
+  "file_count": 2073,
+  "root_sha256": "3e947ca02125d1cb256c292fd4c6c9e8d4f94e5e039e132cf87e094738bd8572",
   "files": [
     {
       "path": ".dockerignore",
@@ -8301,6 +8301,18 @@
       "path": "deploy/public/Dockerfile.edge",
       "bytes": 438,
       "sha256": "d1b60a929aa610efae7df82b19694faed07f03c4205d4c9ae29bbf137eec358b",
+      "mode": "0644"
+    },
+    {
+      "path": "deploy/public/korpus-corpus-readability.service",
+      "bytes": 924,
+      "sha256": "79eaab29396e14d5a0c13a309d3a5638ccea3df0d88082d7182b2f053dfc154a",
+      "mode": "0644"
+    },
+    {
+      "path": "deploy/public/korpus-corpus-readability.timer",
+      "bytes": 224,
+      "sha256": "0eaa2d63bec9f3e5c3bb892bc41bbcefe1f603cbdeef0d254604c8d23d1ada92",
       "mode": "0644"
     },
     {
