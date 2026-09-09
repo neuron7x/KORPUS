@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "dac63dc14588cd3209f76f2beb47c3ac547bfe8bd1fb9411ae9617ad071067c1",
-  "collection_digest": "6ed47d7d9a8182daedea92151f9bb07e1a9232c1b0cbe20f2817a5b79456bfaa",
-  "collection_count": 4826,
+  "source_digest": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
+  "collection_digest": "7ba164dc980c4c0bc6c0cfb314071bab806c1fb9917b14b5d87d8ad5475da1cc",
+  "collection_count": 4859,
   "shard_index": 19,
   "shard_count": 24,
-  "selected_count": 213,
+  "selected_count": 214,
   "selected_nodeids": [
     "apps/api/tests/test_access_control.py::test_restricted_corpus_update_does_not_change_public_release",
     "apps/api/tests/test_access_oracles.py::test_the_near_duplicate_probe_is_not_a_graded_content_oracle[clearance-document1-reader1]",
@@ -83,6 +83,7 @@
     "apps/api/tests/test_declared_subject_specificity.py::test_a_document_the_question_does_not_name_is_absent",
     "apps/api/tests/test_deployment_debt.py::test_an_entry_without_a_ceiling_is_refused_not_allowed",
     "apps/api/tests/test_deterministic_branch_matrix_v050.py::test_config_policy_browser_model_semantic_and_runtime_matrix",
+    "apps/api/tests/test_dialect_coverage_producers_agree.py::test_the_two_producers_agree_on_what_they_measure",
     "apps/api/tests/test_doctrine_catalog.py::test_an_anchor_on_an_arbitrary_repository_file_is_refused",
     "apps/api/tests/test_doctrine_catalog.py::test_every_captured_attachment_carries_the_signature_its_extension_claims",
     "apps/api/tests/test_doctrine_catalog.py::test_the_same_moment_written_differently[2026-W35-6-False]",
@@ -223,9 +224,9 @@
     "apps/api/tests/test_v5_security_kernel.py::test_a_new_version_of_an_existing_document_is_scanned_too",
     "apps/api/tests/test_v5_security_kernel.py::test_sentence_segmenter_preserves_offsets_for_decimals_abbreviations_and_lists"
   ],
-  "selected_digest": "6c3b0fc10faa07855f77d999367ad5a1c48bf4076dc0307cca42f18e5a30d338",
+  "selected_digest": "50043e091f56b59ea1f7ec9605a4781bba7ff1b19cb2cc254738d9804da7de52",
   "junit": {
-    "tests": 213,
+    "tests": 214,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -234,9 +235,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 9.15732,
+  "elapsed_seconds": 9.067929,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 33%]\n........................................................................ [ 67%]\n...............s.....................................................    [100%]",
+  "stdout_tail": "........................................................................ [ 33%]\n........................................................................ [ 67%]\n................s.....................................................   [100%]",
   "stderr_tail": ""
 }

@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "dac63dc14588cd3209f76f2beb47c3ac547bfe8bd1fb9411ae9617ad071067c1",
-  "collection_digest": "6ed47d7d9a8182daedea92151f9bb07e1a9232c1b0cbe20f2817a5b79456bfaa",
-  "collection_count": 4826,
+  "source_digest": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
+  "collection_digest": "7ba164dc980c4c0bc6c0cfb314071bab806c1fb9917b14b5d87d8ad5475da1cc",
+  "collection_count": 4859,
   "shard_index": 11,
   "shard_count": 24,
-  "selected_count": 183,
+  "selected_count": 185,
   "selected_nodeids": [
     "apps/api/tests/test_account_domain.py::test_the_profile_keeps_only_what_a_person_recognises_themselves_by",
     "apps/api/tests/test_admission_register.py::test_an_incomplete_attestation_is_refused[document]",
@@ -18,6 +18,7 @@
     "apps/api/tests/test_answer_analysis_limits.py::test_evidence_of_one_authority_class_is_never_outranked_by_itself",
     "apps/api/tests/test_audit_export.py::test_the_manifest_carries_the_cursor_the_collector_asks_with_next",
     "apps/api/tests/test_audit_names_governing_version.py::test_an_abstention_records_the_same_fields",
+    "apps/api/tests/test_audit_restore_record.py::test_a_negative_sequence_is_refused_at_construction",
     "apps/api/tests/test_auth.py::test_controlled_environment_requires_migration_managed_schema",
     "apps/api/tests/test_auth.py::test_query_contract_has_no_client_controlled_clearance",
     "apps/api/tests/test_authority_ranking.py::test_two_live_versions_of_one_document_require_a_human",
@@ -59,6 +60,7 @@
     "apps/api/tests/test_deployment_rendering_refusals.py::test_a_container_that_loosens_its_own_context_is_reported[<lambda>-requests/limits]",
     "apps/api/tests/test_deployment_rendering_refusals.py::test_a_patch_the_renderer_cannot_apply_is_refused[operations1-does not resolve]",
     "apps/api/tests/test_deterministic_branch_matrix_v050.py::test_assurance_validation_and_ceiling_matrix",
+    "apps/api/tests/test_dialect_coverage_producers_agree.py::test_both_producers_write_the_report_the_union_reads",
     "apps/api/tests/test_diversify_incremental_identity.py::test_the_reference_is_not_trivially_equal",
     "apps/api/tests/test_doctrine_catalog.py::test_a_captured_error_page_under_a_docx_name_is_refused",
     "apps/api/tests/test_doctrine_catalog.py::test_an_undated_ministry_page_without_an_anchor_is_refused",
@@ -193,9 +195,9 @@
     "apps/api/tests/test_v060_risk_weighted_branch_closure.py::test_attestor_registry_refuses_inverted_window_map_mismatch_digest_and_postdate",
     "apps/api/tests/test_v5_security_kernel.py::test_clamd_fails_closed_on_empty_or_unexpected_response"
   ],
-  "selected_digest": "65a458298ff7b17979c449e1063c6a57b6f9c665ba6af78349ce13b32af2deb1",
+  "selected_digest": "3b2121db38f676215acb8d229154c7aeb6ad4ab5d49a6ce09431218111b8d656",
   "junit": {
-    "tests": 183,
+    "tests": 185,
     "failures": 0,
     "errors": 0,
     "skipped": 2
@@ -204,9 +206,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 18.203185,
+  "elapsed_seconds": 20.754536,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 39%]\n..................................................................ss.... [ 78%]\n.......................................                                  [100%]",
+  "stdout_tail": "........................................................................ [ 38%]\n....................................................................ss.. [ 77%]\n.........................................                                [100%]",
   "stderr_tail": ""
 }

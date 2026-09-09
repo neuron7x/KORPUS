@@ -1,9 +1,9 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-08T14:15:21.151177+00:00",
+  "generated_at": "2026-09-08T21:12:43.471585+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "dac63dc14588cd3209f76f2beb47c3ac547bfe8bd1fb9411ae9617ad071067c1",
+  "source_tree_sha256": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
   "digest_scope": "evidence_paths",
   "items": [
     {
@@ -19,13 +19,15 @@
     },
     {
       "id": "live_vulnerability_scanners",
-      "state": "CLOSED_ANCHORED",
+      "state": "INTERNAL_STALE_EVIDENCE",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "machine_closable": false,
-      "failed_external_checks": [],
+      "externally_satisfied": false,
+      "machine_closable": true,
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM"
     },
     {
@@ -93,24 +95,30 @@
     },
     {
       "id": "production_like_load",
-      "state": "CLOSED_ANCHORED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
+      "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "gate_source_bound",
+        "load_source_bound"
+      ],
       "required_proof_class": "PRODUCTION_LIKE_LOAD"
     },
     {
       "id": "trusted_load_attestation",
-      "state": "CLOSED_ANCHORED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
+      "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "gate_source_bound",
+        "load_source_bound"
+      ],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
     {
@@ -122,6 +130,7 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
+        "gate_source_bound",
         "recovery_environment"
       ],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
@@ -160,13 +169,15 @@
     },
     {
       "id": "exact_python_3_12_13_environment",
-      "state": "CLOSED_ANCHORED",
+      "state": "INTERNAL_STALE_EVIDENCE",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "machine_closable": false,
-      "failed_external_checks": [],
+      "externally_satisfied": false,
+      "machine_closable": true,
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "required_proof_class": "EXACT_LOCKED_ENVIRONMENT"
     },
     {
@@ -217,16 +228,17 @@
     }
   ],
   "counts": {
-    "EXTERNAL_REQUIRED": 8,
-    "CLOSED_ANCHORED": 6
+    "EXTERNAL_REQUIRED": 10,
+    "CLOSED_ANCHORED": 2,
+    "INTERNAL_STALE_EVIDENCE": 2
   },
-  "internal_executable_unresolved": 0,
+  "internal_executable_unresolved": 2,
   "internal_missing_artifact": 0,
-  "internal_stale_evidence": 0,
-  "production_external_or_runtime_unresolved": 8,
+  "internal_stale_evidence": 2,
+  "production_external_or_runtime_unresolved": 10,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "d96404907b1b3688dbf012c3f58210f8a2d44070a37ce36b80c794114ca82bcb"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "433a8c0fe37793d03055fafaabf902d86025a3f0c7bd6239db4e4fef48741494"
   }
 }

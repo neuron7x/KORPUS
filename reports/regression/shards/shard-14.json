@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "dac63dc14588cd3209f76f2beb47c3ac547bfe8bd1fb9411ae9617ad071067c1",
-  "collection_digest": "6ed47d7d9a8182daedea92151f9bb07e1a9232c1b0cbe20f2817a5b79456bfaa",
-  "collection_count": 4826,
+  "source_digest": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
+  "collection_digest": "7ba164dc980c4c0bc6c0cfb314071bab806c1fb9917b14b5d87d8ad5475da1cc",
+  "collection_count": 4859,
   "shard_index": 14,
   "shard_count": 24,
-  "selected_count": 199,
+  "selected_count": 200,
   "selected_nodeids": [
     "apps/api/tests/test_access_control.py::test_public_identity_cannot_request_restricted_corpus",
     "apps/api/tests/test_account_administration.py::test_the_same_operator_can_put_it_back",
@@ -22,6 +22,7 @@
     "apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_that_disagrees_at_its_own_position_is_invalid",
     "apps/api/tests/test_audit_key_rotation.py::test_an_active_key_outside_the_ring_is_refused",
     "apps/api/tests/test_audit_reader_seam.py::test_the_reader_opens_its_own_connections",
+    "apps/api/tests/test_audit_restore_record.py::test_a_hash_of_the_wrong_length_is_refused_at_construction",
     "apps/api/tests/test_authority_ranking.py::test_a_lower_ranked_source_cannot_veto_the_answer",
     "apps/api/tests/test_authority_ranking.py::test_approval_refuses_a_second_current_version_of_one_document",
     "apps/api/tests/test_authority_ranking.py::test_similarity_cannot_promote_a_weaker_source_above_a_stronger_one",
@@ -209,9 +210,9 @@
     "apps/api/tests/test_v5_security_kernel.py::test_injection_detector_handles_zero_width_homoglyphs_and_role_markers",
     "apps/api/tests/test_versioning.py::test_competing_branch_cannot_be_approved"
   ],
-  "selected_digest": "8fbc5f2db6537a86d8a6f9e56a5efe6285266bebc22282f709b79253f2b21b50",
+  "selected_digest": "91aac8e17814784866e795832b6b4faab7ff64fbb37f21b591a7372892b31a1c",
   "junit": {
-    "tests": 199,
+    "tests": 200,
     "failures": 0,
     "errors": 0,
     "skipped": 3
@@ -220,9 +221,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 18.562321,
+  "elapsed_seconds": 16.764758,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 36%]\n........................................................................ [ 72%]\n....sss................................................                  [100%]",
+  "stdout_tail": "........................................................................ [ 36%]\n........................................................................ [ 72%]\n.....sss................................................                 [100%]",
   "stderr_tail": ""
 }

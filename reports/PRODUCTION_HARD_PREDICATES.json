@@ -1,16 +1,16 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "dac63dc14588cd3209f76f2beb47c3ac547bfe8bd1fb9411ae9617ad071067c1",
+  "source_tree_sha256": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
   "software_ready_means": "оголошені software_artifacts проходять is_file(); зміст, версія і здатність виконатись не перевіряються",
-  "externally_satisfied": 6,
-  "production_satisfied": 6,
+  "externally_satisfied": 4,
+  "production_satisfied": 4,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 42.857143,
-  "production_completion_percent": 42.857143,
+  "external_completion_percent": 28.571429,
+  "production_completion_percent": 28.571429,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -144,11 +144,14 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
-      "blocks_candidate": false,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "load_source_bound",
+        "gate_source_bound"
+      ],
       "waived_external_checks": []
     },
     {
@@ -158,11 +161,14 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
-      "blocks_candidate": false,
+      "externally_satisfied": false,
+      "production_satisfied": false,
+      "blocks_candidate": true,
       "missing_software_artifacts": [],
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "load_source_bound",
+        "gate_source_bound"
+      ],
       "waived_external_checks": [
         "load_attestation_verified",
         "load_trusted_signer"
@@ -180,7 +186,8 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "recovery_environment"
+        "recovery_environment",
+        "gate_source_bound"
       ],
       "waived_external_checks": [
         "recovery_attestation_verified",

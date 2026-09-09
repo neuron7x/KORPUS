@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "dac63dc14588cd3209f76f2beb47c3ac547bfe8bd1fb9411ae9617ad071067c1",
-  "collection_digest": "6ed47d7d9a8182daedea92151f9bb07e1a9232c1b0cbe20f2817a5b79456bfaa",
-  "collection_count": 4826,
+  "source_digest": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
+  "collection_digest": "7ba164dc980c4c0bc6c0cfb314071bab806c1fb9917b14b5d87d8ad5475da1cc",
+  "collection_count": 4859,
   "shard_index": 12,
   "shard_count": 24,
-  "selected_count": 195,
+  "selected_count": 199,
   "selected_nodeids": [
     "apps/api/tests/test_adaptation_cli_v060.py::test_cli_is_deterministic_and_emits_governed_proposal",
     "apps/api/tests/test_admission_cannot_be_self_granted.py::test_clearing_every_ground_with_forged_attestations_still_withholds",
@@ -22,6 +22,8 @@
     "apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_ahead_of_the_head_is_invalid",
     "apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_behind_the_head_is_pending_not_invalid",
     "apps/api/tests/test_audit_ledger_attribution.py::test_an_unverifiable_event_stops_the_whole_relabelling",
+    "apps/api/tests/test_audit_restore_record.py::test_a_forged_record_does_not_account_for_anything",
+    "apps/api/tests/test_audit_restore_record.py::test_the_record_is_bound_to_the_anchor_hash_not_only_to_its_number",
     "apps/api/tests/test_authority_ranking.py::test_a_better_matched_analytical_source_is_not_cited_beside_an_official_one",
     "apps/api/tests/test_billing_events.py::test_an_event_naming_a_subscription_this_system_never_created_is_refused[None]",
     "apps/api/tests/test_billing_events.py::test_an_event_without_a_usable_timestamp_applies_but_never_advances_the_order[]",
@@ -76,6 +78,8 @@
     "apps/api/tests/test_corpus_snapshot_contract.py::test_release_identity_digest_commits_every_member_field[document_compartments-1:4e2e01226b53216bb0f9e6e9188e21954ada72ee7549d8561b842918d8f15a8b]",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_version_evidence_digest_refuses_a_duplicate_span_ordinal",
     "apps/api/tests/test_corpus_snapshot_integrity.py::test_a_token_for_another_date_is_refused",
+    "apps/api/tests/test_corruption_repro_verdict.py::test_a_broken_file_reports_the_final_check",
+    "apps/api/tests/test_corruption_repro_verdict.py::test_what_the_reader_saw_is_damage_even_when_the_file_ends_clean",
     "apps/api/tests/test_data_model_documents_every_table.py::test_nothing_is_described_that_does_not_exist",
     "apps/api/tests/test_decision_sensitivity.py::test_empirical_decision_sensitivity_reports_finite_sample_bounds",
     "apps/api/tests/test_declared_subject_token_space.py::test_a_short_function_word_does_not_block_the_subject",
@@ -205,9 +209,9 @@
     "apps/api/tests/test_validity_boundaries.py::test_a_version_still_governs_on_the_last_day_it_names",
     "apps/api/tests/test_verifier_resistance.py::test_an_empty_report_is_not_proof"
   ],
-  "selected_digest": "811a0575bb6987d4de1413ae7cc9e0234d07e661beacdd7c8df6720b060fd580",
+  "selected_digest": "6419283c947e95e71341fff44208788c32005fcf04b354e985f16ad1efa53a2b",
   "junit": {
-    "tests": 195,
+    "tests": 199,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -216,9 +220,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 14.705328,
+  "elapsed_seconds": 13.302203,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 36%]\n........................................................................ [ 73%]\n........s..........................................                      [100%]\n=============================== warnings summary ===============================\ntests/test_package_zip_safety.py::test_duplicate_name_is_rejected\n  /usr/lib/python3.12/zipfile/__init__.py:1620: UserWarning: Duplicate name: 'same.txt'\n    return self._open_to_write(zinfo, force_zip64=force_zip64)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+  "stdout_tail": "........................................................................ [ 36%]\n........................................................................ [ 72%]\n............s..........................................                  [100%]\n=============================== warnings summary ===============================\ntests/test_package_zip_safety.py::test_duplicate_name_is_rejected\n  /usr/lib/python3.12/zipfile/__init__.py:1620: UserWarning: Duplicate name: 'same.txt'\n    return self._open_to_write(zinfo, force_zip64=force_zip64)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
   "stderr_tail": ""
 }

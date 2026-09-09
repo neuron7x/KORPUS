@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "dac63dc14588cd3209f76f2beb47c3ac547bfe8bd1fb9411ae9617ad071067c1",
-  "collection_digest": "6ed47d7d9a8182daedea92151f9bb07e1a9232c1b0cbe20f2817a5b79456bfaa",
-  "collection_count": 4826,
+  "source_digest": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
+  "collection_digest": "7ba164dc980c4c0bc6c0cfb314071bab806c1fb9917b14b5d87d8ad5475da1cc",
+  "collection_count": 4859,
   "shard_index": 15,
   "shard_count": 24,
-  "selected_count": 205,
+  "selected_count": 207,
   "selected_nodeids": [
     "apps/api/tests/test_access_control.py::test_access_is_monotone_in_clearance",
     "apps/api/tests/test_access_control.py::test_restricted_document_never_enters_public_retrieval",
@@ -27,6 +27,7 @@
     "apps/api/tests/test_audit_key_rotation.py::test_a_revoked_key_still_verifies_and_is_reported_as_revoked",
     "apps/api/tests/test_audit_names_governing_version.py::test_the_event_names_the_version_and_span_the_answer_stood_on",
     "apps/api/tests/test_audit_reader_seam.py::test_a_trace_id_that_is_not_a_trace_id_is_refused['; DROP TABLE audits;--]",
+    "apps/api/tests/test_audit_restore_record.py::test_the_record_is_bound_to_the_anchor_number_not_only_to_its_hash",
     "apps/api/tests/test_auth.py::test_jwt_auth_rejects_expired_wrong_audience_and_overlong_lifetime",
     "apps/api/tests/test_authority_ranking.py::test_a_more_specific_declared_subject_outranks_one_that_is_merely_its_substring",
     "apps/api/tests/test_billing_events.py::test_malformed_payloads_are_refused_and_change_nothing[{\"id\": \"x\", \"type\": \"subscription.activated\"}]",
@@ -82,6 +83,7 @@
     "apps/api/tests/test_declared_subject_admission.py::test_a_question_about_someone_else_does_not_match",
     "apps/api/tests/test_dependency_lock_gate.py::test_direct_url_dependency_fails_closed",
     "apps/api/tests/test_derived_source_links.py::test_a_small_number_is_not_trusted_because_it_is_usually_a_part_index",
+    "apps/api/tests/test_dialect_coverage_producers_agree.py::test_neither_producer_disables_coverage",
     "apps/api/tests/test_diversify_incremental_identity.py::test_lazy_folding_equals_the_naive_recomputation[1-17]",
     "apps/api/tests/test_doctrine_catalog.py::test_a_jar_renamed_docx_is_refused",
     "apps/api/tests/test_doctrine_catalog.py::test_a_partial_change_does_not_shadow_the_full_floor_snapshot",
@@ -215,9 +217,9 @@
     "apps/api/tests/test_validity_boundaries.py::test_rescission_removes_the_document_from_search_on_its_own_day",
     "apps/api/tests/test_verifier_resistance.py::test_a_complete_run_is_accepted"
   ],
-  "selected_digest": "705d6f63488e983cf1c2eb35a97f14a6c48d19a028094b09ad3db90269ed6b62",
+  "selected_digest": "bef1d3587c55f9b47ca44aeb17d26e56dd88290303afb093b9de3b5254af5df2",
   "junit": {
-    "tests": 205,
+    "tests": 207,
     "failures": 0,
     "errors": 0,
     "skipped": 0
@@ -226,9 +228,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 10.28295,
+  "elapsed_seconds": 8.466197,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 35%]\n........................................................................ [ 70%]\n.............................................................            [100%]",
+  "stdout_tail": "........................................................................ [ 34%]\n........................................................................ [ 69%]\n...............................................................          [100%]",
   "stderr_tail": ""
 }

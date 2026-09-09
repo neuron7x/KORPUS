@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2067,
-  "root_sha256": "dc3b9fc9742311671c854605adbb06896b6b8f6dba0b6180ec5c9ed9e38c2fb9",
+  "file_count": 2068,
+  "root_sha256": "58f4ea44e9894f37e2b4765756df126129dbdab4d15da9ea131905886da776b7",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 130559,
-      "sha256": "e8c6eb3ba6d208ea93f5f5dc976a3976ca5a6ff8420219ed8bd9e645c6958176",
+      "bytes": 130634,
+      "sha256": "74c60faf72fda8f140caf3b4a534eae8151908d429052082f5a2709d0eb6ee5b",
       "mode": "0644"
     },
     {
@@ -4416,6 +4416,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_load_probe_environment_basis.py",
+      "bytes": 3855,
+      "sha256": "e1eec1610adca8329cc4cf11be1aeb74d3a4d86b306336e4016bf2731fa80a13",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_local_production_preflight.py",
       "bytes": 3423,
       "sha256": "c5dc46a074b4d22d99e6cf63ee7970ff6aed06ae87c44d2cd98ff235d30e85fd",
@@ -8095,8 +8101,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 736325,
-      "sha256": "8eb6a4658cd1e770ab45712a54271ea3cd07e6a0ba25e7d0145c711e786cb123",
+      "bytes": 735518,
+      "sha256": "6396579c257b257940ad7e083062842c1b11f9607e9cbb5b43f19e29c65d5743",
       "mode": "0644"
     },
     {
@@ -11203,8 +11209,8 @@
     },
     {
       "path": "scripts/load_probe.py",
-      "bytes": 21047,
-      "sha256": "48cdb841a60ebb9265719ba4f16287c17a1abfdad8164fbe4e106d014ccde891",
+      "bytes": 22045,
+      "sha256": "eed5bb1baa535834563588b488647a83c7eaacab457556af0234f7420d8c76dc",
       "mode": "0755"
     },
     {

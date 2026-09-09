@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "dac63dc14588cd3209f76f2beb47c3ac547bfe8bd1fb9411ae9617ad071067c1",
-  "collection_digest": "6ed47d7d9a8182daedea92151f9bb07e1a9232c1b0cbe20f2817a5b79456bfaa",
-  "collection_count": 4826,
+  "source_digest": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
+  "collection_digest": "7ba164dc980c4c0bc6c0cfb314071bab806c1fb9917b14b5d87d8ad5475da1cc",
+  "collection_count": 4859,
   "shard_index": 7,
   "shard_count": 24,
-  "selected_count": 232,
+  "selected_count": 233,
   "selected_nodeids": [
     "apps/api/tests/test_admission_tie.py::test_authority_exactly_at_the_floor_stays_admitted",
     "apps/api/tests/test_answer_axes_composition.py::test_a_blind_axis_is_not_a_passed_axis",
@@ -21,6 +21,7 @@
     "apps/api/tests/test_audit_export.py::test_an_empty_batch_has_no_cursor_to_advance_to",
     "apps/api/tests/test_audit_key_rotation.py::test_a_chain_opened_without_the_previous_key_does_not_verify",
     "apps/api/tests/test_audit_key_rotation.py::test_a_key_id_that_is_unsafe_in_a_row_or_a_command_is_refused[Upper]",
+    "apps/api/tests/test_audit_restore_record.py::test_a_verified_record_accounts_for_the_rollback",
     "apps/api/tests/test_authority_ranking.py::test_the_retriever_carries_the_same_cap_its_diversifier_defaults_to",
     "apps/api/tests/test_boundary_coverage_v5.py::test_embedding_provider_normalization_validation_health_and_close",
     "apps/api/tests/test_boundary_coverage_v5.py::test_embedding_provider_rejects_ambiguous_or_untyped_envelopes[payload0]",
@@ -242,9 +243,9 @@
     "apps/api/tests/test_worker_supervisor_liveness.py::test_a_child_that_ignores_terminate_is_killed_after_the_timeout",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_stopping_without_a_child_is_a_no_op"
   ],
-  "selected_digest": "123098a35755c0108eb710116af8d8b8d7a1a4769eb1570f173d555cdf5d589c",
+  "selected_digest": "e5f26d9bc847c4662bc1e0080c4396ab70b64c1df242cb9abea694fd2e6cc70a",
   "junit": {
-    "tests": 232,
+    "tests": 233,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -253,9 +254,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 15.133407,
+  "elapsed_seconds": 14.558116,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 31%]\n........................................................................ [ 62%]\n.....................ssss............................................... [ 93%]\n................                                                         [100%]",
+  "stdout_tail": "........................................................................ [ 30%]\n........................................................................ [ 61%]\n......................ssss.............................................. [ 92%]\n.................                                                        [100%]",
   "stderr_tail": ""
 }

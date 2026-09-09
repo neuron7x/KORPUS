@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "dac63dc14588cd3209f76f2beb47c3ac547bfe8bd1fb9411ae9617ad071067c1",
-  "collection_digest": "6ed47d7d9a8182daedea92151f9bb07e1a9232c1b0cbe20f2817a5b79456bfaa",
-  "collection_count": 4826,
+  "source_digest": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
+  "collection_digest": "7ba164dc980c4c0bc6c0cfb314071bab806c1fb9917b14b5d87d8ad5475da1cc",
+  "collection_count": 4859,
   "shard_index": 20,
   "shard_count": 24,
-  "selected_count": 182,
+  "selected_count": 183,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_the_listing_can_answer_whether_it_is_actually_off",
     "apps/api/tests/test_admission_tie.py::test_coverage_below_the_floor_is_refused",
@@ -64,6 +64,7 @@
     "apps/api/tests/test_corpus_snapshot_contract.py::test_release_identity_digest_commits_every_member_field[document_id-document-b]",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_release_identity_digest_commits_every_member_field[evidence_digest-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd]",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_release_identity_digest_commits_every_member_field[rescinded_at-1:2026-08-14T10:00:00+00:00]",
+    "apps/api/tests/test_corruption_repro_verdict.py::test_the_verdict_is_reproduced_when_the_final_check_is_dirty",
     "apps/api/tests/test_coverage_closure_v097.py::test_absence_never_supports_a_claim",
     "apps/api/tests/test_coverage_closure_v097.py::test_pec_research_ablation_replay_information_and_judgment_branches",
     "apps/api/tests/test_coverage_risk_closeout_v080.py::test_tenant_auth_subject_rejects_control_whitespace",
@@ -192,9 +193,9 @@
     "apps/api/tests/test_versioning.py::test_new_approved_version_supersedes_old_version_in_current_retrieval",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[600.0]"
   ],
-  "selected_digest": "9c27125e9aa3f6f0b8525aa1e42d104eb6ec2914cdfa3984af2df701a47f33d9",
+  "selected_digest": "2c5140897432ac7fe4b1f5ce1aee4e22a7af8ab13620d568694f2e0091f6567a",
   "junit": {
-    "tests": 182,
+    "tests": 183,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -203,9 +204,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 7.261608,
+  "elapsed_seconds": 6.472738,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 39%]\n..............................................................s......... [ 79%]\n......................................                                   [100%]\n=============================== warnings summary ===============================\ntests/test_capability_gateway_http_status_projection.py::test_each_non_success_outcome_carries_its_own_status[REJECTED-SCHEMA_REJECTED-422]\n  /home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:1002: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.\n    result = context.run(func, *args)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+  "stdout_tail": "........................................................................ [ 39%]\n...............................................................s........ [ 78%]\n.......................................                                  [100%]\n=============================== warnings summary ===============================\ntests/test_capability_gateway_http_status_projection.py::test_each_non_success_outcome_carries_its_own_status[REJECTED-SCHEMA_REJECTED-422]\n  /home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:1002: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.\n    result = context.run(func, *args)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
   "stderr_tail": ""
 }

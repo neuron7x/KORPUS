@@ -1287,7 +1287,8 @@ ingestion-drill:
 load-probe:
 	$(PY) scripts/load_probe.py $(if $(BASE),--base "$(BASE)") $(if $(TOKEN),--token "$(TOKEN)") \
 	  $(if $(CONCURRENCY),--concurrency $(CONCURRENCY)) $(if $(SPIKE),--spike $(SPIKE)) \
-	  $(if $(SECONDS),--seconds $(SECONDS)) $(if $(SOAK_SECONDS),--soak-seconds $(SOAK_SECONDS))
+	  $(if $(SECONDS),--seconds $(SECONDS)) $(if $(SOAK_SECONDS),--soak-seconds $(SOAK_SECONDS)) \
+	  $(if $(ENVIRONMENT_CLASS),--environment-class "$(ENVIRONMENT_CLASS)")
 
 # Restores somewhere else on purpose: a drill that overwrites the live corpus is a drill
 # nobody runs, and one that never runs is not known to work.

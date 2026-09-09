@@ -16,9 +16,11 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Mapping
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
@@ -250,6 +252,30 @@ def selftest() -> int:
     return 1 if bad else 0
 
 
+def decide_environment_class(measured: Mapping[str, Any], requested: str) -> tuple[str, str]:
+    """Клас середовища і підстава, що пояснює САМЕ ЙОГО.
+
+    Прапорець може лише ПОСЛАБИТИ: `--environment-class PRODUCTION` на дев-машині доти
+    робив прогін доказом про продакшен, і жодна перевірка не питала, чи там щось працює.
+
+    Друге правило народилось із протиріччя, виміряного 09.09.2026: звіт ніс
+    `environment_class: LOCAL_DEV` поруч із підставою «оголошені юніти активні, несуть
+    поточний код». Обидва рядки правдиві про РІЗНІ предмети — клас про рішення, підстава
+    про вимір, — і разом читались як пряме протиріччя, яке нічим не розвʼязати. Тепер
+    послаблення називається вголос.
+    """
+    environment_class = (
+        requested
+        if requested not in {"PRODUCTION_LIKE", "PRODUCTION"}
+        else str(measured["environment_class"])
+    )
+    if environment_class == measured["environment_class"]:
+        return environment_class, str(measured["basis"])
+    return environment_class, (
+        f"прапорець послабив клас до {environment_class}; вимір давав {measured['basis']}"
+    )
+
+
 def main() -> int:
     probe_started = time.monotonic()
     parser = argparse.ArgumentParser()
@@ -293,24 +319,16 @@ def main() -> int:
     spike = _phase(arguments.base, arguments.spike, arguments.seconds, arguments.timeout)
     soak = _phase(arguments.base, arguments.concurrency, arguments.soak_seconds, arguments.timeout)
 
-    # Клас середовища НЕ призначається прапорцем угору. Прапорець може лише послабити
-    # (CI_FIXTURE), а PRODUCTION_LIKE віддає вимір: чи справді обслуговує оголошена
-    # топологія. Доти `--environment-class PRODUCTION` робив прогін на дев-машині
-    # доказом про продакшен, і жодна перевірка не питала, чи там щось працює.
     measured = topology_environment_class(ROOT, port=_port_of(arguments.base))
     requested = arguments.environment_class
-    environment_class = (
-        requested
-        if requested not in {"PRODUCTION_LIKE", "PRODUCTION"}
-        else measured["environment_class"]
-    )
+    environment_class, basis = decide_environment_class(measured, requested)
     report = {
         "schema_version": 2,
         "measured_at": datetime.now(UTC).isoformat(),
         "base": arguments.base,
         "environment_class": environment_class,
         "environment_class_requested": requested,
-        "environment_class_basis": measured["basis"],
+        "environment_class_basis": basis,
         "source_tree_sha256": arguments.source_tree_sha256 or compute_source_digest(ROOT),
         "release": arguments.release or release_tag(),
         "cold_first_request": {

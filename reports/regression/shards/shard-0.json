@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "dac63dc14588cd3209f76f2beb47c3ac547bfe8bd1fb9411ae9617ad071067c1",
-  "collection_digest": "6ed47d7d9a8182daedea92151f9bb07e1a9232c1b0cbe20f2817a5b79456bfaa",
-  "collection_count": 4826,
+  "source_digest": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
+  "collection_digest": "7ba164dc980c4c0bc6c0cfb314071bab806c1fb9917b14b5d87d8ad5475da1cc",
+  "collection_count": 4859,
   "shard_index": 0,
   "shard_count": 24,
-  "selected_count": 199,
+  "selected_count": 200,
   "selected_nodeids": [
     "apps/api/tests/test_access_oracles.py::test_an_unentitled_reviewer_cannot_take_an_order_out_of_force",
     "apps/api/tests/test_access_oracles.py::test_the_entitled_reviewer_can_still_rescind",
@@ -24,6 +24,7 @@
     "apps/api/tests/test_assurance_aggregation.py::test_unparsable_test_count_is_not_treated_as_success",
     "apps/api/tests/test_audit_export.py::test_the_batch_digest_changes_when_any_event_changes",
     "apps/api/tests/test_audit_export.py::test_the_manifest_states_what_the_hmac_link_does_not_prove",
+    "apps/api/tests/test_audit_restore_record.py::test_a_restore_point_outside_the_chain_is_refused",
     "apps/api/tests/test_billing_events.py::test_an_event_without_a_usable_timestamp_applies_but_never_advances_the_order[occurred_at5]",
     "apps/api/tests/test_blank_corpus_probe.py::test_the_script_counts_transport_failures_instead_of_calling_them_measurements",
     "apps/api/tests/test_blank_corpus_probe.py::test_two_hundred_with_citations_is_an_answer",
@@ -209,9 +210,9 @@
     "apps/api/tests/test_validity_boundaries.py::test_the_search_path_keeps_a_document_on_the_last_day_it_names",
     "apps/api/tests/test_verifier_resistance.py::test_the_verdict_is_not_accepted_while_anything_is_unresolved"
   ],
-  "selected_digest": "60ab61ffe795914ab84036d5962d9381a821a1dd1c4086433762bd788e68245d",
+  "selected_digest": "3a435bcb3d351a7f778b7798d9c7e8fce0e3b896f84a5973f8711a679bf7e7cf",
   "junit": {
-    "tests": 199,
+    "tests": 200,
     "failures": 0,
     "errors": 0,
     "skipped": 0
@@ -220,9 +221,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 25.472989,
+  "elapsed_seconds": 22.809094,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 36%]\n........................................................................ [ 72%]\n.......................................................                  [100%]",
+  "stdout_tail": "........................................................................ [ 36%]\n........................................................................ [ 72%]\n........................................................                 [100%]",
   "stderr_tail": ""
 }

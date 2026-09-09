@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "dac63dc14588cd3209f76f2beb47c3ac547bfe8bd1fb9411ae9617ad071067c1",
-  "collection_digest": "6ed47d7d9a8182daedea92151f9bb07e1a9232c1b0cbe20f2817a5b79456bfaa",
-  "collection_count": 4826,
+  "source_digest": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
+  "collection_digest": "7ba164dc980c4c0bc6c0cfb314071bab806c1fb9917b14b5d87d8ad5475da1cc",
+  "collection_count": 4859,
   "shard_index": 18,
   "shard_count": 24,
-  "selected_count": 194,
+  "selected_count": 197,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_an_operator_can_find_the_account_by_the_subject_they_were_given",
     "apps/api/tests/test_account_administration.py::test_an_unknown_account_is_a_404_not_a_500",
@@ -21,6 +21,9 @@
     "apps/api/tests/test_assurance_aggregation.py::test_mutation_score_over_catalogue_is_the_measured_quantity",
     "apps/api/tests/test_assurance_trust.py::test_empty_runtime_trust_does_not_create_trust",
     "apps/api/tests/test_audit.py::test_concurrent_audit_appends_form_one_total_order",
+    "apps/api/tests/test_audit_restore_record.py::test_a_record_missing_a_field_is_refused",
+    "apps/api/tests/test_audit_restore_record.py::test_a_record_of_another_schema_is_refused",
+    "apps/api/tests/test_audit_restore_record.py::test_an_unreadable_file_is_not_a_record",
     "apps/api/tests/test_billing_events.py::test_malformed_payloads_are_refused_and_change_nothing[{\"id\": \"x\"}]",
     "apps/api/tests/test_billing_events.py::test_the_first_event_records_the_providers_own_subscription_id",
     "apps/api/tests/test_branch_cycle2_extraction_v050.py::test_sandbox_worker_return_output_and_response_edges",
@@ -204,9 +207,9 @@
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[-1.0]",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[0.0]"
   ],
-  "selected_digest": "968d42f962e1c59ea7287599f94000664e581609ce24cd13b905082c28ad8c03",
+  "selected_digest": "dbb047a8f278ba1f36bc4d1b2081d48ec7e0550962bea9eb54d5278deb14c445",
   "junit": {
-    "tests": 194,
+    "tests": 197,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -215,9 +218,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 15.967818,
+  "elapsed_seconds": 14.437145,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 37%]\n.............................................................ssss....... [ 74%]\n..................................................                       [100%]",
+  "stdout_tail": "........................................................................ [ 36%]\n................................................................ssss.... [ 73%]\n.....................................................                    [100%]",
   "stderr_tail": ""
 }
