@@ -41,6 +41,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import resource
 import subprocess
 import sys
 from pathlib import Path
@@ -51,6 +52,24 @@ COVERAGE = ROOT / "var/selftest-coverage.json"
 REGISTRY = ROOT / "config/operations/selftest-falsifiability.json"
 MAX_PER_SCRIPT = 10
 TIMEOUT_SECONDS = 90
+#: Стеля адресного простору ОДНОГО мутанта, виміряна, а не вгадана.
+#:
+#: 09.09.2026 нічний лан з'їв 4,2 ГБ і загнав машину в 9,4 ГБ свопу; фоновий процес
+#: сесії система вбила за браком памʼяті. Важким виявився не гейт — сам
+#: `verify_gate_closure.py` бере 25 МБ, — а ОДИН його мутант: `flip` перевертає
+#: `while (start := line.find(opener)) >= 0` на `< 0`, а `str.find` віддає -1, коли не
+#: знайшов. Цикл стає нескінченним і росте, доки не спрацює таймаут — тобто півтори
+#: хвилини по кілька гігабайтів, щоночі, поруч із обслуговуваним корпусом.
+#:
+#: Таймаут обмежував ЧАС і нічого не казав про ПАМʼЯТЬ. Тепер обмежено і її. Число
+#: узяте з виміру: найважча ЧЕСНА самоперевірка з 69 наявних бере 62,7 МБ
+#: (`repair_span_markup.py`), тож 1 ГБ — шістнадцятикратний запас, у який жодна
+#: сумлінна проба не впреться, і водночас межа, за якою мутант помирає одразу.
+#:
+#: Вибух памʼяті стає ПІЙМАНИМ мутантом: дитина падає з `MemoryError`, код виходу
+#: ненульовий, самоперевірка не лишилась зеленою. Це той самий вирок, що й раніше, —
+#: тільки тепер його платить мутант, а не машина.
+MEMORY_LIMIT_BYTES = 1_073_741_824
 
 FLIP: dict[type, type] = {
     ast.Eq: ast.NotEq,
@@ -192,6 +211,15 @@ def poison(source: str, target: int, kind: str = "flip") -> str | None:
     return None
 
 
+def _cap_address_space() -> None:  # pragma: no cover - біжить у дочірньому процесі
+    """Межа АДРЕСНОГО ПРОСТОРУ мутанта. Ставиться між fork і exec, тож діє на дитину.
+
+    `preexec_fn` небезпечний у багатопотоковій програмі; ця — однопотокова, і саме тому
+    він тут припустимий. Іншого способу віддати дитині rlimit stdlib не має.
+    """
+    resource.setrlimit(resource.RLIMIT_AS, (MEMORY_LIMIT_BYTES, MEMORY_LIMIT_BYTES))
+
+
 def _selftest_rc(root: Path, script: Path, python: str) -> int | None:
     try:
         done = subprocess.run(
@@ -199,6 +227,7 @@ def _selftest_rc(root: Path, script: Path, python: str) -> int | None:
             cwd=root,
             capture_output=True,
             timeout=TIMEOUT_SECONDS,
+            preexec_fn=_cap_address_space,
             env={
                 "PYTHONPATH": f"{root}/apps/api/src:{root}/scripts",
                 "PATH": "/usr/bin:/bin",

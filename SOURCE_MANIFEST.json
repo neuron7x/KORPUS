@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2068,
-  "root_sha256": "58f4ea44e9894f37e2b4765756df126129dbdab4d15da9ea131905886da776b7",
+  "file_count": 2069,
+  "root_sha256": "5f904f75055fd0a7fc0e4d46423f3beec21374fb1f4a2c09555e5f3bc602f8f6",
   "files": [
     {
       "path": ".dockerignore",
@@ -4536,6 +4536,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_mutant_memory_bound.py",
+      "bytes": 4212,
+      "sha256": "2991dee8e698da0f60bfa4a54ec257a0ea3ebef9cfb29c6f963dfad25391e085",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_mutation_delta_gate.py",
       "bytes": 9562,
       "sha256": "9f7f0d6328718a11687a37a6a23553c88d0f6e8354f3cb3b037f6f07661d7aea",
@@ -8101,8 +8107,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 735518,
-      "sha256": "6396579c257b257940ad7e083062842c1b11f9607e9cbb5b43f19e29c65d5743",
+      "bytes": 736289,
+      "sha256": "f9975b8f2e560cbce5fca86e86c5e59da7cd845e5019976569b935d9a13c23b2",
       "mode": "0644"
     },
     {
@@ -11473,8 +11479,8 @@
     },
     {
       "path": "scripts/probe_selftest_falsifiability.py",
-      "bytes": 20975,
-      "sha256": "7f8b415af85d6cacd591fc910c617cd8f3d1ce4fa5674a304228dc723a4ea942",
+      "bytes": 23485,
+      "sha256": "0f0c1a66a09e15bda813dfb5aac2ff6e5b624ef2042c54cfeadba2b6df74091d",
       "mode": "0755"
     },
     {
