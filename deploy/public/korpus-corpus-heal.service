@@ -1,0 +1,29 @@
+[Unit]
+Description=KORPUS: підняти корпус із найсвіжішого бекапа після UNREADABLE
+After=korpus-public-api.service
+# Піднімається з `OnFailure=` проби читаності, а не за розкладом: лікування без
+# пошкодження — руйнування, і предмет дії тут дає рівно вирок зонда.
+#
+# ТРИ НЕЗАЛЕЖНІ МЕЖІ, бо проба бігає щохвилини і кожна її відмова кличе цей юніт:
+#   · тут — не більше двох піднять на годину;
+#   · у скрипті — `flock` на самій базі, щоб два прогони не знесли роботу один одному;
+#   · у скрипті — відмова на READABLE, тож повторний виклик на вилікуваному нічого не
+#     робить, крім рядка в журналі.
+StartLimitIntervalSec=3600
+StartLimitBurst=2
+
+[Service]
+Type=oneshot
+WorkingDirectory=@KORPUS_ROOT@
+Environment="KORPUS_BACKUP_ENCRYPTION_KEY_FILE=%h/.local/state/korpus-public/backup.key"
+Environment="KORPUS_BACKUP_KEY_ID=korpus-local-2026-08"
+Environment="KORPUS_AUDIT_HMAC_KEY_FILE=%h/.local/state/korpus-public/audit-key.txt"
+ExecStart="@KORPUS_ROOT@/apps/api/.venv/bin/python" "@KORPUS_ROOT@/scripts/heal_corpus_from_backup.py" --apply --database "@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/korpus.db" --anchor "@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/audit.anchor" --backups "%h/korpus-backups" --journal "@KORPUS_ROOT@/var/corpus-heal.jsonl"
+# Розшифрування 354 МБ, розпакування, доведення схеми до head і очікування 200 — на цій
+# машині вимірялося 5 с на копії, але межа ставиться не за найкращим прогоном.
+TimeoutStartSec=1800
+NoNewPrivileges=true
+MemoryMax=1G
+
+[Install]
+WantedBy=default.target

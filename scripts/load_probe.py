@@ -80,12 +80,33 @@ ANSWERED_SHARE_FLOOR = 0.95
 TOKENS: list[str] = []
 
 
+def bearer_for(token: str | None) -> str:
+    """Чий токен піде в запит. Винесено, бо всередині `_ask` це рішення накрити нічим.
+
+    Проба вміє бити кількома токенами (`TOKENS`), і саме тут вирішується, чи вона
+    справді ними бʼє. Отрута тут робить усі запити одним токеном, і вимір «кілька
+    субʼєктів під навантаженням» мовчки перетворюється на «один субʼєкт» — числа
+    лишаються правдоподібними, предмет інший.
+    """
+    return TOKEN if token is None else token
+
+
+def should_back_off(status: str) -> bool:
+    """Чи шанувати відмову замість крутитись на ній.
+
+    Писар, що повторює обмеження швидкості якнайшвидше, міряє шлях ВІДМОВИ обмежувача
+    і звітує сто тисяч запитів, яких система не приймала. Отрута тут не ламає нічого
+    видимого — вона роздуває знаменник.
+    """
+    return status == "429"
+
+
 def _ask(
     base: str, question: str, timeout: float, token: str | None = None
 ) -> tuple[float, str, str, str]:
     body = json.dumps({"text": question, "declaration": DECLARATION}).encode("utf-8")
     headers = {"content-type": "application/json"}
-    bearer = TOKEN if token is None else token
+    bearer = bearer_for(token)
     if bearer:
         headers["Authorization"] = f"Bearer {bearer}"
     request = urllib.request.Request(f"{base}/v1/answers", data=body, headers=headers)
@@ -118,12 +139,12 @@ def _phase(base: str, concurrency: int, seconds: float, timeout: float) -> Outco
     def worker(index: int) -> None:
         nonlocal counter
         token = TOKENS[index % len(TOKENS)] if TOKENS else TOKEN
-        while time.monotonic() < deadline:
+        while within_deadline(time.monotonic(), deadline):
             counter += 1
             question = QUESTIONS[(index + counter) % len(QUESTIONS)]
             elapsed, status, decision, refusal_reason = _ask(base, question, timeout, token)
             outcome.record(elapsed, status, decision, refusal_reason)
-            if status == "429":
+            if should_back_off(status):
                 # Honour the refusal instead of spinning on it. A worker that retries a
                 # rate limit as fast as it can measures the limiter's reject path and
                 # reports a hundred thousand requests the system never agreed to take.
@@ -132,6 +153,16 @@ def _phase(base: str, concurrency: int, seconds: float, timeout: float) -> Outco
     with ThreadPoolExecutor(max_workers=concurrency) as pool:
         list(pool.map(worker, range(concurrency)))
     return outcome
+
+
+def within_deadline(now: float, deadline: float) -> bool:
+    """Чи фаза ще триває. Винесено, бо в тілі циклу цю умову накрити нічим.
+
+    Отрута тут не ламає нічого видимого: перевернута — і фаза не робить ЖОДНОГО запиту,
+    а звіт віддає порожню фазу з правдоподібними нулями. Саме таку порожню фазу вже
+    ловив сторож знаменника; тут вона зупиняється на крок раніше.
+    """
+    return now < deadline
 
 
 def restarted_for_this_run(ages: dict[str, float | None], probe_elapsed: float) -> dict[str, bool]:
@@ -178,15 +209,27 @@ def service_ages(root: Path) -> dict[str, float | None]:
                 check=False,
                 timeout=10,
             ).stdout.strip()
-            started = int(shown) / 1_000_000 if shown.isdigit() and shown != "0" else None
+            started = started_seconds(shown)
         except (OSError, subprocess.SubprocessError, ValueError):
             started = None
-        ages[unit] = (
-            round(time.clock_gettime(time.CLOCK_MONOTONIC) - started, 1)
-            if started is not None
-            else None
-        )
+        ages[unit] = age_from(started, time.clock_gettime(time.CLOCK_MONOTONIC))
     return ages
+
+
+def started_seconds(shown: str) -> float | None:
+    """Мить старту служби з виводу systemd, або None, якщо її нема.
+
+    `ActiveEnterTimestampMonotonic` віддає «0» для служби, яка ЖОДНОГО разу не
+    активувалась. Прочитати цей нуль як момент часу означало б оголосити вік «щойно
+    стартувала» службі, якої не було взагалі — а «холодний старт» тоді проходить за
+    визначенням.
+    """
+    return int(shown) / 1_000_000 if shown.isdigit() and shown != "0" else None
+
+
+def age_from(started: float | None, now: float) -> float | None:
+    """Вік служби, або None. Невідомий вік НЕ перетворюється на число."""
+    return round(now - started, 1) if started is not None else None
 
 
 def _port_of(base: str) -> int | None:
@@ -237,6 +280,80 @@ def selftest() -> int:
             phases_below_floor({"load": 0.0, "soak": 1.0}),
             ["load"],
         ),
+        # ДОДАНО 09.09.2026 після незалежної верифікації. Гейт фальсифіковності виніс
+        # цьому файлу вирок CANNOT_FAIL: дванадцять отрут, нуль спійманих. Самоперевірка
+        # накривала РІВНО сторожа знаменника, а рішення про клас середовища, про порт і
+        # про холодний старт — тобто все, що вирішує, ПРО ЩО взагалі вимір, — не
+        # накривала жодним випадком. Ліки жили в коді й не жили в гейті, вдруге.
+        (
+            "прапорець НЕ піднімає клас угору: продакшен на дев-машині лишається дев-машиною",
+            decide_environment_class(
+                {"environment_class": "LOCAL_DEV", "basis": "процеси старші за код"},
+                "PRODUCTION",
+            )[0],
+            "LOCAL_DEV",
+        ),
+        (
+            "прапорець МОЖЕ послабити виміряний клас",
+            decide_environment_class(
+                {"environment_class": "PRODUCTION_LIKE", "basis": "юніти обслуговують"},
+                "CI_FIXTURE",
+            )[0],
+            "CI_FIXTURE",
+        ),
+        (
+            "послаблення НАЗИВАЄТЬСЯ, а не позичає підставу виміру",
+            "послабив"
+            in decide_environment_class(
+                {"environment_class": "PRODUCTION_LIKE", "basis": "юніти обслуговують"},
+                "LOCAL_DEV",
+            )[1],
+            True,
+        ),
+        (
+            "непослаблений клас лишає підставу виміру дослівно",
+            decide_environment_class(
+                {"environment_class": "PRODUCTION_LIKE", "basis": "юніти обслуговують"},
+                "PRODUCTION_LIKE",
+            )[1],
+            "юніти обслуговують",
+        ),
+        ("фаза триває, доки не настав дедлайн", within_deadline(1.0, 2.0), True),
+        ("рівно на дедлайні фаза скінчилась", within_deadline(2.0, 2.0), False),
+        ("після дедлайну — тим паче", within_deadline(3.0, 2.0), False),
+        ("нуль systemd — служба НЕ стартувала, а не «щойно»", started_seconds("0"), None),
+        ("порожній вивід — не момент часу", started_seconds(""), None),
+        ("справжня мітка переводиться в секунди", started_seconds("2000000"), 2.0),
+        ("невідомий старт лишається невідомим віком", age_from(None, 100.0), None),
+        ("вік рахується від виміряного тепер", age_from(40.0, 100.0), 60.0),
+        ("порт зі схемою", _port_of("http://127.0.0.1:8000"), 8000),
+        ("порт без схеми — той самий предмет", _port_of("127.0.0.1:8030"), 8030),
+        ("без порту вимір не знає, що міряв", _port_of("http://example"), None),
+        (
+            "служба, старша за вимір, НЕ перезапущена для нього",
+            restarted_for_this_run({"api": 3600.0}, 10.0),
+            {"api": False},
+        ),
+        (
+            "служба віком у межах вікна — перезапущена для цього виміру",
+            restarted_for_this_run({"api": 12.0}, 10.0),
+            {"api": True},
+        ),
+        (
+            "невідомий вік — НЕ мовчазне «так»",
+            restarted_for_this_run({"api": None}, 10.0),
+            {"api": False},
+        ),
+        (
+            "рівно на стелі вікна — ще перезапущена",
+            restarted_for_this_run({"api": 70.0}, 10.0),
+            {"api": True},
+        ),
+        ("токен робітника має пріоритет над глобальним", bearer_for("власний"), "власний"),
+        ("без свого токена йде глобальний", bearer_for(None), TOKEN),
+        ("на 429 проба ВІДСТУПАЄ, а не крутиться", should_back_off("429"), True),
+        ("на 200 відступати нема від чого", should_back_off("200"), False),
+        ("на 503 теж не відступає — це інша відмова", should_back_off("503"), False),
         (
             "обидві фази судяться, не одна",
             phases_below_floor({"load": 0.0, "soak": 0.0}),

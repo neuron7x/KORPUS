@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2073,
-  "root_sha256": "12f1c36664987b7426eae4bdc9e180c29ceec980ce621555d408a171018dd5f5",
+  "file_count": 2075,
+  "root_sha256": "1290d509b72c33f48f1e75264eeae1ffac61527e4dc9d713e70db421fd8bdbc9",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 131563,
-      "sha256": "c95fe8e3c13af58fa70b8de9a9298151dada11a549b84bdd3475fa793de4be20",
+      "bytes": 132534,
+      "sha256": "39ae435ea2d6b274ab5362db02fa83bba7fc4acbe46f0e22b92b93cc8e4c8e3b",
       "mode": "0644"
     },
     {
@@ -3637,8 +3637,8 @@
     },
     {
       "path": "apps/api/tests/test_corpus_readability_watch.py",
-      "bytes": 9126,
-      "sha256": "9cc63c04f6f55b1162d91da8783021754b4ce92922c6c648acd049f0caa7e00d",
+      "bytes": 20271,
+      "sha256": "d711318cd52bf30101124d6c86ff78aec8cd7f55680d43cf4b8e28fddf3d368c",
       "mode": "0644"
     },
     {
@@ -8113,8 +8113,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 738647,
-      "sha256": "da86b5450a170b32069005ff9e29bfdb55302ad862c2e0ac121e74ccd89750a4",
+      "bytes": 741414,
+      "sha256": "eabce38df0d74eb63fc667a83417381baff5632145a9d9824457414e7c0c070d",
       "mode": "0644"
     },
     {
@@ -8304,9 +8304,15 @@
       "mode": "0644"
     },
     {
+      "path": "deploy/public/korpus-corpus-heal.service",
+      "bytes": 2022,
+      "sha256": "a9e2584bc736a77efd263f24509e48a0d7810cc087dfac94422d2be9defc3d93",
+      "mode": "0644"
+    },
+    {
       "path": "deploy/public/korpus-corpus-readability.service",
-      "bytes": 924,
-      "sha256": "79eaab29396e14d5a0c13a309d3a5638ccea3df0d88082d7182b2f053dfc154a",
+      "bytes": 2738,
+      "sha256": "037daa19f96f457a4bf0a2249623f68171242f183ffba65312a2149a1ec48e08",
       "mode": "0644"
     },
     {
@@ -11178,6 +11184,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/heal_corpus_from_backup.py",
+      "bytes": 29340,
+      "sha256": "dbecf2b03691a1cf3748643e88acf22ccec6e9e56e3201a60e8c1742d555c079",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/import_corpus.py",
       "bytes": 17653,
       "sha256": "f5fe872abe95d9785cfd8d3b119c266c2a76566e930f64d5b087d53ed3d111f7",
@@ -11233,8 +11245,8 @@
     },
     {
       "path": "scripts/load_probe.py",
-      "bytes": 22045,
-      "sha256": "eed5bb1baa535834563588b488647a83c7eaacab457556af0234f7420d8c76dc",
+      "bytes": 29587,
+      "sha256": "14a2905ad0d04a3e460e3f0a3716461221774bd3e482701f47054cf3be9a550d",
       "mode": "0755"
     },
     {
@@ -11845,8 +11857,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 331940,
-      "sha256": "6bcbcb1e96c4e382bf7de2145a604a825ea011b3efdee2f2a4aecf7e1140651e",
+      "bytes": 332087,
+      "sha256": "27de6f8c07dad30407c8c8bac3983a793fa66fb036be25c93cb62966783901b7",
       "mode": "0755"
     },
     {
@@ -12421,8 +12433,8 @@
     },
     {
       "path": "scripts/watch_corpus_readability.py",
-      "bytes": 13355,
-      "sha256": "a47e735f621a47dfaa46160f4a032243bb1888405464f04f799bdaf954955b81",
+      "bytes": 40619,
+      "sha256": "c0dd56cd69f7e8147c321a5dea405aa404bd5978e60cb5c4f0d6d298130dadf3",
       "mode": "0755"
     },
     {

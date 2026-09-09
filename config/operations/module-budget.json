@@ -4606,6 +4606,15 @@
       "proof_lines": 0,
       "reason": "WEB-001: the browser's constraints generated from the OpenAPI contract and policy.py"
     },
+    "scripts/heal_corpus_from_backup.py": {
+      "lines": 607,
+      "max_complexity": 8,
+      "max_function_args": 3,
+      "max_function_lines": 30,
+      "max_nesting": 2,
+      "proof_lines": 24,
+      "reason": "Новий виробник: відновлення корпусу з бекапа за вироком зонда. Точний поточний вимір — стеля ратчета."
+    },
     "scripts/import_corpus.py": {
       "lines": 389,
       "max_complexity": 35,
@@ -4679,13 +4688,13 @@
       "reason": "registered 2026-08-29: shared ISO-date parser, extracted after an equivalent-input probe found three gates rejecting a valid datetime and accepting compact and week-numbered forms"
     },
     "scripts/load_probe.py": {
-      "lines": 363,
+      "lines": 406,
       "max_complexity": 12,
       "max_function_args": 4,
       "max_function_lines": 129,
       "max_nesting": 2,
-      "proof_lines": 48,
-      "reason": "Рішення про клас середовища винесено в `decide_environment_class`, щоб підстава пояснювала ЗАПИСАНИЙ клас. Стелі функцій не піднімались — `main` розвантажено."
+      "proof_lines": 122,
+      "reason": "Чотири рішення винесено з циклів і обробників у названі функції, щоб самоперевірка могла їх накрити: `bearer_for`, `should_back_off`, `within_deadline`, `started_seconds`/`age_from`."
     },
     "scripts/load_probe_lib/metrics.py": {
       "lines": 67,
@@ -6290,13 +6299,13 @@
       "proof_lines": 0
     },
     "scripts/watch_corpus_readability.py": {
-      "lines": 196,
+      "lines": 792,
       "max_complexity": 6,
       "max_function_args": 2,
-      "max_function_lines": 28,
+      "max_function_lines": 26,
       "max_nesting": 3,
-      "proof_lines": 53,
-      "reason": "Журнал відмов, читання процесів із /proc замість зовнішнього `ps`. Стелі функцій утримані розбиттям `largest_processes` на `_resident_size`, а не підняттям."
+      "proof_lines": 25,
+      "reason": "Перелік таблиць більше не належить авторові: він ВИВОДИТЬСЯ розбором джерела `readiness_snapshot` транзитивно через методи класу. Це і є ціна — виведення, а не довший список."
     },
     "scripts/zip_resource_policy.py": {
       "lines": 41,
@@ -12560,6 +12569,24 @@
       "path": "scripts/watch_corpus_readability.py",
       "reason": "`append_failure(journal, report)` бере два аргументи: шлях журналу мусить бути ВХОДОМ, а не константою модуля, інакше тест не міг би писати у свій tmp і перевіряв би поведінку на бойовому файлі.",
       "to": 2
+    },
+    {
+      "closes_when": "виведення переліку стане спільною бібліотекою зі шляхом готовності; доти це виміряне число",
+      "from": 196,
+      "metric": "lines",
+      "on": "2026-09-09",
+      "path": "scripts/watch_corpus_readability.py",
+      "reason": "Незалежна верифікація 09.09 винесла твердженню «зонд зловить наступне пошкодження» вирок REJECT: на СПРАВЖНЬОМУ пошкодженому файлі цього корпусу він давав READABLE і порожній журнал, бо читав `evidence_spans` — єдину таблицю, якої пʼять пошкоджень не торкнулись. Ліки не в довшому списку таблиць, а в тому, що список перестав бути авторським: він виводиться розбором `AuditReader.readiness_snapshot` транзитивно через методи класу, і зламане виведення дає UNKNOWN, а не READABLE. Кожен запит доведено константним лічильником кроків VDBE на базах 50 і 20000 рядків (66/66, 70/70, 72/72, 66/66). Гейт: ARMED 6/6.",
+      "to": 792
+    },
+    {
+      "closes_when": "фазовий цикл роз'їдеться на вимір і транспорт; доти це виміряне число",
+      "from": 363,
+      "metric": "lines",
+      "on": "2026-09-09",
+      "path": "scripts/load_probe.py",
+      "reason": "`selftest-falsifiability` виніс цьому файлу CANNOT_FAIL: 12 отрут, 0 спійманих. Самоперевірка накривала рівно сторожа знаменника, а рішення про клас середовища, токен робітника, відступ на 429, межу фази і вік служби — тобто все, що вирішує, ПРО ЩО вимір, — не накривала жодним випадком. Виміряно після правки тим самим гейтом: 12/12, ARMED. Випадків самоперевірки 6 -> 31.",
+      "to": 406
     }
   ],
   "recorded_at": "2026-09-09",

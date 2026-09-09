@@ -1,15 +1,30 @@
 [Unit]
 Description=KORPUS: щохвилинна проба читаності обслуговуваного корпусу
 After=korpus-public-api.service
+# Відмова зонда сама піднімає лікаря. Доти відновлення робила рука, і між пошкодженням
+# о 17:34 та відновленням о 19:27 служба не відповідала майже дві години.
+# `heal_corpus_from_backup.py` відмовляється діяти на будь-чому, крім UNREADABLE, тож
+# вихід 2 (UNKNOWN) дає рядок у журналі, а не підміну файла.
+OnFailure=korpus-corpus-heal.service
 
 [Service]
 Type=oneshot
 WorkingDirectory=@KORPUS_ROOT@
-Environment=PYTHONPATH=@KORPUS_ROOT@/apps/api/src:@KORPUS_ROOT@/scripts
-ExecStart="@KORPUS_ROOT@/apps/api/.venv/bin/python" scripts/watch_corpus_readability.py --database var/runtime/corpus-v6-20260807/korpus.db --out var/corpus-readability.json
+# ЛАПКИ ОБОВʼЯЗКОВІ, і це виміряно, а не написано з обережності. Без них рядок був
+# `Environment=PYTHONPATH=@KORPUS_ROOT@/apps/api/src:@KORPUS_ROOT@/scripts`, а systemd
+# ділить значення `Environment=` пробілами так само, як `ExecStart=`. `systemctl --user
+# show` 09.09.2026 віддавав дослівно:
+#     Environment=PYTHONPATH=/home/neuro7/Desktop/Ядро
+# тобто змінна була обрізана на першому пробілі канонічного шляху, а решта слів осідала
+# як сміттєві присвоєння. `check_unit_exec_arguments.py` цього не бачить: `Environment=`
+# не входить у перелік директив-аргументів, бо вада того гейта була про `ExecStart=`.
+Environment="PYTHONPATH=@KORPUS_ROOT@/apps/api/src:@KORPUS_ROOT@/scripts"
+# Журнал названо ЯВНО, а не лишено на підставний шлях: файл, у якому лежить час події,
+# мусить читатися з юніта, а не з коду проби.
+ExecStart="@KORPUS_ROOT@/apps/api/.venv/bin/python" "@KORPUS_ROOT@/scripts/watch_corpus_readability.py" --database "@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/korpus.db" --out "@KORPUS_ROOT@/var/corpus-readability.json" --journal "@KORPUS_ROOT@/var/corpus-readability-failures.jsonl"
 TimeoutStartSec=60
 NoNewPrivileges=true
 # Проба, що сама стала джерелом тиску, стерегла б власну причину. 256 МБ — на порядок
-# більше за її вимір (два константні запити) і на порядок менше за все, що тут падало:
-# мутант нічного лану брав 4,2 ГБ, поки йому не поставили межу.
+# більше за її вимір (чотири константні запити плюс розбір трьох джерел) і на порядок
+# менше за все, що тут падало: мутант нічного лану брав 4,2 ГБ, поки не отримав межу.
 MemoryMax=256M

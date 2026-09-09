@@ -6715,8 +6715,8 @@ MUTANTS = (
         # Саме цієї половини бракувало всім чотирьом пошкодженням.
         "M708_A_FAILURE_STOPS_CARRYING_ITS_CONDITIONS",
         "scripts/watch_corpus_readability.py",
-        '    if not verdict["readable"]:',
-        "    if False:",
+        '    if report["status"] != "READABLE":\n        # Умови знімаються ЛИШЕ при відмові',
+        "    if False:\n        # Умови знімаються ЛИШЕ при відмові",
         (
             "apps/api/tests/test_corpus_readability_watch.py::"
             "test_a_failure_carries_the_machine_conditions_of_its_moment",
@@ -6741,11 +6741,11 @@ MUTANTS = (
         # нічим.
         "M710_A_CORRUPTION_STOPS_BEING_NAMED_AS_ONE",
         "scripts/watch_corpus_readability.py",
-        '            "corruption_signal": type(error) is sqlite3.DatabaseError,',
-        '            "corruption_signal": False,',
+        '        "corruption_signal": any(row.get("corruption_signal") for row in probed),',
+        '        "corruption_signal": False,',
         (
             "apps/api/tests/test_corpus_readability_watch.py::"
-            "test_a_corruption_is_named_by_type_identity_not_by_words",
+            "test_the_shape_of_the_ninth_is_unreadable",
         ),
     ),
 )

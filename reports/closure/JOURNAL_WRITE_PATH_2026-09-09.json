@@ -1,0 +1,70 @@
+{
+  "schema": "korpus.journal-write-path-repro.v1",
+  "status": "NOT_MEASURED",
+  "why_this_arm": "За пʼять пошкоджень постраждали ЛИШЕ audit_events, audit_heads і audit_anchor_outbox. Це трійка, у яку йде запис в ОДНІЙ транзакції. Дев'ять попередніх дослідів били по файлу загалом і не відтворили.",
+  "declared_budget": {
+    "transactions_per_arm": 150000,
+    "writers": 2
+  },
+  "arms": [
+    {
+      "arm": "mmap_production",
+      "mmap_mib": 256,
+      "writers": 2,
+      "transactions_committed": 150000,
+      "lock_contention": 0,
+      "seconds": 144.3,
+      "bytes_after": 387391488,
+      "journal_before": {
+        "audit_events": "ok",
+        "audit_heads": "ok",
+        "audit_anchor_outbox": "ok",
+        "quick_check": "ok"
+      },
+      "journal_after": {
+        "audit_events": "ok",
+        "audit_heads": "ok",
+        "audit_anchor_outbox": "ok",
+        "quick_check": "ok"
+      },
+      "intact_after": true
+    },
+    {
+      "arm": "mmap_disabled",
+      "mmap_mib": 0,
+      "writers": 2,
+      "transactions_committed": 150000,
+      "lock_contention": 0,
+      "seconds": 103.5,
+      "bytes_after": 387391488,
+      "journal_before": {
+        "audit_events": "ok",
+        "audit_heads": "ok",
+        "audit_anchor_outbox": "ok",
+        "quick_check": "ok"
+      },
+      "journal_after": {
+        "audit_events": "ok",
+        "audit_heads": "ok",
+        "audit_anchor_outbox": "ok",
+        "quick_check": "ok"
+      },
+      "intact_after": true
+    }
+  ],
+  "environment": {
+    "sqlite": "3.45.1",
+    "cpu": 16
+  },
+  "generated_at": "2026-09-09T16:42:25.250013+00:00",
+  "what_this_eliminates": "ФОРМА транзакції журналу сама собою. 300 000 транзакцій дослівно тієї форми, що в продукті (подія + голова + черга якоря в ОДНОМУ BEGIN IMMEDIATE), обидва значення mmap, нуль конкуренції за блокування — трійка таблиць ціла в обох плечах. Десяте усунення.",
+  "what_still_differs_from_production": [
+    "СЛУЖБА: два робітники uvicorn, NullPool, і кожна відповідь робить важке ЧИТАННЯ (пошук по прольотах і FTS) ПЕРЕД записом журналу. Мій дослід тільки пише.",
+    "ЧАС: продакшен пише годинами з паузами, дослід стискає обсяг у хвилини.",
+    "ДРУГИЙ ПИСАР: доставка черги якоря позначає рядки delivered — окремий шлях запису, якого в досліді немає.",
+    "ТИСК МАШИНИ: нічний лан і батареї женуть її в 8–9 ГБ свопу; дослід біг на відносно тихій."
+  ],
+  "designed_next_arm": "Підняти ДРУГУ службу korpus проти КОПІЇ корпусу і бити її відповідями. Це єдина конфігурація, у якій присутні всі чотири відмінності одночасно; усе, що можна було перевірити дешевше, вже перевірено й не відтворює.",
+  "disk_hygiene": "Робочу теку прибрано одразу. Докази пошкоджень дедупліковано доведенням `cmp`: два файли, зроблені сьогодні копією того самого оригіналу, видалено, по одному на подію лишилось. Диск 93 %, і сам він уже фактор.",
+  "source_tree_sha256": "745dfb3196819f14a1fa2d4a2bb7c8fbdb00841c"
+}
