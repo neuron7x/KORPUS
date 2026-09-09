@@ -1,9 +1,9 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-09T11:13:56.587805+00:00",
+  "generated_at": "2026-09-09T13:17:39.163042+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "3c888d03c0791dc05056e7ac00c0cf422c7f8a08254723476a04d241057bbdbd",
+  "source_tree_sha256": "99a05e506582e29fd1d123782c21f83c63f084b5f49036f2bfe5e0e2d9aae03a",
   "digest_scope": "evidence_paths",
   "items": [
     {
@@ -130,8 +130,7 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
-        "recovery_environment",
-        "recovery_source_bound"
+        "recovery_environment"
       ],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
@@ -226,8 +225,8 @@
     }
   ],
   "counts": {
-    "EXTERNAL_REQUIRED": 11,
-    "CLOSED_ANCHORED": 3
+    "CLOSED_ANCHORED": 3,
+    "EXTERNAL_REQUIRED": 11
   },
   "internal_executable_unresolved": 0,
   "internal_missing_artifact": 0,
@@ -236,6 +235,6 @@
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "2df838130e7d3cfa313827d00e2c93612b0be469b1993bf74ababf5e9c2419f9"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "6e5f068d029e42e515b013f5ceb0d99f7a3c48d080a201a93bbd8651c4df01b6"
   }
 }
