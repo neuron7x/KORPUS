@@ -6709,6 +6709,45 @@ MUTANTS = (
             "apps/api/tests/test_corruption_repro_verdict.py::test_the_verdict_is_reproduced_when_only_the_reader_saw_it",
         ),
     ),
+    Mutant(
+        # Відмова перестає нести УМОВИ машини. Подія лишається зафіксованою, але без
+        # памʼяті, свопу і найбільших процесів — тобто знову «сталося колись уночі».
+        # Саме цієї половини бракувало всім чотирьом пошкодженням.
+        "M708_A_FAILURE_STOPS_CARRYING_ITS_CONDITIONS",
+        "scripts/watch_corpus_readability.py",
+        '    if not verdict["readable"]:',
+        "    if False:",
+        (
+            "apps/api/tests/test_corpus_readability_watch.py::"
+            "test_a_failure_carries_the_machine_conditions_of_its_moment",
+        ),
+    ),
+    Mutant(
+        # Проводка рветься: журнал оголошений, `append_failure` ціла, але `main` її не
+        # кличе. Обидві половини справні, разом не працюють — і відмова о 03:00 знову
+        # зникає о 03:01 разом із перезаписом знімка.
+        "M709_THE_RUNNER_STOPS_WRITING_THE_JOURNAL_IT_DECLARES",
+        "scripts/watch_corpus_readability.py",
+        '    if report["status"] != "READABLE":\n        append_failure(arguments.journal, report)',
+        "    if False:\n        append_failure(arguments.journal, report)",
+        (
+            "apps/api/tests/test_corpus_readability_watch.py::"
+            "test_the_runner_actually_writes_the_journal_it_declares",
+        ),
+    ),
+    Mutant(
+        # Клас помилки перестає називатись сигналом пошкодження: подія лягає в журнал як
+        # звичайна відмова читання, і відрізнити SQLITE_CORRUPT від «база зайнята» вже
+        # нічим.
+        "M710_A_CORRUPTION_STOPS_BEING_NAMED_AS_ONE",
+        "scripts/watch_corpus_readability.py",
+        '            "corruption_signal": type(error) is sqlite3.DatabaseError,',
+        '            "corruption_signal": False,',
+        (
+            "apps/api/tests/test_corpus_readability_watch.py::"
+            "test_a_corruption_is_named_by_type_identity_not_by_words",
+        ),
+    ),
 )
 
 

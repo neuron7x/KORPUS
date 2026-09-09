@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2073,
-  "root_sha256": "3e947ca02125d1cb256c292fd4c6c9e8d4f94e5e039e132cf87e094738bd8572",
+  "root_sha256": "12f1c36664987b7426eae4bdc9e180c29ceec980ce621555d408a171018dd5f5",
   "files": [
     {
       "path": ".dockerignore",
@@ -3637,8 +3637,8 @@
     },
     {
       "path": "apps/api/tests/test_corpus_readability_watch.py",
-      "bytes": 4629,
-      "sha256": "f9c2a0c55a3ab728420344227f5b9e2d8965aa0ca8d6102ffaadc2ddfde8d6b5",
+      "bytes": 9126,
+      "sha256": "9cc63c04f6f55b1162d91da8783021754b4ce92922c6c648acd049f0caa7e00d",
       "mode": "0644"
     },
     {
@@ -8113,8 +8113,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 736761,
-      "sha256": "69291c0ae88fa7438b4572853477fcd6a18264bf53984880c95b95d69688ab8a",
+      "bytes": 738647,
+      "sha256": "da86b5450a170b32069005ff9e29bfdb55302ad862c2e0ac121e74ccd89750a4",
       "mode": "0644"
     },
     {
@@ -11845,8 +11845,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 329630,
-      "sha256": "1d8e0fbf66f4fd09a4d52d5823dbe373ae9cfd70b2536c8e5e32195480bace95",
+      "bytes": 331940,
+      "sha256": "6bcbcb1e96c4e382bf7de2145a604a825ea011b3efdee2f2a4aecf7e1140651e",
       "mode": "0755"
     },
     {
@@ -12421,8 +12421,8 @@
     },
     {
       "path": "scripts/watch_corpus_readability.py",
-      "bytes": 10196,
-      "sha256": "0ade780eb812c7559d92a3e24091ac633f29613ba9cd5cf22d1c292eab04c10a",
+      "bytes": 13355,
+      "sha256": "a47e735f621a47dfaa46160f4a032243bb1888405464f04f799bdaf954955b81",
       "mode": "0755"
     },
     {

@@ -31,7 +31,6 @@ from __future__ import annotations
 import argparse
 import json
 import sqlite3
-import subprocess
 import sys
 import tempfile
 from datetime import UTC, datetime
@@ -58,18 +57,50 @@ def machine_conditions() -> dict[str, Any]:
                 conditions[name] = line.split(":", 1)[1].strip()
     except OSError as error:
         conditions["meminfo_error"] = str(error)
-    try:
-        done = subprocess.run(
-            ["ps", "-eo", "rss,comm", "--sort=-rss"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-            check=False,
-        )
-        conditions["largest_processes"] = done.stdout.splitlines()[1:6]
-    except (OSError, subprocess.SubprocessError) as error:
-        conditions["ps_error"] = str(error)
+    conditions["largest_processes"] = largest_processes()
     return conditions
+
+
+def largest_processes(limit: int = 5) -> list[str]:
+    """Найбільші процеси — з `/proc`, а НЕ через зовнішній `ps`.
+
+    Перша редакція кликала `ps`, і в контейнері CI його немає: тест упав із
+    `KeyError: largest_processes`, бо ключа мовчки не було. Але важливіше за тест інше —
+    прилад, який має описати машину В МИТЬ ВІДМОВИ, не сміє залежати від стороннього
+    виконуваного файла, якого може не бути саме тоді, коли машині зле.
+
+    Порожній перелік — ЧЕСНА відповідь там, де `/proc` недоступний, і вона відрізняється
+    від «процесів немає» лише тим, що ключ присутній ЗАВЖДИ.
+    """
+    proc = Path("/proc")
+    if not proc.is_dir():
+        return []
+    rows = [
+        size
+        for entry in proc.iterdir()
+        if entry.name.isdigit() and (size := _resident_size(entry)) is not None
+    ]
+    rows.sort(reverse=True)
+    return [f"{rss} {name}" for rss, name in rows[:limit]]
+
+
+def _resident_size(entry: Path) -> tuple[int, str] | None:
+    """Розмір і назва одного процесу, або None, якщо його вже нема.
+
+    Процес, що помер між переліком і читанням, — звичайна гонка, а не подія досліду.
+    """
+    try:
+        status = (entry / "status").read_text(encoding="utf-8")
+    except OSError:
+        return None
+    name = ""
+    rss = 0
+    for line in status.splitlines():
+        if line.startswith("Name:"):
+            name = line.split(":", 1)[1].strip()
+        elif line.startswith("VmRSS:"):
+            rss = int(line.split()[1])
+    return (rss, name) if rss else None
 
 
 def readability(database: Path) -> dict[str, Any]:
@@ -173,10 +204,30 @@ def selftest() -> int:
     return 1 if problems else 0
 
 
+def append_failure(journal: Path, report: dict[str, Any]) -> None:
+    """Відмова лягає в НЕЗНИЩЕННИЙ журнал, а не лише в поточний знімок.
+
+    Вада, знайдена в цьому ж приладі за годину після встановлення: `--out` — ОДИН файл,
+    який перезаписується щохвилини. Відмова о 03:00 зникала б о 03:01, коли наступний
+    прогін напише READABLE. Прилад, поставлений заради ЧАСУ ПОДІЇ, губив би саме ту
+    подію, заради якої існує — і побачити це можна було лише спитавши, що станеться
+    ПІСЛЯ відмови, а не чи ловить він її.
+
+    Дописування, не перезапис: рядок JSON на подію. Файл росте лише на відмовах, тож за
+    чотири пошкодження за три доби це чотири рядки, а не сорок тисяч знімків.
+    """
+    journal.parent.mkdir(parents=True, exist_ok=True)
+    with journal.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(report, ensure_ascii=False) + "\n")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--database", type=Path)
     parser.add_argument("--out", type=Path, default=ROOT / "var/corpus-readability.json")
+    parser.add_argument(
+        "--journal", type=Path, default=ROOT / "var/corpus-readability-failures.jsonl"
+    )
     parser.add_argument("--selftest", action="store_true")
     arguments = parser.parse_args()
     if arguments.selftest:
@@ -188,6 +239,8 @@ def main() -> int:
     arguments.out.write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
+    if report["status"] != "READABLE":
+        append_failure(arguments.journal, report)
     print(json.dumps(report, ensure_ascii=False))
     return 0 if report["status"] == "READABLE" else 1
 

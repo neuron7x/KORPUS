@@ -12,7 +12,10 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sqlite3
+import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -88,3 +91,94 @@ def test_the_cheap_probe_names_its_limit_instead_of_pretending(tmp_path: Path) -
     truncated = tmp_path / "cut.db"
     truncated.write_bytes(healthy.read_bytes()[: 4096 * 2])
     assert WATCH.observe(truncated)["status"] == "READABLE"
+
+
+# Прилад, поставлений заради ЧАСУ ПОДІЇ, губив би саме подію: `--out` — ОДИН файл, який
+# перезаписується щохвилини, тож відмова о 03:00 зникала б о 03:01. Побачити це можна
+# було лише спитавши, що станеться ПІСЛЯ відмови, а не чи ловить він її — перша редакція
+# тестів перевіряла друге і була зелена.
+def _broken(path: Path) -> Path:
+    path.write_bytes("це не база".encode() * 4096)
+    return path
+
+
+def test_a_failure_survives_the_next_successful_observation(tmp_path: Path) -> None:
+    """Найдорожчий тест файла: доказ мусить пережити наступний зелений прогін."""
+    journal = tmp_path / "failures.jsonl"
+    WATCH.append_failure(journal, WATCH.observe(_broken(tmp_path / "broken.db")))
+    WATCH.observe(_healthy(tmp_path / "ok.db"))
+    lines = [line for line in journal.read_text(encoding="utf-8").splitlines() if line.strip()]
+    assert len(lines) == 1
+    assert json.loads(lines[0])["status"] == "UNREADABLE"
+
+
+def test_the_journal_appends_instead_of_replacing(tmp_path: Path) -> None:
+    """Чотири пошкодження за три доби мають дати ЧОТИРИ рядки, а не останній."""
+    journal = tmp_path / "failures.jsonl"
+    broken = _broken(tmp_path / "broken.db")
+    for _ in range(3):
+        WATCH.append_failure(journal, WATCH.observe(broken))
+    assert (
+        len([line for line in journal.read_text(encoding="utf-8").splitlines() if line.strip()])
+        == 3
+    )
+
+
+def test_every_journal_line_carries_its_moment_and_its_conditions(tmp_path: Path) -> None:
+    """Рядок без часу і без умов не входить у розслідування — заради цього прилад і є."""
+    journal = tmp_path / "failures.jsonl"
+    WATCH.append_failure(journal, WATCH.observe(_broken(tmp_path / "broken.db")))
+    record = json.loads(journal.read_text(encoding="utf-8").splitlines()[0])
+    assert record["observed_at"]
+    assert record["machine_at_failure"]["MemAvailable"]
+
+
+def test_the_runner_actually_writes_the_journal_it_declares(tmp_path: Path) -> None:
+    """Проба на ПРОВОДКУ, а не на функцію.
+
+    `append_failure` можна викликати з тесту і бути зеленим, поки `main` її не кличе —
+    саме так виглядав би розрив між приладом і його журналом: обидві половини цілі,
+    разом не працюють. Тому тут запускається САМ скрипт, як його запускає systemd.
+    """
+    journal = tmp_path / "failures.jsonl"
+    done = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts/watch_corpus_readability.py"),
+            "--database",
+            str(_broken(tmp_path / "broken.db")),
+            "--out",
+            str(tmp_path / "snapshot.json"),
+            "--journal",
+            str(journal),
+        ],
+        capture_output=True,
+        timeout=120,
+        check=False,
+    )
+    assert done.returncode == 1, done.stderr[-400:]
+    assert journal.is_file(), "виробник оголосив журнал і не написав у нього"
+    assert json.loads(journal.read_text(encoding="utf-8").splitlines()[0])["status"] == "UNREADABLE"
+
+
+def test_a_readable_run_leaves_the_journal_alone(tmp_path: Path) -> None:
+    """Негативний контроль проводки: щохвилинний зелений прогін не сміє засмічувати
+    журнал, інакше за добу там 1440 рядків і подію в них не знайти."""
+    journal = tmp_path / "failures.jsonl"
+    done = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts/watch_corpus_readability.py"),
+            "--database",
+            str(_healthy(tmp_path / "ok.db")),
+            "--out",
+            str(tmp_path / "snapshot.json"),
+            "--journal",
+            str(journal),
+        ],
+        capture_output=True,
+        timeout=120,
+        check=False,
+    )
+    assert done.returncode == 0, done.stderr[-400:]
+    assert not journal.exists()
