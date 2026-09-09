@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
-  "collection_digest": "7ba164dc980c4c0bc6c0cfb314071bab806c1fb9917b14b5d87d8ad5475da1cc",
-  "collection_count": 4859,
+  "source_digest": "3c888d03c0791dc05056e7ac00c0cf422c7f8a08254723476a04d241057bbdbd",
+  "collection_digest": "102d58cf37ebe36384c7fe46fd99960025870bf9de0cfe970bb4c563423894d4",
+  "collection_count": 4875,
   "shard_index": 16,
   "shard_count": 24,
-  "selected_count": 206,
+  "selected_count": 207,
   "selected_nodeids": [
     "apps/api/tests/test_admission_cannot_be_self_granted.py::test_a_correctly_attested_ground_is_accepted",
     "apps/api/tests/test_admission_register.py::test_a_ground_cleared_with_a_test_that_does_not_exist_is_refused",
@@ -59,6 +59,7 @@
     "apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening[synchronous ingestion]",
     "apps/api/tests/test_conversation_retention.py::test_an_invalid_window_stops_the_job_rather_than_being_clamped",
     "apps/api/tests/test_corpus_path_declarations.py::test_only_argparse_defaults_count_as_declarations",
+    "apps/api/tests/test_corpus_readability_watch.py::test_a_missing_database_is_unreadable_rather_than_silent",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_attached_snapshot_reader_reports_absence_rather_than_guessing",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_corpus_read_token_rejects_noncanonical_authorization_scope[bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb]",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_release_identity_digest_commits_every_member_field[effective_from-1:2026-01-04]",
@@ -216,9 +217,9 @@
     "apps/api/tests/test_validity_boundaries.py::test_the_search_path_withholds_a_document_before_it_takes_effect",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[60.1]"
   ],
-  "selected_digest": "d6610ae2eaff1a52c13c9b8d37b252b096dd6b49bb2b3b22db75572bf2b11dcb",
+  "selected_digest": "f2112fe0e7a7dc4f62b44861fa77f11e0167f5bf0a77a3ac3f6ec4c86a3093e8",
   "junit": {
-    "tests": 206,
+    "tests": 207,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -227,9 +228,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 17.996161,
+  "elapsed_seconds": 19.398045,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 34%]\n........................................................................ [ 69%]\n.................ssss.........................................           [100%]",
+  "stdout_tail": "........................................................................ [ 34%]\n........................................................................ [ 69%]\n..................ssss.........................................          [100%]",
   "stderr_tail": ""
 }

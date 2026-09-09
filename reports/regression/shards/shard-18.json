@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
-  "collection_digest": "7ba164dc980c4c0bc6c0cfb314071bab806c1fb9917b14b5d87d8ad5475da1cc",
-  "collection_count": 4859,
+  "source_digest": "3c888d03c0791dc05056e7ac00c0cf422c7f8a08254723476a04d241057bbdbd",
+  "collection_digest": "102d58cf37ebe36384c7fe46fd99960025870bf9de0cfe970bb4c563423894d4",
+  "collection_count": 4875,
   "shard_index": 18,
   "shard_count": 24,
-  "selected_count": 197,
+  "selected_count": 198,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_an_operator_can_find_the_account_by_the_subject_they_were_given",
     "apps/api/tests/test_account_administration.py::test_an_unknown_account_is_a_404_not_a_500",
@@ -119,6 +119,7 @@
     "apps/api/tests/test_learning_assessment.py::test_a_check_naming_an_objective_the_lesson_does_not_teach_is_a_blocker",
     "apps/api/tests/test_learning_assessment.py::test_extra_selection_does_not_receive_partial_credit",
     "apps/api/tests/test_learning_course_domain.py::test_lesson_refuses_duplicate_source_binding_identity",
+    "apps/api/tests/test_load_probe_environment_basis.py::test_the_flag_never_raises_the_class",
     "apps/api/tests/test_math_kernel_v097.py::test_replay_priority_rejects_string_booleans_and_nan_residual",
     "apps/api/tests/test_math_kernel_v097.py::test_two_sided_hoeffding_is_fail_closed_at_zero_samples",
     "apps/api/tests/test_mathematical_integrity_hardening.py::test_admission_wait_timeout_is_finite[inf]",
@@ -207,9 +208,9 @@
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[-1.0]",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[0.0]"
   ],
-  "selected_digest": "dbb047a8f278ba1f36bc4d1b2081d48ec7e0550962bea9eb54d5278deb14c445",
+  "selected_digest": "e62c9d9b6163cc80e90e7fcaffcf0fe30422e97c9aa0f0550eb499b6efac46db",
   "junit": {
-    "tests": 197,
+    "tests": 198,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -218,9 +219,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 14.437145,
+  "elapsed_seconds": 15.07538,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 36%]\n................................................................ssss.... [ 73%]\n.....................................................                    [100%]",
+  "stdout_tail": "........................................................................ [ 36%]\n.................................................................ssss... [ 72%]\n......................................................                   [100%]",
   "stderr_tail": ""
 }

@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
-  "collection_digest": "7ba164dc980c4c0bc6c0cfb314071bab806c1fb9917b14b5d87d8ad5475da1cc",
-  "collection_count": 4859,
+  "source_digest": "3c888d03c0791dc05056e7ac00c0cf422c7f8a08254723476a04d241057bbdbd",
+  "collection_digest": "102d58cf37ebe36384c7fe46fd99960025870bf9de0cfe970bb4c563423894d4",
+  "collection_count": 4875,
   "shard_index": 21,
   "shard_count": 24,
-  "selected_count": 187,
+  "selected_count": 190,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_an_operator_can_disable_an_account_without_a_database_shell",
     "apps/api/tests/test_account_domain.py::test_an_account_record_carries_no_authorization_field",
@@ -57,6 +57,7 @@
     "apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening[short audit key]",
     "apps/api/tests/test_controlled_configuration_refusals.py::test_production_api_still_refuses_browser_authentication_removal",
     "apps/api/tests/test_conversations.py::test_the_conversation_service_offers_no_way_to_turn_history_into_evidence",
+    "apps/api/tests/test_corpus_readability_watch.py::test_the_cheap_probe_names_its_limit_instead_of_pretending",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_version_evidence_digest_refuses_an_empty_evidence_set",
     "apps/api/tests/test_corpus_transport.py::test_zero_objects_hashed_is_not_a_clean_content_check",
     "apps/api/tests/test_coverage_closure_v097.py::test_pec_training_model_edge_and_candidate_branches",
@@ -131,6 +132,8 @@
     "apps/api/tests/test_military_readiness_runner.py::test_aggregate_status_preserves_fail_and_unknown",
     "apps/api/tests/test_mission_assurance_v2.py::test_a_hard_failure_bound_outside_the_open_unit_interval_is_refused[1.0]",
     "apps/api/tests/test_mission_assurance_v2.py::test_zero_observed_failures_is_not_zero_risk_or_automatic_admission",
+    "apps/api/tests/test_mutant_memory_bound.py::test_a_runaway_mutant_dies_instead_of_taking_the_machine",
+    "apps/api/tests/test_mutant_memory_bound.py::test_an_honest_selftest_still_fits_under_the_limit",
     "apps/api/tests/test_mutation_delta_gate.py::test_the_shipped_registry_is_present_and_well_formed",
     "apps/api/tests/test_mutation_delta_gate_verdict.py::test_the_selftest_passes_on_the_tree_as_shipped",
     "apps/api/tests/test_mutation_report_freshness.py::test_a_mutant_the_report_never_saw_is_caught",
@@ -197,9 +200,9 @@
     "apps/api/tests/test_verifier_resistance.py::test_a_report_that_claims_a_full_kill_and_lists_a_survivor_is_refused",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_health_reports_the_child_exit_code_once_the_worker_dies"
   ],
-  "selected_digest": "8311efc75fbeff62b0fdf0aed87e4e5f6ac49e86f4a8a569d35f9a16f471f21a",
+  "selected_digest": "a6d52581c1918bd1cfa6eeef3510ea7a68299aabc337cabb8dc9071b0547ffea",
   "junit": {
-    "tests": 187,
+    "tests": 190,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -208,9 +211,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 9.973545,
+  "elapsed_seconds": 10.915867,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 38%]\n.....................................................................s.. [ 77%]\n...........................................                              [100%]",
+  "stdout_tail": "........................................................................ [ 37%]\n........................................................................ [ 75%]\ns.............................................                           [100%]",
   "stderr_tail": ""
 }

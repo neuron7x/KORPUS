@@ -1,9 +1,9 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-08T21:12:43.471585+00:00",
+  "generated_at": "2026-09-09T11:13:56.587805+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
+  "source_tree_sha256": "3c888d03c0791dc05056e7ac00c0cf422c7f8a08254723476a04d241057bbdbd",
   "digest_scope": "evidence_paths",
   "items": [
     {
@@ -19,14 +19,15 @@
     },
     {
       "id": "live_vulnerability_scanners",
-      "state": "INTERNAL_STALE_EVIDENCE",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
       "externally_satisfied": false,
-      "machine_closable": true,
+      "machine_closable": false,
       "failed_external_checks": [
-        "gate_source_bound"
+        "container_scanners_current_commit",
+        "security_scanners_current_commit"
       ],
       "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM"
     },
@@ -102,7 +103,7 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
-        "gate_source_bound",
+        "load_environment",
         "load_source_bound"
       ],
       "required_proof_class": "PRODUCTION_LIKE_LOAD"
@@ -116,7 +117,6 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
-        "gate_source_bound",
         "load_source_bound"
       ],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
@@ -130,8 +130,8 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
-        "gate_source_bound",
-        "recovery_environment"
+        "recovery_environment",
+        "recovery_source_bound"
       ],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
@@ -169,15 +169,13 @@
     },
     {
       "id": "exact_python_3_12_13_environment",
-      "state": "INTERNAL_STALE_EVIDENCE",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "machine_closable": true,
-      "failed_external_checks": [
-        "gate_source_bound"
-      ],
+      "externally_satisfied": true,
+      "machine_closable": false,
+      "failed_external_checks": [],
       "required_proof_class": "EXACT_LOCKED_ENVIRONMENT"
     },
     {
@@ -228,17 +226,16 @@
     }
   ],
   "counts": {
-    "EXTERNAL_REQUIRED": 10,
-    "CLOSED_ANCHORED": 2,
-    "INTERNAL_STALE_EVIDENCE": 2
+    "EXTERNAL_REQUIRED": 11,
+    "CLOSED_ANCHORED": 3
   },
-  "internal_executable_unresolved": 2,
+  "internal_executable_unresolved": 0,
   "internal_missing_artifact": 0,
-  "internal_stale_evidence": 2,
-  "production_external_or_runtime_unresolved": 10,
+  "internal_stale_evidence": 0,
+  "production_external_or_runtime_unresolved": 11,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "433a8c0fe37793d03055fafaabf902d86025a3f0c7bd6239db4e4fef48741494"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "2df838130e7d3cfa313827d00e2c93612b0be469b1993bf74ababf5e9c2419f9"
   }
 }

@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
-  "collection_digest": "7ba164dc980c4c0bc6c0cfb314071bab806c1fb9917b14b5d87d8ad5475da1cc",
-  "collection_count": 4859,
+  "source_digest": "3c888d03c0791dc05056e7ac00c0cf422c7f8a08254723476a04d241057bbdbd",
+  "collection_digest": "102d58cf37ebe36384c7fe46fd99960025870bf9de0cfe970bb4c563423894d4",
+  "collection_count": 4875,
   "shard_index": 0,
   "shard_count": 24,
-  "selected_count": 200,
+  "selected_count": 202,
   "selected_nodeids": [
     "apps/api/tests/test_access_oracles.py::test_an_unentitled_reviewer_cannot_take_an_order_out_of_force",
     "apps/api/tests/test_access_oracles.py::test_the_entitled_reviewer_can_still_rescind",
@@ -139,6 +139,7 @@
     "apps/api/tests/test_leakage_measurement.py::test_the_gate_fails_when_the_metric_had_nothing_to_measure",
     "apps/api/tests/test_learning_course_domain.py::test_publication_validation_rejects_source_document_mismatch",
     "apps/api/tests/test_learning_repository.py::test_draft_learning_version_can_be_deleted",
+    "apps/api/tests/test_load_probe_environment_basis.py::test_an_unlowered_class_keeps_the_measurement_basis",
     "apps/api/tests/test_local_production_preflight.py::test_local_success_never_claims_production_authorization",
     "apps/api/tests/test_make_runtime_paths.py::test_make_expands_those_paths_to_the_declared_root",
     "apps/api/tests/test_malformed_pdf_containment.py::test_a_readable_page_tree_is_not_refused",
@@ -152,6 +153,7 @@
     "apps/api/tests/test_metamorphic_invariants.py::test_an_authorization_decision_that_changed_under_rephrasing_is_reported",
     "apps/api/tests/test_model_egress.py::test_local_only_permits_a_loopback_endpoint",
     "apps/api/tests/test_model_executor_lifecycle.py::test_model_executors_are_built_once_per_process_lifespan",
+    "apps/api/tests/test_mutant_memory_bound.py::test_the_limit_is_measured_not_guessed",
     "apps/api/tests/test_mutation_delta_gate.py::test_a_path_mentioned_only_in_a_comment_is_not_catalogued",
     "apps/api/tests/test_mutation_report_declares_its_verdict.py::test_a_clean_catalogue_declares_pass",
     "apps/api/tests/test_noninterference_measurement.py::test_the_withheld_set_is_not_empty_for_a_subject_who_cannot_see_everything",
@@ -210,9 +212,9 @@
     "apps/api/tests/test_validity_boundaries.py::test_the_search_path_keeps_a_document_on_the_last_day_it_names",
     "apps/api/tests/test_verifier_resistance.py::test_the_verdict_is_not_accepted_while_anything_is_unresolved"
   ],
-  "selected_digest": "3a435bcb3d351a7f778b7798d9c7e8fce0e3b896f84a5973f8711a679bf7e7cf",
+  "selected_digest": "b1e04c8ef84e6b913563187618e2a04c69e02e80c02018bd2f7880ace264dff5",
   "junit": {
-    "tests": 200,
+    "tests": 202,
     "failures": 0,
     "errors": 0,
     "skipped": 0
@@ -221,9 +223,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 22.809094,
+  "elapsed_seconds": 23.596872,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 36%]\n........................................................................ [ 72%]\n........................................................                 [100%]",
+  "stdout_tail": "........................................................................ [ 35%]\n........................................................................ [ 71%]\n..........................................................               [100%]",
   "stderr_tail": ""
 }

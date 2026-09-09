@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "69e5832e085e32a9c66311e7816d1d40c3f84bdbf0a3695b94abeea06f0090a8",
-  "collection_digest": "7ba164dc980c4c0bc6c0cfb314071bab806c1fb9917b14b5d87d8ad5475da1cc",
-  "collection_count": 4859,
+  "source_digest": "3c888d03c0791dc05056e7ac00c0cf422c7f8a08254723476a04d241057bbdbd",
+  "collection_digest": "102d58cf37ebe36384c7fe46fd99960025870bf9de0cfe970bb4c563423894d4",
+  "collection_count": 4875,
   "shard_index": 17,
   "shard_count": 24,
-  "selected_count": 194,
+  "selected_count": 196,
   "selected_nodeids": [
     "apps/api/tests/test_access_oracles.py::test_the_near_duplicate_probe_is_not_a_graded_content_oracle[compartment-document3-reader3]",
     "apps/api/tests/test_admission_register.py::test_a_ground_cleared_with_no_evidence_at_all_is_refused",
@@ -64,6 +64,7 @@
     "apps/api/tests/test_competency_repository.py::test_duplicate_framework_revision_is_refused_atomically",
     "apps/api/tests/test_configuration_typos.py::test_the_app_refuses_to_start_on_an_unrecognised_variable",
     "apps/api/tests/test_conversation_retention.py::test_the_boundary_keeps_rather_than_deletes",
+    "apps/api/tests/test_corpus_readability_watch.py::test_a_healthy_corpus_is_readable",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_corpus_read_token_rejects_noncanonical_authorization_scope[zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz]",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_snapshot_token_cannot_be_reused_for_another_historical_date",
     "apps/api/tests/test_coverage_closure_v097.py::test_gcp_id_token_cache_invalid_payload_marker_and_close",
@@ -134,6 +135,7 @@
     "apps/api/tests/test_learning_repository.py::test_empty_learning_source_projection_short_circuits",
     "apps/api/tests/test_learning_repository.py::test_learning_repository_validate_missing_version_fails_closed",
     "apps/api/tests/test_liqpay_billing.py::test_yearly_checkout_declares_yearly_recurrence",
+    "apps/api/tests/test_load_probe_environment_basis.py::test_the_flag_may_lower_the_class",
     "apps/api/tests/test_manifest_generation.py::test_distribution_manifest_includes_untracked_package_artifacts",
     "apps/api/tests/test_mathematical_integrity_hardening.py::test_embedding_resource_bounds_reject_nonfinite_or_nondiscrete_values[dimensions-True]",
     "apps/api/tests/test_mathematical_integrity_hardening.py::test_gcp_identity_refresh_skew_is_discrete_nonnegative[True]",
@@ -204,9 +206,9 @@
     "apps/api/tests/test_url_policy.py::test_generic_http_parser_rejects_non_http_and_fragments",
     "apps/api/tests/test_verifier_resistance.py::test_unknown_and_problem_leave_by_different_exit_codes"
   ],
-  "selected_digest": "e64bbf18bb7137e5bb21d07b1d0da6394ee326e30e5eb96d713b9718c4212e51",
+  "selected_digest": "bd70e70c1b2d33b3af07ed156c29286fb448a49d6009933a88cd42e7d791ba56",
   "junit": {
-    "tests": 194,
+    "tests": 196,
     "failures": 0,
     "errors": 0,
     "skipped": 3
@@ -215,9 +217,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 15.876687,
+  "elapsed_seconds": 17.105434,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "...................s.................................................... [ 37%]\n........................................................................ [ 74%]\n..............ss..................................                       [100%]",
+  "stdout_tail": "...................s.................................................... [ 36%]\n........................................................................ [ 73%]\n................ss..................................                     [100%]",
   "stderr_tail": ""
 }
