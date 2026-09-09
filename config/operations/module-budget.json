@@ -6289,6 +6289,15 @@
       "max_nesting": 0,
       "proof_lines": 0
     },
+    "scripts/watch_corpus_readability.py": {
+      "lines": 143,
+      "max_complexity": 6,
+      "max_function_args": 1,
+      "max_function_lines": 28,
+      "max_nesting": 3,
+      "proof_lines": 53,
+      "reason": "Новий виробник: щохвилинна дешева проба читаності корпусу, що при відмові знімає стан машини. Точний поточний вимір — стеля ратчета."
+    },
     "scripts/zip_resource_policy.py": {
       "lines": 41,
       "max_complexity": 9,

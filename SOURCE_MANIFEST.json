@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2069,
-  "root_sha256": "5f904f75055fd0a7fc0e4d46423f3beec21374fb1f4a2c09555e5f3bc602f8f6",
+  "file_count": 2071,
+  "root_sha256": "24f4c87ef152e84480560f525c0c83786990425bb288c88637bdbab9b54e540d",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 130634,
-      "sha256": "74c60faf72fda8f140caf3b4a534eae8151908d429052082f5a2709d0eb6ee5b",
+      "bytes": 131563,
+      "sha256": "c95fe8e3c13af58fa70b8de9a9298151dada11a549b84bdd3475fa793de4be20",
       "mode": "0644"
     },
     {
@@ -3633,6 +3633,12 @@
       "path": "apps/api/tests/test_corpus_path_declarations.py",
       "bytes": 4484,
       "sha256": "5673c0f7d925c1182f88b0b7887e838c0c028de6546c4db6072a7d3dafa4ed8d",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_corpus_readability_watch.py",
+      "bytes": 4629,
+      "sha256": "f9c2a0c55a3ab728420344227f5b9e2d8965aa0ca8d6102ffaadc2ddfde8d6b5",
       "mode": "0644"
     },
     {
@@ -8107,8 +8113,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 736289,
-      "sha256": "f9975b8f2e560cbce5fca86e86c5e59da7cd845e5019976569b935d9a13c23b2",
+      "bytes": 736761,
+      "sha256": "69291c0ae88fa7438b4572853477fcd6a18264bf53984880c95b95d69688ab8a",
       "mode": "0644"
     },
     {
@@ -12399,6 +12405,12 @@
       "path": "scripts/wait_for_database.py",
       "bytes": 771,
       "sha256": "209418165619284eaba7eee710eb7528ad4ddfb7991bb22c5ae903c26c1efaa8",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/watch_corpus_readability.py",
+      "bytes": 10196,
+      "sha256": "0ade780eb812c7559d92a3e24091ac633f29613ba9cd5cf22d1c292eab04c10a",
       "mode": "0755"
     },
     {
