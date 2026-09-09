@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "99a05e506582e29fd1d123782c21f83c63f084b5f49036f2bfe5e0e2d9aae03a",
-  "collection_digest": "f56ba4405bc662fb063a5c8b08f3d0ff29c98c44b28f52afac29b0da4be072c2",
-  "collection_count": 4880,
+  "source_digest": "de7d2e597decb1ad489de505fb7ebbf092785442ca3f5d67d042161a7946a3be",
+  "collection_digest": "9e3478103ad5fcc4600711952521c97c72355c63a290794943da96a31019a45b",
+  "collection_count": 4893,
   "shard_index": 23,
   "shard_count": 24,
-  "selected_count": 205,
+  "selected_count": 206,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_the_change_reaches_the_audit_chain_with_its_reason",
     "apps/api/tests/test_account_domain.py::test_claims_without_a_subject_are_refused",
@@ -76,6 +76,7 @@
     "apps/api/tests/test_corpus_backup_drill.py::test_the_drill_refuses_a_corpus_that_restores_empty",
     "apps/api/tests/test_corpus_governance.py::test_corpus_governance_is_content_addressed_and_fail_closed",
     "apps/api/tests/test_corpus_path_declarations.py::test_no_defaults_at_all_is_unknown_not_pass",
+    "apps/api/tests/test_corpus_readability_watch.py::test_a_failure_outranks_the_unknown_beside_it",
     "apps/api/tests/test_corpus_release_identity.py::test_a_quarantined_version_is_not_in_the_release",
     "apps/api/tests/test_corpus_release_identity.py::test_a_version_that_changes_changes_the_release_id",
     "apps/api/tests/test_corpus_release_manifest.py::test_raising_an_authority_class_breaks_the_signature",
@@ -215,9 +216,9 @@
     "apps/api/tests/test_web_score_presentation.py::test_the_web_validator_enforces_the_disclaimer",
     "apps/api/tests/test_worker_service.py::test_worker_service_health_is_bound_to_worker_liveness"
   ],
-  "selected_digest": "bf197ddbf598f56791c153ddd38243c8af8fb49a0d80be99cebacb159ffe8478",
+  "selected_digest": "63565de41775d8372679e1698cad5ac5d986dc270d606bd1911b8eeec6d66fa3",
   "junit": {
-    "tests": 205,
+    "tests": 206,
     "failures": 0,
     "errors": 0,
     "skipped": 2
@@ -226,9 +227,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 20.295231,
+  "elapsed_seconds": 12.533224,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 35%]\n........................................................................ [ 70%]\n..............ss.............................................            [100%]",
+  "stdout_tail": "........................................................................ [ 34%]\n........................................................................ [ 69%]\n...............ss.............................................           [100%]",
   "stderr_tail": ""
 }

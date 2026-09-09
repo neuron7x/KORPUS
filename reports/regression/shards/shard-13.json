@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "99a05e506582e29fd1d123782c21f83c63f084b5f49036f2bfe5e0e2d9aae03a",
-  "collection_digest": "f56ba4405bc662fb063a5c8b08f3d0ff29c98c44b28f52afac29b0da4be072c2",
-  "collection_count": 4880,
+  "source_digest": "de7d2e597decb1ad489de505fb7ebbf092785442ca3f5d67d042161a7946a3be",
+  "collection_digest": "9e3478103ad5fcc4600711952521c97c72355c63a290794943da96a31019a45b",
+  "collection_count": 4893,
   "shard_index": 13,
   "shard_count": 24,
-  "selected_count": 230,
+  "selected_count": 233,
   "selected_nodeids": [
     "apps/api/tests/test_access_oracles.py::test_the_exact_duplicate_check_does_not_confirm_unreadable_content",
     "apps/api/tests/test_access_oracles.py::test_the_outsider_cannot_see_the_document_at_all",
@@ -77,6 +77,9 @@
     "apps/api/tests/test_conversations.py::test_a_conversation_is_visible_only_to_its_owner",
     "apps/api/tests/test_corpus_integrity.py::test_a_link_to_a_document_counts_and_a_link_to_the_portal_does_not",
     "apps/api/tests/test_corpus_path_declarations.py::test_a_config_backs_the_default",
+    "apps/api/tests/test_corpus_readability_watch.py::test_a_missing_table_is_not_reported_as_corruption",
+    "apps/api/tests/test_corpus_readability_watch.py::test_a_readiness_path_that_cannot_be_read_is_not_an_empty_plan",
+    "apps/api/tests/test_corpus_readability_watch.py::test_an_intact_corpus_is_readable",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_corpus_read_token_rejects_noncanonical_authorization_scope[bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb]",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_release_identity_digest_commits_every_member_field[version_id-version-b]",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_release_identity_digest_commits_every_member_field[visibility_compartments-2:49529026b02bec6ac6d5a1640df434b608255024fab8c36c73cacb7fc00817f7]",
@@ -240,9 +243,9 @@
     "apps/api/tests/test_verifier_resistance.py::test_every_inconsistent_shape_is_refused[killed \\u0431\\u0456\\u043b\\u044c\\u0448\\u0435]",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_starting_twice_is_refused_rather_than_orphaning_the_first_child"
   ],
-  "selected_digest": "fed091d434b02b3f64450f4d28b79c468807360e58028edd82a4318ad1574586",
+  "selected_digest": "3691dcb5a7705e527286529a4b3db35ca5e9a38feb2801a0e4458ba74bf1d769",
   "junit": {
-    "tests": 230,
+    "tests": 233,
     "failures": 0,
     "errors": 0,
     "skipped": 2
@@ -251,9 +254,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 25.155087,
+  "elapsed_seconds": 11.511559,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 31%]\n........................................................................ [ 62%]\n......................................ss................................ [ 93%]\n..............                                                           [100%]",
+  "stdout_tail": "........................................................................ [ 30%]\n........................................................................ [ 61%]\n.........................................ss............................. [ 92%]\n.................                                                        [100%]",
   "stderr_tail": ""
 }

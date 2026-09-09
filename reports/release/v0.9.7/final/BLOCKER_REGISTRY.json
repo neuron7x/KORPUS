@@ -1,9 +1,9 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-09T13:17:39.163042+00:00",
+  "generated_at": "2026-09-09T19:24:38.443962+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "99a05e506582e29fd1d123782c21f83c63f084b5f49036f2bfe5e0e2d9aae03a",
+  "source_tree_sha256": "de7d2e597decb1ad489de505fb7ebbf092785442ca3f5d67d042161a7946a3be",
   "digest_scope": "evidence_paths",
   "items": [
     {
@@ -103,6 +103,7 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
+        "gate_source_bound",
         "load_environment",
         "load_source_bound"
       ],
@@ -117,6 +118,7 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
+        "gate_source_bound",
         "load_source_bound"
       ],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
@@ -130,6 +132,7 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
+        "gate_source_bound",
         "recovery_environment"
       ],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
@@ -225,8 +228,8 @@
     }
   ],
   "counts": {
-    "CLOSED_ANCHORED": 3,
-    "EXTERNAL_REQUIRED": 11
+    "EXTERNAL_REQUIRED": 11,
+    "CLOSED_ANCHORED": 3
   },
   "internal_executable_unresolved": 0,
   "internal_missing_artifact": 0,
@@ -235,6 +238,6 @@
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "6e5f068d029e42e515b013f5ceb0d99f7a3c48d080a201a93bbd8651c4df01b6"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "240efbbe977b3bd18a2149ccd2caf042da1360d5c0fc0144b6a9780b1ae56a32"
   }
 }

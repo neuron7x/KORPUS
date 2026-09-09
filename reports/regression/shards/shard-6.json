@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "99a05e506582e29fd1d123782c21f83c63f084b5f49036f2bfe5e0e2d9aae03a",
-  "collection_digest": "f56ba4405bc662fb063a5c8b08f3d0ff29c98c44b28f52afac29b0da4be072c2",
-  "collection_count": 4880,
+  "source_digest": "de7d2e597decb1ad489de505fb7ebbf092785442ca3f5d67d042161a7946a3be",
+  "collection_digest": "9e3478103ad5fcc4600711952521c97c72355c63a290794943da96a31019a45b",
+  "collection_count": 4893,
   "shard_index": 6,
   "shard_count": 24,
-  "selected_count": 189,
+  "selected_count": 191,
   "selected_nodeids": [
     "apps/api/tests/test_admission_cannot_be_self_granted.py::test_an_attestation_signed_in_the_future_is_refused",
     "apps/api/tests/test_answer_composition.py::test_a_word_that_appears_both_negated_and_free_is_not_treated_as_negated",
@@ -55,6 +55,8 @@
     "apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening[postgresql without verified TLS]",
     "apps/api/tests/test_conversation_retention.py::test_deleting_removes_the_named_conversations_and_nothing_else",
     "apps/api/tests/test_corpus_admission.py::test_complete_manifest_is_byte_bound_and_admissible",
+    "apps/api/tests/test_corpus_readability_watch.py::test_the_plan_is_read_from_the_code_rather_than_remembered",
+    "apps/api/tests/test_corpus_readability_watch.py::test_the_probe_asks_every_table_the_readiness_path_asks",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_release_identity_digest_commits_every_member_field[source_uri-1:https://source.invalid/changed]",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_snapshot_token_cannot_be_reused_under_another_authorization_identity[compartments]",
     "apps/api/tests/test_corpus_snapshot_contract.py::test_version_evidence_digest_refuses_text_hash_that_does_not_match_text",
@@ -199,9 +201,9 @@
     "apps/api/tests/test_verifier_resistance.py::test_every_inconsistent_shape_is_refused[\\u0440\\u044f\\u0434\\u043a\\u0438 \\u0437\\u0430\\u043c\\u0456\\u0441\\u0442\\u044c \\u0447\\u0438\\u0441\\u0435\\u043b]",
     "apps/api/tests/test_worker_service.py::test_supervisor_uses_fixed_module_command_and_forces_worker_role"
   ],
-  "selected_digest": "91f2ab6e99bc9faee9315947b50c98c7c76e9a4b017bcfc0f0a3349c11461ea7",
+  "selected_digest": "7acc6ebea28ff9e679d028b3b84f7543737038aa58a00e0578428bb95048e32e",
   "junit": {
-    "tests": 189,
+    "tests": 191,
     "failures": 0,
     "errors": 0,
     "skipped": 0
@@ -210,9 +212,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 11.829497,
+  "elapsed_seconds": 5.858946,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 38%]\n........................................................................ [ 76%]\n.............................................                            [100%]",
+  "stdout_tail": "........................................................................ [ 37%]\n........................................................................ [ 75%]\n...............................................                          [100%]",
   "stderr_tail": ""
 }
