@@ -634,9 +634,9 @@ MUTANTS = (
         # The same cap, but the value the application is wired with rather than the
         # function default; the two drifted apart before.
         "M43_WIRED_PER_VERSION_CAP_WIDENED",
-        "apps/api/src/korpus/api/dependencies.py",
-        "        per_version_cap = 1",
-        "        per_version_cap = 2",
+        "apps/api/src/korpus/answer_composition.py",
+        "        per_version_cap=profile.per_version_cap if profile else 1,",
+        "        per_version_cap=profile.per_version_cap if profile else 2,",
         (
             "apps/api/tests/test_authority_ranking.py::test_the_running_configuration_cites_one_span_per_version",
         ),

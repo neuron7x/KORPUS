@@ -594,14 +594,23 @@
       "max_nesting": 1,
       "proof_lines": 0
     },
-    "apps/api/src/korpus/api/dependencies.py": {
-      "lines": 256,
-      "max_complexity": 5,
+    "apps/api/src/korpus/answer_composition.py": {
+      "lines": 92,
+      "max_complexity": 9,
       "max_function_args": 7,
-      "max_function_lines": 84,
+      "max_function_lines": 44,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "Model-provider composition extracted; request dependencies retain only application wiring"
+      "reason": "Issue 46: transport-independent answer composition from one calibration read."
+    },
+    "apps/api/src/korpus/api/dependencies.py": {
+      "lines": 187,
+      "max_complexity": 5,
+      "max_function_args": 7,
+      "max_function_lines": 61,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Issue 46: answer pipeline composition extracted; HTTP delegates to the root factory."
     },
     "apps/api/src/korpus/api/overload_http.py": {
       "lines": 26,
