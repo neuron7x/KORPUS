@@ -1,7 +1,7 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "de7d2e597decb1ad489de505fb7ebbf092785442ca3f5d67d042161a7946a3be",
+  "source_tree_sha256": "adda66b4c4471cc85d237594131bd54d006263a03e6285a31987ed28eb87e8e4",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
@@ -51,7 +51,8 @@
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "security_scanners_current_commit",
-        "container_scanners_current_commit"
+        "container_scanners_current_commit",
+        "gate_source_bound"
       ],
       "waived_external_checks": [
         "evidence_attestation_verified",

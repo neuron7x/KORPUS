@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2075,
-  "root_sha256": "1290d509b72c33f48f1e75264eeae1ffac61527e4dc9d713e70db421fd8bdbc9",
+  "root_sha256": "2e556eba1e9399612e128585f43809c7f60d2d9c75956e6ac945a3891ac42ec8",
   "files": [
     {
       "path": ".dockerignore",
@@ -4501,8 +4501,8 @@
     },
     {
       "path": "apps/api/tests/test_military_readiness_runner.py",
-      "bytes": 3993,
-      "sha256": "eb23c78716623b5e65b1dad22b22d87b75633addd8aa64cc5cb9d56bc5724aff",
+      "bytes": 4037,
+      "sha256": "d92008bbf3200425c805ecad3cf883091a34746c98b51ed79860ebba4f8268e3",
       "mode": "0644"
     },
     {
@@ -8113,8 +8113,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 741414,
-      "sha256": "eabce38df0d74eb63fc667a83417381baff5632145a9d9824457414e7c0c070d",
+      "bytes": 741999,
+      "sha256": "3e13558ea39cf21373a8acaf883f1e3226521c76fd9a2f267fed3a50248daaf6",
       "mode": "0644"
     },
     {
@@ -11839,8 +11839,8 @@
     },
     {
       "path": "scripts/run_military_readiness_campaign.py",
-      "bytes": 8087,
-      "sha256": "cee8df56394597e43d357728cd979de27a200aba077e5ac2a486fc773b306a6d",
+      "bytes": 8364,
+      "sha256": "f077c36548c0d33be109501564410d468fd56902ad37ce6a17da4d7c8c90b5b8",
       "mode": "0755"
     },
     {

@@ -5516,7 +5516,7 @@
       "proof_lines": 0
     },
     "scripts/run_military_readiness_campaign.py": {
-      "lines": 222,
+      "lines": 231,
       "max_complexity": 12,
       "max_function_args": 3,
       "max_function_lines": 63,
@@ -12587,8 +12587,16 @@
       "path": "scripts/load_probe.py",
       "reason": "`selftest-falsifiability` виніс цьому файлу CANNOT_FAIL: 12 отрут, 0 спійманих. Самоперевірка накривала рівно сторожа знаменника, а рішення про клас середовища, токен робітника, відступ на 429, межу фази і вік служби — тобто все, що вирішує, ПРО ЩО вимір, — не накривала жодним випадком. Виміряно після правки тим самим гейтом: 12/12, ARMED. Випадків самоперевірки 6 -> 31.",
       "to": 406
+    },
+    {
+      "from": 222,
+      "metric": "lines",
+      "on": "2026-09-13",
+      "path": "scripts/run_military_readiness_campaign.py",
+      "reason": "Вирок кампанії тепер виражає неповноту у власному status: коли регресію не запускали, bounded-звіт має INCOMPLETE, а не PASS. Дев'ять рядків зводять status базових перевірок і статус регресії в один fail-closed результат; стелі функцій не зросли.",
+      "to": 231
     }
   ],
-  "recorded_at": "2026-09-09",
+  "recorded_at": "2026-09-13",
   "schema_version": 1
 }
