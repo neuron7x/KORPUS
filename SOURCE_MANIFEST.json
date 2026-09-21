@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2075,
-  "root_sha256": "a50064205d9ad254e892ac86940b7462fed481a2484c664a9f4aebf9830c1ccd",
+  "root_sha256": "46cd8cf23f62e94a7422f2ceaf832e215cf318e9c19d3c1c63a3f992c1fcb644",
   "files": [
     {
       "path": ".dockerignore",
@@ -3025,8 +3025,8 @@
     },
     {
       "path": "apps/api/tests/test_audit_reader_seam.py",
-      "bytes": 7587,
-      "sha256": "df21401ab81060045273f30472da5e6c555011dc44dcb390ec592254bb700bef",
+      "bytes": 9580,
+      "sha256": "79938544d8db2ae4b03bbf87b4619b00758e2a7fb43bba0154a3d5ceec70b226",
       "mode": "0644"
     },
     {
