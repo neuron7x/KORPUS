@@ -1,20 +1,27 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-20T23:24:45.352217+00:00",
+  "generated_at": "2026-09-21T05:31:17.816264+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "adda66b4c4471cc85d237594131bd54d006263a03e6285a31987ed28eb87e8e4",
+  "source_tree_sha256": "0358019b8ee550fafa56ae466689517ac9f8702d1d9cbd8d12f4f16f7635e112",
   "digest_scope": "evidence_paths",
   "items": [
     {
       "id": "external_independent_redteam",
-      "state": "CLOSED_ANCHORED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
+      "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "attack_families_declared",
+        "campaign_executed",
+        "gate_release_bound",
+        "gate_source_bound",
+        "metadata:status",
+        "pytest_passed"
+      ],
       "required_proof_class": "INTERNAL_ADVERSARIAL_CAMPAIGN"
     },
     {
@@ -26,21 +33,34 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
+        "container_sboms_valid",
         "container_scanners_current_commit",
+        "container_scanners_executed_clean",
+        "evidence_manifest_bound",
+        "gate_release_bound",
         "gate_source_bound",
-        "security_scanners_current_commit"
+        "security_scanners_current_commit",
+        "security_scanners_executed_clean"
       ],
       "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM"
     },
     {
       "id": "live_postgres_rls",
-      "state": "CLOSED_ANCHORED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
+      "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "gate_release_bound",
+        "gate_source_bound",
+        "grant_contract_static",
+        "metadata:backend",
+        "postgres_adversarial_suite",
+        "postgres_runtime_available",
+        "target_files_present"
+      ],
       "required_proof_class": "REAL_POSTGRESQL"
     },
     {
@@ -53,10 +73,15 @@
       "machine_closable": false,
       "failed_external_checks": [
         "attack_families",
+        "citation_integrity",
+        "determinism",
         "evidence_schema",
+        "gate_release_bound",
         "gate_source_bound",
+        "leakage",
         "null_control_ledger_structured",
         "null_controls",
+        "null_false_accepts",
         "observation_ledger_structured",
         "pass_rate",
         "preregistered",
@@ -77,6 +102,7 @@
       "machine_closable": false,
       "failed_external_checks": [
         "assessor_structured",
+        "gate_release_bound",
         "gate_source_bound"
       ],
       "required_proof_class": "INTERNAL_STRUCTURALLY_SEPARATED"
@@ -91,6 +117,7 @@
       "machine_closable": false,
       "failed_external_checks": [
         "environment_class",
+        "gate_release_bound",
         "gate_source_bound"
       ],
       "required_proof_class": "MATCHES_FROZEN_TOPOLOGY"
@@ -104,8 +131,15 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
+        "gate_release_bound",
         "gate_source_bound",
+        "live_load_soak_executed",
         "load_environment",
+        "load_slo_cold_start",
+        "load_slo_no_5xx_rated",
+        "load_slo_no_retrieval_deadline",
+        "load_slo_no_subject_throttle_rated",
+        "load_slo_steady_p95",
         "load_source_bound"
       ],
       "required_proof_class": "PRODUCTION_LIKE_LOAD"
@@ -119,7 +153,9 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
+        "gate_release_bound",
         "gate_source_bound",
+        "live_load_soak_executed",
         "load_source_bound"
       ],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
@@ -133,8 +169,11 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
+        "gate_release_bound",
         "gate_source_bound",
-        "recovery_environment"
+        "recovery_drill_executed",
+        "recovery_environment",
+        "recovery_source_bound"
       ],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
@@ -172,13 +211,23 @@
     },
     {
       "id": "exact_python_3_12_13_environment",
-      "state": "CLOSED_ANCHORED",
+      "state": "EXTERNAL_REQUIRED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
+      "externally_satisfied": false,
       "machine_closable": false,
-      "failed_external_checks": [],
+      "failed_external_checks": [
+        "all_locked_components_installed",
+        "all_versions_exact",
+        "gate_release_bound",
+        "gate_source_bound",
+        "lock_hashes_present",
+        "metadata:profile",
+        "metadata:status",
+        "no_unmanaged_distributions",
+        "production_python_exact"
+      ],
       "required_proof_class": "EXACT_LOCKED_ENVIRONMENT"
     },
     {
@@ -229,16 +278,15 @@
     }
   ],
   "counts": {
-    "EXTERNAL_REQUIRED": 11,
-    "CLOSED_ANCHORED": 3
+    "EXTERNAL_REQUIRED": 14
   },
   "internal_executable_unresolved": 0,
   "internal_missing_artifact": 0,
   "internal_stale_evidence": 0,
-  "production_external_or_runtime_unresolved": 11,
+  "production_external_or_runtime_unresolved": 14,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "3729aa2f0f5b31ba17e2205fe3a747c2a115566942e88d61b9e62f64995d9fe3"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "3ce5cf02b3a3014c575787ecf4140e2eb53d235dc09919171ea8c64f071bc54b"
   }
 }
