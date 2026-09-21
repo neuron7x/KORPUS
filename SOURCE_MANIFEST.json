@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2075,
-  "root_sha256": "ba6ed9ca3a61bff4a8182991d9e746b9f3e700a72707dcf8bbe29eac54b4ebab",
+  "root_sha256": "a50064205d9ad254e892ac86940b7462fed481a2484c664a9f4aebf9830c1ccd",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 132534,
-      "sha256": "39ae435ea2d6b274ab5362db02fa83bba7fc4acbe46f0e22b92b93cc8e4c8e3b",
+      "bytes": 132985,
+      "sha256": "fca009b16d260e79dbbe63ea63c6df72b253ec0592bc812db6599e5b655ea985",
       "mode": "0644"
     },
     {
@@ -535,8 +535,8 @@
     },
     {
       "path": "apps/api/Dockerfile",
-      "bytes": 2529,
-      "sha256": "e3ad98bfdf35383331660f17640c0db436b66fe31f84bd1f84cdd2e0c9131c3b",
+      "bytes": 2557,
+      "sha256": "25ec907429b186c65d83f220c589ecbb5466e8ca337554effdf7d7ea5a0f8a27",
       "mode": "0644"
     },
     {
@@ -5149,8 +5149,8 @@
     },
     {
       "path": "apps/api/tests/test_release_adaptation_automation_v050.py",
-      "bytes": 4542,
-      "sha256": "ecbabcf771c784123e21c71646fbbf20477cae5b660bbc6490b57da6c7ff70c3",
+      "bytes": 5530,
+      "sha256": "ae13881688fcb5e0b794ccfc48e786af1f24c0435788ba34426347362a63bc00",
       "mode": "0644"
     },
     {
@@ -8072,7 +8072,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "ed3af2871ebb8eddd521a57bb53beb3a53dc6ee307d8ed2da3cd6bfe9b40ce48",
+      "sha256": "c9c7a9f4987c58209c843a4042f0260906ebcaca8f621f87edffbbc2def53454",
       "mode": "0644"
     },
     {

@@ -104,3 +104,22 @@ def test_ci_and_canonical_cycle_enforce_adaptive_gates() -> None:
         assert f"$(MAKE) {target}" in makefile or target in makefile
         assert f"make {target}" in ci
     assert "release-mutation-delta" in makefile
+
+
+def test_release_evidence_produces_both_dialects_before_merging_coverage() -> None:
+    """A local evidence run must not depend on a PostgreSQL artifact from another runner."""
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    block = makefile.split("release-evidence:\n", 1)[1].split("\n\n", 1)[0]
+    assert "$(MAKE) postgres-coverage" in block
+    assert block.index("$(MAKE) postgres-coverage") < block.index("$(MAKE) coverage-union")
+
+
+def test_backend_report_keeps_the_tracked_checkout_intact_while_shards_run() -> None:
+    """Shard tests validate the checkout, so replacing tracked receipts must be last."""
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    block = makefile.split("backend-report:\n", 1)[1].split("\n\n", 1)[0]
+    staged = "REGRESSION_SHARD_DIR=var/regression-shards"
+    publish = "rm -rf reports/regression/shards"
+    assert staged in block
+    assert publish in block
+    assert block.index(staged) < block.index(publish)
