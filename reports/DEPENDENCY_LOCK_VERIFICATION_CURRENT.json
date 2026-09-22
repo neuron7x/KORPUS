@@ -2,12 +2,12 @@
   "schema": "korpus.dependency-lock-verification.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "de7d2e597decb1ad489de505fb7ebbf092785442ca3f5d67d042161a7946a3be",
+  "source_tree_sha256": "b0b28ed253c39aafc91b39989c92625708a01d9d378c0c140655faba39c1ee74",
   "digest_scope": "evidence_paths",
   "python": {
     "runtime_packages": 55,
     "dev_closure_packages": 71,
-    "runtime_lock_sha256": "8603c8af3d3e6fba9f7778716e3d8f79bbc57752196c8c45c362ca27d5be2003",
+    "runtime_lock_sha256": "e2859ddc297a6584199e223acee9f4a683348e7745c2824a800c1a61a1073fc1",
     "dev_lock_sha256": "9d5ed9851ad4d01ac350ec48576f9fb70345770e0198bd7f9963f109b063f134",
     "direct_runtime_dependencies": 16,
     "direct_dev_dependencies": 6,
@@ -47,7 +47,7 @@
           "ecosystem": "PyPI",
           "name": "anyio"
         },
-        "version": "4.13.0"
+        "version": "4.14.2"
       },
       {
         "package": {

@@ -1,9 +1,9 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-09T19:24:38.443962+00:00",
+  "generated_at": "2026-09-22T03:44:15.018155+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "de7d2e597decb1ad489de505fb7ebbf092785442ca3f5d67d042161a7946a3be",
+  "source_tree_sha256": "b0b28ed253c39aafc91b39989c92625708a01d9d378c0c140655faba39c1ee74",
   "digest_scope": "evidence_paths",
   "items": [
     {
@@ -26,8 +26,14 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
+        "container_sboms_valid",
         "container_scanners_current_commit",
-        "security_scanners_current_commit"
+        "container_scanners_executed_clean",
+        "evidence_manifest_bound",
+        "gate_release_bound",
+        "gate_source_bound",
+        "security_scanners_current_commit",
+        "security_scanners_executed_clean"
       ],
       "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM"
     },
@@ -52,10 +58,15 @@
       "machine_closable": false,
       "failed_external_checks": [
         "attack_families",
+        "citation_integrity",
+        "determinism",
         "evidence_schema",
+        "gate_release_bound",
         "gate_source_bound",
+        "leakage",
         "null_control_ledger_structured",
         "null_controls",
+        "null_false_accepts",
         "observation_ledger_structured",
         "pass_rate",
         "preregistered",
@@ -76,6 +87,7 @@
       "machine_closable": false,
       "failed_external_checks": [
         "assessor_structured",
+        "gate_release_bound",
         "gate_source_bound"
       ],
       "required_proof_class": "INTERNAL_STRUCTURALLY_SEPARATED"
@@ -90,6 +102,7 @@
       "machine_closable": false,
       "failed_external_checks": [
         "environment_class",
+        "gate_release_bound",
         "gate_source_bound"
       ],
       "required_proof_class": "MATCHES_FROZEN_TOPOLOGY"
@@ -103,8 +116,15 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
+        "gate_release_bound",
         "gate_source_bound",
+        "live_load_soak_executed",
         "load_environment",
+        "load_slo_cold_start",
+        "load_slo_no_5xx_rated",
+        "load_slo_no_retrieval_deadline",
+        "load_slo_no_subject_throttle_rated",
+        "load_slo_steady_p95",
         "load_source_bound"
       ],
       "required_proof_class": "PRODUCTION_LIKE_LOAD"
@@ -118,7 +138,9 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
+        "gate_release_bound",
         "gate_source_bound",
+        "live_load_soak_executed",
         "load_source_bound"
       ],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
@@ -132,8 +154,11 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
+        "gate_release_bound",
         "gate_source_bound",
-        "recovery_environment"
+        "recovery_drill_executed",
+        "recovery_environment",
+        "recovery_source_bound"
       ],
       "required_proof_class": "SOURCE_BOUND_INTERNAL_ATTESTATION"
     },
@@ -238,6 +263,6 @@
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "240efbbe977b3bd18a2149ccd2caf042da1360d5c0fc0144b6a9780b1ae56a32"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "5afd46b61e11fdcdcf7bd55f2e86062211ffc3b2b83e84f3a7ff57672f152c5a"
   }
 }

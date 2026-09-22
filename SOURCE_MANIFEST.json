@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2075,
-  "root_sha256": "1290d509b72c33f48f1e75264eeae1ffac61527e4dc9d713e70db421fd8bdbc9",
+  "root_sha256": "228773f0fac92f13ce7e781198294b07718ed122f82bc0b10d0fead312af68df",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 132534,
-      "sha256": "39ae435ea2d6b274ab5362db02fa83bba7fc4acbe46f0e22b92b93cc8e4c8e3b",
+      "bytes": 132985,
+      "sha256": "fca009b16d260e79dbbe63ea63c6df72b253ec0592bc812db6599e5b655ea985",
       "mode": "0644"
     },
     {
@@ -535,8 +535,8 @@
     },
     {
       "path": "apps/api/Dockerfile",
-      "bytes": 2529,
-      "sha256": "e3ad98bfdf35383331660f17640c0db436b66fe31f84bd1f84cdd2e0c9131c3b",
+      "bytes": 2557,
+      "sha256": "25ec907429b186c65d83f220c589ecbb5466e8ca337554effdf7d7ea5a0f8a27",
       "mode": "0644"
     },
     {
@@ -728,7 +728,7 @@
     {
       "path": "apps/api/requirements.runtime.lock",
       "bytes": 6694,
-      "sha256": "8603c8af3d3e6fba9f7778716e3d8f79bbc57752196c8c45c362ca27d5be2003",
+      "sha256": "e2859ddc297a6584199e223acee9f4a683348e7745c2824a800c1a61a1073fc1",
       "mode": "0644"
     },
     {
@@ -3025,8 +3025,8 @@
     },
     {
       "path": "apps/api/tests/test_audit_reader_seam.py",
-      "bytes": 7587,
-      "sha256": "df21401ab81060045273f30472da5e6c555011dc44dcb390ec592254bb700bef",
+      "bytes": 9580,
+      "sha256": "79938544d8db2ae4b03bbf87b4619b00758e2a7fb43bba0154a3d5ceec70b226",
       "mode": "0644"
     },
     {
@@ -4501,8 +4501,8 @@
     },
     {
       "path": "apps/api/tests/test_military_readiness_runner.py",
-      "bytes": 3993,
-      "sha256": "eb23c78716623b5e65b1dad22b22d87b75633addd8aa64cc5cb9d56bc5724aff",
+      "bytes": 4037,
+      "sha256": "d92008bbf3200425c805ecad3cf883091a34746c98b51ed79860ebba4f8268e3",
       "mode": "0644"
     },
     {
@@ -4699,8 +4699,8 @@
     },
     {
       "path": "apps/api/tests/test_owner_packet_refresh.py",
-      "bytes": 10161,
-      "sha256": "849339d815f6b6bc5f6183f3202b47dc7a2d8179fc0bae1f5b372039eda3be00",
+      "bytes": 10748,
+      "sha256": "c7f8a8bdf491630509ec5bec84a9a82f735f52ddf9d862de5db39ec432e4254d",
       "mode": "0644"
     },
     {
@@ -5149,8 +5149,8 @@
     },
     {
       "path": "apps/api/tests/test_release_adaptation_automation_v050.py",
-      "bytes": 4542,
-      "sha256": "ecbabcf771c784123e21c71646fbbf20477cae5b660bbc6490b57da6c7ff70c3",
+      "bytes": 5530,
+      "sha256": "ae13881688fcb5e0b794ccfc48e786af1f24c0435788ba34426347362a63bc00",
       "mode": "0644"
     },
     {
@@ -8072,7 +8072,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "ed3af2871ebb8eddd521a57bb53beb3a53dc6ee307d8ed2da3cd6bfe9b40ce48",
+      "sha256": "c9c7a9f4987c58209c843a4042f0260906ebcaca8f621f87edffbbc2def53454",
       "mode": "0644"
     },
     {
@@ -8113,8 +8113,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 741414,
-      "sha256": "eabce38df0d74eb63fc667a83417381baff5632145a9d9824457414e7c0c070d",
+      "bytes": 741999,
+      "sha256": "3e13558ea39cf21373a8acaf883f1e3226521c76fd9a2f267fed3a50248daaf6",
       "mode": "0644"
     },
     {
@@ -11617,8 +11617,8 @@
     },
     {
       "path": "scripts/refresh_owner_packet.py",
-      "bytes": 9302,
-      "sha256": "3036f605c64737c6bc29af8505fe84955ec174406f452644ef34d56900ca7c52",
+      "bytes": 8392,
+      "sha256": "96d61e628bcba7222168b25fdbd4113696aaae859f8523e21e1d22f0bb9624c6",
       "mode": "0755"
     },
     {
@@ -11839,8 +11839,8 @@
     },
     {
       "path": "scripts/run_military_readiness_campaign.py",
-      "bytes": 8087,
-      "sha256": "cee8df56394597e43d357728cd979de27a200aba077e5ac2a486fc773b306a6d",
+      "bytes": 8364,
+      "sha256": "f077c36548c0d33be109501564410d468fd56902ad37ce6a17da4d7c8c90b5b8",
       "mode": "0755"
     },
     {

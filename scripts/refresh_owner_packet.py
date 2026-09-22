@@ -8,8 +8,7 @@
 
 Тут не генерується весь документ: судження власника (§3 знаменник, §5 критерії
 зупинки пілоту, §6 рішення, яких він не ухвалював) належать людині й не мають
-машинного джерела. Оновлюються рівно ті блоки, під якими лежить артефакт:
-прив'язка, таблиця навантаження, числа відновлення, стан блокерів.
+машинного джерела. Якщо `var/` не має виміру, виробник записує це в сам блок.
 
     refresh_owner_packet.py            оновити
     refresh_owner_packet.py --check    не писати; rc=1, якщо розійшлося
@@ -41,15 +40,6 @@ PREDICATES = ROOT / "reports/PRODUCTION_HARD_PREDICATES.json"
 DIGEST_LINE = re.compile(r"^\*\*ДАЙДЖЕСТ ДЖЕРЕЛА:\*\* `([0-9a-f]{64})`", re.MULTILINE)
 LOAD_TABLE = re.compile(r"\| холодний перший \|.*?\n\| сплеск \|[^\n]*\n", re.S)
 RECOVERY_LINE = re.compile(r"^RTO \*\*[^\n]*\n", re.MULTILINE)
-#: Заголовок ВХОДИТЬ у проліт навмисно. Доти блок починався з `software_ready`, тож
-#: `--check` оновлював ЧИСЛО і не чіпав дату й дайджест, якими це число підписане:
-#: найсвіжіший вимір стояв під штампом чужого дерева (`b9096028` при дереві `0be621c1`),
-#: і читач прив'язував правильне число до неправильного предмета. Виміряно незалежною
-#: сесією 06.09.2026: проліт накривав 10 рядків із 680, і жодне твердження про число
-#: блокерів у них не потрапляло.
-#: Лічильник кандидата. Він жив у §3 ЧОТИРМА написаннями від руки («блокерів кандидата
-#: нуль» проти «доки блокерів §3 п'ять»), і документ суперечив сам собі в межах одного
-#: файла. Рішення власника про ОБСЯГ лишається прозою; лічильник має виробника.
 CANDIDATE_LINE = re.compile(r"^`blocks_candidate` \*\*[^\n]*\n", re.MULTILINE)
 BLOCKER_BLOCK = re.compile(r"^### 2\.6-BIS [^\n]*\n\n`software_ready` \*\*[^\n]*\n", re.MULTILINE)
 
@@ -64,6 +54,15 @@ def _num(value: float) -> str:
 
 
 def load_table(load: dict[str, Any]) -> str:
+    if not load:
+        labels = ("холодний перший", "навантаження", "**soak (за ним судять SLO)**", "сплеск")
+        return (
+            "\n".join(
+                f"| {label} | — | — | — | — | НЕ ВИМІРЯНО: `{LOAD.name}` відсутній |"
+                for label in labels
+            )
+            + "\n"
+        )
     cold = load["cold_first_request"]
     rows = [
         f"| холодний перший | 1 | 1 | — | — | {cold['status']} за **{_num(cold['seconds'])} с** (стеля 5,0) |"
@@ -85,6 +84,8 @@ def load_table(load: dict[str, Any]) -> str:
 
 
 def recovery_line(recovery: dict[str, Any]) -> str:
+    if not recovery:
+        return f"RTO **НЕ ВИМІРЯНО** · `{RECOVERY.name}` відсутній.\n"
     return (
         f"RTO **{_num(recovery['rto_seconds'])} с** (відновлення {_num(recovery['restore_seconds'])}"
         f" + перевірка {_num(recovery['verify_seconds'])}) · RPO **{_num(recovery['rpo_seconds'])} с**"
@@ -106,7 +107,6 @@ def blocker_line(registry: dict[str, Any], predicates: dict[str, Any]) -> str:
 
 
 def candidate_line(predicates: dict[str, Any]) -> str:
-    """Скільки предикатів БЛОКУЮТЬ кандидата — і які саме."""
     states = [row for row in predicates.get("states", []) if isinstance(row, dict)]
     blocking = sorted(str(row.get("id")) for row in states if row.get("blocks_candidate"))
     external = sum(1 for row in states if not row.get("externally_satisfied"))
@@ -132,8 +132,8 @@ def _constant(value: str) -> Callable[[re.Match[str]], str]:
 
 def render(text: str) -> str:
     digest = compute_source_digest(ROOT)
-    load, recovery = _json(LOAD), _json(RECOVERY)
     registry, predicates = _json(REGISTRY), _json(PREDICATES)
+    load, recovery = (_json(path) if path.is_file() else {} for path in (LOAD, RECOVERY))
     for pattern, replacement, label in (
         (DIGEST_LINE, f"**ДАЙДЖЕСТ ДЖЕРЕЛА:** `{digest}`", "прив'язка"),
         (LOAD_TABLE, load_table(load), "таблиця навантаження"),

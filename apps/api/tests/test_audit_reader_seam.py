@@ -18,7 +18,9 @@ by writing through the repository and verifying through the reader.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from korpus.application.policy import PolicyEngine
@@ -165,14 +167,77 @@ def test_a_naive_timestamp_is_read_as_utc_rather_than_raising(tmp_path: Path) ->
     The reader normalises instead, because an audit endpoint that raises on its own
     storage format is an audit nobody can run on the deployment that needs it.
     """
-    from datetime import UTC, datetime
-
     from korpus.infrastructure.audit_reader import iso
 
     naive = datetime(2026, 8, 28, 12, 0, 0)
     aware = datetime(2026, 8, 28, 12, 0, 0, tzinfo=UTC)
     assert iso(naive) == iso(aware)
     assert iso(naive).endswith("+00:00")
+
+
+def test_readiness_keeps_an_already_utc_pending_timestamp_aware(monkeypatch) -> None:
+    """PostgreSQL returns aware timestamps; readiness must take that branch too."""
+    from korpus.infrastructure.audit_reader import AuditReader
+    from korpus.infrastructure.schema import audit_anchor_outbox, audit_heads, audits
+
+    class Result:
+        def __init__(self, value: object) -> None:
+            self.value = value
+
+        def scalar_one(self) -> object:
+            return self.value
+
+        def one(self) -> object:
+            return self.value
+
+    class Connection:
+        def __init__(self, results: list[Result]) -> None:
+            self.results = iter(results)
+
+        def __enter__(self) -> Connection:
+            return self
+
+        def __exit__(self, *_: object) -> None:
+            return None
+
+        def execute(self, _: object) -> Result:
+            return next(self.results)
+
+    class Engine:
+        def __init__(self) -> None:
+            self.connections = iter(
+                (
+                    Connection(
+                        [
+                            Result(1),
+                            Result((0, "0" * 64)),
+                            Result((1, datetime.now(UTC))),
+                        ]
+                    ),
+                    Connection([Result(0)]),
+                )
+            )
+
+        def connect(self) -> Connection:
+            return next(self.connections)
+
+    reader = AuditReader(
+        Engine(),
+        b"audit-key",
+        None,
+        SimpleNamespace(read=lambda: SimpleNamespace(sequence=0, head_hash="0" * 64)),
+        lambda *_: None,
+        audits,
+        audit_heads,
+        audit_anchor_outbox,
+        lambda: None,
+        "head",
+    )
+    monkeypatch.setattr(reader, "_rollback_state", lambda **_: (None, False))
+
+    snapshot = reader.readiness_snapshot(max_pending_events=1, max_pending_age_seconds=1.0)
+
+    assert snapshot["oldest_pending_seconds"] >= 0.0
 
 
 @pytest.mark.parametrize(

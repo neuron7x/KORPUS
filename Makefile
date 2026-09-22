@@ -1789,13 +1789,14 @@ pec-contextual-benchmark:
 .PHONY: regression-shard regression-shard-merge backend-report release-evidence
 REGRESSION_SHARDS ?= 24
 REGRESSION_TIMEOUT ?= 240
+REGRESSION_SHARD_DIR ?= reports/regression/shards
 regression-shard:
 	test -n "$(SHARD_INDEX)"
-	mkdir -p reports/regression/shards
-	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/run_regression_shards.py run --shard-index "$(SHARD_INDEX)" --shard-count "$(REGRESSION_SHARDS)" --timeout-seconds "$(REGRESSION_TIMEOUT)" --out "reports/regression/shards/shard-$(SHARD_INDEX).json"
+	mkdir -p "$(REGRESSION_SHARD_DIR)"
+	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/run_regression_shards.py run --shard-index "$(SHARD_INDEX)" --shard-count "$(REGRESSION_SHARDS)" --timeout-seconds "$(REGRESSION_TIMEOUT)" --out "$(REGRESSION_SHARD_DIR)/shard-$(SHARD_INDEX).json"
 
 regression-shard-merge:
-	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/run_regression_shards.py merge --out reports/regression/FULL_REGRESSION_CURRENT.json reports/regression/shards/shard-*.json
+	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/run_regression_shards.py merge --out reports/regression/FULL_REGRESSION_CURRENT.json "$(REGRESSION_SHARD_DIR)"/shard-*.json
 
 # The whole sharded regression, merged, and projected into the report the preflight reads.
 # `FULL_BACKEND_REPORT.json` had no producer: the copy in the tree cites a path from an
@@ -1812,6 +1813,9 @@ regression-shard-merge:
 # to another tree is refused by the publisher rather than copied.
 release-evidence:
 	$(MAKE) api-test PY=$(PY)
+	# `coverage-union` refuses a SQLite-only measurement; produce its PostgreSQL half
+	# locally before reading it, just as `api:postgres-and-restore` does in CI.
+	$(MAKE) postgres-coverage PY=$(PY)
 	$(MAKE) coverage-union PY=$(PY)
 	$(MAKE) coverage-ratchet PY=$(PY)
 	$(MAKE) determinism-gate PY=$(PY)
@@ -1828,10 +1832,13 @@ release-evidence:
 	$(MAKE) local-production-preflight PY=$(PY)
 
 backend-report:
+	rm -rf var/regression-shards
+	mkdir -p var/regression-shards
+	for index in $$(seq 0 $$(( $(REGRESSION_SHARDS) - 1 ))); do \
+	  $(MAKE) regression-shard SHARD_INDEX=$$index REGRESSION_SHARD_DIR=var/regression-shards PY=$(PY) || exit 1; \
+	done
 	rm -rf reports/regression/shards
 	mkdir -p reports/regression/shards
-	for index in $$(seq 0 $$(( $(REGRESSION_SHARDS) - 1 ))); do \
-	  $(MAKE) regression-shard SHARD_INDEX=$$index PY=$(PY) || exit 1; \
-	done
-	$(MAKE) regression-shard-merge PY=$(PY)
+	mv var/regression-shards/* reports/regression/shards/
+	$(MAKE) regression-shard-merge REGRESSION_SHARD_DIR=reports/regression/shards PY=$(PY)
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/publish_backend_report.py
