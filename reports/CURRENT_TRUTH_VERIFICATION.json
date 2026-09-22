@@ -1,8 +1,8 @@
 {
   "schema": "korpus.current-truth-verification.v2",
-  "status": "FAIL",
+  "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "738c5e596e10f59e6bf44d943ffea36b1bbdb70c4d502975b888dfdff280a48a",
+  "source_tree_sha256": "b0b28ed253c39aafc91b39989c92625708a01d9d378c0c140655faba39c1ee74",
   "checks": {
     "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.present": true,
     "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.scope_named": true,
@@ -27,7 +27,7 @@
     "CLAIM_LEDGER.supported_evidence_resolves": true,
     "CLAIM_LEDGER.supported_unresolved_zero": true,
     "CLAIM_LEDGER.has_supported_claims": true,
-    "CLAIM_LEDGER.every_claim_decided_by_evidence": false,
+    "CLAIM_LEDGER.every_claim_decided_by_evidence": true,
     "BLOCKER_REGISTRY.current_state_present": true,
     "BLOCKER_REGISTRY.hard_predicate_report_current": true,
     "BLOCKER_REGISTRY.internal_executable_unresolved_zero": true,
@@ -36,12 +36,12 @@
     "BLOCKER_REGISTRY.evidence_inputs_current": true,
     "reports/OWNER_PILOT_RELEASE_PACKET.md.present": true,
     "reports/OWNER_PILOT_RELEASE_PACKET.md.release_bound": true,
-    "reports/OWNER_PILOT_RELEASE_PACKET.md.source_bound": false,
+    "reports/OWNER_PILOT_RELEASE_PACKET.md.source_bound": true,
     "reports/OWNER_PILOT_RELEASE_PACKET.md.no_unverifiable_candidate": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.present": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.status_pass": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.class_is_remote": true,
-    "reports/closure/CLEAN_ROOM_REPRODUCTION.json.source_bound": false,
+    "reports/closure/CLEAN_ROOM_REPRODUCTION.json.source_bound": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.run_counted": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.run_clean": true,
     "reports/closure/CLEAN_ROOM_REPRODUCTION.json.names_candidate": true,
@@ -65,9 +65,5 @@
     "PACKAGE_BUILD.present": true,
     "PACKAGE_BUILD.release_bound": true
   },
-  "failures": [
-    "CLAIM_LEDGER.every_claim_decided_by_evidence",
-    "reports/OWNER_PILOT_RELEASE_PACKET.md.source_bound",
-    "reports/closure/CLEAN_ROOM_REPRODUCTION.json.source_bound"
-  ]
+  "failures": []
 }
