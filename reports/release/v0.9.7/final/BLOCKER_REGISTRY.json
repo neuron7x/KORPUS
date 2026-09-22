@@ -1,27 +1,20 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-21T05:31:17.816264+00:00",
+  "generated_at": "2026-09-22T02:42:17.046593+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "0358019b8ee550fafa56ae466689517ac9f8702d1d9cbd8d12f4f16f7635e112",
+  "source_tree_sha256": "738c5e596e10f59e6bf44d943ffea36b1bbdb70c4d502975b888dfdff280a48a",
   "digest_scope": "evidence_paths",
   "items": [
     {
       "id": "external_independent_redteam",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
       "machine_closable": false,
-      "failed_external_checks": [
-        "attack_families_declared",
-        "campaign_executed",
-        "gate_release_bound",
-        "gate_source_bound",
-        "metadata:status",
-        "pytest_passed"
-      ],
+      "failed_external_checks": [],
       "required_proof_class": "INTERNAL_ADVERSARIAL_CAMPAIGN"
     },
     {
@@ -46,21 +39,13 @@
     },
     {
       "id": "live_postgres_rls",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
       "machine_closable": false,
-      "failed_external_checks": [
-        "gate_release_bound",
-        "gate_source_bound",
-        "grant_contract_static",
-        "metadata:backend",
-        "postgres_adversarial_suite",
-        "postgres_runtime_available",
-        "target_files_present"
-      ],
+      "failed_external_checks": [],
       "required_proof_class": "REAL_POSTGRESQL"
     },
     {
@@ -211,23 +196,13 @@
     },
     {
       "id": "exact_python_3_12_13_environment",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
       "machine_closable": false,
-      "failed_external_checks": [
-        "all_locked_components_installed",
-        "all_versions_exact",
-        "gate_release_bound",
-        "gate_source_bound",
-        "lock_hashes_present",
-        "metadata:profile",
-        "metadata:status",
-        "no_unmanaged_distributions",
-        "production_python_exact"
-      ],
+      "failed_external_checks": [],
       "required_proof_class": "EXACT_LOCKED_ENVIRONMENT"
     },
     {
@@ -278,15 +253,16 @@
     }
   ],
   "counts": {
-    "EXTERNAL_REQUIRED": 14
+    "EXTERNAL_REQUIRED": 11,
+    "CLOSED_ANCHORED": 3
   },
   "internal_executable_unresolved": 0,
   "internal_missing_artifact": 0,
   "internal_stale_evidence": 0,
-  "production_external_or_runtime_unresolved": 14,
+  "production_external_or_runtime_unresolved": 11,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "3ce5cf02b3a3014c575787ecf4140e2eb53d235dc09919171ea8c64f071bc54b"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "5c00eeb22da286c57edabd175c4c0c735ead63b408446d38e3d30d98af0567b1"
   }
 }

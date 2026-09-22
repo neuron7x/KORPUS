@@ -1,38 +1,38 @@
 {
   "schema": "korpus.claim-ledger.v2",
-  "generated_at": "2026-09-21T05:31:17.821123+00:00",
+  "generated_at": "2026-09-22T02:42:17.051898+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "0358019b8ee550fafa56ae466689517ac9f8702d1d9cbd8d12f4f16f7635e112",
+  "source_tree_sha256": "738c5e596e10f59e6bf44d943ffea36b1bbdb70c4d502975b888dfdff280a48a",
   "digest_scope": "evidence_paths",
   "claims": [
     {
       "id": "CLM-SOURCE-INTEGRITY",
       "claim": "Current source manifest is the release source boundary.",
-      "status": "SUPPORTED",
+      "status": "STALE_EVIDENCE",
       "evidence": "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json"
     },
     {
       "id": "CLM-REGRESSION",
       "claim": "Current backend regression is source-bound and failure-free.",
-      "status": "STALE_EVIDENCE",
+      "status": "SUPPORTED",
       "evidence": "reports/release/v0.9.7/FULL_BACKEND_REPORT.json"
     },
     {
       "id": "CLM-WEB",
       "claim": "Current web lint/build/test surface is source-bound and failure-free.",
-      "status": "STALE_EVIDENCE",
+      "status": "SUPPORTED",
       "evidence": "reports/release/v0.9.7/WEB_REGRESSION_REPORT.json"
     },
     {
       "id": "CLM-MUTATION",
       "claim": "Declared full mutation catalogue has no surviving valid mutants.",
-      "status": "STALE_EVIDENCE",
+      "status": "SUPPORTED",
       "evidence": "reports/MUTATION_FULL_CATALOGUE_CURRENT.json"
     },
     {
       "id": "CLM-INFERENCE-SECURITY",
       "claim": "Current inference-security suite passes its declared attack surface.",
-      "status": "STALE_EVIDENCE",
+      "status": "SUPPORTED",
       "evidence": "reports/release/v0.9.7/INFERENCE_SECURITY_GATE.json"
     },
     {
