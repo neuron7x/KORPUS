@@ -150,6 +150,20 @@ def test_a_packet_whose_measured_number_drifted_is_refused(
     assert report["status"] == "FAIL"
 
 
+def test_missing_ephemeral_measurements_are_rendered_unknown_not_carried_forward(
+    tree: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Чистий клон не має `var/`: старий RTO або p95 там не стає поточним фактом."""
+    REFRESH.LOAD.unlink()
+    REFRESH.RECOVERY.unlink()
+    rendered = REFRESH.render(IN_SYNC)
+    assert rendered.count("НЕ ВИМІРЯНО") == 5
+    assert "RTO **12,000 с**" not in rendered
+    code, report = _check(tree, rendered, monkeypatch)
+    assert code == 0
+    assert report["status"] == "PASS"
+
+
 def test_a_missing_anchor_is_named_not_silently_skipped(
     tree: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
