@@ -1,0 +1,27 @@
+[Unit]
+Description=KORPUS private pilot web (three-reader surface)
+After=network-online.target korpus-pilot-api.service
+Wants=network-online.target
+Requires=korpus-pilot-api.service
+
+[Service]
+Type=simple
+WorkingDirectory=@KORPUS_ROOT@
+Environment=KORPUS_API_ORIGIN=http://127.0.0.1:8040
+Environment=KORPUS_WEB_PORT=8041
+ExecStart=/usr/bin/node apps/web/scripts/serve.mjs apps/web/dist
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=10
+CPUAccounting=true
+CPUQuota=100%
+MemoryAccounting=true
+MemoryHigh=256M
+MemoryMax=512M
+TasksMax=64
+OOMPolicy=stop
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

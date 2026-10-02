@@ -1,6 +1,6 @@
 # Пакет власника — приватний пілот KORPUS v0.9.7
 
-**ДАЙДЖЕСТ ДЖЕРЕЛА:** `de7d2e597decb1ad489de505fb7ebbf092785442ca3f5d67d042161a7946a3be`
+**ДАЙДЖЕСТ ДЖЕРЕЛА:** `6d45e44bd35b657afe2f22d597203f562a3a30181ffd7fbd2d51c040a8d31299`
 **Стан документа:** звірено з виміром на цьому дайджесті 05.09.2026 (нічне перезняття після шести комітів доби: навантаження, відновлення, хаос, сканери, точне середовище).
 **Кандидат** — коміт, який несе цей дайджест. Його називає захищений тег, а не цей файл:
 `git rev-parse HEAD` на `main` і `make current-truth-verify`.
@@ -103,9 +103,9 @@ RTO **0,436 с** (відновлення 0,434 + перевірка 0,002) · RP
 операційний корпус**: він каже, що навчання виконується і числа збираються, а не яким
 буде відновлення робочого корпусу.
 
-### 2.6-BIS Стан блокерів (вимір 2026-09-09, дайджест `de7d2e597decb1ad`)
+### 2.6-BIS Стан блокерів (вимір 2026-09-23, дайджест `6d45e44bd35b657a`)
 
-`software_ready` **14 із 14**. Реєстр блокерів: **CLOSED_ANCHORED** 3 · **EXTERNAL_REQUIRED** 11.
+`software_ready` **14 із 14**. Реєстр блокерів: **EXTERNAL_REQUIRED** 11 · **INTERNAL_STALE_EVIDENCE** 3.
 
 Закрито цієї ночі перезняттям на цьому дереві (`CLOSED_ANCHORED`): `live_postgres_rls`, `production_like_load`, `trusted_load_attestation`, `trusted_recovery_attestation`. Окремо закрито `exact_python_3_12_13_environment` — доказ здобуто **всередині образу** (`EXACT_PRODUCTION_IMAGE`, 55 закріплених компонентів, нічого не бракує й не розходиться), бо на робочій машині він за побудовою не має сили.
 
@@ -156,7 +156,7 @@ RTO **0,436 с** (відновлення 0,434 + перевірка 0,002) · RP
 
 КАНДИДАТ: (рядок нижче генерується; правити руками не можна)
 
-`blocks_candidate` **4** · зовнішніх вимог **11 із 14**. Блокують: `live_vulnerability_scanners`, `production_like_load`, `trusted_load_attestation`, `trusted_recovery_attestation`.
+`blocks_candidate` **7** · зовнішніх вимог **14 із 14**. Блокують: `exact_python_3_12_13_environment`, `external_independent_redteam`, `live_postgres_rls`, `live_vulnerability_scanners`, `production_like_load`, `trusted_load_attestation`, `trusted_recovery_attestation`.
 
 Із поточного релізу вилучено чотири зовнішні вимоги впевненості, які були
 **оголошені** 03.09.2026, але ніколи не **встановлені**. Підстава вилучення виміряна,

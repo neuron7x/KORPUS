@@ -153,6 +153,18 @@ def aggregate_status(results: list[dict[str, object]]) -> str:
     return "PASS"
 
 
+def campaign_status(results: list[dict[str, object]], regression_status: str) -> str:
+    """Return PASS only when every required campaign surface was executed and passed."""
+    status = aggregate_status(results)
+    if status != "PASS":
+        return status
+    if regression_status == "PASS":
+        return "PASS"
+    if regression_status == "NOT_EXECUTED":
+        return "INCOMPLETE"
+    return regression_status
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -179,17 +191,18 @@ def main() -> int:
         else []
     )
     results = [*baseline, *regression]
+    regression_state = aggregate_status(regression) if regression else "NOT_EXECUTED"
     report = {
         "schema": "korpus.military-readiness-campaign.v2",
         "scope": "full" if args.full else "bounded",
-        "status": aggregate_status(results),
+        "status": campaign_status(results, regression_state),
         "results": results,
         "regression": {
             "test_modules": len(list(TEST_ROOT.glob("test_*.py"))),
             "batches": len(regression_commands),
             "batch_size": args.regression_batch_size if args.full else None,
             "workers": args.regression_workers if args.full else None,
-            "status": aggregate_status(regression) if regression else "NOT_EXECUTED",
+            "status": regression_state,
         },
         "production_authorized": False,
         "production_authorization_note": (
@@ -205,17 +218,13 @@ def main() -> int:
     # у обмеженому обсязі вона `NOT_EXECUTED`, а кампанія віддавала 0. Тобто прогін, у
     # якому регресію не запускали ЖОДНОГО разу, був невідрізненний від прогону, де вона
     # пройшла. Виміряно незалежною сесією 06.09.2026.
-    regression_block = report["regression"]
-    regression_state = (
-        str(regression_block.get("status")) if isinstance(regression_block, dict) else "ABSENT"
-    )
     if regression_state != "PASS":
         print(
             f"  x регресія: {regression_state} — кампанія не може звітувати PASS про набір, "
             "якого не виконувала",
             file=sys.stderr,
         )
-    return 0 if report["status"] == "PASS" and regression_state == "PASS" else 1
+    return 0 if report["status"] == "PASS" else 1
 
 
 if __name__ == "__main__":

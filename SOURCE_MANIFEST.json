@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2075,
-  "root_sha256": "1290d509b72c33f48f1e75264eeae1ffac61527e4dc9d713e70db421fd8bdbc9",
+  "file_count": 2078,
+  "root_sha256": "2e0f9b39ed06577cc2a05a7d9c1f8ac1d0d6b65a7ad0fb2693d65067080c2d00",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 132534,
-      "sha256": "39ae435ea2d6b274ab5362db02fa83bba7fc4acbe46f0e22b92b93cc8e4c8e3b",
+      "bytes": 132620,
+      "sha256": "628d595b04ce28aaafa038373f5b8f762a8e7733c746f46028aa8e1f82444923",
       "mode": "0644"
     },
     {
@@ -445,8 +445,8 @@
     },
     {
       "path": "RELEASE_ENVELOPE.json",
-      "bytes": 18155,
-      "sha256": "c90589bee04889acad42986c10299c8df9f891978599648f8d92cd2885711e8c",
+      "bytes": 17707,
+      "sha256": "bc4dec0fc94d6b2cb6e0d787b00582eabe428f4e5e6150fce8f6b399296c6796",
       "mode": "0644"
     },
     {
@@ -4501,8 +4501,8 @@
     },
     {
       "path": "apps/api/tests/test_military_readiness_runner.py",
-      "bytes": 3993,
-      "sha256": "eb23c78716623b5e65b1dad22b22d87b75633addd8aa64cc5cb9d56bc5724aff",
+      "bytes": 4037,
+      "sha256": "d92008bbf3200425c805ecad3cf883091a34746c98b51ed79860ebba4f8268e3",
       "mode": "0644"
     },
     {
@@ -4881,6 +4881,12 @@
       "path": "apps/api/tests/test_permission_contract.py",
       "bytes": 5945,
       "sha256": "f91442c7ea098238ead04b71de9c82dcfe63c236e16b47546322da854a0cba15",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_pilot_runtime_units.py",
+      "bytes": 899,
+      "sha256": "50ade53fbae29160b480e656768510165aec89b1842161063b97dd6863339335",
       "mode": "0644"
     },
     {
@@ -6338,7 +6344,7 @@
     {
       "path": "config/assurance/production-hard-predicates-v1.json",
       "bytes": 18838,
-      "sha256": "8e54c4fab32937a888fbd91ccd18c7462eea5f38a0ed283221c557193a009661",
+      "sha256": "0faf4bbf486cf4c3599e350f9f053622790e9c8941787b5394829e048cdf81cd",
       "mode": "0644"
     },
     {
@@ -8084,7 +8090,7 @@
     {
       "path": "config/operations/evidence-bases.json",
       "bytes": 9296,
-      "sha256": "ea15381717054cae293ab59363464260e799604c167c656eee71886a29329f4b",
+      "sha256": "4a19f0d48ca33ac56065b80d3ca59a19ab783a5ce97dfac390f340c23936800c",
       "mode": "0644"
     },
     {
@@ -8113,8 +8119,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 741414,
-      "sha256": "eabce38df0d74eb63fc667a83417381baff5632145a9d9824457414e7c0c070d",
+      "bytes": 742421,
+      "sha256": "fb7970c876143d1539d07b71995e7b6887f1b6118ed02b777456baf0a328f77a",
       "mode": "0644"
     },
     {
@@ -8293,8 +8299,14 @@
     },
     {
       "path": "deploy/pilot/korpus-pilot-api.service",
-      "bytes": 2323,
-      "sha256": "2565d7de15f147378ac5b3e3381b30736b031508a5edf0b842da430fd1ebd565",
+      "bytes": 2484,
+      "sha256": "fafc8c2b2714775b8f3f5ae382d68edf49ccff94e82b51137468d1c44ed16fa4",
+      "mode": "0644"
+    },
+    {
+      "path": "deploy/pilot/korpus-pilot-web.service",
+      "bytes": 621,
+      "sha256": "003989e040cc3aacd0ee260ea2581790835bdfd4f875d2764244f1dd27dca7b7",
       "mode": "0644"
     },
     {
@@ -9692,7 +9704,7 @@
     {
       "path": "docs/runbooks/INCIDENT_RESPONSE.md",
       "bytes": 4404,
-      "sha256": "2291812e8d10c4f9cafa6815ad8914cad66667d146be650859165f812411195a",
+      "sha256": "75ea4d4dc3af671de172ad0cc85d000921913e97d5e2e67e42cbdaf51fcee66a",
       "mode": "0644"
     },
     {
@@ -11226,6 +11238,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/install_pilot_runtime.py",
+      "bytes": 1059,
+      "sha256": "43335f866f7da211e4b688fbc9ae8c564a67e0128e11001c00403fcebfc63a69",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/install_public_runtime.py",
       "bytes": 1174,
       "sha256": "5eeb9a8e5f0a50456e3d970fb6c4b6e4b499eb36ebbb2cf6fa67dd800a22915f",
@@ -11839,8 +11857,8 @@
     },
     {
       "path": "scripts/run_military_readiness_campaign.py",
-      "bytes": 8087,
-      "sha256": "cee8df56394597e43d357728cd979de27a200aba077e5ac2a486fc773b306a6d",
+      "bytes": 8364,
+      "sha256": "f077c36548c0d33be109501564410d468fd56902ad37ce6a17da4d7c8c90b5b8",
       "mode": "0755"
     },
     {

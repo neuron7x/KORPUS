@@ -54,7 +54,7 @@
       "user": "postgres",
       "password_file": "infra/secrets/pilot_postgres_admin_password.txt",
       "served_by": [
-        "deploy/pilot/korpus-pilot-api.service → 127.0.0.1:8030"
+        "deploy/pilot/korpus-pilot-api.service → 127.0.0.1:8040"
       ],
       "relation_to_record": {
         "sources": "same",

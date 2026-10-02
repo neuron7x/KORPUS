@@ -221,7 +221,7 @@
         "apps/api/tests/test_pec_canary_admission_v097.py"
       ],
       "disposition": "NOT_IN_RELEASE_PATH",
-      "disposition_reason": "Cloud Run канарка не в топології цього релізу — див. not_in_this_release у RELEASE_ENVELOPE. Канарка цього релізу — приватний пілот на `korpus-pilot-api.service` перед PostgreSQL, на loopback 127.0.0.1:8030.",
+      "disposition_reason": "Cloud Run канарка не в топології цього релізу — див. not_in_this_release у RELEASE_ENVELOPE. Канарка цього релізу — приватний пілот на `korpus-pilot-api.service` перед PostgreSQL, на loopback 127.0.0.1:8040.",
       "disposition_on": "2026-09-04",
       "not_in_release_path_proof": "gcp-cloud-run"
     }

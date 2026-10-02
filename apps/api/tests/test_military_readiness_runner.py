@@ -67,6 +67,7 @@ def test_a_campaign_that_never_ran_regression_cannot_report_pass(
 
     assert module.main() == 1, "кампанія звітувала PASS про набір, якого не виконувала"
     report = json.loads((tmp_path / "out.json").read_text(encoding="utf-8"))
+    assert report["status"] == "INCOMPLETE"
     assert report["regression"]["status"] == "NOT_EXECUTED"
     assert "NOT_EXECUTED" in capsys.readouterr().err
 

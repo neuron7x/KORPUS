@@ -1,20 +1,22 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-09-09T19:24:38.443962+00:00",
+  "generated_at": "2026-09-23T06:08:36.336315+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "de7d2e597decb1ad489de505fb7ebbf092785442ca3f5d67d042161a7946a3be",
+  "source_tree_sha256": "6d45e44bd35b657afe2f22d597203f562a3a30181ffd7fbd2d51c040a8d31299",
   "digest_scope": "evidence_paths",
   "items": [
     {
       "id": "external_independent_redteam",
-      "state": "CLOSED_ANCHORED",
+      "state": "INTERNAL_STALE_EVIDENCE",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "machine_closable": false,
-      "failed_external_checks": [],
+      "externally_satisfied": false,
+      "machine_closable": true,
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "required_proof_class": "INTERNAL_ADVERSARIAL_CAMPAIGN"
     },
     {
@@ -27,19 +29,22 @@
       "machine_closable": false,
       "failed_external_checks": [
         "container_scanners_current_commit",
+        "gate_source_bound",
         "security_scanners_current_commit"
       ],
       "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM"
     },
     {
       "id": "live_postgres_rls",
-      "state": "CLOSED_ANCHORED",
+      "state": "INTERNAL_STALE_EVIDENCE",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "machine_closable": false,
-      "failed_external_checks": [],
+      "externally_satisfied": false,
+      "machine_closable": true,
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "required_proof_class": "REAL_POSTGRESQL"
     },
     {
@@ -171,13 +176,15 @@
     },
     {
       "id": "exact_python_3_12_13_environment",
-      "state": "CLOSED_ANCHORED",
+      "state": "INTERNAL_STALE_EVIDENCE",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": true,
-      "machine_closable": false,
-      "failed_external_checks": [],
+      "externally_satisfied": false,
+      "machine_closable": true,
+      "failed_external_checks": [
+        "gate_source_bound"
+      ],
       "required_proof_class": "EXACT_LOCKED_ENVIRONMENT"
     },
     {
@@ -229,15 +236,15 @@
   ],
   "counts": {
     "EXTERNAL_REQUIRED": 11,
-    "CLOSED_ANCHORED": 3
+    "INTERNAL_STALE_EVIDENCE": 3
   },
-  "internal_executable_unresolved": 0,
+  "internal_executable_unresolved": 3,
   "internal_missing_artifact": 0,
-  "internal_stale_evidence": 0,
+  "internal_stale_evidence": 3,
   "production_external_or_runtime_unresolved": 11,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "240efbbe977b3bd18a2149ccd2caf042da1360d5c0fc0144b6a9780b1ae56a32"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "6c649127a01e4eed37370fb27f156c9c3b7f7762a1c58c93b54c5fcd6fe6da9a"
   }
 }
