@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2081,
-  "root_sha256": "4ab2a91fc2f397e9ee4a0391066180dc0ce2b01bc7d63a500d2a3f95bab5a14f",
+  "root_sha256": "51c5ed715767c5e1a8037876bdc9f85d496748a24a150799c6d9eabd04b16e3c",
   "files": [
     {
       "path": ".dockerignore",
@@ -8059,8 +8059,8 @@
     },
     {
       "path": "config/operations/ci-mirror.json",
-      "bytes": 2753,
-      "sha256": "2c32e19796ab66a2a84969d6e0f757efd2097bda21b7aa3cf9cc6a750346b256",
+      "bytes": 4711,
+      "sha256": "42ec54562cd20a6703ca6b24f03cb4a7b1346f7794d13061a0f66062bef522c2",
       "mode": "0644"
     },
     {
