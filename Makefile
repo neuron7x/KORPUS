@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: pilot-posture install-pilot-runtime machine-tevv release-freeze ci-run ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-load-probe nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite attest-restore drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite postgres-coverage sqlite-recovery-drill recover-corpus admission-differential adjudication-properties corruption-repro handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity corpus-readability corpus-heal recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage selftest-falsifiability installed-units-verify canonical-verify branch-integration owner-packet owner-packet-check mutation-delta-gate mutation-delta-gate-selftest blank-corpus-probe clean-room serving-readiness serving-readiness-selftest evidence-epistemics evidence-epistemics-selftest corpus-pack corpus-install corpus-transport-rehearsal corpus-transport-selftest
+.PHONY: pilot-posture install-pilot-runtime machine-tevv release-freeze ci-run ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-load-probe nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite attest-restore drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite postgres-coverage sqlite-recovery-drill recover-corpus admission-differential adjudication-properties corruption-repro handoff-verify handoff-verify-bound openapi audit-closure audit-closure-local desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity corpus-readability corpus-heal recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage selftest-falsifiability installed-units-verify canonical-verify branch-integration owner-packet owner-packet-check mutation-delta-gate mutation-delta-gate-selftest blank-corpus-probe clean-room serving-readiness serving-readiness-selftest evidence-epistemics evidence-epistemics-selftest corpus-pack corpus-install corpus-transport-rehearsal corpus-transport-selftest
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -99,11 +99,9 @@ web-install:
 web-run:
 	npm --prefix apps/web run dev
 
-# `node --check <file>` exits 0 for any file containing an `import`, so the two
-# --check invocations that used to stand here stopped checking anything the moment
-# app.js became a module and kept printing success. The parse now happens inside
-# validate.mjs, on stdin, with an explicit --input-type — and validate_gate.test.mjs
-# mutates a copy of the tree to prove each control can still fail.
+# `node --check <file>` once exited 0 for ESM input. `validate.mjs` now parses every
+# module in-process through `SourceTextModule`; no nested process can fail open on
+# sandbox denial. `validate_gate.test.mjs` mutates a copy to prove every control fails.
 web-build: web-contract-check
 	npm --prefix apps/web run lint
 	npm --prefix apps/web run test
@@ -864,6 +862,11 @@ openapi:
 audit-closure:
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/build_audit_closure.py
 
+# Локальні сканери не прикидаються сканерами з pinned CI images. Вони пишуть інший
+# файл і входять у closure лише через явно слабший, названий клас доказу.
+audit-closure-local:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_audit_closure_local.py
+
 desired-state:
 	python3 scripts/generate_desired_state.py --check
 
@@ -1486,7 +1489,13 @@ deployment-debt-selftest:
 # Вимір: determinism 6 с, stress 13 с, plasticity 1 с — двадцять секунд разом, і всі
 # рівня ДЕРЕВА (проходять у чистому worktree без runtime-корпусу). Класифікація за
 # рецептом замість заміру дала три хибні записи; реєстр 25 → 22.
-check: validate api-test api-lint eval mutation audit-closure migration-gate scale operational-gate determinism-gate stress-gate plasticity-gate web-build
+#
+# `validate` СПОЖИВАЄ var/{mutation,eval,migration,scale,operational}-*.json через
+# `evidence-freshness`. Коли він стояв першим, `make check` проходив лише у worktree,
+# де ці файли лишились від попереднього прогону; чистий worktree падав до запуску
+# власних виробників. `.NOTPARALLEL` робить цей порядок інваріантом і під `make -j`.
+.NOTPARALLEL: check
+check: api-test api-lint eval mutation security-scan chaos-matrix audit-closure-local migration-gate scale operational-gate determinism-gate stress-gate plasticity-gate web-build validate
 
 # `owner-packet-check` стоїть ТУТ, не у `validate`: пакет власника несе дайджест
 # джерела, і будь-яка правка коду його зсуває. У `validate` цей гейт блокував би

@@ -6748,6 +6748,47 @@ MUTANTS = (
             "test_the_shape_of_the_ninth_is_unreadable",
         ),
     ),
+    Mutant(
+        "M711_LOCAL_SCANNER_EVIDENCE_IMPERSONATES_PINNED_CI",
+        "scripts/audit_closure_evidence.py",
+        "    summary = LOCAL_SECURITY_SUMMARY if local_security_summary else CI_SECURITY_SUMMARY",
+        "    summary = CI_SECURITY_SUMMARY",
+        (
+            "apps/api/tests/test_evidence_registry.py::"
+            "test_local_closure_substitutes_only_the_scanner_evidence_class",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M712_MISSING_OR_DUPLICATE_SCANNER_EVIDENCE_IS_ACCEPTED",
+        "scripts/audit_closure_evidence.py",
+        "    if scanner_references.count(CI_SECURITY_SUMMARY) != 1:",
+        "    if scanner_references.count(CI_SECURITY_SUMMARY) < 0:",
+        (
+            "apps/api/tests/test_evidence_registry.py::"
+            "test_scanner_evidence_class_drift_fails_closed",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M713_LOCAL_CLOSURE_RUNS_THE_CANONICAL_WRITER",
+        "Makefile",
+        "\tPYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_audit_closure_local.py",
+        "\tPYTHONPATH=apps/api/src:scripts $(PY) scripts/build_audit_closure.py",
+        (
+            "apps/api/tests/test_gate_parity.py::"
+            "test_local_check_resolves_closure_evidence_only_after_producing_it",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M714_WEB_ESM_PARSER_FLAG_IS_REMOVED",
+        "apps/web/package.json",
+        '    "lint": "node --experimental-vm-modules scripts/validate.mjs",',
+        '    "lint": "node scripts/validate.mjs",',
+        ("apps/api/tests/test_gate_parity.py::test_the_web_gate_runs_its_own_negative_controls",),
+        full_copy=True,
+    ),
 )
 
 

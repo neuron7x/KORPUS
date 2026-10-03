@@ -31,7 +31,7 @@ async function runWith(mutate) {
       await writeFile(path, transform(await readFile(path, "utf8")), "utf8");
     };
     await mutate(edit, root);
-    const result = spawnSync(process.execPath, [join(root, "scripts/validate.mjs")], {
+    const result = spawnSync(process.execPath, ["--experimental-vm-modules", join(root, "scripts/validate.mjs")], {
       encoding: "utf8",
     });
     return {status: result.status, output: `${result.stdout}${result.stderr}`};

@@ -566,14 +566,61 @@ def test_local_check_resolves_closure_evidence_only_after_producing_it() -> None
     state a fresh clone or a CI runner does not have.
     """
     order = _makefile_prerequisites("check")
-    assert "audit-closure" in order, "make check no longer resolves the closure registry"
-    assert "mutation" in order, "make check no longer runs the mutation gate"
-    assert order.index("mutation") < order.index("audit-closure"), (
-        f"make check resolves the closure registry before producing its evidence: {order}"
+    closure = "audit-closure-local"
+    assert closure in order, "make check no longer resolves the local closure registry"
+    producers = ("mutation", "security-scan", "chaos-matrix")
+    missing = [target for target in producers if target not in order]
+    assert not missing, f"make check omits audit-closure producers: {missing}"
+    late = [target for target in producers if order.index(target) > order.index(closure)]
+    assert not late, f"make check resolves closure before producing: {late}"
+    local_recipe = "\n".join(_makefile_recipe(closure))
+    assert "verify_audit_closure_local.py" in local_recipe, (
+        "the local lane must use the non-canonical local evidence verifier"
     )
     assert "audit-closure" not in _makefile_prerequisites("validate"), (
         "audit-closure is a prerequisite of validate again; validate runs first in "
         "check, so the citation would be resolved before the report exists"
+    )
+
+
+def test_local_closure_adapter_cannot_write_canonical_artifacts() -> None:
+    paths = (
+        ROOT / "scripts/audit_closure_evidence.py",
+        ROOT / "scripts/audit_closure_validation.py",
+        ROOT / "scripts/verify_audit_closure_local.py",
+    )
+    forbidden = {"open", "mkdir", "touch", "write_bytes", "write_text"}
+    writes: list[str] = []
+    for path in paths:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        writes.extend(
+            f"{path.name}:{node.lineno}:{node.func.attr}"
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr in forbidden
+        )
+    assert writes == [], f"local closure lane gained filesystem writes: {writes}"
+
+
+def test_local_check_produces_freshness_inputs_before_validate() -> None:
+    """A clean `make check` must produce every file consumed by evidence-freshness.
+
+    `validate` used to be the first prerequisite while its `evidence-freshness`
+    descendant consumed five reports produced by later prerequisites. A warm worktree
+    hid that ordering defect; a clean worktree failed before any producer ran.
+    """
+    text = MAKEFILE.read_text(encoding="utf-8")
+    order = _makefile_prerequisites("check")
+    assert "validate" in order, "make check no longer executes the validation lane"
+    validate = order.index("validate")
+    producers = ("eval", "mutation", "migration-gate", "scale", "operational-gate")
+    missing = [target for target in producers if target not in order]
+    assert not missing, f"make check omits evidence-freshness producers: {missing}"
+    late = [target for target in producers if order.index(target) > validate]
+    assert not late, f"validate consumes reports before their producers run: {late}"
+    assert re.search(r"^\.NOTPARALLEL:\s+check\s*$", text, re.MULTILINE), (
+        "make -j may reorder check's evidence producers and validate consumer"
     )
 
 
@@ -1139,20 +1186,28 @@ def test_the_browsers_copy_of_the_request_contract_cannot_go_stale() -> None:
 
 
 def test_the_web_gate_runs_its_own_negative_controls() -> None:
-    """`node --check <file>` exits 0 for any file containing an `import`.
+    """The ESM parser is in-process and mandatory in every web validation entrypoint.
 
     Verified on node v22.23.1: a file holding both an import and `const y = ;` passes.
     Two such invocations stood in `npm run lint` until 2026-08-05, so from the moment
     app.js became a module the web syntax check was inert and kept printing success.
-    The parse now happens inside validate.mjs on stdin with an explicit --input-type,
-    and apps/web/tests/validate_gate.test.mjs mutates a copy of the tree to prove each
-    control can still fail.
+    A later stdin parser still depended on thirty nested processes and failed open when
+    a hardened runner returned EPERM. SourceTextModule now parses in-process; the package
+    scripts must enable it, and validate_gate.test.mjs poisons copied modules.
     """
     package = json.loads((ROOT / "apps/web/package.json").read_text(encoding="utf-8"))
     for name in ("lint", "typecheck"):
-        assert "--check" not in package["scripts"][name], (
+        command = package["scripts"][name]
+        assert "--check" not in command, (
             f"apps/web `{name}` is back to `node --check`, which does not check modules"
         )
+        assert "--experimental-vm-modules" in command and "validate.mjs" in command, (
+            f"apps/web `{name}` cannot construct the in-process ESM parser"
+        )
+    validator = (ROOT / "apps/web/scripts/validate.mjs").read_text(encoding="utf-8")
+    assert "SourceTextModule" in validator and "spawnSync" not in validator, (
+        "web syntax validation again depends on fallible nested processes"
+    )
     assert "node --test" in package["scripts"].get("test", ""), (
         "apps/web has no test script, so the gate's negative controls never run"
     )
@@ -1261,8 +1316,12 @@ def test_no_lock_file_pins_a_package_with_a_known_advisory_recorded_here() -> No
     """
     known_bad = {
         # (package, first version that is NOT affected, advisory)
+        ("anyio", "4.14.2", "CVE-2026-63374/64847"),
+        ("PyJWT", "2.15.1", "September 2026 JWT advisory set"),
+        ("pypdf", "6.19.0", "September 2026 parser/DoS advisory set"),
         ("pytest", "9.0.3", "PYSEC-2026-1845"),
         ("cryptography", "50.0.0", "PYSEC-2026-3552/3553/3554"),
+        ("urllib3", "2.8.0", "CVE-2026-97687/97688/97689"),
     }
     text = "\n".join(
         path.read_text(encoding="utf-8") for path in (ROOT / "apps/api").glob("requirements*.lock")

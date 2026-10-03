@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2078,
-  "root_sha256": "2e0f9b39ed06577cc2a05a7d9c1f8ac1d0d6b65a7ad0fb2693d65067080c2d00",
+  "file_count": 2081,
+  "root_sha256": "dfadd9abaef2521a78243ac1b2784bee1d4acaedee713108d6fef9bab9507f7f",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 132620,
-      "sha256": "628d595b04ce28aaafa038373f5b8f762a8e7733c746f46028aa8e1f82444923",
+      "bytes": 133401,
+      "sha256": "545c7b322f1c309d297e256a32dd4e624696a89450fa5e5f806ca02b83949d42",
       "mode": "0644"
     },
     {
@@ -727,8 +727,8 @@
     },
     {
       "path": "apps/api/requirements.runtime.lock",
-      "bytes": 6694,
-      "sha256": "8603c8af3d3e6fba9f7778716e3d8f79bbc57752196c8c45c362ca27d5be2003",
+      "bytes": 7298,
+      "sha256": "0ed5d1efdc14f1171b5d0409882a38eb5346a3b45bbf2707de5a069580d7a1f1",
       "mode": "0644"
     },
     {
@@ -4009,8 +4009,8 @@
     },
     {
       "path": "apps/api/tests/test_evidence_registry.py",
-      "bytes": 6391,
-      "sha256": "fa5163a64614a3b84c0d2fca0b3136f7b93bbb17f1d6a550142ebd8d1480a0e6",
+      "bytes": 7881,
+      "sha256": "9f779b6df44cc021635b6d82a65dae926057bebee53499630ae62be9e03b9144",
       "mode": "0644"
     },
     {
@@ -4135,8 +4135,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 170159,
-      "sha256": "d0ec9dff413a4df0da7cfb319a0f39c65ab6fcae952f1731d60e5b9f42717dc1",
+      "bytes": 173270,
+      "sha256": "fa679a3f13e31d964c4386ae801d28460dac3a1ee622acdd77ee26df92e502b4",
       "mode": "0644"
     },
     {
@@ -5875,8 +5875,8 @@
     },
     {
       "path": "apps/web/package.json",
-      "bytes": 528,
-      "sha256": "cf75094b8559712ba75121f6ae6bb84fbd0c38039f6f075b725576cb6b5469b1",
+      "bytes": 580,
+      "sha256": "40caedb48195e1dcb38c05312e41ec1624f1807ec64c0e6f09af30cc5f2b4db6",
       "mode": "0644"
     },
     {
@@ -6163,8 +6163,8 @@
     },
     {
       "path": "apps/web/scripts/validate.mjs",
-      "bytes": 44027,
-      "sha256": "129f6d538258b6dc4ffdef162eddcdc189a0b5951721ddd11a16123839f60fa9",
+      "bytes": 43934,
+      "sha256": "35d1e48aac99104e3390a84689e7a99490c968058719f5cd0698926279c6da8c",
       "mode": "0644"
     },
     {
@@ -6229,8 +6229,8 @@
     },
     {
       "path": "apps/web/tests/validate_gate.test.mjs",
-      "bytes": 28030,
-      "sha256": "8832bbf0f2efdd677552ee4e7a62d9b8203ade5e70c89e382cf800183dd60650",
+      "bytes": 28059,
+      "sha256": "2935e63fc8f7bd3c4018e42fc356d77e368a292aa1bf6f22ad2a5460d62a7c4d",
       "mode": "0644"
     },
     {
@@ -8078,7 +8078,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "ed3af2871ebb8eddd521a57bb53beb3a53dc6ee307d8ed2da3cd6bfe9b40ce48",
+      "sha256": "49aa4d536f3ca50d8eda2e62063e9aa44e564bd389ce1922254ea2f565662329",
       "mode": "0644"
     },
     {
@@ -8107,8 +8107,8 @@
     },
     {
       "path": "config/operations/gate-closure.json",
-      "bytes": 25369,
-      "sha256": "2d998cd54d48d3ae807844c3cf8c61c2b454b1877bfd0cb93f9310c6fefa114c",
+      "bytes": 26033,
+      "sha256": "5f0c02e9214ef11b12289f76da2f4f0450838176d40ba08a77ebd6ada6ed060b",
       "mode": "0644"
     },
     {
@@ -8119,8 +8119,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 742421,
-      "sha256": "fb7970c876143d1539d07b71995e7b6887f1b6118ed02b777456baf0a328f77a",
+      "bytes": 744142,
+      "sha256": "fa0bf374715a661b83054436b341d3ef6ab0042b48111a7c5b02a58c23c0a325",
       "mode": "0644"
     },
     {
@@ -10440,6 +10440,18 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/audit_closure_evidence.py",
+      "bytes": 1759,
+      "sha256": "75a245c0b4204ede0689e938a504ee2fe611a828b8a082e4ba96f4636ee11b1d",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/audit_closure_validation.py",
+      "bytes": 2467,
+      "sha256": "b91735f2f8f3f2955211c91f6174a37138afbe152c5cf443fd486f8ae6740a00",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/audit_corpus_admission.py",
       "bytes": 6147,
       "sha256": "c752583d5f60849da9e7133c5b200861627e395a0d12424a95ee28db4ba63d4c",
@@ -10519,8 +10531,8 @@
     },
     {
       "path": "scripts/build_audit_closure.py",
-      "bytes": 38905,
-      "sha256": "a2a40c4acec1fe248a544a55d68aada3257353b53bb2b9e7aa54ccab8ee28783",
+      "bytes": 37570,
+      "sha256": "0f19e664d21db6f37f563b4005207f426a6d60258d4d9caa05acf100ec48c12d",
       "mode": "0755"
     },
     {
@@ -11875,8 +11887,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 332087,
-      "sha256": "27de6f8c07dad30407c8c8bac3983a793fa66fb036be25c93cb62966783901b7",
+      "bytes": 333766,
+      "sha256": "d878b2def33ed48dbe413134f4219ba7553ad835e6ae376ae843f88c3fdae54e",
       "mode": "0755"
     },
     {
@@ -12256,6 +12268,12 @@
       "bytes": 309,
       "sha256": "05633878458398cf30a0a2159988df97b1aa9e8d0a52919ab718b3f3dcfd9524",
       "mode": "0644"
+    },
+    {
+      "path": "scripts/verify_audit_closure_local.py",
+      "bytes": 1365,
+      "sha256": "0102e8e50ba40993a32129fd0e54b643085e2aaaaaf887691be9654359cb21e4",
+      "mode": "0755"
     },
     {
       "path": "scripts/verify_bibliography.py",

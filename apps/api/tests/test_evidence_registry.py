@@ -8,6 +8,7 @@ CLOSED forever.
 from __future__ import annotations
 
 import ast
+import sys
 from pathlib import Path
 
 import pytest
@@ -20,6 +21,13 @@ from korpus.application.evidence_registry import (
 
 ROOT = Path(__file__).resolve().parents[3]
 CLOSURE_BUILDER = ROOT / "scripts/build_audit_closure.py"
+sys.path.insert(0, str(ROOT / "scripts"))
+from audit_closure_evidence import (  # noqa: E402
+    CI_SECURITY_SUMMARY,
+    LOCAL_SECURITY_SUMMARY,
+    evidence_for_run,
+)
+from build_audit_closure import EVIDENCE  # noqa: E402
 
 
 def _registry() -> tuple[dict[str, list[str]], dict[str, str]]:
@@ -53,6 +61,37 @@ def test_the_shipped_registry_cites_only_evidence_that_exists() -> None:
     """
     evidence, statuses = _registry()
     assert verify_closure_registry(ROOT, evidence, statuses, include_produced=False) == []
+
+
+def test_local_closure_substitutes_only_the_scanner_evidence_class() -> None:
+    ci = evidence_for_run(EVIDENCE, local_security_summary=False).references
+    local_selection = evidence_for_run(EVIDENCE, local_security_summary=True)
+    local = local_selection.references
+    assert CI_SECURITY_SUMMARY in ci["SUP-005"]
+    assert LOCAL_SECURITY_SUMMARY not in ci["SUP-005"]
+    assert LOCAL_SECURITY_SUMMARY in local["SUP-005"]
+    assert CI_SECURITY_SUMMARY not in local["SUP-005"]
+    assert local_selection.metadata == {
+        "security_summary": LOCAL_SECURITY_SUMMARY,
+        "security_summary_class": "LOCAL_SCANNERS",
+    }
+    assert {key: value for key, value in ci.items() if key != "SUP-005"} == {
+        key: value for key, value in local.items() if key != "SUP-005"
+    }
+
+
+@pytest.mark.parametrize(
+    "scanner_references",
+    [
+        ["scripts/security_scan.sh"],
+        [CI_SECURITY_SUMMARY, CI_SECURITY_SUMMARY],
+        [CI_SECURITY_SUMMARY, LOCAL_SECURITY_SUMMARY],
+    ],
+)
+def test_scanner_evidence_class_drift_fails_closed(scanner_references: list[str]) -> None:
+    source = {**EVIDENCE, "SUP-005": scanner_references}
+    with pytest.raises(RuntimeError):
+        evidence_for_run(source, local_security_summary=True)
 
 
 def test_a_produced_artifact_is_still_checked_when_the_caller_runs_after_its_producer() -> None:

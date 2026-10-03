@@ -22,6 +22,13 @@
       "target": "audit-export"
     },
     {
+      "class": "requires_external_evidence",
+      "closes_when": "коли pinned CI scanners опублікують зведення для поточного дерева",
+      "on": "2026-10-03",
+      "reason": "Канонічне замикання споживає зведення gitleaks, pip-audit і trivy з pinned CI images. Локальний лан навмисно використовує окремий `audit-closure-local`: його слабший клас доказу не має права перезаписувати канонічні артефакти або прикидатися CI.",
+      "target": "audit-closure"
+    },
+    {
       "target": "blank-corpus-probe",
       "class": "requires_live_deployment",
       "on": "2026-09-06",

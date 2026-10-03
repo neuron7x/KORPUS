@@ -1,6 +1,25 @@
 {
   "lowered": [
     {
+      "changes": [
+        {
+          "from": {
+            "lines": 898,
+            "max_complexity": 23,
+            "max_function_lines": 175
+          },
+          "path": "scripts/build_audit_closure.py",
+          "to": {
+            "lines": 869,
+            "max_complexity": 17,
+            "max_function_lines": 154
+          }
+        }
+      ],
+      "on": "2026-10-03",
+      "reason": "Evidence selection and the shared closure predicate were extracted from the inherited register. Canonical and local executors now consume one validator while the local lane cannot write canonical evidence artifacts."
+    },
+    {
       "from": {
         "lines": 70
       },
@@ -3688,14 +3707,41 @@
       "proof_lines": 0,
       "reason": "v0.9.7 reduced exact measured ceiling after canonicalization/decomposition | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
+    "scripts/audit_closure_evidence.py": {
+      "lines": 48,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 23,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "2026-10-03: exact initial ceiling for the evidence-class selector extracted from the inherited audit registry; local scanner output can satisfy local closure without overwriting or impersonating pinned-CI evidence."
+    },
+    "scripts/audit_closure_validation.py": {
+      "lines": 72,
+      "max_complexity": 9,
+      "max_function_args": 4,
+      "max_function_lines": 30,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "2026-10-03: exact initial ceiling for the single closure predicate shared by canonical and local evidence lanes."
+    },
     "scripts/build_audit_closure.py": {
-      "lines": 898,
-      "max_complexity": 23,
+      "lines": 869,
+      "max_complexity": 17,
       "max_function_args": 1,
-      "max_function_lines": 175,
+      "max_function_lines": 154,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register; the GOV-006 code_half note is data, merged via a helper so main did not gain a branch"
+    },
+    "scripts/verify_audit_closure_local.py": {
+      "lines": 46,
+      "max_complexity": 1,
+      "max_function_args": 0,
+      "max_function_lines": 20,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "2026-10-03: exact initial ceiling for the non-writing local audit-closure adapter."
     },
     "scripts/build_import_manifest.py": {
       "lines": 252,
