@@ -5265,8 +5265,17 @@
       "proof_lines": 0,
       "reason": "Initial measured ceiling for retrieval-yield and Wilson uncertainty reporting"
     },
+    "scripts/owner_packet_measurements.py": {
+      "lines": 87,
+      "max_complexity": 4,
+      "max_function_args": 3,
+      "max_function_lines": 19,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "2026-10-03, НОВИЙ. Fail-closed межа між source-bound пакетом власника й ефемерними load/recovery вимірами: відсутній, нечитабельний або чужий артефакт рендериться як UNKNOWN, а не успадковується під новим дайджестом."
+    },
     "scripts/refresh_owner_packet.py": {
-      "lines": 185,
+      "lines": 150,
       "max_complexity": 6,
       "max_function_args": 2,
       "max_function_lines": 32,
