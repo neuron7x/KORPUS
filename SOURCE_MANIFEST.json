@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2082,
-  "root_sha256": "0f914d6605c6b2b6cbbd7f7d16e960085041c7d04ab072ed476b8155b313e160",
+  "root_sha256": "7091ff724d1766389f89beb38b42b69bec93fc53904cd810648f0983fcac7eb7",
   "files": [
     {
       "path": ".dockerignore",
@@ -3805,8 +3805,8 @@
     },
     {
       "path": "apps/api/tests/test_dialect_coverage_producers_agree.py",
-      "bytes": 6365,
-      "sha256": "24802ed03dffa2131c2432d6bdd785dae1ed068150326d2caacbc5b926ad0006",
+      "bytes": 6695,
+      "sha256": "90df8ebf5666532dd28702baccbf3b907b70d2fa7483cb4b4cb9c6623fb6a8a7",
       "mode": "0644"
     },
     {
@@ -11947,8 +11947,8 @@
     },
     {
       "path": "scripts/run_postgres_coverage.sh",
-      "bytes": 6169,
-      "sha256": "3d6382c217849bb3bde697ec1ea707d09518b17f64e24b1c346a370d217da4ed",
+      "bytes": 6736,
+      "sha256": "256bb9356142e801e7e732fd6fb26ed8f86cf81f33e65f16d34da12a44f0658f",
       "mode": "0755"
     },
     {
