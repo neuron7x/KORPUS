@@ -19,11 +19,54 @@ ones it supersedes is one write per pass regardless of backlog.
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi.testclient import TestClient
 from korpus.domain.models import Identity
+from korpus.infrastructure.repository import SqlRepository
 from sqlalchemy import text
 
 from apps.api.tests.conftest import privileged_connection
+
+
+def test_explicit_reconcile_waits_while_opportunistic_delivery_may_skip() -> None:
+    """A contended explicit pass must not report the same zero as an empty outbox."""
+
+    class ProbeLock:
+        def __init__(self) -> None:
+            self.calls: list[bool | str] = []
+
+        def acquire(self, blocking: bool = True) -> bool:
+            self.calls.append(blocking)
+            return blocking
+
+        def release(self) -> None:
+            self.calls.append("release")
+
+    lock = ProbeLock()
+    repository: Any = object.__new__(SqlRepository)
+    repository._anchor_delivery_lock = lock
+    repository._reconcile_audit_anchor_locked = lambda *, limit=None: 7
+
+    assert repository.reconcile_audit_anchor(wait=False) == 0
+    assert repository.reconcile_audit_anchor() == 7
+    assert lock.calls == [False, True, "release"]
+
+
+def test_post_commit_delivery_never_waits_for_an_inflight_pass(
+    client: TestClient, admin_identity: Identity, monkeypatch
+) -> None:
+    repository = client.app.state.repository
+    calls: list[tuple[int | None, bool]] = []
+
+    def observe_reconcile(*, limit: int | None = None, wait: bool = True) -> int:
+        calls.append((limit, wait))
+        return 0
+
+    monkeypatch.setattr(repository, "reconcile_audit_anchor", observe_reconcile)
+    repository.append_audit(admin_identity, "backlog.probe", "test", "nonblocking", {})
+
+    assert calls == [(1, False)]
 
 
 def _make_backlog(client: TestClient, repository, admin_identity: Identity, count: int) -> None:

@@ -6789,6 +6789,26 @@ MUTANTS = (
         ("apps/api/tests/test_gate_parity.py::test_the_web_gate_runs_its_own_negative_controls",),
         full_copy=True,
     ),
+    Mutant(
+        "M715_EXPLICIT_ANCHOR_RECONCILE_SILENTLY_SKIPS_CONTENTION",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "        if not self._anchor_delivery_lock.acquire(blocking=wait):",
+        "        if not self._anchor_delivery_lock.acquire(blocking=False):",
+        (
+            "apps/api/tests/test_anchor_delivery_backlog.py::"
+            "test_explicit_reconcile_waits_while_opportunistic_delivery_may_skip",
+        ),
+    ),
+    Mutant(
+        "M716_POST_COMMIT_ANCHOR_DELIVERY_WAITS_FOR_CONTENTION",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "                        self.reconcile_audit_anchor(limit=1, wait=False)",
+        "                        self.reconcile_audit_anchor(limit=1)",
+        (
+            "apps/api/tests/test_anchor_delivery_backlog.py::"
+            "test_post_commit_delivery_never_waits_for_an_inflight_pass",
+        ),
+    ),
 )
 
 
