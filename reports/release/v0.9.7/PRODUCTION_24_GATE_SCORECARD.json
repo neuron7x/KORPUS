@@ -1,20 +1,21 @@
 {
   "schema": "korpus.production-24-gate-campaign.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "508287c930bd96e10fd17a6627594ac398963c5f9c2328c6017f43b540205c9e",
+  "source_tree_sha256": "6d45e44bd35b657afe2f22d597203f562a3a30181ffd7fbd2d51c040a8d31299",
   "status": "FAIL_CLOSED",
+  "runners_that_left_no_bound_evidence": [],
   "software_gates": {
     "passed": 14,
     "total": 14
   },
   "external_gates": {
-    "passed": 2,
+    "passed": 3,
     "total": 14
   },
   "combined": {
-    "passed": 16,
+    "passed": 17,
     "total": 28,
-    "percent": 57.142857
+    "percent": 60.714286
   },
   "capabilities": {
     "python": "3.12.3",
@@ -34,36 +35,43 @@
     "trusted_builder_id": false
   },
   "executions": {
-    "redteam": {
-      "exit_code": 1,
-      "stdout_tail": "{\n  \"schema\": \"korpus.production-gate.v1\",\n  \"gate_id\": \"redteam\",\n  \"status\": \"FAIL\",\n  \"source_tree_sha256\": \"508287c930bd96e10fd17a6627594ac398963c5f9c2328c6017f43b540205c9e\",\n  \"release\": \"v0.9.7\",\n  \"checks\": {\n    \"report_present\": false,\n    \"attestation_present\": false,\n    \"attestation_verified\": false,\n    \"trusted_signer\": false,\n    \"source_bound\": false,\n    \"release_bound\": false,\n    \"independent_class\": false,\n    \"preregistered\": false,\n    \"test_cases_structured\": false,\n    \"required_attack_families_covered\": false,\n    \"findings_structured\": false,\n    \"blocking_findings_closed\": false,\n    \"declared_status_consistent\": false\n  },\n  \"failures\": [\n    \"report_present\",\n    \"attestation_present\",\n    \"attestation_verified\",\n    \"trusted_signer\",\n    \"source_bound\",\n    \"release_bound\",\n    \"independent_class\",\n    \"preregistered\",\n    \"test_cases_structured\",\n    \"required_attack_families_covered\",\n    \"findings_structured\",\n    \"blocking_findings_closed\",\n    \"declared_status_consistent\"\n  ],\n  \"evidence_class\": \"EXTERNAL_INDEPENDENT\",\n  \"attestation_verified\": false,\n  \"trusted_signer\": false,\n  \"signer_fingerprint\": \"\",\n  \"redteam\": {\n    \"checks\": {\n      \"test_cases_structured\": false,\n      \"required_attack_families_covered\": false,\n      \"findings_structured\": false,\n      \"blocking_findings_closed\": false,\n      \"declared_status_consistent\": false\n    },\n    \"pass\": false,\n    \"required_attack_families\": [\n      \"auth_bypass\",\n      \"data_exfiltration\",\n      \"host_header\",\n      \"idor\",\n      \"injection_parser\",\n      \"privilege_escalation\",\n      \"ssrf_egress\",\n      \"tenant_escape\",\n      \"webhook_forgery_replay\"\n    ],\n    \"covered_attack_families\": [],\n    \"test_cases\": 0,\n    \"findings\": 0,\n    \"blocking_open\": []\n  }\n}\n",
-      "stderr_tail": ""
-    },
     "supply_chain": {
       "exit_code": 1,
-      "stdout_tail": "{\n  \"schema\": \"korpus.production-gate.v1\",\n  \"gate_id\": \"supply_chain\",\n  \"status\": \"FAIL\",\n  \"source_tree_sha256\": \"508287c930bd96e10fd17a6627594ac398963c5f9c2328c6017f43b540205c9e\",\n  \"release\": \"v0.9.7\",\n  \"checks\": {\n    \"exact_pins_have_hashes\": true,\n    \"source_sbom_lock_complete\": true,\n    \"security_summary_is_ci_aggregate\": false,\n    \"security_scanners_executed_clean\": false,\n    \"security_scanners_current_commit\": false,\n    \"container_scanners_executed_clean\": true,\n    \"container_scanners_current_commit\": false,\n    \"container_sboms_valid\": true,\n    \"evidence_manifest_bound\": false,\n    \"evidence_attestation_verified\": false,\n    \"evidence_trusted_signer\": false\n  },\n  \"failures\": [\n    \"security_summary_is_ci_aggregate\",\n    \"security_scanners_executed_clean\",\n    \"security_scanners_current_commit\",\n    \"container_scanners_current_commit\",\n    \"evidence_manifest_bound\",\n    \"evidence_attestation_verified\",\n    \"evidence_trusted_signer\"\n  ],\n  \"evidence_class\": \"ATTESTED_CI_SCANNERS_PLUS_CONTAINER_SBOM\",\n  \"completeness\": \"PARTIAL\",\n  \"pinned_records\": 71,\n  \"hashed_records\": 71,\n  \"signer_fingerprint\": \"\"\n}\n",
-      "stderr_tail": ""
+      "stdout_tail": "{\n  \"schema\": \"korpus.production-gate.v1\",\n  \"gate_id\": \"supply_chain\",\n  \"status\": \"FAIL\",\n  \"source_tree_sha256\": \"6d45e44bd35b657afe2f22d597203f562a3a30181ffd7fbd2d51c040a8d31299\",\n  \"release\": \"v0.9.7\",\n  \"checks\": {\n    \"exact_pins_have_hashes\": true,\n    \"source_sbom_lock_complete\": true,\n    \"security_summary_is_ci_aggregate\": true,\n    \"security_scanners_executed_clean\": true,\n    \"security_scanners_current_commit\": false,\n    \"container_scanners_executed_clean\": true,\n    \"container_scanners_current_commit\": false,\n    \"container_sboms_valid\": true,\n    \"evidence_manifest_bound\": false,\n    \"evidence_attestation_verified\": false,\n    \"evidence_trusted_signer\": false\n  },\n  \"failures\": [\n    \"security_scanners_current_commit\",\n    \"container_scanners_current_commit\",\n    \"evidence_manifest_bound\",\n    \"evidence_attestation_verified\",\n    \"evidence_trusted_signer\"\n  ],\n  \"evidence_class\": \"ATTESTED_CI_SCANNERS_PLUS_CONTAINER_SBOM\",\n  \"completeness\": \"PARTIAL\",\n  \"pinned_records\": 71,\n  \"hashed_records\": 71,\n  \"signer_fingerprint\": \"\"\n}\n",
+      "stderr_tail": "",
+      "consumed_file_bound_after": true
     },
     "postgres_security": {
       "exit_code": 0,
-      "stdout_tail": "\\nINFO  [alembic.runtime.migration] Running upgrade 0011_audit_key_id -> 0012_tenancy, accounts, plans, subscriptions, billing events, conversations and messages\\nINFO  [alembic.runtime.migration] Running upgrade 0012_tenancy -> 0013_message_verdict, a stored answer remembers whether it was one\\nINFO  [alembic.runtime.migration] Running upgrade 0013_message_verdict -> 0014_subscription_last_event, a subscription remembers when its last applied event occurred\\nINFO  [alembic.runtime.migration] Running upgrade 0014_subscription_last_event -> 0015_plan_pricing, sellable plan pricing\\nINFO  [alembic.runtime.migration] Running upgrade 0015_plan_pricing -> 0016_learning_course_graph, persist immutable evidence-bound learning course graph\\nINFO  [alembic.runtime.migration] Running upgrade 0016_learning_course_graph -> 0017_learning_mastery, persist evidence-bound learner mastery projection\\nINFO  [alembic.runtime.migration] Running upgrade 0017_learning_mastery -> 0018_operational_competencies, persist operational competency framework revisions\\nINFO  [alembic.runtime.migration] Running upgrade 0018_operational_competencies -> 0019_temporal_corpus_snapshot, temporal corpus snapshot identity\\nINFO  [alembic.runtime.migration] Running upgrade 0019_temporal_corpus_snapshot -> 0020_rls_identity_boundary, non-forgeable PostgreSQL RLS identity boundary.\\nINFO  [alembic.runtime.migration] Running upgrade 0020_rls_identity_boundary -> 0021_alembic_version_width, widen alembic_version so a descriptive revision id is not a schema error\\nINFO  [alembic.runtime.migration] Running upgrade 0021_alembic_version_width -> 0022_approval_provenance_boundary, approval provenance privilege boundary\\nINFO  [alembic.runtime.migration] Running upgrade 0022_approval_provenance_boundary -> 0023_evidence_search_vector, stored search vector: під RLS повнотекстовий індекс недосяжний за побудовою\\n\",\n  \"static_tail\": \"...                                                                      [100%]\\n\"\n}\n",
-      "stderr_tail": ""
+      "stdout_tail": "ime.migration] Running upgrade 0012_tenancy -> 0013_message_verdict, a stored answer remembers whether it was one\\nINFO  [alembic.runtime.migration] Running upgrade 0013_message_verdict -> 0014_subscription_last_event, a subscription remembers when its last applied event occurred\\nINFO  [alembic.runtime.migration] Running upgrade 0014_subscription_last_event -> 0015_plan_pricing, sellable plan pricing\\nINFO  [alembic.runtime.migration] Running upgrade 0015_plan_pricing -> 0016_learning_course_graph, persist immutable evidence-bound learning course graph\\nINFO  [alembic.runtime.migration] Running upgrade 0016_learning_course_graph -> 0017_learning_mastery, persist evidence-bound learner mastery projection\\nINFO  [alembic.runtime.migration] Running upgrade 0017_learning_mastery -> 0018_operational_competencies, persist operational competency framework revisions\\nINFO  [alembic.runtime.migration] Running upgrade 0018_operational_competencies -> 0019_temporal_corpus_snapshot, temporal corpus snapshot identity\\nINFO  [alembic.runtime.migration] Running upgrade 0019_temporal_corpus_snapshot -> 0020_rls_identity_boundary, non-forgeable PostgreSQL RLS identity boundary.\\nINFO  [alembic.runtime.migration] Running upgrade 0020_rls_identity_boundary -> 0021_alembic_version_width, widen alembic_version so a descriptive revision id is not a schema error\\nINFO  [alembic.runtime.migration] Running upgrade 0021_alembic_version_width -> 0022_approval_provenance_boundary, approval provenance privilege boundary\\nINFO  [alembic.runtime.migration] Running upgrade 0022_approval_provenance_boundary -> 0023_evidence_search_vector, stored search vector: під RLS повнотекстовий індекс недосяжний за побудовою\\nINFO  [alembic.runtime.migration] Running upgrade 0023_evidence_search_vector -> 0024_capability_effect_ledger, governed capability side-effect ledger with subject-bound FORCE RLS.\\n\",\n  \"static_tail\": \"...                                                                      [100%]\\n\"\n}\n",
+      "stderr_tail": "",
+      "consumed_file_bound_after": true
     },
     "tevv": {
       "exit_code": 1,
       "stdout_tail": "ld_receipt_pass\": false,\n    \"gold_receipt_digest_bound\": false,\n    \"gold_receipt_system_bound\": false\n  },\n  \"failures\": [\n    \"evidence_schema\",\n    \"preregistered\",\n    \"source_bound\",\n    \"release_bound\",\n    \"environment_class\",\n    \"independent_class\",\n    \"assessor_structured\",\n    \"assessor_attestation_verified\",\n    \"assessor_trusted_signer\",\n    \"observation_ledger_structured\",\n    \"null_control_ledger_structured\",\n    \"required_attack_families_covered\",\n    \"required_cohorts_covered\",\n    \"tevv_admissible\",\n    \"pass_rate\",\n    \"null_controls\",\n    \"attack_families\",\n    \"deployment_context_bound\",\n    \"evaluation_cues_blinded\",\n    \"dependency_failures_simulated\",\n    \"gold_receipt_present\",\n    \"gold_receipt_pass\",\n    \"gold_receipt_digest_bound\",\n    \"gold_receipt_system_bound\",\n    \"tevv:dataset declares no corpus: the run is a fixture run\",\n    \"tevv:0 observations is below the floor of 200: a point estimate from too few queries is not a measurement\",\n    \"tevv:95% interval is 1.000 wide, above the maximum 0.100: the run does not constrain the answer enough\"\n  ],\n  \"environment_class\": null,\n  \"assessor_signer_fingerprint\": \"\",\n  \"tevv\": {\n    \"schema_version\": 1,\n    \"admissible_as_tevv\": false,\n    \"calibration_status\": \"UNVALIDATED_TEST_FIXTURE\",\n    \"pass_rate_interval\": {\n      \"lower\": 0.0,\n      \"upper\": 1.0,\n      \"width\": 1.0,\n      \"confidence\": 0.95\n    },\n    \"reasons\": [\n      \"dataset declares no corpus: the run is a fixture run\",\n      \"0 observations is below the floor of 200: a point estimate from too few queries is not a measurement\",\n      \"95% interval is 1.000 wide, above the maximum 0.100: the run does not constrain the answer enough\"\n    ]\n  },\n  \"observations\": 0,\n  \"ledger_metrics\": {\n    \"observations\": 0,\n    \"passed\": 0,\n    \"citation_failures\": 0,\n    \"leakage_failures\": 0,\n    \"determinism_failures\": 0,\n    \"null_controls\": 0,\n    \"null_control_false_accepts\": 0,\n    \"attack_families\": [],\n    \"cohort_counts\": {}\n  }\n}\n",
-      "stderr_tail": ""
+      "stderr_tail": "",
+      "consumed_file_bound_after": true
     },
     "reliability": {
       "exit_code": 1,
-      "stdout_tail": "},\n  \"failures\": [\n    \"internal_fault_injection\",\n    \"load_source_bound\",\n    \"recovery_source_bound\",\n    \"load_attestation_verified\",\n    \"load_trusted_signer\",\n    \"recovery_attestation_verified\",\n    \"recovery_trusted_signer\"\n  ],\n  \"evidence_class\": \"ATTESTED_LIVE_PLUS_FAULT_INJECTION_REQUIRED\",\n  \"load_metrics\": {\n    \"load\": {\n      \"concurrency\": 4,\n      \"requests\": 82,\n      \"answered\": 82,\n      \"answered_share\": 1.0,\n      \"p50_seconds\": 1.759,\n      \"p95_seconds\": 2.368,\n      \"p99_seconds\": 2.721,\n      \"max_seconds\": 2.721,\n      \"mean_seconds\": 1.486,\n      \"statuses\": {\n        \"200\": 82\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 78,\n        \"contradictory_authoritative_evidence\": 4\n      },\n      \"refusal_reasons\": {}\n    },\n    \"spike\": {\n      \"concurrency\": 12,\n      \"requests\": 922,\n      \"answered\": 159,\n      \"answered_share\": 0.1725,\n      \"p50_seconds\": 0.061,\n      \"p95_seconds\": 2.655,\n      \"p99_seconds\": 3.404,\n      \"max_seconds\": 4.37,\n      \"mean_seconds\": 0.363,\n      \"statuses\": {\n        \"200\": 159,\n        \"429\": 71,\n        \"503\": 692\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 154,\n        \"contradictory_authoritative_evidence\": 5\n      },\n      \"refusal_reasons\": {\n        \"global_capacity_exhausted\": 692,\n        \"subject_share_exhausted\": 71\n      }\n    },\n    \"soak\": {\n      \"concurrency\": 4,\n      \"requests\": 210,\n      \"answered\": 210,\n      \"answered_share\": 1.0,\n      \"p50_seconds\": 1.321,\n      \"p95_seconds\": 2.343,\n      \"p99_seconds\": 2.552,\n      \"max_seconds\": 2.807,\n      \"mean_seconds\": 1.153,\n      \"statuses\": {\n        \"200\": 210\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 200,\n        \"contradictory_authoritative_evidence\": 10\n      },\n      \"refusal_reasons\": {}\n    }\n  },\n  \"chaos_cases\": 8,\n  \"recovery_status\": \"PASS\",\n  \"load_signer_fingerprint\": \"\",\n  \"recovery_signer_fingerprint\": \"\"\n}\n",
-      "stderr_tail": ""
+      "stdout_tail": "se\n  },\n  \"failures\": [\n    \"internal_fault_injection\",\n    \"load_source_bound\",\n    \"load_environment\",\n    \"recovery_source_bound\",\n    \"recovery_environment\",\n    \"load_attestation_verified\",\n    \"load_trusted_signer\",\n    \"recovery_attestation_verified\",\n    \"recovery_trusted_signer\"\n  ],\n  \"evidence_class\": \"ATTESTED_LIVE_PLUS_FAULT_INJECTION_REQUIRED\",\n  \"load_metrics\": {\n    \"load\": {\n      \"concurrency\": 2,\n      \"requests\": 290,\n      \"answered\": 290,\n      \"answered_share\": 1.0,\n      \"p50_seconds\": 0.211,\n      \"p95_seconds\": 0.724,\n      \"p99_seconds\": 1.076,\n      \"max_seconds\": 1.189,\n      \"mean_seconds\": 0.276,\n      \"statuses\": {\n        \"200\": 290\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 280,\n        \"contradictory_authoritative_evidence\": 10\n      },\n      \"refusal_reasons\": {}\n    },\n    \"spike\": {\n      \"concurrency\": 4,\n      \"requests\": 485,\n      \"answered\": 412,\n      \"answered_share\": 0.8495,\n      \"p50_seconds\": 0.205,\n      \"p95_seconds\": 0.66,\n      \"p99_seconds\": 1.068,\n      \"max_seconds\": 1.333,\n      \"mean_seconds\": 0.256,\n      \"statuses\": {\n        \"200\": 412,\n        \"429\": 73\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 385,\n        \"contradictory_authoritative_evidence\": 27\n      },\n      \"refusal_reasons\": {\n        \"subject_share_exhausted\": 73\n      }\n    },\n    \"soak\": {\n      \"concurrency\": 2,\n      \"requests\": 288,\n      \"answered\": 288,\n      \"answered_share\": 1.0,\n      \"p50_seconds\": 0.212,\n      \"p95_seconds\": 0.837,\n      \"p99_seconds\": 1.048,\n      \"max_seconds\": 1.092,\n      \"mean_seconds\": 0.279,\n      \"statuses\": {\n        \"200\": 288\n      },\n      \"decisions\": {\n        \"extractive_claims_passed_calibrated_gates\": 270,\n        \"contradictory_authoritative_evidence\": 18\n      },\n      \"refusal_reasons\": {}\n    }\n  },\n  \"chaos_cases\": 8,\n  \"recovery_status\": \"PASS\",\n  \"load_signer_fingerprint\": \"\",\n  \"recovery_signer_fingerprint\": \"\"\n}\n",
+      "stderr_tail": "",
+      "consumed_file_bound_after": true
     },
     "exact_environment": {
       "exit_code": 0,
-      "stdout_tail": "make[1]: входимо до каталогу «/home/neuro7/Desktop/Ядро основний проект Корпус»\ndocker build -f apps/api/Dockerfile -t korpus-api:exact-env .\ndocker run --rm --user root -v \"/home/neuro7/Desktop/Ядро основний проект Корпус:/src\" -w /src \\\n  -e PYTHONPATH=/src/apps/api/src:/src/scripts \\\n  korpus-api:exact-env python scripts/run_exact_environment_gate.py --profile runtime\n{\n  \"schema\": \"korpus.production-gate.v1\",\n  \"gate_id\": \"exact_environment\",\n  \"status\": \"PASS\",\n  \"source_tree_sha256\": \"508287c930bd96e10fd17a6627594ac398963c5f9c2328c6017f43b540205c9e\",\n  \"release\": \"v0.9.7\",\n  \"checks\": {\n    \"all_locked_components_installed\": true,\n    \"all_versions_exact\": true,\n    \"no_unmanaged_distributions\": true,\n    \"production_python_exact\": true,\n    \"lock_hashes_present\": true\n  },\n  \"failures\": [],\n  \"evidence_class\": \"EXACT_PRODUCTION_IMAGE\",\n  \"profile\": \"runtime\",\n  \"python\": \"3.12.13\",\n  \"required_python\": \"3.12.13\",\n  \"implementation\": \"CPython\",\n  \"locked_components\": 55,\n  \"missing\": [],\n  \"mismatched\": {},\n  \"unmanaged_distributions\": []\n}\nmake[1]: Залишаю каталог \"/home/neuro7/Desktop/Ядро основний проект Корпус\"\n",
-      "stderr_tail": ".9 packaging-25.0 prometheus-client-0.25.0 protobuf-6.33.6 psycopg-3.3.4 psycopg-binary-3.3.4 pycparser-3.0 pydantic-2.13.4 pydantic-core-2.46.4 pydantic-settings-2.14.2 pypdf-6.16.1 python-dateutil-2.9.0.post0 python-dotenv-1.2.2 python-multipart-0.0.31 s3transfer-0.18.0 six-1.17.0 starlette-1.3.1 typing-extensions-4.15.0 typing-inspection-0.4.2 urllib3-2.7.0 uvicorn-0.48.0 uvloop-0.22.1 watchfiles-1.2.0 websockets-16.0\n#9 25.21 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.\n#9 26.06 No broken requirements found.\n#9 DONE 26.1s\n\n#10 [ 6/12] COPY apps/api/src /app/apps/api/src\n#10 DONE 0.0s\n\n#11 [ 7/12] COPY apps/api/migrations /app/apps/api/migrations\n#11 DONE 0.0s\n\n#12 [ 8/12] COPY apps/api/alembic.ini /app/apps/api/alembic.ini\n#12 DONE 0.0s\n\n#13 [ 9/12] COPY scripts /app/scripts\n#13 DONE 0.0s\n\n#14 [10/12] COPY apps/api/docker-entrypoint.sh /usr/local/bin/korpus-entrypoint\n#14 DONE 0.0s\n\n#15 [11/12] RUN groupadd --gid 10001 korpus     && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin korpus     && mkdir -p /data/objects /audit /tmp/korpus     && chown -R 10001:10001 /data /audit /tmp/korpus     && chmod 0555 /app /app/apps /app/apps/api /app/apps/api/src /app/scripts     && chmod 0555 /usr/local/bin/korpus-entrypoint     && chmod -R a+rX /app/apps/api/src /app/apps/api/migrations /app/scripts     && chmod a+r /app/apps/api/alembic.ini\n#15 DONE 0.5s\n\n#16 [12/12] WORKDIR /app\n#16 DONE 0.0s\n\n#17 exporting to image\n#17 exporting layers\n#17 exporting layers 0.5s done\n#17 writing image sha256:d21d8cb44e5a268c644099224556eafa0fa95cfc22a4effea19fc02fe42bb33a done\n#17 naming to docker.io/library/korpus-api:exact-env done\n#17 DONE 0.6s\n",
-      "runner": "make production-exact-environment-image"
+      "stdout_tail": "make[1]: Entering directory '/home/neuro7/Desktop/Ядро основний проект Корпус'\ndocker build -f apps/api/Dockerfile -t korpus-api:exact-env .\ndocker run --rm --user root -v \"/home/neuro7/Desktop/Ядро основний проект Корпус:/src\" -w /src \\\n  -e PYTHONPATH=/src/apps/api/src:/src/scripts \\\n  korpus-api:exact-env python scripts/run_exact_environment_gate.py --profile runtime\n{\n  \"schema\": \"korpus.production-gate.v1\",\n  \"gate_id\": \"exact_environment\",\n  \"status\": \"PASS\",\n  \"source_tree_sha256\": \"6d45e44bd35b657afe2f22d597203f562a3a30181ffd7fbd2d51c040a8d31299\",\n  \"release\": \"v0.9.7\",\n  \"checks\": {\n    \"all_locked_components_installed\": true,\n    \"all_versions_exact\": true,\n    \"no_unmanaged_distributions\": true,\n    \"production_python_exact\": true,\n    \"lock_hashes_present\": true\n  },\n  \"failures\": [],\n  \"evidence_class\": \"EXACT_PRODUCTION_IMAGE\",\n  \"profile\": \"runtime\",\n  \"python\": \"3.12.13\",\n  \"required_python\": \"3.12.13\",\n  \"implementation\": \"CPython\",\n  \"locked_components\": 55,\n  \"missing\": [],\n  \"mismatched\": {},\n  \"unmanaged_distributions\": []\n}\nmake[1]: Leaving directory '/home/neuro7/Desktop/Ядро основний проект Корпус'\n",
+      "stderr_tail": "ckaging-25.0 prometheus-client-0.25.0 protobuf-6.33.6 psycopg-3.3.4 psycopg-binary-3.3.4 pycparser-3.0 pydantic-2.13.4 pydantic-core-2.46.4 pydantic-settings-2.14.2 pypdf-6.16.1 python-dateutil-2.9.0.post0 python-dotenv-1.2.2 python-multipart-0.0.31 s3transfer-0.18.0 six-1.17.0 starlette-1.3.1 typing-extensions-4.15.0 typing-inspection-0.4.2 urllib3-2.7.0 uvicorn-0.48.0 uvloop-0.22.1 watchfiles-1.2.0 websockets-16.0\n#9 29.18 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.\n#9 30.05 No broken requirements found.\n#9 DONE 31.0s\n\n#10 [ 6/12] COPY apps/api/src /app/apps/api/src\n#10 DONE 0.1s\n\n#11 [ 7/12] COPY apps/api/migrations /app/apps/api/migrations\n#11 DONE 0.0s\n\n#12 [ 8/12] COPY apps/api/alembic.ini /app/apps/api/alembic.ini\n#12 DONE 0.0s\n\n#13 [ 9/12] COPY scripts /app/scripts\n#13 DONE 0.3s\n\n#14 [10/12] COPY apps/api/docker-entrypoint.sh /usr/local/bin/korpus-entrypoint\n#14 DONE 0.0s\n\n#15 [11/12] RUN groupadd --gid 10001 korpus     && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin korpus     && mkdir -p /data/objects /audit /tmp/korpus     && chown -R 10001:10001 /data /audit /tmp/korpus     && chmod 0555 /app /app/apps /app/apps/api /app/apps/api/src /app/scripts     && chmod 0555 /usr/local/bin/korpus-entrypoint     && chmod -R a+rX /app/apps/api/src /app/apps/api/migrations /app/scripts     && chmod a+r /app/apps/api/alembic.ini\n#15 DONE 1.7s\n\n#16 [12/12] WORKDIR /app\n#16 DONE 0.0s\n\n#17 exporting to image\n#17 exporting layers\n#17 exporting layers 0.7s done\n#17 writing image sha256:57c67aef7db505907d483bf131dbe559f611635f22afcfc0dfee8b218be5bde3 done\n#17 naming to docker.io/library/korpus-api:exact-env 0.0s done\n#17 DONE 0.7s\n",
+      "runner": "make production-exact-environment-image",
+      "consumed_file_bound_after": true
+    },
+    "redteam": {
+      "exit_code": 0,
+      "stdout_tail": "make[1]: Entering directory '/home/neuro7/Desktop/Ядро основний проект Корпус'\nPYTHONPATH=apps/api/src:scripts apps/api/.venv/bin/python scripts/run_pytest_campaign.py config/assurance/redteam-internal-v1.json\n{\n  \"schema\": \"korpus.production-gate.v1\",\n  \"gate_id\": \"redteam_internal\",\n  \"status\": \"PASS\",\n  \"source_tree_sha256\": \"6d45e44bd35b657afe2f22d597203f562a3a30181ffd7fbd2d51c040a8d31299\",\n  \"release\": \"v0.9.7\",\n  \"checks\": {\n    \"campaign_executed\": true,\n    \"pytest_passed\": true,\n    \"attack_families_declared\": true\n  },\n  \"failures\": [],\n  \"evidence_class\": \"INTERNAL_ADVERSARIAL\",\n  \"attack_families\": [\n    \"auth_bypass\",\n    \"idor\",\n    \"tenant_escape\",\n    \"privilege_escalation\",\n    \"ssrf_egress\",\n    \"injection_parser\",\n    \"webhook_forgery_replay\",\n    \"host_header\",\n    \"data_exfiltration\"\n  ],\n  \"pytest_targets\": [\n    \"apps/api/tests/test_tenancy_threats.py\",\n    \"apps/api/tests/test_access_oracles.py\",\n    \"apps/api/tests/test_repository_access_refusals.py\",\n    \"apps/api/tests/test_routes_permissions.py\",\n    \"apps/api/tests/test_browser_session_refusals.py\",\n    \"apps/api/tests/test_oidc.py\",\n    \"apps/api/tests/test_model_egress.py\",\n    \"apps/api/tests/test_malformed_pdf_containment.py\",\n    \"apps/api/tests/test_liqpay_billing.py\",\n    \"apps/api/tests/test_billing_events.py\"\n  ],\n  \"pytest_exit_code\": 0,\n  \"stdout_tail\": \"........................................................................ [ 53%]\\n..............................................................           [100%]\\n\",\n  \"stderr_tail\": \"\"\n}\nmake[1]: Leaving directory '/home/neuro7/Desktop/Ядро основний проект Корпус'\n",
+      "stderr_tail": "",
+      "runner": "make production-redteam-internal",
+      "consumed_file_bound_after": true
     }
   },
   "predicates": [
@@ -74,13 +82,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": [
         "report_present",
         "attestation_present",
@@ -94,7 +100,7 @@
         "blocking_findings_closed",
         "declared_status_consistent"
       ],
-      "causal_status": "INDEPENDENCE_REQUIRED"
+      "causal_status": "PASS"
     },
     {
       "id": "live_vulnerability_scanners",
@@ -108,7 +114,6 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "security_scanners_executed_clean",
         "security_scanners_current_commit",
         "container_scanners_current_commit",
         "evidence_manifest_bound"
@@ -214,7 +219,8 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "load_source_bound"
+        "load_source_bound",
+        "load_environment"
       ],
       "waived_external_checks": [],
       "causal_status": "EXTERNAL_INPUT_MISSING"
@@ -251,7 +257,8 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "recovery_source_bound"
+        "recovery_source_bound",
+        "recovery_environment"
       ],
       "waived_external_checks": [
         "recovery_attestation_verified",
