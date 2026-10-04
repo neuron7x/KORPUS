@@ -1840,7 +1840,9 @@ release-evidence:
 	$(MAKE) local-production-preflight PY=$(PY)
 
 backend-report:
-	rm -rf reports/regression/shards
+	# Receipts are tracked evidence and therefore part of repository self-inspection.
+	# Overwrite them in place: deleting the directory before pytest makes the
+	# repository-completeness requirement fail inside every shard.
 	mkdir -p reports/regression/shards
 	for index in $$(seq 0 $$(( $(REGRESSION_SHARDS) - 1 ))); do \
 	  $(MAKE) regression-shard SHARD_INDEX=$$index PY=$(PY) || exit 1; \
