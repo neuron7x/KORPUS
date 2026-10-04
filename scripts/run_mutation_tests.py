@@ -4276,6 +4276,14 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M726_API_RUNTIME_DEFINITION_OUTSIDE_EVIDENCE_DIGEST",
+        "apps/api/src/korpus/application/provenance_surface.py",
+        '    "apps/api",',
+        '    "apps/api/src",',
+        ("apps/api/tests/test_evidence_provenance.py::test_digest_covers_api_runtime_definition",),
+        full_copy=True,
+    ),
+    Mutant(
         "M404_UNKNOWN_COUNTED_AS_PASS",
         "scripts/verify_public_surface.py",
         '    if "UNKNOWN" in verdicts:',

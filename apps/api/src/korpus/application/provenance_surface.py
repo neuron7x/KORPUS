@@ -3,13 +3,7 @@
 from __future__ import annotations
 
 EVIDENCE_SOURCE_PATHS: tuple[str, ...] = (
-    "apps/api/src",
-    "apps/api/tests",
-    "apps/api/migrations",
-    "apps/api/alembic.ini",
-    "apps/api/pyproject.toml",
-    "apps/api/requirements.dev.lock",
-    "apps/api/requirements.runtime.lock",
+    "apps/api",
     "apps/web",
     "packages",
     "contracts",
