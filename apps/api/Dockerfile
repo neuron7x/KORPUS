@@ -12,6 +12,7 @@ RUN mkdir -p "$TMPDIR" \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
        ca-certificates \
+       libpcre2-8-0 \
        poppler-utils \
        tesseract-ocr \
        tesseract-ocr-eng \
