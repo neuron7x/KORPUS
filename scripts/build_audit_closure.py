@@ -15,6 +15,7 @@ from audit_closure_validation import (  # noqa: E402
     ClosureClassification,
     validate_registry,
 )
+from audit_scanner_summary import validate_selected_security_summary  # noqa: E402
 
 SOURCE = ROOT / "docs/audit/source/KORPUS_v4_FINDINGS_REGISTER_2026-08-01.json"
 OUT_DIR = ROOT / "docs/audit/closure"
@@ -711,6 +712,7 @@ CLASSIFICATION = ClosureClassification(
 
 def main() -> None:
     selection = evidence_for_run(EVIDENCE, local_security_summary=False)
+    binding = validate_selected_security_summary(ROOT, selection)
     evidence_for_this_run = selection.references
     source = json.loads(SOURCE.read_text(encoding="utf-8"))
     findings, statuses = validate_registry(ROOT, source, evidence_for_this_run, CLASSIFICATION)
@@ -743,7 +745,7 @@ def main() -> None:
             "Complete classification of all 99 v4 findings. CLOSED_LOCAL means the encoded "
             "local predicate has executable evidence; it is not production authorization."
         ),
-        "produced_evidence": selection.metadata,
+        "produced_evidence": {**selection.metadata, **binding.metadata},
         "counts": dict(sorted(counts.items())),
         "remaining_by_severity": dict(sorted(severity.items())),
         "findings": output,

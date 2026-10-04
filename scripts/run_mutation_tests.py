@@ -6809,6 +6809,61 @@ MUTANTS = (
             "test_post_commit_delivery_never_waits_for_an_inflight_pass",
         ),
     ),
+    Mutant(
+        "M717_STALE_SCANNER_SUMMARY_IMPERSONATES_CURRENT_SOURCE",
+        "scripts/audit_scanner_summary.py",
+        '            if scanned_digest != source_tree_digest("HEAD"):',
+        "            if False:",
+        (
+            "apps/api/tests/test_evidence_registry.py::"
+            "test_scanner_summary_is_bound_to_the_current_source",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M718_FAILED_SCANNER_VERDICT_IS_ACCEPTED",
+        "scripts/audit_scanner_summary.py",
+        '    if payload.get("worst_exit_code") != 0 or payload.get("status") != "PASS":',
+        "    if False:",
+        (
+            "apps/api/tests/test_evidence_registry.py::"
+            "test_scanner_summary_refuses_false_or_incomplete_success",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M719_EMPTY_SCANNER_SET_IS_ACCEPTED",
+        "scripts/audit_scanner_summary.py",
+        "    if len(records) != len(EXPECTED_SCANNERS) or set(names) != EXPECTED_SCANNERS:",
+        "    if False:",
+        (
+            "apps/api/tests/test_evidence_registry.py::"
+            "test_scanner_summary_refuses_false_or_incomplete_success",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M720_LOCAL_CLOSURE_SKIPS_SCANNER_PAYLOAD_VALIDATION",
+        "scripts/verify_audit_closure_local.py",
+        "    binding = validate_selected_security_summary(ROOT, selection)",
+        "    binding = None",
+        (
+            "apps/api/tests/test_evidence_registry.py::"
+            "test_both_closure_executors_validate_the_scanner_payload",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M721_CANONICAL_CLOSURE_SKIPS_SCANNER_PAYLOAD_VALIDATION",
+        "scripts/build_audit_closure.py",
+        "    binding = validate_selected_security_summary(ROOT, selection)",
+        "    binding = None",
+        (
+            "apps/api/tests/test_evidence_registry.py::"
+            "test_both_closure_executors_validate_the_scanner_payload",
+        ),
+        full_copy=True,
+    ),
 )
 
 

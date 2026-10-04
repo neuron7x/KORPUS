@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2082,
-  "root_sha256": "0c477c2bfcce3f682007fd758d5866938f07f8ddede6a9a1f29cd6f9e06b56c0",
+  "file_count": 2083,
+  "root_sha256": "71324fc7fb790b5e0aff2ac68730eed7d50810d412fcd23d1a43108c15920433",
   "files": [
     {
       "path": ".dockerignore",
@@ -4009,8 +4009,8 @@
     },
     {
       "path": "apps/api/tests/test_evidence_registry.py",
-      "bytes": 7881,
-      "sha256": "9f779b6df44cc021635b6d82a65dae926057bebee53499630ae62be9e03b9144",
+      "bytes": 10524,
+      "sha256": "10c4826dbf1e0dbf227cf438fa3ab7defa28289930554e261a80619530e9706d",
       "mode": "0644"
     },
     {
@@ -8119,8 +8119,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 744718,
-      "sha256": "d2cb9bbf92e74a9c0ae51539a741b221d391e19ccf14680721b3af84e80fbd43",
+      "bytes": 745996,
+      "sha256": "e895b5fde13b74a975babbc92846d9cedeb775b5a28494ff5714d665ce157442",
       "mode": "0644"
     },
     {
@@ -10476,6 +10476,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/audit_scanner_summary.py",
+      "bytes": 4927,
+      "sha256": "d8c1e08490af5772e4cbabc88ed62b738a01fef7ab6667c3f5a80b0bd6452952",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/backfill_span_embeddings_sqlite.py",
       "bytes": 5714,
       "sha256": "9f3b0c5a725fa36d27dd1455acf48b94dfaced527b3de7a6a1d96d8d3a679f9b",
@@ -10531,8 +10537,8 @@
     },
     {
       "path": "scripts/build_audit_closure.py",
-      "bytes": 37570,
-      "sha256": "0f19e664d21db6f37f563b4005207f426a6d60258d4d9caa05acf100ec48c12d",
+      "bytes": 37743,
+      "sha256": "f94330d8c21dea329e131526b2ce0e54389bb035c4163c4b84917b0de73473a0",
       "mode": "0755"
     },
     {
@@ -11893,8 +11899,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 334693,
-      "sha256": "1d329003929a6cbba6a24a56bd7baf1bda3cdbefddc8cd48fd67befd8364b3bd",
+      "bytes": 336721,
+      "sha256": "e8273f704a06111826af7b045027e32378d5ca3fc5d191eeacfd5a122b908c9d",
       "mode": "0755"
     },
     {
@@ -12277,8 +12283,8 @@
     },
     {
       "path": "scripts/verify_audit_closure_local.py",
-      "bytes": 1365,
-      "sha256": "0102e8e50ba40993a32129fd0e54b643085e2aaaaaf887691be9654359cb21e4",
+      "bytes": 1538,
+      "sha256": "678baebbf6eee5966db4904557a21b4788795e04233b7faa8a4d09bdeea1004a",
       "mode": "0755"
     },
     {

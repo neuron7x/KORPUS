@@ -8,6 +8,7 @@ CLOSED forever.
 from __future__ import annotations
 
 import ast
+import json
 import sys
 from pathlib import Path
 
@@ -22,6 +23,7 @@ from korpus.application.evidence_registry import (
 ROOT = Path(__file__).resolve().parents[3]
 CLOSURE_BUILDER = ROOT / "scripts/build_audit_closure.py"
 sys.path.insert(0, str(ROOT / "scripts"))
+import audit_scanner_summary as scanner_summary  # noqa: E402
 from audit_closure_evidence import (  # noqa: E402
     CI_SECURITY_SUMMARY,
     LOCAL_SECURITY_SUMMARY,
@@ -92,6 +94,73 @@ def test_scanner_evidence_class_drift_fails_closed(scanner_references: list[str]
     source = {**EVIDENCE, "SUP-005": scanner_references}
     with pytest.raises(RuntimeError):
         evidence_for_run(source, local_security_summary=True)
+
+
+def _local_scanner_summary(commit: str = "a" * 40) -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "class": "LOCAL_SCANNERS",
+        "commit_sha": commit,
+        "status": "PASS",
+        "worst_exit_code": 0,
+        "scanners": [
+            {"scanner": name, "exit_code": 0} for name in sorted(scanner_summary.EXPECTED_SCANNERS)
+        ],
+    }
+
+
+def test_scanner_summary_is_bound_to_the_current_source(tmp_path, monkeypatch) -> None:
+    path = tmp_path / "summary.json"
+    path.write_text(json.dumps(_local_scanner_summary()), encoding="utf-8")
+    monkeypatch.setattr(
+        scanner_summary,
+        "source_tree_digest",
+        lambda ref: "current" if ref == "HEAD" else "stale",
+    )
+
+    with pytest.raises(RuntimeError, match="different source tree"):
+        scanner_summary.validate_security_summary(tmp_path, "summary.json", "LOCAL_SCANNERS")
+
+
+def test_current_complete_scanner_summary_carries_its_binding(tmp_path, monkeypatch) -> None:
+    path = tmp_path / "summary.json"
+    path.write_text(json.dumps(_local_scanner_summary()), encoding="utf-8")
+    monkeypatch.setattr(scanner_summary, "source_tree_digest", lambda _ref: "same")
+
+    binding = scanner_summary.validate_security_summary(tmp_path, "summary.json", "LOCAL_SCANNERS")
+
+    assert binding.metadata == {
+        "security_summary_commit": "a" * 40,
+        "security_summary_source_tree_sha256": "same",
+        "security_summary_scanners": 4,
+    }
+
+
+@pytest.mark.parametrize(
+    ("poison", "message"),
+    [
+        ({"status": "FAIL"}, "verdict"),
+        ({"worst_exit_code": 1}, "verdict"),
+        ({"class": "PINNED_CI_SCANNERS"}, "evidence class"),
+        ({"scanners": []}, "scanner set"),
+    ],
+)
+def test_scanner_summary_refuses_false_or_incomplete_success(
+    tmp_path, monkeypatch, poison: dict[str, object], message: str
+) -> None:
+    payload = {**_local_scanner_summary(), **poison}
+    path = tmp_path / "summary.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(scanner_summary, "source_tree_digest", lambda _ref: "same")
+
+    with pytest.raises(RuntimeError, match=message):
+        scanner_summary.validate_security_summary(tmp_path, "summary.json", "LOCAL_SCANNERS")
+
+
+def test_both_closure_executors_validate_the_scanner_payload() -> None:
+    for relative in ("scripts/verify_audit_closure_local.py", "scripts/build_audit_closure.py"):
+        source = (ROOT / relative).read_text(encoding="utf-8")
+        assert "binding = validate_selected_security_summary(ROOT, selection)" in source
 
 
 def test_a_produced_artifact_is_still_checked_when_the_caller_runs_after_its_producer() -> None:
