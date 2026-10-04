@@ -4225,6 +4225,15 @@
       "max_nesting": 1,
       "proof_lines": 0
     },
+    "scripts/evidence_access_route.py": {
+      "lines": 101,
+      "max_complexity": 15,
+      "max_function_args": 3,
+      "max_function_lines": 44,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Точна початкова стеля 2026-10-04. Чиста перевірка двох допустимих доказів обходу мережевої відмови: взаємний уже захоплений еквівалент або строкове зовнішнє спостереження з явною межею. Винесено окремо, щоб часові, URI та shape-предикати не збільшували складність вироку evidence_refusal."
+    },
     "scripts/evidence_registry.py": {
       "lines": 134,
       "max_complexity": 4,

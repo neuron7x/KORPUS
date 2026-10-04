@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2083,
-  "root_sha256": "7720a245c558134642ca113e66124d67001bc3e706520f7066feb034095e9e64",
+  "file_count": 2085,
+  "root_sha256": "0f4c3f0e826c39bba35ea879285c157f4a8f31595a8244ff7794d329d1948fde",
   "files": [
     {
       "path": ".dockerignore",
@@ -3972,6 +3972,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_evidence_access_route.py",
+      "bytes": 5457,
+      "sha256": "dfe8b5d4e13c0df78468e7022c9f71364117729c0f46cb45659d8049269012dd",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_evidence_bases.py",
       "bytes": 6346,
       "sha256": "13b4cd805472d865e1730e0964e21f4261cb55e3719eb642fd78d85e90b05365",
@@ -7927,8 +7933,8 @@
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.json",
-      "bytes": 1163270,
-      "sha256": "efe84104ef425fcccc1feca938471342445735dcc9e56a376e5e0115c036d115",
+      "bytes": 1164124,
+      "sha256": "2751b33d5cfa08f04b6598c9793fd1ed63522a5edd96b0ced2ff6970e04db8bc",
       "mode": "0644"
     },
     {
@@ -8119,8 +8125,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 745996,
-      "sha256": "e895b5fde13b74a975babbc92846d9cedeb775b5a28494ff5714d665ce157442",
+      "bytes": 746723,
+      "sha256": "00be4edb3ff9d34528fc261e2194d7176ebe9d6e62109ff511ae3a13fcb17f55",
       "mode": "0644"
     },
     {
@@ -10866,6 +10872,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/evidence_access_route.py",
+      "bytes": 4129,
+      "sha256": "0613c13cee0fa8b4bea15af7db01d01b64ec388baada23ad1dd1f7336e6dba94",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/evidence_registry.py",
       "bytes": 5393,
       "sha256": "ba2f3bb5f777b1b735d51c2b8eb7959d05453377cba1464e96e97e721bb215ff",
@@ -11899,8 +11911,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 337118,
-      "sha256": "f1bd7cd6154e52e5dd0774a0189b5b53213cc82a0eaacb597426d38391f0fa5e",
+      "bytes": 338318,
+      "sha256": "dbffacccc46519c6371d1ac5ce8ca62df8a5deec78759a6125cd5fd289b62fcd",
       "mode": "0755"
     },
     {
@@ -12199,8 +12211,8 @@
     },
     {
       "path": "scripts/validate_evidence_refusal.py",
-      "bytes": 24595,
-      "sha256": "a4afd9dc1fa3819839f5a8ae3a97a03898f7379dcc2c640fa47d603b03c2c4f4",
+      "bytes": 24090,
+      "sha256": "dccd8dd8bc99eedd441dd9c65614ae92e3eb0971182ad5067c128c13d5aa6f38",
       "mode": "0755"
     },
     {

@@ -4243,6 +4243,39 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M723_ONE_WAY_PUBLICATION_LINK_COUNTS_AS_CAPTURED_ROUTE",
+        "scripts/evidence_access_route.py",
+        "        if not isinstance(peer_links, list) or identifier not in peer_links:",
+        "        if False:",
+        (
+            "apps/api/tests/test_evidence_access_route.py::"
+            "test_one_way_captured_copy_is_not_an_access_route",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M724_STALE_EXTERNAL_ROUTE_COUNTS_AS_CURRENT",
+        "scripts/evidence_access_route.py",
+        "        if age > EXTERNAL_ROUTE_MAX_AGE_DAYS:",
+        "        if False:",
+        (
+            "apps/api/tests/test_evidence_access_route.py::"
+            "test_malformed_or_stale_external_observation_fails_closed",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M725_FOUND_ROUTE_DOES_NOT_LIFT_VANTAGE_GAP",
+        "scripts/validate_evidence_refusal.py",
+        '        if route_found and refusal.get("class") in VANTAGE:',
+        "        if False:",
+        (
+            "apps/api/tests/test_evidence_access_route.py::"
+            "test_recent_external_route_lifts_only_an_aged_vantage_gap",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M404_UNKNOWN_COUNTED_AS_PASS",
         "scripts/verify_public_surface.py",
         '    if "UNKNOWN" in verdicts:',
