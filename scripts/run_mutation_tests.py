@@ -4232,6 +4232,17 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M722_PUBLIC_RECOVERY_TOUCHES_THE_DEFAULT_FUNNEL",
+        "scripts/public_health_controller.py",
+        'PUBLIC_FUNNEL_BIND = "--https=8443"',
+        'PUBLIC_FUNNEL_BIND = "--https=443"',
+        (
+            "apps/api/tests/test_public_health_controller.py::"
+            "test_public_recovery_is_scoped_to_the_dedicated_funnel",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M404_UNKNOWN_COUNTED_AS_PASS",
         "scripts/verify_public_surface.py",
         '    if "UNKNOWN" in verdicts:',
