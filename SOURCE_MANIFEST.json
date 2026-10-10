@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2085,
-  "root_sha256": "05e92a6ea37ffd12d1c912153c62f240ca719ef81b1655609c82fa9d251726e4",
+  "root_sha256": "321d3b3be5361de7f09abf01bd10396c3069ec2c0a72f0ef6c57d2c5b23289a3",
   "files": [
     {
       "path": ".dockerignore",
@@ -133,8 +133,8 @@
     },
     {
       "path": ".gitleaksignore",
-      "bytes": 233,
-      "sha256": "65efabccb577c9113053c994b3b2f5968f05648d5c8cd7cb874a947ae0641de8",
+      "bytes": 589,
+      "sha256": "8e05e5f068aa07a24bec00200095c0a295a9ada08fdcd9baceb18e70f1527b58",
       "mode": "0644"
     },
     {
