@@ -745,7 +745,6 @@ def main() -> None:
             "Complete classification of all 99 v4 findings. CLOSED_LOCAL means the encoded "
             "local predicate has executable evidence; it is not production authorization."
         ),
-        "produced_evidence": {**selection.metadata, **binding.metadata},
         "counts": dict(sorted(counts.items())),
         "remaining_by_severity": dict(sorted(severity.items())),
         "findings": output,
@@ -755,6 +754,7 @@ def main() -> None:
     csv_path = OUT_DIR / "KORPUS_v5_FINDINGS_CLOSURE.csv"
     md_path = OUT_DIR / "KORPUS_v5_CLOSURE_SUMMARY.md"
     json_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    binding.record_run(ROOT, selection.metadata)
     columns = [
         "id",
         "domain",

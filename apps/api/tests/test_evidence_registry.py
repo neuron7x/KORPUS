@@ -280,3 +280,23 @@ def test_a_mitigated_finding_may_rest_on_documents() -> None:
         )
         == []
     )
+
+
+def test_the_tracked_closure_register_carries_no_run_binding(tmp_path) -> None:
+    """Трекований звіт не може назвати коміт, на якому його зібрано.
+
+    10.10.2026 `source:package` уперше в історії добіг — і впав на «source digest
+    mismatch»: `audit:closure` дописував у трекований JSON `produced_evidence` з комітом
+    сканерів, тож файл розходився з маніфестом джерела в кожному конвеєрі за побудовою.
+    """
+    tracked = json.loads(
+        (ROOT / "docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.json").read_text("utf-8")
+    )
+    assert "produced_evidence" not in tracked
+    builder = (ROOT / "scripts/build_audit_closure.py").read_text(encoding="utf-8")
+    assert '"produced_evidence"' not in builder
+
+    written = scanner_summary.write_run_binding(tmp_path, {"security_summary_commit": "a" * 40})
+    assert written == tmp_path / scanner_summary.RUN_BINDING
+    assert json.loads(written.read_text("utf-8")) == {"security_summary_commit": "a" * 40}
+    assert not scanner_summary.RUN_BINDING.startswith(("docs/", "reports/"))

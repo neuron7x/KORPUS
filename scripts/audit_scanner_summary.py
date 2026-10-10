@@ -31,6 +31,10 @@ class SecuritySummaryBinding:
             "security_summary_scanners": self.scanner_count,
         }
 
+    def record_run(self, root: Path, selection: dict[str, str]) -> Path:
+        """Покласти прив'язку цього прогону поруч із доказом, а не в трекований звіт."""
+        return write_run_binding(root, {**selection, **self.metadata})
+
 
 def _summary_shape_problems(payload: dict[str, Any], expected_class: str) -> list[str]:
     problems: list[str] = []
@@ -113,3 +117,14 @@ def validate_selected_security_summary(root: Path, selection: Any) -> SecuritySu
     return validate_security_summary(
         root, str(selection.security_summary), str(selection.security_summary_class)
     )
+
+
+#: Прив'язка ПРОГОНУ: трекований звіт не може назвати коміт, на якому його зібрано.
+RUN_BINDING = "var/audit-closure-binding.json"
+
+
+def write_run_binding(root: Path, metadata: dict[str, Any]) -> Path:
+    path = root / RUN_BINDING
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return path

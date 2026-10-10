@@ -3726,7 +3726,7 @@
       "reason": "2026-10-03: exact initial ceiling for the single closure predicate shared by canonical and local evidence lanes."
     },
     "scripts/audit_scanner_summary.py": {
-      "lines": 115,
+      "lines": 130,
       "max_complexity": 12,
       "max_function_args": 3,
       "max_function_lines": 35,
@@ -12705,6 +12705,15 @@
       "path": "scripts/run_military_readiness_campaign.py",
       "reason": "Вирок кампанії тепер виражає неповноту у власному status: коли регресію не запускали, bounded-звіт має INCOMPLETE, а не PASS. Дев'ять рядків зводять status базових перевірок і статус регресії в один fail-closed результат; стелі функцій не зросли.",
       "to": 231
+    },
+    {
+      "closes_when": "прив'язка прогону переїде до спільного виробника var/-артефактів; доти це виміряне число",
+      "from": 115,
+      "metric": "lines",
+      "on": "2026-10-10",
+      "path": "scripts/audit_scanner_summary.py",
+      "reason": "10.10.2026 `source:package` уперше добіг до пакування і впав на «source digest mismatch»: `audit:closure` дописував у трекований KORPUS_v5_FINDINGS_CLOSURE.json поле `produced_evidence` з комітом сканерів, тож файл розходився з маніфестом джерела в кожному конвеєрі за побудовою. Прив'язка тепер пишеться в var/audit-closure-binding.json; виробник цього файла живе поруч із самою прив'язкою.",
+      "to": 130
     }
   ],
   "recorded_at": "2026-10-04",

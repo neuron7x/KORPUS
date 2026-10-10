@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2085,
-  "root_sha256": "321d3b3be5361de7f09abf01bd10396c3069ec2c0a72f0ef6c57d2c5b23289a3",
+  "root_sha256": "e2a1ee0e1599bc3b0df445d25901395a127987a0edb1fa95aec3f0a05c31b388",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 67461,
-      "sha256": "6a28815d52f57742dffe6eb175f36e731e735e3ffe5de422d45bb6b98310a78e",
+      "bytes": 67762,
+      "sha256": "8598d032de483146598db5c56c3a6afb5dca8c2a480db85fa57de821f6e9fcd6",
       "mode": "0644"
     },
     {
@@ -4015,8 +4015,8 @@
     },
     {
       "path": "apps/api/tests/test_evidence_registry.py",
-      "bytes": 10524,
-      "sha256": "10c4826dbf1e0dbf227cf438fa3ab7defa28289930554e261a80619530e9706d",
+      "bytes": 11747,
+      "sha256": "5c763f4135240f0a36a28b117bbfba91274bfdfe9dbb6440ac7df806e1a74dec",
       "mode": "0644"
     },
     {
@@ -8084,7 +8084,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "6ba2ca35e12830e90e54ad2263f889459751abda3bca78ee56836f49f1bc1b08",
+      "sha256": "8fe65fc2bad57361130d95ac5d00a4ed32feefa475190f6b58de61dd1126c2c4",
       "mode": "0644"
     },
     {
@@ -8125,8 +8125,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 746723,
-      "sha256": "00be4edb3ff9d34528fc261e2194d7176ebe9d6e62109ff511ae3a13fcb17f55",
+      "bytes": 747665,
+      "sha256": "e3628d083a1db6743bee6881677c6d75e1b0f82c60ed6c80b44afabc8f25458f",
       "mode": "0644"
     },
     {
@@ -10483,8 +10483,8 @@
     },
     {
       "path": "scripts/audit_scanner_summary.py",
-      "bytes": 4927,
-      "sha256": "d8c1e08490af5772e4cbabc88ed62b738a01fef7ab6667c3f5a80b0bd6452952",
+      "bytes": 5684,
+      "sha256": "fda280ac033618c35ce70f04e6dd65265ee892028ef2e09fff6b4acef89b4a04",
       "mode": "0644"
     },
     {
@@ -10543,8 +10543,8 @@
     },
     {
       "path": "scripts/build_audit_closure.py",
-      "bytes": 37743,
-      "sha256": "f94330d8c21dea329e131526b2ce0e54389bb035c4163c4b84917b0de73473a0",
+      "bytes": 37719,
+      "sha256": "fc05787546d97521033012f046594d34483567913da0309be5df0599a26671b8",
       "mode": "0755"
     },
     {
