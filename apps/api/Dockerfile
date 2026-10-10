@@ -8,8 +8,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app/apps/api/src \
     TMPDIR=/tmp/korpus
 
+# База закріплена за дайджестом, тож її пакети застигли на день збирання образу, а
+# виправлення Debian виходять далі. Явний перелік пакета (так 04.10 закрито PCRE2)
+# лагодить РІВНО один CVE: 10.10.2026 скан образу впав знову, на семи HIGH/CRITICAL у
+# `perl-base`, якого в переліку не було. `upgrade` закриває клас, а не екземпляр.
 RUN mkdir -p "$TMPDIR" \
     && apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
        ca-certificates \
        libpcre2-8-0 \

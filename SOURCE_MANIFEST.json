@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2085,
-  "root_sha256": "d5e56e1b1f1b51b574968e958a55535884ef861fe1d5d844dd433eea07309cb3",
+  "root_sha256": "05e92a6ea37ffd12d1c912153c62f240ca719ef81b1655609c82fa9d251726e4",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 133589,
-      "sha256": "9a6a152423bc846d163027632b8da24fbcec0c8540cdaf03c4e7ebf28a572f4d",
+      "bytes": 134040,
+      "sha256": "187e6ac86f2c938a4e501bd990314de81c51e0a7dad6eb560243ae45a606bcb8",
       "mode": "0644"
     },
     {
@@ -535,8 +535,8 @@
     },
     {
       "path": "apps/api/Dockerfile",
-      "bytes": 2551,
-      "sha256": "6f3eb51633e9f1902bd1b0364dc0982ac8773f26e9a59a630f37e3b8d62f2354",
+      "bytes": 3117,
+      "sha256": "3eb56a3122d14737fcb148e83da06df6e8e06587390bc4807b5e0cfa4b1d9476",
       "mode": "0644"
     },
     {
@@ -3025,8 +3025,8 @@
     },
     {
       "path": "apps/api/tests/test_audit_reader_seam.py",
-      "bytes": 7587,
-      "sha256": "df21401ab81060045273f30472da5e6c555011dc44dcb390ec592254bb700bef",
+      "bytes": 9580,
+      "sha256": "79938544d8db2ae4b03bbf87b4619b00758e2a7fb43bba0154a3d5ceec70b226",
       "mode": "0644"
     },
     {
@@ -4297,8 +4297,8 @@
     },
     {
       "path": "apps/api/tests/test_image_pinning.py",
-      "bytes": 3438,
-      "sha256": "f826f988f17f285c32757d14805794dd162d8a2035321dab4deac44eb39dfa72",
+      "bytes": 4474,
+      "sha256": "315a5a8a061bbffe6ae48d2dcbaadcce9f535cb7fa51530e67e397b3128b7814",
       "mode": "0644"
     },
     {
@@ -5161,8 +5161,8 @@
     },
     {
       "path": "apps/api/tests/test_release_adaptation_automation_v050.py",
-      "bytes": 4542,
-      "sha256": "ecbabcf771c784123e21c71646fbbf20477cae5b660bbc6490b57da6c7ff70c3",
+      "bytes": 5000,
+      "sha256": "0ff513c0fcd8ff0641a4451291be43972437c812058f6ca685d7c4a17050029b",
       "mode": "0644"
     },
     {
@@ -8084,7 +8084,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "e0a1a64fe111f70559ff51173f7b12b9b2e1a0acc79a64b474eb20a885601821",
+      "sha256": "6ba2ca35e12830e90e54ad2263f889459751abda3bca78ee56836f49f1bc1b08",
       "mode": "0644"
     },
     {

@@ -1824,6 +1824,11 @@ regression-shard-merge:
 # to another tree is refused by the publisher rather than copied.
 release-evidence:
 	$(MAKE) api-test PY=$(PY)
+	# `coverage-union` refuses a SQLite-only measurement; produce its PostgreSQL half
+	# locally before reading it, just as `api:postgres-and-restore` does in CI.
+	# Виміряно 10.10.2026: без цього кроку об'єднання читало звіт постгреса з дерева
+	# на шість комітів старшого, і план покриття ніс чужий дайджест.
+	$(MAKE) postgres-coverage PY=$(PY)
 	$(MAKE) coverage-union PY=$(PY)
 	$(MAKE) coverage-ratchet PY=$(PY)
 	$(MAKE) determinism-gate PY=$(PY)
