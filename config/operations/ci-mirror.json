@@ -1,6 +1,6 @@
 {
   "schema": "korpus.ci-mirror-registry.v1",
-  "measured_at": "2026-09-03",
+  "measured_at": "2026-10-03",
   "note": "Прийняті розбіжності між локальним ланом і CI. Кожна — рішення з причиною й датою. Мертвий виняток (CI вже виконує) і примарний (лану такого нема) — відмова.",
   "accepted": [
     {
@@ -16,6 +16,20 @@
       "class": "different_subject_by_construction",
       "reason": "Той самий клас, що й сусід вище: контекст називає ПРЕДМЕТ. Локальний запуск міряє дерево, на якому лежить поверхня зовнішнього доказу (14 файлів у var/production), і виносить вирок про підлогу ратчета. Раннер не має var/ узагалі — там нуль закриттів завжди, тож підлога 7 зробила б джобу непрохідною за побудовою. CI виконує той самий скрипт із --context SOURCE_CHECKOUT плюс --selftest. Оголошення контексту НЕ є дозволом: скрипт звіряє його з ВИМІРЯНОЮ поверхнею і відмовляє в обидва боки — чекаут над наявним доказом і доказовий контекст над порожнім деревом.",
       "closes_when": "конвеєр публікуватиме файли гейтів як артефакти стадії, і джоба validate споживатиме їх — тоді поверхня доказу в CI перестане бути нульовою"
+    },
+    {
+      "invocation": "scripts/security_scan.sh",
+      "on": "2026-10-03",
+      "class": "superseded_by_stronger_ci_form",
+      "reason": "Локальний wrapper запускає host-installed gitleaks, pip-audit і trivy та маркує результат LOCAL_SCANNERS. CI виконує сильнішу декомпозицію в `secret:scan`, `python:audit` та `infrastructure:scan`: кожен scanner працює у digest-pinned image, а `security:summary` зв'язує три артефакти з CI_COMMIT_SHA. Запуск wrapper у Python job або вимагав би непінені бінарники раннера, або завжди повертав 127 — це була б не тотожність, а слабша підміна.",
+      "closes_when": "верифікатор дзеркала навчиться декларувати доказану еквівалентність однієї локальної композиції кільком pinned CI jobs"
+    },
+    {
+      "invocation": "scripts/verify_audit_closure_local.py",
+      "on": "2026-10-03",
+      "class": "superseded_by_stronger_ci_form",
+      "reason": "Локальний adapter споживає лише LOCAL_SCANNERS і навмисно не пише канонічні артефакти. CI job `audit:closure` після `api:assurance`, `api:drills` і `security:summary` запускає `build_audit_closure.py`, який вимагає PINNED_CI_SCANNERS та створює канонічне замикання. Дублювати слабший local adapter після сильнішого canonical executor означало б міряти інший клас доказу, а не дзеркалити властивість.",
+      "closes_when": "верифікатор дзеркала навчиться декларувати відношення stronger-than між двома evidence classes"
     }
   ]
 }

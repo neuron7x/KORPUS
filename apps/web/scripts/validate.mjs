@@ -1,7 +1,7 @@
 import { readFile, stat } from "node:fs/promises";
-import { spawnSync } from "node:child_process";
 import { gzipSync } from "node:zlib";
 import { fileURLToPath } from "node:url";
+import { SourceTextModule } from "node:vm";
 import {validateDesignSystem} from "./design_system.mjs";
 
 const asset = (file) => fileURLToPath(new URL(`../${file}`, import.meta.url));
@@ -90,19 +90,18 @@ for (const lazy of ["./billing.js", "./workspace_routes.js"]) {
 const designSystem = await validateDesignSystem();
 console.log(`design system passed: ${designSystem.tokenCount} tokens / ${designSystem.componentCount} component contracts`);
 
-// `node --check <file>` exits 0 for ANY file containing an `import` statement — the ESM
-// retry path reports nothing. Verified on node v22.23.1 with a file holding both an
-// import and `const y = ;`. The moment app.js became a module, `npm run lint` stopped
-// checking it and kept printing success. Feeding the source on stdin with an explicit
-// --input-type is the form that actually parses.
+// `node --check <file>` once exited 0 for ESM input, and spawning one parser per file
+// can be denied by a hardened runner. Parse in-process: inability to construct the ESM
+// parser is a gate failure, never a reason to skip syntax validation.
+if (typeof SourceTextModule !== "function") {
+  throw new Error("syntax parser unavailable; run validate.mjs with --experimental-vm-modules");
+}
 for (const file of [...SCRIPTS, ...DEV_SCRIPTS]) {
   const source = await read(file);
-  const checked = spawnSync(process.execPath, ["--input-type=module", "--check"], {
-    input: source,
-    encoding: "utf8",
-  });
-  if (checked.status !== 0) {
-    throw new Error(`syntax check failed for ${file}:\n${checked.stderr}`);
+  try {
+    new SourceTextModule(source, {identifier: file});
+  } catch (error) {
+    throw new Error(`syntax check failed for ${file}:\n${error.message}`);
   }
 }
 console.log(`syntax check passed for ${SCRIPTS.length + DEV_SCRIPTS.length} modules`);

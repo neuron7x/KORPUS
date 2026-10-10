@@ -19,25 +19,25 @@ ROOT = Path(__file__).resolve().parents[1]
 STATE_PATH = ROOT / "var/public/health-state.json"
 RECEIPT_PATH = ROOT / "var/public/HEALTH_RECEIPT.json"
 COMPONENTS = ("api", "edge", "public")
+PUBLIC_FUNNEL_BIND = "--https=8443"
+DEFAULT_PUBLIC_URL = "https://pbt.taile5d24a.ts.net:8443"
 #: Кожна дія — ПОСЛІДОВНІСТЬ команд, бо не всяке відновлення вміщається в одну.
 ACTION_COMMANDS: dict[str, tuple[list[str], ...]] = {
     "restart_api": (["systemctl", "--user", "restart", "korpus-public-api.service"],),
     "refresh_edge": (["env", "KORPUS_PUBLIC_EDGE_ONLY=true", "bash", "scripts/serve_public.sh"],),
-    "restore_funnel": (["tailscale", "funnel", "--bg", "8081"],),
+    "restore_funnel": (["tailscale", "funnel", "--bg", "--yes", PUBLIC_FUNNEL_BIND, "8081"],),
     "recycle_funnel": (
-        ["tailscale", "funnel", "--bg", "off"],
-        ["tailscale", "funnel", "--bg", "8081"],
+        ["tailscale", "funnel", PUBLIC_FUNNEL_BIND, "off"],
+        ["tailscale", "funnel", "--bg", "--yes", PUBLIC_FUNNEL_BIND, "8081"],
     ),
 }
 
 #: Сходинки відновлення на компонент, у порядку зростання втручання.
 #:
-#: Причина існування: 31.08.2026 публічний URL упав, сторож двічі виконав
-#: `restore_funnel`, обидва рази отримав `action_outcomes: {restore_funnel: true}` — і
-#: URL лишався мертвим. Команда ідемпотентна: вона вмикає те, що ВЖЕ ввімкнене, тож
-#: успішно не робить нічого. Повторення тієї самої дії — не ескалація, і сторож, який
-#: уміє лише повторювати, звітує про відновлення, якого не сталося. Тунель піднявся
-#: від `off` → `on`; звідси друга сходинка.
+#: 31.08.2026 публічний URL упав, сторож двічі виконав `restore_funnel`, обидва рази
+#: отримав `action_outcomes: {restore_funnel: true}` — URL лишався мертвим. Команда
+#: ідемпотентна: вона вмикає те, що ВЖЕ ввімкнене, тож успішно не робить нічого.
+#: Повторення не є ескалацією; тунель піднявся від `off` → `on`; звідси друга сходинка.
 #:
 #: `api` і `edge` мають по одній сходинці навмисно: вигадана ескалація гірша за її
 #: відсутність — вона зробить щось руйнівніше, не знаючи, чи перше взагалі мало ефект.
@@ -164,7 +164,7 @@ def atomic_json(path: Path, value: object) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--public-url", default="https://korpus-1.taile5d24a.ts.net")
+    parser.add_argument("--public-url", default=DEFAULT_PUBLIC_URL)
     parser.add_argument("--observe-only", action="store_true")
     args = parser.parse_args()
     now = int(time.time())

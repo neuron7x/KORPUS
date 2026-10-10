@@ -90,6 +90,14 @@ def test_the_local_producer_refuses_instead_of_skipping_without_docker() -> None
     assert "exit 2" in text
 
 
+def test_the_local_producer_does_not_accept_the_temporary_initdb_server() -> None:
+    text = LOCAL.read_text(encoding="utf-8")
+    assert "ready_streak=$((ready_streak + 1))" in text
+    assert '[[ "$ready_streak" -ge 3 ]]' in text
+    assert '[[ "$ready_streak" -lt 3 ]]' in text
+    assert 'docker logs "$container"' in text
+
+
 def _assigned(text: str, name: str) -> str:
     """Значення ПРИСВОЄННЯ, а не будь-яка поява рядка у файлі.
 

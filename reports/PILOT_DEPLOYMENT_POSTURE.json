@@ -2,7 +2,7 @@
   "schema": "korpus.pilot-deployment-posture.v1",
   "status": "MEASURED",
   "unit": "deploy/pilot/korpus-pilot-api.service",
-  "unit_sha256": "2565d7de15f147378ac5b3e3381b30736b031508a5edf0b842da430fd1ebd565",
+  "unit_sha256": "fafc8c2b2714775b8f3f5ae382d68edf49ccff94e82b51137468d1c44ed16fa4",
   "environment_file": "/home/neuro7/.local/state/korpus-pilot/api.env",
   "environment_keys": [
     "KORPUS_AUDIT_ANCHOR_PATH",

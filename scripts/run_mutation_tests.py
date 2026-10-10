@@ -4232,6 +4232,58 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M722_PUBLIC_RECOVERY_TOUCHES_THE_DEFAULT_FUNNEL",
+        "scripts/public_health_controller.py",
+        'PUBLIC_FUNNEL_BIND = "--https=8443"',
+        'PUBLIC_FUNNEL_BIND = "--https=443"',
+        (
+            "apps/api/tests/test_public_health_controller.py::"
+            "test_public_recovery_is_scoped_to_the_dedicated_funnel",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M723_ONE_WAY_PUBLICATION_LINK_COUNTS_AS_CAPTURED_ROUTE",
+        "scripts/evidence_access_route.py",
+        "        if not isinstance(peer_links, list) or identifier not in peer_links:",
+        "        if False:",
+        (
+            "apps/api/tests/test_evidence_access_route.py::"
+            "test_one_way_captured_copy_is_not_an_access_route",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M724_STALE_EXTERNAL_ROUTE_COUNTS_AS_CURRENT",
+        "scripts/evidence_access_route.py",
+        "        if age > EXTERNAL_ROUTE_MAX_AGE_DAYS:",
+        "        if False:",
+        (
+            "apps/api/tests/test_evidence_access_route.py::"
+            "test_malformed_or_stale_external_observation_fails_closed",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M725_FOUND_ROUTE_DOES_NOT_LIFT_VANTAGE_GAP",
+        "scripts/validate_evidence_refusal.py",
+        '        if route_found and refusal.get("class") in VANTAGE:',
+        "        if False:",
+        (
+            "apps/api/tests/test_evidence_access_route.py::"
+            "test_recent_external_route_lifts_only_an_aged_vantage_gap",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M726_API_RUNTIME_DEFINITION_OUTSIDE_EVIDENCE_DIGEST",
+        "apps/api/src/korpus/application/provenance_surface.py",
+        '    "apps/api",',
+        '    "apps/api/src",',
+        ("apps/api/tests/test_evidence_provenance.py::test_digest_covers_api_runtime_definition",),
+        full_copy=True,
+    ),
+    Mutant(
         "M404_UNKNOWN_COUNTED_AS_PASS",
         "scripts/verify_public_surface.py",
         '    if "UNKNOWN" in verdicts:',
@@ -6747,6 +6799,122 @@ MUTANTS = (
             "apps/api/tests/test_corpus_readability_watch.py::"
             "test_the_shape_of_the_ninth_is_unreadable",
         ),
+    ),
+    Mutant(
+        "M711_LOCAL_SCANNER_EVIDENCE_IMPERSONATES_PINNED_CI",
+        "scripts/audit_closure_evidence.py",
+        "    summary = LOCAL_SECURITY_SUMMARY if local_security_summary else CI_SECURITY_SUMMARY",
+        "    summary = CI_SECURITY_SUMMARY",
+        (
+            "apps/api/tests/test_evidence_registry.py::"
+            "test_local_closure_substitutes_only_the_scanner_evidence_class",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M712_MISSING_OR_DUPLICATE_SCANNER_EVIDENCE_IS_ACCEPTED",
+        "scripts/audit_closure_evidence.py",
+        "    if scanner_references.count(CI_SECURITY_SUMMARY) != 1:",
+        "    if scanner_references.count(CI_SECURITY_SUMMARY) < 0:",
+        (
+            "apps/api/tests/test_evidence_registry.py::"
+            "test_scanner_evidence_class_drift_fails_closed",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M713_LOCAL_CLOSURE_RUNS_THE_CANONICAL_WRITER",
+        "Makefile",
+        "\tPYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_audit_closure_local.py",
+        "\tPYTHONPATH=apps/api/src:scripts $(PY) scripts/build_audit_closure.py",
+        (
+            "apps/api/tests/test_gate_parity.py::"
+            "test_local_check_resolves_closure_evidence_only_after_producing_it",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M714_WEB_ESM_PARSER_FLAG_IS_REMOVED",
+        "apps/web/package.json",
+        '    "lint": "node --experimental-vm-modules scripts/validate.mjs",',
+        '    "lint": "node scripts/validate.mjs",',
+        ("apps/api/tests/test_gate_parity.py::test_the_web_gate_runs_its_own_negative_controls",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M715_EXPLICIT_ANCHOR_RECONCILE_SILENTLY_SKIPS_CONTENTION",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "        if not self._anchor_delivery_lock.acquire(blocking=wait):",
+        "        if not self._anchor_delivery_lock.acquire(blocking=False):",
+        (
+            "apps/api/tests/test_anchor_delivery_backlog.py::"
+            "test_explicit_reconcile_waits_while_opportunistic_delivery_may_skip",
+        ),
+    ),
+    Mutant(
+        "M716_POST_COMMIT_ANCHOR_DELIVERY_WAITS_FOR_CONTENTION",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "                        self.reconcile_audit_anchor(limit=1, wait=False)",
+        "                        self.reconcile_audit_anchor(limit=1)",
+        (
+            "apps/api/tests/test_anchor_delivery_backlog.py::"
+            "test_post_commit_delivery_never_waits_for_an_inflight_pass",
+        ),
+    ),
+    Mutant(
+        "M717_STALE_SCANNER_SUMMARY_IMPERSONATES_CURRENT_SOURCE",
+        "scripts/audit_scanner_summary.py",
+        '            if scanned_digest != source_tree_digest("HEAD"):',
+        "            if False:",
+        (
+            "apps/api/tests/test_evidence_registry.py::"
+            "test_scanner_summary_is_bound_to_the_current_source",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M718_FAILED_SCANNER_VERDICT_IS_ACCEPTED",
+        "scripts/audit_scanner_summary.py",
+        '    if payload.get("worst_exit_code") != 0 or payload.get("status") != "PASS":',
+        "    if False:",
+        (
+            "apps/api/tests/test_evidence_registry.py::"
+            "test_scanner_summary_refuses_false_or_incomplete_success",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M719_EMPTY_SCANNER_SET_IS_ACCEPTED",
+        "scripts/audit_scanner_summary.py",
+        "    if len(records) != len(EXPECTED_SCANNERS) or set(names) != EXPECTED_SCANNERS:",
+        "    if False:",
+        (
+            "apps/api/tests/test_evidence_registry.py::"
+            "test_scanner_summary_refuses_false_or_incomplete_success",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M720_LOCAL_CLOSURE_SKIPS_SCANNER_PAYLOAD_VALIDATION",
+        "scripts/verify_audit_closure_local.py",
+        "    binding = validate_selected_security_summary(ROOT, selection)",
+        "    binding = None",
+        (
+            "apps/api/tests/test_evidence_registry.py::"
+            "test_both_closure_executors_validate_the_scanner_payload",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M721_CANONICAL_CLOSURE_SKIPS_SCANNER_PAYLOAD_VALIDATION",
+        "scripts/build_audit_closure.py",
+        "    binding = validate_selected_security_summary(ROOT, selection)",
+        "    binding = None",
+        (
+            "apps/api/tests/test_evidence_registry.py::"
+            "test_both_closure_executors_validate_the_scanner_payload",
+        ),
+        full_copy=True,
     ),
 )
 

@@ -640,6 +640,18 @@
         "read_on": "2026-08-30",
         "detail": "URLError: <urlopen error [Errno 104] Connection reset by peer>"
       },
+      "alternate_access": {
+        "class": "external_vantage_fetch",
+        "status": "retrieved",
+        "uri": "https://oe.t2com.army.mil/site-content/OEE/Red%20Diamond/TRADOC_08OCT2024_UKR_UAS_Tactics_Cantin.pdf",
+        "media_type": "application/pdf",
+        "pages": 5,
+        "document_title": "Ukrainian Unmanned Aerial System Tactics (US Army TRADOC G2 OE Enterprise)",
+        "issuer": "US Army TRADOC G2 Operational Environment Enterprise",
+        "observed_on": "2026-10-04",
+        "access_vantage": "external web fetch distinct from the deployment host",
+        "limitation": "This observation proves a second network vantage retrieved the five-page official PDF; it does not prove that the deployment host can retrieve or ingest it. The original host_unreachable_from_here refusal remains authoritative for that host."
+      },
       "ingest_block_reason": ""
     },
     {

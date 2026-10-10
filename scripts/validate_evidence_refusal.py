@@ -36,6 +36,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
+from evidence_access_route import access_route
 from threshold_distance import place
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -60,14 +61,8 @@ OURS = {
 #: почервоніла на двох валідних документах. Запис лишається видимим і старіє —
 #: якщо класифікатор ніхто не полагодив, мовчазний «відомий баг» стає вироком.
 MISCLASSIFIED = {"extractor_misclassified"}
-#: ЧЕТВЕРТА категорія, і вона має власну дію. `THEIRS` каже «ніщо, що ми змінимо, їх не
-#: досягне» — і це неправда для хоста, недосяжного САМЕ ЗВІДСИ. Виміряно 2026-08-30 на
-#: корені хостів: oe.t2com.army.mil · rdl.train.army.mil · odin.tradoc.army.mil віддають
-#: HTTP 000, www.armyupress.army.mil — 403, тоді як jts.health.mil і armypubs.army.mil з
-#: тієї самої машини віддають 200. Документ, найімовірніше, цілий; недосяжна наша ТОЧКА
-#: СПОСТЕРЕЖЕННЯ. Дія тут не «змінити налаштування» і не «нічого», а «під'єднатися
-#: звідкись інде» — і плутати її з рештою означає або марно повторювати запит, або
-#: списати живий документ як недоступний назавжди.
+#: ЧЕТВЕРТА категорія: недосяжна наша точка, не документ; дія — інша мережа.
+#: Вимір 2026-08-30: три TRADOC-хости HTTP 000, інші .mil з цієї машини — 200/403.
 VANTAGE = {"host_unreachable_from_here"}
 #: ЯК ВІДРІЗНИТИ недосяжність від відмови, і чому це не очевидно: **будь-який HTTP-код
 #: від кореня означає, що ми дістались** — 403 і 404 приходять ВІД СЕРВЕРА. Недосяжність
@@ -196,6 +191,7 @@ def _contradiction(identifier: str, refusal: dict, age: int) -> str | None:
 
 def problems(entries: list[dict]) -> list[str]:
     found: list[str] = []
+    by_id = {str(entry.get("id")): entry for entry in entries}
     for entry in entries:
         identifier = str(entry.get("id", "<no id>"))
         refusal = entry.get("evidence_refusal")
@@ -207,6 +203,10 @@ def problems(entries: list[dict]) -> list[str]:
         shape, age = _shape_problems(identifier, refusal)
         found.extend(shape)
         if age is None or not entry.get("ingestible"):
+            continue
+        route_found, route_failures = access_route(entry, by_id)
+        found.extend(route_failures)
+        if route_found and refusal.get("class") in VANTAGE:
             continue
         clash = _contradiction(identifier, refusal, age)
         if clash:

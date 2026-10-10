@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "de7d2e597decb1ad489de505fb7ebbf092785442ca3f5d67d042161a7946a3be",
-  "collection_digest": "9e3478103ad5fcc4600711952521c97c72355c63a290794943da96a31019a45b",
-  "collection_count": 4893,
+  "source_digest": "67a00324231d099f1d062a76ce0f555c48665371e28df273daa9f95b26e76e1b",
+  "collection_digest": "2f6fbdc7584d21d610248e1ae6aa858e858fa84ea11393e3310b1cebd0f9468b",
+  "collection_count": 4938,
   "shard_index": 7,
   "shard_count": 24,
-  "selected_count": 234,
+  "selected_count": 235,
   "selected_nodeids": [
     "apps/api/tests/test_admission_tie.py::test_authority_exactly_at_the_floor_stays_admitted",
     "apps/api/tests/test_answer_axes_composition.py::test_a_blind_axis_is_not_a_passed_axis",
@@ -95,6 +95,7 @@
     "apps/api/tests/test_entitlement_projection_refusals.py::test_a_subject_that_maps_to_no_role_is_refused",
     "apps/api/tests/test_environment_drift.py::test_report_serialises_with_counts_per_state",
     "apps/api/tests/test_evaluation_validity.py::test_a_quantile_outside_the_unit_interval_is_refused[nan]",
+    "apps/api/tests/test_evidence_access_route.py::test_malformed_or_stale_external_observation_fails_closed[change2-.uri]",
     "apps/api/tests/test_evidence_bases.py::test_a_relation_nobody_declared_is_not_silently_accepted",
     "apps/api/tests/test_evidence_freshness.py::test_a_report_without_provenance_is_not_read_as_fresh",
     "apps/api/tests/test_evidence_provenance.py::test_verify_reports_rejects_a_malformed_expected_digest",
@@ -244,9 +245,9 @@
     "apps/api/tests/test_worker_supervisor_liveness.py::test_a_child_that_ignores_terminate_is_killed_after_the_timeout",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_stopping_without_a_child_is_a_no_op"
   ],
-  "selected_digest": "efebc0b64b6d416a51c4b70ea3c10e5601f65332e3febb6055448e18ad42cd11",
+  "selected_digest": "c026bbd84a701ba5d2e743b203f64ca84c43de7fee430bf4914d77d91c1fac15",
   "junit": {
-    "tests": 234,
+    "tests": 235,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -255,9 +256,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 13.370627,
+  "elapsed_seconds": 13.162632,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 30%]\n........................................................................ [ 61%]\n.......................ssss............................................. [ 92%]\n..................                                                       [100%]",
+  "stdout_tail": "........................................................................ [ 30%]\n........................................................................ [ 61%]\n........................ssss............................................ [ 91%]\n...................                                                      [100%]\n=============================== warnings summary ===============================\napps/api/.venv/lib/python3.12/site-packages/starlette/testclient.py:53\n  /home/neuro7/.korpus-worktrees/pilot-readiness-20261003/apps/api/.venv/lib/python3.12/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.\n    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
   "stderr_tail": ""
 }

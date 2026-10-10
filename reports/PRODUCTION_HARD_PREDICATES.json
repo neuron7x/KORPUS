@@ -1,16 +1,16 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "de7d2e597decb1ad489de505fb7ebbf092785442ca3f5d67d042161a7946a3be",
+  "source_tree_sha256": "67a00324231d099f1d062a76ce0f555c48665371e28df273daa9f95b26e76e1b",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
   "software_ready_means": "оголошені software_artifacts проходять is_file(); зміст, версія і здатність виконатись не перевіряються",
-  "externally_satisfied": 3,
-  "production_satisfied": 3,
+  "externally_satisfied": 6,
+  "production_satisfied": 6,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 21.428571,
-  "production_completion_percent": 21.428571,
+  "external_completion_percent": 42.857143,
+  "production_completion_percent": 42.857143,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -45,14 +45,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "security_scanners_current_commit",
-        "container_scanners_current_commit"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": [
         "evidence_attestation_verified",
         "evidence_trusted_signer"
@@ -94,8 +91,7 @@
         "tevv_admissible",
         "pass_rate",
         "null_controls",
-        "attack_families",
-        "gate_source_bound"
+        "attack_families"
       ],
       "waived_external_checks": []
     },
@@ -111,8 +107,7 @@
       "blocks_candidate": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "assessor_structured",
-        "gate_source_bound"
+        "assessor_structured"
       ],
       "waived_external_checks": [
         "independent_class",
@@ -132,8 +127,7 @@
       "blocks_candidate": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "environment_class",
-        "gate_source_bound"
+        "environment_class"
       ],
       "waived_external_checks": [
         "assessor_attestation_verified",
@@ -147,15 +141,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "load_source_bound",
-        "load_environment",
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": []
     },
     {
@@ -165,14 +155,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "load_source_bound",
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": [
         "load_attestation_verified",
         "load_trusted_signer"
@@ -190,8 +177,7 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "recovery_environment",
-        "gate_source_bound"
+        "recovery_environment"
       ],
       "waived_external_checks": [
         "recovery_attestation_verified",

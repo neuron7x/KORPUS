@@ -2,12 +2,12 @@
   "schema": "korpus.dependency-lock-verification.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "de7d2e597decb1ad489de505fb7ebbf092785442ca3f5d67d042161a7946a3be",
+  "source_tree_sha256": "67a00324231d099f1d062a76ce0f555c48665371e28df273daa9f95b26e76e1b",
   "digest_scope": "evidence_paths",
   "python": {
     "runtime_packages": 55,
     "dev_closure_packages": 71,
-    "runtime_lock_sha256": "8603c8af3d3e6fba9f7778716e3d8f79bbc57752196c8c45c362ca27d5be2003",
+    "runtime_lock_sha256": "0ed5d1efdc14f1171b5d0409882a38eb5346a3b45bbf2707de5a069580d7a1f1",
     "dev_lock_sha256": "9d5ed9851ad4d01ac350ec48576f9fb70345770e0198bd7f9963f109b063f134",
     "direct_runtime_dependencies": 16,
     "direct_dev_dependencies": 6,
@@ -47,7 +47,7 @@
           "ecosystem": "PyPI",
           "name": "anyio"
         },
-        "version": "4.13.0"
+        "version": "4.15.1"
       },
       {
         "package": {
@@ -292,14 +292,14 @@
           "ecosystem": "PyPI",
           "name": "PyJWT"
         },
-        "version": "2.13.0"
+        "version": "2.15.1"
       },
       {
         "package": {
           "ecosystem": "PyPI",
           "name": "pypdf"
         },
-        "version": "6.16.1"
+        "version": "6.19.0"
       },
       {
         "package": {
@@ -362,7 +362,7 @@
           "ecosystem": "PyPI",
           "name": "typing-extensions"
         },
-        "version": "4.15.0"
+        "version": "4.16.0"
       },
       {
         "package": {
@@ -376,7 +376,7 @@
           "ecosystem": "PyPI",
           "name": "urllib3"
         },
-        "version": "2.7.0"
+        "version": "2.8.0"
       },
       {
         "package": {
