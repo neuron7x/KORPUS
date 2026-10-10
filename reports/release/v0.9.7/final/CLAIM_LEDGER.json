@@ -1,8 +1,8 @@
 {
   "schema": "korpus.claim-ledger.v2",
-  "generated_at": "2026-09-23T06:08:36.342015+00:00",
+  "generated_at": "2026-10-10T05:19:18.185381+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "6d45e44bd35b657afe2f22d597203f562a3a30181ffd7fbd2d51c040a8d31299",
+  "source_tree_sha256": "e1543cac6ccb090d47cc8737542cdd5aebc5b5b5b2cf82550c48f96a6879fbb0",
   "digest_scope": "evidence_paths",
   "claims": [
     {
@@ -14,13 +14,13 @@
     {
       "id": "CLM-REGRESSION",
       "claim": "Current backend regression is source-bound and failure-free.",
-      "status": "STALE_EVIDENCE",
+      "status": "SUPPORTED",
       "evidence": "reports/release/v0.9.7/FULL_BACKEND_REPORT.json"
     },
     {
       "id": "CLM-WEB",
       "claim": "Current web lint/build/test surface is source-bound and failure-free.",
-      "status": "STALE_EVIDENCE",
+      "status": "SUPPORTED",
       "evidence": "reports/release/v0.9.7/WEB_REGRESSION_REPORT.json"
     },
     {
@@ -32,7 +32,7 @@
     {
       "id": "CLM-INFERENCE-SECURITY",
       "claim": "Current inference-security suite passes its declared attack surface.",
-      "status": "STALE_EVIDENCE",
+      "status": "SUPPORTED",
       "evidence": "reports/release/v0.9.7/INFERENCE_SECURITY_GATE.json"
     },
     {

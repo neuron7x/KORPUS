@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "adda66b4c4471cc85d237594131bd54d006263a03e6285a31987ed28eb87e8e4",
-  "collection_digest": "9e3478103ad5fcc4600711952521c97c72355c63a290794943da96a31019a45b",
-  "collection_count": 4893,
+  "source_digest": "e1543cac6ccb090d47cc8737542cdd5aebc5b5b5b2cf82550c48f96a6879fbb0",
+  "collection_digest": "645d9cd33f27c1e03cdd1a559e90eaa890c694928e1eb49df7831e0052088661",
+  "collection_count": 4934,
   "shard_index": 14,
   "shard_count": 24,
-  "selected_count": 200,
+  "selected_count": 202,
   "selected_nodeids": [
     "apps/api/tests/test_access_control.py::test_public_identity_cannot_request_restricted_corpus",
     "apps/api/tests/test_account_administration.py::test_the_same_operator_can_put_it_back",
@@ -85,10 +85,12 @@
     "apps/api/tests/test_environment_drift.py::test_an_observation_without_a_timestamp_is_refused",
     "apps/api/tests/test_environment_drift.py::test_the_boundary_second_is_still_admissible",
     "apps/api/tests/test_environment_drift.py::test_the_script_stamps_the_observation_where_it_is_taken",
+    "apps/api/tests/test_evidence_access_route.py::test_malformed_or_stale_external_observation_fails_closed[change6-.access_vantage]",
     "apps/api/tests/test_evidence_freshness.py::test_unreadable_evidence_fails_closed_rather_than_raising[{\\u043d\\u0435 json]",
     "apps/api/tests/test_evidence_fusion.py::test_cross_identity_merge_is_rejected",
     "apps/api/tests/test_evidence_provenance.py::test_gate_passes_only_when_every_report_carries_this_tree",
     "apps/api/tests/test_evidence_provenance.py::test_gate_rejects_reports_without_provenance",
+    "apps/api/tests/test_evidence_registry.py::test_scanner_summary_refuses_false_or_incomplete_success[poison0-verdict]",
     "apps/api/tests/test_evidence_stores.py::test_two_served_stores_are_refused",
     "apps/api/tests/test_exact_environment_evidence.py::test_the_gate_has_a_state_in_which_it_can_be_green",
     "apps/api/tests/test_exact_risk_bound.py::test_the_textbook_approximation_fails_the_same_check",
@@ -210,9 +212,9 @@
     "apps/api/tests/test_v5_security_kernel.py::test_injection_detector_handles_zero_width_homoglyphs_and_role_markers",
     "apps/api/tests/test_versioning.py::test_competing_branch_cannot_be_approved"
   ],
-  "selected_digest": "91aac8e17814784866e795832b6b4faab7ff64fbb37f21b591a7372892b31a1c",
+  "selected_digest": "f00106ee08ce84855b1ec30f28a21acfcba19234bb680425a1743fe6dd1cdfa8",
   "junit": {
-    "tests": 200,
+    "tests": 202,
     "failures": 0,
     "errors": 0,
     "skipped": 3
@@ -221,9 +223,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 16.489097,
+  "elapsed_seconds": 14.285695,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 36%]\n........................................................................ [ 72%]\n.....sss................................................                 [100%]",
+  "stdout_tail": "........................................................................ [ 35%]\n........................................................................ [ 71%]\n.......sss................................................               [100%]",
   "stderr_tail": ""
 }

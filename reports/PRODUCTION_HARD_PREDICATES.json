@@ -1,16 +1,16 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "6d45e44bd35b657afe2f22d597203f562a3a30181ffd7fbd2d51c040a8d31299",
+  "source_tree_sha256": "e1543cac6ccb090d47cc8737542cdd5aebc5b5b5b2cf82550c48f96a6879fbb0",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
   "software_ready_means": "оголошені software_artifacts проходять is_file(); зміст, версія і здатність виконатись не перевіряються",
-  "externally_satisfied": 0,
-  "production_satisfied": 0,
+  "externally_satisfied": 6,
+  "production_satisfied": 6,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 0.0,
-  "production_completion_percent": 0.0,
+  "external_completion_percent": 42.857143,
+  "production_completion_percent": 42.857143,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -19,13 +19,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": [
         "report_present",
         "attestation_present",
@@ -47,15 +45,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "security_scanners_current_commit",
-        "container_scanners_current_commit",
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": [
         "evidence_attestation_verified",
         "evidence_trusted_signer"
@@ -68,13 +62,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": []
     },
     {
@@ -98,9 +90,14 @@
         "required_attack_families_covered",
         "tevv_admissible",
         "pass_rate",
+        "citation_integrity",
+        "leakage",
+        "determinism",
         "null_controls",
+        "null_false_accepts",
         "attack_families",
-        "gate_source_bound"
+        "gate_source_bound",
+        "gate_release_bound"
       ],
       "waived_external_checks": []
     },
@@ -117,7 +114,8 @@
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "assessor_structured",
-        "gate_source_bound"
+        "gate_source_bound",
+        "gate_release_bound"
       ],
       "waived_external_checks": [
         "independent_class",
@@ -138,7 +136,8 @@
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "environment_class",
-        "gate_source_bound"
+        "gate_source_bound",
+        "gate_release_bound"
       ],
       "waived_external_checks": [
         "assessor_attestation_verified",
@@ -152,15 +151,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "load_source_bound",
-        "load_environment",
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": []
     },
     {
@@ -170,14 +165,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "load_source_bound",
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": [
         "load_attestation_verified",
         "load_trusted_signer"
@@ -195,8 +187,7 @@
       "blocks_candidate": true,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "recovery_environment",
-        "gate_source_bound"
+        "recovery_environment"
       ],
       "waived_external_checks": [
         "recovery_attestation_verified",
@@ -252,13 +243,11 @@
       "disposition": "IN_RELEASE_PATH",
       "disposition_proved": true,
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
-      "blocks_candidate": true,
+      "externally_satisfied": true,
+      "production_satisfied": true,
+      "blocks_candidate": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "gate_source_bound"
-      ],
+      "failed_external_checks": [],
       "waived_external_checks": []
     },
     {
@@ -315,6 +304,6 @@
     }
   ],
   "interpretation": "Software readiness and external production proof are deliberately separate. A predicate is production-satisfied only when both are true.",
-  "evidence_surface_files": 12,
+  "evidence_surface_files": 10,
   "context": "PRODUCTION_EVIDENCE"
 }

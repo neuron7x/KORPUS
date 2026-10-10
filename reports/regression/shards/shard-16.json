@@ -2,15 +2,16 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "adda66b4c4471cc85d237594131bd54d006263a03e6285a31987ed28eb87e8e4",
-  "collection_digest": "9e3478103ad5fcc4600711952521c97c72355c63a290794943da96a31019a45b",
-  "collection_count": 4893,
+  "source_digest": "e1543cac6ccb090d47cc8737542cdd5aebc5b5b5b2cf82550c48f96a6879fbb0",
+  "collection_digest": "645d9cd33f27c1e03cdd1a559e90eaa890c694928e1eb49df7831e0052088661",
+  "collection_count": 4934,
   "shard_index": 16,
   "shard_count": 24,
-  "selected_count": 207,
+  "selected_count": 208,
   "selected_nodeids": [
     "apps/api/tests/test_admission_cannot_be_self_granted.py::test_a_correctly_attested_ground_is_accepted",
     "apps/api/tests/test_admission_register.py::test_a_ground_cleared_with_a_test_that_does_not_exist_is_refused",
+    "apps/api/tests/test_anchor_delivery_backlog.py::test_explicit_reconcile_waits_while_opportunistic_delivery_may_skip",
     "apps/api/tests/test_answer_adjudication.py::test_a_quote_about_the_opposite_category_is_contested",
     "apps/api/tests/test_answer_axes_composition.py::test_the_verdict_is_the_weakest_axis_not_the_mean",
     "apps/api/tests/test_answer_composition.py::test_an_opening_that_states_a_number_is_refused",
@@ -217,9 +218,9 @@
     "apps/api/tests/test_validity_boundaries.py::test_the_search_path_withholds_a_document_before_it_takes_effect",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[60.1]"
   ],
-  "selected_digest": "f2112fe0e7a7dc4f62b44861fa77f11e0167f5bf0a77a3ac3f6ec4c86a3093e8",
+  "selected_digest": "f08305acca1b00ceba4fea010d3a59fffee3b74ff89c5d0e55697554fa2b5115",
   "junit": {
-    "tests": 207,
+    "tests": 208,
     "failures": 0,
     "errors": 0,
     "skipped": 4
@@ -228,9 +229,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 18.410004,
+  "elapsed_seconds": 17.557096,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 34%]\n........................................................................ [ 69%]\n..................ssss.........................................          [100%]",
+  "stdout_tail": "........................................................................ [ 34%]\n........................................................................ [ 69%]\n...................ssss.........................................         [100%]",
   "stderr_tail": ""
 }
