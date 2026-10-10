@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "e1543cac6ccb090d47cc8737542cdd5aebc5b5b5b2cf82550c48f96a6879fbb0",
-  "collection_digest": "645d9cd33f27c1e03cdd1a559e90eaa890c694928e1eb49df7831e0052088661",
-  "collection_count": 4934,
+  "source_digest": "941e27178cc98cf0b478f5cd7768ecd42fa3bb62e2f0e0423d7f31b85cbc68ee",
+  "collection_digest": "97dcdec64494a9a6bdb3d1cfac5f85ff6508556419b725bde662efb3e7ff9db5",
+  "collection_count": 4937,
   "shard_index": 20,
   "shard_count": 24,
-  "selected_count": 187,
+  "selected_count": 188,
   "selected_nodeids": [
     "apps/api/tests/test_account_administration.py::test_the_listing_can_answer_whether_it_is_actually_off",
     "apps/api/tests/test_admission_tie.py::test_coverage_below_the_floor_is_refused",
@@ -111,6 +111,7 @@
     "apps/api/tests/test_gcp_slo_contract.py::test_alert_delivery_mutation_is_killed",
     "apps/api/tests/test_gcp_traffic_rollback.py::test_empty_previous_traffic_is_not_applicable",
     "apps/api/tests/test_gcp_traffic_snapshot.py::test_invalid_traffic_snapshot_fails_closed[payload4]",
+    "apps/api/tests/test_image_pinning.py::test_the_runtime_image_upgrades_the_pinned_base_before_installing",
     "apps/api/tests/test_inference_budget.py::test_fixpoint_stops_recursive_review",
     "apps/api/tests/test_ingestion_mode_exclusivity.py::test_each_mode_opens_exactly_one_of_the_two_paths[durable_async]",
     "apps/api/tests/test_input_contract_refusals.py::test_a_timeout_that_is_not_finite_and_positive_is_refused[nan]",
@@ -197,9 +198,9 @@
     "apps/api/tests/test_versioning.py::test_new_approved_version_supersedes_old_version_in_current_retrieval",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_an_idle_interval_outside_the_band_is_rejected[600.0]"
   ],
-  "selected_digest": "2e24293e2a93b0f209a1a6de25221864f5946ce4dea47d7042a593135b866928",
+  "selected_digest": "2dbc3d08bab6ba9730683a8c4eddf4b27af40f3575ab7cae6a51708ca08ddfea",
   "junit": {
-    "tests": 187,
+    "tests": 188,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -208,9 +209,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 5.939836,
+  "elapsed_seconds": 5.432272,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 38%]\n...................................................................s.... [ 77%]\n...........................................                              [100%]\n=============================== warnings summary ===============================\ntests/test_capability_gateway_http_status_projection.py::test_each_non_success_outcome_carries_its_own_status[REJECTED-SCHEMA_REJECTED-422]\n  /home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:1002: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.\n    result = context.run(func, *args)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+  "stdout_tail": "........................................................................ [ 38%]\n....................................................................s... [ 76%]\n............................................                             [100%]\n=============================== warnings summary ===============================\napps/api/.venv/lib/python3.12/site-packages/starlette/testclient.py:53\n  /home/neuro7/.korpus-worktrees/pilot-readiness-20261003/apps/api/.venv/lib/python3.12/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.\n    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]\n\ntests/test_capability_gateway_http_status_projection.py::test_each_non_success_outcome_carries_its_own_status[REJECTED-SCHEMA_REJECTED-422]\n  /home/neuro7/.korpus-worktrees/pilot-readiness-20261003/apps/api/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:1100: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.\n    result = context.run(func, *args)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
   "stderr_tail": ""
 }

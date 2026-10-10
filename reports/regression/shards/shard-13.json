@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "e1543cac6ccb090d47cc8737542cdd5aebc5b5b5b2cf82550c48f96a6879fbb0",
-  "collection_digest": "645d9cd33f27c1e03cdd1a559e90eaa890c694928e1eb49df7831e0052088661",
-  "collection_count": 4934,
+  "source_digest": "941e27178cc98cf0b478f5cd7768ecd42fa3bb62e2f0e0423d7f31b85cbc68ee",
+  "collection_digest": "97dcdec64494a9a6bdb3d1cfac5f85ff6508556419b725bde662efb3e7ff9db5",
+  "collection_count": 4937,
   "shard_index": 13,
   "shard_count": 24,
-  "selected_count": 235,
+  "selected_count": 236,
   "selected_nodeids": [
     "apps/api/tests/test_access_oracles.py::test_the_exact_duplicate_check_does_not_confirm_unreadable_content",
     "apps/api/tests/test_access_oracles.py::test_the_outsider_cannot_see_the_document_at_all",
@@ -29,6 +29,7 @@
     "apps/api/tests/test_audit_key_rotation.py::test_the_chain_written_under_one_key_verifies_after_rotating_to_another",
     "apps/api/tests/test_audit_ledger_attribution.py::test_a_wrong_label_is_corrected_and_a_right_one_is_left_alone",
     "apps/api/tests/test_audit_names_governing_version.py::test_the_event_records_the_date_the_answer_was_given_for",
+    "apps/api/tests/test_audit_reader_seam.py::test_readiness_keeps_an_already_utc_pending_timestamp_aware",
     "apps/api/tests/test_auth.py::test_local_jwt_rejects_weak_secret",
     "apps/api/tests/test_authority_ranking.py::test_a_bare_set_of_subject_documents_keeps_the_previous_behaviour",
     "apps/api/tests/test_billing_events.py::test_a_non_idempotency_integrity_error_is_not_swallowed_as_a_duplicate",
@@ -245,9 +246,9 @@
     "apps/api/tests/test_verifier_resistance.py::test_every_inconsistent_shape_is_refused[killed \\u0431\\u0456\\u043b\\u044c\\u0448\\u0435]",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_starting_twice_is_refused_rather_than_orphaning_the_first_child"
   ],
-  "selected_digest": "183e29008d29e0c35868d28282241a59f7df3dbcd970814f69bec3fc4fc78f60",
+  "selected_digest": "c78b82fc095b9a7d936e5aeaf2fa26e698d16aea6f80afbcaeee36593f945aa6",
   "junit": {
-    "tests": 235,
+    "tests": 236,
     "failures": 0,
     "errors": 0,
     "skipped": 2
@@ -256,9 +257,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 11.921364,
+  "elapsed_seconds": 11.312705,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 30%]\n........................................................................ [ 61%]\n...........................................ss........................... [ 91%]\n...................                                                      [100%]",
+  "stdout_tail": "........................................................................ [ 30%]\n........................................................................ [ 61%]\n............................................ss.......................... [ 91%]\n....................                                                     [100%]\n=============================== warnings summary ===============================\napps/api/.venv/lib/python3.12/site-packages/starlette/testclient.py:53\n  /home/neuro7/.korpus-worktrees/pilot-readiness-20261003/apps/api/.venv/lib/python3.12/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.\n    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
   "stderr_tail": ""
 }

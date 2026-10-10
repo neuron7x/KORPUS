@@ -1,9 +1,9 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-10-10T05:19:18.180085+00:00",
+  "generated_at": "2026-10-10T07:36:03.746490+00:00",
   "release": "v0.9.7",
   "status": "FAIL",
-  "source_tree_sha256": "e1543cac6ccb090d47cc8737542cdd5aebc5b5b5b2cf82550c48f96a6879fbb0",
+  "source_tree_sha256": "941e27178cc98cf0b478f5cd7768ecd42fa3bb62e2f0e0423d7f31b85cbc68ee",
   "digest_scope": "evidence_paths",
   "items": [
     {
@@ -49,15 +49,9 @@
       "machine_closable": false,
       "failed_external_checks": [
         "attack_families",
-        "citation_integrity",
-        "determinism",
         "evidence_schema",
-        "gate_release_bound",
-        "gate_source_bound",
-        "leakage",
         "null_control_ledger_structured",
         "null_controls",
-        "null_false_accepts",
         "observation_ledger_structured",
         "pass_rate",
         "preregistered",
@@ -77,9 +71,7 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
-        "assessor_structured",
-        "gate_release_bound",
-        "gate_source_bound"
+        "assessor_structured"
       ],
       "required_proof_class": "INTERNAL_STRUCTURALLY_SEPARATED"
     },
@@ -92,9 +84,7 @@
       "externally_satisfied": false,
       "machine_closable": false,
       "failed_external_checks": [
-        "environment_class",
-        "gate_release_bound",
-        "gate_source_bound"
+        "environment_class"
       ],
       "required_proof_class": "MATCHES_FROZEN_TOPOLOGY"
     },
@@ -224,8 +214,8 @@
     }
   ],
   "counts": {
-    "EXTERNAL_REQUIRED": 8,
-    "CLOSED_ANCHORED": 6
+    "CLOSED_ANCHORED": 6,
+    "EXTERNAL_REQUIRED": 8
   },
   "internal_executable_unresolved": 0,
   "internal_missing_artifact": 0,
@@ -234,6 +224,6 @@
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true,
   "evidence_sha256": {
-    "reports/PRODUCTION_HARD_PREDICATES.json": "68a61ef5212584f28035e6d58aebd2290f644e98b75ffd10d17e59f5032bca64"
+    "reports/PRODUCTION_HARD_PREDICATES.json": "16ff247d531f6da19469c669a665080856f91c4e656b47948896269b61ca2118"
   }
 }

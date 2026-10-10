@@ -2,7 +2,7 @@
   "schema": "korpus.coverage-gap-plan.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "e1543cac6ccb090d47cc8737542cdd5aebc5b5b5b2cf82550c48f96a6879fbb0",
+  "source_tree_sha256": "941e27178cc98cf0b478f5cd7768ecd42fa3bb62e2f0e0423d7f31b85cbc68ee",
   "statement_rate": 0.972806,
   "branch_rate": 0.95740816,
   "minimum_statement_rate": 0.95,

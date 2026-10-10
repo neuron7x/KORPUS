@@ -1,7 +1,7 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "e1543cac6ccb090d47cc8737542cdd5aebc5b5b5b2cf82550c48f96a6879fbb0",
+  "source_tree_sha256": "941e27178cc98cf0b478f5cd7768ecd42fa3bb62e2f0e0423d7f31b85cbc68ee",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
@@ -90,14 +90,8 @@
         "required_attack_families_covered",
         "tevv_admissible",
         "pass_rate",
-        "citation_integrity",
-        "leakage",
-        "determinism",
         "null_controls",
-        "null_false_accepts",
-        "attack_families",
-        "gate_source_bound",
-        "gate_release_bound"
+        "attack_families"
       ],
       "waived_external_checks": []
     },
@@ -113,9 +107,7 @@
       "blocks_candidate": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "assessor_structured",
-        "gate_source_bound",
-        "gate_release_bound"
+        "assessor_structured"
       ],
       "waived_external_checks": [
         "independent_class",
@@ -135,9 +127,7 @@
       "blocks_candidate": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "environment_class",
-        "gate_source_bound",
-        "gate_release_bound"
+        "environment_class"
       ],
       "waived_external_checks": [
         "assessor_attestation_verified",
@@ -304,6 +294,6 @@
     }
   ],
   "interpretation": "Software readiness and external production proof are deliberately separate. A predicate is production-satisfied only when both are true.",
-  "evidence_surface_files": 10,
+  "evidence_surface_files": 12,
   "context": "PRODUCTION_EVIDENCE"
 }
