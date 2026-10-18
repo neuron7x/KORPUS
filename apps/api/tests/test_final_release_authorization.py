@@ -3,16 +3,39 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from korpus.application.final_release_authorization import evaluate_final_release
+from korpus.application.final_release_provenance import ReleaseBuildContext
+
+from scripts.final_release_context import local_material_digests
 
 RELEASE = "v-test"
 ARTIFACT_NAME = "KORPUS_SYSTEM_v-test.zip"
 RELEASE_MANIFEST_NAME = "KORPUS_SYSTEM_v-test.release-manifest.json"
 BUILDER_STATEMENT_NAME = "KORPUS_SYSTEM_v-test.builder-provenance.json"
+SOURCE_COMMIT = "a" * 40
+GITHUB_RUN_ID = "123456789"
+GITHUB_RUN_ATTEMPT = "2"
+VERIFICATION_TIME = datetime(2026, 10, 19, 0, 1, tzinfo=UTC)
+BUILDER_ID = "https://github.com/neuron7x/KORPUS/.github/workflows/release.yml@refs/tags/v-test"
+MATERIALS = {
+    f"file:///{relative}": hashlib.sha256(relative.encode()).hexdigest()
+    for relative in (
+        "SOURCE_MANIFEST.json",
+        "apps/api/src/korpus/release.json",
+        "apps/api/requirements.runtime.lock",
+        "apps/api/requirements.dev.lock",
+        "apps/web/package-lock.json",
+        "apps/api/Dockerfile",
+        "apps/web/Dockerfile",
+    )
+}
+ROOT = Path(__file__).resolve().parents[3]
 
 
 def _json_bytes(value: dict[str, Any]) -> bytes:
@@ -42,6 +65,7 @@ def _fixture() -> dict[str, Any]:
     assurance_bytes = _json_bytes(assurance)
     release_manifest = {
         "release": RELEASE,
+        "git_commit": SOURCE_COMMIT,
         "artifact": ARTIFACT_NAME,
         "artifact_sha256": hashlib.sha256(artifact).hexdigest(),
         "source_manifest_sha256": hashlib.sha256(source_manifest).hexdigest(),
@@ -56,12 +80,27 @@ def _fixture() -> dict[str, Any]:
         ],
         "predicate": {
             "buildDefinition": {
+                "buildType": "https://korpus.dev/buildtypes/canonical-release-zip/v1",
                 "externalParameters": {
                     "release": RELEASE,
                     "sourceManifestSha256": hashlib.sha256(source_manifest).hexdigest(),
-                }
+                    "sourceCommit": SOURCE_COMMIT,
+                },
+                "resolvedDependencies": [
+                    {"uri": uri, "digest": {"sha256": digest}} for uri, digest in MATERIALS.items()
+                ],
             },
-            "runDetails": {"builder": {"id": "builder://trusted"}},
+            "runDetails": {
+                "builder": {"id": BUILDER_ID},
+                "metadata": {
+                    "invocationId": (
+                        "https://github.com/neuron7x/KORPUS/actions/runs/"
+                        f"{GITHUB_RUN_ID}/attempts/{GITHUB_RUN_ATTEMPT}"
+                    ),
+                    "startedOn": "2026-10-19T00:00:00Z",
+                    "finishedOn": "2026-10-19T00:01:00Z",
+                },
+            },
         },
     }
     builder_bytes = _json_bytes(builder_statement)
@@ -71,6 +110,20 @@ def _fixture() -> dict[str, Any]:
         release_manifest_bytes, RELEASE_MANIFEST_NAME, release_key
     )
     return locals()
+
+
+def _resign_builder(data: dict[str, Any]) -> None:
+    data["builder_bytes"] = _json_bytes(data["builder_statement"])
+    data["builder_att"], data["builder_fp"] = _attestation(
+        data["builder_bytes"], BUILDER_STATEMENT_NAME, data["builder_key"]
+    )
+
+
+def _resign_release(data: dict[str, Any]) -> None:
+    data["release_manifest_bytes"] = _json_bytes(data["release_manifest"])
+    data["release_att"], data["release_fp"] = _attestation(
+        data["release_manifest_bytes"], RELEASE_MANIFEST_NAME, data["release_key"]
+    )
 
 
 def _evaluate(data: dict[str, Any], **overrides: Any):
@@ -88,10 +141,17 @@ def _evaluate(data: dict[str, Any], **overrides: Any):
         "builder_statement_bytes": data["builder_bytes"],
         "builder_statement": data["builder_statement"],
         "builder_attestation": data["builder_att"],
-        "release": RELEASE,
+        "build_context": ReleaseBuildContext(
+            release=RELEASE,
+            source_commit_sha=SOURCE_COMMIT,
+            github_run_id=GITHUB_RUN_ID,
+            github_run_attempt=GITHUB_RUN_ATTEMPT,
+            expected_materials=MATERIALS,
+            verification_time=VERIFICATION_TIME,
+        ),
         "trusted_release_signers": {data["release_fp"]},
         "trusted_builder_signers": {data["builder_fp"]},
-        "trusted_builder_ids": {"builder://trusted"},
+        "trusted_builder_ids": {BUILDER_ID},
     }
     kwargs.update(overrides)
     return evaluate_final_release(**kwargs)
@@ -136,3 +196,84 @@ def test_final_release_requires_upstream_production_authorization() -> None:
     )
     assert verdict.authorized is False
     assert verdict.checks["production_assurance_authorized"] is False
+
+
+def test_final_release_rejects_release_manifest_without_exact_source_commit() -> None:
+    data = _fixture()
+    data["release_manifest"].pop("git_commit")
+    _resign_release(data)
+    verdict = _evaluate(data)
+    assert verdict.authorized is False
+    assert verdict.checks["release_manifest_git_commit"] is False
+
+
+def test_final_release_rejects_wrong_build_type_and_source_commit() -> None:
+    data = _fixture()
+    definition = data["builder_statement"]["predicate"]["buildDefinition"]
+    definition["buildType"] = "https://attacker.invalid/build"
+    definition["externalParameters"]["sourceCommit"] = "b" * 40
+    _resign_builder(data)
+    verdict = _evaluate(data)
+    assert verdict.authorized is False
+    assert verdict.checks["builder_build_type"] is False
+    assert verdict.checks["builder_source_commit"] is False
+
+
+def test_final_release_rejects_missing_or_substituted_resolved_material() -> None:
+    data = _fixture()
+    dependencies = data["builder_statement"]["predicate"]["buildDefinition"]["resolvedDependencies"]
+    dependencies[0]["digest"]["sha256"] = "0" * 64
+    _resign_builder(data)
+    verdict = _evaluate(data)
+    assert verdict.authorized is False
+    assert verdict.checks["builder_materials_bound"] is False
+
+
+def test_final_release_rejects_wrong_github_run_invocation() -> None:
+    data = _fixture()
+    metadata = data["builder_statement"]["predicate"]["runDetails"]["metadata"]
+    metadata["invocationId"] = "https://github.com/attacker/KORPUS/actions/runs/1/attempts/1"
+    _resign_builder(data)
+    verdict = _evaluate(data)
+    assert verdict.authorized is False
+    assert verdict.checks["builder_invocation_bound"] is False
+
+
+def test_final_release_rejects_missing_or_reversed_timestamps() -> None:
+    data = _fixture()
+    metadata = data["builder_statement"]["predicate"]["runDetails"]["metadata"]
+    metadata["startedOn"] = "2026-10-19T00:02:00Z"
+    metadata["finishedOn"] = "2026-10-19T00:01:00Z"
+    _resign_builder(data)
+    verdict = _evaluate(data)
+    assert verdict.authorized is False
+    assert verdict.checks["builder_timestamps_valid"] is False
+
+
+def test_final_release_rejects_timestamps_outside_the_current_github_run_window() -> None:
+    data = _fixture()
+    metadata = data["builder_statement"]["predicate"]["runDetails"]["metadata"]
+    metadata["startedOn"] = "2000-01-01T00:00:00Z"
+    metadata["finishedOn"] = "2000-01-01T00:01:00Z"
+    _resign_builder(data)
+    verdict = _evaluate(data)
+    assert verdict.authorized is False
+    assert verdict.checks["builder_timestamps_valid"] is False
+
+
+def test_final_release_rejects_attacker_workflow_even_when_explicitly_trusted() -> None:
+    data = _fixture()
+    attacker = "https://github.com/neuron7x/KORPUS/.github/workflows/attacker.yml@refs/tags/v-test"
+    data["builder_statement"]["predicate"]["runDetails"]["builder"]["id"] = attacker
+    _resign_builder(data)
+    verdict = _evaluate(data, trusted_builder_ids={attacker})
+    assert verdict.authorized is False
+    assert verdict.checks["builder_trusted"] is False
+
+
+def test_expected_materials_are_recomputed_from_local_files() -> None:
+    actual = local_material_digests(ROOT)
+    assert set(actual) == set(MATERIALS)
+    for uri, digest in actual.items():
+        relative = uri.removeprefix("file:///")
+        assert digest == hashlib.sha256((ROOT / relative).read_bytes()).hexdigest()

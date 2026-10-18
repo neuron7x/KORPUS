@@ -121,18 +121,18 @@ def _signed_gate(
         {
             "CI": "true",
             "GITHUB_ACTIONS": "true",
-            "GITHUB_EVENT_NAME": "workflow_dispatch",
+            "GITHUB_EVENT_NAME": "push",
             "GITHUB_SERVER_URL": "https://github.com",
             "GITHUB_REPOSITORY": "neuron7x/KORPUS",
             "GITHUB_REPOSITORY_ID": "1332311807",
             "GITHUB_REPOSITORY_OWNER_ID": "206596321",
             "GITHUB_REF_PROTECTED": "true",
-            "GITHUB_REF_TYPE": "branch",
-            "GITHUB_REF_NAME": "main",
-            "GITHUB_REF": "refs/heads/main",
+            "GITHUB_REF_TYPE": "tag",
+            "GITHUB_REF_NAME": RELEASE_TAG,
+            "GITHUB_REF": f"refs/tags/{RELEASE_TAG}",
             "GITHUB_SHA": "a" * 40,
             "GITHUB_WORKFLOW_REF": (
-                "neuron7x/KORPUS/.github/workflows/external-assurance-ingest.yml@refs/heads/main"
+                f"neuron7x/KORPUS/.github/workflows/release.yml@refs/tags/{RELEASE_TAG}"
             ),
             "RUNNER_ENVIRONMENT": "github-hosted",
             "PYTHONPATH": ".:apps/api/src:scripts",

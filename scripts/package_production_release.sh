@@ -77,7 +77,7 @@ builder_provenance="dist/${name}.builder-provenance.json"
 builder_attestation="dist/${name}.builder-attestation.json"
 final_authorization="dist/${name}.final-production-authorization.json"
 invocation_id="https://github.com/${canonical_repository}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}"
-PYTHONPATH=apps/api/src:scripts python3 scripts/slsa_provenance.py generate --artifact "$artifact" --out "$builder_provenance" --builder-id "$KORPUS_TRUSTED_BUILDER_ID" --invocation-id "$invocation_id"
+PYTHONPATH=apps/api/src:scripts python3 scripts/slsa_provenance.py generate --artifact "$artifact" --out "$builder_provenance" --builder-id "$KORPUS_TRUSTED_BUILDER_ID" --invocation-id "$invocation_id" --source-commit "$head_sha"
 python3 scripts/release_attestation.py sign --manifest "$builder_provenance" --key "$KORPUS_HOSTED_BUILDER_SIGNING_KEY" --out "$builder_attestation"
 python3 - "$artifact" "$manifest" <<'PY'
 import hashlib, json, subprocess, sys

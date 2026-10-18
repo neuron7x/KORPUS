@@ -12,12 +12,21 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from scripts.slsa_source import (  # noqa: E402
+    GIT_SHA,
+    REQUIRED_MATERIALS,
+    BuildInvocation,
+    resolve_source_commit,
+)
+
 STATEMENT_TYPE = "https://in-toto.io/Statement/v1"
 PREDICATE_TYPE = "https://slsa.dev/provenance/v1"
 BUILD_TYPE = "https://korpus.dev/buildtypes/canonical-release-zip/v1"
@@ -51,24 +60,13 @@ def material(root: Path, relative: str) -> dict[str, object]:
 def build_statement(
     root: Path,
     artifact: Path,
-    *,
-    builder_id: str,
-    invocation_id: str,
-    started_on: str,
-    finished_on: str,
+    invocation: BuildInvocation,
 ) -> dict[str, object]:
+    if not GIT_SHA.fullmatch(invocation.source_commit):
+        raise ValueError("source_commit must be a full lowercase Git commit SHA")
     identity = release_identity(root)
     source_manifest = root / "SOURCE_MANIFEST.json"
-    required_materials = (
-        "SOURCE_MANIFEST.json",
-        "apps/api/src/korpus/release.json",
-        "apps/api/requirements.runtime.lock",
-        "apps/api/requirements.dev.lock",
-        "apps/web/package-lock.json",
-        "apps/api/Dockerfile",
-        "apps/web/Dockerfile",
-    )
-    resolved = [material(root, relative) for relative in required_materials]
+    resolved = [material(root, relative) for relative in REQUIRED_MATERIALS]
     byproducts = []
     for relative in (
         "source-sbom.cdx.json",
@@ -96,22 +94,23 @@ def build_statement(
                     "release": identity["tag"],
                     "artifactStem": identity["artifact_stem"],
                     "sourceManifestSha256": sha256(source_manifest),
+                    "sourceCommit": invocation.source_commit,
                 },
                 "internalParameters": {
                     "builderTrustClass": (
                         "LOCAL_UNATTESTED"
-                        if builder_id == LOCAL_BUILDER
+                        if invocation.builder_id == LOCAL_BUILDER
                         else "EXTERNALLY_IDENTIFIED"
                     )
                 },
                 "resolvedDependencies": resolved,
             },
             "runDetails": {
-                "builder": {"id": builder_id},
+                "builder": {"id": invocation.builder_id},
                 "metadata": {
-                    "invocationId": invocation_id,
-                    "startedOn": started_on,
-                    "finishedOn": finished_on,
+                    "invocationId": invocation.invocation_id,
+                    "startedOn": invocation.started_on,
+                    "finishedOn": invocation.finished_on,
                 },
                 "byproducts": byproducts,
             },
@@ -186,23 +185,18 @@ def _build_failures(root: Path, build: dict[str, Any]) -> list[str]:
     expected_manifest = sha256(root / "SOURCE_MANIFEST.json")
     if not isinstance(external, dict) or external.get("sourceManifestSha256") != expected_manifest:
         failures.append("build.source_manifest")
+    if not isinstance(external, dict) or not GIT_SHA.fullmatch(
+        str(external.get("sourceCommit", ""))
+    ):
+        failures.append("build.source_commit")
     return failures
 
 
 def _material_failures(root: Path, statement: dict[str, Any]) -> list[str]:
     dependencies = _dependency_index(statement)
-    required = (
-        "SOURCE_MANIFEST.json",
-        "apps/api/src/korpus/release.json",
-        "apps/api/requirements.runtime.lock",
-        "apps/api/requirements.dev.lock",
-        "apps/web/package-lock.json",
-        "apps/api/Dockerfile",
-        "apps/web/Dockerfile",
-    )
     return [
         f"material:{relative}"
-        for relative in required
+        for relative in REQUIRED_MATERIALS
         if dependencies.get(f"file:///{relative}") != sha256(root / relative)
     ]
 
@@ -286,6 +280,7 @@ def main() -> int:
     generate.add_argument("--invocation-id", default="")
     generate.add_argument("--started-on")
     generate.add_argument("--finished-on")
+    generate.add_argument("--source-commit", default="")
 
     verify = sub.add_parser("verify")
     verify.add_argument("--artifact", type=Path, required=True)
@@ -301,10 +296,13 @@ def main() -> int:
         statement = build_statement(
             ROOT,
             args.artifact,
-            builder_id=args.builder_id,
-            invocation_id=args.invocation_id or str(uuid.uuid4()),
-            started_on=args.started_on or now,
-            finished_on=args.finished_on or now,
+            BuildInvocation(
+                builder_id=args.builder_id,
+                invocation_id=args.invocation_id or str(uuid.uuid4()),
+                started_on=args.started_on or now,
+                finished_on=args.finished_on or now,
+                source_commit=resolve_source_commit(ROOT, args.source_commit),
+            ),
         )
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(statement, indent=2) + "\n", encoding="utf-8")

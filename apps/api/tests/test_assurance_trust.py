@@ -134,6 +134,12 @@ def test_runtime_trust_root_is_refused_on_legacy_gitlab_even_when_protected(
         ("GITHUB_SHA", "not-a-full-sha"),
         ("RUNNER_ENVIRONMENT", "self-hosted"),
         ("GITHUB_WORKFLOW_REF", "neuron7x/KORPUS/.github/workflows/release.yml@refs/heads/main"),
+        (
+            "GITHUB_WORKFLOW_REF",
+            f"neuron7x/KORPUS/.github/workflows/attacker-controlled.yml@refs/tags/{RELEASE_TAG}",
+        ),
+        ("GITHUB_EVENT_NAME", "workflow_dispatch"),
+        ("GITHUB_REF", "refs/heads/main"),
     ],
 )
 def test_runtime_trust_root_is_refused_when_github_identity_is_incoherent(
