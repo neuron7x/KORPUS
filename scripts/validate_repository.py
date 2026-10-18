@@ -47,10 +47,8 @@ def main() -> int:
         for failure in report.unmet:
             print(f"{failure.id}: {failure.statement}")
         return 1
-    print(
-        f"repository validation passed: {context.path_count} paths, "
-        f"{report.total} requirements, 99/99 audit findings classified"
-    )
+    scanned = f"{context.files_examined} files under {len(context.roots_examined)} roots"
+    print(f"repository validation passed: {scanned}, {report.total} requirements")
     return 0
 
 

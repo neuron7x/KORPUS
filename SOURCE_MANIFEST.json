@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1871,
-  "root_sha256": "82d8b60fdc254fbe76b0a6892c7378f1767a6d00c430d8e301fbabf2e7bc5abd",
+  "root_sha256": "52455fdb14f82f6b5ec9de9043cbc1e0ff33e4ef8ce6ab1bae1b9ea99592275e",
   "files": [
     {
       "path": ".dockerignore",
@@ -763,8 +763,8 @@
     },
     {
       "path": "apps/api/src/korpus/api/readiness_projection.py",
-      "bytes": 497,
-      "sha256": "879755f26fd48a99e78756887a3cd48cc39524159293ca23ee10ff9d359feffb",
+      "bytes": 1005,
+      "sha256": "98c130c5901f011496b86af5902b2c908c320e49fac3bd03d4d573f97a98abf1",
       "mode": "0644"
     },
     {
@@ -829,8 +829,8 @@
     },
     {
       "path": "apps/api/src/korpus/api/routes_health.py",
-      "bytes": 5268,
-      "sha256": "1cff01f1abed515662d91bbfdb3e10665b2716e78a4713d2ffce8eaa14c44879",
+      "bytes": 5303,
+      "sha256": "fdb5eabee1f25fb30566bff565ad72abc3159c607ef637320992feadf09e7b4d",
       "mode": "0644"
     },
     {
@@ -2443,8 +2443,8 @@
     },
     {
       "path": "apps/api/src/korpus/repository_requirements.py",
-      "bytes": 17019,
-      "sha256": "d6f38606b7a491e83664638f770be77208c789eb6dc131bc470b2ce5ef616187",
+      "bytes": 21128,
+      "sha256": "eb79bb0ce52481c375272f48b868aff681b7e482b2caf9304d63dbf550ab67ec",
       "mode": "0644"
     },
     {
@@ -3703,8 +3703,8 @@
     },
     {
       "path": "apps/api/tests/test_health.py",
-      "bytes": 2366,
-      "sha256": "473a07ff8b9279f67468fe58209c6e649cec6088862811626bc41d0aa08cbcb1",
+      "bytes": 6591,
+      "sha256": "3698a61a1f9da17acf0bd7669e7c3dc8a6a21c93726a7626efacc2f1ff962444",
       "mode": "0644"
     },
     {
@@ -4681,8 +4681,8 @@
     },
     {
       "path": "apps/api/tests/test_requirement_registry.py",
-      "bytes": 16194,
-      "sha256": "d8c7ebee86125fe01b2781a6a7f903683e544d4845d413831f08162746f57808",
+      "bytes": 19453,
+      "sha256": "bf75bc7281573f79269b0976da9f49fe529683474178743662f17994b937d2d5",
       "mode": "0644"
     },
     {
@@ -7507,8 +7507,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 683028,
-      "sha256": "46b689152ddcf3e13c354790ec20246e221d4de12310b3cbe374c56e0edd6a78",
+      "bytes": 684153,
+      "sha256": "217531d3032b93d813f4243218cdc233fb10b56c6768764dd717bde5559e6954",
       "mode": "0644"
     },
     {
@@ -8251,8 +8251,8 @@
     },
     {
       "path": "docs/operations/REQUIREMENTS_REGISTER.md",
-      "bytes": 48867,
-      "sha256": "5c5d6bfa50e9ad32f71db7a988f9ef21a36b5bb35474d5bbda6abc793d8a48dd",
+      "bytes": 49281,
+      "sha256": "d0c210e05df76b5475a53832d8ef7fc431b6d49a32a48c752e7c803fc7603fc4",
       "mode": "0644"
     },
     {
@@ -10999,8 +10999,8 @@
     },
     {
       "path": "scripts/validate_repository.py",
-      "bytes": 1809,
-      "sha256": "d9854733499fd6f77e9c8cfc98458ffc5704d0240bf03ef73c7d80f556f383b6",
+      "bytes": 1823,
+      "sha256": "023df0f349b4ce6746e0b425a2e1d90cab45324af4ccb5c61103af744a155242",
       "mode": "0755"
     },
     {

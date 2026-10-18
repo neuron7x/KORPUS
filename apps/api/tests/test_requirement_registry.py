@@ -244,10 +244,57 @@ def test_one_walk_answers_every_filesystem_question(monkeypatch) -> None:
     context = load_repository_context(ROOT, _repository_validation_context())
 
     assert walks == 1
-    assert context.path_count > 0
+    # `path_count > 0` тут стояло і НЕ БУЛО мірою: воно росте на кожному записі
+    # `rglob`, до перевірки «це файл» і до пропуску, тож істинне й тоді, коли
+    # оглянуто нуль файлів. Виміряно на цьому дереві: 5526 пройдено, 2707 оглянуто —
+    # число, що читалось як знаменник, було вдвічі більшим за нього.
+    assert context.files_examined > 0
+    assert context.path_count > context.files_examined
     assert context.oversized == []
     assert context.placeholders == []
     assert context.tracked_secrets == []
+
+
+def test_a_blind_walk_is_not_a_clean_tree() -> None:
+    """Порожній результат обходу мусить бути ВІДМОВОЮ, а не трьома зеленими.
+
+    Клас, а не випадок. Три питання — секрети, завеликі файли, заглушки — ставляться
+    переліку, який обхід зібрав. Переліку порожньому вони дають три «нічого не
+    знайдено», нерозрізненні з «нічого не дивилось».
+
+    ВИМІРЯНО 06.09.2026: обхід, осліплений компонентою шляху розгортання, віддавав
+    усі три порожніми, і `validate_repository` був ЗЕЛЕНИЙ. Ця вимога — єдине, що
+    ставить питання про знаменник, і вона мусить ловити рівно той стан.
+    """
+    from korpus.repository_requirements import REPOSITORY_REQUIREMENTS, blind_roots
+    from korpus.repository_requirements import load_context as load_repository_context
+
+    requirement = next(
+        item for item in REPOSITORY_REQUIREMENTS if item.id == "repo.scan.every_root_was_examined"
+    )
+    context = load_repository_context(ROOT, _repository_validation_context())
+
+    # На справжньому дереві підлога тримає й не дає хибнопозитиву.
+    assert blind_roots(context) == []
+    assert requirement.holds(context) is True
+
+    # НЕГАТИВНИЙ КОНТРОЛЬ: обхід, що не оглянув нічого. Умову створено, не
+    # успадковано від середовища — інакше проба вироджується в тишу.
+    context.roots_examined = set()
+    context.files_examined = 0
+
+    assert blind_roots(context) != []
+    assert requirement.holds(context) is False
+
+    # ДУАЛ, який виправдовує ВИБІР МІРИ. Обхід, що оглянув один файл з однієї теки,
+    # задовольняє «не нуль» і лишає перевірку зеленою над майже порожнім входом —
+    # рівно та вада, від якої `not_zero_instead_of_enough`. Структурна підлога тут
+    # ще червона, бо решта тек не оглянута.
+    context.roots_examined = {"scripts"}
+    context.files_examined = 1
+
+    assert context.files_examined > 0  # «не нуль» — задоволено
+    assert requirement.holds(context) is False  # «досить» — ні
 
 
 def test_the_kubernetes_register_states_the_same_rules_as_the_gate() -> None:

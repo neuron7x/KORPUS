@@ -4,7 +4,7 @@
 
 Вимоги з префіксом `k8s.` побудовані з `deploy/kubernetes/base`: покомпонентні правила породжуються з набору документів, тому перелік описує саме це розгортання, а не Kubernetes узагалі.
 
-Усього вимог: **335**.
+Усього вимог: **336**.
 
 Кожна має ідентифікатор, за яким її можна процитувати в аудиті, позначити як прийнятий ризик із названим власником, зіставити з мутантом і порахувати. До 05.08.2026 їх не було: перевірка існувала як рядок, дописаний у місці збою.
 
@@ -422,6 +422,7 @@
 | `repo.no_oversized_files` | no tracked file exceeds 5 MB | a large binary in the tree is a thing nobody reviews and everybody clones |
 | `repo.no_plaintext_secrets` | no plaintext runtime secret is tracked | a secret in the tree is disclosed to everyone who ever clones it, forever |
 | `repo.no_unresolved_placeholders` | no shipped source carries an unresolved implementation placeholder | NotImplementedError in a delivered path is a promise the runtime cannot keep |
+| `repo.scan.every_root_was_examined` | the walk examined at least one file under every non-skipped top-level directory | три питання, поставлені порожньому переліку, дають три зелені відповіді; перевірка без знаменника не відрізняє «нічого не знайдено» від «нічого не дивилось» |
 | `repo.version.api_pyproject` | api_pyproject declares release 0.9.7 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
 | `repo.version.readme_header` | readme_header declares release 0.9.7 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
 | `repo.version.release_identity` | release_identity declares release 0.9.7 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |

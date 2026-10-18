@@ -560,7 +560,7 @@
       "reason": "ACT-009: typed HTTP mapping separates subject throttling (429) from global service saturation (503)."
     },
     "apps/api/src/korpus/api/readiness_projection.py": {
-      "lines": 17,
+      "lines": 28,
       "max_complexity": 2,
       "max_function_args": 3,
       "max_function_lines": 10,
@@ -11655,6 +11655,17 @@
         "lines": 253
       },
       "why": "відсів символічної голови віддаленого за ПОВНИМ іменем: `%(refname:short)` для refs/remotes/origin/HEAD дає «origin», тож гейт червонів на БУДЬ-ЯКОМУ клоні й був зелений у каноні лише через відсутність предмета"
+    },
+    {
+      "on": "2026-09-06",
+      "path": "apps/api/src/korpus/api/readiness_projection.py",
+      "from": {
+        "lines": 17
+      },
+      "to": {
+        "lines": 28
+      },
+      "reason": "Додано `schema_fields`: розділення факту про схему й політики щодо неї. Обробник клав `\"schema_current\": schema_ok`, перезаписуючи значення зі знімка — а `schema_ok` поза режимом `migrations` істинний БЕЗУМОВНО. Живий сервіс через це віддавав `schema_current: true` поруч із ревізією 0022 проти очікуваної 0023, і читач брав це за відповідь про схему. Логіку покладено в модуль проєкції, а не в обробник, саме щоб не піднімати стелю `routes_health.py`: проєкція payload — його предмет. Форма функцій не зросла (18→9 рядків після стиснення), складність не зросла."
     }
   ],
   "recorded_at": "2026-09-06",
