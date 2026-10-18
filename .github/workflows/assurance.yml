@@ -33,7 +33,7 @@ jobs:
   research-assurance:
     name: research-assurance
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Checkout immutable source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -54,13 +54,43 @@ jobs:
       - name: Execute falsification campaign
         run: |
           mkdir -p var/objects
-          make eval mutation migration-gate scale operational-gate PY=python
+          python scripts/build_system_manifest.py --output var/system-manifest.json
+          python scripts/run_evals.py
+          KORPUS_MUTATION_SHARDS=6 KORPUS_MUTATION_JOBS=2 PYTHON=python scripts/run_mutation_shards.sh
+          python scripts/run_migration_gate.py
+          python scripts/run_scale_probe.py
+          PYTHONPATH=apps/api/src:. python scripts/run_determinism_gate.py --out var/determinism-gate.json
+          PYTHONPATH=apps/api/src:. python scripts/run_stress_gate.py --out var/stress-gate.json
+          PYTHONPATH=apps/api/src:. python scripts/run_plasticity_gate.py --out var/plasticity-gate.json
+          python scripts/run_operational_gate.py
+          PYTHONPATH=apps/api/src python scripts/check_evidence_freshness.py
+          PYTHONPATH=apps/api/src python scripts/check_evidence_freshness.py --selftest
           make production-hard-predicates PY=python
+      - name: Preserve research assurance evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: research-assurance-evidence
+          overwrite: true
+          path: |
+            var/system-manifest.json
+            var/eval-report.json
+            var/mutation-report.json
+            var/migration-report.json
+            var/scale-report.json
+            var/determinism-gate.json
+            var/stress-gate.json
+            var/plasticity-gate.json
+            var/operational-gate.json
+            var/mutation-shard-*.log
+            var/mutation-shards/*.json
+          if-no-files-found: warn
+          retention-days: 30
 
-  postgres:
-    name: postgres-full-suite
+  sqlite-coverage:
+    name: sqlite-coverage
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 35
     steps:
       - name: Checkout immutable source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -76,11 +106,499 @@ jobs:
         run: |
           python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
           python -m pip check
-      - name: Run PostgreSQL 17 and pgvector suite
+      - name: Measure SQLite dialect
+        run: make api-test PY=python
+      - name: Preserve SQLite coverage
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sqlite-coverage-evidence
+          overwrite: true
+          path: |
+            var/pytest.xml
+            var/coverage.xml
+            var/coverage.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  assurance-drills:
+    name: assurance-drills
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Execute declared chaos matrix
+        run: |
+          mkdir -p var/objects
+          PYTHONPATH=.:apps/api/src python scripts/chaos_matrix.py
+      - name: Preserve drill evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: assurance-drill-evidence
+          overwrite: true
+          path: var/chaos-matrix.json
+          if-no-files-found: error
+          retention-days: 30
+
+  postgres:
+    name: postgres-full-suite
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.5-pg17-trixie@sha256:69573b32242ca232f65871d4cb916ba7210a372b9bd74068204c1a9a57bada4f
         env:
-          PYTHON: python
-        run: scripts/run_postgres_suite.sh
-      - name: Verify production PostgreSQL security gate
-        env:
-          PYTHON: python
-        run: make production-postgres-security PY=python
+          POSTGRES_DB: korpus_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres-test-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d korpus_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      KORPUS_POSTGRES_ADMIN_URL: postgresql+psycopg://postgres:postgres-test-password@127.0.0.1:5432/korpus_test
+      KORPUS_POSTGRES_APP_ROLE: korpus_app
+      KORPUS_POSTGRES_APP_PASSWORD: korpus-app-test-password
+      KORPUS_AUTHZ_DATABASE_URL: postgresql+psycopg://korpus_authz:korpus-authz-test-password@127.0.0.1:5432/korpus_test
+      KORPUS_REVIEW_DATABASE_URL: postgresql+psycopg://korpus_review:korpus-review-test-password@127.0.0.1:5432/korpus_test
+      KORPUS_POSTGRES_TEST_URL: postgresql+psycopg://korpus_app:korpus-app-test-password@127.0.0.1:5432/korpus_test
+      KORPUS_DATABASE_URL: postgresql+psycopg://korpus_app:korpus-app-test-password@127.0.0.1:5432/korpus_test
+      KORPUS_BACKUP_DATABASE_URL: postgresql://postgres:postgres-test-password@127.0.0.1:5432/korpus_test
+      KORPUS_BACKUP_DIR: ${{ github.workspace }}/var/backups
+      KORPUS_BACKUP_ENCRYPTION_KEY_FILE: ${{ github.workspace }}/var/backup-encryption.key
+      KORPUS_BACKUP_KEY_ID: ci-ephemeral-v4
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install PostgreSQL 17 client and locked environment
+        run: |
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /tmp/pgdg.asc
+          sudo install -D -m 0644 /tmp/pgdg.asc /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends postgresql-client-17
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Migrate and prepare least-privilege roles
+        run: |
+          KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" python scripts/wait_for_database.py
+          KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" bash -c 'cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_db_defense_and_vectors && python -m alembic -c alembic.ini upgrade head'
+          KORPUS_DATABASE_URL="$KORPUS_POSTGRES_ADMIN_URL" KORPUS_POSTGRES_AUTHZ_ROLE=korpus_authz KORPUS_POSTGRES_AUTHZ_PASSWORD=korpus-authz-test-password KORPUS_POSTGRES_REVIEW_ROLE=korpus_review KORPUS_POSTGRES_REVIEW_PASSWORD=korpus-review-test-password python scripts/prepare_postgres_role.py
+      - name: Measure PostgreSQL dialect and RLS
+        run: |
+          KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" pytest -q apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=json:var/coverage-postgres.json --cov-report= --cov-fail-under=0
+          KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" PYTHONPATH=apps/api/src:scripts python scripts/run_postgres_security_gate.py
+      - name: Execute backup and restore drill
+        run: |
+          python -c "import secrets, pathlib; pathlib.Path('var/backup-encryption.key').write_text(secrets.token_hex(32))"
+          chmod 600 var/backup-encryption.key
+          KORPUS_RECOVERY_SEED_URL="$KORPUS_POSTGRES_ADMIN_URL" python scripts/seed_recovery_fixture.py
+          backup_path="$(scripts/backup_postgres.sh)"
+          psql 'postgresql://postgres:postgres-test-password@127.0.0.1:5432/postgres' -v ON_ERROR_STOP=1 -c 'DROP DATABASE IF EXISTS korpus_restore' -c 'CREATE DATABASE korpus_restore'
+          export KORPUS_RESTORE_DATABASE_URL='postgresql://postgres:postgres-test-password@127.0.0.1:5432/korpus_restore'
+          KORPUS_RECOVERY_PHASE=after-backup KORPUS_RECOVERY_SEED_URL="$KORPUS_POSTGRES_ADMIN_URL" python scripts/seed_recovery_fixture.py
+          restore_started="$(date +%s.%N)"
+          scripts/restore_postgres.sh "$backup_path"
+          KORPUS_RECOVERY_RESTORE_SECONDS="$(python -c 'import sys; print(float(sys.argv[2]) - float(sys.argv[1]))' "$restore_started" "$(date +%s.%N)")"
+          export KORPUS_RECOVERY_RESTORE_SECONDS
+          export KORPUS_DATABASE_URL='postgresql+psycopg://postgres:postgres-test-password@127.0.0.1:5432/korpus_restore'
+          KORPUS_POSTGRES_AUTHZ_ROLE=korpus_authz KORPUS_POSTGRES_AUTHZ_PASSWORD=korpus-authz-test-password KORPUS_POSTGRES_REVIEW_ROLE=korpus_review KORPUS_POSTGRES_REVIEW_PASSWORD=korpus-review-test-password python scripts/prepare_postgres_role.py
+          export KORPUS_POSTGRES_TEST_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@127.0.0.1:5432/korpus_restore'
+          export KORPUS_AUTHZ_DATABASE_URL='postgresql+psycopg://korpus_authz:korpus-authz-test-password@127.0.0.1:5432/korpus_restore'
+          export KORPUS_REVIEW_DATABASE_URL='postgresql+psycopg://korpus_review:korpus-review-test-password@127.0.0.1:5432/korpus_restore'
+          python scripts/verify_postgres_restore.py
+          KORPUS_RECOVERY_SOURCE_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@127.0.0.1:5432/korpus_test' KORPUS_RECOVERY_RESTORED_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@127.0.0.1:5432/korpus_restore' KORPUS_RECOVERY_SOURCE_AUTHZ_URL='postgresql+psycopg://korpus_authz:korpus-authz-test-password@127.0.0.1:5432/korpus_test' KORPUS_RECOVERY_RESTORED_AUTHZ_URL='postgresql+psycopg://korpus_authz:korpus-authz-test-password@127.0.0.1:5432/korpus_restore' KORPUS_RECOVERY_BACKUP_PATH="$backup_path" python scripts/measure_recovery.py
+      - name: Materialize network load evidence
+        run: |
+          export KORPUS_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_SCHEMA_MODE=migrations KORPUS_OBJECT_ROOT="$GITHUB_WORKSPACE/var/load-objects"
+          python -m uvicorn korpus.main:app --host 127.0.0.1 --port 8081 > var/load-api.log 2>&1 &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+          for _attempt in $(seq 1 30); do if curl -fsS http://127.0.0.1:8081/health >/dev/null; then break; fi; sleep 1; done
+          curl -fsS http://127.0.0.1:8081/health >/dev/null
+          python scripts/load_probe.py --base http://127.0.0.1:8081 --environment-class CI_FIXTURE --seconds 5 --soak-seconds 10 --spike 16 --out var/load-probe.json
+          kill "$api_pid"
+          wait "$api_pid" || true
+          trap - EXIT
+      - name: Preserve PostgreSQL evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: postgres-evidence
+          overwrite: true
+          path: |
+            var/backups/*.json
+            var/recovery-report.json
+            var/load-probe.json
+            var/load-api.log
+            var/coverage-postgres.json
+            var/production/postgres_security-gate.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  coverage-union:
+    name: coverage-union
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    needs: [sqlite-coverage, postgres]
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Download SQLite coverage
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: sqlite-coverage-evidence
+          path: var
+      - name: Download PostgreSQL coverage
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: postgres-evidence
+          path: var
+      - name: Verify dialect coverage union and branch ratchet
+        run: |
+          PYTHONPATH=apps/api/src python scripts/merge_dialect_coverage.py
+          PYTHONPATH=apps/api/src:. python scripts/coverage_gap_plan.py --coverage var/coverage-union.json --out var/coverage-gap-plan.json
+      - name: Preserve dialect coverage evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-union-evidence
+          overwrite: true
+          path: |
+            var/coverage-union.json
+            var/coverage-gap-plan.json
+          if-no-files-found: error
+          retention-days: 30
+
+  source-secret-scan:
+    name: security-gitleaks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout complete immutable history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Scan exact revision with pinned gitleaks image
+        run: |
+          docker run --rm --volume "$PWD:/repo" --workdir /repo --entrypoint gitleaks \
+            zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
+            detect --source . --no-banner --redact --exit-code 1 --log-opts "$GITHUB_SHA" \
+            --baseline-path .gitleaks-baseline.json
+          mkdir -p var/security
+          printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","scanners":[{"scanner":"gitleaks","exit_code":0}]}\n' "$GITHUB_SHA" > var/security/ci-gitleaks.json
+      - name: Preserve gitleaks marker
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: security-gitleaks
+          overwrite: true
+          path: var/security/ci-gitleaks.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  python-dependency-audit:
+    name: security-pip-audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Audit both locked dependency graphs
+        run: |
+          python -m pip install 'pip-audit==2.10.1'
+          pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.runtime.lock
+          pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.dev.lock
+          mkdir -p var/security
+          printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","scanners":[{"scanner":"pip-audit:runtime","exit_code":0},{"scanner":"pip-audit:dev","exit_code":0}]}\n' "$GITHUB_SHA" > var/security/ci-pip-audit.json
+      - name: Preserve dependency-audit marker
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: security-pip-audit
+          overwrite: true
+          path: var/security/ci-pip-audit.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  infrastructure-scan:
+    name: security-trivy-config
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Scan infrastructure with pinned trivy image
+        run: |
+          docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint trivy \
+            aquasec/trivy:0.70.0@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e \
+            config --exit-code 1 --severity HIGH,CRITICAL --ignorefile .trivyignore.yaml .
+          mkdir -p var/security
+          printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","scanners":[{"scanner":"trivy","exit_code":0}]}\n' "$GITHUB_SHA" > var/security/ci-trivy.json
+      - name: Preserve infrastructure-scan marker
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: security-trivy
+          overwrite: true
+          path: var/security/ci-trivy.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  security-summary:
+    name: security-summary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    needs: [source-secret-scan, python-dependency-audit, infrastructure-scan]
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Download gitleaks marker
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: security-gitleaks
+          path: var/security
+      - name: Download dependency-audit marker
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: security-pip-audit
+          path: var/security
+      - name: Download infrastructure-scan marker
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: security-trivy
+          path: var/security
+      - name: Aggregate exact scanner set
+        run: python scripts/aggregate_ci_security_summary.py var/security/ci-gitleaks.json var/security/ci-pip-audit.json var/security/ci-trivy.json --commit "$GITHUB_SHA"
+      - name: Preserve aggregate scanner evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: security-summary
+          overwrite: true
+          path: var/security/summary.json
+          if-no-files-found: error
+          retention-days: 30
+
+  source-sbom:
+    name: source-sbom
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Generate source-tree SBOM with pinned syft image
+        run: |
+          mkdir -p var
+          docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint /syft \
+            anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b799e7cadaff6be2ec6d555757c4eeec0c0e48162f20b042ffa1ff \
+            dir:. -o cyclonedx-json=var/tree-sbom.cdx.json
+      - name: Preserve source-tree SBOM
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: source-sbom
+          overwrite: true
+          path: var/tree-sbom.cdx.json
+          if-no-files-found: error
+          retention-days: 30
+
+  container-build:
+    name: container-build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Build exact candidate images
+        run: |
+          docker build --pull --file apps/api/Dockerfile --tag korpus-api:ci .
+          docker build --pull --file apps/web/Dockerfile --tag korpus-web:ci .
+          docker save --output api-image.tar korpus-api:ci
+          docker save --output web-image.tar korpus-web:ci
+      - name: Preserve candidate images for independent consumers
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: candidate-images
+          overwrite: true
+          path: |
+            api-image.tar
+            web-image.tar
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+  container-scan:
+    name: container-scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    needs: [container-build]
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download exact candidate images
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: candidate-images
+          path: .
+      - name: Scan candidate images with pinned trivy image
+        run: |
+          trivy_image='aquasec/trivy:0.70.0@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e'
+          docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint trivy "$trivy_image" image --input api-image.tar --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed
+          docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint trivy "$trivy_image" image --input web-image.tar --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed --ignorefile /work/.trivyignore.web.yaml
+          docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint trivy "$trivy_image" image --input api-image.tar --exit-code 0 --severity HIGH,CRITICAL --format json --output /work/api-unfixed.json
+          docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint trivy "$trivy_image" image --input web-image.tar --exit-code 0 --severity HIGH,CRITICAL --format json --output /work/web-unfixed.json
+          mkdir -p var/security
+          printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","status":"PASS","worst_exit_code":0,"scanners":[{"scanner":"trivy:api-image","exit_code":0},{"scanner":"trivy:web-image","exit_code":0}]}\n' "$GITHUB_SHA" > var/security/ci-container-scan.json
+      - name: Preserve container scan evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: container-security
+          overwrite: true
+          path: |
+            api-unfixed.json
+            web-unfixed.json
+            var/security/ci-container-scan.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  container-sbom:
+    name: container-sbom
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    needs: [container-build]
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download exact candidate images
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: candidate-images
+          path: .
+      - name: Generate candidate-image SBOMs with pinned syft image
+        run: |
+          syft_image='anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b799e7cadaff6be2ec6d555757c4eeec0c0e48162f20b042ffa1ff'
+          docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint /syft "$syft_image" docker-archive:api-image.tar -o cyclonedx-json=api-sbom.cdx.json
+          docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint /syft "$syft_image" docker-archive:web-image.tar -o cyclonedx-json=web-sbom.cdx.json
+      - name: Preserve candidate-image SBOMs
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: container-sboms
+          overwrite: true
+          path: |
+            api-sbom.cdx.json
+            web-sbom.cdx.json
+          if-no-files-found: error
+          retention-days: 30
+
+  audit-closure:
+    name: audit-closure
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: [research-assurance, assurance-drills, security-summary]
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Download research assurance evidence
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: research-assurance-evidence
+          path: var
+      - name: Download drill evidence
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: assurance-drill-evidence
+          path: var
+      - name: Download aggregate scanner evidence
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: security-summary
+          path: var/security
+      - name: Resolve audit closure against produced evidence
+        run: PYTHONPATH=apps/api/src:scripts python scripts/build_audit_closure.py
+      - name: Preserve audit closure and run binding
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: audit-closure-evidence
+          overwrite: true
+          path: |
+            docs/audit/closure/
+            var/audit-closure-binding.json
+          if-no-files-found: warn
+          retention-days: 30

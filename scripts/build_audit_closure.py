@@ -412,7 +412,7 @@ EVIDENCE: dict[str, list[str]] = {
     "IAM-006": [
         "apps/api/migrations/versions/0003_infrastructure_hardening.py",
         "apps/api/tests/test_postgres_integration.py",
-        ".gitlab-ci.yml::api:postgres-and-restore",
+        ".github/workflows/assurance.yml::postgres",
     ],
     "IAM-007": [
         "apps/api/src/korpus/security/entitlements.py",
@@ -535,7 +535,7 @@ EVIDENCE: dict[str, list[str]] = {
         "apps/web/scripts/validate.mjs",
         "apps/api/tests/test_web_score_presentation.py"
         "::test_the_ui_states_that_the_score_is_not_a_probability",
-        ".gitlab-ci.yml::web:test",
+        ".github/workflows/ci.yml::web-test",
     ],
     "RAG-020": ["apps/api/src/korpus/application/calibration.py", "evals/EVALUATION_PROTOCOL.md"],
     "INF-002": ["deploy/kubernetes", "scripts/validate_kubernetes.py"],
@@ -546,9 +546,9 @@ EVIDENCE: dict[str, list[str]] = {
     ],
     "SRE-003": ["apps/api/src/korpus/infrastructure/observability.py", "infra/otel-collector.yaml"],
     "SRE-006": ["apps/api/src/korpus/main.py", "docs/operations/SLO_AND_RELEASE_POLICY_V5.md"],
-    "SUP-004": [".gitlab-ci.yml::container:build"],
+    "SUP-004": [".github/workflows/assurance.yml::container-build"],
     "SUP-006": [
-        ".gitlab-ci.yml",
+        ".github/workflows/assurance.yml",
         "scripts/run_mutation_tests.py",
         "scripts/validate_infrastructure.py",
     ],
@@ -661,13 +661,13 @@ EVIDENCE: dict[str, list[str]] = {
         "apps/api/tests/test_v5_security_kernel.py"
         "::test_parser_sandbox_setting_selects_isolated_parser",
     ],
-    "COD-007": ["apps/api/pyproject.toml", ".gitlab-ci.yml::api:quality"],
+    "COD-007": ["apps/api/pyproject.toml", ".github/workflows/ci.yml::api-quality"],
     "COD-008": [
         "apps/web/scripts/validate.mjs",
         "apps/web/package.json",
         "apps/api/tests/test_browser_oidc.py",
     ],
-    "COD-009": ["pytest.ini", ".gitlab-ci.yml::api:test"],
+    "COD-009": ["pytest.ini", ".github/workflows/ci.yml::api-test"],
     "COD-010": [
         "contracts/openapi.json",
         "scripts/openapi_contract.py",
@@ -696,11 +696,11 @@ EVIDENCE: dict[str, list[str]] = {
         "::test_object_inventory_reconciliation_detects_missing_and_orphaned_files",
     ],
     "OPS-002": [
-        ".gitlab-ci.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/assurance.yml",
         "apps/api/tests/test_gate_parity.py::test_ci_does_not_retry_failing_jobs",
     ],
 }
-
 
 CLASSIFICATION = ClosureClassification(
     closed=frozenset(CLOSED_LOCAL),

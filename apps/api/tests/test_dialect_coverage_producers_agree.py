@@ -1,6 +1,6 @@
 """Два виробники одного звіту мусять СХОДИТИСЬ — і це має бути виміряно, не обіцяно.
 
-`var/coverage-postgres.json` пише джоб `api:postgres-and-restore` у CI. Локального
+`var/coverage-postgres.json` пише джоб `postgres` у GitHub Actions. Локального
 виконавця не було ЖОДНОГО: `run_postgres_suite.sh` іде з `--no-cov` навмисно, бо міряє
 поведінку. Наслідок виміряно 08.09.2026 — після будь-якої зміни джерела `coverage-union`
 порівнював свіжий звіт SQLite зі СТАРИМ звітом постгреса й відмовляв: «прогони описують
@@ -14,13 +14,14 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
+import yaml
+
 ROOT = Path(__file__).resolve().parents[3]
-CI = ROOT / ".gitlab-ci.yml"
+CI = ROOT / ".github/workflows/assurance.yml"
 LOCAL = ROOT / "scripts/run_postgres_coverage.sh"
-JOB = "api:postgres-and-restore"
+JOB = "postgres"
 
 #: Прапорці, від яких залежить САМ ПРЕДМЕТ звіту. Розходження в будь-якому означає, що
 #: два файли з одним іменем описують різні речі.
@@ -28,25 +29,14 @@ SHARED_FLAGS = ("--cov=apps/api/src/korpus", "--cov-branch", "--cov-fail-under=0
 
 
 def _ci_job_lines(job: str) -> list[str]:
-    lines = CI.read_text(encoding="utf-8").splitlines()
-    out: list[str] = []
-    in_job = False
-    in_script = False
-    for line in lines:
-        if re.match(rf"^{re.escape(job)}\s*:\s*$", line):
-            in_job = True
-            continue
-        if in_job and re.match(r"^\S", line):
-            break
-        if in_job and re.match(r"^\s+script\s*:\s*$", line):
-            in_script = True
-            continue
-        if in_job and in_script:
-            if re.match(r"^\s{2}\S", line):
-                in_script = False
-                continue
-            out.append(line.strip().lstrip("- ").strip())
-    return out
+    document = yaml.safe_load(CI.read_text(encoding="utf-8"))
+    selected = document["jobs"][job]
+    return [
+        line.strip()
+        for step in selected.get("steps", ())
+        if isinstance(step, dict) and isinstance(step.get("run"), str)
+        for line in step["run"].splitlines()
+    ]
 
 
 def _ci_pytest_line() -> str:

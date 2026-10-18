@@ -1,0 +1,113 @@
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+import yaml
+
+ROOT = Path(__file__).resolve().parents[3]
+ASSURANCE = ROOT / ".github/workflows/assurance.yml"
+CI = ROOT / ".github/workflows/ci.yml"
+
+
+def _jobs() -> dict[str, dict]:
+    document = yaml.safe_load(ASSURANCE.read_text(encoding="utf-8"))
+    return document["jobs"]
+
+
+def _runs(job: dict) -> str:
+    return "\n".join(
+        str(step["run"])
+        for step in job.get("steps", ())
+        if isinstance(step, dict) and "run" in step
+    )
+
+
+def _artifact_names(job: dict, action: str) -> set[str]:
+    return {
+        str(step.get("with", {}).get("name"))
+        for step in job.get("steps", ())
+        if isinstance(step, dict) and str(step.get("uses", "")).startswith(action)
+    }
+
+
+def test_source_scanners_are_independent_blockers_and_summary_consumes_their_artifacts() -> None:
+    jobs = _jobs()
+    producers = {
+        "source-secret-scan": "security-gitleaks",
+        "python-dependency-audit": "security-pip-audit",
+        "infrastructure-scan": "security-trivy",
+    }
+    for job_id, artifact in producers.items():
+        assert not jobs[job_id].get("needs")
+        assert artifact in _artifact_names(jobs[job_id], "actions/upload-artifact@")
+
+    summary = jobs["security-summary"]
+    assert set(summary["needs"]) == set(producers)
+    assert set(producers.values()) <= _artifact_names(summary, "actions/download-artifact@")
+    assert '--commit "$GITHUB_SHA"' in _runs(summary)
+
+
+def test_audit_closure_downloads_each_runtime_evidence_class_before_resolving() -> None:
+    jobs = _jobs()
+    closure = jobs["audit-closure"]
+    assert set(closure["needs"]) == {
+        "research-assurance",
+        "assurance-drills",
+        "security-summary",
+    }
+    assert _artifact_names(closure, "actions/download-artifact@") == {
+        "research-assurance-evidence",
+        "assurance-drill-evidence",
+        "security-summary",
+    }
+    assert "scripts/build_audit_closure.py" in _runs(closure)
+
+
+def test_container_scan_and_sbom_consume_the_same_candidate_images() -> None:
+    jobs = _jobs()
+    assert jobs["container-scan"]["needs"] == ["container-build"]
+    assert jobs["container-sbom"]["needs"] == ["container-build"]
+    for name in ("container-scan", "container-sbom"):
+        assert "candidate-images" in _artifact_names(jobs[name], "actions/download-artifact@")
+
+
+def test_every_external_scanner_image_is_digest_pinned() -> None:
+    runs = "\n".join(_runs(job) for job in _jobs().values())
+    images = re.findall(r"(?:zricethezav/gitleaks|aquasec/trivy|anchore/syft):[^\s'\"]+", runs)
+    assert len(images) >= 4
+    assert all(re.search(r"@sha256:[0-9a-f]{64}$", image) for image in images)
+
+
+def test_both_dialects_feed_one_fail_closed_union_job() -> None:
+    jobs = _jobs()
+    union = jobs["coverage-union"]
+    assert set(union["needs"]) == {"sqlite-coverage", "postgres"}
+    assert _artifact_names(union, "actions/download-artifact@") == {
+        "sqlite-coverage-evidence",
+        "postgres-evidence",
+    }
+    assert "merge_dialect_coverage.py" in _runs(union)
+
+
+def test_previously_unmirrored_lane_commands_are_blocking() -> None:
+    jobs = _jobs()
+    assert "scripts/run_plasticity_gate.py" in _runs(jobs["research-assurance"])
+    assert "scripts/chaos_matrix.py" in _runs(jobs["assurance-drills"])
+
+    ci_jobs = yaml.safe_load(CI.read_text(encoding="utf-8"))["jobs"]
+    web = _runs(ci_jobs["web-test"])
+    assert "make web-contract-check PY=python" in web
+
+
+def test_uploaded_evidence_is_replaced_by_the_current_run_attempt() -> None:
+    workflows = (_jobs(), yaml.safe_load(CI.read_text(encoding="utf-8"))["jobs"])
+    uploads = [
+        step
+        for jobs in workflows
+        for job in jobs.values()
+        for step in job.get("steps", ())
+        if str(step.get("uses", "")).startswith("actions/upload-artifact@")
+    ]
+    assert uploads
+    assert all(step.get("with", {}).get("overwrite") is True for step in uploads)

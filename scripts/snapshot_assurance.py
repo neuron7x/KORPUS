@@ -47,6 +47,19 @@ def load_json(path: Path) -> dict[str, object]:
     return value
 
 
+def _pipeline_identity() -> dict[str, str]:
+    github = os.environ if os.getenv("GITHUB_ACTIONS") == "true" else {}
+    return {
+        "provider": "github-actions" if github else "noncanonical",
+        "repository": github.get("GITHUB_REPOSITORY", "UNKNOWN"),
+        "workflow": github.get("GITHUB_WORKFLOW", "UNKNOWN"),
+        "run_id": github.get("GITHUB_RUN_ID", "UNKNOWN"),
+        "run_attempt": github.get("GITHUB_RUN_ATTEMPT", "UNKNOWN"),
+        "commit_sha": github.get("GITHUB_SHA", "UNKNOWN"),
+        "job": github.get("GITHUB_JOB", "UNKNOWN"),
+    }
+
+
 def assemble_ci_report() -> dict[str, object]:
     junit = VAR / "pytest.xml"
     coverage = VAR / "coverage.xml"
@@ -79,11 +92,7 @@ def assemble_ci_report() -> dict[str, object]:
         "schema_version": 2,
         "status": "PASS" if hard_pass else "FAIL",
         "provenance": "CI_ARTIFACT_ASSEMBLY",
-        "pipeline": {
-            "id": os.getenv("CI_PIPELINE_ID", "UNKNOWN"),
-            "commit_sha": os.getenv("CI_COMMIT_SHA", "UNKNOWN"),
-            "job_id": os.getenv("CI_JOB_ID", "UNKNOWN"),
-        },
+        "pipeline": _pipeline_identity(),
         "pytest": {
             key: suite.attrib.get(key, "0")
             for key in ("tests", "failures", "errors", "skipped", "time")
