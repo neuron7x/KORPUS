@@ -196,6 +196,14 @@ class RepositoryContext:
     init_text: str = ""
     readme: str = ""
     path_count: int = 0
+    # ЗНАМЕННИК ОБХОДУ. `path_count` ним не є і ніколи не був: він росте на КОЖНОМУ
+    # записі `rglob`, до перевірки «це файл» і до пропуску. Тобто він тотожний і коли
+    # оглянуто 2701 файл, і коли оглянуто НУЛЬ — сигнал із нульовою ентропією, який
+    # `validate_repository` друкує як «16292 paths» і який ніхто не гейтить.
+    # `files_examined` рахується ПІСЛЯ пропуску: це ті файли, яким справді поставили
+    # три питання. `roots_examined` каже, з яких верхніх тек вони прийшли.
+    files_examined: int = 0
+    roots_examined: set[str] = field(default_factory=set)
     validation_context: str = "SOURCE_CHECKOUT"
 
     def exists(self, relative: str) -> bool:
@@ -250,6 +258,12 @@ def _is_oversized_file(context: RepositoryContext, path: Path, relative: str) ->
     return path.stat().st_size > MAX_FILE_BYTES and not archival
 
 
+def _record_examined(context: RepositoryContext, inside: Path) -> None:
+    """Знаменник обходу: файл, якому справді поставили питання, і його верхня тека."""
+    context.files_examined += 1
+    context.roots_examined.add(inside.parts[0] if len(inside.parts) > 1 else "")
+
+
 def _scan_tree(context: RepositoryContext, root: Path, git_tracked: frozenset[str]) -> None:
     for path in root.rglob("*"):
         context.path_count += 1
@@ -265,6 +279,7 @@ def _scan_tree(context: RepositoryContext, root: Path, git_tracked: frozenset[st
         if any(part in SKIP_PARTS for part in inside.parts):
             continue
         relative = inside.as_posix()
+        _record_examined(context, inside)
         if _is_oversized_file(context, path, relative):
             context.oversized.append(relative)
         if path.suffix in SCANNED_SUFFIXES:
@@ -324,6 +339,38 @@ def _slug(relative: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", relative.lower()).strip("_")
 
 
+def blind_roots(context: RepositoryContext) -> list[str]:
+    """Верхні теки, що існують у дереві, але не дали ЖОДНОГО оглянутого файла.
+
+    Підлога знаменника, і навмисно не `files_examined > 0`. «Не нуль» — хибне
+    питання: обхід, що оглянув один файл із трьох тисяч, ту умову задовольняє й
+    лишає перевірку зеленою над майже порожнім входом. Питання має бути «чи
+    оглянуто те, що мали оглянути».
+
+    Тому міра структурна, без магічного числа: кожна верхня тека, яка Є на диску і
+    яку не пропускають за правилом, мусить дати щонайменше один оглянутий файл.
+    Тека, якої нема, нічого не вимагає; тека зі `SKIP_PARTS` пропускається законно.
+    Число не треба ратчетити — воно виводиться з дерева щоразу наново.
+
+    ЩО САМЕ ЦЕ ЛОВИТЬ, виміряно 06.09.2026: обхід, осліплений компонентою шляху,
+    віддавав `tracked_secrets`, `oversized` і `placeholders` порожніми, і
+    `validate_repository` був ЗЕЛЕНИЙ. Жодне твердження в коді не питало, чи обхід
+    узагалі щось бачив; єдине, що існувало, — `assert context.path_count > 0` у
+    тесті, і воно істинне при нульовому фактичному огляді.
+    """
+    try:
+        present = {
+            entry.name
+            for entry in context.root.iterdir()
+            if entry.is_dir() and not entry.name.startswith(".") and entry.name not in SKIP_PARTS
+        }
+    except OSError:
+        # Корінь нечитабельний — це ВІДМОВА, і вона мусить бути видимою, а не
+        # порожнім переліком, який читається як згода.
+        return ["<корінь нечитабельний>"]
+    return sorted(present - context.roots_examined)
+
+
 REPOSITORY_REQUIREMENTS: tuple[Requirement, ...] = (
     *[
         _requirement(
@@ -342,6 +389,13 @@ REPOSITORY_REQUIREMENTS: tuple[Requirement, ...] = (
         )
         for filename in REQUIRED_MIGRATIONS
     ],
+    _requirement(
+        "repo.scan.every_root_was_examined",
+        "the walk examined at least one file under every non-skipped top-level directory",
+        lambda c: not blind_roots(c),
+        "три питання, поставлені порожньому переліку, дають три зелені відповіді; "
+        "перевірка без знаменника не відрізняє «нічого не знайдено» від «нічого не дивилось»",
+    ),
     _requirement(
         "repo.json_documents_parse",
         "every shipped JSON contract and schema parses",

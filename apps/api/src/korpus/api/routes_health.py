@@ -11,7 +11,7 @@ from korpus.api.dependencies import (
     get_repository,
     get_semantic_source,
 )
-from korpus.api.readiness_projection import success_payload
+from korpus.api.readiness_projection import schema_fields, success_payload
 from korpus.application.ports import ObjectStore
 from korpus.application.semantic_readiness import failure_reason, semantic_status
 from korpus.config import Settings, get_settings
@@ -82,7 +82,7 @@ def ready(
     payload = {
         **snapshot,
         "object_store": object_store_ok,
-        "schema_current": schema_ok,
+        **schema_fields(snapshot, settings.schema_mode),
         "telemetry": telemetry,
         "semantic_index": semantic_coverage.as_dict() if semantic_coverage is not None else None,
         "ready": is_ready,

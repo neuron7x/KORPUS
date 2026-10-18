@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: pilot-posture machine-tevv release-freeze ci-run ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite sqlite-recovery-drill handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage selftest-falsifiability installed-units-verify canonical-verify branch-integration owner-packet owner-packet-check mutation-delta-gate mutation-delta-gate-selftest blank-corpus-probe clean-room serving-readiness serving-readiness-selftest corpus-pack corpus-install corpus-transport-rehearsal corpus-transport-selftest
+.PHONY: pilot-posture machine-tevv release-freeze ci-run ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-load-probe nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite sqlite-recovery-drill handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage selftest-falsifiability installed-units-verify canonical-verify branch-integration owner-packet owner-packet-check mutation-delta-gate mutation-delta-gate-selftest blank-corpus-probe clean-room serving-readiness serving-readiness-selftest corpus-pack corpus-install corpus-transport-rehearsal corpus-transport-selftest
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -1274,13 +1274,35 @@ branch-consolidation:
 	$(PY) scripts/verify_branch_consolidation.py --selftest
 	$(PY) scripts/verify_branch_consolidation.py $(if $(CANONICAL),--canonical "$(CANONICAL)")
 
-check-nightly:
+# Аргументи прольоту навантаження названі ТУТ, а не в рядку лану. Доти вони стояли
+# в рецепті `check-nightly`, і тому `make` гнав пробу з 8 с, а бігун за ТИМ САМИМ
+# оголошенням викликав би `make load-probe` без змінних — з дефолтами 30/60 с.
+# Оголошений лан і виконуваний розходились мовчки; обгортка робить їх одним.
+nightly-load-probe:
+	$(MAKE) load-probe PY=$(PY) SECONDS=8 SOAK_SECONDS=8 CONCURRENCY=3 SPIKE=8
+
+# Рядки `$(MAKE)` нижче — ОГОЛОШЕННЯ лану, яке читає `run_lane.lane_targets`.
+# Виконує їх БІГУН, а не `make`, і це виправлення вади, не смак.
+#
+# ВИМІРЯНО 06.09.2026: `korpus-nightly-gates.service` о 05:11:06 упав rc=2 на ПЕРШОМУ
+# кроці — `cache-in-tree` знайшов `.mypy_cache` у дереві. `make` спиняється на першій
+# відмові, тож дев'ять із десяти наступних кроків НЕ ВИКОНАЛИСЬ, а з ними 23 перевірочні
+# цілі, які не живуть на жодній іншій дорозі: `gate-liveness`, `mutation-probe`,
+# `verify-clean-clone`, `coverage-ratchet`, `selftest-falsifiability`, `corpus-axes`.
+# Один кеш-файл щодня знімав із чергування чверть усього нагляду.
+#
 # ПЕРШИМ, і це не порядок за смаком: гейт про недосяжність сам мусить бути досяжним.
-# Поставлений після чогось червоного, він розділив би долю тих 26, про які й розповідає.
+# Задум збережено — хибним був не порядок, а те, що перший крок міг спинити решту.
+# Бігун доходить до кінця й віддає трійку {пройшло, впало, НЕ ЗАПУСКАЛОСЬ}, і падає,
+# якщо ненульове бодай одне з трьох: невиконане не є пройденим.
+#
+# NIGHTLY_DIRECT=1 повертає послідовний прогін для налагодження одного кроку.
+check-nightly:
+ifeq ($(NIGHTLY_DIRECT),1)
 	$(MAKE) lane-report PY=$(PY)
 	$(MAKE) nightly-evidence PY=$(PY)
 	$(MAKE) check-deployment PY=$(PY)
-	$(MAKE) load-probe PY=$(PY) SECONDS=8 SOAK_SECONDS=8 CONCURRENCY=3 SPIKE=8
+	$(MAKE) nightly-load-probe PY=$(PY)
 	$(MAKE) corpus-axes PY=$(PY)
 	$(MAKE) gate-liveness PY=$(PY)
 	$(MAKE) mutation-probe PY=$(PY)
@@ -1296,6 +1318,10 @@ check-nightly:
 # міг, і жодна з них не була б помічена тут: локальний лан зелений в усіх чотирьох.
 # ВІДСУТНІЙ docker — це ВІДМОВА, не пропуск: гейт, який тихо не біжить, ним не є.
 	$(MAKE) postgres-suite PY=$(PY)
+else
+	$(PY) scripts/run_lane.py --selftest
+	$(PY) scripts/run_lane.py --lane check-nightly --timeout $(or $(NIGHTLY_TIMEOUT),7200)
+endif
 
 # Мутація — ОСТАННІЙ продюсер: її звіт єдиний в'яжеться до дайджесту джерела, тож
 # будь-що після неї робить його звітом про інше дерево.
