@@ -56,7 +56,6 @@ def refs(root: Path = ROOT) -> list[str]:
     return sorted(names)
 
 
-
 def local_branches(root: Path = ROOT) -> list[str]:
     """Only actual local branches may be judged as inactive local work.
 
