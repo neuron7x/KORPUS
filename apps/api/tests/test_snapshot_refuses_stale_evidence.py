@@ -100,3 +100,54 @@ def test_a_missing_hashed_artifact_is_refused(tmp_path: Path, monkeypatch) -> No
     monkeypatch.setattr(module, "VAR", var)
     with pytest.raises(SystemExit, match=r"did not hash|refusing to promote"):
         module._verify_evidence_matches_the_gate()
+
+
+def test_assembled_run_identity_comes_from_github_actions(tmp_path: Path, monkeypatch) -> None:
+    module = _load_module()
+    var = tmp_path / "var"
+    var.mkdir()
+    (var / "pytest.xml").write_text(
+        '<testsuite tests="1" failures="0" errors="0" skipped="0" time="0.1"/>',
+        encoding="utf-8",
+    )
+    (var / "coverage.xml").write_text('<coverage line-rate="1" branch-rate="1"/>', encoding="utf-8")
+    payloads = {
+        "eval-report.json": {"status_accuracy": 1.0, "leakage_failures": 0},
+        "mutation-report.json": {"mutation_score_over_catalogue": 1.0},
+        "migration-report.json": {"table_set_match": True, "sqlite_fts5_present": True},
+        "scale-report.json": {"status": "PASS"},
+        "operational-gate.json": {"status": "PASS"},
+    }
+    for name, payload in payloads.items():
+        (var / name).write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(module, "VAR", var)
+    monkeypatch.setenv("GITHUB_REPOSITORY", "neuron7x/KORPUS")
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.setenv("GITHUB_WORKFLOW", "assurance")
+    monkeypatch.setenv("GITHUB_RUN_ID", "123")
+    monkeypatch.setenv("GITHUB_RUN_ATTEMPT", "2")
+    monkeypatch.setenv("GITHUB_SHA", "a" * 40)
+    monkeypatch.setenv("GITHUB_JOB", "package")
+
+    pipeline = module.assemble_ci_report()["pipeline"]
+
+    assert pipeline == {
+        "provider": "github-actions",
+        "repository": "neuron7x/KORPUS",
+        "workflow": "assurance",
+        "run_id": "123",
+        "run_attempt": "2",
+        "commit_sha": "a" * 40,
+        "job": "package",
+    }
+
+
+def test_non_github_environment_cannot_claim_github_provenance(monkeypatch) -> None:
+    module = _load_module()
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    monkeypatch.setenv("GITHUB_RUN_ID", "123")
+
+    pipeline = module._pipeline_identity()
+
+    assert pipeline["provider"] == "noncanonical"
+    assert pipeline["run_id"] == "UNKNOWN"

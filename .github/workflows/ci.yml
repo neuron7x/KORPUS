@@ -48,6 +48,20 @@ jobs:
           python -m pip check
       - name: Validate repository and GitHub policy
         run: make validate PY=python
+      - name: Preserve repository validation evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: repository-validation
+          overwrite: true
+          path: |
+            var/infrastructure-validation.json
+            var/kubernetes-validation.json
+            var/supply-chain-inventory.json
+            var/environment-observation.json
+            var/builtin-security-gate.json
+          if-no-files-found: warn
+          retention-days: 30
 
   api-test:
     name: api-tests
@@ -68,11 +82,25 @@ jobs:
         run: |
           python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
           python -m pip check
-      - name: Run API test and coverage gates
+      - name: Run API test and local coverage gates
         run: |
-          make coverage-ratchet PY=python
+          make api-test PY=python
           make determinism-gate PY=python
           make stress-gate PY=python
+      - name: Preserve API evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: api-test-evidence
+          overwrite: true
+          path: |
+            var/pytest.xml
+            var/coverage.xml
+            var/coverage.json
+            var/determinism-gate.json
+            var/stress-gate.json
+          if-no-files-found: warn
+          retention-days: 30
 
   api-quality:
     name: api-quality
@@ -95,6 +123,15 @@ jobs:
           python -m pip check
       - name: Run static quality gate
         run: make api-lint PY=python
+      - name: Preserve quality evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: api-quality-evidence
+          overwrite: true
+          path: var/quality-report.json
+          if-no-files-found: error
+          retention-days: 30
 
   web-test:
     name: web-tests
@@ -111,10 +148,24 @@ jobs:
         with:
           node-version: 22.16.0
           check-latest: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
       - name: Install exact web dependency graph
         run: npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
+      - name: Verify generated browser contracts
+        run: make web-contract-check PY=python
       - name: Run web negative controls and build
         run: |
           npm --prefix apps/web run lint
           npm --prefix apps/web run test
           npm --prefix apps/web run build
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          test -n "$browser"
+          KORPUS_BROWSER_BIN="$browser" npm --prefix apps/web run test:browser

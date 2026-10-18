@@ -22,7 +22,7 @@ from collections.abc import Iterable, Mapping
 from pathlib import Path
 
 TEST_ROOT = "apps/api/tests/"
-CI_FILE = ".gitlab-ci.yml"
+GITHUB_WORKFLOW_ROOT = ".github/workflows/"
 
 # A citation names one of two different things, and conflating them cost a week of
 # pipelines. `apps/api/tests/test_x.py` is *in the tree*: every clone has it, and its
@@ -49,20 +49,31 @@ def split_reference(reference: str) -> tuple[str, str | None]:
     return path, selector.split("[", 1)[0]
 
 
-def _ci_job_names(path: Path) -> set[str]:
-    """Job names are the top-level keys of the pipeline document.
+def _github_job_names(path: Path) -> set[str]:
+    """Job ids are the direct children of a GitHub workflow's ``jobs`` mapping.
 
     Read with a regex rather than a YAML parser: this check has to run in the same
     place the pipeline does, and pulling a parser in would put the check behind the
     install step whose absence is exactly the failure mode being guarded.
     """
 
+    text = path.read_text(encoding="utf-8")
+    jobs = re.search(r"^jobs:\s*$(.*?)(?=^\S|\Z)", text, re.MULTILINE | re.DOTALL)
+    if jobs is None:
+        return set()
     return {
         match.group(1)
-        for match in re.finditer(
-            r"^([A-Za-z][\w:.-]*):\s*$", path.read_text(encoding="utf-8"), re.MULTILINE
-        )
+        for match in re.finditer(r"^  ([A-Za-z_][\w-]*):\s*$", jobs.group(1), re.MULTILINE)
     }
+
+
+def _is_github_workflow(relative: str) -> bool:
+    path = Path(relative)
+    return (
+        relative.startswith(GITHUB_WORKFLOW_ROOT)
+        and path.parent.as_posix() == GITHUB_WORKFLOW_ROOT.rstrip("/")
+        and path.suffix in {".yml", ".yaml"}
+    )
 
 
 def _defined_names(path: Path) -> set[str]:
@@ -101,13 +112,13 @@ def verify_references(
             continue
         if selector is None:
             continue
-        if relative == CI_FILE:
-            if selector not in _ci_job_names(path):
-                problems.append(f"cited CI job does not exist: {selector}")
+        if _is_github_workflow(relative):
+            if selector not in _github_job_names(path):
+                problems.append(f"cited GitHub Actions job does not exist: {selector}")
             continue
         if path.suffix != ".py":
             problems.append(
-                f"{reference}: only .py tests and {CI_FILE} jobs can be cited by selector"
+                f"{reference}: only .py tests and GitHub Actions jobs can be cited by selector"
             )
             continue
         if selector not in _defined_names(path):
@@ -121,7 +132,7 @@ def is_executable_evidence(reference: str) -> bool:
     relative, selector = split_reference(reference)
     if relative.startswith(TEST_ROOT):
         return True
-    return relative == CI_FILE and selector is not None
+    return _is_github_workflow(relative) and selector is not None
 
 
 def verify_closure_registry(

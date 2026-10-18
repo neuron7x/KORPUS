@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 
 EXPECTED = {"gitleaks", "pip-audit:runtime", "pip-audit:dev", "trivy"}
@@ -24,15 +25,11 @@ def _load(path: Path) -> dict[str, object]:
     return value if isinstance(value, dict) else {}
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("markers", nargs="+", type=Path)
-    parser.add_argument("--out", type=Path, default=Path("var/security/summary.json"))
-    args = parser.parse_args()
+def _collect(paths: list[Path]) -> tuple[list[dict[str, object]], set[str], bool]:
     records: list[dict[str, object]] = []
     commits: set[str] = set()
     valid_shapes = True
-    for path in args.markers:
+    for path in paths:
         marker = _load(path)
         valid_shapes &= marker.get("schema") == "korpus.ci-scanner-result.v1"
         commit = str(marker.get("commit_sha", ""))
@@ -43,18 +40,40 @@ def main() -> int:
             valid_shapes = False
             continue
         records.extend(item for item in scanners if isinstance(item, dict))
+    return records, commits, valid_shapes
+
+
+def _checks(context: tuple[list[dict[str, object]], set[str], bool, str, bool]) -> dict[str, bool]:
+    records, commits, valid_shapes, expected_commit, github_context = context
     parsed = {str(item.get("scanner")): item.get("exit_code") for item in records}
-    expected_commit = os.getenv("CI_COMMIT_SHA", "")
-    checks = {
+    return {
         "marker_shapes": valid_shapes,
         "scanner_set_exact": set(parsed) == EXPECTED and len(records) == len(EXPECTED),
         "all_scanners_zero": all(parsed.get(name) == 0 for name in EXPECTED),
         "single_commit": len(commits) == 1,
-        "current_commit": not expected_commit or commits == {expected_commit},
+        "current_commit": bool(re.fullmatch(r"[0-9a-f]{40}", expected_commit))
+        and commits == {expected_commit},
+        "github_actions_context": github_context,
     }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("markers", nargs="+", type=Path)
+    parser.add_argument("--out", type=Path, default=Path("var/security/summary.json"))
+    parser.add_argument("--commit", help="exact revision scanned; defaults to provider SHA")
+    args = parser.parse_args()
+    records, commits, valid_shapes = _collect(args.markers)
+    expected_commit = args.commit or os.getenv("GITHUB_SHA", "")
+    github_context = os.getenv("GITHUB_ACTIONS") == "true" and bool(
+        re.fullmatch(r"[1-9][0-9]*", os.getenv("GITHUB_RUN_ID", ""))
+    )
+    checks = _checks((records, commits, valid_shapes, expected_commit, github_context))
     failures = [name for name, ok in checks.items() if not ok]
     payload = {
         "schema_version": 2,
+        "provider": {True: "github-actions", False: "noncanonical"}[github_context],
+        "github_run_id": os.getenv("GITHUB_RUN_ID", "UNKNOWN"),
         "status": "PASS" if not failures else "FAIL",
         "commit_sha": next(iter(commits)) if len(commits) == 1 else "UNKNOWN",
         "scanners": sorted(records, key=lambda item: str(item.get("scanner"))),

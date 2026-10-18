@@ -20,9 +20,17 @@ def _marker(path: Path, commit: str, scanners: list[dict[str, object]]) -> None:
 def _run(tmp_path: Path, markers: list[Path], commit: str = "a" * 40):
     out = tmp_path / "summary.json"
     return subprocess.run(
-        [sys.executable, str(SCRIPT), *map(str, markers), "--out", str(out)],
+        [
+            sys.executable,
+            str(SCRIPT),
+            *map(str, markers),
+            "--out",
+            str(out),
+            "--commit",
+            commit,
+        ],
         cwd=ROOT,
-        env={"CI_COMMIT_SHA": commit},
+        env={"GITHUB_ACTIONS": "true", "GITHUB_SHA": commit, "GITHUB_RUN_ID": "123"},
         capture_output=True,
         text=True,
         check=False,
@@ -69,3 +77,31 @@ def test_missing_nonzero_or_stale_marker_fails(tmp_path: Path) -> None:
         "single_commit",
         "current_commit",
     }.intersection(report["failures"])
+
+
+def test_missing_provider_commit_fails_closed(tmp_path: Path) -> None:
+    commit = "d" * 40
+    a, b, c = (tmp_path / name for name in ("a.json", "b.json", "c.json"))
+    _marker(a, commit, [{"scanner": "gitleaks", "exit_code": 0}])
+    _marker(
+        b,
+        commit,
+        [
+            {"scanner": "pip-audit:runtime", "exit_code": 0},
+            {"scanner": "pip-audit:dev", "exit_code": 0},
+        ],
+    )
+    _marker(c, commit, [{"scanner": "trivy", "exit_code": 0}])
+    out = tmp_path / "summary.json"
+    run = subprocess.run(
+        [sys.executable, str(SCRIPT), str(a), str(b), str(c), "--out", str(out)],
+        cwd=ROOT,
+        env={},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert run.returncode != 0
+    report = json.loads(out.read_text())
+    assert "current_commit" in report["failures"]
+    assert report["provider"] == "noncanonical"

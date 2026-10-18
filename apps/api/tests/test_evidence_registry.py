@@ -157,6 +157,27 @@ def test_scanner_summary_refuses_false_or_incomplete_success(
         scanner_summary.validate_security_summary(tmp_path, "summary.json", "LOCAL_SCANNERS")
 
 
+def test_gitlab_scanner_summary_cannot_claim_canonical_ci_evidence(tmp_path, monkeypatch) -> None:
+    path = tmp_path / "summary.json"
+    payload = {
+        "schema_version": 2,
+        "provider": "gitlab-ci",
+        "commit_sha": "a" * 40,
+        "status": "PASS",
+        "worst_exit_code": 0,
+        "checks": dict.fromkeys(scanner_summary.CI_CHECKS, True),
+        "failures": [],
+        "scanners": [
+            {"scanner": name, "exit_code": 0} for name in sorted(scanner_summary.EXPECTED_SCANNERS)
+        ],
+    }
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(scanner_summary, "source_tree_digest", lambda _ref: "same")
+
+    with pytest.raises(RuntimeError, match="canonical GitHub Actions"):
+        scanner_summary.validate_security_summary(tmp_path, "summary.json", "PINNED_CI_SCANNERS")
+
+
 def test_both_closure_executors_validate_the_scanner_payload() -> None:
     for relative in ("scripts/verify_audit_closure_local.py", "scripts/build_audit_closure.py"):
         source = (ROOT / relative).read_text(encoding="utf-8")
@@ -230,10 +251,17 @@ def test_parametrized_citations_resolve_to_their_base_name() -> None:
     assert split_reference("a/b.py") == ("a/b.py", None)
 
 
-def test_a_ci_job_citation_resolves_against_the_pipeline() -> None:
-    assert verify_references(ROOT, [".gitlab-ci.yml::api:test"]) == []
-    problems = verify_references(ROOT, [".gitlab-ci.yml::api:job-that-never-existed"])
-    assert problems and "CI job does not exist" in problems[0]
+def test_a_ci_job_citation_resolves_against_the_canonical_workflow() -> None:
+    assert verify_references(ROOT, [".github/workflows/ci.yml::api-test"]) == []
+    problems = verify_references(ROOT, [".github/workflows/ci.yml::job-that-never-existed"])
+    assert problems and "GitHub Actions job does not exist" in problems[0]
+
+
+def test_the_historical_gitlab_pipeline_is_not_executable_closure_authority() -> None:
+    reference = ".gitlab-ci.yml::api:test"
+    assert is_executable_evidence(reference) is False
+    problems = verify_references(ROOT, [reference])
+    assert problems and "only .py tests and GitHub Actions jobs" in problems[0]
 
 
 def test_a_selector_on_a_non_test_file_is_refused() -> None:
@@ -250,8 +278,9 @@ def test_a_directory_citation_is_accepted() -> None:
     [
         ("apps/api/tests/test_x.py::test_y", True),
         ("apps/api/tests/test_x.py", True),
-        (".gitlab-ci.yml::api:test", True),
-        (".gitlab-ci.yml", False),
+        (".github/workflows/ci.yml::api-test", True),
+        (".github/workflows/ci.yml", False),
+        (".gitlab-ci.yml::api:test", False),
         ("docs/governance/RISK_REGISTER.md", False),
         ("apps/api/src/korpus/main.py", False),
     ],

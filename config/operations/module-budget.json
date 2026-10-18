@@ -4,6 +4,41 @@
       "changes": [
         {
           "from": {
+            "max_complexity": 14,
+            "max_function_lines": 45
+          },
+          "path": "scripts/aggregate_ci_security_summary.py",
+          "to": {
+            "max_complexity": 8,
+            "max_function_lines": 31
+          }
+        },
+        {
+          "from": {
+            "max_function_lines": 26
+          },
+          "path": "scripts/fetch_ci_scanner_markers.py",
+          "to": {
+            "max_function_lines": 23
+          }
+        },
+        {
+          "from": {
+            "max_function_lines": 58
+          },
+          "path": "scripts/snapshot_assurance.py",
+          "to": {
+            "max_function_lines": 54
+          }
+        }
+      ],
+      "on": "2026-10-19",
+      "reason": "GitHub evidence authority splits marker collection, artifact admission, and run identity into bounded predicates; recorded function ceilings fall to the exact measured shapes."
+    },
+    {
+      "changes": [
+        {
+          "from": {
             "lines": 898,
             "max_complexity": 23,
             "max_function_lines": 175
@@ -1422,7 +1457,7 @@
       "reason": "v0.8.0 conflict-preserving evidence fusion"
     },
     "apps/api/src/korpus/application/evidence_registry.py": {
-      "lines": 158,
+      "lines": 169,
       "max_complexity": 10,
       "max_function_args": 5,
       "max_function_lines": 36,
@@ -3575,10 +3610,10 @@
       "reason": "Реєстр осей агентів, журнал тверджень і план: точна виміряна початкова стеля. `check_registry` мала складність 23 і `check_ledger` 16 — стелю не піднімали, обидві розділені на функції-правила по одній властивості кожна, вивід --selftest/--registry/--ledger доведено незмінним до і після."
     },
     "scripts/aggregate_ci_security_summary.py": {
-      "lines": 75,
-      "max_complexity": 14,
+      "lines": 94,
+      "max_complexity": 8,
       "max_function_args": 1,
-      "max_function_lines": 45,
+      "max_function_lines": 31,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "ACT-007: aggregate pinned CI scanner execution markers; initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
@@ -3735,7 +3770,7 @@
       "reason": "2026-10-03: exact initial ceiling for the single closure predicate shared by canonical and local evidence lanes."
     },
     "scripts/audit_scanner_summary.py": {
-      "lines": 130,
+      "lines": 139,
       "max_complexity": 12,
       "max_function_args": 3,
       "max_function_lines": 35,
@@ -4304,10 +4339,10 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/fetch_ci_scanner_markers.py": {
-      "lines": 128,
+      "lines": 276,
       "max_complexity": 8,
       "max_function_args": 2,
-      "max_function_lines": 26,
+      "max_function_lines": 23,
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "Новий виробник: маркери сканерів із конвеєра у var/security/ з перевіркою, що джоб біг на коміті з тотожним джерелом. Доти єдиним виробником була рука."
@@ -5853,10 +5888,10 @@
       "reason": "v0.4.0: artifact/material-bound SLSA v1.2 provenance with explicit untrusted local builder; initial measured ratchet ceiling"
     },
     "scripts/snapshot_assurance.py": {
-      "lines": 255,
+      "lines": 258,
       "max_complexity": 10,
       "max_function_args": 1,
-      "max_function_lines": 58,
+      "max_function_lines": 54,
       "max_nesting": 2,
       "proof_lines": 0
     },
@@ -6419,6 +6454,57 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+    {
+      "changes": [
+        {
+          "from": {
+            "lines": 158
+          },
+          "path": "apps/api/src/korpus/application/evidence_registry.py",
+          "to": {
+            "lines": 169
+          }
+        },
+        {
+          "from": {
+            "lines": 75
+          },
+          "path": "scripts/aggregate_ci_security_summary.py",
+          "to": {
+            "lines": 94
+          }
+        },
+        {
+          "from": {
+            "lines": 130
+          },
+          "path": "scripts/audit_scanner_summary.py",
+          "to": {
+            "lines": 139
+          }
+        },
+        {
+          "from": {
+            "lines": 128
+          },
+          "path": "scripts/fetch_ci_scanner_markers.py",
+          "to": {
+            "lines": 276
+          }
+        },
+        {
+          "from": {
+            "lines": 255
+          },
+          "path": "scripts/snapshot_assurance.py",
+          "to": {
+            "lines": 258
+          }
+        }
+      ],
+      "on": "2026-10-19",
+      "reason": "Canonical GitHub Actions evidence adds workflow-job resolution, exact scanner-run artifact retrieval with ZIP and dual-SHA binding, fail-closed commit aggregation, and GitHub run provenance. The line deltas are the named implementation cost; complexity and function-size ceilings were not raised."
+    },
     {
       "changes": [
         {
