@@ -4136,6 +4136,15 @@
       "proof_lines": 44,
       "reason": "новий гейт: цілість аргументів у юнітах systemd; початковий точний вимір і є стелею ратчета"
     },
+    "scripts/ci_mirror_evidence.py": {
+      "lines": 365,
+      "max_complexity": 15,
+      "max_function_args": 3,
+      "max_function_lines": 37,
+      "max_nesting": 3,
+      "proof_lines": 79,
+      "reason": "19.10.2026: початкова точна стеля виконуваного stronger-than контракту для двох дозволених розбіжностей local/GitHub CI; 10 негативних контролів отруюють scanner-команди, hash-lock, needs та artifact edges."
+    },
     "scripts/compare_retrieval_configs.py": {
       "lines": 138,
       "max_complexity": 9,
@@ -4713,6 +4722,15 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "WEB-001: the browser's constraints generated from the OpenAPI contract and policy.py"
+    },
+    "scripts/github_actions_evidence.py": {
+      "lines": 559,
+      "max_complexity": 14,
+      "max_function_args": 6,
+      "max_function_lines": 49,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "19.10.2026: початкова точна стеля спільного fail-closed GitHub Actions provenance verifier: canonical repo, workflow path/id, pull_request ref/SHA, latest run/attempt, jobs та artifact API completeness."
     },
     "scripts/heal_corpus_from_backup.py": {
       "lines": 607,

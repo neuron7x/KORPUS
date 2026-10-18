@@ -347,7 +347,7 @@ jobs:
           check-latest: false
       - name: Audit both locked dependency graphs
         run: |
-          python -m pip install 'pip-audit==2.10.1'
+          python -m pip install --require-hashes --no-deps -r config/operations/pip-audit-toolchain.lock
           pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.runtime.lock
           pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.dev.lock
           mkdir -p var/security
@@ -503,8 +503,8 @@ jobs:
       - name: Scan candidate images with pinned trivy image
         run: |
           trivy_image='aquasec/trivy:0.70.0@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e'
-          docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint trivy "$trivy_image" image --input api-image.tar --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed
-          docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint trivy "$trivy_image" image --input web-image.tar --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed --ignorefile /work/.trivyignore.web.yaml
+          docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint trivy "$trivy_image" image --input api-image.tar --exit-code 1 --severity HIGH,CRITICAL
+          docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint trivy "$trivy_image" image --input web-image.tar --exit-code 1 --severity HIGH,CRITICAL --ignorefile /work/.trivyignore.web.yaml
           docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint trivy "$trivy_image" image --input api-image.tar --exit-code 0 --severity HIGH,CRITICAL --format json --output /work/api-unfixed.json
           docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint trivy "$trivy_image" image --input web-image.tar --exit-code 0 --severity HIGH,CRITICAL --format json --output /work/web-unfixed.json
           mkdir -p var/security

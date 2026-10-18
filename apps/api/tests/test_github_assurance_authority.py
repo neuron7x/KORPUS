@@ -79,6 +79,32 @@ def test_every_external_scanner_image_is_digest_pinned() -> None:
     assert all(re.search(r"@sha256:[0-9a-f]{64}$", image) for image in images)
 
 
+def test_pip_audit_toolchain_is_hash_locked_and_mutable_install_is_absent() -> None:
+    run = _runs(_jobs()["python-dependency-audit"])
+    installs = [line.strip() for line in run.splitlines() if "pip install" in line]
+    assert installs == [
+        "python -m pip install --require-hashes --no-deps "
+        "-r config/operations/pip-audit-toolchain.lock"
+    ]
+    lock = (ROOT / "config/operations/pip-audit-toolchain.lock").read_text(encoding="utf-8")
+    records = [part for part in re.sub(r"\\\n\s*", " ", lock).splitlines() if "==" in part]
+    assert any(line.startswith("pip-audit==2.10.1 ") for line in records)
+    assert all(re.search(r"--hash=sha256:[0-9a-f]{64}(?:\s|$)", line) for line in records)
+
+
+def test_blocking_container_scans_never_blanket_ignore_unfixed_findings() -> None:
+    lines = [
+        line.strip()
+        for line in _runs(_jobs()["container-scan"]).splitlines()
+        if "image --input" in line and "--exit-code 1" in line
+    ]
+    assert len(lines) == 2
+    assert all("--ignore-unfixed" not in line for line in lines)
+    assert "--ignorefile" not in next(line for line in lines if "api-image.tar" in line)
+    web = next(line for line in lines if "web-image.tar" in line)
+    assert "--ignorefile /work/.trivyignore.web.yaml" in web
+
+
 def test_both_dialects_feed_one_fail_closed_union_job() -> None:
     jobs = _jobs()
     union = jobs["coverage-union"]

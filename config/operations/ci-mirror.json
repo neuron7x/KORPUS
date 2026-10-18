@@ -1,7 +1,7 @@
 {
   "schema": "korpus.ci-mirror-registry.v1",
   "measured_at": "2026-10-19",
-  "note": "Джерело віддаленого лану — лише обов'язкові GitHub Actions workflows для pull_request. Архівний .gitlab-ci.yml не кредитує жодної команди. Кожна прийнята предметна розбіжність має причину й дату; мертвий або примарний виняток є відмовою.",
+  "note": "Джерело віддаленого лану — лише обов'язкові GitHub Actions workflows для pull_request. Архівний .gitlab-ci.yml не кредитує жодної команди. Кожна прийнята предметна розбіжність має причину, дату й machine-checked executable evidence у безумовному blocking job; текст без виконуваного доказу, мертвий або примарний виняток є відмовою.",
   "mandatory_pr_workflows": [
     ".github/workflows/ci.yml",
     ".github/workflows/assurance.yml"
@@ -12,25 +12,165 @@
       "on": "2026-10-03",
       "class": "superseded_by_stronger_ci_form",
       "reason": "Локальний wrapper запускає host-installed gitleaks, pip-audit і trivy та маркує LOCAL_SCANNERS. GitHub CI виконує scanners окремими blocking jobs у pinned середовищах і зв'язує їхні артефакти з GITHUB_SHA; запуск host-wrapper на runner був би іншою, слабшою формою виміру.",
-      "evidence": [
-        "job:.github/workflows/assurance.yml:security-gitleaks",
-        "job:.github/workflows/assurance.yml:security-pip-audit",
-        "job:.github/workflows/assurance.yml:security-trivy-config",
-        "job:.github/workflows/assurance.yml:security-summary",
-        "scripts/aggregate_ci_security_summary.py --commit var/security/ci-gitleaks.json var/security/ci-pip-audit.json var/security/ci-trivy.json"
-      ],
-      "closes_when": "верифікатор дзеркала навчиться перевіряти задеклароване stronger-than відношення локальної композиції до кількох GitHub jobs"
+      "closes_when": "верифікатор дзеркала навчиться перевіряти задеклароване stronger-than відношення локальної композиції до кількох GitHub jobs",
+      "superseded_by": {
+        "workflow": ".github/workflows/assurance.yml",
+        "jobs": [
+          {
+            "id": "source-secret-scan",
+            "name": "security-gitleaks",
+            "commands": [
+              "detect --source . --no-banner --redact --exit-code 1",
+              "--log-opts \"$GITHUB_SHA\""
+            ],
+            "needs": [],
+            "uploads": ["security-gitleaks"],
+            "downloads": []
+          },
+          {
+            "id": "python-dependency-audit",
+            "name": "security-pip-audit",
+            "commands": [
+              "python -m pip install --require-hashes --no-deps -r config/operations/pip-audit-toolchain.lock",
+              "pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.runtime.lock",
+              "pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.dev.lock"
+            ],
+            "needs": [],
+            "uploads": ["security-pip-audit"],
+            "downloads": []
+          },
+          {
+            "id": "infrastructure-scan",
+            "name": "security-trivy-config",
+            "commands": [
+              "config --exit-code 1 --severity HIGH,CRITICAL --ignorefile .trivyignore.yaml ."
+            ],
+            "needs": [],
+            "uploads": ["security-trivy"],
+            "downloads": []
+          },
+          {
+            "id": "security-summary",
+            "name": "security-summary",
+            "commands": [
+              "scripts/aggregate_ci_security_summary.py",
+              "--commit \"$GITHUB_SHA\""
+            ],
+            "needs": [
+              "source-secret-scan",
+              "python-dependency-audit",
+              "infrastructure-scan"
+            ],
+            "uploads": ["security-summary"],
+            "downloads": [
+              "security-gitleaks",
+              "security-pip-audit",
+              "security-trivy"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "producer": "source-secret-scan",
+            "consumer": "security-summary",
+            "artifact": "security-gitleaks"
+          },
+          {
+            "producer": "python-dependency-audit",
+            "consumer": "security-summary",
+            "artifact": "security-pip-audit"
+          },
+          {
+            "producer": "infrastructure-scan",
+            "consumer": "security-summary",
+            "artifact": "security-trivy"
+          }
+        ]
+      }
     },
     {
       "invocation": "scripts/verify_audit_closure_local.py",
       "on": "2026-10-03",
       "class": "superseded_by_stronger_ci_form",
       "reason": "Локальний adapter споживає лише LOCAL_SCANNERS і навмисно не пише канонічні артефакти. GitHub audit-closure job споживає артефакти blocking assurance/security jobs і створює канонічне замикання; повтор слабшого local adapter міряв би інший клас доказу.",
-      "evidence": [
-        "job:.github/workflows/assurance.yml:audit-closure",
-        "scripts/build_audit_closure.py"
-      ],
-      "closes_when": "верифікатор дзеркала навчиться декларувати відношення stronger-than між двома evidence classes"
+      "closes_when": "верифікатор дзеркала навчиться декларувати відношення stronger-than між двома evidence classes",
+      "superseded_by": {
+        "workflow": ".github/workflows/assurance.yml",
+        "jobs": [
+          {
+            "id": "research-assurance",
+            "name": "research-assurance",
+            "commands": [
+              "scripts/run_evals.py",
+              "scripts/run_mutation_shards.sh",
+              "scripts/run_plasticity_gate.py"
+            ],
+            "needs": [],
+            "uploads": ["research-assurance-evidence"],
+            "downloads": []
+          },
+          {
+            "id": "assurance-drills",
+            "name": "assurance-drills",
+            "commands": ["scripts/chaos_matrix.py"],
+            "needs": [],
+            "uploads": ["assurance-drill-evidence"],
+            "downloads": []
+          },
+          {
+            "id": "security-summary",
+            "name": "security-summary",
+            "commands": [
+              "scripts/aggregate_ci_security_summary.py",
+              "--commit \"$GITHUB_SHA\""
+            ],
+            "needs": [
+              "source-secret-scan",
+              "python-dependency-audit",
+              "infrastructure-scan"
+            ],
+            "uploads": ["security-summary"],
+            "downloads": [
+              "security-gitleaks",
+              "security-pip-audit",
+              "security-trivy"
+            ]
+          },
+          {
+            "id": "audit-closure",
+            "name": "audit-closure",
+            "commands": ["scripts/build_audit_closure.py"],
+            "needs": [
+              "research-assurance",
+              "assurance-drills",
+              "security-summary"
+            ],
+            "uploads": ["audit-closure-evidence"],
+            "downloads": [
+              "research-assurance-evidence",
+              "assurance-drill-evidence",
+              "security-summary"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "producer": "research-assurance",
+            "consumer": "audit-closure",
+            "artifact": "research-assurance-evidence"
+          },
+          {
+            "producer": "assurance-drills",
+            "consumer": "audit-closure",
+            "artifact": "assurance-drill-evidence"
+          },
+          {
+            "producer": "security-summary",
+            "consumer": "audit-closure",
+            "artifact": "security-summary"
+          }
+        ]
+      }
     }
   ]
 }
