@@ -59,7 +59,7 @@ def build_answer_service(
     profile = None
     if settings.answer_policy_mode == "calibrated":
         profile = CalibrationProfile.load(
-            settings.calibration_profile_path,
+            settings.calibration_profile_path,  # type: ignore[arg-type]
             settings.calibration_profile_sha256,
         )
     answer_policy = AnswerPolicy(
