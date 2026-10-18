@@ -31,22 +31,9 @@ DIGEST_SCOPE = "tracked_tree"
 def _included(name: str) -> bool:
     """One definition of what a source is, borrowed rather than copied.
 
-    This module used to carry its own list — four prefixes and three manifest names — while
-    manifest_paths.source_included also excluded the release artefacts through
-    SOURCE_GENERATED_PREFIXES. They disagreed on six files: CANONICAL_RELEASE_REPORT.json
-    and .md, FULL_SSOT_PACKAGE_RECEIPT.json, PACKAGE_BOUNDARY.md, PACKAGE_BUILD.json and a
-    LINEAGE manifest.
-
-    The consequence was worse than a mismatch. Those files are written by the release cycle
-    itself, so the digest moved every time a report was regenerated, with no change to any
-    code — BOUND was unstable by construction and the release unbound itself, reporting it
-    as a tree that had changed. And in an archive the digest is computed from the manifest,
-    which never listed them: 1354 paths in the repository against 1348 in the package, for
-    the same revision.
-
-    Adding six names here would have fixed today's difference. Deleting the second
-    definition makes the difference impossible, and the next generated artefact is declared
-    in one place.
+    The former second exclusion list disagreed with `manifest_paths` on six generated
+    release files. Their regeneration moved this digest without changing source, while an
+    archive omitted them. Borrowing the predicate makes repository and archive scopes one.
     """
     return bool(source_included(Path(name)))
 
@@ -91,36 +78,47 @@ def _archive_paths() -> list[Path]:
     return sorted(paths, key=lambda value: value.as_posix())
 
 
-def commits_with_identical_source(ref: str = "HEAD", depth: int = 64) -> tuple[str, ...]:
-    """Коміти, чиє ДЖЕРЕЛО не відрізняється від дерева `ref`. Вимір, не оголошення.
-
-    Маркер сканера несе коміт, на якому сканер біг. Споживач порівнював його з
-    `os.getenv("CI_COMMIT_SHA")` — тобто предикат закривався тим, хто експортував
-    змінну. Виміряно 06.09.2026: сьомий твердий предикат КОРПУСа стояв саме на цьому,
-    і локально інакше закритись не міг, бо порожня змінна дає `False` завжди.
-
-    Тут та сама властивість вимірюється git'ом по тих самих шляхах, з яких рахується
-    дайджест джерела: коміт, який змінив лише `reports/`, лишається прийнятним (сканер
-    бачив те саме джерело), а коміт, який торкнувся джерела, — ні. Перша ж розбіжність
-    спиняє обхід: далі в історії тотожність могла б повернутись випадково, і зарахувати
-    її означало б прийняти доказ про інше дерево через збіг.
-    """
-    try:
-        head = _git("rev-parse", ref).decode().strip()
-        history = _git("rev-list", f"--max-count={depth}", head).decode().split()
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        return ()
-    accepted = [head]
-    for commit in history[1:]:
-        same = subprocess.run(
+def _same_evidence_source(commit: str, head: str) -> bool:
+    return (
+        subprocess.run(
             ["git", "diff", "--quiet", commit, head, "--", *EVIDENCE_SOURCE_PATHS],
             cwd=ROOT,
             capture_output=True,
             check=False,
-        )
-        if same.returncode != 0:
-            break
+        ).returncode
+        == 0
+    )
+
+
+def commits_with_identical_source(ref: str = "HEAD", depth: int = 64) -> tuple[str, ...]:
+    """Walk every still-identical parent path; prune each path at its first source change.
+
+    A merge may have a stale first parent and a verified, source-identical second parent.
+    Linear history traversal lost the latter and invalidated evidence after a normal merge.
+    """
+    try:
+        head = _git("rev-parse", ref).decode().strip()
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return ()
+
+    accepted: list[str] = []
+    frontier = [head]
+    seen: set[str] = set()
+    while frontier and len(accepted) < depth:
+        commit = frontier.pop(0)
+        if commit in seen:
+            continue
+        seen.add(commit)
         accepted.append(commit)
+        try:
+            parents = _git("show", "-s", "--format=%P", commit).decode().split()
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            return ()
+        frontier.extend(
+            parent
+            for parent in parents
+            if parent not in seen and _same_evidence_source(parent, head)
+        )
     return tuple(accepted)
 
 
