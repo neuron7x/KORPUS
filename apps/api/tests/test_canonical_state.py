@@ -49,7 +49,7 @@ def _observation() -> dict[str, Any]:
             "gitlab": "disabled://gitlab-read-only-archive",
             "origin": publications["origin"]["url"],
         },
-        "worktrees": [registry["canonical_root"], "/home/neuro7/.korpus-worktrees/a"],
+        "worktrees": [registry["canonical_root"]],
         "root": registry["canonical_root"],
     }
 
