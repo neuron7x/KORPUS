@@ -1,0 +1,26 @@
+{
+  "schema": "korpus.gitlab-readonly-authority.v1",
+  "allowed_job_sha256": {
+    ".python-job": "597181607cea01bf854bb3000d6ab73520f039f2b407d33cacdb6a0db297322d",
+    "api:assurance": "c824f5ede99ac1fa42257e206c98edbe4fe3b16482affb8479c6f412faae8163",
+    "api:drills": "dfc6e403ca9a04c82b88374149b199500326396b59236844e5f734d5a133f780",
+    "api:postgres-and-restore": "875e91834c32b1d319b18136c7005c2e61a352b03659ac64ad3ea4789702ff29",
+    "api:quality": "d4a19ed283c0e2dda81f49f6110e76eb3a3a1971829bef79dc99dd609335b33d",
+    "api:test": "86a463cac8c05c7e90def85d97db3219339cd20ae58f72b51053575259042eca",
+    "audit:closure": "6bc986051917b2838b431af1edde3592bee39ed455e554c41919847b50e589f1",
+    "container:build": "63035345a18bddd50af18b6a4a769bd14bc490acefc210977330645e0ef2d32c",
+    "container:sbom": "87f52f331a418630e150104fe8b862e6121d09ead686c31546301b6663339220",
+    "container:scan": "e1df80d5d6e088ec37786e8c5ff38c7701864beb34d589ede24b789b82ca27e6",
+    "gcp:deploy-production": "69b3ca7033fb5e83021552df10e71949c2d63273213ce111f698767962a52604",
+    "gcp:production-contract": "3681927f8e82be72e9c75c2077fbc862cd66f80f72cf318b049918331190dacf",
+    "infrastructure:scan": "8747acb8ec111c763e9e1a529598af50b3ffa5ecd43882c18c541b9637f5ed06",
+    "production:release": "cc26721728783eed52a8807839f5a1f3abc42aef62e731c88860cc54bbb6d510",
+    "python:audit": "262675b265e688264d0ceea4b99c6c1a34de75107ea317b4b1912c200f6e4e6e",
+    "repository:validate": "e95a052209947de756a726f7f09ed272b3c2b275bd53626f70a1dfa8d5566fe1",
+    "secret:scan": "8ffac251649ff79a892e72d977cf1bbd844224e78a51aae02c8dac5dc3063e85",
+    "security:summary": "6f32ba59e5c6301f5b4a6a4cbf675d8ede4f6d89bc21bbf7d3cde9f319371050",
+    "source:package": "33f600c5f8258c5bf61ddfbd446486922059db4a7f512cf914a2489a273b780f",
+    "source:sbom": "91ca5a9221ef8296a6241a0549963524af7b4cdddd151323083fbeb26f490da2",
+    "web:test": "8e63793eb968b8b4e881f759cfc24468c3b06a6bcdb29b0f363d089f81c520c7"
+  }
+}

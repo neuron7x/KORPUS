@@ -971,6 +971,15 @@
       "proof_lines": 0,
       "reason": "ACT-010: external protected trust-root injection without source mutation; measured ratchet ceiling | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
+    "apps/api/src/korpus/application/assurance_trust_policy.py": {
+      "lines": 37,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 13,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54: exact GitHub release-workflow admission for runtime trust roots; initial measured ceiling."
+    },
     "apps/api/src/korpus/application/attested_evidence.py": {
       "lines": 66,
       "max_complexity": 8,
@@ -1508,6 +1517,15 @@
       "proof_lines": 0,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
     },
+    "apps/api/src/korpus/application/final_release_provenance.py": {
+      "lines": 188,
+      "max_complexity": 13,
+      "max_function_args": 6,
+      "max_function_lines": 46,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54: source, material, GitHub invocation, and bounded timestamp provenance binding; initial measured ceiling."
+    },
     "apps/api/src/korpus/application/fingerprints.py": {
       "lines": 28,
       "max_complexity": 6,
@@ -1523,6 +1541,15 @@
       "max_function_lines": 18,
       "max_nesting": 2,
       "proof_lines": 0
+    },
+    "apps/api/src/korpus/application/github_release_context.py": {
+      "lines": 40,
+      "max_complexity": 4,
+      "max_function_args": 2,
+      "max_function_lines": 18,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54: one exact fail-closed GitHub release context shared by trust and release gates; initial measured ceiling."
     },
     "apps/api/src/korpus/application/gold_annotation.py": {
       "lines": 184,
@@ -3260,6 +3287,15 @@
       "proof_lines": 0,
       "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
     },
+    "apps/api/src/korpus/gitlab_readonly_authority.py": {
+      "lines": 62,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 12,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54: exact semantic allowlist for the inert legacy GitLab validation plane; initial measured ceiling."
+    },
     "apps/api/src/korpus/infrastructure_requirements.py": {
       "lines": null,
       "max_complexity": 12,
@@ -4365,6 +4401,15 @@
       "proof_lines": 0,
       "reason": "a snapshot of a Drive folder with provenance; fetching is not ingestion"
     },
+    "scripts/final_release_context.py": {
+      "lines": 101,
+      "max_complexity": 5,
+      "max_function_args": 2,
+      "max_function_lines": 22,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54: locally recomputed release materials and exact GitHub run/ref/SHA context; initial measured ceiling."
+    },
     "scripts/freeze_release_candidate.py": {
       "lines": 265,
       "max_complexity": 12,
@@ -4436,6 +4481,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
+    },
+    "scripts/gcp/production_contract_authority.py": {
+      "lines": 119,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 41,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54: canonical GitHub GCP authority plus exact inert GitLab pipeline predicates; initial measured ceiling."
     },
     "scripts/gcp/production_contract_canary.py": {
       "lines": 46,
@@ -5886,6 +5940,15 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.4.0: artifact/material-bound SLSA v1.2 provenance with explicit untrusted local builder; initial measured ratchet ceiling"
+    },
+    "scripts/slsa_source.py": {
+      "lines": 38,
+      "max_complexity": 2,
+      "max_function_args": 2,
+      "max_function_lines": 10,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54: full source-commit identity for generated SLSA provenance; initial measured ceiling."
     },
     "scripts/snapshot_assurance.py": {
       "lines": 258,

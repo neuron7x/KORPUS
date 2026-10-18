@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from korpus.application.requirements import Requirement
+from korpus.gitlab_readonly_authority import gitlab_delivery_is_inert
 
 REQUIRED_SERVICES = frozenset(
     {
@@ -58,6 +59,8 @@ class InfrastructureContext:
     root: Path
     compose: dict[str, Any] = field(default_factory=dict)
     ci_text: str = ""
+    ci_config: dict[str, Any] = field(default_factory=dict)
+    ci_policy: dict[str, Any] = field(default_factory=dict)
     release_workflow_text: str = ""
     package_text: str = ""
     production_package_text: str = ""
@@ -95,6 +98,9 @@ class InfrastructureContext:
             (block for block in re.split(r"\n(?=\S)", self.ci_text) if block.startswith(f"{job}:")),
             "",
         )
+
+    def gitlab_delivery_is_inert(self) -> bool:
+        return gitlab_delivery_is_inert(self.ci_config, self.ci_policy)
 
     def minio_actions(self) -> set[str]:
         return {
@@ -134,6 +140,11 @@ def load_context(root: Path) -> InfrastructureContext:
     except yaml.YAMLError as error:
         context.load_errors.append(f"docker-compose.yml: {error}")
     context.ci_text = read(".gitlab-ci.yml")
+    context.ci_config = _yaml_mapping(context.ci_text, ".gitlab-ci.yml", context.load_errors)
+    try:
+        context.ci_policy = json.loads(read("config/ci/gitlab-readonly-authority-v1.json"))
+    except json.JSONDecodeError as error:
+        context.load_errors.append(f"config/ci/gitlab-readonly-authority-v1.json: {error}")
     context.release_workflow_text = read(".github/workflows/release.yml")
     context.package_text = read("scripts/package_repository.sh")
     context.production_package_text = read("scripts/package_production_release.sh")
@@ -157,6 +168,20 @@ def _requirement(
     return Requirement(
         id=identifier, subject=subject, statement=statement, holds=holds, rationale=rationale
     )
+
+
+def _yaml_mapping(source: str, label: str, errors: list[str]) -> dict[str, Any]:
+    import yaml
+
+    try:
+        value = yaml.safe_load(source) or {}
+    except yaml.YAMLError as error:
+        errors.append(f"{label}: {error}")
+        return {}
+    if not isinstance(value, dict):
+        errors.append(f"{label}: root must be an object")
+        return {}
+    return value
 
 
 def _service_requirements() -> list[Requirement]:
@@ -587,7 +612,7 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
     _requirement(
         "release.github.sole_hosted_authority",
         "github-actions",
-        "the production packager admits only the canonical GitHub release workflow",
+        "the canonical GitHub workflow is the sole hosted release and deploy authority",
         lambda c: (
             "neuron7x/KORPUS" in c.production_package_text
             and "1332311807" in c.production_package_text
@@ -595,6 +620,7 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
             and "package_production_release.sh" in c.release_workflow_text
             and '[[ "${GITLAB_CI:-}" != "true" ]]' in c.production_package_text
             and "CI_COMMIT_" not in c.production_package_text
+            and c.gitlab_delivery_is_inert()
         ),
         "two hosted release authorities can publish different artifacts under one release identity",
     ),
