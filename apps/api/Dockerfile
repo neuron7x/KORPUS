@@ -1,4 +1,4 @@
-ARG PYTHON_IMAGE=python:3.12.13-slim-bookworm@sha256:4766d8b510c428e595d74b9cc5bbb2fae8e26316fffb4adc89908d79aacd58a2
+ARG PYTHON_IMAGE=python:3.12.13-alpine3.23@sha256:601d3d3797e90e2534782e69c85fafb7971b43f24c7b1b079b7e48dd435e458d
 FROM ${PYTHON_IMAGE} AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -8,21 +8,17 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app/apps/api/src \
     TMPDIR=/tmp/korpus
 
-# База закріплена за дайджестом, тож її пакети застигли на день збирання образу, а
-# виправлення Debian виходять далі. Явний перелік пакета (так 04.10 закрито PCRE2)
-# лагодить РІВНО один CVE: 10.10.2026 скан образу впав знову, на семи HIGH/CRITICAL у
-# `perl-base`, якого в переліку не було. `upgrade` закриває клас, а не екземпляр.
+# База закріплена за дайджестом, але security-fixes в Alpine виходять після збирання
+# бази. `upgrade` мусить стояти перед install у тому самому шарі: вимір 19.10.2026
+# закрив 10 виправлених HIGH і дав 0 HIGH/CRITICAL без ignore-unfixed.
 RUN mkdir -p "$TMPDIR" \
-    && apt-get update \
-    && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends \
+    && apk upgrade --no-cache \
+    && apk add --no-cache \
        ca-certificates \
-       libpcre2-8-0 \
        poppler-utils \
        tesseract-ocr \
-       tesseract-ocr-eng \
-       tesseract-ocr-ukr \
-    && rm -rf /var/lib/apt/lists/*
+       tesseract-ocr-data-eng \
+       tesseract-ocr-data-ukr
 
 WORKDIR /app
 COPY apps/api/requirements.runtime.lock /tmp/requirements.runtime.lock
@@ -35,8 +31,8 @@ COPY apps/api/alembic.ini /app/apps/api/alembic.ini
 COPY scripts /app/scripts
 COPY apps/api/docker-entrypoint.sh /usr/local/bin/korpus-entrypoint
 
-RUN groupadd --gid 10001 korpus \
-    && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin korpus \
+RUN addgroup -g 10001 -S korpus \
+    && adduser -u 10001 -S -D -H -G korpus -s /sbin/nologin korpus \
     && mkdir -p /data/objects /audit /tmp/korpus \
     && chown -R 10001:10001 /data /audit /tmp/korpus \
     && chmod 0555 /app /app/apps /app/apps/api /app/apps/api/src /app/scripts \

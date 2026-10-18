@@ -13,6 +13,7 @@ Every service in the compose file passing today is not evidence that the check w
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -97,14 +98,29 @@ def test_every_compose_service_is_digest_pinned_today() -> None:
 def test_the_runtime_image_upgrades_the_pinned_base_before_installing() -> None:
     """Закріплена за дайджестом база несе пакети дня свого збирання.
 
-    10.10.2026 `container:scan` упав на семи HIGH/CRITICAL у `perl-base`: 04.10 PCRE2
-    закрили явним рядком у переліку пакетів, і це полагодило один CVE, а не клас.
-    `upgrade` мусить стояти ПІСЛЯ `update` і ПЕРЕД `install` у тому самому шарі.
+    19.10.2026 pinned Alpine база мала 10 вже виправлених HIGH; `apk upgrade`
+    закрив їх до 0. Він мусить стояти перед `apk add` у тому самому шарі.
     """
     dockerfile = (ROOT / "apps/api/Dockerfile").read_text(encoding="utf-8")
-    layer = next(block for block in dockerfile.split("\nRUN ") if "apt-get install" in block)
+    layer = next(block for block in dockerfile.split("\nRUN ") if "apk add" in block)
     commands = [line.strip(" \\&") for line in layer.splitlines()]
-    update = commands.index("apt-get update")
-    upgrade = commands.index("apt-get upgrade -y")
-    install = next(i for i, line in enumerate(commands) if line.startswith("apt-get install"))
-    assert update < upgrade < install
+    upgrade = commands.index("apk upgrade --no-cache")
+    install = commands.index("apk add --no-cache")
+    assert upgrade < install
+
+
+def test_the_runtime_base_is_alpine_and_its_ocr_stack_is_explicit() -> None:
+    dockerfile = (ROOT / "apps/api/Dockerfile").read_text(encoding="utf-8")
+    assert re.search(
+        r"^ARG PYTHON_IMAGE=python:3\.12\.13-alpine3\.23@sha256:[0-9a-f]{64}$",
+        dockerfile,
+        re.MULTILINE,
+    )
+    for package in (
+        "poppler-utils",
+        "tesseract-ocr",
+        "tesseract-ocr-data-eng",
+        "tesseract-ocr-data-ukr",
+    ):
+        assert package in dockerfile
+    assert "apt-get" not in dockerfile

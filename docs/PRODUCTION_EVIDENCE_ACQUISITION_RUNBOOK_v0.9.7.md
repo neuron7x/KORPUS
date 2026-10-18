@@ -17,7 +17,7 @@ This runbook is fail-closed. Workflow existence is not evidence. Every accepted 
 
 ## 2. Exact environment
 
-Run the API verification inside the pinned `python:3.12.13-slim-bookworm` image from `apps/api/Dockerfile`. Admit only a receipt proving all locked components, exact versions, no unmanaged distributions and the required Python version.
+Run the API verification inside the pinned `python:3.12.13-alpine3.23` image from `apps/api/Dockerfile`. Admit only a receipt proving all locked components, exact versions, no unmanaged distributions and the required Python version.
 
 ## 3. Real PostgreSQL / RLS
 

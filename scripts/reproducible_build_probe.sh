@@ -13,7 +13,7 @@
 #
 # SOURCE_DATE_EPOCH and buildkit's `rewrite-timestamp` normalise the file times buildkit
 # controls. What they do not normalise is what a package manager writes inside a layer:
-# `apt-get update` fetches an index that changes, and `pip install` records installation
+# `apk upgrade` fetches an index that changes, and `pip install` records installation
 # times in `.dist-info`. Those are named in the report rather than hidden by it.
 #
 #   make reproducible-build
@@ -91,7 +91,7 @@ report = {
     "layers_identical": same,
     "layers_differing": differing,
     "known_nondeterminism": [
-        "apt-get update fetches an index that changes between runs; the installed "
+        "apk upgrade fetches an index that changes between runs; the installed "
         "package set is not pinned by version, so two builds can install different "
         "point releases of poppler-utils or tesseract.",
         "pip records installation timestamps in .dist-info even with --no-cache-dir "
