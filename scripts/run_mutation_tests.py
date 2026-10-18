@@ -6916,6 +6916,22 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    Mutant(
+        # Після merge валідний доказ може лежати на другому батьківському шляху.
+        # Зведення обходу до first-parent знову відкидає його як застарілий.
+        "M727_SECOND_MERGE_PARENT_WITH_IDENTICAL_SOURCE_IS_SKIPPED",
+        "scripts/source_digest.py",
+        "            if parent not in seen and _same_evidence_source(parent, head)",
+        (
+            "            if parent not in seen and parent == parents[0] "
+            "and _same_evidence_source(parent, head)"
+        ),
+        (
+            "apps/api/tests/test_coverage_closure_v097.py::"
+            "test_identical_source_history_follows_valid_second_merge_parent",
+        ),
+        full_copy=True,
+    ),
 )
 
 
