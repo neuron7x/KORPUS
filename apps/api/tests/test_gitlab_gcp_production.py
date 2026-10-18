@@ -30,8 +30,10 @@ def test_gitlab_production_job_is_keyless_serialized_and_fail_closed() -> None:
     assert "credentials_json" not in str(job)
 
 
-def test_gitlab_wif_provider_binds_immutable_project_and_protected_environment() -> None:
+def test_legacy_gitlab_wif_plane_is_noncanonical_and_still_fail_closed() -> None:
     bootstrap = (ROOT / "infra/gcp/bootstrap/main.tf").read_text(encoding="utf-8")
+    assert "legacy, noncanonical provenance plane" in bootstrap
+    assert "retained for noncanonical GitLab provenance" in bootstrap
     for claim in (
         "assertion.project_id == '${var.gitlab_project_id}'",
         "assertion.namespace_id == '${var.gitlab_namespace_id}'",
