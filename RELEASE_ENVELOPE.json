@@ -115,6 +115,7 @@
       "host": "github.com",
       "repository": "neuron7x/KORPUS",
       "visibility": "public",
+      "required_event": "pull_request",
       "authority": "Канонічний hosted-run verdict читається через `gh api` лише з GitHub Actions workflow runs та jobs точного latest attempt для повного candidate commit SHA. Кожен job прив'язаний до exact workflow file, workflow_id, run_id і head_sha; однойменний check з іншого workflow не має ваги. GitLab є read-only архівом і не має release authority.",
       "mandatory_pr_workflows": [
         ".github/workflows/ci.yml",
@@ -123,9 +124,21 @@
       "required_jobs": [
         "api-quality",
         "api-tests",
+        "assurance-drills",
+        "audit-closure",
+        "container-build",
+        "container-sbom",
+        "container-scan",
+        "coverage-union",
         "postgres-full-suite",
         "repository-contract",
         "research-assurance",
+        "security-gitleaks",
+        "security-pip-audit",
+        "security-summary",
+        "security-trivy-config",
+        "source-sbom",
+        "sqlite-coverage",
         "web-tests"
       ],
       "required_jobs_note": "Знаменник дорівнює безумовним blocking jobs двох mandatory pull_request workflows. record_ci_run.py звіряє цей список із jobs.<id>.name самих workflow, резолвить кожен файл до його GitHub workflow_id, вибирає latest run exact SHA і читає jobs лише з exact run attempt: новий job, застаріле ім'я, інший workflow/run/SHA або старіша спроба дають FAIL, а не мовчазне звуження."

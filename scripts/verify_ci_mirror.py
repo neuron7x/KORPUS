@@ -15,6 +15,8 @@ from typing import Any
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from ci_mirror_evidence import evidence_problems
+from ci_mirror_evidence import selftest as evidence_selftest
 from verify_gate_closure import invocations, parse_graph, reachable
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -100,8 +102,6 @@ def _job_invocations(
         if not step_gate:
             excluded[step_key] = step_why
             continue
-        if str(step["run"]).strip():
-            found.setdefault(f"job:{job_key}", set()).add(job_key)
         for line in str(step["run"]).splitlines():
             for identity in _line_identities(line, edges, scripts):
                 found.setdefault(identity, set()).add(job_key)
@@ -139,20 +139,15 @@ def _finding(check: str, items: list[str], bad: str, good: str) -> dict[str, Any
     }
 
 
-def _reasoned(item: dict[str, Any], ci: dict[str, set[str]]) -> bool:
-    evidence = item.get("evidence")
-    reasoned = len(str(item.get("reason") or "").strip()) >= 40 and bool(item.get("on"))
-    supported = (
-        isinstance(evidence, list) and bool(evidence) and set(map(str, evidence)) <= ci.keys()
-    )
-    return reasoned and supported
+def _reasoned(item: dict[str, Any]) -> bool:
+    return len(str(item.get("reason") or "").strip()) >= 40 and bool(item.get("on"))
 
 
 def assess(
     lane: dict[str, set[str]],
     ci: dict[str, set[str]],
     accepted: list[dict[str, Any]],
-    workflow_errors: list[str] | None = None,
+    errors: tuple[list[str], list[str]] | None = None,
 ) -> list[dict[str, Any]]:
     registered = {str(item.get("invocation")) for item in accepted}
     via_coverage = SELFTEST_COVERAGE in ci
@@ -168,16 +163,22 @@ def assess(
     )
     dead = sorted(identity for identity in registered if identity in ci)
     ghost = sorted(identity for identity in registered if identity not in lane)
-    unreasoned = sorted(str(item.get("invocation")) for item in accepted if not _reasoned(item, ci))
-    errors = sorted(workflow_errors or [])
+    unreasoned = sorted(str(item.get("invocation")) for item in accepted if not _reasoned(item))
+    workflow_errors, evidence_errors = errors or ([], [])
+    invalid_workflows = sorted(workflow_errors)
+    unsupported = sorted(evidence_errors)
     return [
         _finding(
-            "mandatory_pr_workflows", errors, f"invalid workflows: {errors}", "workflows valid"
+            "mandatory_pr_workflows",
+            invalid_workflows,
+            f"invalid workflows: {invalid_workflows}",
+            "workflows valid",
         ),
         _finding("missing_in_ci", missing, f"GitHub misses {missing}", f"all {len(lane)} covered"),
         _finding("dead_exemption", dead, f"dead exemptions: {dead}", "none dead"),
         _finding("ghost_exemption", ghost, f"ghost exemptions: {ghost}", "none ghost"),
-        _finding("unreasoned_exemption", unreasoned, f"unreasoned: {unreasoned}", "all reasoned"),
+        _finding("reasoned_exemption", unreasoned, f"unreasoned: {unreasoned}", "all reasoned"),
+        _finding("exemption_evidence", unsupported, f"unsupported: {unsupported}", "all proven"),
     ]
 
 
@@ -208,7 +209,6 @@ _ACCEPTED = [
         "invocation": "scripts/a.py --strict",
         "on": "x",
         "reason": "x" * 40,
-        "evidence": ["job:workflow:gate"],
     }
 ]
 
@@ -264,7 +264,7 @@ _CASES: list[tuple[str, str, dict[str, Any], list[dict[str, Any]], list[str], st
         "unreasoned exemption",
         _CLEAN_MAKE,
         _workflow("echo"),
-        [{"invocation": "scripts/a.py --strict", "on": "x", "reason": "x" * 40}],
+        [{"invocation": "scripts/a.py --strict", "on": "x", "reason": "short"}],
         [],
         "FAIL",
     ),
@@ -293,12 +293,12 @@ def selftest() -> int:
     for name, makefile, workflow, accepted, errors, expected in _CASES:
         lane = lane_invocations(makefile, MIRRORED_ROOTS)
         ci, _excluded = workflow_invocations(workflow, makefile)
-        got = verdict(assess(lane, ci, accepted, errors))
+        got = verdict(assess(lane, ci, accepted, (errors, [])))
         ok = got == expected
         bad += not ok
         print(f"  [{'ok' if ok else 'FAIL'}] {name}: {got}")
     print(f"\nnegative controls: {len(_CASES) - bad}/{len(_CASES)}")
-    return 1 if bad else 0
+    return 1 if bad or evidence_selftest() else 0
 
 
 def _head(root: Path) -> str:
@@ -363,7 +363,7 @@ def measure(root: Path) -> dict[str, Any]:
         root, registry.get("mandatory_pr_workflows"), makefile
     )
     local_only = {name: len(lane_invocations(makefile, (name,))) for name in LOCAL_ONLY_ROOTS}
-    findings = assess(lane, ci, accepted, workflow_errors)
+    findings = assess(lane, ci, accepted, (workflow_errors, evidence_problems(root, accepted)))
     mirrored = sorted(identity for identity in lane if identity in ci)
     return {
         "schema": "korpus.ci-mirror.v2",
