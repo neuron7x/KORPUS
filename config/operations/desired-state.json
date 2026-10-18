@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v0.9.7",
-  "root_sha256": "c93d1d8eb1bd0ce2bdfd36a37b39071e0848a52afb792875d5ebd0311dfa8637",
+  "root_sha256": "ac136f8d21aa642d911d50fde48ccfa9b1dda9ba846d0fed64d36ce218101650",
   "records": [
     {
       "path": ".github/dependabot.yml",
@@ -15,7 +15,7 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "b81402f27b5cea776a7883e18d15f98a55e75a801aea1aed713315a045233c74",
+      "sha256": "673e1ce0ad6715cf2c5c694df25f10612e022039f5ce1f3e86be0fbf164cd725",
       "bytes": 3953
     },
     {
@@ -25,37 +25,37 @@
     },
     {
       "path": ".github/workflows/external-assurance-ingest.yml",
-      "sha256": "6b7ca9139dda8f0a15e722da5a4a708237199598f63acf13c377adb39efcd97d",
+      "sha256": "2ac899305f539259238972ea04c9daedc13c02be3a566c830949a44d8c4b41a3",
       "bytes": 2943
     },
     {
       "path": ".github/workflows/gcp-drill.yml",
-      "sha256": "841d7bc701526d4ada64aeeb0dde1c56b13e737e54630b7c89ccdab2be2512ba",
+      "sha256": "a5014758f51a1037f60200f678483d285fbfb6348cac2b40677308a410acda7d",
       "bytes": 1965
     },
     {
       "path": ".github/workflows/gcp-foundation.yml",
-      "sha256": "74b02d6aa60455071c71f1424a75db7d4f99bc6da3d84ee4a4f9ed25c92c8a8d",
+      "sha256": "a593b795641c9eecd8e2b8f247681659d264e4f3014615e04615a718c07bd56f",
       "bytes": 3695
     },
     {
       "path": ".github/workflows/gcp-production.yml",
-      "sha256": "39df867a3d9b49e7f3c217359c2dcf40e031fff9a5c2c831115499d89eaaf7f1",
+      "sha256": "43044e2b8849d0c7d17c315151756234b56edebe97b6eff442df62340647cd1c",
       "bytes": 26233
     },
     {
       "path": ".github/workflows/pec-production-evidence.yml",
-      "sha256": "9f10f665b7b73223ad0085a2c7a6ea2ee13dd6077b804f04ea255151029e0c1a",
+      "sha256": "16600d1a969166b167385a53f5a25a7d5a13fd03642733e2444cc090a48b177a",
       "bytes": 4383
     },
     {
       "path": ".github/workflows/production-load-evidence.yml",
-      "sha256": "0148643c714d1a02ee9742b71e23ff1c77796ca63d7b20088120045f5bd6c713",
+      "sha256": "dbbd3cd564583718d19ceb39a59a4ffcc8cca91a375dd00146ad830b3b17bca9",
       "bytes": 3093
     },
     {
       "path": ".github/workflows/release.yml",
-      "sha256": "d9f33342ab06a8d91f61b50005ece102a650c23c61e3cbe8f8335f7c61169d62",
+      "sha256": "4ca68c975994b47eda3b7fa097a883d1a984dda1927839b3ce28590b32a40dc1",
       "bytes": 3088
     },
     {

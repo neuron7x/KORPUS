@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2085,
-  "root_sha256": "27d79169f76a1445d9ebcfc650ae3bb232dec2410128b493fd9e2857b93d8855",
+  "file_count": 2091,
+  "root_sha256": "631375b20526888d5d5a75ac419cda1ec89e15bd6cb65c2b5b56b11c99b433f9",
   "files": [
     {
       "path": ".dockerignore",
@@ -50,7 +50,7 @@
     {
       "path": ".github/workflows/ci.yml",
       "bytes": 3953,
-      "sha256": "b81402f27b5cea776a7883e18d15f98a55e75a801aea1aed713315a045233c74",
+      "sha256": "673e1ce0ad6715cf2c5c694df25f10612e022039f5ce1f3e86be0fbf164cd725",
       "mode": "0644"
     },
     {
@@ -62,43 +62,43 @@
     {
       "path": ".github/workflows/external-assurance-ingest.yml",
       "bytes": 2943,
-      "sha256": "6b7ca9139dda8f0a15e722da5a4a708237199598f63acf13c377adb39efcd97d",
+      "sha256": "2ac899305f539259238972ea04c9daedc13c02be3a566c830949a44d8c4b41a3",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/gcp-drill.yml",
       "bytes": 1965,
-      "sha256": "841d7bc701526d4ada64aeeb0dde1c56b13e737e54630b7c89ccdab2be2512ba",
+      "sha256": "a5014758f51a1037f60200f678483d285fbfb6348cac2b40677308a410acda7d",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/gcp-foundation.yml",
       "bytes": 3695,
-      "sha256": "74b02d6aa60455071c71f1424a75db7d4f99bc6da3d84ee4a4f9ed25c92c8a8d",
+      "sha256": "a593b795641c9eecd8e2b8f247681659d264e4f3014615e04615a718c07bd56f",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/gcp-production.yml",
       "bytes": 26233,
-      "sha256": "39df867a3d9b49e7f3c217359c2dcf40e031fff9a5c2c831115499d89eaaf7f1",
+      "sha256": "43044e2b8849d0c7d17c315151756234b56edebe97b6eff442df62340647cd1c",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/pec-production-evidence.yml",
       "bytes": 4383,
-      "sha256": "9f10f665b7b73223ad0085a2c7a6ea2ee13dd6077b804f04ea255151029e0c1a",
+      "sha256": "16600d1a969166b167385a53f5a25a7d5a13fd03642733e2444cc090a48b177a",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/production-load-evidence.yml",
       "bytes": 3093,
-      "sha256": "0148643c714d1a02ee9742b71e23ff1c77796ca63d7b20088120045f5bd6c713",
+      "sha256": "dbbd3cd564583718d19ceb39a59a4ffcc8cca91a375dd00146ad830b3b17bca9",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/release.yml",
       "bytes": 3088,
-      "sha256": "d9f33342ab06a8d91f61b50005ece102a650c23c61e3cbe8f8335f7c61169d62",
+      "sha256": "4ca68c975994b47eda3b7fa097a883d1a984dda1927839b3ce28590b32a40dc1",
       "mode": "0644"
     },
     {
@@ -738,6 +738,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/src/korpus/answer_composition.py",
+      "bytes": 3873,
+      "sha256": "f4b05eacd49be1e1f78d1a77c5e1e5760410c7732240b7aa3ee539ab91ba9bf1",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/src/korpus/api/__init__.py",
       "bytes": 0,
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -757,8 +763,8 @@
     },
     {
       "path": "apps/api/src/korpus/api/dependencies.py",
-      "bytes": 10673,
-      "sha256": "8c51c7deed6e798d3a1e19d2cfb0591580dc40bf7d6386d87d5436958c59a774",
+      "bytes": 7304,
+      "sha256": "8a8698d7b7416d09abc3fdea06400822121fee1a106563cdb915b1ead569e506",
       "mode": "0644"
     },
     {
@@ -1075,14 +1081,14 @@
     },
     {
       "path": "apps/api/src/korpus/application/capability_gateway/execution.py",
-      "bytes": 13984,
-      "sha256": "762ae9778456361463d7b8bd847385f5b61e5366aae76ad781fe1e28e47dc385",
+      "bytes": 13901,
+      "sha256": "0d82099c650e05a3a9108d38aaa9cfdacc90e6668f86340a29ad41c6ba85500b",
       "mode": "0644"
     },
     {
       "path": "apps/api/src/korpus/application/capability_gateway/invoke.py",
-      "bytes": 23541,
-      "sha256": "d4c62759185870250488a4d96fe316880280459165fb505eb1b50a7b1b4a0f60",
+      "bytes": 23180,
+      "sha256": "1a3059c64edfb01f884523513f5d27a5cca5422c2da98fc6af9fbd16d386b360",
       "mode": "0644"
     },
     {
@@ -1099,8 +1105,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/capability_gateway/policy.py",
-      "bytes": 7644,
-      "sha256": "86c8a62780b71a89de74ce14c68b370d9e4ac3baabf33e9d2de08f7f170ae9c2",
+      "bytes": 7628,
+      "sha256": "46501649d979fda43f10214e8d589ac07234429dbdc22a2c651fbd0603653f08",
       "mode": "0644"
     },
     {
@@ -2287,8 +2293,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/integrations/http.py",
-      "bytes": 10968,
-      "sha256": "46f9c4e784b5deba5ec414d31787a6668d1c9a48ca8f1e7ff5582d841b1b7fae",
+      "bytes": 10704,
+      "sha256": "ed93b510ecc961dd7c787831cafb16a2c6f3291a96ed9e66e364fbc223631837",
       "mode": "0644"
     },
     {
@@ -2898,6 +2904,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_answer_composition_boundary.py",
+      "bytes": 3217,
+      "sha256": "08035533297eef5ceecf3f40a67da133810c8ff6e77ad7fe6ffb500469e22b4a",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_answer_dissent_and_billing_time.py",
       "bytes": 3115,
       "sha256": "1acae42d79f9819fb55db2d6a90db458cb2155940594199cd7a93d1aedc018ca",
@@ -2947,8 +2959,14 @@
     },
     {
       "path": "apps/api/tests/test_architecture.py",
-      "bytes": 14985,
-      "sha256": "f1047f9c0f9e67ddc23233cdef4c93d74c6c5e9b3a6ecdf8c47b8327ff949eb2",
+      "bytes": 15425,
+      "sha256": "5e5117cbcdb588ce0a10ed977abc8d9c45493dd5216a13186588bb8119c8f45c",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_architecture_import_boundaries.py",
+      "bytes": 2637,
+      "sha256": "9bc5cd5ab5b9597d121cbff8baffd9711d95d626a237f8a334a84606a50a0d13",
       "mode": "0644"
     },
     {
@@ -3115,8 +3133,8 @@
     },
     {
       "path": "apps/api/tests/test_branch_integration.py",
-      "bytes": 9662,
-      "sha256": "92e8bdfeb0affeb3e776faac139c845368d488ede44515610e10c8c69925cd69",
+      "bytes": 11570,
+      "sha256": "5c15d1826f4b185cecd7dcd9370788daf387cf2f181061da3576c73095003994",
       "mode": "0644"
     },
     {
@@ -3330,6 +3348,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_capability_gateway_http_deadline.py",
+      "bytes": 5048,
+      "sha256": "8594b2219e7b3a2e454eb7afe8dccaded1d051c1b96761cee6dfb181cc4e544a",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_capability_gateway_http_refusals.py",
       "bytes": 14042,
       "sha256": "3215ec1010fac1fcd2fe0d3e93cd1235e49651b8a437abf5ef20247390788681",
@@ -3477,6 +3501,12 @@
       "path": "apps/api/tests/test_capability_gateway_result_boundary.py",
       "bytes": 5474,
       "sha256": "c4b2aa173de7d30bb0220b7685c0d153ca0fb0c46dfc8dab71944b1dbffbeaaa",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_return_decisions.py",
+      "bytes": 2824,
+      "sha256": "afc628cd6004076c7e4e29b8c93c96032c8ec443020fbea6f790406ecd8d3ff3",
       "mode": "0644"
     },
     {
@@ -5077,8 +5107,8 @@
     },
     {
       "path": "apps/api/tests/test_query_planner_boundary.py",
-      "bytes": 9208,
-      "sha256": "ee0ab7746aea34217f438c2ad7adcbbd379e2601c9985750909b5858a9c798ae",
+      "bytes": 9216,
+      "sha256": "e0a7469c791423f947def4560ab49bd6791f5ec5f15cec312a2c7fd4dbc041b7",
       "mode": "0644"
     },
     {
@@ -8084,7 +8114,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "8fe65fc2bad57361130d95ac5d00a4ed32feefa475190f6b58de61dd1126c2c4",
+      "sha256": "b4d52649617fa6af574476463059766019bf950ea989c787210a06bbc99bbaf0",
       "mode": "0644"
     },
     {
@@ -8125,8 +8155,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 747665,
-      "sha256": "e3628d083a1db6743bee6881677c6d75e1b0f82c60ed6c80b44afabc8f25458f",
+      "bytes": 747970,
+      "sha256": "fe5b1ef4cbff22505dfcfecaeec25f82bf2d9498742814d8cebc57b2c7949a7f",
       "mode": "0644"
     },
     {
@@ -8442,6 +8472,12 @@
       "mode": "0644"
     },
     {
+      "path": "docs/architecture/ISSUE_46_BOUNDARY_FIXES.md",
+      "bytes": 5281,
+      "sha256": "d1ac13941e7253d1cd80b03cd5b38a82090891189616a116c32427f4170e4b3a",
+      "mode": "0644"
+    },
+    {
       "path": "docs/architecture/OBSERVABILITY.md",
       "bytes": 674,
       "sha256": "e93387cec98c5244e222c1ccfcd404ffee1e434ed03fc357eb23b220ef0f3dcc",
@@ -8461,8 +8497,8 @@
     },
     {
       "path": "docs/architecture/SYSTEM.md",
-      "bytes": 5603,
-      "sha256": "52a725ca58a3a306512a03ff218c12ee8d020136031ea6a795c8d3d8ff4fe353",
+      "bytes": 7071,
+      "sha256": "0192c4c048908fe4483a3d6d6cbb87e2c76d00ecdabae255cf1f0da2c3a5f7c6",
       "mode": "0644"
     },
     {
@@ -11911,8 +11947,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 339448,
-      "sha256": "6000748ffb4b03fe727eae85485467528a944ad5d13e0e3c7391b12dea642abd",
+      "bytes": 339528,
+      "sha256": "3f1d1395af513d9da20643d22429f57ea25cc62ce6396f2499e486288ed30005",
       "mode": "0755"
     },
     {
