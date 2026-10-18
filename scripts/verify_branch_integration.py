@@ -56,6 +56,20 @@ def refs(root: Path = ROOT) -> list[str]:
     return sorted(names)
 
 
+
+def local_branches(root: Path = ROOT) -> list[str]:
+    """Only actual local branches may be judged as inactive local work.
+
+    refs/remotes/pull/48/merge (or an arbitrary remote named 'pull') is a
+    remote-tracking ref, not a local branch. In a GitHub PR checkout, treating
+    its short name as a local branch raises a false stranded-work failure.
+    Deliberately select the full refs/heads namespace instead of guessing a
+    list of remote prefixes from abbreviated ref names.
+    """
+    listed = _git("for-each-ref", "--format=%(refname:short)", "refs/heads", root=root)
+    return sorted(set((listed or "").splitlines()))
+
+
 def active_worktree_branches(root: Path = ROOT) -> set[str]:
     listed = _git("worktree", "list", "--porcelain", root=root)
     prefix = "branch refs/heads/"
