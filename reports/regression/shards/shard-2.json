@@ -2,9 +2,9 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "adda66b4c4471cc85d237594131bd54d006263a03e6285a31987ed28eb87e8e4",
-  "collection_digest": "9e3478103ad5fcc4600711952521c97c72355c63a290794943da96a31019a45b",
-  "collection_count": 4893,
+  "source_digest": "f5711eb65fea1165addd4bba296e64da0c4a5f3075a606b6a5d2c0fa80921f5a",
+  "collection_digest": "1b5a3e13c76c2e3b02179d02694a5672be39da8f5db38c1d2835bdfcdec1be70",
+  "collection_count": 4894,
   "shard_index": 2,
   "shard_count": 24,
   "selected_count": 219,
@@ -234,15 +234,15 @@
     "tests": 219,
     "failures": 0,
     "errors": 0,
-    "skipped": 1
+    "skipped": 2
   },
   "exit_code": 0,
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 10.271715,
+  "elapsed_seconds": 10.713763,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 32%]\n........................................................................ [ 65%]\n.........................s.............................................. [ 98%]\n...                                                                      [100%]",
+  "stdout_tail": "....s................................................................... [ 32%]\n........................................................................ [ 65%]\n.........................s.............................................. [ 98%]\n...                                                                      [100%]",
   "stderr_tail": ""
 }

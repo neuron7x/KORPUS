@@ -1,10 +1,10 @@
 {
   "schema": "korpus.regression-shard.v1",
-  "status": "PASS",
+  "status": "FAIL",
   "release_tag": "v0.9.7",
-  "source_digest": "adda66b4c4471cc85d237594131bd54d006263a03e6285a31987ed28eb87e8e4",
-  "collection_digest": "9e3478103ad5fcc4600711952521c97c72355c63a290794943da96a31019a45b",
-  "collection_count": 4893,
+  "source_digest": "f5711eb65fea1165addd4bba296e64da0c4a5f3075a606b6a5d2c0fa80921f5a",
+  "collection_digest": "1b5a3e13c76c2e3b02179d02694a5672be39da8f5db38c1d2835bdfcdec1be70",
+  "collection_count": 4894,
   "shard_index": 4,
   "shard_count": 24,
   "selected_count": 209,
@@ -222,17 +222,17 @@
   "selected_digest": "e631c0645620817290882ca463a4e25362b2da14aef43b7a2a4c372a3d617048",
   "junit": {
     "tests": 209,
-    "failures": 0,
+    "failures": 1,
     "errors": 0,
     "skipped": 1
   },
-  "exit_code": 0,
+  "exit_code": 1,
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 16.136333,
+  "elapsed_seconds": 13.008424,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 34%]\n........................................................................ [ 68%]\n................s................................................        [100%]",
+  "stdout_tail": "........................................................................ [ 34%]\n........................................................................ [ 68%]\n................s.....................F..........................        [100%]\n=================================== FAILURES ===================================\n_______ test_the_floor_reaches_a_blinding_at_depth_not_only_a_total_one ________\n\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7630c4844c80>\n\n    def test_the_floor_reaches_a_blinding_at_depth_not_only_a_total_one(monkeypatch) -> None:\n        \"\"\"Підлога по верхніх теках СЛІПА до осліплення на глибині — тому є друга.\n    \n        Знайдено незалежним суддею-сесією і підтверджено прогоном 06.09.2026: пропуск,\n        що зрізає `apps/api/src/korpus/`, лишає `apps` серед оглянутих, бо інші файли\n        під нею обхід бачив. Втрата — 311 файлів із 2708, і `blind_roots` віддає `[]`.\n    \n        Перша редакція очікування фільтрувала тим самим `SKIP_PARTS`, що й обхід, і не\n        ловила НІЧОГО: отруєння рухало обидва боки разом. Дві тотожності одного правила\n        згоджуються завжди. Тому очікування спирається на `NON_SOURCE_PARTS` — незалежне\n        оголошення, яке МУСИТЬ розійтися, коли `SKIP_PARTS` зіпсують.\n        \"\"\"\n        from korpus import repository_requirements as module\n        from korpus.repository_requirements import REPOSITORY_REQUIREMENTS\n        from korpus.repository_requirements import load_context as load_repository_context\n    \n        deep = next(\n            r for r in REPOSITORY_REQUIREMENTS if r.id == \"repo.scan.reached_every_tracked_file\"\n        )\n        shallow = next(\n            r for r in REPOSITORY_REQUIREMENTS if r.id == \"repo.scan.every_root_was_examined\"\n        )\n        clean = load_repository_context(ROOT, _repository_validation_context())\n    \n        # УМОВА ДІЙСНОСТІ, названа явно: без git-індексу ця вісь НЕ ВИМІРЯНА, і тест\n        # про неї нічого не доводить. Мовчазний пропуск читався б як згода.\n        if module.tracked_expectation(ROOT) is None:\n            pytest.skip(\"дерево без git-індексу: співмірна вісь не вимірна тут\")\n    \n>       assert deep.holds(clean) is True\nE       AssertionError: assert False is True\nE        +  where False = <function <lambda> at 0x7630c14b5760>(RepositoryContext(root=PosixPath('/home/neuro7/.korpus-worktrees/issue-6-release-evidence'), oversized=[], placeholder...nce', 'apps', 'reports', '.gitlab', 'docs', 'KORPUS_ENGINEERING_CLOSURE'}, validation_context='FULL_SSOT_DISTRIBUTION'))\nE        +    where <function <lambda> at 0x7630c14b5760> = Requirement(id='repo.scan.reached_every_tracked_file', subject='repository', statement='the walk examined at least as ...либині; `None` означає дерево без індексу, де ця вісь НЕ ВИМІРЯНА, і її тримає лише перевірка верхніх тек', failure='').holds\n\napps/api/tests/test_requirement_registry.py:330: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_requirement_registry.py::test_the_floor_reaches_a_blinding_at_depth_not_only_a_total_one",
   "stderr_tail": ""
 }
