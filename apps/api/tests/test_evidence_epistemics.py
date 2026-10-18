@@ -25,6 +25,11 @@ GATE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(GATE)
 
 
+def test_canonical_consumers_are_searched_in_github_actions_not_gitlab() -> None:
+    assert ".github/workflows" in GATE.CONSUMER_ROOTS
+    assert ".gitlab-ci.yml" not in GATE.CONSUMER_ROOTS
+
+
 def test_a_verdict_over_an_empty_population_is_named() -> None:
     """`all([])` істинне: гейт над порожньою множиною зелений саме в тому стані,
     заради якого існує. Це не «бракує поля» — це вирок без предмета."""

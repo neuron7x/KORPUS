@@ -126,7 +126,7 @@ JUDGED_COLLECTIONS = (
 ORIGIN_FIELDS = ("generated_at", "measured_at", "ran_at", "created_at", "produced_by", "schema")
 #: Де шукати споживача. `var/` не шукаємо: артефакт, який читає лише інший артефакт,
 #: споживачем не забезпечений.
-CONSUMER_ROOTS = ("scripts", "apps/api/src", "apps/api/tests", "Makefile", ".gitlab-ci.yml")
+CONSUMER_ROOTS = ("scripts", "apps/api/src", "apps/api/tests", "Makefile", ".github/workflows")
 
 
 def _load(path: Path) -> dict[str, Any] | None:

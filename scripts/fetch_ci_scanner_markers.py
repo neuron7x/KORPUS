@@ -1,125 +1,273 @@
 #!/usr/bin/env python3
-"""Маркери сканерів із конвеєра — у `var/security/`, з перевіркою коміта.
+"""Fetch scanner evidence from one GitHub Actions run and bind it to this tree.
 
-Предикат `live_vulnerability_scanners` читає `var/security/ci-*.json` і питає, чи
-`commit_sha` кожного маркера лежить у множині комітів із ТОТОЖНИМ джерелом. Доти
-єдиним виробником цих файлів була рука: хтось відкривав конвеєр, качав артефакт і
-клав його в дерево. Різниця між «сканер відпрацював на цьому коді» і «файл про це є»
-була невидима за побудовою — той самий клас, що й у чистої кімнати до появи
-`reproduce_clean_room.py`.
+The canonical scanner producers are jobs in ``.github/workflows/assurance.yml``.
+GitHub artifacts are scoped to a workflow run rather than a job, so this importer
+checks both layers that identify their subject: the run's immutable ``head_sha`` and
+the ``commit_sha`` inside every downloaded JSON payload.  A missing artifact, an
+expired artifact, a non-completed run, or either SHA outside the set of commits whose
+source is identical to ``HEAD`` is a refusal.
 
-Що робить цей скрипт і чого НЕ робить. Він качає артефакти названих джобів і кладе
-їх на місце ЛИШЕ якщо `commit_sha` маркера прийнятний для цього дерева. Він не
-вигадує маркерів, не редагує їх і не приймає рішення про предикат — вирок лишається
-за `verify_production_hard_predicates`.
+The script copies bytes only after those checks.  It never creates, repairs, or merges
+scanner results; the production predicate remains the consumer of the downloaded
+evidence.
 
-    fetch_ci_scanner_markers.py --pipeline 2827708067
-    fetch_ci_scanner_markers.py --pipeline 2827708067 --dry-run
+    fetch_ci_scanner_markers.py --run 123456789
+    fetch_ci_scanner_markers.py --run 123456789 --dry-run
 """
 
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from source_digest import commits_with_identical_source  # noqa: E402
 
-PROJECT = "neuron7x%2Fkorpus-platform"
+DEFAULT_REPOSITORY = "neuron7x/KORPUS"
+CANONICAL_WORKFLOW = ".github/workflows/assurance.yml"
 OUT = ROOT / "var/security"
 
-#: Джоб -> файл, який він кладе. Перелік ЗАКРИТИЙ: новий сканер мусить бути названий
-#: тут, інакше його маркер не з'явиться сам, і предикат скаже про це прямо.
-MARKERS = {
-    "secret:scan": "ci-gitleaks.json",
-    "python:audit": "ci-pip-audit.json",
-    "container:scan": "ci-container-scan.json",
-    "security:summary": "summary.json",
+# Artifact name -> file carried inside it.  The set is closed: adding a scanner or
+# changing an artifact boundary must update the importer and its tests explicitly.
+ARTIFACTS = {
+    "security-gitleaks": "ci-gitleaks.json",
+    "security-pip-audit": "ci-pip-audit.json",
+    "security-trivy": "ci-trivy.json",
+    "security-summary": "summary.json",
+    "container-security": "ci-container-scan.json",
 }
 
 
-def _glab(*args: str) -> str:
-    result = subprocess.run(["glab", *args], cwd=ROOT, capture_output=True, text=True, check=False)
+class EvidenceRun(NamedTuple):
+    metadata: dict[str, Any]
+    artifacts: list[dict[str, Any]]
+    accepted_commits: frozenset[str]
+
+
+class ArtifactRequest(NamedTuple):
+    repository: str
+    artifact_id: int
+    file_name: str
+
+
+class DownloadRequest(NamedTuple):
+    repository: str
+    accepted_commits: frozenset[str]
+    report: dict[str, Any]
+    write: bool
+
+
+def _gh_json(endpoint: str) -> dict[str, Any]:
+    result = subprocess.run(
+        ["gh", "api", endpoint],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
     if result.returncode != 0:
-        raise SystemExit(f"glab {' '.join(args)}: {result.stderr.strip()[:200]}")
-    return result.stdout
-
-
-def pipeline_jobs(pipeline: str) -> list[dict[str, Any]]:
-    raw = _glab("api", f"projects/{PROJECT}/pipelines/{pipeline}/jobs?per_page=100")
-    payload = json.loads(raw)
-    if not isinstance(payload, list):
-        raise SystemExit("несподівана відповідь API: очікувався перелік джобів")
+        raise SystemExit(f"gh api {endpoint}: {result.stderr.strip()[:200]}")
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise SystemExit(f"gh api {endpoint}: response is not JSON") from error
+    if not isinstance(payload, dict):
+        raise SystemExit(f"gh api {endpoint}: expected an object")
     return payload
 
 
-def artifact(job_id: int, name: str) -> bytes | None:
-    """Один файл із артефактів джоба, або None, якщо його там немає."""
+def _gh_bytes(endpoint: str) -> bytes:
     result = subprocess.run(
-        ["glab", "api", f"projects/{PROJECT}/jobs/{job_id}/artifacts/var/security/{name}"],
+        [
+            "gh",
+            "api",
+            "--header",
+            "Accept: application/vnd.github+json",
+            endpoint,
+        ],
         cwd=ROOT,
         capture_output=True,
         check=False,
     )
-    return result.stdout if result.returncode == 0 and result.stdout else None
+    if result.returncode != 0:
+        detail = result.stderr.decode("utf-8", errors="replace").strip()[:200]
+        raise SystemExit(f"gh api {endpoint}: {detail}")
+    return result.stdout
 
 
-def verdict(jobs: list[dict[str, Any]], accepted: frozenset[str]) -> dict[str, Any]:
+def run_metadata(repository: str, run_id: str) -> dict[str, Any]:
+    metadata = _gh_json(f"repos/{repository}/actions/runs/{run_id}")
+    attempt = metadata.get("run_attempt")
+    if not isinstance(attempt, int) or isinstance(attempt, bool) or attempt < 1:
+        return metadata
+    return _gh_json(f"repos/{repository}/actions/runs/{run_id}/attempts/{attempt}")
+
+
+def run_artifacts(repository: str, run_id: str) -> list[dict[str, Any]]:
+    payload = _gh_json(f"repos/{repository}/actions/runs/{run_id}/artifacts?per_page=100")
+    artifacts = payload.get("artifacts")
+    if not isinstance(artifacts, list):
+        raise SystemExit("GitHub artifacts response has no artifact list")
+    return [item for item in artifacts if isinstance(item, dict)]
+
+
+def artifact_file(request: ArtifactRequest) -> bytes | None:
+    """Return one declared file from an artifact ZIP, without extracting other paths."""
+
+    archive = _gh_bytes(f"repos/{request.repository}/actions/artifacts/{request.artifact_id}/zip")
+    try:
+        with zipfile.ZipFile(io.BytesIO(archive)) as bundle:
+            matches = [name for name in bundle.namelist() if Path(name).name == request.file_name]
+            if len(matches) != 1:
+                return None
+            return bundle.read(matches[0])
+    except (zipfile.BadZipFile, KeyError):
+        return None
+
+
+def _refused_files(reason: str) -> dict[str, str]:
+    return {file_name: reason for file_name in ARTIFACTS.values()}
+
+
+def _current_artifact(
+    context: tuple[list[dict[str, Any]], str, str],
+) -> tuple[dict[str, Any] | None, str | None]:
+    artifacts, artifact_name, run_started_at = context
+    candidates = [
+        item
+        for item in artifacts
+        if item.get("name") == artifact_name
+        and run_started_at
+        and str(item.get("created_at", "")) >= run_started_at
+    ]
+    if len(candidates) != 1:
+        return None, f"has {len(candidates)} current-attempt candidates"
+    artifact = candidates[0]
+    if artifact.get("expired") is True:
+        return None, "is expired"
+    if not isinstance(artifact.get("id"), int) or isinstance(artifact.get("id"), bool):
+        return None, "has no numeric id"
+    return artifact, None
+
+
+def _available_artifacts(
+    context: tuple[list[dict[str, Any]], str, str],
+) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
+    artifacts, head_sha, run_started_at = context
+    fetched: dict[str, dict[str, Any]] = {}
+    refused: dict[str, str] = {}
+    for artifact_name, file_name in ARTIFACTS.items():
+        artifact, problem = _current_artifact((artifacts, artifact_name, run_started_at))
+        if artifact is None or problem is not None:
+            refused[file_name] = f"artifact {artifact_name} {problem or 'is invalid'}"
+            continue
+        fetched[file_name] = {
+            "artifact": artifact_name,
+            "artifact_id": artifact["id"],
+            "commit": head_sha,
+        }
+    return fetched, refused
+
+
+def _run_problem(context: tuple[dict[str, Any], frozenset[str]]) -> str | None:
+    run, accepted = context
+    if run.get("path") != CANONICAL_WORKFLOW:
+        return f"run workflow is {run.get('path', 'UNKNOWN')}, not {CANONICAL_WORKFLOW}"
+    if run.get("status") != "completed":
+        return f"run is {run.get('status', 'UNKNOWN')}, not completed"
+    head_sha = str(run.get("head_sha", ""))
+    if head_sha not in accepted:
+        return f"run head {head_sha[:12]} is not source-identical to HEAD"
+    return None
+
+
+def verdict(source: EvidenceRun) -> dict[str, Any]:
+    run, artifacts, accepted = source
+    head_sha = str(run.get("head_sha", ""))
     report: dict[str, Any] = {
-        "schema": "korpus.ci-scanner-marker-fetch.v1",
+        "schema": "korpus.ci-scanner-marker-fetch.v2",
+        "provider": "github-actions",
+        "run_id": str(run.get("id", "UNKNOWN")),
+        "head_sha": head_sha,
         "accepted_commits": sorted(accepted),
         "fetched": {},
         "refused": {},
     }
-    by_name = {job["name"]: job for job in jobs}
-    for job_name, file_name in MARKERS.items():
-        job = by_name.get(job_name)
-        if job is None:
-            report["refused"][file_name] = f"джоба {job_name} немає в конвеєрі"
-            continue
-        if job["status"] != "success":
-            report["refused"][file_name] = f"{job_name}: {job['status']}"
-            continue
-        sha = str(job["commit"]["id"])
-        if sha not in accepted:
-            report["refused"][file_name] = (
-                f"{job_name} біг на {sha[:12]}, а це не коміт із тотожним джерелом"
-            )
-            continue
-        report["fetched"][file_name] = {"job": job_name, "job_id": job["id"], "commit": sha}
+    if problem := _run_problem((run, accepted)):
+        report["refused"] = _refused_files(problem)
+        return report
+    report["fetched"], report["refused"] = _available_artifacts(
+        (artifacts, head_sha, str(run.get("run_started_at", "")))
+    )
     return report
+
+
+def _bound_payload(subject: tuple[bytes, frozenset[str], str]) -> bool:
+    payload, accepted, head_sha = subject
+    try:
+        value = json.loads(payload)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return False
+    return (
+        isinstance(value, dict)
+        and value.get("commit_sha") == head_sha
+        and value.get("commit_sha") in accepted
+    )
+
+
+def _write_selected(request: DownloadRequest) -> list[str]:
+    if request.write:
+        OUT.mkdir(parents=True, exist_ok=True)
+    written: list[str] = []
+    report = request.report
+    for file_name, meta in list(report["fetched"].items()):
+        payload = artifact_file(
+            ArtifactRequest(request.repository, int(meta["artifact_id"]), file_name)
+        )
+        if payload is None:
+            report["refused"][file_name] = f"{meta['artifact']}: declared file is absent"
+            del report["fetched"][file_name]
+            continue
+        if not _bound_payload((payload, request.accepted_commits, str(report["head_sha"]))):
+            report["refused"][file_name] = (
+                f"{meta['artifact']}: payload commit is not the admitted run head"
+            )
+            del report["fetched"][file_name]
+            continue
+        if request.write:
+            (OUT / file_name).write_bytes(payload)
+            written.append(file_name)
+    return written
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--pipeline", required=True)
+    parser.add_argument("--run", required=True, help="GitHub Actions run id")
+    parser.add_argument("--repo", default=DEFAULT_REPOSITORY, help="OWNER/REPOSITORY")
     parser.add_argument("--dry-run", action="store_true")
     arguments = parser.parse_args()
 
     accepted = frozenset(commits_with_identical_source())
     if not accepted:
-        raise SystemExit("порожня множина прийнятних комітів — маркер прийняти нема до чого")
-    report = verdict(pipeline_jobs(arguments.pipeline), accepted)
+        raise SystemExit("empty accepted-commit set: no scanner evidence can be admitted")
+    run = run_metadata(arguments.repo, arguments.run)
+    report = verdict(EvidenceRun(run, run_artifacts(arguments.repo, arguments.run), accepted))
 
-    written: list[str] = []
-    if not arguments.dry_run:
-        OUT.mkdir(parents=True, exist_ok=True)
-        for file_name, meta in list(report["fetched"].items()):
-            payload = artifact(int(meta["job_id"]), file_name)
-            if payload is None:
-                report["refused"][file_name] = f"{meta['job']}: артефакта немає"
-                del report["fetched"][file_name]
-                continue
-            (OUT / file_name).write_bytes(payload)
-            written.append(file_name)
-    report["written"] = written
-    report["status"] = "PASS" if report["fetched"] and not report["refused"] else "PARTIAL"
+    report["written"] = _write_selected(
+        DownloadRequest(arguments.repo, accepted, report, not arguments.dry_run)
+    )
+    report["status"] = (
+        "PASS" if len(report["fetched"]) == len(ARTIFACTS) and not report["refused"] else "PARTIAL"
+    )
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if report["status"] == "PASS" else 1
 

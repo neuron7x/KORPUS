@@ -13,7 +13,14 @@ from source_digest import source_tree_digest
 
 EXPECTED_SCANNERS = frozenset({"gitleaks", "pip-audit:runtime", "pip-audit:dev", "trivy"})
 CI_CHECKS = frozenset(
-    {"marker_shapes", "scanner_set_exact", "all_scanners_zero", "single_commit", "current_commit"}
+    {
+        "marker_shapes",
+        "scanner_set_exact",
+        "all_scanners_zero",
+        "single_commit",
+        "current_commit",
+        "github_actions_context",
+    }
 )
 
 
@@ -45,6 +52,8 @@ def _summary_shape_problems(payload: dict[str, Any], expected_class: str) -> lis
         checks = payload.get("checks")
         if payload.get("schema_version") != 2:
             problems.append("CI scanner summary has the wrong schema")
+        if payload.get("provider") != "github-actions":
+            problems.append("CI scanner summary was not produced by canonical GitHub Actions")
         if (
             not isinstance(checks, dict)
             or set(checks) != CI_CHECKS
