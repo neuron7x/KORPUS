@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2085,
-  "root_sha256": "e2a1ee0e1599bc3b0df445d25901395a127987a0edb1fa95aec3f0a05c31b388",
+  "root_sha256": "03e48d550e370eff02de425e44a0c8a4ea6de1279e3f95fc1eeb8c9cc6734b09",
   "files": [
     {
       "path": ".dockerignore",
@@ -3685,8 +3685,8 @@
     },
     {
       "path": "apps/api/tests/test_coverage_closure_v097.py",
-      "bytes": 56495,
-      "sha256": "d70e2d847ec2f11384e55bc287a82b9d006873822908b43f26cbdfb953ae1ac8",
+      "bytes": 58076,
+      "sha256": "97c2eefd7680389489be7cab53809af35408a986c42faf56a44de7bf8178b815",
       "mode": "0644"
     },
     {
@@ -12139,8 +12139,8 @@
     },
     {
       "path": "scripts/source_digest.py",
-      "bytes": 6870,
-      "sha256": "d2f8239d2b331431b67f15df615394e884dfee27717a227976686a8bff5df078",
+      "bytes": 5450,
+      "sha256": "7b75fce71b677c05dd97b5997148088d875bae0df6b1ffaac62a47cd380f6c1b",
       "mode": "0755"
     },
     {
