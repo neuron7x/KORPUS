@@ -124,14 +124,7 @@ def test_an_absent_reproduction_is_absent_not_silently_fine(tmp_path: Path) -> N
 
 
 def test_the_reproduction_names_the_trunk_not_the_archive() -> None:
-    """Найсильніший позитивний доказ свідчив про АРХІВ, а не про основу.
-
-    Перша редакція `reproduce_clean_room.py` тягнула з GitHub, а власний `post-commit`
-    цього дерева називає GitHub «дзеркало-архів: Actions заблоковані білінгом, він
-    нічого не запускає й НІЧОГО НЕ СТВЕРДЖУЄ, лише зберігає». Вирок конвеєра виносить
-    GitLab. Отже репродукція доводила відтворюваність не того дерева, яке судять.
-    Знайдено незалежною сесією 06.09.2026 — підміна ПРЕДМЕТА, не помилка коду.
-    """
+    """Дефолт чистої кімнати завжди йде з оголошеного канонічного форжа."""
     import importlib.util
 
     root = Path(__file__).resolve().parents[3]
@@ -142,6 +135,6 @@ def test_the_reproduction_names_the_trunk_not_the_archive() -> None:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 
-    assert "gitlab.com" in module.TRUNK
-    assert "github.com" in module.ARCHIVE
+    assert "github.com" in module.TRUNK
+    assert "gitlab.com" in module.ARCHIVE
     assert module.TRUNK != module.ARCHIVE

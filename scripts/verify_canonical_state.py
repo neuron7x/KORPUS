@@ -16,6 +16,7 @@ REGISTRY = ROOT / "config/operations/canonical-state.json"
 SCHEMA = "korpus.canonical-state.v1"
 MIRROR = "mirror"
 INTEGRATION_SOURCE = "integration-source"
+ARCHIVE = "archive"
 INTEGRATION_REGISTRY = "config/operations/branch-integration.json"
 
 
@@ -53,6 +54,9 @@ def observe(root: Path = ROOT, fetch: bool = False) -> dict[str, Any]:
         "head_branch": _git("rev-parse", "--abbrev-ref", "HEAD", root=root),
         "branches": sorted(branches),
         "remotes": {name: _git("remote", "get-url", name, root=root) for name in remotes},
+        "push_urls": {
+            name: _git("remote", "get-url", "--push", name, root=root) for name in remotes
+        },
         "worktrees": worktrees,
         "root": str(root),
     }
@@ -293,7 +297,7 @@ def _publication_findings(
     observation: dict[str, Any],
     measured: dict[str, Any],
 ) -> list[dict[str, str]]:
-    found = [_publication_role(name, entry)]
+    found = [_publication_role(name, entry, observation.get("push_urls", {}).get(name))]
     url = observation["remotes"].get(name)
     if entry.get("url") and url != entry["url"]:
         found.append(
@@ -316,14 +320,25 @@ def _publication_findings(
     return found
 
 
-def _publication_role(name: str, entry: dict[str, Any]) -> dict[str, str]:
+def _archive_contract(entry: dict[str, Any], push_url: Any) -> bool:
+    return (
+        entry.get("push_disabled") is True
+        and bool(str(entry.get("reason", "")).strip())
+        and isinstance(push_url, str)
+        and push_url.startswith("disabled://")
+    )
+
+
+def _publication_role(name: str, entry: dict[str, Any], push_url: Any) -> dict[str, str]:
     role = entry.get("role")
-    if role == MIRROR:
-        valid = isinstance(entry.get("tracks"), str) and isinstance(entry.get("max_days"), int)
-    elif role == INTEGRATION_SOURCE:
-        valid = entry.get("governed_by") == INTEGRATION_REGISTRY
-    else:
+    if role not in (MIRROR, INTEGRATION_SOURCE, ARCHIVE):
         return _finding(f"publication_role:{name}", "FAIL", f"невідома роль: {role}")
+    valid_by_role = {
+        MIRROR: isinstance(entry.get("tracks"), str) and isinstance(entry.get("max_days"), int),
+        INTEGRATION_SOURCE: entry.get("governed_by") == INTEGRATION_REGISTRY,
+        ARCHIVE: _archive_contract(entry, push_url),
+    }
+    valid = valid_by_role[role]
     detail = f"роль {role} має виконуваний контракт" if valid else f"роль {role} без контракту"
     return _finding(f"publication_role:{name}", "PASS" if valid else "FAIL", detail)
 
@@ -431,7 +446,14 @@ def selftest() -> int:
     observation: dict[str, Any] = {
         "head_branch": "work/converge-semantic",
         "branches": ["main", "work/converge-semantic"],
-        "remotes": {"gitlab": "git@gitlab.com:x/y.git"},
+        "remotes": {
+            "gitlab": "git@gitlab.com:x/y.git",
+            "legacy": "git@example.invalid:legacy/archive.git",
+        },
+        "push_urls": {
+            "gitlab": "git@gitlab.com:x/y.git",
+            "legacy": "disabled://legacy-archive",
+        },
         "worktrees": ["/canon", "/wt1"],
         "root": "/canon",
     }
@@ -439,7 +461,16 @@ def selftest() -> int:
         "canonical_branch": "work/converge-semantic",
         "canonical_root": "/canon",
         "trunk": {"branch": "main", "max_days": 2},
-        "publications": [{"remote": "gitlab", "url": "git@gitlab.com:x/y.git", **mirror}],
+        "publications": [
+            {"remote": "gitlab", "url": "git@gitlab.com:x/y.git", **mirror},
+            {
+                "remote": "legacy",
+                "url": "git@example.invalid:legacy/archive.git",
+                "role": ARCHIVE,
+                "push_disabled": True,
+                "reason": "спадковий архів із вимкненим push",
+            },
+        ],
         "max_worktrees": 2,
         "transient_worktree_prefixes": ["/tmp/claude-"],
     }
@@ -452,6 +483,16 @@ def selftest() -> int:
     }
     cases: list[tuple[str, dict[str, Any], dict[str, Any], dict[str, Any], str]] = [
         ("усе названо й на стелі", observation, measured, registry, "PASS"),
+        (
+            "архів із живим push URL відмовляється",
+            {
+                **observation,
+                "push_urls": {**observation["push_urls"], "legacy": "git@example.invalid:x/y.git"},
+            },
+            measured,
+            registry,
+            "FAIL",
+        ),
         (
             "стовбур СТАРІШИЙ за поріг",
             observation,
@@ -477,7 +518,8 @@ def selftest() -> int:
             "віддалений, якого ніхто не назвав",
             {
                 **observation,
-                "remotes": {**observation["remotes"], "origin": "git@github.com:a/b.git"},
+                "remotes": {**observation["remotes"], "other": "git@github.com:a/b.git"},
+                "push_urls": {**observation["push_urls"], "other": "git@github.com:a/b.git"},
             },
             measured,
             registry,
@@ -485,14 +527,20 @@ def selftest() -> int:
         ),
         (
             "запис про віддалений, якого немає",
-            {**observation, "remotes": {}},
+            {**observation, "remotes": {}, "push_urls": {}},
             measured,
             registry,
             "FAIL",
         ),
         (
             "віддалений вказує НЕ туди, куди названо",
-            {**observation, "remotes": {"gitlab": "git@gitlab.com:чуже/repo.git"}},
+            {
+                **observation,
+                "remotes": {
+                    "gitlab": "git@gitlab.com:чуже/repo.git",
+                    "legacy": observation["remotes"]["legacy"],
+                },
+            },
             measured,
             registry,
             "FAIL",
@@ -545,6 +593,7 @@ def selftest() -> int:
             {
                 **observation,
                 "remotes": {**observation["remotes"], "origin": "git@github.com:a/b.git"},
+                "push_urls": {**observation["push_urls"], "origin": "git@github.com:a/b.git"},
             },
             measured,
             {**registry, "awaiting_decision": [{"remote": "origin", "reason": "x" * 20}]},

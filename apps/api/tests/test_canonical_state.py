@@ -1,17 +1,8 @@
 """Що саме означає «канонічне».
 
-Виміряно 01.09.2026: кандидатів на канон ТРИ, і вони розходяться.
-
-    локальна work/converge-semantic   уся робота дня
-    main                              позаду на 125 (30.08 20:54), СТРОГИЙ предок
-    gitlab/work/converge-semantic     позаду на 106
-
-Жодна перевірка цього не бачила — та сама форма, що вчора мало слово «зелено».
-
-Три факти роблять це не косметикою: `.gitlab-ci.yml` вмикає розгортання продакшену
-правилом `$CI_COMMIT_BRANCH == "main"`; опублікована на GitLab голова збігалася з
-ТИМЧАСОВИМ деревом мертвої сесії у `/tmp/.../scratchpad/`; і серед віддалених є той,
-чия роль не вирішена.
+Первинний гейт з'явився 01.09.2026, коли локальна гілка, main і GitLab розходились.
+19.10.2026 роль змінено після повного аудиту трьох поверхонь: локальна main і
+GitHub origin/main утворюють канон; GitLab є явним read-only архівом.
 """
 
 from __future__ import annotations
@@ -54,6 +45,10 @@ def _observation() -> dict[str, Any]:
             "gitlab": publications["gitlab"]["url"],
             "origin": publications["origin"]["url"],
         },
+        "push_urls": {
+            "gitlab": "disabled://gitlab-read-only-archive",
+            "origin": publications["origin"]["url"],
+        },
         "worktrees": [registry["canonical_root"], "/home/neuro7/.korpus-worktrees/a"],
         "root": registry["canonical_root"],
     }
@@ -81,12 +76,13 @@ def _registry_with_trunk() -> dict[str, Any]:
 
 def _measured() -> dict[str, Any]:
     registry = _registry()
+    mirror = next(item for item in registry["publications"] if item["role"] == "mirror")
     return {
         "trunk_behind": 126,
         "trunk_days": _registry_with_trunk()["trunk"]["max_days"] - 0.5,
         "trunk_is_ancestor": True,
-        "publication_behind": {"gitlab": 107},
-        "publication_days": {"gitlab": registry["publications"][0]["max_days"] - 0.5},
+        "publication_behind": {mirror["remote"]: 107},
+        "publication_days": {mirror["remote"]: mirror["max_days"] - 0.5},
     }
 
 
@@ -130,15 +126,16 @@ def test_the_trunk_is_judged_by_age_not_by_commit_count() -> None:
 
 def test_the_publication_is_judged_by_age_too() -> None:
     registry = _registry()
+    mirror = next(item for item in registry["publications"] if item["role"] == "mirror")
     stale = GATE.assess(
         _observation(),
         {
             **_measured(),
-            "publication_days": {"gitlab": registry["publications"][0]["max_days"] + 1},
+            "publication_days": {mirror["remote"]: mirror["max_days"] + 1},
         },
         registry,
     )
-    assert _finding(stale, "publication_staleness:gitlab")["verdict"] == "FAIL"
+    assert _finding(stale, f"publication_staleness:{mirror['remote']}")["verdict"] == "FAIL"
 
 
 def test_age_is_measured_between_two_dates_and_missing_one_is_unknown() -> None:
@@ -162,11 +159,13 @@ def test_a_remote_pointing_somewhere_else_than_declared_is_refused() -> None:
     assert _finding(findings, "publication_url:gitlab")["verdict"] == "FAIL"
 
 
-def test_origin_is_an_integration_source_governed_by_the_branch_registry() -> None:
+def test_origin_is_the_only_freshness_judged_canonical_mirror() -> None:
     findings = GATE.assess(_observation(), _measured(), _registry())
     assert _finding(findings, "publication_role_decided")["verdict"] == "PASS"
     assert _finding(findings, "publication_role:origin")["verdict"] == "PASS"
-    assert not any(item["check"] == "publication_staleness:origin" for item in findings)
+    assert _finding(findings, "publication_role:gitlab")["verdict"] == "PASS"
+    assert _finding(findings, "publication_staleness:origin")["verdict"] == "PASS"
+    assert not any(item["check"] == "publication_staleness:gitlab" for item in findings)
 
 
 def test_the_undecided_remote_is_named_and_stays_red_until_decided() -> None:
@@ -178,22 +177,37 @@ def test_the_undecided_remote_is_named_and_stays_red_until_decided() -> None:
     assert _finding(findings, "publication_role_decided")["verdict"] == "FAIL"
 
 
-def test_an_integration_source_without_branch_governance_is_refused() -> None:
+def test_an_archive_without_disabled_push_is_refused() -> None:
     registry = _registry()
-    origin = next(item for item in registry["publications"] if item["remote"] == "origin")
-    origin.pop("governed_by")
+    archive = next(item for item in registry["publications"] if item["role"] == "archive")
+    archive["push_disabled"] = False
     findings = GATE.assess(_observation(), _measured(), registry)
-    assert _finding(findings, "publication_role:origin")["verdict"] == "FAIL"
+    assert _finding(findings, "publication_role:gitlab")["verdict"] == "FAIL"
+
+
+def test_an_archive_without_a_reason_is_refused() -> None:
+    registry = _registry()
+    archive = next(item for item in registry["publications"] if item["role"] == "archive")
+    archive["reason"] = "   "
+    findings = GATE.assess(_observation(), _measured(), registry)
+    assert _finding(findings, "publication_role:gitlab")["verdict"] == "FAIL"
+
+
+def test_an_archive_with_a_live_push_url_is_refused() -> None:
+    observation = _observation()
+    observation["push_urls"]["gitlab"] = observation["remotes"]["gitlab"]
+    findings = GATE.assess(observation, _measured(), _registry())
+    assert _finding(findings, "publication_role:gitlab")["verdict"] == "FAIL"
 
 
 def test_an_unknown_publication_role_is_refused() -> None:
     registry = _registry()
     registry["publications"][0]["role"] = "decorative"
     findings = GATE.assess(_observation(), _measured(), registry)
-    assert _finding(findings, "publication_role:gitlab")["verdict"] == "FAIL"
+    assert _finding(findings, "publication_role:origin")["verdict"] == "FAIL"
 
 
-def test_measurement_never_treats_an_integration_source_as_a_mirror(monkeypatch: Any) -> None:
+def test_measurement_never_treats_an_archive_as_a_mirror(monkeypatch: Any) -> None:
     refs: list[str] = []
 
     def remember(ref: str, *_args: Any, **_kwargs: Any) -> int:
@@ -204,9 +218,9 @@ def test_measurement_never_treats_an_integration_source_as_a_mirror(monkeypatch:
     monkeypatch.setattr(GATE, "committed_at", remember)
     monkeypatch.setattr(GATE, "is_ancestor", remember)
     measured = GATE.measure(_observation(), _registry())
-    assert set(measured["publication_behind"]) == {"gitlab"}
-    assert set(measured["publication_days"]) == {"gitlab"}
-    assert not any(ref.startswith("origin/") for ref in refs)
+    assert set(measured["publication_behind"]) == {"origin"}
+    assert set(measured["publication_days"]) == {"origin"}
+    assert not any(ref.startswith("gitlab/") for ref in refs)
 
 
 def test_a_worktree_that_is_not_the_canonical_root_cannot_judge_the_checkout() -> None:

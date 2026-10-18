@@ -54,7 +54,7 @@ jobs:
           make production-postgres-security PY=python
           make sqlite-recovery-drill PY=python
           make audit-closure PY=python
-          make production-hard-predicates PY=python
+          make production-hard-predicates-evidence PY=python
           make release-truth PY=python
           make assemble-assurance PY=python
           make snapshot PY=python
