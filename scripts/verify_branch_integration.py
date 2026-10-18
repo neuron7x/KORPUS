@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 REGISTRY = ROOT / "config/operations/branch-integration.json"
 SCHEMA = "korpus.branch-integration.v1"
 CANONICAL_DECLARATION = "config/operations/canonical-state.json"
+ACTIVE_REMOTE_ROLES = {"mirror", "integration-source"}
 
 
 # ----------------------------------------------------------------- спостереження (I/O)
@@ -26,7 +27,32 @@ def _git(*args: str, root: Path = ROOT) -> str | None:
     return done.stdout.strip() if done.returncode == 0 else None
 
 
-def refs(root: Path = ROOT) -> list[str]:
+def integration_remotes(root: Path = ROOT) -> set[str] | None:
+    """Віддалені, чиї живі heads є кандидатами на інтеграцію.
+
+    Архівні форжі та імпортовані PR/MR namespaces не є активними гілками. Ролі
+    читаються з того самого оголошення, що й канон; невідомий формат закривається
+    відмовою, а не порожнім переліком.
+    """
+    try:
+        registry = json.loads((root / CANONICAL_DECLARATION).read_text(encoding="utf-8"))
+        publications = registry["publications"]
+    except (OSError, json.JSONDecodeError, KeyError):
+        return None
+    if not isinstance(publications, list):
+        return None
+    names = {
+        item["remote"]
+        for item in publications
+        if isinstance(item, dict)
+        and item.get("role") in ACTIVE_REMOTE_ROLES
+        and isinstance(item.get("remote"), str)
+        and item["remote"].strip()
+    }
+    return names or None
+
+
+def refs(root: Path = ROOT, remotes: set[str] | None = None) -> list[str] | None:
     """Гілки дерева без символічних голів віддалених.
 
     Відсіювати треба за ПОВНИМ іменем, не за коротким. `%(refname:short)` для
@@ -40,13 +66,17 @@ def refs(root: Path = ROOT) -> list[str]:
     зелена через ВІДСУТНІСТЬ ПРЕДМЕТА, а не через його стан — рівно те, що ця
     перевірка мала б ловити в інших.
     """
+    if not remotes:
+        return None
     listed = _git(
         "for-each-ref",
         "--format=%(refname)%09%(refname:short)",
         "refs/heads",
-        "refs/remotes",
+        *(f"refs/remotes/{name}" for name in sorted(remotes)),
         root=root,
     )
+    if listed is None:
+        return None
     names: set[str] = set()
     for line in (listed or "").splitlines():
         full, _, short = line.partition("\t")
@@ -56,8 +86,10 @@ def refs(root: Path = ROOT) -> list[str]:
     return sorted(names)
 
 
-def active_worktree_branches(root: Path = ROOT) -> set[str]:
+def active_worktree_branches(root: Path = ROOT) -> set[str] | None:
     listed = _git("worktree", "list", "--porcelain", root=root)
+    if listed is None:
+        return None
     prefix = "branch refs/heads/"
     return {
         line.removeprefix(prefix) for line in (listed or "").splitlines() if line.startswith(prefix)
@@ -92,14 +124,28 @@ def observe(canonical: str, root: Path = ROOT) -> dict[str, Any]:
     """
     found: dict[str, Any] = {}
     active = active_worktree_branches(root)
-    for ref in refs(root):
+    remotes = integration_remotes(root)
+    candidates = refs(root, remotes)
+    if active is None or remotes is None or candidates is None:
+        return {
+            "canonical": canonical,
+            "active_worktree_branches": None,
+            "integration_remotes": sorted(remotes) if remotes else None,
+            "diverged": None,
+        }
+    for ref in candidates:
         if ref == canonical or ref in active:
             continue
         count = unique_commits(canonical, ref, root=root)
         if not count:
             continue
         found[ref] = {"unique": count, "clean": merges_cleanly(canonical, ref, root=root)}
-    return {"canonical": canonical, "active_worktree_branches": sorted(active), "diverged": found}
+    return {
+        "canonical": canonical,
+        "active_worktree_branches": sorted(active),
+        "integration_remotes": sorted(remotes),
+        "diverged": found,
+    }
 
 
 # --------------------------------------------------------------------- судження (чисте)

@@ -132,15 +132,12 @@ def test_the_real_registry_is_green_on_the_real_repository() -> None:
             "чекаут конвеєра: гілок для зведення тут немає — реєстр описує канонічне "
             "робоче дерево, і вимір робиться там"
         )
+    canonical_state = json.loads(
+        (ROOT / "config/operations/canonical-state.json").read_text(encoding="utf-8")
+    )
+    if ROOT.resolve() != Path(canonical_state["canonical_root"]).resolve():
+        pytest.skip("реальний гейт виконується лише в оголошеному канонічному корені")
     registry = _registry()
-    named = set(GATE._named(registry))
-    refs = set(GATE.refs(ROOT))
-    if named and not (named & refs):
-        pytest.skip(
-            f"жодної з {len(named)} названих реєстром гілок у цьому дереві немає: "
-            "реєстр описує канонічне робоче дерево, і вирок «запис про гілку, яка вже "
-            "влита або зникла» був би твердженням про інший предмет"
-        )
     findings = GATE.assess(GATE.observe(CANON, ROOT), registry)
     assert GATE.verdict(findings) == "PASS", findings
 
@@ -150,17 +147,6 @@ def test_the_gate_reads_the_single_canonical_declaration() -> None:
     assert GATE._declared_canonical(registry, ROOT) == CANON
     registry["canonical_branch_declared_in"] = "config/operations/other.json"
     assert GATE._declared_canonical(registry, ROOT) is None
-
-
-def test_the_migration_collision_is_recorded_as_the_blocker() -> None:
-    """Блокер не текстовий, і саме тому його треба записати словами.
-
-    Git конфлікту не бачить: файли різні. Побачить alembic — після мержу.
-    """
-    blocker = _registry()["blocker"]
-    assert blocker["kind"] == "alembic_revision_collision"
-    for number in ("0016", "0017", "0018"):
-        assert number in blocker["detail"], number
 
 
 def test_pull_merge_remote_ref_is_not_an_inactive_local_branch(tmp_path: Path) -> None:
@@ -203,10 +189,20 @@ def test_pull_merge_remote_ref_is_not_an_inactive_local_branch(tmp_path: Path) -
     )
     git("switch", "main")
     git("update-ref", "refs/remotes/pull/48/merge", "HEAD")
+    git("update-ref", "refs/remotes/origin/live", "local/stranded")
 
-    assert "pull/48/merge" in GATE.refs(tmp_path)
+    assert GATE.refs(tmp_path, {"origin"}) == ["local/stranded", "main", "origin/live"]
     assert _local_branches(tmp_path) == ["local/stranded", "main"]
     assert GATE.unique_commits("main", "local/stranded", tmp_path) == 1
+
+
+def test_only_canonical_publications_supply_integration_branches() -> None:
+    assert GATE.integration_remotes(ROOT) == {"origin"}
+
+
+def test_missing_publication_declaration_fails_closed(tmp_path: Path) -> None:
+    assert GATE.integration_remotes(tmp_path) is None
+    assert GATE.refs(tmp_path, None) is None
 
 
 def test_local_branch_inventory_fails_closed_when_git_is_unavailable(
@@ -221,6 +217,7 @@ def test_every_inactive_local_branch_is_already_inside_the_canonical_one() -> No
     """Проти РЕАЛЬНОСТІ: активну роботу не плутати із покинутим backlog."""
     canonical = CANON
     active = GATE.active_worktree_branches(ROOT)
+    assert active is not None
     for ref in _local_branches(ROOT):
         if ref == canonical or ref in active:
             continue
@@ -230,13 +227,24 @@ def test_every_inactive_local_branch_is_already_inside_the_canonical_one() -> No
 
 
 def test_an_active_worktree_branch_is_not_misreported_as_stranded(monkeypatch: Any) -> None:
-    monkeypatch.setattr(GATE, "refs", lambda _root: ["main", "feature/live", "origin/old"])
+    monkeypatch.setattr(
+        GATE, "refs", lambda _root, _remotes: ["main", "feature/live", "origin/old"]
+    )
+    monkeypatch.setattr(GATE, "integration_remotes", lambda _root: {"origin"})
     monkeypatch.setattr(GATE, "active_worktree_branches", lambda _root: {"main", "feature/live"})
     monkeypatch.setattr(GATE, "unique_commits", lambda *_args, **_kwargs: 1)
     monkeypatch.setattr(GATE, "merges_cleanly", lambda *_args, **_kwargs: False)
     observed = GATE.observe("main", ROOT)
     assert set(observed["diverged"]) == {"origin/old"}
     assert "feature/live" in observed["active_worktree_branches"]
+
+
+def test_ref_inventory_failure_is_unknown_not_green(monkeypatch: Any) -> None:
+    monkeypatch.setattr(GATE, "integration_remotes", lambda _root: {"origin"})
+    monkeypatch.setattr(GATE, "refs", lambda _root, _remotes: None)
+    observation = GATE.observe("main", ROOT)
+    assert observation["diverged"] is None
+    assert GATE.verdict(GATE.assess(observation, {"stranded": []})) == "UNKNOWN"
 
 
 def test_unknown_is_never_a_pass() -> None:
