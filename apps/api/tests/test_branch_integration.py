@@ -155,13 +155,13 @@ def test_the_migration_collision_is_recorded_as_the_blocker() -> None:
         assert number in blocker["detail"], number
 
 
-
 def test_pull_merge_remote_ref_is_not_an_inactive_local_branch(tmp_path: Path) -> None:
     """A foreign remote called pull is not a local stranded branch.
 
     Test the real Git ref namespaces rather than mocking the inventory. A true
     local branch with an unmerged commit must still be detected.
     """
+
     def git(*arguments: str) -> None:
         subprocess.run(
             ["git", "-C", str(tmp_path), *arguments],
@@ -171,19 +171,34 @@ def test_pull_merge_remote_ref_is_not_an_inactive_local_branch(tmp_path: Path) -
         )
 
     git("init", "-b", "main")
-    git("-c", "user.name=CI", "-c", "user.email=ci@example.invalid",
-        "commit", "--allow-empty", "-m", "baseline")
+    git(
+        "-c",
+        "user.name=CI",
+        "-c",
+        "user.email=ci@example.invalid",
+        "commit",
+        "--allow-empty",
+        "-m",
+        "baseline",
+    )
     git("branch", "local/stranded")
     git("switch", "local/stranded")
-    git("-c", "user.name=CI", "-c", "user.email=ci@example.invalid",
-        "commit", "--allow-empty", "-m", "unmerged-work")
+    git(
+        "-c",
+        "user.name=CI",
+        "-c",
+        "user.email=ci@example.invalid",
+        "commit",
+        "--allow-empty",
+        "-m",
+        "unmerged-work",
+    )
     git("switch", "main")
     git("update-ref", "refs/remotes/pull/48/merge", "HEAD")
 
     assert "pull/48/merge" in GATE.refs(tmp_path)
     assert GATE.local_branches(tmp_path) == ["local/stranded", "main"]
     assert GATE.unique_commits("main", "local/stranded", tmp_path) == 1
-
 
 
 def test_every_inactive_local_branch_is_already_inside_the_canonical_one() -> None:
