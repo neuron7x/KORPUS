@@ -66,7 +66,9 @@ def local_branches(root: Path = ROOT) -> list[str]:
     list of remote prefixes from abbreviated ref names.
     """
     listed = _git("for-each-ref", "--format=%(refname:short)", "refs/heads", root=root)
-    return sorted(set((listed or "").splitlines()))
+    if listed is None:
+        raise RuntimeError("cannot enumerate local branches: git ref query failed")
+    return sorted(set(listed.splitlines()))
 
 
 def active_worktree_branches(root: Path = ROOT) -> set[str]:
