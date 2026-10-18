@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import replace
 from datetime import UTC, datetime
 from typing import Protocol
@@ -41,8 +42,6 @@ class SchemaValidator(Protocol):
 
 
 class CapabilityExecutor:
-    """Post-authorization execution engine with explicit effect/result separation."""
-
     def __init__(
         self,
         *,
@@ -56,8 +55,10 @@ class CapabilityExecutor:
         self._effects = effects
         self._emitter = emitter
 
-    def validate_input(self, schema_id: str, value: object) -> None:
-        self._schemas.validate(schema_id, value)
+    def validate_schema(self, schema_id: str, value: object) -> None:
+        validate: Callable[[str, object], object] = self._schemas.validate
+        if validate(schema_id, value) is not None:
+            raise RuntimeError("schema validator returned a non-None success sentinel")
 
     def execute(self, frame: InvocationFrame, guard: EffectGuard) -> IntegrationResult:
         executed = self._call_adapter(frame, guard)
@@ -216,7 +217,7 @@ class CapabilityExecutor:
     ) -> IntegrationResult | None:
         material = self._material(executed, guard)
         try:
-            self._schemas.validate(frame.spec.output_schema_id, executed.output)
+            self.validate_schema(frame.spec.output_schema_id, executed.output)
         except (CapabilityContractError, ValueError):
             return self._emitter.emit(
                 frame,
@@ -225,9 +226,7 @@ class CapabilityExecutor:
                 material,
             )
         except Exception:  # noqa: BLE001 - injected SchemaValidator port, no nameable base
-            # `schemas` is a SchemaValidator Protocol; the validators inside it are caller-owned
-            # callables (jsonschema, pydantic, hand-written predicates). The blind catch is now
-            # scoped to exactly that foreign call — the size check below no longer shares it.
+            # Injected validators must raise on failure and return exactly None on success.
             return self._emitter.emit(frame, InvocationOutcome.FAILED, "INTERNAL_ERROR", material)
         try:
             oversized = (
