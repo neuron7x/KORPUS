@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record required GitHub Actions checks for one exact candidate commit SHA."""
+"""Record exact-attempt GitHub Actions jobs for one candidate commit SHA."""
 
 from __future__ import annotations
 
@@ -8,24 +8,22 @@ import json
 import re
 import subprocess
 import sys
-from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 ROOT = Path(__file__).resolve().parents[1]
 _FULL_SHA = re.compile(r"^[0-9a-f]{40}$")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from verify_ci_mirror import mandatory_workflow_jobs  # noqa: E402
-
-
-@dataclass(frozen=True)
-class JobCatalogue:
-    required: tuple[str, ...] = ()
-    mandatory: tuple[str, ...] = ()
-    excused: frozenset[str] = frozenset()
+from github_actions_evidence import (  # noqa: E402
+    JobCatalogue,
+    WorkflowContract,
+    catalogue,
+    catalogue_drift,
+    fetch_evidence,
+    inspect,
+    latest_run,
+)
 
 
 def candidate_ci() -> dict[str, Any]:
@@ -35,25 +33,6 @@ def candidate_ci() -> dict[str, Any]:
     return ci if isinstance(ci, dict) else {}
 
 
-def catalogue(ci: dict[str, Any], *, root: Path = ROOT) -> JobCatalogue:
-    names: list[str] = []
-    for raw in ci.get("mandatory_pr_workflows") or ():
-        relative = Path(str(raw))
-        if relative.is_absolute() or ".." in relative.parts:
-            continue
-        try:
-            workflow = yaml.safe_load((root / relative).read_text(encoding="utf-8")) or {}
-        except (OSError, yaml.YAMLError):
-            continue
-        if isinstance(workflow, dict):
-            names.extend(mandatory_workflow_jobs(workflow))
-    return JobCatalogue(
-        tuple(str(name) for name in ci.get("required_jobs") or ()),
-        tuple(sorted(set(names))),
-        frozenset(str(name) for name in ci.get("jobs_not_required") or ()),
-    )
-
-
 def head() -> str:
     result = subprocess.run(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=False
@@ -61,59 +40,9 @@ def head() -> str:
     return result.stdout.strip().lower()
 
 
-def github_check_runs(repository: str, commit: str) -> dict[str, Any] | None:
-    result = subprocess.run(
-        [
-            "gh",
-            "api",
-            "--method",
-            "GET",
-            "-H",
-            "Accept: application/vnd.github+json",
-            "-H",
-            "X-GitHub-Api-Version: 2022-11-28",
-            f"repos/{repository}/commits/{commit}/check-runs?filter=latest&per_page=100",
-        ],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-        timeout=120,
-    )
-    if result.returncode:
-        return None
-    try:
-        payload = json.loads(result.stdout)
-    except json.JSONDecodeError:
-        return None
-    if not isinstance(payload, dict) or not isinstance(payload.get("check_runs"), list):
-        return None
-    total = payload.get("total_count")
-    return None if isinstance(total, int) and total > len(payload["check_runs"]) else payload
-
-
-def _latest_actions_checks(commit: str, payload: Any) -> dict[str, dict[str, Any]] | None:
-    if not isinstance(payload, dict) or not isinstance(payload.get("check_runs"), list):
-        return None
-    latest: dict[str, dict[str, Any]] = {}
-    for raw in payload["check_runs"]:
-        if not isinstance(raw, dict) or str(raw.get("head_sha") or "").lower() != commit:
-            continue
-        app = raw.get("app")
-        if not isinstance(app, dict) or app.get("slug") != "github-actions":
-            continue
-        name = str(raw.get("name") or "")
-        old = latest.get(name)
-        old_id = old.get("id", -1) if old else -1
-        new_id = raw.get("id", -1)
-        if name and isinstance(old_id, int) and isinstance(new_id, int) and new_id >= old_id:
-            latest[name] = raw
-    return latest
-
-
 def _base_report(commit: str, required: tuple[str, ...], url: str) -> dict[str, Any]:
     return {
-        "schema": "korpus.ci-run.v2",
+        "schema": "korpus.ci-run.v3",
         "provider": "github-actions",
         "commit": commit,
         "required_jobs": sorted(required),
@@ -129,141 +58,141 @@ def _stop(report: dict[str, Any], status: str, detail: str) -> dict[str, Any]:
     return report
 
 
-def _catalogue_drift(jobs: JobCatalogue) -> tuple[list[str], list[str]]:
-    expected = set(jobs.mandatory) - set(jobs.excused)
-    required = set(jobs.required)
-    return sorted(required - expected), sorted(expected - required)
-
-
 def adjudicate(
     commit: str, jobs: JobCatalogue, payload: Any, *, checks_url: str = ""
 ) -> dict[str, Any]:
     report = _base_report(commit, jobs.required, checks_url)
     if not _FULL_SHA.fullmatch(commit):
         return _stop(report, "NOT_MEASURED", "кандидат не є повним commit SHA")
-    if not jobs.required:
-        return _stop(report, "NOT_MEASURED", "конверт не називає required checks")
-    undeclared, unrequired = _catalogue_drift(jobs)
+    if not jobs.required or not jobs.workflows:
+        return _stop(report, "NOT_MEASURED", "конверт не називає workflows і required jobs")
+    undeclared, unrequired, duplicates = catalogue_drift(jobs)
     report.update(
         required_not_in_workflows=undeclared,
         workflow_jobs_not_required=unrequired,
+        duplicate_workflow_jobs=duplicates,
     )
-    if undeclared or unrequired:
-        return _stop(
-            report,
-            "FAIL",
-            f"конверт не збігається з workflow jobs: {undeclared=}, {unrequired=}",
-        )
-    latest = _latest_actions_checks(commit, payload)
-    if latest is None:
-        return _stop(report, "NOT_MEASURED", "check-runs API не дав валідної відповіді")
-    if not latest:
-        return _stop(report, "NOT_MEASURED", "для точного SHA немає GitHub Actions checks")
-    required = set(jobs.required)
-    missing = sorted(required - set(latest))
-    failed = sorted(
-        name
-        for name in required & set(latest)
-        if (latest[name].get("status"), latest[name].get("conclusion")) != ("completed", "success")
-    )
+    if undeclared or unrequired or duplicates:
+        return _stop(report, "FAIL", "required jobs не збігаються з exact workflow jobs")
+    result = inspect(commit, jobs, payload)
     report.update(
-        completed_jobs=sorted(required - set(missing) - set(failed)),
-        failed_jobs=failed,
-        missing_jobs=missing,
+        workflow_runs=result.runs or {},
+        completed_jobs=list(result.completed),
+        failed_jobs=list(result.failed),
+        missing_jobs=list(result.missing),
+        provenance_failures=list(result.provenance),
     )
-    if missing:
-        return _stop(report, "FAIL", f"required checks відсутні: {missing}")
-    if failed:
-        return _stop(report, "FAIL", f"required checks неуспішні: {failed}")
-    return _stop(report, "PASS", "усі required jobs успішні на точному commit SHA")
-
-
-def _check(
-    name: str,
-    commit: str,
-    conclusion: Any = "success",
-    status: str = "completed",
-    check_id: int = 1,
-) -> dict[str, Any]:
-    return {
-        "id": check_id,
-        "name": name,
-        "head_sha": commit,
-        "status": status,
-        "conclusion": conclusion,
-        "app": {"slug": "github-actions"},
-    }
+    return _stop(report, result.status, result.detail)
 
 
 def selftest() -> int:
     commit = "c" * 40
-    required = ("a", "b")
-    jobs = JobCatalogue(required, required)
+    ci_path = ".github/workflows/ci.yml"
+    assurance_path = ".github/workflows/assurance.yml"
+    jobs = JobCatalogue(
+        ("a", "b"),
+        (WorkflowContract(ci_path, ("a",)), WorkflowContract(assurance_path, ("b",))),
+    )
 
-    def judge(payload: Any, catalogue_: JobCatalogue = jobs, sha: str = commit) -> str:
+    def run(path: str, workflow_id: int, run_id: int, **changes: Any) -> dict[str, Any]:
+        value = {
+            "id": run_id,
+            "run_number": run_id,
+            "run_attempt": 1,
+            "workflow_id": workflow_id,
+            "path": f"{path}@main",
+            "head_sha": commit,
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": f"https://example.invalid/runs/{run_id}",
+        }
+        value.update(changes)
+        return value
+
+    def job(name: str, run_id: int, **changes: Any) -> dict[str, Any]:
+        value = {
+            "id": run_id * 10,
+            "name": name,
+            "run_id": run_id,
+            "head_sha": commit,
+            "status": "completed",
+            "conclusion": "success",
+        }
+        value.update(changes)
+        return value
+
+    def record(path: str, workflow_id: int, run_id: int, names: tuple[str, ...]) -> dict[str, Any]:
+        return {
+            "path": path,
+            "workflow_id": workflow_id,
+            "run": run(path, workflow_id, run_id),
+            "attempt_number": 1,
+            "jobs": {
+                "total_count": len(names),
+                "jobs": [job(name, run_id) for name in names],
+            },
+        }
+
+    good = [record(ci_path, 11, 101, ("a",)), record(assurance_path, 12, 102, ("b",))]
+
+    def changed(index: int, *keys: str | int, value: Any) -> list[dict[str, Any]]:
+        altered: list[dict[str, Any]] = json.loads(json.dumps(good))
+        target: Any = altered[index]
+        for key in keys[:-1]:
+            target = target[key]
+        target[keys[-1]] = value
+        return altered
+
+    def judge(records: Any, catalogue_: JobCatalogue = jobs, sha: str = commit) -> str:
+        payload = None if records is None else {"workflow_evidence": records}
         return str(adjudicate(sha, catalogue_, payload)["status"])
 
-    good = [_check("a", commit), _check("b", commit, check_id=2)]
-    foreign = [_check("a", commit), _check("b", "d" * 40)]
-    other_app = _check("b", commit) | {"app": {"slug": "other-ci"}}
+    missing = [good[0], record(assurance_path, 12, 102, ())]
+    no_run = changed(1, "run", value=None)
+    no_run[1].update(attempt_number=None, jobs=None)
+    no_runs = json.loads(json.dumps(no_run))
+    no_runs[0].update(run=None, attempt_number=None, jobs=None)
+    wrong_job_run = changed(1, "jobs", "jobs", value=[job("b", 999)])
+    duplicate_job = changed(0, "jobs", "jobs", value=[job("a", 101), job("a", 101)])
+    duplicate_job[0]["jobs"]["total_count"] = 2
+    partial = changed(0, "jobs", "total_count", value=2)
+    selected = latest_run([run(ci_path, 11, 101), run(ci_path, 11, 102)], ci_path, 11, commit)
     cases: list[tuple[str, Any, Any]] = [
-        ("API absent", judge(None), "NOT_MEASURED"),
-        ("zero checks", judge({"check_runs": []}), "NOT_MEASURED"),
-        ("ref is not exact SHA", judge({"check_runs": []}, sha="main"), "NOT_MEASURED"),
+        ("API failure", judge(None), "NOT_MEASURED"),
+        ("partial jobs response", judge(partial), "NOT_MEASURED"),
+        ("zero workflow runs", judge(no_runs), "NOT_MEASURED"),
+        ("ref is not exact SHA", judge([], sha="main"), "NOT_MEASURED"),
+        ("empty denominator", judge(good, JobCatalogue()), "NOT_MEASURED"),
+        ("all exact workflow jobs success", judge(good), "PASS"),
+        ("missing required job", judge(missing), "FAIL"),
         (
-            "empty denominator",
-            judge({"check_runs": good}, JobCatalogue()),
-            "NOT_MEASURED",
+            "skipped job",
+            judge(changed(1, "jobs", "jobs", 0, "conclusion", value="skipped")),
+            "FAIL",
         ),
-        ("all required success", judge({"check_runs": good}), "PASS"),
-        ("missing required", judge({"check_runs": good[:1]}), "FAIL"),
+        ("queued job", judge(changed(1, "jobs", "jobs", 0, "status", value="queued")), "FAIL"),
+        ("wrong job run", judge(wrong_job_run), "FAIL"),
+        ("wrong job SHA", judge(changed(1, "jobs", "jobs", 0, "head_sha", value="d" * 40)), "FAIL"),
         (
-            "skipped required",
-            judge({"check_runs": [good[0], _check("b", commit, "skipped")]}),
+            "wrong workflow same job",
+            judge(changed(0, "run", "path", value=".github/workflows/other.yml@main")),
+            "FAIL",
+        ),
+        ("wrong workflow id", judge(changed(0, "run", "workflow_id", value=999)), "FAIL"),
+        ("wrong run SHA", judge(changed(0, "run", "head_sha", value="d" * 40)), "FAIL"),
+        ("stale attempt", judge(changed(0, "run", "run_attempt", value=2)), "FAIL"),
+        ("duplicate job names", judge(duplicate_job), "FAIL"),
+        ("one workflow absent", judge(no_run), "FAIL"),
+        ("failed workflow", judge(changed(0, "run", "conclusion", value="failure")), "FAIL"),
+        (
+            "catalogue gains job",
+            judge(good, JobCatalogue(("a", "b"), (*jobs.workflows, WorkflowContract("x", ("c",))))),
             "FAIL",
         ),
         (
-            "queued required",
-            judge({"check_runs": [good[0], _check("b", commit, None, "queued")]}),
-            "FAIL",
-        ),
-        (
-            "failed required",
-            judge({"check_runs": [good[0], _check("b", commit, "failure")]}),
-            "FAIL",
-        ),
-        ("foreign SHA", judge({"check_runs": foreign}), "FAIL"),
-        ("foreign app", judge({"check_runs": [good[0], other_app]}), "FAIL"),
-        (
-            "new mandatory job",
-            judge({"check_runs": good}, JobCatalogue(required, ("a", "b", "c"))),
-            "FAIL",
-        ),
-        (
-            "required name outside workflow",
-            judge({"check_runs": good}, JobCatalogue(("a", "b"), ("a",))),
-            "FAIL",
-        ),
-        (
-            "latest rerun governs",
-            judge(
-                {"check_runs": [_check("a", commit, "failure"), _check("a", commit, check_id=2)]},
-                JobCatalogue(("a",), ("a",)),
-            ),
-            "PASS",
-        ),
-        (
-            "conditional jobs excluded",
-            mandatory_workflow_jobs(
-                {
-                    "jobs": {
-                        "a": {"name": "A"},
-                        "b": {"name": "B", "if": "false"},
-                        "c": {"name": "C", "continue-on-error": True},
-                    }
-                }
-            ),
-            ["A"],
+            "latest run selector",
+            selected["id"] if selected else None,
+            102,
         ),
     ]
     passed = sum(got == want for _name, got, want in cases)
@@ -284,14 +213,15 @@ def main() -> int:
         return selftest()
     ci = candidate_ci()
     commit = (arguments.commit or head()).lower()
+    jobs = catalogue(ci, ROOT)
     repository = str(ci.get("repository") or "")
     payload = (
-        github_check_runs(repository, commit)
+        fetch_evidence(repository, commit, jobs, ROOT)
         if repository and _FULL_SHA.fullmatch(commit)
         else None
     )
-    url = f"https://github.com/{repository}/commit/{commit}/checks" if repository else ""
-    report = adjudicate(commit, catalogue(ci), payload, checks_url=url)
+    url = f"https://github.com/{repository}/actions?query=head_sha%3A{commit}" if repository else ""
+    report = adjudicate(commit, jobs, payload, checks_url=url)
     arguments.out.parent.mkdir(parents=True, exist_ok=True)
     rendered = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     arguments.out.write_text(rendered, encoding="utf-8")

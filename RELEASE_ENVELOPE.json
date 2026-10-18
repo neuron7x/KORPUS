@@ -115,7 +115,7 @@
       "host": "github.com",
       "repository": "neuron7x/KORPUS",
       "visibility": "public",
-      "authority": "Канонічний hosted-run verdict читається через `gh api` з GitHub check-runs для точного повного candidate commit SHA. GitLab є read-only архівом і не має release authority.",
+      "authority": "Канонічний hosted-run verdict читається через `gh api` лише з GitHub Actions workflow runs та jobs точного latest attempt для повного candidate commit SHA. Кожен job прив'язаний до exact workflow file, workflow_id, run_id і head_sha; однойменний check з іншого workflow не має ваги. GitLab є read-only архівом і не має release authority.",
       "mandatory_pr_workflows": [
         ".github/workflows/ci.yml",
         ".github/workflows/assurance.yml"
@@ -128,7 +128,7 @@
         "research-assurance",
         "web-tests"
       ],
-      "required_jobs_note": "Знаменник дорівнює безумовним blocking jobs двох mandatory pull_request workflows. record_ci_run.py звіряє цей список із jobs.<id>.name самих workflow перед читанням check-runs: новий job без оновлення конверта або застаріле ім'я дає FAIL, а не мовчазне звуження."
+      "required_jobs_note": "Знаменник дорівнює безумовним blocking jobs двох mandatory pull_request workflows. record_ci_run.py звіряє цей список із jobs.<id>.name самих workflow, резолвить кожен файл до його GitHub workflow_id, вибирає latest run exact SHA і читає jobs лише з exact run attempt: новий job, застаріле ім'я, інший workflow/run/SHA або старіша спроба дають FAIL, а не мовчазне звуження."
     },
     "required_serving_units_note": "Приватний пілот 23.09.2026 має одну дорогу відповіді: korpus-pilot-api.service перед PostgreSQL. Спадковий korpus-public-api.service на SQLite не несе пілотного трафіку і не може червонити вирок чужої топології. Порт пілоту 8040 вибрано після виміряної колізії: 8030 зайнятий PBT CRM.",
     "private_pilot": {

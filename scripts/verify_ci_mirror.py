@@ -100,6 +100,8 @@ def _job_invocations(
         if not step_gate:
             excluded[step_key] = step_why
             continue
+        if str(step["run"]).strip():
+            found.setdefault(f"job:{job_key}", set()).add(job_key)
         for line in str(step["run"]).splitlines():
             for identity in _line_identities(line, edges, scripts):
                 found.setdefault(identity, set()).add(job_key)
@@ -137,8 +139,13 @@ def _finding(check: str, items: list[str], bad: str, good: str) -> dict[str, Any
     }
 
 
-def _reasoned(item: dict[str, Any]) -> bool:
-    return len(str(item.get("reason") or "").strip()) >= 40 and bool(item.get("on"))
+def _reasoned(item: dict[str, Any], ci: dict[str, set[str]]) -> bool:
+    evidence = item.get("evidence")
+    reasoned = len(str(item.get("reason") or "").strip()) >= 40 and bool(item.get("on"))
+    supported = (
+        isinstance(evidence, list) and bool(evidence) and set(map(str, evidence)) <= ci.keys()
+    )
+    return reasoned and supported
 
 
 def assess(
@@ -161,7 +168,7 @@ def assess(
     )
     dead = sorted(identity for identity in registered if identity in ci)
     ghost = sorted(identity for identity in registered if identity not in lane)
-    unreasoned = sorted(str(item.get("invocation")) for item in accepted if not _reasoned(item))
+    unreasoned = sorted(str(item.get("invocation")) for item in accepted if not _reasoned(item, ci))
     errors = sorted(workflow_errors or [])
     return [
         _finding(
@@ -196,7 +203,14 @@ _PROOF_MAKE = (
     "validate: a-gate\n\na-gate:\n\t$(PY) scripts/a.py --selftest\n"
     "\t$(PY) scripts/a.py --strict\n\ncheck: validate\n"
 )
-_ACCEPTED = [{"invocation": "scripts/a.py --strict", "on": "x", "reason": "x" * 40}]
+_ACCEPTED = [
+    {
+        "invocation": "scripts/a.py --strict",
+        "on": "x",
+        "reason": "x" * 40,
+        "evidence": ["job:workflow:gate"],
+    }
+]
 
 
 def _step_workflow(field: str) -> dict[str, Any]:
@@ -250,7 +264,7 @@ _CASES: list[tuple[str, str, dict[str, Any], list[dict[str, Any]], list[str], st
         "unreasoned exemption",
         _CLEAN_MAKE,
         _workflow("echo"),
-        [{"invocation": "scripts/a.py --strict", "on": "x", "reason": "short"}],
+        [{"invocation": "scripts/a.py --strict", "on": "x", "reason": "x" * 40}],
         [],
         "FAIL",
     ),
