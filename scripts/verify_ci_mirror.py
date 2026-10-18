@@ -1,38 +1,5 @@
 #!/usr/bin/env python3
-"""Дзеркало лану: CI виконує ТЕ САМЕ, що локальний `make validate` / `make check`, чи лише схоже.
-
-Зелений локальний гейт не є моделлю зеленої CI. Перелік цілей у Makefile і перелік
-команд у `.gitlab-ci.yml` — два оголошення одного лану, і вони розходяться мовчки
-саме тоді, коли хтось додає перевірку в одне місце. Виміряно 03.09.2026: замінник
-SI-7 моделі впевненості читав `var/ci-mirror.json`, якого не виробляв ніхто, — тобто
-«дзеркало звірене» було полем без виробника.
-
-## Що вимірюється
-
-Кожен скрипт, який лан запускає локально (транзитивно від коренів `validate` і
-`check`), мусить запускатись у CI ТІЄЮ САМОЮ командою. Тотожність команди — та сама,
-що в `verify_gate_closure.normalise_invocation`: ім'я скрипта плюс усі аргументи,
-крім названих несемантичними. `--selftest` і повний прогін — різні команди; CI, що
-ганяє лише самоперевірку, гейт не виконує.
-
-Джерело істини — сам `.gitlab-ci.yml`, прочитаний як YAML. Джоб рахується частиною
-дзеркала лише коли він виконується на КОЖНОМУ конвеєрі і його відмова валить конвеєр:
-`rules:` / `only:` / `when: manual` / `allow_failure: true` виводять джоб із дзеркала.
-Червоний джоб, що не валить конвеєр, — не гейт, а повідомлення.
-
-## Що НЕ вимагається
-
-`check-deployment` міряє розгортання, якого в раннері немає; `check-nightly` копіює
-дерево або переганяє повний набір і за побудовою дорогий. Обидва звітуються числом
-`local_only`, не вимогою.
-
-Прийняті розбіжності живуть у `config/operations/ci-mirror.json` з причиною й датою.
-Запис про команду, яку CI вже виконує, — МЕРТВИЙ виняток; про команду, якої лан не
-має, — ПРИМАРНИЙ. Обидва — відмова, як у `verify_gate_closure`.
-
-    verify_ci_mirror.py [--out ФАЙЛ]
-    verify_ci_mirror.py --selftest
-"""
+"""Verify that mandatory GitHub PR workflows mirror local ``validate``/``check``."""
 
 from __future__ import annotations
 
@@ -51,35 +18,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from verify_gate_closure import invocations, parse_graph, reachable
 
 ROOT = Path(__file__).resolve().parents[1]
-MAKEFILE = ROOT / "Makefile"
-PIPELINE = ROOT / ".gitlab-ci.yml"
-REGISTRY = ROOT / "config/operations/ci-mirror.json"
-SCHEMA = "korpus.ci-mirror.v1"
-
-#: Лани, які CI мусить віддзеркалювати. `validate` — те, про що кажуть «зелений»;
-#: `check` — те, що людина запускає перед злиттям.
 MIRRORED_ROOTS: tuple[str, ...] = ("validate", "check")
-#: Лани, які за побудовою живуть лише локально. Звітуються числом.
 LOCAL_ONLY_ROOTS: tuple[str, ...] = ("check-deployment", "check-nightly")
 
-#: `make ціль` у рядку CI: джоб може запускати лан цілком, і тоді він виконує все, що лан.
 _MAKE_CALL = re.compile(
     r"(?:^|[;&|]\s*|\s)make\s+(?:-C\s+\S+\s+)?([A-Za-z0-9._-]+(?:\s+[A-Za-z0-9._-]+)*)"
 )
 _MAKE_TARGET = re.compile(r"^[A-Za-z0-9._-]+$")
-
-#: Повний прогін покриття самоперевірками: він сам запускає кожен `--selftest`.
 SELFTEST_COVERAGE = "scripts/verify_selftest_coverage.py"
-
-#: Поля, за якими джоб перестає бути гейтом кожного конвеєра.
-_CONDITIONAL_FIELDS = ("rules", "only", "except")
-
-
-# ------------------------------------------------------------------- розбір (без I/O)
 
 
 def lane_invocations(makefile: str, roots: tuple[str, ...]) -> dict[str, set[str]]:
-    """Тотожність команди → цілі лану, які її запускають (транзитивно від коренів)."""
     edges, _declared, scripts = parse_graph(makefile)
     found: dict[str, set[str]] = {}
     for target in reachable(edges, roots):
@@ -88,73 +37,94 @@ def lane_invocations(makefile: str, roots: tuple[str, ...]) -> dict[str, set[str
     return found
 
 
-def _job_is_gate(job: dict[str, Any]) -> tuple[bool, str]:
-    """Чи джоб виконується на кожному конвеєрі і чи його відмова валить конвеєр."""
-    for field in _CONDITIONAL_FIELDS:
-        if job.get(field):
-            return False, f"умовний ({field})"
-    if job.get("when") in ("manual", "never", "delayed"):
-        return False, f"when: {job['when']}"
-    if job.get("allow_failure") is True:
-        return False, "allow_failure: true — червоний не валить конвеєр"
+def workflow_runs_on_pull_request(workflow: dict[Any, Any]) -> bool:
+    triggers = workflow.get("on") if "on" in workflow else workflow.get(True)
+    if isinstance(triggers, str):
+        return triggers == "pull_request"
+    if isinstance(triggers, list):
+        return "pull_request" in triggers
+    return isinstance(triggers, dict) and "pull_request" in triggers
+
+
+def mandatory_workflow_jobs(workflow: dict[str, Any]) -> list[str]:
+    jobs = workflow.get("jobs")
+    if not isinstance(jobs, dict):
+        return []
+    return sorted(
+        str(body.get("name") or job_id)
+        for job_id, body in jobs.items()
+        if isinstance(body, dict)
+        and body.get("if") is None
+        and body.get("continue-on-error") in (None, False)
+    )
+
+
+def _is_gate(item: dict[str, Any], kind: str) -> tuple[bool, str]:
+    if item.get("if") is not None:
+        return False, f"conditional {kind} (if)"
+    if item.get("continue-on-error") not in (None, False):
+        return False, f"continue-on-error {kind}"
     return True, ""
-
-
-def _job_lines(name: str, job: dict[str, Any], pipeline: dict[str, Any]) -> list[str]:
-    """Усі рядки, які джоб виконує: успадковані через `extends` + власні."""
-    merged: dict[str, Any] = {}
-    parents = job.get("extends") or []
-    for parent in [parents] if isinstance(parents, str) else parents:
-        base = pipeline.get(str(parent))
-        if isinstance(base, dict):
-            merged.update(base)
-    merged.update(job)
-    lines: list[str] = []
-    for key in ("before_script", "script", "after_script"):
-        for entry in merged.get(key) or []:
-            if isinstance(entry, str):
-                lines.extend(entry.splitlines())
-            elif isinstance(entry, list):
-                lines.extend(str(item) for item in entry)
-    return lines
 
 
 def _line_identities(
     line: str, edges: dict[str, set[str]], scripts: dict[str, set[str]]
 ) -> set[str]:
-    """Тотожності, які виконує один рядок CI: прямі запуски плюс усе, що тягне `make ціль`."""
     found = set(invocations(line))
     for call in _MAKE_CALL.finditer(line):
-        targets = tuple(t for t in call.group(1).split() if _MAKE_TARGET.match(t))
+        targets = tuple(target for target in call.group(1).split() if _MAKE_TARGET.match(target))
         for target in reachable(edges, targets):
             found.update(scripts.get(target, ()))
     return found
 
 
-def pipeline_invocations(
-    pipeline: dict[str, Any], makefile: str
+def _job_invocations(
+    job: dict[str, Any],
+    job_key: str,
+    edges: dict[str, set[str]],
+    scripts: dict[str, set[str]],
 ) -> tuple[dict[str, set[str]], dict[str, str]]:
-    """Тотожність команди → джоби-гейти, що її виконують; плюс джоби поза дзеркалом.
+    found: dict[str, set[str]] = {}
+    gate, why = _is_gate(job, "job")
+    if not gate:
+        return found, {job_key: why}
+    steps = job.get("steps")
+    if not isinstance(steps, list):
+        return found, {job_key: "job has no inline steps"}
+    excluded: dict[str, str] = {}
+    for index, step in enumerate(steps):
+        if not isinstance(step, dict) or not isinstance(step.get("run"), str):
+            continue
+        step_key = f"{job_key}/{step.get('name') or index}"
+        step_gate, step_why = _is_gate(step, "step")
+        if not step_gate:
+            excluded[step_key] = step_why
+            continue
+        for line in str(step["run"]).splitlines():
+            for identity in _line_identities(line, edges, scripts):
+                found.setdefault(identity, set()).add(job_key)
+    return found, excluded
 
-    `make ціль` у рядку CI розгортається через граф Makefile: джоб, що кличе лан
-    цілком, виконує все, що лан. Джоб, у якого `make` кличе неіснуючу ціль, не
-    виконує нічого — і саме так це й рахується.
-    """
+
+def workflow_invocations(
+    workflow: dict[str, Any], makefile: str, *, source: str = "workflow"
+) -> tuple[dict[str, set[str]], dict[str, str]]:
     edges, _declared, scripts = parse_graph(makefile)
     found: dict[str, set[str]] = {}
     excluded: dict[str, str] = {}
-    for name, job in pipeline.items():
-        if not isinstance(job, dict) or str(name).startswith("."):
+    jobs = workflow.get("jobs")
+    if not isinstance(jobs, dict):
+        return found, {source: "workflow has no jobs mapping"}
+    for job_id, raw_job in jobs.items():
+        if not isinstance(raw_job, dict):
+            excluded[f"{source}:{job_id}"] = "job is not a mapping"
             continue
-        if "script" not in job and "extends" not in job:
-            continue
-        gate, why = _job_is_gate(job)
-        if not gate:
-            excluded[str(name)] = why
-            continue
-        for line in _job_lines(str(name), job, pipeline):
-            for identity in _line_identities(line, edges, scripts):
-                found.setdefault(identity, set()).add(str(name))
+        job_name = str(raw_job.get("name") or job_id)
+        job_key = f"{source}:{job_name}"
+        job_ci, job_excluded = _job_invocations(raw_job, job_key, edges, scripts)
+        for identity, owners in job_ci.items():
+            found.setdefault(identity, set()).update(owners)
+        excluded.update(job_excluded)
     return found, excluded
 
 
@@ -167,56 +137,40 @@ def _finding(check: str, items: list[str], bad: str, good: str) -> dict[str, Any
     }
 
 
+def _reasoned(item: dict[str, Any]) -> bool:
+    return len(str(item.get("reason") or "").strip()) >= 40 and bool(item.get("on"))
+
+
 def assess(
     lane: dict[str, set[str]],
     ci: dict[str, set[str]],
     accepted: list[dict[str, Any]],
+    workflow_errors: list[str] | None = None,
 ) -> list[dict[str, Any]]:
-    """Чотири способи збрехати, кожен — окрема знахідка: відсутнє, мертве, примарне, без причини."""
     registered = {str(item.get("invocation")) for item in accepted}
-    # `X --selftest` у лані виконується в CI ТРАНЗИТИВНО, якщо CI ганяє повний
-    # `verify_selftest_coverage.py`: той сам знаходить кожен скрипт із оголошеним прапорцем
-    # і запускає його (див. `verify_gate_closure.selftest_only`). Без нього самоперевірка
-    # в CI не бігає, і тоді це справжня діра, а не оформлення.
     via_coverage = SELFTEST_COVERAGE in ci
     covered = {
         identity
         for identity in lane
         if via_coverage and identity.endswith(" --selftest") and identity.startswith("scripts/")
     }
-    missing = sorted(i for i in lane if i not in ci and i not in registered and i not in covered)
+    missing = sorted(
+        identity
+        for identity in lane
+        if identity not in ci and identity not in registered and identity not in covered
+    )
     dead = sorted(identity for identity in registered if identity in ci)
     ghost = sorted(identity for identity in registered if identity not in lane)
-    unreasoned = sorted(
-        str(item.get("invocation"))
-        for item in accepted
-        if len(str(item.get("reason") or "").strip()) < 40 or not item.get("on")
-    )
+    unreasoned = sorted(str(item.get("invocation")) for item in accepted if not _reasoned(item))
+    errors = sorted(workflow_errors or [])
     return [
         _finding(
-            "missing_in_ci",
-            missing,
-            f"{len(missing)} команд лану CI не виконує: {missing[:6]}",
-            f"кожна з {len(lane)} команд лану виконується в CI або прийнята з причиною",
+            "mandatory_pr_workflows", errors, f"invalid workflows: {errors}", "workflows valid"
         ),
-        _finding(
-            "dead_exemption",
-            dead,
-            f"реєстр виправдовує команди, які CI вже виконує: {dead}",
-            f"{len(registered)} записів реєстру всі ще потрібні",
-        ),
-        _finding(
-            "ghost_exemption",
-            ghost,
-            f"реєстр виправдовує команди, яких лан не має: {ghost}",
-            "жодного запису про команду поза ланом",
-        ),
-        _finding(
-            "unreasoned_exemption",
-            unreasoned,
-            f"записи без причини або дати: {unreasoned}",
-            "кожен запис несе причину й дату",
-        ),
+        _finding("missing_in_ci", missing, f"GitHub misses {missing}", f"all {len(lane)} covered"),
+        _finding("dead_exemption", dead, f"dead exemptions: {dead}", "none dead"),
+        _finding("ghost_exemption", ghost, f"ghost exemptions: {ghost}", "none ghost"),
+        _finding("unreasoned_exemption", unreasoned, f"unreasoned: {unreasoned}", "all reasoned"),
     ]
 
 
@@ -224,130 +178,113 @@ def verdict(findings: list[dict[str, Any]]) -> str:
     return "FAIL" if any(item["verdict"] != "PASS" for item in findings) else "PASS"
 
 
-# ------------------------------------------------------------------ негативні контролі
-
 _CLEAN_MAKE = "validate: a-gate\n\na-gate:\n\t$(PY) scripts/a.py --strict\n\ncheck: validate\n"
-_CLEAN_CI = {"j": {"stage": "s", "script": ["PYTHONPATH=x python scripts/a.py --strict"]}}
-_CASES: list[tuple[str, str, dict[str, Any], list[dict[str, Any]], str]] = [
-    ("чисте дзеркало — PASS", _CLEAN_MAKE, _CLEAN_CI, [], "PASS"),
-    ("CI не виконує команду лану", _CLEAN_MAKE, {"j": {"script": ["echo"]}}, [], "FAIL"),
+
+
+def _workflow(run: str, **job_fields: Any) -> dict[str, Any]:
+    job: dict[str, Any] = {
+        "name": "gate",
+        "runs-on": "ubuntu-24.04",
+        "steps": [{"run": run}],
+    }
+    job.update(job_fields)
+    return {"on": {"pull_request": None}, "jobs": {"gate": job}}
+
+
+_CLEAN_CI = _workflow("PYTHONPATH=x python scripts/a.py --strict")
+_PROOF_MAKE = (
+    "validate: a-gate\n\na-gate:\n\t$(PY) scripts/a.py --selftest\n"
+    "\t$(PY) scripts/a.py --strict\n\ncheck: validate\n"
+)
+_ACCEPTED = [{"invocation": "scripts/a.py --strict", "on": "x", "reason": "x" * 40}]
+
+
+def _step_workflow(field: str) -> dict[str, Any]:
+    workflow = _workflow("python scripts/a.py --strict")
+    workflow["jobs"]["gate"]["steps"][0][field] = True
+    return workflow
+
+
+_CASES: list[tuple[str, str, dict[str, Any], list[dict[str, Any]], list[str], str]] = [
+    ("clean mirror", _CLEAN_MAKE, _CLEAN_CI, [], [], "PASS"),
+    ("missing", _CLEAN_MAKE, _workflow("echo"), [], [], "FAIL"),
     (
-        "CI ганяє лише --selftest — ІНША команда",
+        "selftest differs",
         _CLEAN_MAKE,
-        {"j": {"script": ["python scripts/a.py --selftest"]}},
+        _workflow("python scripts/a.py --selftest"),
+        [],
+        [],
+        "FAIL",
+    ),
+    ("flag differs", _CLEAN_MAKE, _workflow("python scripts/a.py"), [], [], "FAIL"),
+    (
+        "soft job",
+        _CLEAN_MAKE,
+        _workflow("python scripts/a.py --strict", **{"continue-on-error": True}),
+        [],
         [],
         "FAIL",
     ),
     (
-        "той самий скрипт без семантичного прапорця — інша команда",
+        "conditional job",
         _CLEAN_MAKE,
-        {"j": {"script": ["python scripts/a.py"]}},
+        _workflow("python scripts/a.py --strict", **{"if": "false"}),
+        [],
         [],
         "FAIL",
     ),
+    ("conditional step", _CLEAN_MAKE, _step_workflow("if"), [], [], "FAIL"),
+    ("soft step", _CLEAN_MAKE, _step_workflow("continue-on-error"), [], [], "FAIL"),
+    ("make expansion", _CLEAN_MAKE, _workflow("make validate"), [], [], "PASS"),
+    ("accepted", _CLEAN_MAKE, _workflow("echo"), _ACCEPTED, [], "PASS"),
+    ("dead exemption", _CLEAN_MAKE, _CLEAN_CI, _ACCEPTED, [], "FAIL"),
     (
-        "allow_failure: true — джоб не гейт",
-        _CLEAN_MAKE,
-        {"j": {"script": ["python scripts/a.py --strict"], "allow_failure": True}},
-        [],
-        "FAIL",
-    ),
-    (
-        "rules: — джоб умовний, не дзеркало",
-        _CLEAN_MAKE,
-        {"j": {"script": ["python scripts/a.py --strict"], "rules": [{"if": "$X"}]}},
-        [],
-        "FAIL",
-    ),
-    (
-        "`make validate` у CI розгортається через граф",
-        _CLEAN_MAKE,
-        {"j": {"script": ["make validate"]}},
-        [],
-        "PASS",
-    ),
-    (
-        "команда успадкована через extends",
-        _CLEAN_MAKE,
-        {".base": {"script": ["python scripts/a.py --strict"]}, "j": {"extends": ".base"}},
-        [],
-        "PASS",
-    ),
-    (
-        "прийнято з причиною — PASS",
-        _CLEAN_MAKE,
-        {"j": {"script": ["echo"]}},
-        [{"invocation": "scripts/a.py --strict", "on": "2026-09-03", "reason": "x" * 40}],
-        "PASS",
-    ),
-    (
-        "мертвий виняток: CI вже виконує",
+        "ghost exemption",
         _CLEAN_MAKE,
         _CLEAN_CI,
-        [{"invocation": "scripts/a.py --strict", "on": "2026-09-03", "reason": "x" * 40}],
+        [{"invocation": "scripts/zzz.py", "on": "x", "reason": "x" * 40}],
+        [],
         "FAIL",
     ),
     (
-        "примарний виняток: лан такого не має",
+        "unreasoned exemption",
         _CLEAN_MAKE,
-        _CLEAN_CI,
-        [{"invocation": "scripts/zzz.py", "on": "2026-09-03", "reason": "x" * 40}],
+        _workflow("echo"),
+        [{"invocation": "scripts/a.py --strict", "on": "x", "reason": "short"}],
+        [],
         "FAIL",
     ),
     (
-        "виняток без причини",
-        _CLEAN_MAKE,
-        {"j": {"script": ["echo"]}},
-        [{"invocation": "scripts/a.py --strict", "on": "2026-09-03", "reason": "коротко"}],
-        "FAIL",
-    ),
-    (
-        "`--selftest` покритий транзитивно через verify_selftest_coverage.py у CI",
-        "validate: a-gate\n\na-gate:\n\t$(PY) scripts/a.py --selftest\n\t$(PY) scripts/a.py --strict\n\ncheck: validate\n",
-        {
-            "j": {
-                "script": [
-                    "python scripts/a.py --strict",
-                    "python scripts/verify_selftest_coverage.py",
-                ]
-            }
-        },
+        "selftests covered",
+        _PROOF_MAKE,
+        _workflow("python scripts/a.py --strict\npython scripts/verify_selftest_coverage.py"),
+        [],
         [],
         "PASS",
     ),
     (
-        "`--selftest` без selftest-coverage у CI — справжня діра",
-        "validate: a-gate\n\na-gate:\n\t$(PY) scripts/a.py --selftest\n\t$(PY) scripts/a.py --strict\n\ncheck: validate\n",
-        {"j": {"script": ["python scripts/a.py --strict"]}},
+        "selftest gap",
+        _PROOF_MAKE,
+        _workflow("python scripts/a.py --strict"),
+        [],
         [],
         "FAIL",
     ),
-    (
-        "команда поза ланом (check-deployment) не вимагається",
-        "validate: a-gate\n\na-gate:\n\t$(PY) scripts/a.py --strict\n\ncheck: validate\n\n"
-        "check-deployment: live\n\nlive:\n\t$(PY) scripts/live.py\n",
-        _CLEAN_CI,
-        [],
-        "PASS",
-    ),
+    ("invalid workflow", _CLEAN_MAKE, _CLEAN_CI, [], ["ci.yml: no PR"], "FAIL"),
 ]
 
 
 def selftest() -> int:
-    """Кожен спосіб збрехати мусить червоніти ОКРЕМО, а чисте дзеркало — зеленіти."""
     bad = 0
-    for name, makefile, pipeline, accepted, expected in _CASES:
+    for name, makefile, workflow, accepted, errors, expected in _CASES:
         lane = lane_invocations(makefile, MIRRORED_ROOTS)
-        ci, _excluded = pipeline_invocations(pipeline, makefile)
-        got = verdict(assess(lane, ci, accepted))
+        ci, _excluded = workflow_invocations(workflow, makefile)
+        got = verdict(assess(lane, ci, accepted, errors))
         ok = got == expected
         bad += not ok
-        print(f"  [{'ok' if ok else 'ЗБІЙ'}] {name}: {got}")
-    print(f"\nнегативний контроль: {len(_CASES) - bad}/{len(_CASES)}")
+        print(f"  [{'ok' if ok else 'FAIL'}] {name}: {got}")
+    print(f"\nnegative controls: {len(_CASES) - bad}/{len(_CASES)}")
     return 1 if bad else 0
-
-
-# ----------------------------------------------------------------------------- I/O
 
 
 def _head(root: Path) -> str:
@@ -356,23 +293,71 @@ def _head(root: Path) -> str:
     ).stdout.strip()
 
 
+def _read_workflow(root: Path, relative: Path) -> tuple[dict[str, Any] | None, str]:
+    label = relative.as_posix()
+    if relative.is_absolute() or ".." in relative.parts:
+        return None, f"{label}: path escapes repository"
+    path = root / relative
+    if not path.is_file():
+        return None, f"{label}: missing"
+    try:
+        workflow = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except yaml.YAMLError as exc:
+        return None, f"{label}: invalid YAML ({exc.__class__.__name__})"
+    if not isinstance(workflow, dict):
+        return None, f"{label}: root is not a mapping"
+    if not workflow_runs_on_pull_request(workflow):
+        return None, f"{label}: does not run on pull_request"
+    if not isinstance(workflow.get("jobs"), dict) or not workflow["jobs"]:
+        return None, f"{label}: no jobs"
+    return workflow, ""
+
+
+def _load_workflows(
+    root: Path, paths: Any, makefile: str
+) -> tuple[dict[str, set[str]], dict[str, str], list[str], list[str]]:
+    found: dict[str, set[str]] = {}
+    excluded: dict[str, str] = {}
+    errors: list[str] = []
+    loaded: list[str] = []
+    if not isinstance(paths, list) or not paths:
+        return found, excluded, ["mandatory_pr_workflows is empty"], loaded
+    for raw_path in paths:
+        relative = Path(str(raw_path))
+        label = relative.as_posix()
+        if label in loaded:
+            errors.append(f"{label}: duplicated")
+            continue
+        workflow, error = _read_workflow(root, relative)
+        if workflow is None:
+            errors.append(error)
+            continue
+        loaded.append(label)
+        workflow_ci, workflow_excluded = workflow_invocations(workflow, makefile, source=label)
+        for identity, jobs in workflow_ci.items():
+            found.setdefault(identity, set()).update(jobs)
+        excluded.update(workflow_excluded)
+    return found, excluded, errors, loaded
+
+
 def measure(root: Path) -> dict[str, Any]:
     makefile = (root / "Makefile").read_text(encoding="utf-8")
-    pipeline = yaml.safe_load((root / ".gitlab-ci.yml").read_text(encoding="utf-8"))
-    if not isinstance(pipeline, dict):
-        raise SystemExit("`.gitlab-ci.yml` не є мапою джобів")
     registry = json.loads((root / "config/operations/ci-mirror.json").read_text(encoding="utf-8"))
     accepted = list(registry.get("accepted") or [])
     lane = lane_invocations(makefile, MIRRORED_ROOTS)
-    ci, excluded = pipeline_invocations(pipeline, makefile)
+    ci, excluded, workflow_errors, workflows = _load_workflows(
+        root, registry.get("mandatory_pr_workflows"), makefile
+    )
     local_only = {name: len(lane_invocations(makefile, (name,))) for name in LOCAL_ONLY_ROOTS}
-    findings = assess(lane, ci, accepted)
+    findings = assess(lane, ci, accepted, workflow_errors)
     mirrored = sorted(identity for identity in lane if identity in ci)
     return {
-        "schema": SCHEMA,
+        "schema": "korpus.ci-mirror.v2",
+        "provider": "github-actions",
         "commit": _head(root),
         "ran_at": datetime.now(UTC).isoformat(),
         "roots": list(MIRRORED_ROOTS),
+        "mandatory_pr_workflows": workflows,
         "lane_invocations": len(lane),
         "mirrored": len(mirrored),
         "accepted": len(accepted),
@@ -399,8 +384,8 @@ def main() -> int:
     for item in report["findings"]:
         print(f"  [{item['verdict']}] {item['check']}: {item['detail']}")
     print(
-        f"\nci-mirror: {report['status']}  ({report['mirrored']}/{report['lane_invocations']} "
-        f"команд лану в CI, {report['accepted']} прийнято)  → {arguments.out}"
+        f"\nci-mirror: {report['status']} ({report['mirrored']}/{report['lane_invocations']} "
+        f"lane commands in GitHub PR CI, {report['accepted']} accepted) -> {arguments.out}"
     )
     return 0 if report["status"] == "PASS" else 1
 

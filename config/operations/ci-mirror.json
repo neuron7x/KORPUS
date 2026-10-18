@@ -1,27 +1,24 @@
 {
   "schema": "korpus.ci-mirror-registry.v1",
-  "measured_at": "2026-10-03",
-  "note": "Прийняті розбіжності між локальним ланом і CI. Кожна — рішення з причиною й датою. Мертвий виняток (CI вже виконує) і примарний (лану такого нема) — відмова.",
+  "measured_at": "2026-10-19",
+  "note": "Джерело віддаленого лану — лише обов'язкові GitHub Actions workflows для pull_request. Архівний .gitlab-ci.yml не кредитує жодної команди. Кожна прийнята предметна розбіжність має причину й дату; мертвий або примарний виняток є відмовою.",
+  "mandatory_pr_workflows": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/assurance.yml"
+  ],
   "accepted": [
-    {
-      "invocation": "scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION",
-      "on": "2026-09-03",
-      "class": "different_subject_by_construction",
-      "reason": "Контекст називає ПРЕДМЕТ: локальний лан перевіряє дерево як повний дистрибутив (з var/ і reports/), а CI перевіряє чекаут джерела — `--context SOURCE_CHECKOUT`, і той запуск у CI є. Це не та сама перевірка з іншим прапорцем, а дві перевірки двох предметів; вимагати дистрибутивного контексту в чекауті означало б гейт, який червоний за побудовою.",
-      "closes_when": "джоб package збиратиме повний дистрибутив і ганятиме над ним FULL_SSOT_DISTRIBUTION"
-    },
     {
       "invocation": "scripts/security_scan.sh",
       "on": "2026-10-03",
       "class": "superseded_by_stronger_ci_form",
-      "reason": "Локальний wrapper запускає host-installed gitleaks, pip-audit і trivy та маркує результат LOCAL_SCANNERS. CI виконує сильнішу декомпозицію в `secret:scan`, `python:audit` та `infrastructure:scan`: кожен scanner працює у digest-pinned image, а `security:summary` зв'язує три артефакти з CI_COMMIT_SHA. Запуск wrapper у Python job або вимагав би непінені бінарники раннера, або завжди повертав 127 — це була б не тотожність, а слабша підміна.",
-      "closes_when": "верифікатор дзеркала навчиться декларувати доказану еквівалентність однієї локальної композиції кільком pinned CI jobs"
+      "reason": "Локальний wrapper запускає host-installed gitleaks, pip-audit і trivy та маркує LOCAL_SCANNERS. GitHub CI виконує scanners окремими blocking jobs у pinned середовищах і зв'язує їхні артефакти з GITHUB_SHA; запуск host-wrapper на runner був би іншою, слабшою формою виміру.",
+      "closes_when": "верифікатор дзеркала навчиться перевіряти задеклароване stronger-than відношення локальної композиції до кількох GitHub jobs"
     },
     {
       "invocation": "scripts/verify_audit_closure_local.py",
       "on": "2026-10-03",
       "class": "superseded_by_stronger_ci_form",
-      "reason": "Локальний adapter споживає лише LOCAL_SCANNERS і навмисно не пише канонічні артефакти. CI job `audit:closure` після `api:assurance`, `api:drills` і `security:summary` запускає `build_audit_closure.py`, який вимагає PINNED_CI_SCANNERS та створює канонічне замикання. Дублювати слабший local adapter після сильнішого canonical executor означало б міряти інший клас доказу, а не дзеркалити властивість.",
+      "reason": "Локальний adapter споживає лише LOCAL_SCANNERS і навмисно не пише канонічні артефакти. GitHub audit-closure job споживає артефакти blocking assurance/security jobs і створює канонічне замикання; повтор слабшого local adapter міряв би інший клас доказу.",
       "closes_when": "верифікатор дзеркала навчиться декларувати відношення stronger-than між двома evidence classes"
     }
   ]

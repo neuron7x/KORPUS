@@ -111,36 +111,24 @@
       "frozen_at": null
     },
     "ci": {
-      "host": "gitlab.com",
-      "project": "neuron7x/korpus-platform",
-      "visibility": "private",
-      "why_not_github": "Дзеркало на github.com/neuron7x/KORPUS ПУБЛІЧНЕ. Кандидат туди не штовхається з цього лану: публікація — рішення власника, не крок закриття релізу.",
-      "required_jobs": [
-        "api:assurance",
-        "api:drills",
-        "api:postgres-and-restore",
-        "api:quality",
-        "api:test",
-        "audit:closure",
-        "container:build",
-        "container:sbom",
-        "container:scan",
-        "gcp:production-contract",
-        "infrastructure:scan",
-        "python:audit",
-        "repository:validate",
-        "secret:scan",
-        "security:summary",
-        "source:package",
-        "source:sbom",
-        "web:test"
+      "provider": "github-actions",
+      "host": "github.com",
+      "repository": "neuron7x/KORPUS",
+      "visibility": "public",
+      "authority": "Канонічний hosted-run verdict читається через `gh api` з GitHub check-runs для точного повного candidate commit SHA. GitLab є read-only архівом і не має release authority.",
+      "mandatory_pr_workflows": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/assurance.yml"
       ],
-      "excluded_jobs": {
-        "production:release": "ручний джоб релізу — його виконує власник, не лан",
-        "gcp:deploy-production": "GCP не в дорозі обслуговування цього релізу",
-        "gcp:production-contract": "перевіряє контракт GCP; топологія цього релізу — loopback"
-      },
-      "required_jobs_note": "04.09.2026: `gcp:production-contract` біжить БЕЗУМОВНО і ганяє три верифікатори (контракт GCP, SLO, структура terraform) — а в переліку обов'язкових його не було. Поки він падає, вирок ловив його як `failed`; але джоб, який НЕ ЗАПУСТИВСЯ, не є ні впалим, ні відсутнім серед обов'язкових, і прогін лишався б PASS із невиконаною перевіркою. Він і доти проходив на кожному прогоні, тож внесення нічого не послаблює й закриває NOT_EXECUTED. Альтернатива — назвати його в `jobs_not_required` — була б слабшою: вона визнає джоб необов'язковим, хоча він зелений і дешевий."
+      "required_jobs": [
+        "api-quality",
+        "api-tests",
+        "postgres-full-suite",
+        "repository-contract",
+        "research-assurance",
+        "web-tests"
+      ],
+      "required_jobs_note": "Знаменник дорівнює безумовним blocking jobs двох mandatory pull_request workflows. record_ci_run.py звіряє цей список із jobs.<id>.name самих workflow перед читанням check-runs: новий job без оновлення конверта або застаріле ім'я дає FAIL, а не мовчазне звуження."
     },
     "required_serving_units_note": "Приватний пілот 23.09.2026 має одну дорогу відповіді: korpus-pilot-api.service перед PostgreSQL. Спадковий korpus-public-api.service на SQLite не несе пілотного трафіку і не може червонити вирок чужої топології. Порт пілоту 8040 вибрано після виміряної колізії: 8030 зайнятий PBT CRM.",
     "private_pilot": {
