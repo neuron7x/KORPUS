@@ -61,6 +61,16 @@ def _finding(findings: list[dict[str, str]], check: str) -> dict[str, str]:
     return next(item for item in findings if item["check"] == check)
 
 
+def _local_branches(root: Path = ROOT) -> list[str]:
+    """Inventory only refs/heads; never interpret remote PR merge refs as local work."""
+    listed = GATE._git(
+        "for-each-ref", "--format=%(refname:short)", "refs/heads", root=root
+    )
+    if listed is None:
+        raise RuntimeError("cannot enumerate local branches: git ref query failed")
+    return sorted(set(listed.splitlines()))
+
+
 def test_a_branch_with_its_own_commits_must_be_named() -> None:
     observation = _observation()
     observation["diverged"]["origin/нова"] = {"unique": 9, "clean": False}
@@ -197,7 +207,7 @@ def test_pull_merge_remote_ref_is_not_an_inactive_local_branch(tmp_path: Path) -
     git("update-ref", "refs/remotes/pull/48/merge", "HEAD")
 
     assert "pull/48/merge" in GATE.refs(tmp_path)
-    assert GATE.local_branches(tmp_path) == ["local/stranded", "main"]
+    assert _local_branches(tmp_path) == ["local/stranded", "main"]
     assert GATE.unique_commits("main", "local/stranded", tmp_path) == 1
 
 
@@ -206,14 +216,14 @@ def test_local_branch_inventory_fails_closed_when_git_is_unavailable(
 ) -> None:
     monkeypatch.setattr(GATE, "_git", lambda *_args, **_kwargs: None)
     with pytest.raises(RuntimeError, match="cannot enumerate local branches"):
-        GATE.local_branches(ROOT)
+        _local_branches(ROOT)
 
 
 def test_every_inactive_local_branch_is_already_inside_the_canonical_one() -> None:
     """Проти РЕАЛЬНОСТІ: активну роботу не плутати із покинутим backlog."""
     canonical = CANON
     active = GATE.active_worktree_branches(ROOT)
-    for ref in GATE.local_branches(ROOT):
+    for ref in _local_branches(ROOT):
         if ref == canonical or ref in active:
             continue
         if ref == "work/serving-surface":
