@@ -872,30 +872,15 @@ source:package:
     expire_in: 30 days
 
 production:release:
-  extends: .python-job
   stage: release
-  needs:
-    - job: source:package
-      artifacts: true
+  # GitLab is a read-only legacy evidence plane. The tombstone fails twice: `rules`
+  # never creates it, and weakening only that rule reaches an unconditional failure.
+  # Canonical release authority is `.github/workflows/release.yml` on neuron7x/KORPUS.
   rules:
-    - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'
     - when: never
   script:
-    - test -n "${KORPUS_PRODUCTION_ASSURANCE_SIGNING_KEY_FILE:-}"
-    - test -n "${KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256:-}"
-    - test -n "${KORPUS_RELEASE_SIGNING_KEY_FILE:-}"
-    - test -n "${KORPUS_TRUSTED_RELEASE_SIGNER_SHA256:-}"
-    - test "$KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256" != "$KORPUS_TRUSTED_RELEASE_SIGNER_SHA256"
-    - PYTHONPATH=apps/api/src:scripts python scripts/release_attestation.py sign --manifest reports/PRODUCTION_ASSURANCE_REPORT.json --key "$KORPUS_PRODUCTION_ASSURANCE_SIGNING_KEY_FILE" --out reports/PRODUCTION_ASSURANCE_REPORT.attestation.json
-    - PYTHONPATH=apps/api/src:scripts python scripts/verify_production_assurance.py
-    - KORPUS_RELEASE_SIGNING_KEY="$KORPUS_RELEASE_SIGNING_KEY_FILE" scripts/package_production_release.sh
-  artifacts:
-    paths:
-      - dist/*.zip
-      - dist/*.release-manifest.json
-      - dist/*.release-attestation.json
-      - dist/*.production.sha256
-    expire_in: 90 days
+    - echo "GitLab release authority is retired; use canonical GitHub release workflow" >&2
+    - exit 1
 
 gcp:production-contract:
   extends: .python-job
@@ -915,43 +900,11 @@ gcp:production-contract:
 
 gcp:deploy-production:
   stage: deploy
-  image:
-    name: google/cloud-sdk:578.0.0-slim@sha256:cb08e90df56365a0a0b68e019ca06f90174bc064c4b0a5edfc3a5cf4415b5ec0
-    entrypoint: [""]
-  interruptible: false
-  timeout: 90m
-  resource_group: gcp-production
-  environment:
-    name: production
-    deployment_tier: production
-    url: "https://$KORPUS_DOMAIN"
-  id_tokens:
-    GCP_ID_TOKEN:
-      aud: "$GCP_WIF_AUDIENCE"
-  needs:
-    - job: container:build
-      artifacts: true
-    - job: container:scan
-      artifacts: true
-    - job: gcp:production-contract
-      artifacts: true
+  # The implementation remains versioned for provenance and static contract checks,
+  # but the legacy forge receives no OIDC token, production environment, artifacts or
+  # executable deploy path. GitHub is the sole canonical publication authority.
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_PROTECTED == "true" && $GCP_PRODUCTION_ENABLED == "true"'
-      when: manual
     - when: never
-  before_script:
-    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl docker.io git gnupg python3-pip unzip && rm -rf /var/lib/apt/lists/*
-    - python3 -m pip install --break-system-packages --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
-    - scripts/gcp/install_terraform_verified.sh "${TERRAFORM_VERSION:-1.15.8}"
-    - export PATH="$HOME/.local/bin:$PATH"
   script:
-    - scripts/gcp/authenticate_gitlab_wif.sh
-    - source var/gcp-auth.env
-    - scripts/gcp/deploy_gitlab_production.sh
-  after_script:
-    - rm -f .gitlab-oidc.jwt .gcp-wif.json var/gcp-auth.env
-  artifacts:
-    when: always
-    paths:
-      - reports/production/
-    expire_in: 30 days
+    - echo "GitLab deploy authority is retired; use canonical GitHub workflows" >&2
+    - exit 1
