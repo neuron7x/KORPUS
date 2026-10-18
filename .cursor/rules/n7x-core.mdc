@@ -1,0 +1,18 @@
+---
+description: Evidence-first engineering and independent falsification.
+alwaysApply: true
+---
+
+No success claim without executable evidence.
+
+For meaningful changes:
+
+1. inspect
+2. define acceptance predicate
+3. implement minimal delta
+4. run repository-native verification
+5. attack a relevant failure path
+6. inspect final diff
+7. return PASS, PASS_WITH_CAVEATS, or FAIL
+
+Unknown evidence remains UNKNOWN.

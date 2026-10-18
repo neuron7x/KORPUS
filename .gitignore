@@ -21,3 +21,4 @@ coverage.xml
 junit.xml
 .env.*.local
 .DS_Store
+.cursor/audit/
