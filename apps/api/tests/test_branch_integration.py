@@ -61,6 +61,16 @@ def _finding(findings: list[dict[str, str]], check: str) -> dict[str, str]:
     return next(item for item in findings if item["check"] == check)
 
 
+def _local_branches(root: Path = ROOT) -> list[str]:
+    """Inventory only refs/heads; never interpret remote PR merge refs as local work."""
+    listed = GATE._git(
+        "for-each-ref", "--format=%(refname:short)", "refs/heads", root=root
+    )
+    if listed is None:
+        raise RuntimeError("cannot enumerate local branches: git ref query failed")
+    return sorted(set(listed.splitlines()))
+
+
 def test_a_branch_with_its_own_commits_must_be_named() -> None:
     observation = _observation()
     observation["diverged"]["origin/нова"] = {"unique": 9, "clean": False}
@@ -155,12 +165,66 @@ def test_the_migration_collision_is_recorded_as_the_blocker() -> None:
         assert number in blocker["detail"], number
 
 
+def test_pull_merge_remote_ref_is_not_an_inactive_local_branch(tmp_path: Path) -> None:
+    """A foreign remote called pull is not a local stranded branch.
+
+    Test the real Git ref namespaces rather than mocking the inventory. A true
+    local branch with an unmerged commit must still be detected.
+    """
+
+    def git(*arguments: str) -> None:
+        subprocess.run(
+            ["git", "-C", str(tmp_path), *arguments],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+    git("init", "-b", "main")
+    git(
+        "-c",
+        "user.name=CI",
+        "-c",
+        "user.email=ci@example.invalid",
+        "commit",
+        "--allow-empty",
+        "-m",
+        "baseline",
+    )
+    git("branch", "local/stranded")
+    git("switch", "local/stranded")
+    git(
+        "-c",
+        "user.name=CI",
+        "-c",
+        "user.email=ci@example.invalid",
+        "commit",
+        "--allow-empty",
+        "-m",
+        "unmerged-work",
+    )
+    git("switch", "main")
+    git("update-ref", "refs/remotes/pull/48/merge", "HEAD")
+
+    assert "pull/48/merge" in GATE.refs(tmp_path)
+    assert _local_branches(tmp_path) == ["local/stranded", "main"]
+    assert GATE.unique_commits("main", "local/stranded", tmp_path) == 1
+
+
+def test_local_branch_inventory_fails_closed_when_git_is_unavailable(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setattr(GATE, "_git", lambda *_args, **_kwargs: None)
+    with pytest.raises(RuntimeError, match="cannot enumerate local branches"):
+        _local_branches(ROOT)
+
+
 def test_every_inactive_local_branch_is_already_inside_the_canonical_one() -> None:
     """Проти РЕАЛЬНОСТІ: активну роботу не плутати із покинутим backlog."""
     canonical = CANON
     active = GATE.active_worktree_branches(ROOT)
-    for ref in GATE.refs(ROOT):
-        if ref.startswith(("origin/", "gitlab/")) or ref == canonical or ref in active:
+    for ref in _local_branches(ROOT):
+        if ref == canonical or ref in active:
             continue
         if ref == "work/serving-surface":
             continue
