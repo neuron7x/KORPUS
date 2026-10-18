@@ -4,8 +4,10 @@ annotated-doc==0.0.4 \
     --hash=sha256:571ac1dc6991c450b25a9c2d84a3705e2ae7a53467b5d111c24fa8baabbed320
 annotated-types==0.7.0 \
     --hash=sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53
-anyio==4.13.0 \
-    --hash=sha256:08b310f9e24a9594186fd75b4f73f4a4152069e3853f1ed8bfbf58369f4ad708
+# 4.15.1 closes CVE-2026-63374/CVE-2026-64847 and is the current patched release
+# validated against the API suite. It requires typing-extensions>=4.16.
+anyio==4.15.1 \
+    --hash=sha256:6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101
 boto3==1.43.18 \
     --hash=sha256:7b62ce5c0a51428d692aa4f2adc9dc2a4a4c2989bf65a0a12834eeffa99b0b84
 botocore==1.43.18 \
@@ -74,8 +76,10 @@ pydantic-core==2.46.4 \
     --hash=sha256:926c9541b14b12b1681dca8a0b75feb510b06c6341b70a8e500c2fdcff837cce
 pydantic-settings==2.14.2 \
     --hash=sha256:a20c97b37910b6550d5ea50fbcc2d4187defe58cd57070b73863d069419c9440
-PyJWT==2.13.0 \
-    --hash=sha256:66adcc2aff09b3f1bbd95fc1e1577df8ac8723c978552fd43304c8a290ac5728
+# 2.15.1 is the first current release after the September 2026 algorithm-confusion,
+# mutable-options and registered-claim verification advisories against 2.13.0.
+PyJWT==2.15.1 \
+    --hash=sha256:42d59d631f7768a1028a64c7ff581a9bf7519804daf91fc5b6c56e30eec5e193
 # CVE-2026-71870 / CVE-2026-71852: crafted font maps and widths could force
 # excessive memory or CPU consumption during extraction. 6.15.0 was the first
 # patched release for those two.
@@ -84,9 +88,10 @@ PyJWT==2.13.0 \
 # із глибокою вкладеністю, і — той, що прямо на нашому шляху — витягання тексту
 # сторінки з великою кількістю XForm-об'єктів. Ця система витягає текст із PDF
 # доктринальних документів, тож третій CVE лежить рівно на `pdf_extraction.py`.
-# 6.16.1 закриває всі три; менший підйом (6.16.0) лишив би два з них.
-pypdf==6.16.1 \
-    --hash=sha256:63fec31c4092ae50b6729beedcb469055b60d20c834bde1c402df241f371f644
+# 6.16.1 закрила ті три, але вереснева хвиля 2026 додала ще вісім parser/DoS
+# advisory; 6.19.0 є першою версією, що закриває весь виміряний набір.
+pypdf==6.19.0 \
+    --hash=sha256:7e5d6e730e7dae87d560a2cee218b852f6498c8be61966f3cd02ead971e48d14
 python-dateutil==2.9.0.post0 \
     --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
 python-dotenv==1.2.2 \
@@ -103,12 +108,14 @@ SQLAlchemy==2.0.50 \
     --hash=sha256:110fdac56ace278949f00de805edacbd6141e382d992f9ba28238b3a0827a600
 starlette==1.3.1 \
     --hash=sha256:c7372aae11c3c3f26a42df7bd626cec2f47d03483d261d369516a615a53714c6
-typing-extensions==4.15.0 \
-    --hash=sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548
+# Required by AnyIO 4.15.x; PyPI's attested universal wheel is hash-pinned here.
+typing-extensions==4.16.0 \
+    --hash=sha256:481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8
 typing-inspection==0.4.2 \
     --hash=sha256:4ed1cacbdc298c220f1bd249ed5287caa16f34d44ef4e9c3d0cbad5b521545e7
-urllib3==2.7.0 \
-    --hash=sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897
+# 2.8.0 closes CVE-2026-97687/97688/97689 in the HTTP transport used by SDK clients.
+urllib3==2.8.0 \
+    --hash=sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3
 uvicorn==0.48.0 \
     --hash=sha256:48097851328b87ec36117d3d575234519eb58c2b22d79666e9bbc6c49a761dad
 uvloop==0.22.1 \

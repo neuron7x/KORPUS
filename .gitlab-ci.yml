@@ -407,6 +407,9 @@ audit:closure:
     when: always
     paths:
       - docs/audit/closure/
+      # Прив'язка прогону до коміту сканерів: окремий нетрекований файл, бо трекований
+      # звіт мусить збігатися з маніфестом джерела в `source:package`.
+      - var/audit-closure-binding.json
 
 # Ran on the image's own python3 until 2026-08-05, which on trixie is 3.13 — so the
 # only job that exercised PostgreSQL tested a different interpreter from the one the

@@ -207,3 +207,13 @@ def test_collection_manifest_rejects_nodeid_tampering(tmp_path) -> None:
 
     with pytest.raises(RuntimeError, match=r"collection_count|collection_digest"):
         load_verified_manifest(path, release_tag="v0.9.7", source_digest="a" * 64, pytest_args=[])
+
+
+def test_backend_report_does_not_delete_tracked_receipts_before_self_tests() -> None:
+    """The suite inspects the tracked tree, so its own runner must preserve that tree."""
+    root = Path(__file__).resolve().parents[3]
+    makefile = (root / "Makefile").read_text(encoding="utf-8")
+    recipe = makefile.split("backend-report:\n", 1)[1].split("\n\n", 1)[0]
+
+    assert "rm -rf reports/regression/shards" not in recipe
+    assert "$(MAKE) regression-shard" in recipe

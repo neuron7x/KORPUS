@@ -30,7 +30,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
+sys.path.insert(0, str(ROOT / "scripts"))
 from korpus.application.provenance import compute_source_digest  # noqa: E402
+from owner_packet_measurements import load_block, recovery_block  # noqa: E402
 
 PACKET = ROOT / "reports/OWNER_PILOT_RELEASE_PACKET.md"
 LOAD = ROOT / "var/load-probe.json"
@@ -52,44 +54,6 @@ RECOVERY_LINE = re.compile(r"^RTO \*\*[^\n]*\n", re.MULTILINE)
 #: файла. Рішення власника про ОБСЯГ лишається прозою; лічильник має виробника.
 CANDIDATE_LINE = re.compile(r"^`blocks_candidate` \*\*[^\n]*\n", re.MULTILINE)
 BLOCKER_BLOCK = re.compile(r"^### 2\.6-BIS [^\n]*\n\n`software_ready` \*\*[^\n]*\n", re.MULTILINE)
-
-
-def _json(path: Path) -> dict[str, Any]:
-    loaded: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
-    return loaded
-
-
-def _num(value: float) -> str:
-    return f"{value:.3f}".replace(".", ",")
-
-
-def load_table(load: dict[str, Any]) -> str:
-    cold = load["cold_first_request"]
-    rows = [
-        f"| холодний перший | 1 | 1 | — | — | {cold['status']} за **{_num(cold['seconds'])} с** (стеля 5,0) |"
-    ]
-    for label, key, conc in (
-        ("навантаження", "load", load["load"]["concurrency"]),
-        ("**soak (за ним судять SLO)**", "soak", load["soak"]["concurrency"]),
-        ("сплеск", "spike", load["spike"]["concurrency"]),
-    ):
-        phase = load[key]
-        statuses = " · ".join(
-            f"{count}×{code}" for code, count in sorted(phase["statuses"].items())
-        )
-        rows.append(
-            f"| {label} | {conc} | {phase['requests']} | {_num(phase['p50_seconds'])} | "
-            f"{_num(phase['p95_seconds'])} | {statuses} |"
-        )
-    return "\n".join(rows) + "\n"
-
-
-def recovery_line(recovery: dict[str, Any]) -> str:
-    return (
-        f"RTO **{_num(recovery['rto_seconds'])} с** (відновлення {_num(recovery['restore_seconds'])}"
-        f" + перевірка {_num(recovery['verify_seconds'])}) · RPO **{_num(recovery['rpo_seconds'])} с**"
-        f" · втрачено подій {recovery['lost_events']} · клас масштабу `{recovery['scale_class']}`.\n"
-    )
 
 
 def blocker_line(registry: dict[str, Any], predicates: dict[str, Any]) -> str:
@@ -132,12 +96,13 @@ def _constant(value: str) -> Callable[[re.Match[str]], str]:
 
 def render(text: str) -> str:
     digest = compute_source_digest(ROOT)
-    load, recovery = _json(LOAD), _json(RECOVERY)
-    registry, predicates = _json(REGISTRY), _json(PREDICATES)
+    registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    predicates = json.loads(PREDICATES.read_text(encoding="utf-8"))
+    release = str(registry.get("release", ""))
     for pattern, replacement, label in (
         (DIGEST_LINE, f"**ДАЙДЖЕСТ ДЖЕРЕЛА:** `{digest}`", "прив'язка"),
-        (LOAD_TABLE, load_table(load), "таблиця навантаження"),
-        (RECOVERY_LINE, recovery_line(recovery), "числа відновлення"),
+        (LOAD_TABLE, load_block(LOAD, digest, release), "таблиця навантаження"),
+        (RECOVERY_LINE, recovery_block(RECOVERY, digest, release), "числа відновлення"),
         (BLOCKER_BLOCK, blocker_line(registry, predicates), "стан блокерів"),
         (CANDIDATE_LINE, candidate_line(predicates), "лічильник кандидата"),
     ):

@@ -1,6 +1,25 @@
 {
   "lowered": [
     {
+      "changes": [
+        {
+          "from": {
+            "lines": 898,
+            "max_complexity": 23,
+            "max_function_lines": 175
+          },
+          "path": "scripts/build_audit_closure.py",
+          "to": {
+            "lines": 869,
+            "max_complexity": 17,
+            "max_function_lines": 154
+          }
+        }
+      ],
+      "on": "2026-10-03",
+      "reason": "Evidence selection and the shared closure predicate were extracted from the inherited register. Canonical and local executors now consume one validator while the local lane cannot write canonical evidence artifacts."
+    },
+    {
       "from": {
         "lines": 70
       },
@@ -3688,14 +3707,50 @@
       "proof_lines": 0,
       "reason": "v0.9.7 reduced exact measured ceiling after canonicalization/decomposition | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
+    "scripts/audit_closure_evidence.py": {
+      "lines": 48,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 23,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "2026-10-03: exact initial ceiling for the evidence-class selector extracted from the inherited audit registry; local scanner output can satisfy local closure without overwriting or impersonating pinned-CI evidence."
+    },
+    "scripts/audit_closure_validation.py": {
+      "lines": 72,
+      "max_complexity": 9,
+      "max_function_args": 4,
+      "max_function_lines": 30,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "2026-10-03: exact initial ceiling for the single closure predicate shared by canonical and local evidence lanes."
+    },
+    "scripts/audit_scanner_summary.py": {
+      "lines": 130,
+      "max_complexity": 12,
+      "max_function_args": 3,
+      "max_function_lines": 35,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "2026-10-04: exact initial ceiling for semantic validation and source-tree binding of scanner evidence; extracted so the shared closure-predicate ceiling did not balloon."
+    },
     "scripts/build_audit_closure.py": {
-      "lines": 898,
-      "max_complexity": 23,
+      "lines": 871,
+      "max_complexity": 17,
       "max_function_args": 1,
-      "max_function_lines": 175,
+      "max_function_lines": 155,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register; the GOV-006 code_half note is data, merged via a helper so main did not gain a branch"
+    },
+    "scripts/verify_audit_closure_local.py": {
+      "lines": 48,
+      "max_complexity": 1,
+      "max_function_args": 0,
+      "max_function_lines": 21,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "2026-10-03: exact initial ceiling for the non-writing local audit-closure adapter."
     },
     "scripts/build_import_manifest.py": {
       "lines": 252,
@@ -4169,6 +4224,15 @@
       "max_function_lines": 19,
       "max_nesting": 1,
       "proof_lines": 0
+    },
+    "scripts/evidence_access_route.py": {
+      "lines": 101,
+      "max_complexity": 15,
+      "max_function_args": 3,
+      "max_function_lines": 44,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Точна початкова стеля 2026-10-04. Чиста перевірка двох допустимих доказів обходу мережевої відмови: взаємний уже захоплений еквівалент або строкове зовнішнє спостереження з явною межею. Винесено окремо, щоб часові, URI та shape-предикати не збільшували складність вироку evidence_refusal."
     },
     "scripts/evidence_registry.py": {
       "lines": 134,
@@ -4659,6 +4723,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Третій вхід `check-nightly` і безпека проби мутацій: копія дерева замість редагування на місці, обробник сигналів, замок із перевіркою живості. Мутанти M480–M482."
+    },
+    "scripts/install_pilot_runtime.py": {
+      "lines": 34,
+      "max_complexity": 2,
+      "max_function_args": 1,
+      "max_function_lines": 10,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "23.09.2026: ідемпотентне встановлення двох оголошених юнітів приватного пілоту; точна початкова виміряна стеля."
     },
     "scripts/install_public_runtime.py": {
       "lines": 35,
@@ -5210,8 +5283,17 @@
       "proof_lines": 0,
       "reason": "Initial measured ceiling for retrieval-yield and Wilson uncertainty reporting"
     },
+    "scripts/owner_packet_measurements.py": {
+      "lines": 87,
+      "max_complexity": 4,
+      "max_function_args": 3,
+      "max_function_lines": 19,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "2026-10-03, НОВИЙ. Fail-closed межа між source-bound пакетом власника й ефемерними load/recovery вимірами: відсутній, нечитабельний або чужий артефакт рендериться як UNKNOWN, а не успадковується під новим дайджестом."
+    },
     "scripts/refresh_owner_packet.py": {
-      "lines": 185,
+      "lines": 150,
       "max_complexity": 6,
       "max_function_args": 2,
       "max_function_lines": 32,
@@ -5516,7 +5598,7 @@
       "proof_lines": 0
     },
     "scripts/run_military_readiness_campaign.py": {
-      "lines": 222,
+      "lines": 231,
       "max_complexity": 12,
       "max_function_args": 3,
       "max_function_lines": 63,
@@ -6328,6 +6410,34 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+    {
+      "changes": [
+        {
+          "from": {
+            "lines": 869,
+            "max_function_lines": 154
+          },
+          "path": "scripts/build_audit_closure.py",
+          "to": {
+            "lines": 871,
+            "max_function_lines": 155
+          }
+        },
+        {
+          "from": {
+            "lines": 46,
+            "max_function_lines": 20
+          },
+          "path": "scripts/verify_audit_closure_local.py",
+          "to": {
+            "lines": 48,
+            "max_function_lines": 21
+          }
+        }
+      ],
+      "on": "2026-10-04",
+      "reason": "Each executor gained one import and one mandatory call to the shared scanner-summary validator. This closes a measured false PASS without increasing branch complexity; the exact two-line and one-function-line deltas are named rather than hidden by a broad rebaseline."
+    },
     {
       "from": {
         "lines": 276,
@@ -12587,8 +12697,25 @@
       "path": "scripts/load_probe.py",
       "reason": "`selftest-falsifiability` виніс цьому файлу CANNOT_FAIL: 12 отрут, 0 спійманих. Самоперевірка накривала рівно сторожа знаменника, а рішення про клас середовища, токен робітника, відступ на 429, межу фази і вік служби — тобто все, що вирішує, ПРО ЩО вимір, — не накривала жодним випадком. Виміряно після правки тим самим гейтом: 12/12, ARMED. Випадків самоперевірки 6 -> 31.",
       "to": 406
+    },
+    {
+      "from": 222,
+      "metric": "lines",
+      "on": "2026-09-13",
+      "path": "scripts/run_military_readiness_campaign.py",
+      "reason": "Вирок кампанії тепер виражає неповноту у власному status: коли регресію не запускали, bounded-звіт має INCOMPLETE, а не PASS. Дев'ять рядків зводять status базових перевірок і статус регресії в один fail-closed результат; стелі функцій не зросли.",
+      "to": 231
+    },
+    {
+      "closes_when": "прив'язка прогону переїде до спільного виробника var/-артефактів; доти це виміряне число",
+      "from": 115,
+      "metric": "lines",
+      "on": "2026-10-10",
+      "path": "scripts/audit_scanner_summary.py",
+      "reason": "10.10.2026 `source:package` уперше добіг до пакування і впав на «source digest mismatch»: `audit:closure` дописував у трекований KORPUS_v5_FINDINGS_CLOSURE.json поле `produced_evidence` з комітом сканерів, тож файл розходився з маніфестом джерела в кожному конвеєрі за побудовою. Прив'язка тепер пишеться в var/audit-closure-binding.json; виробник цього файла живе поруч із самою прив'язкою.",
+      "to": 130
     }
   ],
-  "recorded_at": "2026-09-09",
+  "recorded_at": "2026-10-04",
   "schema_version": 1
 }

@@ -30,7 +30,7 @@
         "kind": "systemd-user-unit",
         "unit": "korpus-pilot-api.service",
         "declared_in": "deploy/pilot/korpus-pilot-api.service",
-        "command": "uvicorn korpus.main:app --host 127.0.0.1 --port 8030 --workers 2",
+        "command": "uvicorn korpus.main:app --host 127.0.0.1 --port 8040 --workers 2",
         "environment_file": "~/.local/state/korpus-pilot/api.env",
         "schema_mode": "migrations"
       },
@@ -99,8 +99,7 @@
       "api-test"
     ],
     "required_serving_units": [
-      "korpus-pilot-api.service",
-      "korpus-public-api.service"
+      "korpus-pilot-api.service"
     ],
     "identity": {
       "candidate_commit": null,
@@ -143,7 +142,7 @@
       },
       "required_jobs_note": "04.09.2026: `gcp:production-contract` біжить БЕЗУМОВНО і ганяє три верифікатори (контракт GCP, SLO, структура terraform) — а в переліку обов'язкових його не було. Поки він падає, вирок ловив його як `failed`; але джоб, який НЕ ЗАПУСТИВСЯ, не є ні впалим, ні відсутнім серед обов'язкових, і прогін лишався б PASS із невиконаною перевіркою. Він і доти проходив на кожному прогоні, тож внесення нічого не послаблює й закриває NOT_EXECUTED. Альтернатива — назвати його в `jobs_not_required` — була б слабшою: вона визнає джоб необов'язковим, хоча він зелений і дешевий."
     },
-    "required_serving_units_note": "Публічний сервіс додано 06.09.2026. Доти топологія оголошувала лише пілот, тож гейт свіжості чесно міряв процес, який НЕ несе корпус: 256 документів живуть за korpus-public-api (SQLite), а пілот працює на PostgreSQL. Наслідок: усі докази класу PRODUCTION_LIKE описували розгортання, до якого запрошена людина не прийде. Оголошення робить публічний сервіс предметом виміру — і одразу червонить лан, бо він віддає 503 з 03.09.2026: якір аудиту пам'ятає 81 подію, яких відновлена після пошкодження база не має.",
+    "required_serving_units_note": "Приватний пілот 23.09.2026 має одну дорогу відповіді: korpus-pilot-api.service перед PostgreSQL. Спадковий korpus-public-api.service на SQLite не несе пілотного трафіку і не може червонити вирок чужої топології. Порт пілоту 8040 вибрано після виміряної колізії: 8030 зайнятий PBT CRM.",
     "private_pilot": {
       "scope": "PRIVATE_PILOT",
       "max_users": 10,

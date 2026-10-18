@@ -114,6 +114,18 @@ def test_digest_changes_when_evidence_bearing_source_changes(tmp_path: Path) -> 
     assert compute_source_digest(tree) != baseline
 
 
+@pytest.mark.parametrize("relative", ("Dockerfile", "docker-entrypoint.sh"))
+def test_digest_covers_api_runtime_definition(tmp_path: Path, relative: str) -> None:
+    tree = tmp_path / "repo"
+    target = tree / "apps/api" / relative
+    target.parent.mkdir(parents=True)
+    target.write_text("runtime = first\n", encoding="utf-8")
+
+    baseline = compute_source_digest(tree)
+    target.write_text("runtime = second\n", encoding="utf-8")
+    assert compute_source_digest(tree) != baseline
+
+
 def test_digest_ignores_documentation_so_the_gate_stays_signal(tmp_path: Path) -> None:
     tree = tmp_path / "repo"
     (tree / "apps/api/src").mkdir(parents=True)

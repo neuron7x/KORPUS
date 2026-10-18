@@ -26,6 +26,8 @@ SPEC.loader.exec_module(REFRESH)
 
 DIGEST = "a" * 64
 LOAD = {
+    "source_tree_sha256": DIGEST,
+    "release": "v0.9.7",
     "cold_first_request": {"status": 200, "seconds": 1.5},
     "load": {
         "concurrency": 4,
@@ -50,6 +52,8 @@ LOAD = {
     },
 }
 RECOVERY = {
+    "source_tree_sha256": DIGEST,
+    "release": "v0.9.7",
     "rto_seconds": 12.0,
     "restore_seconds": 8.0,
     "verify_seconds": 4.0,
@@ -58,6 +62,7 @@ RECOVERY = {
     "scale_class": "pilot",
 }
 REGISTRY = {
+    "release": "v0.9.7",
     "counts": {"internal": 0, "external": 7},
     "generated_at": "2026-09-06T17:20:33+00:00",
     "source_tree_sha256": "0be621c1f1dcd1c9" + "0" * 48,
@@ -158,6 +163,33 @@ def test_a_missing_anchor_is_named_not_silently_skipped(
     with pytest.raises(SystemExit) as error:
         REFRESH.render(REFRESH.PACKET.read_text(encoding="utf-8"))
     assert "числа відновлення" in str(error.value)
+
+
+def test_missing_ephemeral_measurements_become_unknown_not_inherited_numbers(
+    tree: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tree / "load-probe.json").unlink()
+    (tree / "recovery-report.json").unlink()
+
+    rendered = REFRESH.render(IN_SYNC)
+
+    assert rendered.count("UNKNOWN — артефакт відсутній або нечитабельний") == 4
+    assert "RTO **UNKNOWN** · RPO **UNKNOWN**" in rendered
+    assert "RTO **12,000 с**" not in rendered
+    assert "40×200" not in rendered
+
+
+def test_stale_measurements_are_not_relabelled_with_the_current_digest(
+    tree: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    stale = dict(LOAD)
+    stale["source_tree_sha256"] = "b" * 64
+    (tree / "load-probe.json").write_text(json.dumps(stale), encoding="utf-8")
+
+    rendered = REFRESH.render(IN_SYNC)
+
+    assert rendered.count("UNKNOWN — артефакт описує інше дерево") == 4
+    assert "40×200" not in rendered
 
 
 def test_a_name_from_the_registry_that_looks_like_a_backreference_is_written_literally(

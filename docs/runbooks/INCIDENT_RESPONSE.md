@@ -26,7 +26,7 @@ Actions:
 Обидва процеси пілоту — це користувацькі юніти systemd, не контейнери:
 
 ```
-systemctl --user status korpus-pilot-api.service      # приватний пілот, порт 8030
+systemctl --user status korpus-pilot-api.service      # приватний пілот, порт 8040
 systemctl --user status korpus-public-api.service     # публічний loopback, порт 8000
 journalctl --user -u korpus-pilot-api.service -n 200 --no-pager
 journalctl --user -u korpus-pilot-api.service -f      # стежити далі

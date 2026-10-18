@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "de7d2e597decb1ad489de505fb7ebbf092785442ca3f5d67d042161a7946a3be",
-  "collection_digest": "9e3478103ad5fcc4600711952521c97c72355c63a290794943da96a31019a45b",
-  "collection_count": 4893,
+  "source_digest": "67a00324231d099f1d062a76ce0f555c48665371e28df273daa9f95b26e76e1b",
+  "collection_digest": "2f6fbdc7584d21d610248e1ae6aa858e858fa84ea11393e3310b1cebd0f9468b",
+  "collection_count": 4938,
   "shard_index": 10,
   "shard_count": 24,
-  "selected_count": 215,
+  "selected_count": 217,
   "selected_nodeids": [
     "apps/api/tests/test_adaptation_cli_v060.py::test_cli_refuses_malformed_or_unbounded_state",
     "apps/api/tests/test_admission_subject_share.py::test_the_default_still_isolates_tenants",
@@ -163,6 +163,7 @@
     "apps/api/tests/test_offline_pack.py::test_a_corpus_list_that_cannot_be_normalised_is_refused_at_the_boundary[corpora3-invalid corpus identifier]",
     "apps/api/tests/test_oidc_assurance_refusals.py::test_an_unreadable_auth_time_is_refused[overrides2-auth_time claim is invalid]",
     "apps/api/tests/test_operations.py::test_operational_gate_rejects_blank_required_table_identity",
+    "apps/api/tests/test_owner_packet_refresh.py::test_stale_measurements_are_not_relabelled_with_the_current_digest",
     "apps/api/tests/test_parser_sandbox_path.py::test_a_relative_pythonpath_is_resolved_before_the_worker_sees_it",
     "apps/api/tests/test_pec_cohort_v097.py::test_cohort_rejects_duplicate_expected_ids",
     "apps/api/tests/test_pec_evidence_features.py::test_concentration_of_a_zero_mass_is_zero_not_an_error[scores1]",
@@ -174,6 +175,7 @@
     "apps/api/tests/test_pec_revision_binding_v097.py::test_revision_binding_rejects_nonproduction_environment",
     "apps/api/tests/test_pec_state_and_telemetry_admission.py::test_a_budget_field_that_is_not_a_non_negative_integer_is_refused[1-evidence_items]",
     "apps/api/tests/test_permission_contract.py::test_every_granted_permission_is_a_permission_the_system_names",
+    "apps/api/tests/test_pilot_runtime_units.py::test_pilot_api_has_unambiguous_non_conflicting_port",
     "apps/api/tests/test_postgres_approval_provenance.py::test_the_review_login_can_write_exactly_those_columns[content_reviewed_by]",
     "apps/api/tests/test_printed_decimal_parsing.py::test_a_grouping_that_is_not_three_digits_is_refused[1234.567.890]",
     "apps/api/tests/test_printed_decimal_parsing.py::test_a_value_that_does_not_start_with_a_digit_is_refused[-5]",
@@ -225,9 +227,9 @@
     "apps/api/tests/test_url_policy.py::test_https_policy_refuses_ambiguous_or_credential_bearing_urls[https://user:pass@example.com]",
     "apps/api/tests/test_validity_boundaries.py::test_the_closed_interval_holds_at_both_ends[as_of1-True]"
   ],
-  "selected_digest": "1e4efaf92b03c0488f045df36f0f80841119fb90f2a43b5fae9b285cf2754a40",
+  "selected_digest": "4de4c2c6dc740e5231f6025d654c76103d973aaecaee4e2e45f54e204e8231a2",
   "junit": {
-    "tests": 215,
+    "tests": 217,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -236,9 +238,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 14.376077,
+  "elapsed_seconds": 18.963361,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 33%]\n........................................................................ [ 66%]\n.....................s.................................................  [100%]",
+  "stdout_tail": "........................................................................ [ 33%]\n........................................................................ [ 66%]\n.......................s................................................ [ 99%]\n.                                                                        [100%]\n=============================== warnings summary ===============================\napps/api/.venv/lib/python3.12/site-packages/starlette/testclient.py:53\n  /home/neuro7/.korpus-worktrees/pilot-readiness-20261003/apps/api/.venv/lib/python3.12/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.\n    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
   "stderr_tail": ""
 }

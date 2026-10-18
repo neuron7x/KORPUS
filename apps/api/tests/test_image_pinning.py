@@ -92,3 +92,19 @@ def test_every_compose_service_is_digest_pinned_today() -> None:
 
     assert report.satisfied, [failure.id for failure in report.unmet]
     assert report.total >= 9
+
+
+def test_the_runtime_image_upgrades_the_pinned_base_before_installing() -> None:
+    """Закріплена за дайджестом база несе пакети дня свого збирання.
+
+    10.10.2026 `container:scan` упав на семи HIGH/CRITICAL у `perl-base`: 04.10 PCRE2
+    закрили явним рядком у переліку пакетів, і це полагодило один CVE, а не клас.
+    `upgrade` мусить стояти ПІСЛЯ `update` і ПЕРЕД `install` у тому самому шарі.
+    """
+    dockerfile = (ROOT / "apps/api/Dockerfile").read_text(encoding="utf-8")
+    layer = next(block for block in dockerfile.split("\nRUN ") if "apt-get install" in block)
+    commands = [line.strip(" \\&") for line in layer.splitlines()]
+    update = commands.index("apt-get update")
+    upgrade = commands.index("apt-get upgrade -y")
+    install = next(i for i, line in enumerate(commands) if line.startswith("apt-get install"))
+    assert update < upgrade < install

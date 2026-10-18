@@ -53,6 +53,17 @@ def test_edge_recovery_rotates_the_expiring_identity_not_only_the_container() ->
     )
 
 
+def test_public_recovery_is_scoped_to_the_dedicated_funnel() -> None:
+    assert health.DEFAULT_PUBLIC_URL == "https://pbt.taile5d24a.ts.net:8443"
+    assert health.ACTION_COMMANDS["restore_funnel"] == (
+        ["tailscale", "funnel", "--bg", "--yes", "--https=8443", "8081"],
+    )
+    assert health.ACTION_COMMANDS["recycle_funnel"] == (
+        ["tailscale", "funnel", "--https=8443", "off"],
+        ["tailscale", "funnel", "--bg", "--yes", "--https=8443", "8081"],
+    )
+
+
 def test_second_attempt_at_one_outage_is_a_different_action() -> None:
     """Повторення ідемпотентної команди не є ескалацією.
 
@@ -114,8 +125,8 @@ def test_execute_runs_the_whole_sequence_not_only_its_first_command(monkeypatch)
     )
     assert health.execute("recycle_funnel") is True
     assert calls == [
-        ["tailscale", "funnel", "--bg", "off"],
-        ["tailscale", "funnel", "--bg", "8081"],
+        ["tailscale", "funnel", "--https=8443", "off"],
+        ["tailscale", "funnel", "--bg", "--yes", "--https=8443", "8081"],
     ]
 
 

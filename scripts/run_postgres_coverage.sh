@@ -76,13 +76,27 @@ docker run -d --name "$container" \
   -e POSTGRES_PASSWORD="$password" -e POSTGRES_DB="$database" -e POSTGRES_USER=postgres \
   -p "127.0.0.1:${port}:5432" "$image" >/dev/null
 
+# The official image starts a temporary server during initdb, stops it, then starts the
+# final server. One successful `pg_isready` accepted that temporary process; the very
+# next check hit the intentional restart and the producer exited without a report.
+# Require a stable streak so a transient init server cannot satisfy readiness.
+ready_streak=0
 for _ in $(seq 1 60); do
   if docker exec "$container" pg_isready -U postgres >/dev/null 2>&1; then
-    break
+    ready_streak=$((ready_streak + 1))
+    if [[ "$ready_streak" -ge 3 ]]; then
+      break
+    fi
+  else
+    ready_streak=0
   fi
   sleep 1
 done
-docker exec "$container" pg_isready -U postgres >/dev/null
+if [[ "$ready_streak" -lt 3 ]]; then
+  docker logs "$container" >&2 || true
+  echo "PostgreSQL coverage container did not become stably ready" >&2
+  exit 69
+fi
 
 admin_url="postgresql+psycopg://postgres:${password}@127.0.0.1:${port}/${database}"
 app_url="postgresql+psycopg://korpus_app:${app_password}@127.0.0.1:${port}/${database}"

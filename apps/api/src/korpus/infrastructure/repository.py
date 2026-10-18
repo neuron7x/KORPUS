@@ -894,14 +894,14 @@ class SqlRepository:
 
         return self._transaction_with_anchor(operation)
 
-    def reconcile_audit_anchor(self, *, limit: int | None = None) -> int:
+    def reconcile_audit_anchor(self, *, limit: int | None = None, wait: bool = True) -> int:
         """Deliver committed checkpoints from the transactional outbox.
 
         The business transaction never depends on remote anchor availability.
-        Concurrent PostgreSQL workers claim rows with SKIP LOCKED; delivery is
-        idempotent at the anchor contract.
+        Delivery is idempotent at the anchor contract. Explicit reconciliation waits for an
+        in-flight pass; opportunistic post-commit delivery may set ``wait=False``.
         """
-        if not self._anchor_delivery_lock.acquire(blocking=False):
+        if not self._anchor_delivery_lock.acquire(blocking=wait):
             return 0
         try:
             return self._reconcile_audit_anchor_locked(limit=limit)
@@ -1105,7 +1105,7 @@ class SqlRepository:
                         result, _anchor = operation(connection)
                     # Commit succeeded. The durable outbox is retried by the lifecycle worker.
                     with suppress(AnchorError, OSError, TimeoutError):
-                        self.reconcile_audit_anchor(limit=1)
+                        self.reconcile_audit_anchor(limit=1, wait=False)
                     return result
                 except NonRetryableWriteError:
                     raise

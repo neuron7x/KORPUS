@@ -2,12 +2,12 @@
   "schema": "korpus.regression-shard.v1",
   "status": "PASS",
   "release_tag": "v0.9.7",
-  "source_digest": "de7d2e597decb1ad489de505fb7ebbf092785442ca3f5d67d042161a7946a3be",
-  "collection_digest": "9e3478103ad5fcc4600711952521c97c72355c63a290794943da96a31019a45b",
-  "collection_count": 4893,
+  "source_digest": "67a00324231d099f1d062a76ce0f555c48665371e28df273daa9f95b26e76e1b",
+  "collection_digest": "2f6fbdc7584d21d610248e1ae6aa858e858fa84ea11393e3310b1cebd0f9468b",
+  "collection_count": 4938,
   "shard_index": 2,
   "shard_count": 24,
-  "selected_count": 219,
+  "selected_count": 221,
   "selected_nodeids": [
     "apps/api/tests/test_access_oracles.py::test_the_near_duplicate_probe_is_not_a_graded_content_oracle[classification-document2-reader2]",
     "apps/api/tests/test_account_domain.py::test_identity_claims_carrying_authorization_are_refused_not_filtered",
@@ -96,6 +96,7 @@
     "apps/api/tests/test_entitlement_gate.py::test_a_disabled_account_entitles_nothing_however_much_it_paid",
     "apps/api/tests/test_entitlement_projection_refusals.py::test_a_valid_subject_is_projected_through_the_profile",
     "apps/api/tests/test_environment_drift.py::test_script_reports_a_deleted_artefact_as_unobserved",
+    "apps/api/tests/test_evidence_access_route.py::test_malformed_or_stale_external_observation_fails_closed[change8-.observed_on]",
     "apps/api/tests/test_evidence_bases.py::test_relative_evidence_base_paths_bind_to_the_runtime_root",
     "apps/api/tests/test_evidence_class_order_has_no_effect.py::test_the_flags_do_change_the_ceiling",
     "apps/api/tests/test_evidence_epistemics.py::test_the_five_axes_are_not_reducible_to_one_another",
@@ -177,6 +178,7 @@
     "apps/api/tests/test_pec_state_and_telemetry_admission.py::test_the_support_bound_family_collapses_to_one_label[state_below_support:0.42]",
     "apps/api/tests/test_pec_training_lineage_v097.py::test_training_lineage_requires_receipt_digest_shape",
     "apps/api/tests/test_permission_contract.py::test_account_management_is_held_by_no_ordinary_role",
+    "apps/api/tests/test_pilot_runtime_units.py::test_pilot_web_is_loopback_proxy_to_declared_api",
     "apps/api/tests/test_policy.py::test_role_permissions_are_fail_closed",
     "apps/api/tests/test_postgres_rls_policy_state.py::test_the_application_login_may_execute_readers_but_never_the_binder",
     "apps/api/tests/test_printed_decimal_parsing.py::test_printed_quantities_parse_to_the_number_a_reader_would_say[123-123]",
@@ -229,9 +231,9 @@
     "apps/api/tests/test_worker_service.py::test_worker_service_fails_health_when_worker_exits",
     "apps/api/tests/test_worker_supervisor_liveness.py::test_the_health_endpoint_turns_503_when_the_worker_is_gone"
   ],
-  "selected_digest": "a5f5b2b5f3aeeea73ad81963c51ab58795acfc65844e9012424bc223a5a95e72",
+  "selected_digest": "8c4c30399f7517fc0c7f10099da75ff0539ce98976feef628f37ed36e26a0e1e",
   "junit": {
-    "tests": 219,
+    "tests": 221,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -240,9 +242,9 @@
   "timed_out": false,
   "termination": "not_required",
   "timeout_seconds": 240,
-  "elapsed_seconds": 9.702944,
+  "elapsed_seconds": 8.715074,
   "python": "3.12.3",
   "pytest_args": [],
-  "stdout_tail": "........................................................................ [ 32%]\n........................................................................ [ 65%]\n.........................s.............................................. [ 98%]\n...                                                                      [100%]",
+  "stdout_tail": "........................................................................ [ 32%]\n........................................................................ [ 65%]\n...........................s............................................ [ 97%]\n.....                                                                    [100%]\n=============================== warnings summary ===============================\napps/api/.venv/lib/python3.12/site-packages/starlette/testclient.py:53\n  /home/neuro7/.korpus-worktrees/pilot-readiness-20261003/apps/api/.venv/lib/python3.12/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.\n    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
   "stderr_tail": ""
 }
