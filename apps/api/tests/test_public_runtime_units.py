@@ -24,6 +24,9 @@ def test_api_unit_is_loopback_only_and_bounded() -> None:
     assert "MemoryHigh=2G" in unit
     assert "MemoryMax=3G" in unit
     assert "Restart=on-failure" in unit
+    assert "ExecCondition=" in unit
+    assert "scripts/audit_runtime_corpus.py" in unit
+    assert "runtime-corpus-audit.json" in unit
 
 
 def test_worker_unit_supervises_and_bounds_the_ingestion_loop() -> None:
@@ -38,6 +41,8 @@ def test_worker_unit_supervises_and_bounds_the_ingestion_loop() -> None:
     assert "Restart=on-failure" in unit
     assert "Nice=5" in unit
     assert "IOSchedulingPriority=7" in unit
+    assert "ExecCondition=" in unit
+    assert "scripts/audit_runtime_corpus.py" in unit
 
 
 def test_units_use_secret_file_and_do_not_allow_resource_control_overrides() -> None:

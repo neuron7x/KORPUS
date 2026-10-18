@@ -20,6 +20,7 @@ Environment=KORPUS_BIND_HOST=127.0.0.1
 Environment=KORPUS_TRUSTED_HOSTS=localhost,127.0.0.1
 Environment=KORPUS_MAX_CONCURRENT_ANSWERS=4
 Environment="PYTHONPATH=@KORPUS_ROOT@/apps/api/src"
+ExecCondition="@KORPUS_ROOT@/apps/api/.venv/bin/python" scripts/audit_runtime_corpus.py --database "@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/korpus.db" --object-root "@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/objects" --out "@KORPUS_ROOT@/var/public/runtime-corpus-audit.json"
 ExecStart="@KORPUS_ROOT@/apps/api/.venv/bin/python" -m uvicorn korpus.main:app --host 127.0.0.1 --port 8000 --log-level warning --workers 2
 Restart=on-failure
 RestartSec=5

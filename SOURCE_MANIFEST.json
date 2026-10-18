@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1598,
-  "root_sha256": "978fb9e5e7c6affcd63324bd3ae15bfa2bd3dbfdf73e0e284e85abe3fdf0da78",
+  "root_sha256": "1b8ccd7166c838f1408b65b2184b4edb2de8ba8a81d7b7af8134304c73519dcd",
   "files": [
     {
       "path": ".dockerignore",
@@ -3835,8 +3835,8 @@
     },
     {
       "path": "apps/api/tests/test_public_runtime_units.py",
-      "bytes": 1802,
-      "sha256": "62345a27a254d5b386f08c118d1e2b7793ec5e788832508a1821a17809539210",
+      "bytes": 2027,
+      "sha256": "db7fa3569962d3a8780bde962747fa88e43b8781212545232313163e47fe37aa",
       "mode": "0644"
     },
     {
@@ -6799,8 +6799,8 @@
     },
     {
       "path": "deploy/public/korpus-public-api.service",
-      "bytes": 1316,
-      "sha256": "a233214a944bba0604013d2872c0643a7be7be70a47256f6fe9a677ef2ecd028",
+      "bytes": 1600,
+      "sha256": "e3841b2107b055ae5059892e5268719bcfb601422b15998c938fe1b5e0b25cd4",
       "mode": "0644"
     },
     {
@@ -6817,8 +6817,8 @@
     },
     {
       "path": "deploy/public/korpus-worker.service",
-      "bytes": 1203,
-      "sha256": "792a5b4ed6ec9fed66fb066080cef0f9ed181d815868c754303e08746486ca3f",
+      "bytes": 1487,
+      "sha256": "d176dbad1114316ad090bd6f2ba5c33f70061fe93586f50afcab4203091af70a",
       "mode": "0644"
     },
     {
