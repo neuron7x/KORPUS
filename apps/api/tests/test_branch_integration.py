@@ -201,6 +201,14 @@ def test_pull_merge_remote_ref_is_not_an_inactive_local_branch(tmp_path: Path) -
     assert GATE.unique_commits("main", "local/stranded", tmp_path) == 1
 
 
+def test_local_branch_inventory_fails_closed_when_git_is_unavailable(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setattr(GATE, "_git", lambda *_args, **_kwargs: None)
+    with pytest.raises(RuntimeError, match="cannot enumerate local branches"):
+        GATE.local_branches(ROOT)
+
+
 def test_every_inactive_local_branch_is_already_inside_the_canonical_one() -> None:
     """Проти РЕАЛЬНОСТІ: активну роботу не плутати із покинутим backlog."""
     canonical = CANON
