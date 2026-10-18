@@ -63,9 +63,7 @@ def _finding(findings: list[dict[str, str]], check: str) -> dict[str, str]:
 
 def _local_branches(root: Path = ROOT) -> list[str]:
     """Inventory only refs/heads; never interpret remote PR merge refs as local work."""
-    listed = GATE._git(
-        "for-each-ref", "--format=%(refname:short)", "refs/heads", root=root
-    )
+    listed = GATE._git("for-each-ref", "--format=%(refname:short)", "refs/heads", root=root)
     if listed is None:
         raise RuntimeError("cannot enumerate local branches: git ref query failed")
     return sorted(set(listed.splitlines()))

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
+from pathlib import Path
+from typing import Any, cast
 
 from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
 from korpus.application.cache import EvidenceQueryCache
@@ -59,7 +60,9 @@ def build_answer_service(
     profile = None
     if settings.answer_policy_mode == "calibrated":
         profile = CalibrationProfile.load(
-            settings.calibration_profile_path,
+            # Settings validation rejects calibrated mode without this path. ``cast``
+            # preserves that single validation boundary without a second runtime branch.
+            cast(Path, settings.calibration_profile_path),
             settings.calibration_profile_sha256,
         )
     answer_policy = AnswerPolicy(
