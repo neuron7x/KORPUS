@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2075,
-  "root_sha256": "1290d509b72c33f48f1e75264eeae1ffac61527e4dc9d713e70db421fd8bdbc9",
+  "root_sha256": "fc9e5a228795747faeddf2b6807af2bce8ea808cc80f8e8765a291d1a2fa7bde",
   "files": [
     {
       "path": ".dockerignore",
@@ -3115,8 +3115,8 @@
     },
     {
       "path": "apps/api/tests/test_branch_integration.py",
-      "bytes": 9662,
-      "sha256": "92e8bdfeb0affeb3e776faac139c845368d488ede44515610e10c8c69925cd69",
+      "bytes": 11194,
+      "sha256": "d820559d17518bcb40aee127a6fcac1ae0950a24a343620717c160517ae1b580",
       "mode": "0644"
     },
     {
@@ -12253,8 +12253,8 @@
     },
     {
       "path": "scripts/verify_branch_integration.py",
-      "bytes": 12127,
-      "sha256": "2ea4428a802309cd656973cad206bb30d8a816e5ce370bdcc7d4107098485e21",
+      "bytes": 12861,
+      "sha256": "aa7920a441d2f2c9024cf10724db4b33728a46a7fb1141b58e138d28df40b03b",
       "mode": "0755"
     },
     {
