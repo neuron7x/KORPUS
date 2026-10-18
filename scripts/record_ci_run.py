@@ -1,302 +1,275 @@
 #!/usr/bin/env python3
-"""Записати, що конвеєр СПРАВДІ пройшов на цьому коміті, а не що міг би пройти.
-
-Дзеркало лану (`verify_ci_mirror.py`) відповідає на структурне питання: чи виконує
-конвеєр ті самі команди, що й локальний лан. Воно нічого не каже про подію. Дві
-властивості носили одну назву, і замінник SI-7 кредитував реліз структурою.
-
-Цей вимірювач питає хостований GitLab про конвеєри ДЛЯ ТОЧНОГО коміта й записує:
-який конвеєр, з яким станом, які джоби завершені успішно. Обов'язковий перелік
-береться з `RELEASE_ENVELOPE.json` — копія переліку тут розійшлася б із замороженим
-знаменником мовчки.
-
-Відсутність конвеєра — НЕ відмова інструмента: це стан «не вимірювалось», і звіт
-каже саме це. Хибне «FAIL» про непроведений вимір коштує дорожче, ніж чесне
-NOT_MEASURED: перше шукають у коді, якого немає.
-
-    record_ci_run.py [--commit SHA] [--out ФАЙЛ] [--selftest]
-"""
+"""Record required GitHub Actions checks for one exact candidate commit SHA."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
+import sys
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 ROOT = Path(__file__).resolve().parents[1]
-ENVELOPE = ROOT / "RELEASE_ENVELOPE.json"
-SCHEMA = "korpus.ci-run.v1"
-SUCCESS = "success"
+_FULL_SHA = re.compile(r"^[0-9a-f]{40}$")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from verify_ci_mirror import mandatory_workflow_jobs  # noqa: E402
+
+
+@dataclass(frozen=True)
+class JobCatalogue:
+    required: tuple[str, ...] = ()
+    mandatory: tuple[str, ...] = ()
+    excused: frozenset[str] = frozenset()
 
 
 def candidate_ci() -> dict[str, Any]:
-    payload = json.loads(ENVELOPE.read_text(encoding="utf-8"))
-    block = payload.get("release_candidate", {})
-    ci = block.get("ci") if isinstance(block, dict) else None
+    payload = json.loads((ROOT / "RELEASE_ENVELOPE.json").read_text(encoding="utf-8"))
+    candidate = payload.get("release_candidate")
+    ci = candidate.get("ci") if isinstance(candidate, dict) else None
     return ci if isinstance(ci, dict) else {}
 
 
-def catalogue(ci: dict[str, Any]) -> JobCatalogue:
-    """Каталог джобів із САМОГО `.gitlab-ci.yml` плюс звільнення з конверта."""
-    ci_file = ROOT / ".gitlab-ci.yml"
-    names = unconditional_jobs(ci_file.read_text(encoding="utf-8")) if ci_file.is_file() else []
+def catalogue(ci: dict[str, Any], *, root: Path = ROOT) -> JobCatalogue:
+    names: list[str] = []
+    for raw in ci.get("mandatory_pr_workflows") or ():
+        relative = Path(str(raw))
+        if relative.is_absolute() or ".." in relative.parts:
+            continue
+        try:
+            workflow = yaml.safe_load((root / relative).read_text(encoding="utf-8")) or {}
+        except (OSError, yaml.YAMLError):
+            continue
+        if isinstance(workflow, dict):
+            names.extend(mandatory_workflow_jobs(workflow))
     return JobCatalogue(
         tuple(str(name) for name in ci.get("required_jobs") or ()),
-        tuple(names),
+        tuple(sorted(set(names))),
         frozenset(str(name) for name in ci.get("jobs_not_required") or ()),
     )
 
 
 def head() -> str:
-    done = subprocess.run(
+    result = subprocess.run(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=False
     )
-    return done.stdout.strip()
+    return result.stdout.strip().lower()
 
 
-def glab(project: str, path: str) -> Any | None:
-    """Відповідь API або None. None означає «не спитали», не «немає»."""
-    done = subprocess.run(
-        ["glab", "api", f"projects/{project.replace('/', '%2F')}/{path}"],
+def github_check_runs(repository: str, commit: str) -> dict[str, Any] | None:
+    result = subprocess.run(
+        [
+            "gh",
+            "api",
+            "--method",
+            "GET",
+            "-H",
+            "Accept: application/vnd.github+json",
+            "-H",
+            "X-GitHub-Api-Version: 2022-11-28",
+            f"repos/{repository}/commits/{commit}/check-runs?filter=latest&per_page=100",
+        ],
         cwd=ROOT,
         capture_output=True,
         text=True,
         check=False,
         timeout=120,
     )
-    if done.returncode != 0:
+    if result.returncode:
         return None
     try:
-        return json.loads(done.stdout)
+        payload = json.loads(result.stdout)
     except json.JSONDecodeError:
         return None
+    if not isinstance(payload, dict) or not isinstance(payload.get("check_runs"), list):
+        return None
+    total = payload.get("total_count")
+    return None if isinstance(total, int) and total > len(payload["check_runs"]) else payload
 
 
-@dataclass(frozen=True)
-class JobCatalogue:
-    """Три факти про ОДИН набір джобів, тому й живуть разом.
-
-    `required` — що конверт вимагає; `unconditional` — що конвеєр запускає завжди;
-    `excused` — кого конверт явно звільнив. Розділені, вони їхали б у `adjudicate`
-    трьома параметрами й тягли б форму функції за стелю; разом вони ще й читаються
-    як те, чим є: опис набору, а не три випадкові списки.
-    """
-
-    required: tuple[str, ...] = ()
-    unconditional: tuple[str, ...] = ()
-    excused: frozenset[str] = frozenset()
-
-
-def unconditional_jobs(ci_yaml: str) -> list[str]:
-    """Джоби, які конвеєр запускає ЗАВЖДИ — без `rules`, `only` і ручного пуску.
-
-    Потрібні, бо `required_jobs` живе в конверті релізу й ніхто не звіряв його з
-    самим `.gitlab-ci.yml`. Виміряно 04.09.2026: `gcp:production-contract` біжить
-    безумовно, ганяє три верифікатори — і в переліку обов'язкових його немає.
-    Поки він ПАДАЄ, вирок ловить його як `failed`; але джоб, який НЕ ЗАПУСТИВСЯ
-    (skipped, created), не є ні впалим, ні відсутнім серед обов'язкових, тож
-    прогін лишався б PASS із невиконаною перевіркою. `NOT_EXECUTED` мовчки стає
-    `PASS` — рівно та форма, проти якої тут усе й побудовано.
-    """
-    import yaml
-
-    document = yaml.safe_load(ci_yaml) or {}
-    if not isinstance(document, dict):
-        return []
-    names = []
-    for name, body in document.items():
-        if name.startswith(".") or not isinstance(body, dict):
+def _latest_actions_checks(commit: str, payload: Any) -> dict[str, dict[str, Any]] | None:
+    if not isinstance(payload, dict) or not isinstance(payload.get("check_runs"), list):
+        return None
+    latest: dict[str, dict[str, Any]] = {}
+    for raw in payload["check_runs"]:
+        if not isinstance(raw, dict) or str(raw.get("head_sha") or "").lower() != commit:
             continue
-        if "script" not in body and "extends" not in body:
+        app = raw.get("app")
+        if not isinstance(app, dict) or app.get("slug") != "github-actions":
             continue
-        if body.get("rules") or body.get("only") or body.get("when") == "manual":
-            continue
-        names.append(str(name))
-    return sorted(names)
+        name = str(raw.get("name") or "")
+        old = latest.get(name)
+        old_id = old.get("id", -1) if old else -1
+        new_id = raw.get("id", -1)
+        if name and isinstance(old_id, int) and isinstance(new_id, int) and new_id >= old_id:
+            latest[name] = raw
+    return latest
 
 
-def _not_executed(
-    unconditional: tuple[str, ...], seen: set[str], excused: frozenset[str]
-) -> list[str]:
-    """Безумовні джоби, які не дали ЖОДНОГО вироку. Порожній перелік — не згода."""
-    return sorted(set(unconditional) - seen - excused)
-
-
-def adjudicate(
-    commit: str,
-    catalogue: JobCatalogue,
-    pipelines: Any,
-    jobs: Any,
-    *,
-    pipeline_url: str = "",
-) -> dict[str, Any]:
-    """Вирок про прогін. Порожній перелік обов'язкових джобів — не PASS.
-
-    `all([])` істинне, тож без цієї умови конвеєр без вимог проходив би завжди.
-    """
-    report: dict[str, Any] = {
-        "schema": SCHEMA,
+def _base_report(commit: str, required: tuple[str, ...], url: str) -> dict[str, Any]:
+    return {
+        "schema": "korpus.ci-run.v2",
+        "provider": "github-actions",
         "commit": commit,
-        "required_jobs": sorted(catalogue.required),
+        "required_jobs": sorted(required),
         "completed_jobs": [],
         "failed_jobs": [],
-        "pipeline": pipeline_url,
+        "pipeline": url,
         "ran_at": datetime.now(UTC).isoformat(),
     }
-    if not isinstance(pipelines, list) or not pipelines:
-        report["status"] = "NOT_MEASURED"
-        report["detail"] = "для цього коміта конвеєр не знайдено"
-        return report
-    if not catalogue.required:
-        report["status"] = "NOT_MEASURED"
-        report["detail"] = "конверт не називає обов'язкових джобів"
-        return report
-    passed = sorted(
-        {str(job.get("name")) for job in jobs or [] if str(job.get("status")) == SUCCESS}
-    )
-    failed = sorted(
-        {
-            str(job.get("name"))
-            for job in jobs or []
-            if str(job.get("status")) not in {SUCCESS, "manual", "skipped", "created"}
-        }
-    )
-    report["completed_jobs"] = passed
-    report["failed_jobs"] = failed
-    missing = sorted(set(catalogue.required) - set(passed))
-    report["missing_jobs"] = missing
-    idle = _not_executed(catalogue.unconditional, set(passed) | set(failed), catalogue.excused)
-    report["not_executed_jobs"] = idle
-    report["status"] = "PASS" if not missing and not failed and not idle else "FAIL"
-    if missing:
-        report["detail"] = f"обов'язкові джоби без успіху: {missing}"
-    elif failed:
-        report["detail"] = f"джоби впали: {failed}"
-    elif idle:
-        report["detail"] = f"безумовні джоби не дали вироку взагалі: {idle}"
-    else:
-        report["detail"] = "усі обов'язкові джоби успішні на цьому коміті"
+
+
+def _stop(report: dict[str, Any], status: str, detail: str) -> dict[str, Any]:
+    report.update(status=status, detail=detail)
     return report
 
 
+def _catalogue_drift(jobs: JobCatalogue) -> tuple[list[str], list[str]]:
+    expected = set(jobs.mandatory) - set(jobs.excused)
+    required = set(jobs.required)
+    return sorted(required - expected), sorted(expected - required)
+
+
+def adjudicate(
+    commit: str, jobs: JobCatalogue, payload: Any, *, checks_url: str = ""
+) -> dict[str, Any]:
+    report = _base_report(commit, jobs.required, checks_url)
+    if not _FULL_SHA.fullmatch(commit):
+        return _stop(report, "NOT_MEASURED", "кандидат не є повним commit SHA")
+    if not jobs.required:
+        return _stop(report, "NOT_MEASURED", "конверт не називає required checks")
+    undeclared, unrequired = _catalogue_drift(jobs)
+    report.update(
+        required_not_in_workflows=undeclared,
+        workflow_jobs_not_required=unrequired,
+    )
+    if undeclared or unrequired:
+        return _stop(
+            report,
+            "FAIL",
+            f"конверт не збігається з workflow jobs: {undeclared=}, {unrequired=}",
+        )
+    latest = _latest_actions_checks(commit, payload)
+    if latest is None:
+        return _stop(report, "NOT_MEASURED", "check-runs API не дав валідної відповіді")
+    if not latest:
+        return _stop(report, "NOT_MEASURED", "для точного SHA немає GitHub Actions checks")
+    required = set(jobs.required)
+    missing = sorted(required - set(latest))
+    failed = sorted(
+        name
+        for name in required & set(latest)
+        if (latest[name].get("status"), latest[name].get("conclusion")) != ("completed", "success")
+    )
+    report.update(
+        completed_jobs=sorted(required - set(missing) - set(failed)),
+        failed_jobs=failed,
+        missing_jobs=missing,
+    )
+    if missing:
+        return _stop(report, "FAIL", f"required checks відсутні: {missing}")
+    if failed:
+        return _stop(report, "FAIL", f"required checks неуспішні: {failed}")
+    return _stop(report, "PASS", "усі required jobs успішні на точному commit SHA")
+
+
+def _check(
+    name: str,
+    commit: str,
+    conclusion: Any = "success",
+    status: str = "completed",
+    check_id: int = 1,
+) -> dict[str, Any]:
+    return {
+        "id": check_id,
+        "name": name,
+        "head_sha": commit,
+        "status": status,
+        "conclusion": conclusion,
+        "app": {"slug": "github-actions"},
+    }
+
+
 def selftest() -> int:
-    required = ["a", "b"]
+    commit = "c" * 40
+    required = ("a", "b")
+    jobs = JobCatalogue(required, required)
+
+    def judge(payload: Any, catalogue_: JobCatalogue = jobs, sha: str = commit) -> str:
+        return str(adjudicate(sha, catalogue_, payload)["status"])
+
+    good = [_check("a", commit), _check("b", commit, check_id=2)]
+    foreign = [_check("a", commit), _check("b", "d" * 40)]
+    other_app = _check("b", commit) | {"app": {"slug": "other-ci"}}
     cases: list[tuple[str, Any, Any]] = [
+        ("API absent", judge(None), "NOT_MEASURED"),
+        ("zero checks", judge({"check_runs": []}), "NOT_MEASURED"),
+        ("ref is not exact SHA", judge({"check_runs": []}, sha="main"), "NOT_MEASURED"),
         (
-            "конвеєра для коміта немає — NOT_MEASURED, не FAIL",
-            adjudicate("c" * 40, JobCatalogue(tuple(required)), [], [])["status"],
+            "empty denominator",
+            judge({"check_runs": good}, JobCatalogue()),
             "NOT_MEASURED",
         ),
+        ("all required success", judge({"check_runs": good}), "PASS"),
+        ("missing required", judge({"check_runs": good[:1]}), "FAIL"),
         (
-            "порожній перелік вимог не проходить (all([]) істинне)",
-            adjudicate("c" * 40, JobCatalogue(), [{"id": 1}], [{"name": "a", "status": SUCCESS}])[
-                "status"
-            ],
-            "NOT_MEASURED",
-        ),
-        (
-            "усі обов'язкові успішні — PASS",
-            adjudicate(
-                "c" * 40,
-                JobCatalogue(tuple(required)),
-                [{"id": 1}],
-                [{"name": "a", "status": SUCCESS}, {"name": "b", "status": SUCCESS}],
-            )["status"],
-            "PASS",
-        ),
-        (
-            "один обов'язковий не запустився — FAIL",
-            adjudicate(
-                "c" * 40,
-                JobCatalogue(tuple(required)),
-                [{"id": 1}],
-                [{"name": "a", "status": SUCCESS}],
-            )["status"],
+            "skipped required",
+            judge({"check_runs": [good[0], _check("b", commit, "skipped")]}),
             "FAIL",
         ),
         (
-            "необов'язковий джоб упав — теж FAIL",
-            adjudicate(
-                "c" * 40,
-                JobCatalogue(tuple(required)),
-                [{"id": 1}],
-                [
-                    {"name": "a", "status": SUCCESS},
-                    {"name": "b", "status": SUCCESS},
-                    {"name": "z", "status": "failed"},
-                ],
-            )["status"],
+            "queued required",
+            judge({"check_runs": [good[0], _check("b", commit, None, "queued")]}),
             "FAIL",
         ),
         (
-            "безумовний джоб, який не дав ВИРОКУ, валить прогін",
-            adjudicate(
-                "c" * 40,
-                JobCatalogue(tuple(required), ("a", "b", "gcp")),
-                [{"id": 1}],
-                [{"name": "a", "status": SUCCESS}, {"name": "b", "status": SUCCESS}],
-            )["status"],
+            "failed required",
+            judge({"check_runs": [good[0], _check("b", commit, "failure")]}),
+            "FAIL",
+        ),
+        ("foreign SHA", judge({"check_runs": foreign}), "FAIL"),
+        ("foreign app", judge({"check_runs": [good[0], other_app]}), "FAIL"),
+        (
+            "new mandatory job",
+            judge({"check_runs": good}, JobCatalogue(required, ("a", "b", "c"))),
             "FAIL",
         ),
         (
-            "той самий джоб, названий у конверті як необов'язковий, — не валить",
-            adjudicate(
-                "c" * 40,
-                JobCatalogue(tuple(required), ("a", "b", "gcp"), frozenset({"gcp"})),
-                [{"id": 1}],
-                [{"name": "a", "status": SUCCESS}, {"name": "b", "status": SUCCESS}],
-            )["status"],
-            "PASS",
+            "required name outside workflow",
+            judge({"check_runs": good}, JobCatalogue(("a", "b"), ("a",))),
+            "FAIL",
         ),
         (
-            "безумовний джоб, який УПАВ, вирок дав — і це падіння, не мовчання",
-            adjudicate(
-                "c" * 40,
-                JobCatalogue(tuple(required), ("a", "b", "gcp")),
-                [{"id": 1}],
-                [
-                    {"name": "a", "status": SUCCESS},
-                    {"name": "b", "status": SUCCESS},
-                    {"name": "gcp", "status": "failed"},
-                ],
-            )["detail"],
-            "джоби впали: ['gcp']",
-        ),
-        (
-            "умовні джоби в перелік безумовних не потрапляють",
-            unconditional_jobs(
-                "a:\n  script: [x]\n"
-                "b:\n  script: [x]\n  rules: [{if: 'true'}]\n"
-                "c:\n  script: [x]\n  when: manual\n"
-                ".hidden:\n  script: [x]\n"
+            "latest rerun governs",
+            judge(
+                {"check_runs": [_check("a", commit, "failure"), _check("a", commit, check_id=2)]},
+                JobCatalogue(("a",), ("a",)),
             ),
-            ["a"],
+            "PASS",
         ),
         (
-            "ручний джоб не рахується падінням",
-            adjudicate(
-                "c" * 40,
-                JobCatalogue(tuple(required)),
-                [{"id": 1}],
-                [
-                    {"name": "a", "status": SUCCESS},
-                    {"name": "b", "status": SUCCESS},
-                    {"name": "z", "status": "manual"},
-                ],
-            )["status"],
-            "PASS",
+            "conditional jobs excluded",
+            mandatory_workflow_jobs(
+                {
+                    "jobs": {
+                        "a": {"name": "A"},
+                        "b": {"name": "B", "if": "false"},
+                        "c": {"name": "C", "continue-on-error": True},
+                    }
+                }
+            ),
+            ["A"],
         ),
     ]
-    passed = 0
+    passed = sum(got == want for _name, got, want in cases)
     for name, got, want in cases:
-        ok = got == want
-        passed += ok
-        print(f"  {'ok' if ok else 'ПРОВАЛ'} {name}: {got!r}")
-    print(f"негативний контроль: {passed}/{len(cases)}")
+        print(f"  {'ok' if got == want else 'FAIL'} {name}: {got!r}")
+    print(f"negative controls: {passed}/{len(cases)}")
     return 0 if passed == len(cases) else 1
 
 
@@ -305,37 +278,25 @@ def main() -> int:
     parser.add_argument("--commit", default="")
     parser.add_argument("--out", type=Path, default=ROOT / "var/ci-run.json")
     parser.add_argument("--selftest", action="store_true")
-    parser.add_argument(
-        "--evidence-only",
-        action="store_true",
-        help=(
-            "нуль, якщо доказ ЗАПИСАНО: вирок про прогін виносить замінник SI-7 над "
-            "артефактом. Без цього лан спинявся б там, де вимір чесно каже "
-            "NOT_MEASURED, а `-` перед рецептом ховав би й справжній збій."
-        ),
-    )
+    parser.add_argument("--evidence-only", action="store_true")
     arguments = parser.parse_args()
     if arguments.selftest:
         return selftest()
-
     ci = candidate_ci()
-    commit = arguments.commit or head()
-    project = str(ci.get("project") or "")
-    pipelines = glab(project, f"pipelines?sha={commit}") if project else None
-    jobs: Any = None
-    url = ""
-    if isinstance(pipelines, list) and pipelines:
-        newest = pipelines[0]
-        url = str(newest.get("web_url") or newest.get("id") or "")
-        jobs = glab(project, f"pipelines/{newest.get('id')}/jobs?per_page=100")
-    report = adjudicate(commit, catalogue(ci), pipelines, jobs, pipeline_url=url)
+    commit = (arguments.commit or head()).lower()
+    repository = str(ci.get("repository") or "")
+    payload = (
+        github_check_runs(repository, commit)
+        if repository and _FULL_SHA.fullmatch(commit)
+        else None
+    )
+    url = f"https://github.com/{repository}/commit/{commit}/checks" if repository else ""
+    report = adjudicate(commit, catalogue(ci), payload, checks_url=url)
     arguments.out.parent.mkdir(parents=True, exist_ok=True)
     rendered = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     arguments.out.write_text(rendered, encoding="utf-8")
     print(rendered, end="")
-    if arguments.evidence_only:
-        return 0
-    return 0 if report["status"] == "PASS" else 1
+    return 0 if arguments.evidence_only or report["status"] == "PASS" else 1
 
 
 if __name__ == "__main__":
