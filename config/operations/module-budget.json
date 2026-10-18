@@ -3010,7 +3010,7 @@
       "lines": null,
       "max_complexity": 11,
       "max_function_args": 4,
-      "max_function_lines": 39,
+      "max_function_lines": 45,
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "Реєстр вимог росте на один запис із кожною новою властивістю репозиторію; складність і форма функцій залишаються обмеженими окремо."
@@ -3419,7 +3419,7 @@
       "reason": "binds an SBOM and a material list to the image they describe, signed, and refuses a mismatch"
     },
     "scripts/build_readiness_947_evidence.py": {
-      "lines": 524,
+      "lines": 562,
       "max_complexity": 7,
       "max_function_args": 4,
       "max_function_lines": 84,
@@ -5594,10 +5594,10 @@
       "reason": "registered 2026-08-29 (parallel session) | 2026-08-29: стеля опущена 211→160 — рядки selftest (51) більше не рахуються як програма; проби ростуть під власною стелею."
     },
     "scripts/validate_repository.py": {
-      "lines": 58,
-      "max_complexity": 4,
+      "lines": 61,
+      "max_complexity": 5,
       "max_function_args": 0,
-      "max_function_lines": 24,
+      "max_function_lines": 26,
       "max_nesting": 2,
       "proof_lines": 0
     },
@@ -5859,7 +5859,7 @@
       "proof_lines": 0
     },
     "scripts/verify_selftest_coverage.py": {
-      "lines": 195,
+      "lines": 242,
       "max_complexity": 8,
       "max_function_args": 3,
       "max_function_lines": 35,
@@ -11726,6 +11726,72 @@
         "max_function_lines": 63
       },
       "why": "стан регресії читається типобезпечно: mypy правильно відхилив індексацію поля, тип якого — обʼєднання; вирок мусить пережити звіт будь-якої форми"
+    },
+    {
+      "on": "2026-09-06",
+      "path": "scripts/verify_selftest_coverage.py",
+      "from": {
+        "lines": 195
+      },
+      "to": {
+        "lines": 242
+      },
+      "reason": "Гейт бачив ОДНУ форму оголошення `--selftest` — через `argparse`. Шість скриптів розбирають `sys.argv` напряму; гейт їх не бачив і звітував «61 самоперевірка, жодної пропущеної» — твердження про власний регекс, не про дерево. Доведено запуском: оголошену самоперевірку зроблено такою, що падає, гейт лишився PASS. Додано другу форму (64→70, 69 запущено) і МЕЖУ сліпої зони `undeclared_mentions`: без неї ширший регекс лише змінив би одну сліпу зону на іншу, а третя форма зникла б так само мовчки."
+    },
+    {
+      "on": "2026-09-06",
+      "path": "scripts/build_readiness_947_evidence.py",
+      "from": {
+        "lines": 524
+      },
+      "to": {
+        "lines": 562
+      },
+      "reason": "`targeted_ok` злипав три світи в одне `False`: замало відібрано, справжні падіння, і «не бігало». Виміряно 06.09.2026: 48 пропущених, 44 через ненастроєний PostgreSQL — критерій міряють там, де предмета нема. Додано `_targeted_state` з трьома станами; поведінка споживача не змінена, `targeted_ok` і далі істинний рівно на PASS."
+    },
+    {
+      "on": "2026-09-06",
+      "path": "scripts/validate_repository.py",
+      "from": {
+        "lines": 58
+      },
+      "to": {
+        "lines": 61
+      },
+      "reason": "Друкується ЯКІР: `git tracks N, excluded M`. Одностороння отрута правила пропуску ловилась порівнянням, двобічна — ні: дописати частину в ОБИДВА переліки давало 2397/2397 і зелену вимогу, поки 311 файлів зникали, а порада у відмові радила саме цю дорогу. `tracked_total` рахується без фільтра й не рухається жодним переліком, тож виключення стало видимим числом. Форму модуля збережено — помічника не додано, `max_function_args: 0` недоторканий."
+    },
+    {
+      "on": "2026-09-06",
+      "path": "scripts/validate_repository.py",
+      "from": {
+        "max_complexity": 4
+      },
+      "to": {
+        "max_complexity": 5
+      },
+      "reason": "Друкується ЯКІР: `git tracks N, excluded M`. Одностороння отрута правила пропуску ловилась порівнянням, двобічна — ні: дописати частину в ОБИДВА переліки давало 2397/2397 і зелену вимогу, поки 311 файлів зникали, а порада у відмові радила саме цю дорогу. `tracked_total` рахується без фільтра й не рухається жодним переліком, тож виключення стало видимим числом. Форму модуля збережено — помічника не додано, `max_function_args: 0` недоторканий."
+    },
+    {
+      "on": "2026-09-06",
+      "path": "scripts/validate_repository.py",
+      "from": {
+        "max_function_lines": 24
+      },
+      "to": {
+        "max_function_lines": 26
+      },
+      "reason": "Друк якоря `git tracks N, excluded M` у `main`. Помічника навмисно НЕ додано: `max_function_args: 0` — структурний сигнал цього модуля, і ламати форму заради двох рядків дорожче, ніж визнати їх у `main`."
+    },
+    {
+      "on": "2026-09-06",
+      "path": "apps/api/src/korpus/repository_requirements.py",
+      "from": {
+        "max_function_lines": 39
+      },
+      "to": {
+        "max_function_lines": 45
+      },
+      "reason": "`scan_expectation` віддає ЯКІР разом із підписом: `tracked_total` без фільтра плюс дайджест дерева. Число без підпису старіє мовчки — свіжий вимір, прив'язаний до чужого дерева, читається як поточний. Тому дайджест їде в тому самому прольоті, що й значення."
     }
   ],
   "recorded_at": "2026-09-06",

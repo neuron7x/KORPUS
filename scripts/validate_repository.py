@@ -25,6 +25,7 @@ from korpus.application.requirements import (  # noqa: E402
 from korpus.repository_requirements import (  # noqa: E402
     REPOSITORY_REQUIREMENTS,
     load_context,
+    scan_expectation,
 )
 
 
@@ -47,9 +48,11 @@ def main() -> int:
         for failure in report.unmet:
             print(f"{failure.id}: {failure.statement}")
         return 1
+    seen = scan_expectation(context.root) or {"tree": "?", "tracked_total": "?", "excluded": "?"}
     print(
-        f"repository validation passed: {context.path_count} paths, "
-        f"{report.total} requirements, 99/99 audit findings classified"
+        f"repository validation passed @{seen['tree']}: {context.files_examined} examined, "
+        f"git tracks {seen['tracked_total']}, excluded {seen['excluded']}, "
+        f"{report.total} requirements"
     )
     return 0
 

@@ -101,3 +101,59 @@ def test_dimension_pass_requires_nonempty_all_true_criteria() -> None:
     assert passed["status"] == "PASS"
     assert passed["failures"] == []
     assert empty["status"] == "FAIL"
+
+
+def test_targeted_state_tells_a_failure_apart_from_a_run_that_did_not_happen() -> None:
+    """Один булевий не сміє нести три світи.
+
+    `targeted_ok` злипав «замало відібрано», «справжні падіння» і «не бігало» в одне
+    `False`. Читач бачив хибне й висновував, що тести падають.
+
+    ВИМІРЯНО 06.09.2026 на `723d9bb4`: 48 пропущених, з них 44 через ненастроєний
+    PostgreSQL. Канонічний бекенд релізу — PostgreSQL, а число готовності рахується
+    з прогону на SQLite, який НЕ МОЖЕ дати нуль пропусків. Критерій не хибний і не
+    недосяжний — його міряють там, де предмета нема.
+
+    Різниця має різного адресата: `FAIL` знімає інженер, `NOT_MEASURED` — той, хто
+    дає середовище.
+    """
+    module = _module()
+
+    real = module._targeted_state({"tests": 4229, "failures": 0, "errors": 0, "skipped": 48})
+    assert real["state"] == "NOT_MEASURED"
+    assert "48" in real["reason"]
+
+    assert module._targeted_state(
+        {"tests": 4229, "failures": 0, "errors": 0, "skipped": 0}
+    )["state"] == "PASS"
+    assert module._targeted_state(
+        {"tests": 4229, "failures": 1, "errors": 0, "skipped": 0}
+    )["state"] == "FAIL"
+    assert module._targeted_state(
+        {"tests": 10, "failures": 0, "errors": 0, "skipped": 0}
+    )["state"] == "NOT_MEASURED"
+
+
+def test_a_real_failure_outranks_a_run_that_did_not_happen() -> None:
+    """FAIL перебиває NOT_MEASURED — інакше падіння сховалось би за пропуском.
+
+    Без цього плеча прогін із одним падінням І сорока вісьмома пропусками звітував
+    би «не міряли», і справжня відмова зникла б у класі невиміряного.
+    """
+    module = _module()
+
+    both = module._targeted_state({"tests": 4229, "failures": 1, "errors": 0, "skipped": 48})
+
+    assert both["state"] == "FAIL"
+
+
+def test_targeted_ok_stays_true_only_on_a_complete_run() -> None:
+    """Дуал: поведінка споживача не змінена, лише названа."""
+    module = _module()
+
+    for payload, expected in (
+        ({"tests": 4229, "failures": 0, "errors": 0, "skipped": 0}, True),
+        ({"tests": 4229, "failures": 0, "errors": 0, "skipped": 48}, False),
+        ({"tests": 4229, "failures": 1, "errors": 0, "skipped": 0}, False),
+    ):
+        assert (module._targeted_state(payload)["state"] == "PASS") is expected
