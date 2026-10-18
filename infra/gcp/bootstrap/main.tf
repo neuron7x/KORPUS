@@ -136,9 +136,9 @@ resource "google_service_account_iam_member" "github_wif" {
   member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github[each.key].name}/attribute.repository_id/${var.github_repository_id}"
 }
 
-# GitLab is a separate trust plane. It receives distinct service accounts and
-# pools so revoking GitHub cannot affect GitLab (and vice versa), and so audit
-# logs identify the delivery system that performed each mutation.
+# GitLab is a legacy, noncanonical provenance plane. Its distinct service accounts
+# and pools are retained for auditability and safe revocation; they do not authorize
+# canonical releases, whose hosted authority is GitHub Actions.
 resource "google_service_account" "gitlab_deployer" {
   for_each = local.deployment_planes
 
@@ -153,7 +153,7 @@ resource "google_iam_workload_identity_pool" "gitlab" {
   project                   = var.project_id
   workload_identity_pool_id = replace(each.value.pool_id, "github", "gitlab")
   display_name              = "KORPUS ${each.key} GitLab CI"
-  description               = "Keyless ${each.key} plane for the canonical GitLab KORPUS project."
+  description               = "Keyless legacy ${each.key} plane retained for noncanonical GitLab provenance."
 }
 
 resource "google_iam_workload_identity_pool_provider" "gitlab" {
