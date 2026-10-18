@@ -58,7 +58,9 @@ class InfrastructureContext:
     root: Path
     compose: dict[str, Any] = field(default_factory=dict)
     ci_text: str = ""
+    release_workflow_text: str = ""
     package_text: str = ""
+    production_package_text: str = ""
     backup_text: str = ""
     restore_text: str = ""
     manifest_text: str = ""
@@ -132,7 +134,9 @@ def load_context(root: Path) -> InfrastructureContext:
     except yaml.YAMLError as error:
         context.load_errors.append(f"docker-compose.yml: {error}")
     context.ci_text = read(".gitlab-ci.yml")
+    context.release_workflow_text = read(".github/workflows/release.yml")
     context.package_text = read("scripts/package_repository.sh")
+    context.production_package_text = read("scripts/package_production_release.sh")
     context.backup_text = read("scripts/backup_postgres.sh")
     context.restore_text = read("scripts/restore_postgres.sh")
     context.manifest_text = read("scripts/backup_manifest.py")
@@ -553,6 +557,46 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
             )
         ),
         "an image borrowed for its server binaries brings its interpreter with it",
+    ),
+    # --- canonical GitHub release authority -----------------------------------
+    _requirement(
+        "release.github.protected_tag_context",
+        "github-actions",
+        "the canonical release workflow accepts version tags and enforces protected GitHub context",
+        lambda c: (
+            "tags:" in c.release_workflow_text
+            and '- "v*"' in c.release_workflow_text
+            and "GITHUB_REF_PROTECTED" in c.release_workflow_text + c.production_package_text
+            and "GITHUB_WORKFLOW_REF" in c.production_package_text
+            and "GITHUB_SHA" in c.production_package_text
+        ),
+        "a tag label alone does not bind a release to the canonical workflow and source commit",
+    ),
+    _requirement(
+        "release.github.oidc_attestation",
+        "github-actions",
+        "the canonical release workflow emits GitHub OIDC attestations",
+        lambda c: (
+            "id-token: write" in c.release_workflow_text
+            and "attestations: write" in c.release_workflow_text
+            and "actions/attest@" in c.release_workflow_text
+            and "subject-path: |" in c.release_workflow_text
+        ),
+        "a locally signed manifest does not identify the hosted workflow that built it",
+    ),
+    _requirement(
+        "release.github.sole_hosted_authority",
+        "github-actions",
+        "the production packager admits only the canonical GitHub release workflow",
+        lambda c: (
+            "neuron7x/KORPUS" in c.production_package_text
+            and "1332311807" in c.production_package_text
+            and "206596321" in c.production_package_text
+            and "package_production_release.sh" in c.release_workflow_text
+            and '[[ "${GITLAB_CI:-}" != "true" ]]' in c.production_package_text
+            and "CI_COMMIT_" not in c.production_package_text
+        ),
+        "two hosted release authorities can publish different artifacts under one release identity",
     ),
     # --- release packaging ------------------------------------------------------
     _requirement(

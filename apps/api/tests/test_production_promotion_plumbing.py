@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import yaml
+from korpus.release import RELEASE_TAG
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -50,10 +51,26 @@ def test_release_attestation_can_use_protected_runtime_trust(tmp_path: Path) -> 
     empty = tmp_path / "empty.json"
     empty.write_text('{"release_ed25519_public_key_sha256":[]}\n', encoding="utf-8")
     env = os.environ.copy()
+    env.pop("GITLAB_CI", None)
+    env.pop("CI_COMMIT_REF_PROTECTED", None)
     env.update(
         {
-            "GITLAB_CI": "true",
-            "CI_COMMIT_REF_PROTECTED": "true",
+            "CI": "true",
+            "GITHUB_ACTIONS": "true",
+            "GITHUB_EVENT_NAME": "push",
+            "GITHUB_SERVER_URL": "https://github.com",
+            "GITHUB_REPOSITORY": "neuron7x/KORPUS",
+            "GITHUB_REPOSITORY_ID": "1332311807",
+            "GITHUB_REPOSITORY_OWNER_ID": "206596321",
+            "GITHUB_REF_PROTECTED": "true",
+            "GITHUB_REF_TYPE": "tag",
+            "GITHUB_REF_NAME": RELEASE_TAG,
+            "GITHUB_REF": f"refs/tags/{RELEASE_TAG}",
+            "GITHUB_SHA": "a" * 40,
+            "GITHUB_WORKFLOW_REF": (
+                f"neuron7x/KORPUS/.github/workflows/release.yml@refs/tags/{RELEASE_TAG}"
+            ),
+            "RUNNER_ENVIRONMENT": "github-hosted",
             "KORPUS_RELEASE_TRUST": fingerprint,
             "PYTHONPATH": ".:apps/api/src:scripts",
         }
@@ -81,39 +98,93 @@ def test_release_attestation_can_use_protected_runtime_trust(tmp_path: Path) -> 
     assert result.returncode == 0, result.stdout.decode() + result.stderr.decode()
 
 
-def test_production_release_job_is_protected_tag_only_and_requires_external_roots() -> None:
-    ci = yaml.safe_load((ROOT / ".gitlab-ci.yml").read_text(encoding="utf-8"))
-    job = ci["production:release"]
-    rules = json.dumps(job["rules"])
-    assert "CI_COMMIT_TAG" in rules and "CI_COMMIT_REF_PROTECTED" in rules
-    script = "\n".join(job["script"])
+def test_github_is_the_tag_release_and_oidc_attestation_authority() -> None:
+    path = ROOT / ".github/workflows/release.yml"
+    workflow = yaml.safe_load(path.read_text(encoding="utf-8"))
+    package_job = workflow["jobs"]["package-release-candidate"]
+    attestation_job = workflow["jobs"]["attest-and-publish"]
+    source = path.read_text(encoding="utf-8")
+    assert workflow["permissions"] == {}
+    assert package_job["permissions"] == {"contents": "read"}
+    assert attestation_job["needs"] == "package-release-candidate"
+    assert attestation_job["permissions"] == {
+        "actions": "read",
+        "contents": "read",
+        "id-token": "write",
+        "attestations": "write",
+    }
+    assert 'tags:\n      - "v*"' in source
+    assert "package_production_release.sh" in source
+    assert "package_production_release.sh --check-authority" in source
+    assert "actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6" in source
+    assert "subject-path: |" in source
+    script = "\n".join(
+        str(step.get("run", "")) for step in package_job["steps"] if isinstance(step, dict)
+    )
     for name in (
-        "KORPUS_PRODUCTION_ASSURANCE_SIGNING_KEY_FILE",
+        "KORPUS_PRODUCTION_ASSURANCE_SIGNING_KEY_PEM",
+        "KORPUS_HOSTED_BUILDER_SIGNING_KEY_PEM",
+        "KORPUS_RELEASE_SIGNING_KEY_PEM",
         "KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256",
-        "KORPUS_RELEASE_SIGNING_KEY_FILE",
+        "KORPUS_TRUSTED_HOSTED_BUILDER_SIGNER_SHA256",
         "KORPUS_TRUSTED_RELEASE_SIGNER_SHA256",
+        "KORPUS_TRUSTED_BUILDER_ID",
     ):
-        assert name in script
+        assert name in source
     assert (
-        'test "$KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256" != "$KORPUS_TRUSTED_RELEASE_SIGNER_SHA256"'
-        in script
-    )
-    assert (
-        script.index(
-            "release_attestation.py sign --manifest reports/PRODUCTION_ASSURANCE_REPORT.json"
-        )
+        script.index("release_attestation.py sign")
         < script.index("verify_production_assurance.py")
-        < script.index("package_production_release.sh")
+        < script.rindex("package_production_release.sh")
     )
+    assert "production-hard-predicates-evidence" in source
 
 
-def test_production_release_script_requires_runtime_release_trust() -> None:
+def test_production_release_script_requires_exact_github_tag_ref_sha_and_runtime_trust() -> None:
     source = (ROOT / "scripts/package_production_release.sh").read_text(encoding="utf-8")
     assert "--trust-env KORPUS_TRUSTED_RELEASE_SIGNER_SHA256 --require-trusted" in source
     assert (
         '[[ "$KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256" != "$KORPUS_TRUSTED_RELEASE_SIGNER_SHA256" ]]'
         in source
     )
-    assert '[[ "$GITLAB_CI" == "true" ]]' in source
-    assert '[[ "$CI_COMMIT_REF_PROTECTED" == "true" ]]' in source
-    assert '[[ "$CI_COMMIT_TAG" == "$expected_tag" ]]' in source
+    for predicate in (
+        '[[ "$GITHUB_ACTIONS" == "true" ]]',
+        '[[ "$GITHUB_EVENT_NAME" == "push" ]]',
+        '[[ "$GITHUB_SERVER_URL" == "https://github.com" ]]',
+        '[[ "$GITHUB_REPOSITORY" == "$canonical_repository" ]]',
+        '[[ "$GITHUB_REPOSITORY_ID" == "$canonical_repository_id" ]]',
+        '[[ "$GITHUB_REPOSITORY_OWNER_ID" == "$canonical_owner_id" ]]',
+        '[[ "$RUNNER_ENVIRONMENT" == "github-hosted" ]]',
+        '[[ "$GITHUB_REF_PROTECTED" == "true" ]]',
+        '[[ "$GITHUB_REF_TYPE" == "tag" ]]',
+        '[[ "$GITHUB_REF_NAME" == "$expected_tag" ]]',
+        '[[ "$GITHUB_REF" == "$expected_ref" ]]',
+        '[[ "$GITHUB_WORKFLOW_REF" == "$expected_workflow_ref" ]]',
+        '[[ "$event_sha" == "$head_sha" ]]',
+        '[[ "$tag_sha" == "$head_sha" ]]',
+        'git merge-base --is-ancestor "$head_sha" "$main_sha"',
+    ):
+        assert predicate in source
+    assert '[[ "${GITLAB_CI:-}" != "true" ]]' in source
+    assert "CI_COMMIT_" not in source
+
+
+def test_production_release_script_rejects_a_noncanonical_repository_before_packaging() -> None:
+    env = os.environ.copy()
+    env.update(
+        {
+            "GITHUB_ACTIONS": "true",
+            "GITHUB_EVENT_NAME": "push",
+            "GITHUB_SERVER_URL": "https://github.com",
+            "GITHUB_REPOSITORY": "attacker/KORPUS",
+        }
+    )
+    result = subprocess.run(
+        ["bash", str(ROOT / "scripts/package_production_release.sh")],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert "canonical GitHub repository" in result.stderr

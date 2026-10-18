@@ -115,10 +115,26 @@ def _signed_gate(
     )
     fingerprint = json.loads(attestation.read_text(encoding="utf-8"))["public_key_sha256"]
     env = os.environ.copy()
+    env.pop("GITLAB_CI", None)
+    env.pop("CI_COMMIT_REF_PROTECTED", None)
     env.update(
         {
-            "GITLAB_CI": "true",
-            "CI_COMMIT_REF_PROTECTED": "true",
+            "CI": "true",
+            "GITHUB_ACTIONS": "true",
+            "GITHUB_EVENT_NAME": "workflow_dispatch",
+            "GITHUB_SERVER_URL": "https://github.com",
+            "GITHUB_REPOSITORY": "neuron7x/KORPUS",
+            "GITHUB_REPOSITORY_ID": "1332311807",
+            "GITHUB_REPOSITORY_OWNER_ID": "206596321",
+            "GITHUB_REF_PROTECTED": "true",
+            "GITHUB_REF_TYPE": "branch",
+            "GITHUB_REF_NAME": "main",
+            "GITHUB_REF": "refs/heads/main",
+            "GITHUB_SHA": "a" * 40,
+            "GITHUB_WORKFLOW_REF": (
+                "neuron7x/KORPUS/.github/workflows/external-assurance-ingest.yml@refs/heads/main"
+            ),
+            "RUNNER_ENVIRONMENT": "github-hosted",
             "PYTHONPATH": ".:apps/api/src:scripts",
         }
     )

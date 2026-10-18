@@ -10,7 +10,7 @@
 
 ## Release sequence
 
-1. Merge only a protected, reviewed commit with every required GitLab job green.
+1. Merge only a protected, reviewed commit with every required GitHub check green.
 2. Build OCI artifacts rootlessly from committed source.
 3. Scan source, dependencies, IaC and built images; generate source/image SBOMs.
 4. Run clean migration, downgrade/upgrade, non-superuser RLS and encrypted backup→new-database restore.
@@ -20,6 +20,15 @@
 8. Promote immutable registry digests, not mutable tags, in the deployment environment.
 9. Record image digest, migration revision, calibration profile and corpus release identifier.
 10. Stop rollout on evidence, access, audit, readiness, restore or dependency regression.
+
+The only hosted release authority is `.github/workflows/release.yml` in
+`neuron7x/KORPUS` (repository id `1332311807`, owner id `206596321`). It admits a
+protected `v*` tag on a GitHub-hosted runner only when the tag in `release.json`,
+`GITHUB_REF`, `GITHUB_SHA`, checked-out `HEAD`, and the tag target agree, and that commit
+is contained in canonical GitHub `main`. GitHub OIDC attestations bind every uploaded
+release artifact to that workflow run. Missing protection, trust roots, signing keys,
+or identity fields stops the release. GitLab remains a legacy provenance plane and
+cannot authorize a canonical release.
 
 ## Failure domains
 
