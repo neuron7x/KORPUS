@@ -82,6 +82,18 @@ def test_sbom_jobs_emit_subject_receipts_with_their_payloads() -> None:
     assert "container-sbom-receipt.json" in str(jobs["container-sbom"])
 
 
+def test_syft_reads_an_immutable_mount_and_the_runner_owns_each_sbom() -> None:
+    jobs = _jobs()
+    for name in ("source-sbom", "container-sbom"):
+        run = _runs(jobs[name])
+        syft_lines = [line.strip() for line in run.splitlines() if "docker run" in line]
+        assert syft_lines
+        assert all('--user "$(id -u):$(id -g)"' in line for line in syft_lines)
+        assert all('--volume "$PWD:/work:ro"' in line for line in syft_lines)
+        assert all("cyclonedx-json=" not in line for line in syft_lines)
+        assert run.count("-o cyclonedx-json >") == len(syft_lines)
+
+
 def test_every_external_scanner_image_is_digest_pinned() -> None:
     runs = "\n".join(_runs(job) for job in _jobs().values())
     images = re.findall(r"(?:zricethezav/gitleaks|aquasec/trivy|anchore/syft):[^\s'\"]+", runs)

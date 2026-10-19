@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2131,
-  "root_sha256": "75c5328b6e8bf14093ac0da56f7f32e635864392f1a79354362dda579fab8fc6",
+  "root_sha256": "9472bce8b79082ad6f6463f1bd6b5b76c351f755aa33e22beb6130ea024b373d",
   "files": [
     {
       "path": ".dockerignore",
@@ -43,8 +43,8 @@
     },
     {
       "path": ".github/workflows/assurance.yml",
-      "bytes": 33127,
-      "sha256": "476f40c4e469c8c77bd0bbf42ac5ef80b2d83b8d6435159abe1b4d980af7c9fa",
+      "bytes": 33226,
+      "sha256": "699ebb110d0e14916f370f181560fffcd803289e73a38603dc25de3e99c3d763",
       "mode": "0644"
     },
     {
@@ -4381,8 +4381,8 @@
     },
     {
       "path": "apps/api/tests/test_github_assurance_authority.py",
-      "bytes": 6308,
-      "sha256": "e354b90fa177cdbd8f595dda4d4a9c1baf13214ccba1a13b38f096411965fa1a",
+      "bytes": 6905,
+      "sha256": "fcdc024ab01287ceee867ff7d604adc81c271ee60b9651c2f96d1117492fde72",
       "mode": "0644"
     },
     {
