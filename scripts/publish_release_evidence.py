@@ -66,17 +66,17 @@ def main() -> int:
     destination = ROOT / "reports/release" / release
     destination.mkdir(parents=True, exist_ok=True)
 
+    # Revoke stale output before verifying this attempt.
+    for name in ("COVERAGE_REPORT.json", *SOURCES):
+        (destination / name).unlink(missing_ok=True)
+
     published: list[str] = []
+    approved: list[tuple[str, Path]] = []
     refused: list[dict[str, str]] = []
 
     coverage = coverage_projection(digest, release)
     if coverage is None:
         refused.append({"report": "COVERAGE_REPORT.json", "reason": "no coverage totals on disk"})
-    else:
-        (destination / "COVERAGE_REPORT.json").write_text(
-            json.dumps(coverage, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-        )
-        published.append("COVERAGE_REPORT.json")
 
     for name, relative in SOURCES.items():
         source = ROOT / relative
@@ -96,8 +96,18 @@ def main() -> int:
                 }
             )
             continue
-        shutil.copyfile(source, destination / name)
-        published.append(name)
+        approved.append((name, source))
+
+    # Never leave a partial PASS-looking release after any evidence refusal.
+    if not refused:
+        assert coverage is not None
+        (destination / "COVERAGE_REPORT.json").write_text(
+            json.dumps(coverage, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        published.append("COVERAGE_REPORT.json")
+        for name, source in approved:
+            shutil.copyfile(source, destination / name)
+            published.append(name)
 
     result = {
         "schema": "korpus.release-evidence-publication.v1",
