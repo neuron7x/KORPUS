@@ -453,8 +453,7 @@ def _group_03(s: Sources) -> list[Predicate]:
     return p
 
 
-#: `uses:` у робочому потоці. Порожній перелік — теж відмова: контракт, який зеленіє на
-#: потоці без жодної дії, доводить лише те, що файл прочитано.
+#: Third-party actions need immutable 40-hex pins; an empty action set is not sufficient.
 _WORKFLOW_USES = re.compile(r"^\s*(?:-\s*)?uses:\s*(\S+)", re.MULTILINE)
 #: Прив'язка до 40-шістнадцяткового коміту. Рухомий тег можна пересунути під релізом
 #: після рецензії — саме тому тег тут не прив'язка.
@@ -476,15 +475,8 @@ def _group_04(s: Sources) -> list[Predicate]:
         and ("credentials_json:" not in s.production_workflow),
         "production workflow uses SHA-pinned Google auth with WIF and no key JSON input",
     )
-    # The predicate is named "action pins" and used to assert a list of exact SHAs. Those
-    # are different claims, and the difference is not academic: a legitimate pin bump made
-    # the contract fail on 2026-09-01 while every action stayed fully pinned. A check that
-    # reddens when the guarded property HOLDS teaches people to edit the check.
-    #
-    # The property itself is what production needs: no third-party action may be referenced
-    # by a mutable tag, because a tag can be moved under the release after review. So the
-    # rule now reads every `uses:` and demands a 40-hex commit, and it covers actions added
-    # tomorrow — which the fixed list never could.
+    # Guard the property, not a fixed allowlist: every third-party action must use an
+    # immutable full commit SHA, including actions added after this verifier was written.
     used = _WORKFLOW_USES.findall(s.production_workflow)
     third_party = [ref for ref in used if not ref.startswith("./")]
     add(
@@ -627,13 +619,21 @@ def _gitlab_predicates(s: Sources) -> list[Predicate]:
             "GitLab exchanges an environment-bound ID token for 15-minute credentials and has no service-account-key path",
         ),
         Predicate(
-            "GITLAB_PRODUCTION_JOB_PROTECTED",
-            'CI_COMMIT_BRANCH == "main"' in s.gitlab_ci
-            and 'CI_COMMIT_REF_PROTECTED == "true"' in s.gitlab_ci
-            and 'GCP_PRODUCTION_ENABLED == "true"' in s.gitlab_ci
-            and "resource_group: gcp-production" in s.gitlab_ci
-            and "deployment_tier: production" in s.gitlab_ci,
-            "GitLab production mutation is manual, serialized, disabled by default, and limited to protected main",
+            "GITLAB_PRODUCTION_AUTHORITY_RETIRED",
+            all(
+                token in s.gitlab_ci
+                for token in (
+                    "workflow:\n  rules:\n    - when: never",
+                    "GitLab release authority is retired",
+                    "GitLab deploy authority is retired",
+                )
+            )
+            and re.search(
+                r"(?m)^\s*-\s+(?!bash -n scripts/[A-Za-z0-9_./-]+\.sh[ \t]*$).*(?:package_production_release\.sh|deploy_gitlab_production\.sh)",
+                s.gitlab_ci,
+            )
+            is None,
+            "GitLab is provenance-only: the pipeline is disabled globally and release/deploy tombstones expose no executable mutation path",
         ),
         Predicate(
             "GITLAB_PRODUCTION_ORDER_AND_ROLLBACK",

@@ -81,30 +81,18 @@ def test_release_attestation_can_use_protected_runtime_trust(tmp_path: Path) -> 
     assert result.returncode == 0, result.stdout.decode() + result.stderr.decode()
 
 
-def test_production_release_job_is_protected_tag_only_and_requires_external_roots() -> None:
+def test_retired_gitlab_release_job_is_inert() -> None:
     ci = yaml.safe_load((ROOT / ".gitlab-ci.yml").read_text(encoding="utf-8"))
-    job = ci["production:release"]
-    rules = json.dumps(job["rules"])
-    assert "CI_COMMIT_TAG" in rules and "CI_COMMIT_REF_PROTECTED" in rules
-    script = "\n".join(job["script"])
-    for name in (
-        "KORPUS_PRODUCTION_ASSURANCE_SIGNING_KEY_FILE",
-        "KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256",
-        "KORPUS_RELEASE_SIGNING_KEY_FILE",
-        "KORPUS_TRUSTED_RELEASE_SIGNER_SHA256",
-    ):
-        assert name in script
-    assert (
-        'test "$KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256" != "$KORPUS_TRUSTED_RELEASE_SIGNER_SHA256"'
-        in script
-    )
-    assert (
-        script.index(
-            "release_attestation.py sign --manifest reports/PRODUCTION_ASSURANCE_REPORT.json"
-        )
-        < script.index("verify_production_assurance.py")
-        < script.index("package_production_release.sh")
-    )
+    assert ci["workflow"]["rules"] == [{"when": "never"}]
+    for name in ("production:release", "gcp:deploy-production"):
+        job = ci[name]
+        assert job["rules"] == [{"when": "never"}]
+        commands = "\n".join(job.get("script", []))
+        assert "exit 1" in commands or "false" in commands
+        assert not job.get("environment")
+        assert not job.get("id_tokens")
+        assert not job.get("needs")
+        assert not job.get("dependencies")
 
 
 def test_production_release_script_requires_runtime_release_trust() -> None:
