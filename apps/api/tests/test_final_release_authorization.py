@@ -306,6 +306,7 @@ def test_expected_materials_are_recomputed_from_local_files() -> None:
         relative = uri.removeprefix("file:///")
         assert digest == hashlib.sha256((ROOT / relative).read_bytes()).hexdigest()
 
+
 @pytest.mark.parametrize(
     "malformed",
     [
@@ -332,12 +333,10 @@ def test_release_materials_refuse_missing_invalid_and_malformed_inputs() -> None
         f"file:///{relative}": hashlib.sha256(relative.encode()).hexdigest()
         for relative in REQUIRED_BUILD_MATERIALS
     }
-    valid = {
-        "resolvedDependencies": [
-            {"uri": uri, "digest": {"sha256": digest}}
-            for uri, digest in expected.items()
-        ]
-    }
+    dependencies = []
+    for uri, digest in expected.items():
+        dependencies.append({"uri": uri, "digest": {"sha256": digest}})
+    valid = {"resolvedDependencies": dependencies}
     assert _resolved_materials_bound(valid, expected)
 
     incomplete = dict(expected)
@@ -383,12 +382,12 @@ def test_github_release_context_refuses_gitlab_and_invalid_commit() -> None:
     canonical = expected_github_release_environment("v-test")
     canonical["GITHUB_SHA"] = "a" * 40
     assert github_release_context_mismatches(canonical, "v-test") == []
-    assert github_release_context_mismatches(
-        {**canonical, "GITLAB_CI": "true"}, "v-test"
-    ) == ["GITLAB_CI"]
-    assert github_release_context_mismatches(
-        {**canonical, "GITHUB_SHA": "invalid"}, "v-test"
-    ) == ["GITHUB_SHA"]
-    assert github_release_context_mismatches(
-        {**canonical, "GITLAB_CI": "true", "GITHUB_SHA": "invalid"}, "v-test"
-    ) == ["GITHUB_SHA", "GITLAB_CI"]
+    gitlab = {**canonical, "GITLAB_CI": "true"}
+    assert github_release_context_mismatches(gitlab, "v-test") == ["GITLAB_CI"]
+    invalid_sha = {**canonical, "GITHUB_SHA": "invalid"}
+    assert github_release_context_mismatches(invalid_sha, "v-test") == ["GITHUB_SHA"]
+    combined = {**gitlab, "GITHUB_SHA": "invalid"}
+    assert github_release_context_mismatches(combined, "v-test") == [
+        "GITHUB_SHA",
+        "GITLAB_CI",
+    ]
