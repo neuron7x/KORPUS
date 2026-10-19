@@ -627,13 +627,21 @@ def _gitlab_predicates(s: Sources) -> list[Predicate]:
             "GitLab exchanges an environment-bound ID token for 15-minute credentials and has no service-account-key path",
         ),
         Predicate(
-            "GITLAB_PRODUCTION_JOB_PROTECTED",
-            'CI_COMMIT_BRANCH == "main"' in s.gitlab_ci
-            and 'CI_COMMIT_REF_PROTECTED == "true"' in s.gitlab_ci
-            and 'GCP_PRODUCTION_ENABLED == "true"' in s.gitlab_ci
-            and "resource_group: gcp-production" in s.gitlab_ci
-            and "deployment_tier: production" in s.gitlab_ci,
-            "GitLab production mutation is manual, serialized, disabled by default, and limited to protected main",
+            "GITLAB_PRODUCTION_AUTHORITY_RETIRED",
+            "workflow:\n  rules:\n    - when: never" in s.gitlab_ci
+            and "GitLab release authority is retired" in s.gitlab_ci
+            and "GitLab deploy authority is retired" in s.gitlab_ci
+            and re.search(
+                r"(?m)^\\s*-\\s+(?!bash -n\\s).*package_production_release\\.sh",
+                s.gitlab_ci,
+            )
+            is None
+            and re.search(
+                r"(?m)^\\s*-\\s+(?!bash -n\\s).*deploy_gitlab_production\\.sh",
+                s.gitlab_ci,
+            )
+            is None,
+            "GitLab is provenance-only: the pipeline is disabled globally and release/deploy tombstones expose no executable mutation path",
         ),
         Predicate(
             "GITLAB_PRODUCTION_ORDER_AND_ROLLBACK",
