@@ -1380,7 +1380,6 @@ def test_source_digest_git_content_mode(monkeypatch: pytest.MonkeyPatch, tmp_pat
     assert len(got) == 64 and got != __import__("hashlib").sha256(b"").hexdigest()
 
 
-
 def test_identical_source_history_follows_valid_second_merge_parent(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

@@ -121,6 +121,7 @@ def commits_with_identical_source(ref: str = "HEAD", depth: int = 64) -> tuple[s
         )
     return tuple(accepted)
 
+
 def included_paths(ref: str = "HEAD") -> list[Path]:
     return _git_paths(ref) or _archive_paths()
 
