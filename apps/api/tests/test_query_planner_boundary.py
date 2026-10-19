@@ -130,9 +130,9 @@ def _with_planner(monkeypatch: pytest.MonkeyPatch, planner: object) -> None:
     service is built per request, so a planner set on one instance would be gone for
     the next call and the test would pass by exercising nothing.
     """
-    from korpus.api import dependencies
+    from korpus import answer_composition
 
-    monkeypatch.setattr(dependencies, "build_query_planner", lambda settings: planner)
+    monkeypatch.setattr(answer_composition, "build_query_planner", lambda settings: planner)
 
 
 def test_the_answer_text_comes_only_from_the_corpus(

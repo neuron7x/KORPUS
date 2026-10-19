@@ -4,30 +4,27 @@ from typing import Annotated, Any
 
 from fastapi import Depends, Request
 
-from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
+from korpus.answer_composition import build_answer_service
+from korpus.application.answer_query import ExtractiveAnswerService
 from korpus.application.cache import EvidenceQueryCache
-from korpus.application.calibration import CalibrationProfile
 from korpus.application.composition import AnswerComposer
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.ingestion_jobs import DurableIngestionCoordinator
-from korpus.application.pec_cache import PECCachedRetriever
 from korpus.application.policy import PolicyEngine
 from korpus.application.ports import ObjectStore
 from korpus.application.query_plan import QueryPlanner
 from korpus.application.resilience import AdmissionController
-from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.composition import build_ingestion_service
 from korpus.config import Settings, get_settings
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
-from korpus.model_composition import build_answer_composer, build_query_planner
-from korpus.pec_composition import build_predictive_controller
+from korpus.model_composition import build_answer_composer as build_answer_composer
+from korpus.model_composition import build_query_planner as build_query_planner
 from korpus.security.corpus_governance import CorpusGovernanceProfile
 from korpus.security.reviewers import ReviewerRegistry
 from korpus.security.scanning import ClamdInstreamScanner, DisabledMalwareScanner
 from korpus.security.source_authenticity import SourceTrustProfile
-from korpus.tenancy_composition import build_egress_policy
 
 SettingsDependency = Annotated[Settings, Depends(get_settings)]
 
@@ -179,78 +176,12 @@ def get_answer_service(
     query_planner: Annotated[QueryPlanner | None, Depends(get_query_planner)] = None,
     answer_composer: Annotated[AnswerComposer | None, Depends(get_answer_composer)] = None,
 ) -> ExtractiveAnswerService:
-    if settings.answer_policy_mode == "calibrated":
-        profile = CalibrationProfile.load(
-            # calibrated mode is rejected at settings validation unless the path is set
-            settings.calibration_profile_path,  # type: ignore[arg-type]
-            settings.calibration_profile_sha256,
-        )
-        answer_policy = AnswerPolicy(
-            minimum_score=profile.minimum_score,
-            minimum_query_coverage=profile.minimum_query_coverage,
-            minimum_support_score=profile.minimum_support_score,
-            calibration_id=profile.profile_id,
-        )
-    else:
-        answer_policy = AnswerPolicy(
-            minimum_score=settings.min_retrieval_score,
-            minimum_query_coverage=settings.min_query_coverage,
-            minimum_support_score=settings.min_support_score,
-            calibration_id="development-unvalidated",
-        )
-    if settings.answer_policy_mode == "calibrated":
-        profile = CalibrationProfile.load(
-            # calibrated mode is rejected at settings validation unless the path is set
-            settings.calibration_profile_path,  # type: ignore[arg-type]
-            settings.calibration_profile_sha256,
-        )
-        parameters = profile.bm25_parameters
-        weights = profile.retrieval_weights
-        candidate_budget = profile.retrieval_candidate_budget
-        timeout_ms = profile.retrieval_timeout_ms
-        diversity_lambda = profile.diversity_lambda
-        authority_relevance_floor = getattr(profile, "authority_relevance_floor", 0.80)
-        per_version_cap = profile.per_version_cap
-        configuration_id = profile.profile_id
-        authority_priors = profile.authority_priors
-    else:
-        from korpus.application.retrieval import BM25Parameters, RetrievalWeights
-
-        parameters = BM25Parameters()
-        weights = RetrievalWeights(
-            lexical=0.42 - settings.semantic_weight,
-            semantic=settings.semantic_weight,
-        )
-        candidate_budget = settings.retrieval_candidate_budget
-        timeout_ms = settings.retrieval_timeout_ms
-        diversity_lambda = 0.82
-        authority_relevance_floor = 0.80
-        per_version_cap = 1
-        configuration_id = "development-default-ranking-v5"
-        authority_priors = None
-    base = HybridLexicalRetriever(
+    return build_answer_service(
         repository,
-        parameters=parameters,
-        candidate_budget=candidate_budget,
-        weights=weights,
-        diversity_lambda=diversity_lambda,
-        authority_relevance_floor=authority_relevance_floor,
-        per_version_cap=per_version_cap,
-        timeout_ms=timeout_ms,
-        semantic_source=semantic_source,
-        authority_priors=authority_priors,
-        contextual_projection_enabled=settings.contextual_retrieval_enabled,
-    )
-    retriever = PECCachedRetriever(repository, base, cache, configuration_id)
-    return ExtractiveAnswerService(
-        repository,
-        retriever,
         policy,
-        answer_policy,
-        # FastAPI supplies process-scoped adapters from the composition root. The
-        # fallback preserves direct construction in deterministic unit tests only.
-        query_planner=query_planner or build_query_planner(settings),
-        answer_composer=answer_composer or build_answer_composer(settings),
-        egress_policy=build_egress_policy(settings),
-        predictive_controller=build_predictive_controller(settings),
+        settings,
+        cache,
+        semantic_source,
+        query_planner=query_planner,
+        answer_composer=answer_composer,
     )
