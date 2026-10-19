@@ -24,4 +24,3 @@ def tracked_tree_digest(root: Path) -> str | None:
     marker = root / ".git"
     files = git_files(root) if marker.exists() or marker.is_symlink() else _manifest_files(root)
     return _digest(files) if files else None
-

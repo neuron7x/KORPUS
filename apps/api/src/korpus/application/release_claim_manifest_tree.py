@@ -72,6 +72,5 @@ def manifest_files(root: Path) -> list[TreeFile] | None:
         exact = [item for item in files if item is not None]
         paths = [path for path, _mode, _content in exact]
         return exact if paths == _working_paths(root) else None
-    except (OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+    except (OSError, KeyError, TypeError, ValueError):
         return None
-

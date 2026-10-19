@@ -357,9 +357,7 @@ def test_git_tree_rejects_missing_authority(
         ("root_sha256", "0" * 64),
     ],
 )
-def test_gitless_manifest_header_must_be_bound(
-    tmp_path: Path, key: str, invalid: object
-) -> None:
+def test_gitless_manifest_header_must_be_bound(tmp_path: Path, key: str, invalid: object) -> None:
     record = _gitless_record(tmp_path)
     _write_gitless_manifest(tmp_path, [record])
     path = tmp_path / "SOURCE_MANIFEST.json"
