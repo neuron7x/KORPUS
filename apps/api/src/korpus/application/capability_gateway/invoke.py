@@ -306,11 +306,12 @@ class CapabilityGateway:
         logical_resource: str,
     ) -> CapabilityPolicyDecision | IntegrationResult:
         try:
-            return self._policy.authorize_resource(
+            decision = self._policy.authorize_resource(
                 identity,
                 spec,
                 logical_resource=logical_resource,
             )
+            return CapabilityPolicyBridge.attest_decision(self._policy, decision, spec)
         except CapabilityAuthorizationDenied:
             return early_result(
                 InvocationOutcome.DENIED,
@@ -324,12 +325,7 @@ class CapabilityGateway:
                 invocation_id=context.invocation_id,
             )
         except Exception:  # noqa: BLE001 - injected policy port composed of caller callables
-            # CapabilityPolicyBridge wraps a caller-supplied PolicyEngine and caller-supplied
-            # ResourceAuthorizer callables, and it is itself an injected port that tests already
-            # subclass (_PoisonedActionBridge). The two classes its own body promises are named
-            # above; anything a substituted bridge adds must still become the fail-closed
-            # POLICY_UNKNOWN, because an authorization path that raises returns no decision at
-            # all — and no decision must never be reachable as "not denied".
+            # Injected policy failures and invalid returned decisions cannot authorize dispatch.
             return early_result(
                 InvocationOutcome.FAILED,
                 "POLICY_UNKNOWN",
@@ -344,7 +340,7 @@ class CapabilityGateway:
             # the only class it raises, directly and through canonical_json_bytes.
             return self._emitter.emit(frame, InvocationOutcome.REJECTED, "INPUT_SCHEMA_INVALID")
         try:
-            self._executor.validate_input(frame.spec.input_schema_id, frame.request.input)
+            self._executor.validate_schema(frame.spec.input_schema_id, frame.request.input)
         except (CapabilityContractError, ValueError):
             return self._emitter.emit(frame, InvocationOutcome.REJECTED, "INPUT_SCHEMA_INVALID")
         except Exception:  # noqa: BLE001 - injected SchemaValidator port, no nameable base
