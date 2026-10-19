@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2112,
-  "root_sha256": "552118ca307ddece205df9bc904e3fed8937b2108ba6f4ac1afe0879434c0a3c",
+  "root_sha256": "3fc29333d2d5acd33950379a217ee08a4cce52d825a56a2bd13e0d24535606f6",
   "files": [
     {
       "path": ".dockerignore",
@@ -3619,8 +3619,8 @@
     },
     {
       "path": "apps/api/tests/test_clean_source_release_boundary.py",
-      "bytes": 4905,
-      "sha256": "312c779a8b86d89918a23a8e8665de1b7a78b7c5799e6bc07685996fa8acd0c7",
+      "bytes": 4975,
+      "sha256": "0ff96ecec9e147bf960ac6177f34bc540446e37b6c2730f807dbf9a2ea0c5c1e",
       "mode": "0644"
     },
     {
@@ -5257,8 +5257,8 @@
     },
     {
       "path": "apps/api/tests/test_release_claim_git_tree_hardening.py",
-      "bytes": 4464,
-      "sha256": "db02689a9531d1eb3b2171dedba0b5511d3a74f32aced50be22abfb2e4d02efe",
+      "bytes": 12475,
+      "sha256": "e3f5718043f148cdd77f2e3323803bf659d9de1e95925a05717fb48f3869f27b",
       "mode": "0644"
     },
     {
@@ -11563,8 +11563,8 @@
     },
     {
       "path": "scripts/package_repository.sh",
-      "bytes": 5735,
-      "sha256": "37c29ac7fb4f63f899055cc71b28e41e65a8f696e4873a52ab2a73e987452696",
+      "bytes": 5867,
+      "sha256": "5287a32a6dac70ec83c284bc1b0722c81ae8210e433dace7b7a2cfa4317b98d7",
       "mode": "0755"
     },
     {

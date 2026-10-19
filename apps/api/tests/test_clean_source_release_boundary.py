@@ -20,8 +20,9 @@ def test_packager_guards_exact_source_before_release_evidence_and_archive() -> N
     guard = 'python3 "$root/scripts/check_clean_source_tree.py"'
     release = 'PYTHONPATH="$root/scripts" python3 "$root/scripts/verify_release_evidence.py"'
     archive = 'git archive --format=tar "$source_commit" | tar -xf - -C "$tmp"'
-    assert lines.count(guard) == 1
-    assert lines.index(guard) < lines.index(release) < lines.index(archive)
+    guards = [index for index, line in enumerate(lines) if line == guard]
+    assert len(guards) == 2
+    assert guards[0] < lines.index(release) < guards[1] < lines.index(archive)
 
 
 def test_only_formal_production_promotion_requires_the_release_tag() -> None:

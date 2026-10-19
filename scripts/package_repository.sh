@@ -41,6 +41,9 @@ python3 "$root/scripts/check_clean_source_tree.py"
 # лише чекала на того, хто її виставить. Лишилась одна дорога, і вона міряє.
 PYTHONPATH="$root/scripts" python3 "$root/scripts/verify_release_evidence.py"
 
+# Recheck source parity immediately before packaging, after evidence admission.
+python3 "$root/scripts/check_clean_source_tree.py"
+
 tmp="$(mktemp -d)"
 cleanup() { rm -rf "$tmp"; }
 trap cleanup EXIT INT TERM
