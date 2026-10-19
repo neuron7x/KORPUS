@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2099,
-  "root_sha256": "8f041418258d62e23c9b8197d4ef93e8d769d362bcb98e5c74bf2bca96d17808",
+  "file_count": 2100,
+  "root_sha256": "1ed7456c3a02819cb022e169053a27513617fb5658157d8e5ae0077e2a3980d8",
   "files": [
     {
       "path": ".dockerignore",
@@ -775,8 +775,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/capability_gateway/policy.py",
-      "bytes": 7644,
-      "sha256": "86c8a62780b71a89de74ce14c68b370d9e4ac3baabf33e9d2de08f7f170ae9c2",
+      "bytes": 7628,
+      "sha256": "46501649d979fda43f10214e8d589ac07234429dbdc22a2c651fbd0603653f08",
       "mode": "0644"
     },
     {
@@ -1969,8 +1969,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/integrations/http.py",
-      "bytes": 10968,
-      "sha256": "46f9c4e784b5deba5ec414d31787a6668d1c9a48ca8f1e7ff5582d841b1b7fae",
+      "bytes": 10704,
+      "sha256": "ed93b510ecc961dd7c787831cafb16a2c6f3291a96ed9e66e364fbc223631837",
       "mode": "0644"
     },
     {
@@ -2568,6 +2568,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_answer_composition_boundary.py",
+      "bytes": 3217,
+      "sha256": "08035533297eef5ceecf3f40a67da133810c8ff6e77ad7fe6ffb500469e22b4a",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_answer_composition.py",
       "bytes": 14555,
       "sha256": "496042a37a325cc5337d9e5b2f37dffea7a9bdb5c50179323485b41dcd438ccf",
@@ -2623,8 +2629,8 @@
     },
     {
       "path": "apps/api/tests/test_architecture.py",
-      "bytes": 14985,
-      "sha256": "f1047f9c0f9e67ddc23233cdef4c93d74c6c5e9b3a6ecdf8c47b8327ff949eb2",
+      "bytes": 15425,
+      "sha256": "5e5117cbcdb588ce0a10ed977abc8d9c45493dd5216a13186588bb8119c8f45c",
       "mode": "0644"
     },
     {
