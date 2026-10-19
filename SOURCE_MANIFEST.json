@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2103,
-  "root_sha256": "feea347482314661202c3378294953a600097cfcac005a4690e627d8e87d568a",
+  "root_sha256": "3de83a7e6b192d07bc99f1a1fb2130bc73e2e83777ec95594ba462c651f84b58",
   "files": [
     {
       "path": ".dockerignore",
@@ -409,8 +409,8 @@
     },
     {
       "path": "apps/api/src/korpus/answer_composition.py",
-      "bytes": 3873,
-      "sha256": "f4b05eacd49be1e1f78d1a77c5e1e5760410c7732240b7aa3ee539ab91ba9bf1",
+      "bytes": 3976,
+      "sha256": "cf82aca8e7fcb7f614a44b57609bda33943e7c0e3cef088d1849488cb47fce92",
       "mode": "0644"
     },
     {
