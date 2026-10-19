@@ -58,10 +58,10 @@ def build_answer_service(
     # One read binds answer thresholds and retrieval/cache identity to the same profile.
     profile = None
     if settings.answer_policy_mode == "calibrated":
-        path = settings.calibration_profile_path
-        if path is None:
-            raise ValueError("calibrated answer policy requires a calibration profile path")
-        profile = CalibrationProfile.load(path, settings.calibration_profile_sha256)
+        profile = CalibrationProfile.load(
+            settings.calibration_profile_path,  # type: ignore[arg-type]
+            settings.calibration_profile_sha256,
+        )
     answer_policy = AnswerPolicy(
         minimum_score=profile.minimum_score if profile else settings.min_retrieval_score,
         minimum_query_coverage=(
