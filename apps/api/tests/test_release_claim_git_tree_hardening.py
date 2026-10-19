@@ -11,6 +11,7 @@ import pytest
 from korpus.application import release_claim_git_tree as git_tree
 from korpus.application import release_claim_manifest_tree as manifest_tree
 from korpus.application.release_claim_tree import tracked_tree_digest
+
 from scripts.manifest_lib.integrity import manifest_root
 
 
