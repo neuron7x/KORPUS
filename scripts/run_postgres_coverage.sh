@@ -39,8 +39,9 @@ out="${KORPUS_COVERAGE_POSTGRES_OUT:-var/coverage-postgres.json}"
 # постгрес, а не тим, що вони міряють; тест `test_dialect_coverage_producers_agree`
 # звіряє прапорці покриття між ними на кожному прогоні.
 if [[ -n "${KORPUS_TEST_DATABASE_URL:-}" ]]; then
-  exec env PYTHONPATH="$root/apps/api/src" "$python_bin" -m pytest -q -p no:cacheprovider \
-    apps/api/tests --cov=apps/api/src/korpus --cov-branch \
+  exec env PYTHONPATH="$root/apps/api/src" "$python_bin" scripts/collect_dialect_coverage.py \
+    --dialect postgresql --report "$out" -- \
+    "$python_bin" -m pytest -q -p no:cacheprovider apps/api/tests --cov=apps/api/src/korpus --cov-branch \
     --cov-report="json:${out}" --cov-report= --cov-fail-under=0 "$@"
 fi
 
@@ -80,9 +81,10 @@ docker run -d --name "$container" \
 # final server. One successful `pg_isready` accepted that temporary process; the very
 # next check hit the intentional restart and the producer exited without a report.
 # Require a stable streak so a transient init server cannot satisfy readiness.
+# TCP excludes the socket-only setup server, even when initialization is slow.
 ready_streak=0
 for _ in $(seq 1 60); do
-  if docker exec "$container" pg_isready -U postgres >/dev/null 2>&1; then
+  if docker exec "$container" pg_isready -h 127.0.0.1 -U postgres >/dev/null 2>&1; then
     ready_streak=$((ready_streak + 1))
     if [[ "$ready_streak" -ge 3 ]]; then
       break
@@ -115,6 +117,8 @@ KORPUS_TEST_DATABASE_ADMIN_URL="$admin_url" \
 KORPUS_POSTGRES_TEST_URL="$app_url" \
 KORPUS_AUTHZ_DATABASE_URL="$authz_url" \
 KORPUS_REVIEW_DATABASE_URL="$review_url" \
-PYTHONPATH="$root/apps/api/src" "$python_bin" -m pytest -q -p no:cacheprovider apps/api/tests \
+PYTHONPATH="$root/apps/api/src" "$python_bin" scripts/collect_dialect_coverage.py \
+  --dialect postgresql --report "$out" -- \
+  "$python_bin" -m pytest -q -p no:cacheprovider apps/api/tests \
   --cov=apps/api/src/korpus --cov-branch \
   --cov-report="json:${out}" --cov-report= --cov-fail-under=0 "$@"

@@ -6406,6 +6406,77 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/current_truth_source.py": {
+      "lines": 142,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 40,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #56: source-run evidence admission and context/output helpers; exact initial measured ceiling, with existing ceilings unchanged."
+    },
+    "scripts/make_context.py": {
+      "lines": 24,
+      "max_complexity": 2,
+      "max_function_args": 2,
+      "max_function_lines": 11,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Issue #56: source-run evidence admission and context/output helpers; exact initial measured ceiling, with existing ceilings unchanged."
+    },
+    "scripts/requirements_report_io.py": {
+      "lines": 25,
+      "max_complexity": 5,
+      "max_function_args": 3,
+      "max_function_lines": 15,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #56: source-run evidence admission and context/output helpers; exact initial measured ceiling, with existing ceilings unchanged."
+    },
+    "scripts/collect_dialect_coverage.py": {
+      "lines": 197,
+      "max_complexity": 11,
+      "max_function_args": 2,
+      "max_function_lines": 59,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #56: initial bounded producer for measured native coverage and source/run-bound execution receipts."
+    },
+    "scripts/coverage_execution_contract.py": {
+      "lines": 365,
+      "max_complexity": 7,
+      "max_function_args": 7,
+      "max_function_lines": 52,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #56: initial bounded coverage source, artifact, version, configuration and run identity contract."
+    },
+    "scripts/coverage_union.py": {
+      "lines": 149,
+      "max_complexity": 7,
+      "max_function_args": 8,
+      "max_function_lines": 39,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #56: initial bounded admission and native combination of two verified dialect coverage executions."
+    },
+    "scripts/github_actions_graph.py": {
+      "lines": 146,
+      "max_complexity": 8,
+      "max_function_args": 4,
+      "max_function_lines": 18,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #56: extracted job policy, explicit dependency graph and same-commit reusable workflow validation; existing validator ceilings preserved."
+    },
+    "scripts/postgres_process_diagnostics.py": {
+      "lines": 94,
+      "max_complexity": 7,
+      "max_function_args": 4,
+      "max_function_lines": 36,
+      "max_nesting": 3,
+      "proof_lines": 0
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

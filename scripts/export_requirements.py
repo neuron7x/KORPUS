@@ -34,6 +34,7 @@ from korpus.kubernetes_requirements import (  # noqa: E402
     kubernetes_requirements,
 )
 from korpus.repository_requirements import REPOSITORY_REQUIREMENTS  # noqa: E402
+from requirements_report_io import emit_register  # noqa: E402
 
 OUTPUT = ROOT / "docs/operations/REQUIREMENTS_REGISTER.md"
 
@@ -91,20 +92,16 @@ def main() -> int:
             lines.append(f"| `{entry['id']}` | {statement} | {rationale} |")
         lines.append("")
 
-    OUTPUT.write_text("\n".join(lines), encoding="utf-8")
-    print(
-        json.dumps(
-            {
-                "status": "PASS",
-                "requirements": len(entries),
-                "subjects": {name: len(items) for name, items in sorted(subjects.items())},
-                "path": str(OUTPUT.relative_to(ROOT)),
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
+    return emit_register(
+        OUTPUT,
+        "\n".join(lines),
+        {
+            "status": "PASS",
+            "requirements": len(entries),
+            "subjects": {name: len(items) for name, items in sorted(subjects.items())},
+            "path": str(OUTPUT.relative_to(ROOT)),
+        },
     )
-    return 0
 
 
 if __name__ == "__main__":

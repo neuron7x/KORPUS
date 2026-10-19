@@ -13,6 +13,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from postgres_process_diagnostics import run_with_diagnostics
+
 #: Скільки символів кожної труби лишається у доказі. Бюджет НА ТРУБУ, не на суму:
 #: саме сума й губила причину.
 TAIL_BUDGET = 4000
@@ -25,18 +27,7 @@ def run(
     *,
     environment: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    selected = {**os.environ, "PYTHONPATH": str(root / "apps/api/src")}
-    if environment:
-        selected.update(environment)
-    return subprocess.run(
-        command,
-        cwd=root,
-        env=selected,
-        capture_output=True,
-        text=True,
-        check=False,
-        timeout=timeout,
-    )
+    return run_with_diagnostics(root, command, timeout, environment=environment)
 
 
 def labelled_tail(stdout: str, stderr: str, budget: int = TAIL_BUDGET) -> str:
@@ -76,7 +67,7 @@ def runtime(root: Path, targets: list[str], targets_present: bool) -> tuple[bool
         return available, None, ""
     completed = run(
         root,
-        ["bash", "scripts/run_postgres_suite.sh", *targets],
+        ["bash", "scripts/run_postgres_suite.sh", "--targeted", *targets],
         600,
         environment={"PYTHON": sys.executable},
     )

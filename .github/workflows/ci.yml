@@ -27,8 +27,13 @@ env:
   KORPUS_JWT_SECRET: ci-only-jwt-key
 
 jobs:
+  assurance:
+    name: assurance
+    uses: ./.github/workflows/assurance.yml
+
   repository:
     name: repository-contract
+    needs: assurance
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -46,11 +51,38 @@ jobs:
         run: |
           python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
           python -m pip check
+      - name: Download current source evidence
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: source-assurance-${{ github.run_attempt }}
+          path: var
       - name: Validate repository and GitHub policy
-        run: make validate PY=python
+        run: |
+          set -o pipefail
+          make validate PY=python MUTATION_REPORT=var/mutation-report.json \
+            REPOSITORY_CONTEXT=SOURCE_CHECKOUT PRODUCTION_CONTEXT=SOURCE_CHECKOUT \
+            CURRENT_TRUTH_CONTEXT=SOURCE_CHECKOUT \
+            PRODUCTION_REPORT=var/source-production-hard-predicates.json \
+            PUBLISH_CURRENT_REPORTS=0 REQUIREMENTS_CHECK=1 \
+            2>&1 | tee var/repository-contract.log
+      - name: Preserve repository diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: repository-diagnostics-${{ github.run_attempt }}
+          path: |
+            var/repository-contract.log
+            var/*freshness*.json
+            var/*current-truth*.json
+            var/ci-mirror.json
+            var/gate-closure.json
+            var/source-production-hard-predicates.json
+          if-no-files-found: warn
+          retention-days: 14
 
   api-test:
     name: api-tests
+    needs: assurance
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -68,11 +100,38 @@ jobs:
         run: |
           python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
           python -m pip check
-      - name: Run API test and coverage gates
+      - name: Download PostgreSQL coverage from this run
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: coverage-postgres-${{ github.run_attempt }}
+          path: var
+      - name: Run API tests and coverage ratchet
         run: |
-          make coverage-ratchet PY=python
-          make determinism-gate PY=python
-          make stress-gate PY=python
+          set -o pipefail
+          make coverage-ratchet PY=python 2>&1 | tee var/api-coverage.log
+      - name: Verify determinism
+        run: |
+          set -o pipefail
+          make determinism-gate PY=python 2>&1 | tee var/determinism.log
+      - name: Verify stress controls
+        run: |
+          set -o pipefail
+          make stress-gate PY=python 2>&1 | tee var/stress.log
+      - name: Preserve API and coverage diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: api-coverage-diagnostics-${{ github.run_attempt }}
+          path: |
+            var/pytest.xml
+            var/coverage*.json
+            var/coverage*.data
+            var/coverage.xml
+            var/api-coverage.log
+            var/determinism.log
+            var/stress.log
+          if-no-files-found: warn
+          retention-days: 14
 
   api-quality:
     name: api-quality

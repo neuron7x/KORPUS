@@ -5,23 +5,19 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
-from typing import Any
 
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from scripts import github_actions_graph as graph  # noqa: E402
+
 WORKFLOWS = ROOT / ".github/workflows"
 FULL_SHA = re.compile(r"^[0-9a-f]{40}$")
 ACTION_LINE = re.compile(r"^\s*(?:-\s*)?uses:\s*([^#\s]+)", re.MULTILINE)
 FORBIDDEN_TRIGGERS = ("pull_request_target", "workflow_run")
-
-
-def _load(path: Path) -> dict[str, Any]:
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
-    if not isinstance(data, dict):
-        raise ValueError("workflow root is not a mapping")
-    return data
 
 
 def _action_findings(name: str, text: str) -> list[str]:
@@ -37,56 +33,31 @@ def _action_findings(name: str, text: str) -> list[str]:
     return findings
 
 
-def _job_findings(name: str, jobs: object) -> list[str]:
-    if not isinstance(jobs, dict) or not jobs:
-        return [f"{name}: no jobs"]
-    findings: list[str] = []
-    for job_name, job in jobs.items():
-        if not isinstance(job, dict):
-            findings.append(f"{name}:{job_name}: job is not a mapping")
-            continue
-        runner = job.get("runs-on")
-        if not isinstance(runner, str) or runner.endswith("-latest"):
-            findings.append(f"{name}:{job_name}: runner must be an explicit fixed label")
-        timeout = job.get("timeout-minutes")
-        if not isinstance(timeout, int) or timeout <= 0:
-            findings.append(f"{name}:{job_name}: missing positive timeout-minutes")
-        findings.extend(_checkout_findings(name, str(job_name), job.get("steps")))
-    return findings
+def _trigger_findings(name: str, text: str) -> list[str]:
+    return [
+        f"{name}: forbidden privileged trigger {trigger}"
+        for trigger in FORBIDDEN_TRIGGERS
+        if re.search(rf"^\s*{re.escape(trigger)}\s*:", text, re.MULTILINE)
+    ]
 
 
-def _checkout_findings(name: str, job_name: str, steps: object) -> list[str]:
-    if not isinstance(steps, list):
-        return [f"{name}:{job_name}: steps is not a list"]
-    findings: list[str] = []
-    for step in steps:
-        if not isinstance(step, dict) or not str(step.get("uses", "")).startswith(
-            "actions/checkout@"
-        ):
-            continue
-        inputs = step.get("with")
-        persist = inputs.get("persist-credentials") if isinstance(inputs, dict) else None
-        if persist is not False and str(persist).lower() != "false":
-            findings.append(f"{name}:{job_name}: checkout must set persist-credentials: false")
-    return findings
-
-
-def validate_workflow(path: Path) -> list[str]:
-    text = path.read_text(encoding="utf-8")
+def validate_workflow(path: Path, ancestors: tuple[Path, ...] = ()) -> list[str]:
     try:
-        data = _load(path)
+        text = path.read_text(encoding="utf-8")
+        data = graph.load(path)
     except (OSError, yaml.YAMLError, ValueError) as error:
         return [f"{path.name}: invalid YAML: {error}"]
     findings = (
         [] if "permissions" in data else [f"{path.name}: missing explicit top-level permissions"]
     )
-    findings.extend(
-        f"{path.name}: forbidden privileged trigger {trigger}"
-        for trigger in FORBIDDEN_TRIGGERS
-        if re.search(rf"^\s*{re.escape(trigger)}\s*:", text, re.MULTILINE)
-    )
+    findings.extend(_trigger_findings(path.name, text))
     findings.extend(_action_findings(path.name, text))
-    findings.extend(_job_findings(path.name, data.get("jobs")))
+    findings.extend(graph.job_findings(path.name, data.get("jobs")))
+    findings.extend(
+        graph.reusable_findings(
+            path, data.get("jobs"), (*ancestors, path.resolve()), validate_workflow
+        )
+    )
     return findings
 
 

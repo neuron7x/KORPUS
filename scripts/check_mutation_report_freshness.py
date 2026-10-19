@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 """Звіт мутацій, що описує ІНШИЙ каталог, виглядає точно як свіжий.
 
-Двічі за 31.08.2026 `reports/MUTATION_REPORT.json` розійшовся з кодом і обидва рази
-пережив зелений `make validate`:
-
-    ранок   звіт 379 мутантів   каталог 385   (звіт на добу старший)
-    вечір   звіт 385 мутантів   каталог 390   (нові правила без прогону)
+31.08.2026 старі звіти на 379 і 385 мутантів пройшли над каталогами на 385 і 390.
 
 Обидва рази число «убито 100 %» лишалось на місці й читалось як доказ, хоча описувало
 набір правил, якого в дереві вже немає. Жоден гейт цього не питав: `verify_current_truth`
@@ -207,13 +203,17 @@ def selftest() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--selftest", action="store_true")
+    parser.add_argument("--report", type=Path, default=REPORT)
     args = parser.parse_args()
     if args.selftest:
         return selftest()
-    if not REPORT.is_file():
-        print(json.dumps({"status": "UNKNOWN", "reason": f"немає {REPORT}"}, ensure_ascii=False))
+    report_path = args.report if args.report.is_absolute() else ROOT / args.report
+    if not report_path.is_file():
+        print(
+            json.dumps({"status": "UNKNOWN", "reason": f"немає {report_path}"}, ensure_ascii=False)
+        )
         return 2
-    report = json.loads(REPORT.read_text(encoding="utf-8"))
+    report = json.loads(report_path.read_text(encoding="utf-8"))
     found = problems(report, catalogue_ids(), compute_source_digest(ROOT))
     print(
         json.dumps(

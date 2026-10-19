@@ -7171,6 +7171,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--shard-count", type=int, default=1)
     parser.add_argument("--merge", action="store_true")
     parser.add_argument(
+        "--portable",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="publish merged reports under reports/; --no-portable keeps CI evidence in var/",
+    )
+    parser.add_argument(
         "--jobs",
         type=int,
         default=1,
@@ -7315,7 +7321,7 @@ def main() -> int:
         return _run_probe(args.only, args.jobs)
 
     report, output = _run_catalogue(args)
-    _write_report(report, output, portable=args.merge)
+    _write_report(report, output, portable=args.merge and args.portable)
     _print_summary(report)
     results = report["results"]
     counted = len(results) if isinstance(results, (list, tuple)) else 0

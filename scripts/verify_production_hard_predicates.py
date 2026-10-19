@@ -213,12 +213,12 @@ def main() -> int:
     parser.add_argument(
         "--context", choices=(PRODUCTION_EVIDENCE, SOURCE_CHECKOUT), default=PRODUCTION_EVIDENCE
     )
-    # Звіт мусить лишатись СВІЖИМ навіть коли підлога не тримає: `generate_release_truth.py`
-    # читає його, щоб СКАЗАТИ, чого бракує. Виміряно 06.09.2026 — реєстр блокерів не міг
-    # бути перезнятий саме тому, що блокери є, і CI падала на доказі, старшому за дерево.
-    # Вирок про підлогу від цього не зникає: його виносять `validate` і `release`.
+    # --report-only refreshes the blocker input; validate/release still enforce the floor.
     parser.add_argument("--report-only", action="store_true")
     parser.add_argument("--selftest", action="store_true")
+    parser.add_argument(
+        "--out", type=Path, default=ROOT / "reports/PRODUCTION_HARD_PREDICATES.json"
+    )
     args = parser.parse_args()
     if args.selftest:
         return selftest()
@@ -226,7 +226,7 @@ def main() -> int:
     surface = evidence_surface(ROOT / "var/production")
     payload["evidence_surface_files"] = surface
     payload["context"] = args.context
-    out = ROOT / "reports/PRODUCTION_HARD_PREDICATES.json"
+    out = args.out if args.out.is_absolute() else ROOT / args.out
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(payload, ensure_ascii=False, indent=2))

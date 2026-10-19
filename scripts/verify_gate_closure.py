@@ -28,12 +28,8 @@
   ПРИМАРНИЙ ВИНЯТОК   запис про ціль, якої в Makefile більше немає. Реєстр, що
                       накопичує привидів, з часом описує інший файл.
 
-⚠ Пастка в самому парсері, і вона тієї ж форми, що й усе інше сьогодні. Ребро
-графа — це не лише залежність у заголовку правила: `evidence-refresh` викликає
-`$(MAKE) dependency-locks` у РЕЦЕПТІ. Парсер, що читає лише заголовки, оголосив
-би `dependency-locks` недосяжною й вимагав би для неї виправдання, якого не
-треба. Тобто перевірка досяжності, зроблена наївно, сама стає джерелом хибних
-дір. Рецепти читаються (`_recipe_edges`), і на це є негативний контроль.
+Ребра графа включають передумови й `$(MAKE)` у рецептах. Негативний контроль
+перевіряє, що `evidence-refresh` дістається `dependency-locks` через рецепт.
 
     verify_gate_closure.py
     verify_gate_closure.py --selftest
@@ -48,6 +44,9 @@ import sys
 from collections import Counter, deque
 from pathlib import Path
 from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from make_context import expand_context_defaults
 
 ROOT = Path(__file__).resolve().parent.parent
 MAKEFILE = ROOT / "Makefile"
@@ -204,6 +203,7 @@ def parse_graph(text: str) -> tuple[dict[str, set[str]], list[str], dict[str, se
     зберігається, бо звіт, чий вміст залежить від планування, не можна порівняти
     між прогонами.
     """
+    text = expand_context_defaults(text)
     edges: dict[str, set[str]] = {}
     scripts: dict[str, set[str]] = {}
     declared: list[str] = []

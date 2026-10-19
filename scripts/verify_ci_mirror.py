@@ -1,30 +1,22 @@
 #!/usr/bin/env python3
 """Дзеркало лану: CI виконує ТЕ САМЕ, що локальний `make validate` / `make check`, чи лише схоже.
 
-Зелений локальний гейт не є моделлю зеленої CI. Перелік цілей у Makefile і перелік
-команд у `.gitlab-ci.yml` — два оголошення одного лану, і вони розходяться мовчки
-саме тоді, коли хтось додає перевірку в одне місце. Виміряно 03.09.2026: замінник
-SI-7 моделі впевненості читав `var/ci-mirror.json`, якого не виробляв ніхто, — тобто
-«дзеркало звірене» було полем без виробника.
+Перевірка зіставляє транзитивні команди Makefile з обов’язковими CI jobs.
+Різні context values лишаються різними предметами перевірки.
 
 ## Що вимірюється
 
-Кожен скрипт, який лан запускає локально (транзитивно від коренів `validate` і
-`check`), мусить запускатись у CI ТІЄЮ САМОЮ командою. Тотожність команди — та сама,
-що в `verify_gate_closure.normalise_invocation`: ім'я скрипта плюс усі аргументи,
-крім названих несемантичними. `--selftest` і повний прогін — різні команди; CI, що
-ганяє лише самоперевірку, гейт не виконує.
+Кожна транзитивна команда `validate` / `check` мусить виконуватись у CI.
+Її тотожність рахує `verify_gate_closure.normalise_invocation`: script та семантичні
+аргументи. `--selftest` і повний прогін — різні команди.
 
 Джерело істини — сам `.gitlab-ci.yml`, прочитаний як YAML. Джоб рахується частиною
 дзеркала лише коли він виконується на КОЖНОМУ конвеєрі і його відмова валить конвеєр:
 `rules:` / `only:` / `when: manual` / `allow_failure: true` виводять джоб із дзеркала.
-Червоний джоб, що не валить конвеєр, — не гейт, а повідомлення.
 
 ## Що НЕ вимагається
 
-`check-deployment` міряє розгортання, якого в раннері немає; `check-nightly` копіює
-дерево або переганяє повний набір і за побудовою дорогий. Обидва звітуються числом
-`local_only`, не вимогою.
+Deployment і nightly лани звітуються як `local_only`: їх немає в CI runner.
 
 Прийняті розбіжності живуть у `config/operations/ci-mirror.json` з причиною й датою.
 Запис про команду, яку CI вже виконує, — МЕРТВИЙ виняток; про команду, якої лан не
@@ -48,6 +40,7 @@ from typing import Any
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from make_context import expand_context_defaults, invocation_contexts
 from verify_gate_closure import invocations, parse_graph, reachable
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -120,14 +113,21 @@ def _job_lines(name: str, job: dict[str, Any], pipeline: dict[str, Any]) -> list
 
 
 def _line_identities(
-    line: str, edges: dict[str, set[str]], scripts: dict[str, set[str]]
+    line: str,
+    edges: dict[str, set[str]],
+    scripts: dict[str, set[str]],
+    makefile: str = "",
 ) -> set[str]:
     """Тотожності, які виконує один рядок CI: прямі запуски плюс усе, що тягне `make ціль`."""
     found = set(invocations(line))
     for call in _MAKE_CALL.finditer(line):
+        call_edges, call_scripts = edges, scripts
+        contexts = invocation_contexts(line[call.start() :])
+        if contexts and makefile:
+            call_edges, _, call_scripts = parse_graph(expand_context_defaults(makefile, contexts))
         targets = tuple(t for t in call.group(1).split() if _MAKE_TARGET.match(t))
-        for target in reachable(edges, targets):
-            found.update(scripts.get(target, ()))
+        for target in reachable(call_edges, targets):
+            found.update(call_scripts.get(target, ()))
     return found
 
 
@@ -153,7 +153,7 @@ def pipeline_invocations(
             excluded[str(name)] = why
             continue
         for line in _job_lines(str(name), job, pipeline):
-            for identity in _line_identities(line, edges, scripts):
+            for identity in _line_identities(line, edges, scripts, makefile):
                 found.setdefault(identity, set()).add(str(name))
     return found, excluded
 
