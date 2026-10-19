@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2107,
-  "root_sha256": "86a474bc38019cfa5262e86df517865d305d95b4e48bd155f906102fc67adaf6",
+  "file_count": 2112,
+  "root_sha256": "8dedf784f0c76249b121ee85302f83e3a576ef00471452e3c4520c9da6708fce",
   "files": [
     {
       "path": ".dockerignore",
@@ -49,8 +49,8 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "bytes": 6296,
-      "sha256": "68965d64abd64b86fdb359b3c7fbbeab3a5d4c3d09ff77de850bc69f5e1092e0",
+      "bytes": 6835,
+      "sha256": "bf866cc24647394d8dc7f0957f2baf3c363a30150cbba13745752b11f7bf0579",
       "mode": "0644"
     },
     {
@@ -97,8 +97,8 @@
     },
     {
       "path": ".github/workflows/release.yml",
-      "bytes": 3088,
-      "sha256": "4ca68c975994b47eda3b7fa097a883d1a984dda1927839b3ce28590b32a40dc1",
+      "bytes": 3140,
+      "sha256": "01dc0bf148f63ad66936c3cd2b8f57204c5a0ffccab430122af4a84ed0afba75",
       "mode": "0644"
     },
     {
@@ -1815,6 +1815,18 @@
       "path": "apps/api/src/korpus/application/regression_receipt_identity.py",
       "bytes": 1695,
       "sha256": "aa94c6508a003497354f4d2827297bae0ce4ca39e8ccaba98e13db983be0d5a8",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/release_claim_git_tree.py",
+      "bytes": 5665,
+      "sha256": "f7ea634cc876ab3025b61343b867d7b5f83012bb838a3402c3cefb4140b609dd",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/release_claim_tree.py",
+      "bytes": 2604,
+      "sha256": "ecd83dce1a780377a2245626d76ecc0d3587abd882b2b25ca4bfedaa1bf9e3b7",
       "mode": "0644"
     },
     {
@@ -3607,8 +3619,8 @@
     },
     {
       "path": "apps/api/tests/test_clean_source_release_boundary.py",
-      "bytes": 3493,
-      "sha256": "788004c403e1cd427fdf85514f5750a4b7b988e92381cac665f56e9a233d741a",
+      "bytes": 4975,
+      "sha256": "0ff96ecec9e147bf960ac6177f34bc540446e37b6c2730f807dbf9a2ea0c5c1e",
       "mode": "0644"
     },
     {
@@ -5241,6 +5253,12 @@
       "path": "apps/api/tests/test_release_attestation_trust.py",
       "bytes": 2233,
       "sha256": "4281fe53cfb73e4eb7edea6eb0f32525db6daa8bf8e793d01d7048b898c1de6f",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_release_claim_git_tree_hardening.py",
+      "bytes": 12438,
+      "sha256": "bf718c7312e67e7bc7af8f7cfabbce2b55787090b5b8a485df38ae7fdcd59e65",
       "mode": "0644"
     },
     {
@@ -8156,7 +8174,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "e1d41f80b9474434269f2f3b19dd7b025ae321fbff8f4d8a9944525cf55973d9",
+      "sha256": "c8a8c049fbab8bea8c52e081e251da668a8b6bcddd286755c66f8ee58119053f",
       "mode": "0644"
     },
     {
@@ -8197,8 +8215,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 752075,
-      "sha256": "9a0488a3686a2dd7c81287b24950fc913689608b3af125f948a1246acba86fd4",
+      "bytes": 753438,
+      "sha256": "1ce718a6b9af02e8dbaae2a49c82f48062dd31efd9bbf02916d238c1062ef597",
       "mode": "0644"
     },
     {
@@ -10728,6 +10746,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/check_clean_source_tree.py",
+      "bytes": 903,
+      "sha256": "36967e95c2964f2fe1b102b073d13d484a6acb21b5bbecd1bba9b311f3038b17",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/check_corpus_path_declarations.py",
       "bytes": 16357,
       "sha256": "7ab382c2a4638b58305b14c6fcf66c1fa1439bbef4283bf7107f279eb7737ec1",
@@ -11539,8 +11563,8 @@
     },
     {
       "path": "scripts/package_repository.sh",
-      "bytes": 5025,
-      "sha256": "1ed21077474c91c204a5d11261b8011cdcaf12227b33815fc98ab339438f27cf",
+      "bytes": 5867,
+      "sha256": "5287a32a6dac70ec83c284bc1b0722c81ae8210e433dace7b7a2cfa4317b98d7",
       "mode": "0755"
     },
     {
@@ -12310,6 +12334,12 @@
       "bytes": 161,
       "sha256": "5bf54557b05e2adf9a7a97beba9cbc34b5aaeaff46f78030448140aba7b8963e",
       "mode": "0755"
+    },
+    {
+      "path": "scripts/trusted_system_tools.py",
+      "bytes": 1175,
+      "sha256": "cb0b248f98640f103999c91d7c8365cf08e2154f8c2c94ca69596de47c0235a2",
+      "mode": "0644"
     },
     {
       "path": "scripts/validate_catalog_uri_uniqueness.py",

@@ -42,6 +42,7 @@ jobs:
           npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
       - name: Rebuild release-bound evidence
         run: |
+          python scripts/check_clean_source_tree.py
           python scripts/check_release_identity.py --require-git-tag
           make validate PY=python
           make production-exact-environment PY=python

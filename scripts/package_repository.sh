@@ -3,6 +3,17 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
+# Bind every packaging Git read to the same trusted object store as the source gate.
+while IFS= read -r key; do
+  [[ "$key" == GIT_* ]] && unset "$key"
+done < <(compgen -e)
+export GIT_NO_REPLACE_OBJECTS=1 GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null
+export GIT_CONFIG_SYSTEM=/dev/null GIT_ATTR_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0
+git_bin="$(python3 -c 'from scripts.trusted_system_tools import git_executable; print(git_executable() or "")')"
+[[ -n "$git_bin" ]] || { echo "trusted git executable unavailable" >&2; exit 1; }
+git() { "$git_bin" --no-replace-objects "$@"; }
+
+
 default_version="$(python3 -c 'import sys; sys.path.insert(0, "scripts"); from release_identity import release_tag; print(release_tag())')"
 version="${KORPUS_RELEASE_VERSION:-$default_version}"
 default_name="$(python3 -c 'import sys; sys.path.insert(0, "scripts"); from release_identity import load_release_identity; print(load_release_identity()["artifact_stem"])')"
@@ -17,6 +28,9 @@ rm -f "dist/${name}.zip" "dist/${name}.zip.sha256"
 python3 "$root/scripts/check_release_identity.py"
 python3 "$root/scripts/verify_source_manifest.py"
 
+# Fail closed before admitting local evidence that could have read dirty source.
+python3 "$root/scripts/check_clean_source_tree.py"
+
 # 05.09.2026: тут стояла гілка `KORPUS_ENGINEERING_CANDIDATE=1`, яка МИНАЛА цю перевірку
 # і авторизувала пакування з двох полів `CANONICAL_RELEASE_REPORT.json`. Той файл не пише
 # ЖОДЕН крок: grep по дереву знаходить самих читачів, а введений він рукою одним комітом
@@ -26,6 +40,9 @@ python3 "$root/scripts/verify_source_manifest.py"
 # тож і прив'язки до дерева там немає. Змінну не виставляв ніхто в репозиторії — гілка
 # лише чекала на того, хто її виставить. Лишилась одна дорога, і вона міряє.
 PYTHONPATH="$root/scripts" python3 "$root/scripts/verify_release_evidence.py"
+
+# Recheck source parity immediately before packaging, after evidence admission.
+python3 "$root/scripts/check_clean_source_tree.py"
 
 tmp="$(mktemp -d)"
 cleanup() { rm -rf "$tmp"; }

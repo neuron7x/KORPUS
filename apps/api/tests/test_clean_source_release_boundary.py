@@ -15,6 +15,16 @@ def test_package_producer_excludes_git_history_by_construction() -> None:
     assert "git rev-parse HEAD" in producer
 
 
+def test_packager_guards_exact_source_before_release_evidence_and_archive() -> None:
+    lines = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8").splitlines()
+    guard = 'python3 "$root/scripts/check_clean_source_tree.py"'
+    release = 'PYTHONPATH="$root/scripts" python3 "$root/scripts/verify_release_evidence.py"'
+    archive = 'git archive --format=tar "$source_commit" | tar -xf - -C "$tmp"'
+    guards = [index for index, line in enumerate(lines) if line == guard]
+    assert len(guards) == 2
+    assert guards[0] < lines.index(release) < guards[1] < lines.index(archive)
+
+
 def test_only_formal_production_promotion_requires_the_release_tag() -> None:
     producer = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8")
     promotion = (ROOT / "scripts/package_production_release.sh").read_text(encoding="utf-8")
@@ -57,3 +67,19 @@ def test_release_evidence_verification_cannot_be_skipped_by_an_environment_varia
     assert not [line for line in code if "KORPUS_ENGINEERING_CANDIDATE" in line], (
         "змінна лишилась ВИКОНУВАНОЮ, а не спогадом у коментарі"
     )
+
+
+def test_github_ci_and_tagged_release_execute_clean_tree_guard() -> None:
+    for name in ("ci.yml", "release.yml"):
+        workflow = (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
+        assert "python scripts/check_clean_source_tree.py" in workflow
+
+
+def test_packaging_git_is_isolated_from_environment_and_replace_objects() -> None:
+    source = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8")
+    boundary = source.index("while IFS= read -r key; do")
+    assert '[[ "$key" == GIT_* ]] && unset "$key"' in source
+    assert "export GIT_NO_REPLACE_OBJECTS=1 GIT_CONFIG_NOSYSTEM=1" in source
+    assert "from scripts.trusted_system_tools import git_executable" in source
+    assert 'git() { "$git_bin" --no-replace-objects "$@"; }' in source
+    assert boundary < source.index("current_head=") < source.index("git archive --format=tar")
