@@ -6,6 +6,15 @@ from typing import Any
 
 from korpus.application.attested_evidence import AttestationVerdict, verify_ed25519_attestation
 from korpus.application.production_reliability import evaluate_reliability_evidence
+from korpus.application.sbom_evidence import (
+    SbomCiEvidence,
+    sbom_bundle_bound,
+    sbom_has_components,
+    source_sbom_covers_lock,
+)
+from korpus.application.sbom_evidence import (
+    valid_cyclonedx as valid_cyclonedx,
+)
 from korpus.application.supply_chain_scanners import (
     container_scan_marker_clean,
     scanner_marker_current,
@@ -33,25 +42,6 @@ def attestation_checks(
         f"{prefix}_attestation_verified": verdict.cryptographically_valid,
         f"{prefix}_trusted_signer": verdict.trusted_signer,
     }, verdict
-
-
-def valid_cyclonedx(data: Mapping[str, Any]) -> bool:
-    return (
-        data.get("bomFormat") == "CycloneDX"
-        and bool(str(data.get("specVersion", "")))
-        and isinstance(data.get("components", []), list)
-    )
-
-
-def source_sbom_covers_lock(data: Mapping[str, Any], locked: Mapping[str, str]) -> bool:
-    if not valid_cyclonedx(data):
-        return False
-    components = {
-        (str(item.get("name", "")).lower().replace("_", "-"), str(item.get("version", "")))
-        for item in data.get("components", ())
-        if isinstance(item, Mapping)
-    }
-    return all((name, version) in components for name, version in locked.items())
 
 
 def artifact_manifest_bound(
@@ -113,9 +103,7 @@ def evaluate_supply_chain_evidence(
     locked: Mapping[str, str],
     scan: Mapping[str, Any],
     container_scan: Mapping[str, Any],
-    source_sbom: Mapping[str, Any],
-    api_sbom: Mapping[str, Any],
-    web_sbom: Mapping[str, Any],
+    sbom_ci: SbomCiEvidence,
     manifest: Mapping[str, Any],
     artifact_bytes: Mapping[str, bytes],
     source: str,
@@ -136,7 +124,7 @@ def evaluate_supply_chain_evidence(
     )
     checks = {
         "exact_pins_have_hashes": pins > 0 and hashes == pins,
-        "source_sbom_lock_complete": source_sbom_covers_lock(source_sbom, locked),
+        "source_sbom_lock_complete": source_sbom_covers_lock(sbom_ci.source_sbom, locked),
         "security_summary_is_ci_aggregate": scanner_summary_is_ci_aggregate(scan),
         "security_scanners_executed_clean": scanner_summary_clean(scan),
         "security_scanners_current_commit": scanner_marker_current(scan, accepted_commits),
@@ -144,7 +132,11 @@ def evaluate_supply_chain_evidence(
         "container_scanners_current_commit": scanner_marker_current(
             container_scan, accepted_commits
         ),
-        "container_sboms_valid": valid_cyclonedx(api_sbom) and valid_cyclonedx(web_sbom),
+        "api_container_sbom_runtime_complete": source_sbom_covers_lock(
+            sbom_ci.api_sbom, sbom_ci.api_locked
+        ),
+        "web_container_sbom_expected_complete": sbom_has_components(sbom_ci.web_sbom, {"nginx"}),
+        "sbom_ci_receipts_bound": sbom_bundle_bound(sbom_ci, artifact_bytes),
         "evidence_manifest_bound": artifact_manifest_bound(
             manifest, artifacts, source=source, release=release
         ),

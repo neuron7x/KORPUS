@@ -957,7 +957,7 @@
       "lines": 167,
       "max_complexity": 6,
       "max_function_args": 16,
-      "max_function_lines": 46,
+      "max_function_lines": 48,
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "ACT-015: container scan evidence extraction tightened shared assurance evaluator line ceiling"
@@ -1297,6 +1297,15 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Портовано знімок корпусу з GitHub-лінії 01.09.2026: одна відповідь читає ОДИН стан корпусу, а не кілька незалежних читань під датою `as_of`. `corpus_state_epoch` дає монотонний маркер, `evidence_sealing` прив'язує схвалення до конкретного набору доказів, і журнал відповіді несе `corpus_snapshot` поруч із `corpus_release`."
+    },
+    "apps/api/src/korpus/application/coverage_evidence.py": {
+      "lines": 399,
+      "max_complexity": 14,
+      "max_function_args": 5,
+      "max_function_lines": 46,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for source/input-bound coverage schemas, per-file statement/branch invariants, and fail-closed dialect union arithmetic."
     },
     "apps/api/src/korpus/application/coverage_policy.py": {
       "lines": 18,
@@ -2205,6 +2214,15 @@
       "proof_lines": 0,
       "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
     },
+    "apps/api/src/korpus/application/github_assurance_receipts.py": {
+      "lines": 211,
+      "max_complexity": 5,
+      "max_function_args": 6,
+      "max_function_lines": 26,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for immutable GitHub run identity, byte receipts, and importer admission bindings."
+    },
     "apps/api/src/korpus/application/release_claims.py": {
       "lines": 140,
       "max_complexity": 12,
@@ -2213,6 +2231,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
+    },
+    "apps/api/src/korpus/application/release_coverage_projection.py": {
+      "lines": 126,
+      "max_complexity": 9,
+      "max_function_args": 4,
+      "max_function_lines": 36,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for release projection from GitHub-admitted coverage union bytes; raw totals cannot be re-labelled PASS."
     },
     "apps/api/src/korpus/application/release_ledger.py": {
       "lines": 294,
@@ -2397,6 +2424,15 @@
       "max_function_lines": 42,
       "max_nesting": 2,
       "proof_lines": 0
+    },
+    "apps/api/src/korpus/application/sbom_evidence.py": {
+      "lines": 198,
+      "max_complexity": 6,
+      "max_function_args": 4,
+      "max_function_lines": 48,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for supported nonempty CycloneDX completeness and source/image subject-to-SBOM receipt chains."
     },
     "apps/api/src/korpus/application/supply_chain_attestation.py": {
       "lines": 56,
@@ -3814,6 +3850,15 @@
       "proof_lines": 0,
       "reason": "2026-10-04: exact initial ceiling for semantic validation and source-tree binding of scanner evidence; extracted so the shared closure-predicate ceiling did not balloon."
     },
+    "scripts/build_ci_evidence_receipt.py": {
+      "lines": 194,
+      "max_complexity": 5,
+      "max_function_args": 2,
+      "max_function_lines": 34,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for canonical source-SBOM, image-SBOM and coverage-union receipt production."
+    },
     "scripts/build_audit_closure.py": {
       "lines": 871,
       "max_complexity": 17,
@@ -3905,7 +3950,7 @@
       "reason": "Точна виміряна початкова стеля. Складач маніфесту рантайм-корпусу: перелічує, що саме розгорнутий застосунок вважає своїм корпусом, щоб відповідь можна було привʼязати до конкретного стану даних."
     },
     "scripts/build_supply_chain_evidence_manifest.py": {
-      "lines": 55,
+      "lines": 58,
       "max_complexity": 3,
       "max_function_args": 1,
       "max_function_lines": 23,
@@ -4226,10 +4271,10 @@
       "reason": "freezes and signs what the corpus contained, so a citation can be traced to its release"
     },
     "scripts/coverage_gap_plan.py": {
-      "lines": 109,
+      "lines": 138,
       "max_complexity": 6,
       "max_function_args": 3,
-      "max_function_lines": 57,
+      "max_function_lines": 61,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.5.0: deterministic risk-weighted coverage ratchet with absolute uncovered-edge ceiling"
@@ -4382,6 +4427,15 @@
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
+    },
+    "scripts/fetch_ci_assurance_evidence.py": {
+      "lines": 329,
+      "max_complexity": 9,
+      "max_function_args": 4,
+      "max_function_lines": 51,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for exact-attempt GitHub API import, closed ZIP file sets, receipts, completeness and byte admissions."
     },
     "scripts/fetch_ci_scanner_markers.py": {
       "lines": 276,
@@ -4984,9 +5038,9 @@
       "reason": "registered 2026-08-30. Експеримент, який міряє, чи вісь значення розділяє те, що вісь слова не розділяла: омонім «ставка» (податку / Верховного Головнокомандувача) зламав лексичний пошук, і поріг на лексичному покритті було спростовано на власних даних. Нічого не вмикає: promotion_authorized=false."
     },
     "scripts/merge_dialect_coverage.py": {
-      "lines": 170,
+      "lines": 208,
       "max_complexity": 10,
-      "max_function_args": 2,
+      "max_function_args": 4,
       "max_function_lines": 51,
       "max_nesting": 2,
       "proof_lines": 0,
@@ -5906,9 +5960,9 @@
       "reason": "v0.6.0: plasticity soak joins bounded stress campaign | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/run_supply_chain_gate.py": {
-      "lines": 98,
+      "lines": 126,
       "max_complexity": 12,
-      "max_function_args": 1,
+      "max_function_args": 3,
       "max_function_lines": 63,
       "max_nesting": 3,
       "proof_lines": 0,
@@ -6019,6 +6073,15 @@
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "registered 2026-08-29: catalog→corpus staging bridge and the gate hardening an adversarial pass required"
+    },
+    "scripts/stamp_coverage_report.py": {
+      "lines": 65,
+      "max_complexity": 2,
+      "max_function_args": 0,
+      "max_function_lines": 39,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for coverage source-input stamping and per-dialect GitHub producer receipts."
     },
     "scripts/stage_external_production_evidence.py": {
       "lines": 80,
@@ -6535,6 +6598,37 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+    {
+      "changes": [
+        {
+          "from": {"max_function_lines": 46},
+          "path": "apps/api/src/korpus/application/assurance_evidence.py",
+          "to": {"max_function_lines": 48}
+        },
+        {
+          "from": {"lines": 55},
+          "path": "scripts/build_supply_chain_evidence_manifest.py",
+          "to": {"lines": 58}
+        },
+        {
+          "from": {"lines": 109, "max_function_lines": 57},
+          "path": "scripts/coverage_gap_plan.py",
+          "to": {"lines": 138, "max_function_lines": 61}
+        },
+        {
+          "from": {"lines": 170, "max_function_args": 2},
+          "path": "scripts/merge_dialect_coverage.py",
+          "to": {"lines": 208, "max_function_args": 4}
+        },
+        {
+          "from": {"lines": 98, "max_function_args": 1},
+          "path": "scripts/run_supply_chain_gate.py",
+          "to": {"lines": 126, "max_function_args": 3}
+        }
+      ],
+      "on": "2026-10-19",
+      "reason": "SBOM and coverage evidence now carry exact GitHub run identity, source/image subjects, input hashes, union-to-plan bindings and importer admissions. New logic was extracted into bounded modules; these remaining exact deltas are integration wiring, not blanket exemptions."
+    },
     {
       "changes": [
         {

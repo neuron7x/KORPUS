@@ -14,9 +14,12 @@ from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
 ARTIFACTS = (
-    "source-sbom.cdx.json",
-    "api-sbom.cdx.json",
-    "web-sbom.cdx.json",
+    "var/ci-evidence/source-sbom.cdx.json",
+    "var/ci-evidence/api-sbom.cdx.json",
+    "var/ci-evidence/web-sbom.cdx.json",
+    "var/ci-evidence/source-sbom-receipt.json",
+    "var/ci-evidence/container-sbom-receipt.json",
+    "var/ci-evidence/assurance-admission.json",
     "var/security/summary.json",
     "var/security/ci-container-scan.json",
 )

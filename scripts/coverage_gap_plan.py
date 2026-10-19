@@ -9,6 +9,7 @@ never lowers the threshold or excludes code to make the number move.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -17,6 +18,10 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT)]
 
+from korpus.application.coverage_evidence import (  # noqa: E402
+    canonical_json_sha256,
+    coverage_union_problem,
+)
 from korpus.application.coverage_policy import relative_source_path, risk_weight  # noqa: E402
 from korpus.application.numeric_contracts import require_count  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
@@ -31,7 +36,11 @@ from scripts.release_identity import release_tag  # noqa: E402
 POLICY = ROOT / "config/operations/test-adaptation-policy.json"
 
 
-def build_plan(coverage: dict[str, Any], policy: dict[str, Any], root: Path) -> dict[str, Any]:
+def build_plan(
+    coverage: dict[str, Any],
+    policy: dict[str, Any],
+    root: Path,
+) -> dict[str, Any]:
     totals = coverage["totals"]
     files: list[dict[str, Any]] = []
     weights = {str(k): risk_weight_value(v) for k, v in policy.get("risk_weights", {}).items()}
@@ -75,7 +84,7 @@ def build_plan(coverage: dict[str, Any], policy: dict[str, Any], root: Path) -> 
         and missing_branches <= missing_ceiling
     )
     return {
-        "schema": "korpus.coverage-gap-plan.v2",
+        "schema": "korpus.coverage-gap-plan.v3",
         "status": "PASS" if passed else "FAIL",
         "release": release_tag(),
         "source_tree_sha256": compute_source_digest(root),
@@ -90,15 +99,35 @@ def build_plan(coverage: dict[str, Any], policy: dict[str, Any], root: Path) -> 
     }
 
 
+def coverage_binding(
+    coverage: dict[str, Any], coverage_sha256: str | None = None
+) -> dict[str, Any]:
+    union = coverage["dialect_union"]
+    subject = coverage["korpus_coverage"]
+    return {
+        "coverage_union_sha256": coverage_sha256 or canonical_json_sha256(coverage),
+        "coverage_union_schema": union["schema"],
+        "coverage_source_tree_sha256": subject["source_tree_sha256"],
+        "coverage_source_inputs_sha256": subject["source_inputs_sha256"],
+        "github_run": union["github_run"],
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--coverage", type=Path, default=ROOT / "var/coverage.json")
     parser.add_argument("--policy", type=Path, default=POLICY)
     parser.add_argument("--out", type=Path, default=ROOT / "var/coverage-gap-plan.json")
     args = parser.parse_args()
-    coverage = json.loads(args.coverage.read_text(encoding="utf-8"))
+    coverage_bytes = args.coverage.read_bytes()
+    coverage = json.loads(coverage_bytes)
     policy = json.loads(args.policy.read_text(encoding="utf-8"))
+    problem = coverage_union_problem(coverage) if isinstance(coverage, dict) else "not an object"
+    if problem:
+        print(json.dumps({"status": "FAIL", "reason": problem}))
+        return 1
     report = build_plan(coverage, policy, ROOT)
+    report.update(coverage_binding(coverage, hashlib.sha256(coverage_bytes).hexdigest()))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, ensure_ascii=False, indent=2))

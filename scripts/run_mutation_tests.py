@@ -3130,7 +3130,7 @@ MUTANTS = (
     ),
     Mutant(
         "M230_NON_CYCLONEDX_SBOM_ACCEPTED",
-        "apps/api/src/korpus/application/assurance_evidence.py",
+        "apps/api/src/korpus/application/sbom_evidence.py",
         '        data.get("bomFormat") == "CycloneDX"',
         "        True",
         (
@@ -3139,7 +3139,7 @@ MUTANTS = (
     ),
     Mutant(
         "M231_INCOMPLETE_SOURCE_SBOM_ACCEPTED",
-        "apps/api/src/korpus/application/assurance_evidence.py",
+        "apps/api/src/korpus/application/sbom_evidence.py",
         "    return all((name, version) in components for name, version in locked.items())",
         "    return True",
         (

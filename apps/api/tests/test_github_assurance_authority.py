@@ -72,6 +72,16 @@ def test_container_scan_and_sbom_consume_the_same_candidate_images() -> None:
         assert "candidate-images" in _artifact_names(jobs[name], "actions/download-artifact@")
 
 
+def test_sbom_jobs_emit_subject_receipts_with_their_payloads() -> None:
+    jobs = _jobs()
+    source = _runs(jobs["source-sbom"])
+    containers = _runs(jobs["container-sbom"])
+    assert "build_ci_evidence_receipt.py source-sbom" in source
+    assert "var/source-sbom-receipt.json" in str(jobs["source-sbom"])
+    assert "build_ci_evidence_receipt.py container-sboms" in containers
+    assert "container-sbom-receipt.json" in str(jobs["container-sbom"])
+
+
 def test_every_external_scanner_image_is_digest_pinned() -> None:
     runs = "\n".join(_runs(job) for job in _jobs().values())
     images = re.findall(r"(?:zricethezav/gitleaks|aquasec/trivy|anchore/syft):[^\s'\"]+", runs)
@@ -114,6 +124,17 @@ def test_both_dialects_feed_one_fail_closed_union_job() -> None:
         "postgres-evidence",
     }
     assert "merge_dialect_coverage.py" in _runs(union)
+    assert "stamp_coverage_report.py" in _runs(jobs["sqlite-coverage"])
+    assert "stamp_coverage_report.py" in _runs(jobs["postgres"])
+    assert "build_ci_evidence_receipt.py coverage-union" in _runs(union)
+    assert "coverage-ci-receipt.json" in str(union)
+
+
+def test_assurance_importer_is_the_make_entrypoint_for_sbom_and_coverage() -> None:
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    recipe = makefile.split("ci-assurance-evidence:", 1)[1].split("\n\n", 1)[0]
+    assert "fetch_ci_assurance_evidence.py" in recipe
+    assert '--run "$(RUN)"' in recipe
 
 
 def test_previously_unmirrored_lane_commands_are_blocking() -> None:

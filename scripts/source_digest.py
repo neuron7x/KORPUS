@@ -18,7 +18,6 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "apps/api/src"))
 
 from korpus.application.provenance_surface import EVIDENCE_SOURCE_PATHS
@@ -142,6 +141,9 @@ def source_tree_digest(ref: str = "HEAD") -> str:
         hasher.update(len(content).to_bytes(8, "big"))
         hasher.update(content)
     return hasher.hexdigest()
+
+
+tracked_tree_digest = source_tree_digest
 
 
 if __name__ == "__main__":

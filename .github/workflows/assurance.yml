@@ -28,6 +28,7 @@ env:
   KORPUS_BIND_HOST: 127.0.0.1
   KORPUS_AUDIT_HMAC_KEY: ci-only-audit-key
   KORPUS_JWT_SECRET: ci-only-jwt-key
+  KORPUS_GITHUB_WORKFLOW_ID: "332983284"
 
 jobs:
   research-assurance:
@@ -108,6 +109,11 @@ jobs:
           python -m pip check
       - name: Measure SQLite dialect
         run: make api-test PY=python
+      - name: Bind SQLite coverage to source and workflow run
+        run: >-
+          python scripts/stamp_coverage_report.py --report var/coverage.json
+          --dialect sqlite --job sqlite-coverage
+          --receipt var/coverage-sqlite-receipt.json
       - name: Preserve SQLite coverage
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -118,6 +124,7 @@ jobs:
             var/pytest.xml
             var/coverage.xml
             var/coverage.json
+            var/coverage-sqlite-receipt.json
           if-no-files-found: warn
           retention-days: 30
 
@@ -212,6 +219,7 @@ jobs:
       - name: Measure PostgreSQL dialect and RLS
         run: |
           KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" pytest -q apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=json:var/coverage-postgres.json --cov-report= --cov-fail-under=0
+          python scripts/stamp_coverage_report.py --report var/coverage-postgres.json --dialect postgresql --job postgres --receipt var/coverage-postgresql-receipt.json
           KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" PYTHONPATH=apps/api/src:scripts python scripts/run_postgres_security_gate.py
       - name: Execute backup and restore drill
         run: |
@@ -257,6 +265,7 @@ jobs:
             var/load-probe.json
             var/load-api.log
             var/coverage-postgres.json
+            var/coverage-postgresql-receipt.json
             var/production/postgres_security-gate.json
           if-no-files-found: warn
           retention-days: 30
@@ -291,6 +300,7 @@ jobs:
         run: |
           PYTHONPATH=apps/api/src python scripts/merge_dialect_coverage.py
           PYTHONPATH=apps/api/src:. python scripts/coverage_gap_plan.py --coverage var/coverage-union.json --out var/coverage-gap-plan.json
+          python scripts/build_ci_evidence_receipt.py coverage-union --union var/coverage-union.json --plan var/coverage-gap-plan.json --out var/coverage-ci-receipt.json
       - name: Preserve dialect coverage evidence
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -299,6 +309,7 @@ jobs:
           path: |
             var/coverage-union.json
             var/coverage-gap-plan.json
+            var/coverage-ci-receipt.json
           if-no-files-found: error
           retention-days: 30
 
@@ -446,13 +457,16 @@ jobs:
           mkdir -p var
           docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint /syft \
             anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b799e7cadaff6be2ec6d555757c4eeec0c0e48162f20b042ffa1ff \
-            dir:. -o cyclonedx-json=var/tree-sbom.cdx.json
+            dir:. -o cyclonedx-json=/work/var/source-sbom.cdx.json
+          python scripts/build_ci_evidence_receipt.py source-sbom --sbom var/source-sbom.cdx.json --out var/source-sbom-receipt.json
       - name: Preserve source-tree SBOM
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: source-sbom
           overwrite: true
-          path: var/tree-sbom.cdx.json
+          path: |
+            var/source-sbom.cdx.json
+            var/source-sbom-receipt.json
           if-no-files-found: error
           retention-days: 30
 
@@ -543,6 +557,7 @@ jobs:
           syft_image='anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b799e7cadaff6be2ec6d555757c4eeec0c0e48162f20b042ffa1ff'
           docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint /syft "$syft_image" docker-archive:api-image.tar -o cyclonedx-json=api-sbom.cdx.json
           docker run --rm --volume "$PWD:/work" --workdir /work --entrypoint /syft "$syft_image" docker-archive:web-image.tar -o cyclonedx-json=web-sbom.cdx.json
+          python scripts/build_ci_evidence_receipt.py container-sboms --api-image api-image.tar --web-image web-image.tar --api-sbom api-sbom.cdx.json --web-sbom web-sbom.cdx.json --out container-sbom-receipt.json
       - name: Preserve candidate-image SBOMs
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -551,6 +566,7 @@ jobs:
           path: |
             api-sbom.cdx.json
             web-sbom.cdx.json
+            container-sbom-receipt.json
           if-no-files-found: error
           retention-days: 30
 

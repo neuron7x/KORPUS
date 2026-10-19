@@ -44,7 +44,7 @@ coverage-ratchet: api-test coverage-union
 # is the stricter of the two, so nothing is relaxed by producing this.
 #   make coverage-union   (after api-test and a PostgreSQL run with coverage)
 coverage-union:
-	PYTHONPATH=apps/api/src $(PY) scripts/merge_dialect_coverage.py
+	PYTHONPATH=apps/api/src $(PY) scripts/merge_dialect_coverage.py --allow-local-unbound
 	PYTHONPATH=apps/api/src:. $(PY) scripts/coverage_gap_plan.py --coverage var/coverage-union.json --out var/coverage-gap-plan-union.json
 
 deterministic-replay:
@@ -350,6 +350,12 @@ stemmer-closure:
 ci-scanner-markers:
 	@test -n "$(RUN)" || (echo "RUN is required" >&2; exit 2)
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/fetch_ci_scanner_markers.py \
+	  --run "$(RUN)" $(if $(REPO),--repo "$(REPO)") $(if $(DRY),--dry-run)
+
+.PHONY: ci-assurance-evidence
+ci-assurance-evidence:
+	@test -n "$(RUN)" || (echo "RUN is required" >&2; exit 2)
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/fetch_ci_assurance_evidence.py \
 	  --run "$(RUN)" $(if $(REPO),--repo "$(REPO)") $(if $(DRY),--dry-run)
 
 # Ruff states the same rule as EXE001/EXE002, but it reads only Python under four

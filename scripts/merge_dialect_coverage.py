@@ -1,35 +1,34 @@
 #!/usr/bin/env python3
-"""Union the coverage of the two database dialects this system runs on.
-
-The suite executes against SQLite by default and against PostgreSQL under
-`make postgres-suite`. The deployment runs PostgreSQL; SQLite is the local and offline
-profile. Both are real, and the code says so — `repository.py` alone carries eight
-`dialect.name` branches, and `_initialize_search_index` writes an FTS5 virtual table on
-one and a GIN index on the other.
-
-Measuring only the SQLite run therefore reports every PostgreSQL arm as untaken. Those
-branches are not untested; they are tested by a run whose coverage nobody reads. Measured
-2026-08-28: the PostgreSQL run is a strict superset of the SQLite one — it covers eleven
-branches SQLite cannot reach and none the other way — so the union is what the two runs
-together actually established.
-
-The union is per branch arc, not per file: an arc counts as covered when either run took
-it. Anything neither run took stays missing, which is the number the ratchet reads.
-"""
+"""Union SQLite/PostgreSQL coverage only when subjects and CI receipts agree."""
 
 from __future__ import annotations
 
 import argparse
 import json
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
+
+from korpus.application.coverage_evidence import (  # noqa: E402
+    canonical_json_sha256,
+    merge_reports,
+    same_subject_problem,
+    stamp_report,
+)
+from korpus.application.github_assurance_receipts import (  # noqa: E402
+    identity_from_environment,
+    receipt_bound,
+    same_identity,
+    sha256_bytes,
+)
+from source_digest import source_tree_digest  # noqa: E402
 
 
 def _load(path: Path) -> dict[str, Any]:
-    """json.loads returns Any; a coverage report that is not an object is not a report."""
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise ValueError(f"{path} is not a JSON object")
@@ -37,134 +36,173 @@ def _load(path: Path) -> dict[str, Any]:
 
 
 def same_subject(primary: dict[str, Any], secondary: dict[str, Any]) -> str | None:
-    """Причина, чому два прогони описують РІЗНІ дерева, або None.
+    """Compatibility entrypoint used by the subject-boundary tests."""
 
-    Злиття зіставляє гілки за (файл, дуга), а дуга — це пара НОМЕРІВ РЯДКІВ. Якщо два
-    прогони зняті на різних деревах, зсув коду робить старі дуги випадково збіжними з
-    новим кодом, і вони зараховуються як покриті. Помилка йде в НЕБЕЗПЕЧНИЙ бік:
-    покриття завищується, а ратчет читає саме це число.
-
-    Виміряно 08.09.2026. `var/coverage-postgres.json` був знятий 06.09, до злиття
-    керованого шару спроможностей (16 407 рядків). Обʼєднання з ним давало 233
-    непокриті гілки; після перезняття ПостгреSQL на цьому ж дереві — 247. Чотирнадцять
-    «покритих» гілок існували лише як збіг номерів.
-
-    Перевірка не потребує стороннього провенансу: якщо дерева ті самі, перелік файлів і
-    кількість тверджень у кожному збігаються. Розбіжність тут — не «трохи інший
-    прогін», а інший предмет.
-    """
-    left, right = primary.get("files", {}), secondary.get("files", {})
-    only_left = sorted(set(left) - set(right))
-    only_right = sorted(set(right) - set(left))
-    if only_left or only_right:
-        return (
-            "прогони описують різні дерева: файлів лише в первинному "
-            f"{len(only_left)}, лише у вторинному {len(only_right)}; "
-            f"напр. {(only_left or only_right)[:2]}"
-        )
-    shifted = [
-        path
-        for path, entry in left.items()
-        if entry.get("summary", {}).get("num_statements")
-        != right[path].get("summary", {}).get("num_statements")
-    ]
-    if shifted:
-        return (
-            f"прогони описують різні дерева: у {len(shifted)} файлах різна кількість "
-            f"тверджень; напр. {sorted(shifted)[:2]}"
-        )
-    return None
+    return same_subject_problem(primary, secondary)
 
 
 def merge(primary: dict[str, Any], secondary: dict[str, Any]) -> dict[str, Any]:
-    merged: dict[str, Any] = json.loads(json.dumps(primary))
-    files: dict[str, Any] = merged["files"]
-    other: dict[str, Any] = secondary.get("files", {})
-    for path, entry in files.items():
-        counterpart = other.get(path)
-        if counterpart is None:
-            continue
-        missing_here = {tuple(arc) for arc in entry.get("missing_branches", [])}
-        missing_there = {tuple(arc) for arc in counterpart.get("missing_branches", [])}
-        still_missing = sorted(missing_here & missing_there)
-        entry["missing_branches"] = [list(arc) for arc in still_missing]
-        missing_lines = sorted(
-            set(entry.get("missing_lines", [])) & set(counterpart.get("missing_lines", []))
-        )
-        entry["missing_lines"] = missing_lines
+    """Pure merge for tests/local analysis; publication requires canonical receipts."""
 
-        summary = entry["summary"]
-        summary["missing_branches"] = len(still_missing)
-        summary["covered_branches"] = summary["num_branches"] - len(still_missing)
-        summary["missing_lines"] = len(missing_lines)
-        summary["covered_lines"] = summary["num_statements"] - len(missing_lines)
-        if summary["num_branches"]:
-            summary["percent_branches_covered"] = (
-                100.0 * summary["covered_branches"] / summary["num_branches"]
-            )
-        if summary["num_statements"]:
-            summary["percent_statements_covered"] = (
-                100.0 * summary["covered_lines"] / summary["num_statements"]
-            )
+    return merge_reports(
+        primary,
+        secondary,
+        input_sha256={
+            "sqlite": canonical_json_sha256(primary),
+            "postgresql": canonical_json_sha256(secondary),
+        },
+        receipt_sha256={"sqlite": "0" * 64, "postgresql": "0" * 64},
+        run_identity={"provider": "local-unbound"},
+    )
 
-    totals = merged["totals"]
-    totals["missing_branches"] = sum(
-        entry["summary"]["missing_branches"] for entry in files.values()
+
+def _receipt_subject_bound(
+    receipt: Mapping[str, Any], report: Mapping[str, Any], report_name: str, dialect: str
+) -> bool:
+    subjects = receipt.get("subjects")
+    subject = subjects.get("coverage") if isinstance(subjects, Mapping) else None
+    provenance = report.get("korpus_coverage")
+    return (
+        isinstance(subject, Mapping)
+        and isinstance(provenance, Mapping)
+        and subject.get("dialect") == dialect
+        and subject.get("report") == report_name
+        and subject.get("source_inputs_sha256") == provenance.get("source_inputs_sha256")
+        and subject.get("file_structure_sha256") == provenance.get("file_structure_sha256")
     )
-    totals["covered_branches"] = totals["num_branches"] - totals["missing_branches"]
-    totals["missing_lines"] = sum(entry["summary"]["missing_lines"] for entry in files.values())
-    totals["covered_lines"] = totals["num_statements"] - totals["missing_lines"]
-    totals["percent_statements_covered"] = (
-        100.0 * totals["covered_lines"] / totals["num_statements"]
-    )
-    totals["percent_branches_covered"] = 100.0 * totals["covered_branches"] / totals["num_branches"]
-    merged["dialect_union"] = {
-        "schema": "korpus.dialect-coverage-union.v1",
-        "runs": ["sqlite", "postgresql"],
-        "interpretation": (
-            "A branch counts as covered when either dialect's run took it. Both dialects "
-            "are executed by the suite; only one of them was previously measured."
+
+
+def _canonical_inputs(
+    primary_path: Path,
+    secondary_path: Path,
+    primary_receipt_path: Path,
+    secondary_receipt_path: Path,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, str], dict[str, str], dict[str, Any]]:
+    primary, secondary = _load(primary_path), _load(secondary_path)
+    primary_receipt = _load(primary_receipt_path)
+    secondary_receipt = _load(secondary_receipt_path)
+    primary_bytes, secondary_bytes = primary_path.read_bytes(), secondary_path.read_bytes()
+    identity = identity_from_environment()
+    source = source_tree_digest("HEAD")
+    checks = (
+        receipt_bound(
+            primary_receipt,
+            identity=identity,
+            kind="coverage-sqlite",
+            job="sqlite-coverage",
+            source_tree_sha256=source,
+            artifacts={primary_path.name: primary_bytes},
         ),
+        receipt_bound(
+            secondary_receipt,
+            identity=identity,
+            kind="coverage-postgresql",
+            job="postgres",
+            source_tree_sha256=source,
+            artifacts={secondary_path.name: secondary_bytes},
+        ),
+        same_identity(primary_receipt, secondary_receipt),
+        _receipt_subject_bound(primary_receipt, primary, primary_path.name, "sqlite"),
+        _receipt_subject_bound(secondary_receipt, secondary, secondary_path.name, "postgresql"),
+    )
+    if not all(checks):
+        raise ValueError("coverage input receipt is foreign, stale, or byte-divergent")
+    return (
+        primary,
+        secondary,
+        {"sqlite": sha256_bytes(primary_bytes), "postgresql": sha256_bytes(secondary_bytes)},
+        {
+            "sqlite": sha256_bytes(primary_receipt_path.read_bytes()),
+            "postgresql": sha256_bytes(secondary_receipt_path.read_bytes()),
+        },
+        identity,
+    )
+
+
+def _arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--primary", type=Path, default=ROOT / "var/coverage.json")
+    parser.add_argument("--secondary", type=Path, default=ROOT / "var/coverage-postgres.json")
+    parser.add_argument(
+        "--primary-receipt", type=Path, default=ROOT / "var/coverage-sqlite-receipt.json"
+    )
+    parser.add_argument(
+        "--secondary-receipt",
+        type=Path,
+        default=ROOT / "var/coverage-postgresql-receipt.json",
+    )
+    parser.add_argument("--out", type=Path, default=ROOT / "var/coverage-union.json")
+    parser.add_argument("--allow-local-unbound", action="store_true")
+    return parser.parse_args()
+
+
+def _local_inputs(
+    primary_path: Path, secondary_path: Path
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, str], dict[str, str], dict[str, str]]:
+    source = source_tree_digest("HEAD")
+    primary = stamp_report(
+        _load(primary_path), dialect="sqlite", source_tree_sha256=source, root=ROOT
+    )
+    secondary = stamp_report(
+        _load(secondary_path), dialect="postgresql", source_tree_sha256=source, root=ROOT
+    )
+    inputs = {
+        "sqlite": sha256_bytes(primary_path.read_bytes()),
+        "postgresql": sha256_bytes(secondary_path.read_bytes()),
     }
-    return merged
+    return (
+        primary,
+        secondary,
+        inputs,
+        dict.fromkeys(inputs, "0" * 64),
+        {"provider": "local-unbound"},
+    )
+
+
+def _write_result(path: Path, merged: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(merged, ensure_ascii=False) + "\n", encoding="utf-8")
+    totals = merged["totals"]
+    result = {
+        "schema": merged["dialect_union"]["schema"],
+        "status": "PASS",
+        "out": str(path.relative_to(ROOT)),
+        "missing_branches": totals["missing_branches"],
+        "branch_rate": round(totals["covered_branches"] / totals["num_branches"], 6),
+        "statement_rate": round(totals["covered_lines"] / totals["num_statements"], 6),
+    }
+    print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--primary", type=Path, default=ROOT / "var/coverage.json")
-    parser.add_argument("--secondary", type=Path, default=ROOT / "var/coverage-postgres.json")
-    parser.add_argument("--out", type=Path, default=ROOT / "var/coverage-union.json")
-    args = parser.parse_args()
-
-    for path in (args.primary, args.secondary):
-        if not path.is_file():
-            print(json.dumps({"status": "FAIL", "reason": f"missing coverage report: {path}"}))
-            return 1
-
-    primary, secondary = _load(args.primary), _load(args.secondary)
-    divergence = same_subject(primary, secondary)
-    if divergence is not None:
-        print(json.dumps({"status": "FAIL", "reason": divergence}, ensure_ascii=False))
+    args = _arguments()
+    reports = (args.primary, args.secondary)
+    receipts_paths = (args.primary_receipt, args.secondary_receipt)
+    required = reports if args.allow_local_unbound else (*reports, *receipts_paths)
+    missing = [str(path) for path in required if not path.is_file()]
+    if missing:
+        print(json.dumps({"status": "FAIL", "reason": f"missing inputs: {missing}"}))
         return 1
-    merged = merge(primary, secondary)
-    args.out.write_text(json.dumps(merged) + "\n", encoding="utf-8")
-    totals = merged["totals"]
-    print(
-        json.dumps(
-            {
-                "schema": "korpus.dialect-coverage-union.v1",
-                "status": "PASS",
-                "out": str(args.out.relative_to(ROOT)),
-                "missing_branches": totals["missing_branches"],
-                "branch_rate": round(totals["covered_branches"] / totals["num_branches"], 6),
-                "statement_rate": round(totals["covered_lines"] / totals["num_statements"], 6),
-            },
-            ensure_ascii=False,
-            indent=2,
+    try:
+        if args.allow_local_unbound:
+            primary, secondary, inputs, receipts, identity = _local_inputs(*reports)
+        else:
+            primary, secondary, inputs, receipts, identity = _canonical_inputs(
+                *reports, *receipts_paths
+            )
+        merged = merge_reports(
+            primary,
+            secondary,
+            input_sha256=inputs,
+            receipt_sha256=receipts,
+            run_identity=identity,
         )
-    )
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        print(json.dumps({"status": "FAIL", "reason": str(error)}, ensure_ascii=False))
+        return 1
+    _write_result(args.out, merged)
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

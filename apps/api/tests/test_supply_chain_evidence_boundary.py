@@ -41,7 +41,14 @@ def test_scanner_summary_requires_every_declared_scanner_exit_zero() -> None:
 def test_container_sbom_filename_without_cyclonedx_payload_is_not_evidence(tmp_path: Path) -> None:
     fake = tmp_path / "api-sbom.cdx.json"
     fake.write_text(
-        json.dumps({"bomFormat": "NotCycloneDX", "specVersion": "1.6", "components": []}),
+        json.dumps(
+            {
+                "bomFormat": "NotCycloneDX",
+                "specVersion": "1.6",
+                "version": 1,
+                "components": [{"type": "library", "name": "a", "version": "1"}],
+            }
+        ),
         encoding="utf-8",
     )
     assert valid_cyclonedx(json.loads(fake.read_text())) is False
@@ -84,13 +91,25 @@ def test_supply_chain_manifest_from_another_source_tree_is_rejected(tmp_path: Pa
 
 
 def test_source_sbom_must_cover_every_locked_component() -> None:
-    sbom = {
-        "bomFormat": "CycloneDX",
-        "specVersion": "1.6",
-        "components": [{"name": "a", "version": "1"}],
-    }
+    sbom = _sbom(("a", "1"))
     assert source_sbom_covers_lock(sbom, {"a": "1"}) is True
     assert source_sbom_covers_lock(sbom, {"a": "1", "missing": "2"}) is False
+
+
+def test_empty_or_unsupported_cyclonedx_is_not_evidence() -> None:
+    assert valid_cyclonedx(_sbom()) is False
+    unsupported = _sbom(("a", "1"))
+    unsupported["specVersion"] = "9.9"
+    assert valid_cyclonedx(unsupported) is False
+
+
+def test_component_without_version_or_supported_type_is_not_complete() -> None:
+    missing_version = _sbom(("a", "1"))
+    del missing_version["components"][0]["version"]  # type: ignore[index]
+    assert valid_cyclonedx(missing_version) is False
+    wrong_type = _sbom(("a", "1"))
+    wrong_type["components"][0]["type"] = "wish"  # type: ignore[index]
+    assert valid_cyclonedx(wrong_type) is False
 
 
 def test_container_scan_marker_requires_both_image_scans_exit_zero() -> None:
@@ -153,3 +172,14 @@ def test_a_local_scan_summary_is_not_the_ci_aggregate() -> None:
     assert scanner_summary_is_ci_aggregate({"schema_version": 1}) is False
     assert scanner_summary_is_ci_aggregate({"schema_version": "2"}) is False
     assert scanner_summary_is_ci_aggregate({}) is False
+
+
+def _sbom(*components: tuple[str, str]) -> dict[str, object]:
+    return {
+        "bomFormat": "CycloneDX",
+        "specVersion": "1.6",
+        "version": 1,
+        "components": [
+            {"type": "library", "name": name, "version": version} for name, version in components
+        ],
+    }

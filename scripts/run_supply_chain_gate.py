@@ -13,12 +13,23 @@ from korpus.application.assurance_evidence import evaluate_supply_chain_evidence
 from korpus.application.assurance_trust import trusted_fingerprints  # noqa: E402
 from korpus.application.production_assurance import gate_payload  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
+from korpus.application.sbom_evidence import SbomCiEvidence  # noqa: E402
 from release_identity import release_tag  # noqa: E402
-from source_digest import commits_with_identical_source  # noqa: E402
+from source_digest import commits_with_identical_source, tracked_tree_digest  # noqa: E402
 
 PIN = re.compile(r"^([A-Za-z0-9_.-]+)==([^\\\s]+)")
 LOCKS = (ROOT / "apps/api/requirements.runtime.lock", ROOT / "apps/api/requirements.dev.lock")
 TRUST = ROOT / "config/assurance/trusted-assurance-signers.json"
+EVIDENCE_NAMES = (
+    "var/ci-evidence/source-sbom.cdx.json",
+    "var/ci-evidence/api-sbom.cdx.json",
+    "var/ci-evidence/web-sbom.cdx.json",
+    "var/security/summary.json",
+    "var/security/ci-container-scan.json",
+    "var/ci-evidence/source-sbom-receipt.json",
+    "var/ci-evidence/container-sbom-receipt.json",
+    "var/ci-evidence/assurance-admission.json",
+)
 
 
 def _json(path: Path) -> dict:
@@ -29,25 +40,44 @@ def _json(path: Path) -> dict:
     return value if isinstance(value, dict) else {}
 
 
-def main() -> int:
-    pins = hashes = 0
+def _lock(path: Path) -> tuple[dict[str, str], int]:
     locked: dict[str, str] = {}
-    for path in LOCKS:
-        for line in path.read_text(encoding="utf-8").splitlines():
-            match = PIN.match(line.strip())
-            if match:
-                pins += 1
-                locked[match.group(1).lower().replace("_", "-")] = match.group(2)
-            if "--hash=sha256:" in line:
-                hashes += 1
-    source, release = compute_source_digest(ROOT), release_tag()
-    names = (
-        "source-sbom.cdx.json",
-        "api-sbom.cdx.json",
-        "web-sbom.cdx.json",
-        "var/security/summary.json",
-        "var/security/ci-container-scan.json",
+    lines = path.read_text(encoding="utf-8").splitlines()
+    for line in lines:
+        if match := PIN.match(line.strip()):
+            locked[match.group(1).lower().replace("_", "-")] = match.group(2)
+    return locked, sum("--hash=sha256:" in line for line in lines)
+
+
+def _lock_inventory() -> tuple[int, int, dict[str, str], dict[str, str]]:
+    runtime, runtime_hashes = _lock(LOCKS[0])
+    development, development_hashes = _lock(LOCKS[1])
+    locked = {**runtime, **development}
+    return len(runtime) + len(development), runtime_hashes + development_hashes, locked, runtime
+
+
+def _sbom_evidence(
+    paths: dict[str, Path], raw: dict[str, bytes], api_locked: dict[str, str]
+) -> SbomCiEvidence:
+    names = EVIDENCE_NAMES
+    return SbomCiEvidence(
+        source_sbom=_json(paths[names[0]]),
+        api_sbom=_json(paths[names[1]]),
+        web_sbom=_json(paths[names[2]]),
+        api_locked=api_locked,
+        source_receipt=_json(paths[names[5]]),
+        source_receipt_bytes=raw[names[5]],
+        container_receipt=_json(paths[names[6]]),
+        container_receipt_bytes=raw[names[6]],
+        admission=_json(paths[names[7]]),
+        source_tree_sha256=tracked_tree_digest("HEAD"),
     )
+
+
+def main() -> int:
+    pins, hashes, locked, api_locked = _lock_inventory()
+    source, release = compute_source_digest(ROOT), release_tag()
+    names = EVIDENCE_NAMES
     paths = {name: ROOT / name for name in names}
     raw = {name: path.read_bytes() if path.is_file() else b"" for name, path in paths.items()}
     manifest_path = ROOT / "var/production/supply-chain-evidence-manifest.json"
@@ -61,9 +91,7 @@ def main() -> int:
         locked=locked,
         scan=_json(paths[names[3]]),
         container_scan=_json(paths[names[4]]),
-        source_sbom=_json(paths[names[0]]),
-        api_sbom=_json(paths[names[1]]),
-        web_sbom=_json(paths[names[2]]),
+        sbom_ci=_sbom_evidence(paths, raw, api_locked),
         manifest=_json(manifest_path),
         artifact_bytes=raw,
         source=source,

@@ -32,11 +32,13 @@ sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from korpus.application.release_claims import binding  # noqa: E402
+from korpus.application.release_coverage_projection import project_coverage  # noqa: E402
 from release_identity import release_tag  # noqa: E402
+from source_digest import source_tree_digest  # noqa: E402
 
 #: Report name in the release directory -> the run artefact that produces it.
 SOURCES = {
-    "COVERAGE_GAP_PLAN.json": "var/coverage-gap-plan.json",
+    "COVERAGE_GAP_PLAN.json": "var/ci-evidence/coverage-gap-plan.json",
     "DETERMINISM_GATE.json": "var/determinism-gate.json",
     "STRESS_GATE.json": "var/stress-gate.json",
     "PLASTICITY_GATE.json": "var/plasticity-gate.json",
@@ -50,26 +52,8 @@ SOURCES = {
 
 
 def coverage_projection(digest: str, release: str) -> dict[str, Any] | None:
-    """`statement_coverage_percent` / `branch_coverage_percent`, which coverage.py omits."""
-    for candidate in ("var/coverage-union.json", "var/coverage.json"):
-        path = ROOT / candidate
-        if not path.is_file():
-            continue
-        totals = json.loads(path.read_text(encoding="utf-8")).get("totals", {})
-        statements = totals.get("num_statements", 0)
-        branches = totals.get("num_branches", 0)
-        if not statements or not branches:
-            continue
-        return {
-            "schema": "korpus.coverage-report.v1",
-            "status": "PASS",
-            "release": release,
-            "source_tree_sha256": digest,
-            "statement_coverage_percent": round(100.0 * totals["covered_lines"] / statements, 4),
-            "branch_coverage_percent": round(100.0 * totals["covered_branches"] / branches, 4),
-            "measured_from": candidate,
-        }
-    return None
+    """Project only exact GitHub-admitted union bytes; never re-label raw totals."""
+    return project_coverage(ROOT, digest, release, source_tree_digest("HEAD"))
 
 
 def main() -> int:
