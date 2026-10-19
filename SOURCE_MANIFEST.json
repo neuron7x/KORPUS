@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2107,
-  "root_sha256": "207cc0c5a2f10d613bee4b5d94cc376af141cb66a520bc084e4de8c2891d3b00",
+  "root_sha256": "7fc7b334f6e5ab50acdee875fd24cecba8047edd2b844b87d9f48bee84701bdb",
   "files": [
     {
       "path": ".dockerignore",
@@ -11019,7 +11019,7 @@
       "path": "scripts/final_release_context.py",
       "bytes": 3330,
       "sha256": "2f9aa8eecfc2f6034d9a2b366c105f72f7ccfee26eee1c19098d9cc48cd5e1df",
-      "mode": "0755"
+      "mode": "0644"
     },
     {
       "path": "scripts/freeze_release_candidate.py",
