@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -38,23 +39,19 @@ def test_runtime_binds_shell_suite_to_the_current_interpreter(monkeypatch) -> No
     assert captured["environment"] == {"PYTHON": sys.executable}
 
 
-def test_run_helper_merges_overrides_without_losing_process_environment(monkeypatch) -> None:
-    captured: dict[str, object] = {}
-
-    def fake_subprocess_run(command, **kwargs):
-        captured.update(kwargs)
-        return subprocess.CompletedProcess(command, 0, "", "")
-
+def test_run_helper_merges_overrides_without_losing_process_environment(
+    monkeypatch, tmp_path: Path
+) -> None:
     monkeypatch.setenv("KORPUS_SENTINEL", "preserved")
-    process_subprocess = MODULE.process_run.__globals__["subprocess"]
-    monkeypatch.setattr(process_subprocess, "run", fake_subprocess_run)
-
-    MODULE.process_run(
-        ROOT, [sys.executable, "--version"], 3, environment={"PYTHON": sys.executable}
+    code = (
+        "import json, os; print(json.dumps({name: os.environ[name] "
+        "for name in ('KORPUS_SENTINEL', 'PYTHON', 'PYTHONPATH')}))"
     )
-
-    environment = captured["env"]
-    assert isinstance(environment, dict)
+    completed = MODULE.process_run(
+        tmp_path, [sys.executable, "-c", code], 3, environment={"PYTHON": sys.executable}
+    )
+    assert completed.returncode == 0, completed.stderr
+    environment = json.loads(completed.stdout)
     assert environment["KORPUS_SENTINEL"] == "preserved"
     assert environment["PYTHON"] == sys.executable
-    assert environment["PYTHONPATH"] == str(ROOT / "apps/api/src")
+    assert environment["PYTHONPATH"] == str(tmp_path / "apps/api/src")

@@ -675,7 +675,9 @@ def test_every_job_that_runs_the_suite_has_git_in_its_image() -> None:
         if not header.endswith(":") or header.startswith(("#", " ")):
             continue
         name = header[:-1]
-        if not re.search(r"pytest[^\n]*apps/api/tests", block):
+        if not re.search(
+            r"pytest[^\n]*apps/api/tests|\bmake\s+(?:api-test|coverage-ratchet)\b", block
+        ):
             continue
         if name == ".python-job" or "extends: .python-job" in block:
             continue
@@ -797,7 +799,9 @@ def test_every_job_running_the_suite_uses_the_production_interpreter() -> None:
         if not header.endswith(":") or header.startswith(("#", " ")):
             continue
         name = header[:-1]
-        if not re.search(r"pytest[^\n]*apps/api/tests", block):
+        if not re.search(
+            r"pytest[^\n]*apps/api/tests|\bmake\s+(?:api-test|coverage-ratchet)\b", block
+        ):
             continue
         if "extends: .python-job" in block:
             continue
@@ -821,10 +825,10 @@ def test_the_coverage_thresholds_are_checked_where_coverage_is_produced() -> Non
     because it bounds one combined line-and-branch number, not the two the policy
     states separately.
     """
-    for label, lines in (
-        ("make api-test", _makefile_recipe("api-test")),
-        ("api:test", _ci_script("api:test")),
-    ):
+    # The CI job executes the canonical Make recipe, which now binds native data
+    # and a receipt to the real pytest command. Removing that call must fail here.
+    assert "make api-test PY=python" in _ci_script("api:test")
+    for label, lines in (("make api-test", _makefile_recipe("api-test")),):
         assert any("scripts/check_coverage_thresholds.py" in line for line in lines), (
             f"{label} no longer checks the policy coverage minimums: {lines}"
         )

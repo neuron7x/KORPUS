@@ -164,7 +164,7 @@ repository:validate:
     # full-ssot-package, so a commit could leave BLOCKER_REGISTRY and CLAIM_LEDGER bound to
     # a tree that no longer exists and every gate stayed green — the evidence claiming to
     # describe this revision described an earlier one.
-    - PYTHONPATH=apps/api/src:. python scripts/verify_current_truth.py
+    - PYTHONPATH=apps/api/src:. python scripts/verify_current_truth.py --context FULL_SSOT_DISTRIBUTION
     # Nine targets of `make validate` ran nowhere in this pipeline until 2026-08-29. The
     # doctrine catalog's fourteen provenance rules were among them: green locally and
     # unexecuted on push, which is the same state as not having them. Two more
@@ -261,10 +261,8 @@ api:test:
     # was ever produced, so that script — and the release packaging that calls it —
     # could not complete; nobody saw it because the pipeline never reached the package
     # stage until 2026-08-03.
-    - pytest apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=xml:var/coverage.xml --cov-report=json:var/coverage.json --cov-fail-under=82 --junitxml=var/pytest.xml
-    # Both policy minimums, checked where the numbers are produced rather than in
-    # source:package four stages later.
-    - python scripts/check_coverage_thresholds.py
+    # Use the same measured producer and separate line/branch gates as GitHub/local.
+    - make api-test PY=python
   artifacts:
     when: always
     reports:
@@ -276,6 +274,8 @@ api:test:
       - var/pytest.xml
       - var/coverage.xml
       - var/coverage.json
+      - var/coverage-sqlite.data
+      - var/coverage-sqlite-receipt.json
 
 api:quality:
   extends: .python-job
@@ -480,7 +480,7 @@ api:postgres-and-restore:
     # counted as untested debt, and a branch only SQLite takes was equally unseen here.
     # This used to pass --no-cov, so the PostgreSQL half of the union did not exist and
     # the ratchet could not run in the pipeline at all.
-    - KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" pytest -q apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=json:var/coverage-postgres.json --cov-report= --cov-fail-under=0
+    - KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" python scripts/collect_dialect_coverage.py --dialect postgresql -- python -m pytest -q apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=json:var/coverage-postgres.json --cov-report= --cov-fail-under=0
     # Materialize the PostgreSQL/RLS production gate while the real pg17 service is alive.
     - KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" PYTHONPATH=apps/api/src:scripts python scripts/run_postgres_security_gate.py
     - python -c "import secrets, pathlib; pathlib.Path('var/backup-encryption.key').write_text(secrets.token_hex(32))"
@@ -540,6 +540,8 @@ api:postgres-and-restore:
       - var/load-probe.json
       - var/load-api.log
       - var/coverage-postgres.json
+      - var/coverage-postgres.data
+      - var/coverage-postgres-receipt.json
       - var/production/postgres_security-gate.json
 
 secret:scan:

@@ -1,6 +1,10 @@
 SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
+REPOSITORY_CONTEXT ?= FULL_SSOT_DISTRIBUTION
+PRODUCTION_CONTEXT ?= PRODUCTION_EVIDENCE
+CURRENT_TRUTH_CONTEXT ?= FULL_SSOT_DISTRIBUTION
+PUBLISH_CURRENT_REPORTS ?= 1
 
 .PHONY: pilot-posture install-pilot-runtime machine-tevv release-freeze ci-run ci-mirror assurance-model assurance-model-selftest production-exact-environment-image mcp-serve corpus-axes evidence-bases dormant-subsystems control-copy serving-freshness lane-report branch-consolidation install-nightly-gates check-nightly nightly-load-probe nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite attest-restore drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify corpus-path-declarations document-references diversify-benchmark declared-metrics retention-plan postgres-suite postgres-coverage sqlite-recovery-drill recover-corpus admission-differential adjudication-properties corruption-repro handoff-verify handoff-verify-bound openapi audit-closure audit-closure-local desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map bibliography bibliography-check slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness evidence-freshness release-surface release-verify release-verify-closure answer-quality answer-axes corpus-integrity corpus-readability corpus-heal recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full evidence-stores selftest-coverage selftest-falsifiability installed-units-verify canonical-verify branch-integration owner-packet owner-packet-check mutation-delta-gate mutation-delta-gate-selftest blank-corpus-probe clean-room serving-readiness serving-readiness-selftest evidence-epistemics evidence-epistemics-selftest corpus-pack corpus-install corpus-transport-rehearsal corpus-transport-selftest
 
@@ -24,7 +28,7 @@ api-run:
 # very end of the pipeline — so branch coverage sat below policy for as long as anyone
 # had been writing tests. check_coverage_thresholds.py reads both from the policy.
 api-test:
-	PYTHONPATH=apps/api/src $(PY) -m pytest apps/api/tests -p no:cacheprovider --junitxml=var/pytest.xml --cov=apps/api/src/korpus --cov-branch --cov-report=term-missing --cov-report=xml:var/coverage.xml --cov-report=json:var/coverage.json --cov-fail-under=82
+	PYTHONPATH=apps/api/src $(PY) scripts/collect_dialect_coverage.py --dialect sqlite --xml-report var/coverage.xml -- $(PY) -m pytest apps/api/tests -p no:cacheprovider --junitxml=var/pytest.xml --cov=apps/api/src/korpus --cov-branch --cov-report=term-missing --cov-report=xml:var/coverage.xml --cov-report=json:var/coverage.json --cov-fail-under=82
 	PYTHONPATH=apps/api/src $(PY) scripts/check_coverage_thresholds.py
 
 # The ratchet reads the union of both dialects, because both are what the suite runs.
@@ -33,7 +37,8 @@ api-test:
 # then lists work that is already done. `coverage-union` fails closed when the PostgreSQL
 # report is absent rather than silently falling back to the SQLite one, so the number the
 # ratchet reads always says which runs produced it.
-coverage-ratchet: api-test coverage-union
+coverage-ratchet: api-test
+	$(MAKE) coverage-union PY=$(PY)
 	PYTHONPATH=apps/api/src:. $(PY) scripts/coverage_gap_plan.py --coverage var/coverage-union.json --out var/coverage-gap-plan.json
 
 # The suite runs against both dialects; only one of them was ever measured. `api-test`
@@ -146,7 +151,7 @@ mutation-probe:
 	  $(if $(SAMPLE),--sample $(SAMPLE)) $(if $(SEED),--seed $(SEED))
 
 mutation:
-	PYTHONPATH=apps/api/src PYTHON=$(PY) KORPUS_MUTATION_SHARDS=6 scripts/run_mutation_shards.sh
+	PYTHONPATH=apps/api/src PYTHON=$(PY) KORPUS_MUTATION_SHARDS=6 scripts/run_mutation_shards.sh $(MUTATION_ARGS)
 
 # The suite against a migrated PostgreSQL database, in a throwaway container. Not part
 # of `check`: it needs docker, and `check` has to run where docker does not. It is a
@@ -207,7 +212,7 @@ snapshot:
 # The register as a document: §2.5 asks an outside party to judge this system, and the
 # first thing they need is the list of properties it claims about itself.
 requirements-register:
-	PYTHONPATH=apps/api/src $(PY) scripts/export_requirements.py
+	PYTHONPATH=apps/api/src $(PY) scripts/export_requirements.py $(if $(REQUIREMENTS_CHECK),--check)
 
 import-cycles:
 	PYTHONPATH=apps/api/src $(PY) scripts/check_import_cycles.py
@@ -263,7 +268,7 @@ release-mutation-delta:
 dependency-locks:
 	mkdir -p var
 	PYTHONPATH=apps/api/src:. $(PY) scripts/verify_dependency_locks.py --out var/dependency-lock-report.json --osv-out var/osv-query-batch.json
-	install -m 0644 var/dependency-lock-report.json reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json
+	if [[ "$(PUBLISH_CURRENT_REPORTS)" == 1 ]]; then install -m 0644 var/dependency-lock-report.json reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json; elif [[ "$(PUBLISH_CURRENT_REPORTS)" != 0 ]]; then exit 2; fi
 
 assurance-model-check:
 	mkdir -p var
@@ -272,7 +277,7 @@ assurance-model-check:
 standards-control-map:
 	mkdir -p var
 	PYTHONPATH=apps/api/src:. $(PY) scripts/verify_standards_control_map.py --out var/standards-control-map-verification.json
-	install -m 0644 var/standards-control-map-verification.json reports/STANDARDS_CONTROL_MAP_VERIFICATION.json
+	if [[ "$(PUBLISH_CURRENT_REPORTS)" == 1 ]]; then install -m 0644 var/standards-control-map-verification.json reports/STANDARDS_CONTROL_MAP_VERIFICATION.json; elif [[ "$(PUBLISH_CURRENT_REPORTS)" != 0 ]]; then exit 2; fi
 
 bibliography:
 	$(PY) scripts/verify_bibliography.py --write --selftest
@@ -645,7 +650,7 @@ answer-quality: serving-freshness
 	  $(if $(TOKEN),--token "$(TOKEN)")
 
 mutation-report-freshness:
-	PYTHONPATH=apps/api/src $(PY) scripts/check_mutation_report_freshness.py
+	PYTHONPATH=apps/api/src $(PY) scripts/check_mutation_report_freshness.py $(if $(MUTATION_REPORT),--report "$(MUTATION_REPORT)")
 	PYTHONPATH=apps/api/src $(PY) scripts/check_mutation_report_freshness.py --selftest
 
 # Ширше питання, ніж у сусіда вище, і поставлене ПЕРШИМ у своєму класі: не «чи цей один
@@ -902,8 +907,9 @@ public-health:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
+.NOTPARALLEL: validate
 validate: mutation-delta-gate-selftest serving-readiness-selftest evidence-epistemics-selftest corpus-transport-selftest production-hard-predicates-selftest assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget stemmer-closure admission-differential adjudication-properties file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates package-build-identity production-observability production-inference-security production-exact-environment
-	python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
+	python3 scripts/validate_repository.py --context $(REPOSITORY_CONTEXT)
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py
 
@@ -1615,7 +1621,7 @@ production-exact-environment-image:
 	  korpus-api:exact-env python scripts/run_exact_environment_gate.py --profile runtime
 
 production-hard-predicates:
-	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_production_hard_predicates.py
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_production_hard_predicates.py --context $(PRODUCTION_CONTEXT) $(if $(PRODUCTION_REPORT),--out "$(PRODUCTION_REPORT)")
 
 # Репродукція кандидата з ВІДДАЛЕНОГО джерела зі свіжими залежностями. Артефакт
 # `reports/closure/CLEAN_ROOM_REPRODUCTION.json` доти не мав виробника в дереві: його
@@ -1703,7 +1709,7 @@ evidence-refresh:
 	$(MAKE) current-truth-verify PY=$(PY) OUT=reports/CURRENT_TRUTH_VERIFICATION.json
 
 current-truth-verify:
-	PYTHONPATH=apps/api/src:. $(PY) scripts/verify_current_truth.py $(if $(OUT),--out "$(OUT)")
+	PYTHONPATH=apps/api/src:. $(PY) scripts/verify_current_truth.py --context $(CURRENT_TRUTH_CONTEXT) $(if $(OUT),--out "$(OUT)")
 
 regression-carry-forward-verify:
 	PYTHONPATH=apps/api/src:. $(PY) scripts/verify_regression_carry_forward.py $(if $(POLICY),--policy "$(POLICY)") $(if $(OUT),--out "$(OUT)")

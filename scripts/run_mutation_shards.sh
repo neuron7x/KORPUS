@@ -42,4 +42,4 @@ if [[ "$failed" -ne 0 ]]; then
   done
   exit 1
 fi
-PYTHONPATH="${PYTHONPATH:-$root/apps/api/src}" "$python_bin" scripts/run_mutation_tests.py --merge --shard-count "$shards"
+PYTHONPATH="${PYTHONPATH:-$root/apps/api/src}" "$python_bin" scripts/run_mutation_tests.py --merge --shard-count "$shards" "$@"

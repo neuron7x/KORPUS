@@ -1,28 +1,16 @@
 #!/usr/bin/env python3
-"""Які звіти доказів описують ІНШЕ дерево — і чим саме їх перевипустити.
+"""Identify stale evidence and an ordered, dependency-complete repair plan.
 
-Звіт — це твердження про дерево, не про світ. Щойно джерело змінилось, кожен звіт,
-знятий раніше, говорить про щось інше, і гейти нижче кажуть це трьома різними словами:
-`evidence_provenance`, `generated from a different source tree`, `доказ описує стан,
-якого немає в жодному коміті`. Три повідомлення, одна причина, і дізнаєшся про неї аж на
-третьому гейті. Ця перевірка ставить те саме питання ПЕРШОЮ і називає команду.
+Producer reports bind provenance.source_digest to the measured source tree.
+Consumers bind evidence_sha256 to the exact bytes they read. Regenerating a
+producer invalidates its consumers even if their current hashes still match.
 
-ДВІ РОЛІ, І ЇХ НЕ МОЖНА ПЕРЕВІРЯТИ ОДНАКОВО.
+The canonical PRODUCERS and topologically ordered CONSUMERS mappings define both
+freshness checks and repair propagation; there is no second dependency catalogue.
+JUnit has no provenance envelope and is outside this check.
 
-Виробник (`eval`, `mutation`, `migration`, `scale`) кладе в себе `provenance.source_digest` —
-тотожність дерева, яке він міряв. Споживач (`operational-gate`) кладе `evidence_sha256` —
-хеші ФАЙЛІВ, які він прочитав. Перший застаріває від зміни джерела, другий — від
-перевипуску будь-якого виробника, і саме це `snapshot` каже словами «the gate passed over
-a different file than the one about to be promoted».
-
-`var/pytest.xml` тут немає навмисно: JUnit не несе походження взагалі, тож питати його
-про дерево означало б завжди діставати відповідь «не знаю» й читати її як несвіжість.
-
-Обмеження, назване тут, бо його легко переплутати: у дереві живуть ДВІ міри джерела —
-`compute_source_digest` (обсяг EVIDENCE_SOURCE_PATHS) і `source_digest.source_tree_digest`
-(усе відстежене мінус reports/var/dist). Порівняння однієї з другою читається як
-«не прив'язано», хоча насправді порівняли два різні виміри. Тут ПЕРША, бо саме її кладуть
-у `provenance.source_digest` виробники.
+This compares the evidence_paths digest from compute_source_digest, not the wider
+tracked_tree digest from scripts/source_digest.py; those scopes are not interchangeable.
 """
 
 from __future__ import annotations
@@ -105,6 +93,13 @@ def _consumer_state(root: Path, relative: str, inputs: dict[str, str]) -> tuple[
     return ("СВІЖИЙ" if not moved else "СУДИВ ІНШІ ФАЙЛИ"), sorted(moved)
 
 
+def _planned_input_change(inputs: dict[str, str], rerun: list[str]) -> bool:
+    return any(
+        relative in inputs.values() and target in rerun
+        for relative, target, *_ in (*PRODUCERS, *CONSUMERS)
+    )
+
+
 def evaluate(root: Path) -> dict[str, object]:
     expected = compute_source_digest(root)
     rows: list[dict[str, object]] = []
@@ -133,7 +128,7 @@ def evaluate(root: Path) -> dict[str, object]:
                 "moved_inputs": moved,
             }
         )
-        if state != "СВІЖИЙ":
+        if state != "СВІЖИЙ" or _planned_input_change(inputs, rerun):
             rerun.append(target)
     return {
         "status": "FAIL" if rerun else "PASS",
