@@ -58,7 +58,7 @@ def evaluate(s: Sources) -> list[tuple[str, bool, str]]:
         (
             "PRIVATE_NETWORK_STATE_BINDING",
             'output "runtime_network"' in all_tf
-            and "runtime_network   = local.foundation.runtime_network" in all_tf,
+            and "runtime_network  = local.foundation.runtime_network" in all_tf,
             "runtime consumes the network/subnet identity from immutable foundation remote state rather than duplicating names",
         ),
     ]

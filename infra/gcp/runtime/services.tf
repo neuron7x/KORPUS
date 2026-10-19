@@ -88,9 +88,9 @@ resource "google_cloud_run_v2_service" "api" {
   }
 
   template {
-    service_account                 = local.service_accounts.api
-    timeout                         = "60s"
-    execution_environment           = "EXECUTION_ENVIRONMENT_GEN2"
+    service_account                  = local.service_accounts.api
+    timeout                          = "60s"
+    execution_environment            = "EXECUTION_ENVIRONMENT_GEN2"
     max_instance_request_concurrency = 40
 
     vpc_access {

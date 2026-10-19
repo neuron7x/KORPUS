@@ -11,10 +11,10 @@ resource "google_monitoring_slo" "edge_availability" {
   project             = var.project_id
   service             = google_monitoring_custom_service.edge.service_id
   slo_id              = "edge-availability"
-  display_name         = "KORPUS edge availability"
-  goal                 = var.availability_slo_goal
-  rolling_period_days  = var.availability_slo_rolling_days
-  deletion_policy      = "PREVENT"
+  display_name        = "KORPUS edge availability"
+  goal                = var.availability_slo_goal
+  rolling_period_days = var.availability_slo_rolling_days
+  deletion_policy     = "PREVENT"
 
   request_based_sli {
     good_total_ratio {

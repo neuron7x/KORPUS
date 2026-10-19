@@ -170,7 +170,7 @@ variable "api_stable_traffic" {
     condition = (
       length(var.api_stable_traffic) == 0
       || (sum(values(var.api_stable_traffic)) == 100
-          && alltrue([for revision, percent in var.api_stable_traffic : can(regex("^[a-z][a-z0-9-]{0,62}$", revision)) && percent > 0 && percent <= 100 && floor(percent) == percent]))
+      && alltrue([for revision, percent in var.api_stable_traffic : can(regex("^[a-z][a-z0-9-]{0,62}$", revision)) && percent > 0 && percent <= 100 && floor(percent) == percent]))
     )
     error_message = "api_stable_traffic must be empty for first deploy or an immutable revision map summing exactly to 100."
   }
@@ -184,7 +184,7 @@ variable "web_stable_traffic" {
     condition = (
       length(var.web_stable_traffic) == 0
       || (sum(values(var.web_stable_traffic)) == 100
-          && alltrue([for revision, percent in var.web_stable_traffic : can(regex("^[a-z][a-z0-9-]{0,62}$", revision)) && percent > 0 && percent <= 100 && floor(percent) == percent]))
+      && alltrue([for revision, percent in var.web_stable_traffic : can(regex("^[a-z][a-z0-9-]{0,62}$", revision)) && percent > 0 && percent <= 100 && floor(percent) == percent]))
     )
     error_message = "web_stable_traffic must be empty for first deploy or an immutable revision map summing exactly to 100."
   }
@@ -236,62 +236,62 @@ variable "worker_instances" {
 }
 
 variable "embedding_backfill_enabled" {
-  type = bool
-  default = false
+  type        = bool
+  default     = false
   description = "Provision the bounded singleton semantic reconciliation job; execution remains explicit."
 }
 
 variable "embedding_endpoint" {
-  type = string
+  type    = string
   default = ""
   validation {
-    condition = !var.embedding_backfill_enabled || can(regex("^https://", var.embedding_endpoint))
+    condition     = !var.embedding_backfill_enabled || can(regex("^https://", var.embedding_endpoint))
     error_message = "embedding_endpoint must use HTTPS when backfill is enabled."
   }
 }
 
 variable "embedding_model_id" {
-  type = string
+  type    = string
   default = ""
   validation {
-    condition = !var.embedding_backfill_enabled || can(regex("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$", var.embedding_model_id))
+    condition     = !var.embedding_backfill_enabled || can(regex("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$", var.embedding_model_id))
     error_message = "embedding_model_id must be a bounded canonical identifier when enabled."
   }
 }
 
 variable "embedding_dimensions" {
-  type = number
+  type    = number
   default = 768
   validation {
-    condition = floor(var.embedding_dimensions) == var.embedding_dimensions && var.embedding_dimensions >= 8 && var.embedding_dimensions <= 4000
+    condition     = floor(var.embedding_dimensions) == var.embedding_dimensions && var.embedding_dimensions >= 8 && var.embedding_dimensions <= 4000
     error_message = "embedding_dimensions must be an integer within [8,4000]."
   }
 }
 
 variable "embedding_token_secret_id" {
-  type = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Secret Manager secret ID containing the embedding token, never its value."
   validation {
-    condition = !var.embedding_backfill_enabled || can(regex("^[A-Za-z][A-Za-z0-9_-]{0,254}$", var.embedding_token_secret_id))
+    condition     = !var.embedding_backfill_enabled || can(regex("^[A-Za-z][A-Za-z0-9_-]{0,254}$", var.embedding_token_secret_id))
     error_message = "embedding_token_secret_id must name a Secret Manager secret when enabled."
   }
 }
 
 variable "embedding_backfill_batch_size" {
-  type = number
+  type    = number
   default = 32
   validation {
-    condition = floor(var.embedding_backfill_batch_size) == var.embedding_backfill_batch_size && var.embedding_backfill_batch_size >= 1 && var.embedding_backfill_batch_size <= 64
+    condition     = floor(var.embedding_backfill_batch_size) == var.embedding_backfill_batch_size && var.embedding_backfill_batch_size >= 1 && var.embedding_backfill_batch_size <= 64
     error_message = "embedding_backfill_batch_size must be an integer within [1,64]."
   }
 }
 
 variable "embedding_backfill_max_batches" {
-  type = number
+  type    = number
   default = 100
   validation {
-    condition = floor(var.embedding_backfill_max_batches) == var.embedding_backfill_max_batches && var.embedding_backfill_max_batches >= 1 && var.embedding_backfill_max_batches <= 10000
+    condition     = floor(var.embedding_backfill_max_batches) == var.embedding_backfill_max_batches && var.embedding_backfill_max_batches >= 1 && var.embedding_backfill_max_batches <= 10000
     error_message = "embedding_backfill_max_batches must be an integer within [1,10000]."
   }
 }

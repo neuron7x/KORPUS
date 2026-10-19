@@ -1,6 +1,7 @@
 name: gcp-production
 
 on:
+  pull_request:
   push:
     branches: [main]
   workflow_dispatch:
@@ -8,7 +9,7 @@ on:
 permissions: {}
 
 concurrency:
-  group: gcp-production
+  group: gcp-production-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -74,7 +75,7 @@ jobs:
         run: |
           terraform fmt -check -recursive infra/gcp
           for stack in bootstrap foundation runtime; do
-            terraform -chdir="infra/gcp/${stack}" init -backend=false -input=false
+            terraform -chdir="infra/gcp/${stack}" init -backend=false -input=false -lockfile=readonly
             terraform -chdir="infra/gcp/${stack}" validate
           done
 

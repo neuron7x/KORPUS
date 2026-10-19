@@ -29,6 +29,36 @@ def test_current_slo_contract_passes() -> None:
     assert status and all(status.values()), [name for name, ok in status.items() if not ok]
 
 
+def test_slo_goal_policy_binding_mutation_is_killed(tmp_path: Path) -> None:
+    root = _mutated(
+        tmp_path,
+        "infra/gcp/runtime/slo.tf",
+        "goal                = var.availability_slo_goal",
+        "goal                = 0.5",
+    )
+    assert _status(root)["SLO_TARGET_IS_POLICY_VARIABLE"] is False
+
+
+def test_slo_rolling_period_binding_mutation_is_killed(tmp_path: Path) -> None:
+    root = _mutated(
+        tmp_path,
+        "infra/gcp/runtime/slo.tf",
+        "rolling_period_days = var.availability_slo_rolling_days",
+        "rolling_period_days = 31",
+    )
+    assert _status(root)["SLO_ROLLING_PERIOD_BOUNDED"] is False
+
+
+def test_slo_deletion_protection_mutation_is_killed(tmp_path: Path) -> None:
+    root = _mutated(
+        tmp_path,
+        "infra/gcp/runtime/slo.tf",
+        'deletion_policy     = "PREVENT"',
+        'deletion_policy     = "DELETE"',
+    )
+    assert _status(root)["SLO_DELETE_PROTECTED"] is False
+
+
 def test_lb_url_map_scope_mutation_is_killed(tmp_path: Path) -> None:
     root = _mutated(
         tmp_path,

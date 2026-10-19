@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v0.9.7",
-  "root_sha256": "9a2e4fb7eafb6dcb81d2d7dc51ceccaec139654a2ab866f7b71dc284cf658678",
+  "root_sha256": "6c99cd5dca95d47b4fab5535b45ba64c1bc84b8e5be5941b64ddb7bf034da0b2",
   "records": [
     {
       "path": ".github/dependabot.yml",
@@ -40,8 +40,8 @@
     },
     {
       "path": ".github/workflows/gcp-production.yml",
-      "sha256": "39df867a3d9b49e7f3c217359c2dcf40e031fff9a5c2c831115499d89eaaf7f1",
-      "bytes": 26233
+      "sha256": "8e61d83e0b4a5e6789a90644e8e863738bf9234ed39016fa50659a3d31de9f05",
+      "bytes": 26286
     },
     {
       "path": ".github/workflows/pec-production-evidence.yml",
