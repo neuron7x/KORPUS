@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -19,6 +20,26 @@ from scripts import publish_web_regression as web
 from scripts import release_claim_projection as claim_projection
 
 ROOT = Path(__file__).resolve().parents[3]
+
+
+@pytest.mark.parametrize(
+    "script",
+    [
+        "build_release_claim_evidence.py",
+        "import_release_claim_evidence.py",
+        "publish_release_evidence.py",
+    ],
+)
+def test_release_claim_scripts_import_in_the_exact_workflow_invocation(script: str) -> None:
+    run = subprocess.run(
+        [sys.executable, f"scripts/{script}", "--help"],
+        cwd=ROOT,
+        env={},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert run.returncode == 0, run.stderr
 
 
 def _commit_all(root: Path, message: str) -> None:

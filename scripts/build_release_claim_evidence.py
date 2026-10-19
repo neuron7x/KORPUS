@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
+sys.path[:0] = [str(ROOT), str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 
 from korpus.application.github_assurance_receipts import (  # noqa: E402
     canonical_identity,
