@@ -1,36 +1,71 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
+_MUTATING = re.compile(
+    r"(?:\b(?:git|docker|podman|oras|crane)\s+push\b|\b(?:gh|glab)\s+release\b|"
+    r"\b(?:npm|pnpm|yarn)\s+publish\b|\btwine\s+upload\b|"
+    r"\bgcloud\b[^\n]*\bdeploy\b|\bterraform\s+(?:apply|destroy)\b|"
+    r"\bkubectl\s+(?:apply|delete)\b|\bhelm\s+(?:install|upgrade|push)\b|"
+    r"\bcurl\b[^\n]*(?:-X|--request)\s*(?:POST|PUT|PATCH|DELETE)\b|"
+    r"package_production_release\.sh|deploy_[A-Za-z0-9_.-]+\.sh)"
+)
 
 
-def test_gitlab_production_job_is_keyless_serialized_and_fail_closed() -> None:
+def _mutating_commands(ci: dict[object, object]) -> list[str]:
+    offenders: list[str] = []
+    for name, job in ci.items():
+        if not isinstance(job, dict):
+            continue
+        for field in ("before_script", "script", "after_script"):
+            commands = job.get(field) or []
+            if not isinstance(commands, list):
+                continue
+            for command in commands:
+                line = str(command)
+                if line.lstrip().startswith("bash -n "):
+                    continue
+                if "/kaniko/executor" in line and "--no-push" in line:
+                    continue
+                if "/kaniko/executor" in line or _MUTATING.search(line):
+                    offenders.append(f"{name}.{field}: {line}")
+    return offenders
+
+
+def test_gitlab_pipeline_and_release_deploy_jobs_are_inert() -> None:
     ci = yaml.safe_load((ROOT / ".gitlab-ci.yml").read_text(encoding="utf-8"))
-    job = ci["gcp:deploy-production"]
-    rule = job["rules"][0]
-    assert job["interruptible"] is False
-    assert job["resource_group"] == "gcp-production"
-    assert job["environment"] == {
-        "name": "production",
-        "deployment_tier": "production",
-        "url": "https://$KORPUS_DOMAIN",
+    assert ci["workflow"] == {"rules": [{"when": "never"}]}
+    for name in ("production:release", "gcp:deploy-production"):
+        job = ci[name]
+        assert set(job) == {"stage", "rules", "script"}
+        assert job["rules"] == [{"when": "never"}]
+        assert job["script"][-1] == "exit 1"
+        assert not ({"environment", "id_tokens", "needs", "artifacts"} & set(job))
+
+
+def test_gitlab_pipeline_has_no_executable_publish_or_deploy_command() -> None:
+    ci = yaml.safe_load((ROOT / ".gitlab-ci.yml").read_text(encoding="utf-8"))
+    assert _mutating_commands(ci) == []
+
+
+def test_gitlab_read_only_scanner_rejects_mutating_commands() -> None:
+    poisoned = {
+        "publish": {
+            "script": [
+                "git push origin main",
+                "curl -X POST https://gitlab.example/releases",
+                "/kaniko/executor --destination registry.example/korpus:latest",
+            ]
+        }
     }
-    assert job["id_tokens"]["GCP_ID_TOKEN"]["aud"] == "$GCP_WIF_AUDIENCE"
-    assert rule["when"] == "manual"
-    for predicate in ("main", "CI_COMMIT_REF_PROTECTED", "GCP_PRODUCTION_ENABLED"):
-        assert predicate in rule["if"]
-    needed = {item["job"] for item in job["needs"]}
-    assert {"container:build", "container:scan", "gcp:production-contract"} <= needed
-    script = "\n".join(job["script"])
-    assert "authenticate_gitlab_wif.sh" in script
-    assert "deploy_gitlab_production.sh" in script
-    assert "credentials_json" not in str(job)
+    assert len(_mutating_commands(poisoned)) == 3
 
 
-def test_gitlab_wif_provider_binds_immutable_project_and_protected_environment() -> None:
+def test_legacy_gitlab_wif_provider_remains_fail_closed_for_static_provenance() -> None:
     bootstrap = (ROOT / "infra/gcp/bootstrap/main.tf").read_text(encoding="utf-8")
     for claim in (
         "assertion.project_id == '${var.gitlab_project_id}'",
@@ -65,7 +100,7 @@ def test_gitlab_authentication_refuses_wrong_delivery_context() -> None:
     assert "--key-file" not in script
 
 
-def test_gitlab_deployment_orders_migration_probe_canary_and_rollback() -> None:
+def test_gitlab_deployment_script_keeps_safe_order_as_nonexecuting_provenance() -> None:
     script = (ROOT / "scripts/gcp/deploy_gitlab_production.sh").read_text(encoding="utf-8")
     ordered = (
         "verify_container_vulnerabilities.py",
