@@ -62,17 +62,17 @@ resource "google_cloud_run_v2_job" "embedding_backfill" {
         name    = "embedding-backfill"
         image   = var.api_image
         command = ["/usr/local/bin/korpus-entrypoint"]
-        args = ["python", "scripts/run_embedding_backfill.py", "--batch-size", tostring(var.embedding_backfill_batch_size), "--max-batches", tostring(var.embedding_backfill_max_batches), "--out", "/tmp/korpus/embedding-backfill-run.json"]
+        args    = ["python", "scripts/run_embedding_backfill.py", "--batch-size", tostring(var.embedding_backfill_batch_size), "--max-batches", tostring(var.embedding_backfill_max_batches), "--out", "/tmp/korpus/embedding-backfill-run.json"]
         resources {
           limits = { cpu = "2", memory = "2Gi" }
         }
         dynamic "env" {
           for_each = merge(local.worker_env, {
-            KORPUS_EMBEDDING_ENDPOINT = var.embedding_endpoint
-            KORPUS_EMBEDDING_MODEL_ID = var.embedding_model_id
+            KORPUS_EMBEDDING_ENDPOINT   = var.embedding_endpoint
+            KORPUS_EMBEDDING_MODEL_ID   = var.embedding_model_id
             KORPUS_EMBEDDING_DIMENSIONS = tostring(var.embedding_dimensions)
             KORPUS_EMBEDDING_TOKEN_FILE = "/secrets/embedding/token"
-            KORPUS_RUNTIME_IMAGE_REF = var.api_image
+            KORPUS_RUNTIME_IMAGE_REF    = var.api_image
           })
           content {
             name  = env.key

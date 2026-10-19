@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2098,
-  "root_sha256": "dba7d833ecfe78623ea3b84fd98bb4ad0b83370518965fced6a66dd22ecd88e3",
+  "root_sha256": "160caf4b5c18cb556792609c149e0bcbb0b228fa672ec1223425898debf0c5a5",
   "files": [
     {
       "path": ".dockerignore",
@@ -79,8 +79,8 @@
     },
     {
       "path": ".github/workflows/gcp-production.yml",
-      "bytes": 26233,
-      "sha256": "39df867a3d9b49e7f3c217359c2dcf40e031fff9a5c2c831115499d89eaaf7f1",
+      "bytes": 26468,
+      "sha256": "58054271f8a34cb66c6464c2224a708614fa00da36484c30115598e284769e4a",
       "mode": "0644"
     },
     {
@@ -3901,8 +3901,8 @@
     },
     {
       "path": "apps/api/tests/test_embedding_backfill_deployment.py",
-      "bytes": 1137,
-      "sha256": "d4dc5388e9148d2bcef00cbcf84d610a48cfe6fd0a47c9a09f401e1435bf3452",
+      "bytes": 1164,
+      "sha256": "eb6db42321976d2479d4bec3e063cdab9c7c98a2abc8339c59e14de748c5a097",
       "mode": "0644"
     },
     {
@@ -4207,8 +4207,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_production_contract.py",
-      "bytes": 19467,
-      "sha256": "cb3f1ac33d56de1d280c22529f6cd42d0d393cf186191687660293d9f956ca2a",
+      "bytes": 19832,
+      "sha256": "e1a2e3b9672e52754fe9d55f4bfd4eed78206492ea5e20597cabb2f44ed551d9",
       "mode": "0644"
     },
     {
@@ -4219,8 +4219,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_slo_contract.py",
-      "bytes": 2636,
-      "sha256": "a8f96cd25a80e60636f56a948bdcb352dfb3fc94315929f91f08fed3ce89c13b",
+      "bytes": 3592,
+      "sha256": "9652e1e591f57eb6e352aa7b5e0335fc4e823665071be82f7dc9957e3acde1d6",
       "mode": "0644"
     },
     {
@@ -8108,7 +8108,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "1a62d984853518241f25199db1f49d15ab7a920e1d9068607a84e03ef46ed7b0",
+      "sha256": "069ad59840501b916297608f4f56950d0ffa95c16b55d29d28cd0024af879027",
       "mode": "0644"
     },
     {
@@ -8869,8 +8869,8 @@
     },
     {
       "path": "docs/operations/CI_EVIDENCE.md",
-      "bytes": 4078,
-      "sha256": "0290d6d633d97ea30c432c805df967733fd3b6591fa461e32831b4a232054e18",
+      "bytes": 6041,
+      "sha256": "99e580f656efcbf6fa71eefa7cb6e031bbd440ea75cf4f6e52b659b3b7c2fa03",
       "mode": "0644"
     },
     {
@@ -10309,8 +10309,8 @@
     },
     {
       "path": "infra/gcp/runtime/embedding_backfill.tf",
-      "bytes": 3124,
-      "sha256": "f9d0c4e73b75512f7e0d425eda03d44e3f70c0850c16f97b2b3a5f872dbb0476",
+      "bytes": 3134,
+      "sha256": "0be6182a4371270a896bc56a9bf89bbb71fd87b0301a44448b2df6a7f7efd3a0",
       "mode": "0644"
     },
     {
@@ -10321,8 +10321,8 @@
     },
     {
       "path": "infra/gcp/runtime/locals.tf",
-      "bytes": 7280,
-      "sha256": "76bece2d44114b694ebab0f5208f5eecedd4d6b3a93da49caf2acd86364f87f1",
+      "bytes": 7461,
+      "sha256": "16723f58deed223246e4447181bf3e0c41892bdad8f0a8823a67abedf705d97a",
       "mode": "0644"
     },
     {
@@ -10333,8 +10333,8 @@
     },
     {
       "path": "infra/gcp/runtime/monitoring.tf",
-      "bytes": 8899,
-      "sha256": "44ef39021a9e54252dfe90cf9756a22e34f1c1d86d746fbac34ee29f5f7ef670",
+      "bytes": 8934,
+      "sha256": "61f4a0d82971aa59d3c77a9fe297716a15c0735ffd939410a0bf03268257d70c",
       "mode": "0644"
     },
     {
@@ -10351,14 +10351,14 @@
     },
     {
       "path": "infra/gcp/runtime/services.tf",
-      "bytes": 6918,
-      "sha256": "a25ee95a2cb170afdd73500d8d98f7df12d3392f1c7a10ce05f9daf08da81f99",
+      "bytes": 6921,
+      "sha256": "1ff79f170d722584d0c84062fe1ee4ef21a5cded812d72904fab4fc4cb19932f",
       "mode": "0644"
     },
     {
       "path": "infra/gcp/runtime/slo.tf",
-      "bytes": 3941,
-      "sha256": "113b4dc3ebbafa9f11b157bee88cacbc8e05fab20f91c92a08844222136eba56",
+      "bytes": 3937,
+      "sha256": "31d9c34e790460af5c201c2921a293d2bef72fa203d8a059b78beba230642bf9",
       "mode": "0644"
     },
     {
@@ -10369,8 +10369,8 @@
     },
     {
       "path": "infra/gcp/runtime/variables.tf",
-      "bytes": 10778,
-      "sha256": "3568f50b62f2c6d7aeb8d7d1ad2adca3b2e7586ab711d0afc406485e6f48bf3a",
+      "bytes": 10831,
+      "sha256": "9bfe95da003a1813562ffff442ecdef5567816518fbd9e5ad89585f088d1b770",
       "mode": "0644"
     },
     {
@@ -10381,8 +10381,8 @@
     },
     {
       "path": "infra/gcp/runtime/worker.tf",
-      "bytes": 3049,
-      "sha256": "bfa3eed455b3077e8aab2a76f7e72e240a90e4ca50fc658121065be1170764ad",
+      "bytes": 3050,
+      "sha256": "3487b898254e9b9b3067ff86bfe8b1b8bc191700607e260bc153b5a237055528",
       "mode": "0644"
     },
     {
@@ -11071,8 +11071,8 @@
     },
     {
       "path": "scripts/gcp/production_contract.py",
-      "bytes": 28094,
-      "sha256": "2d2afb270db8df7b3f1ca679ff01c52a2157d65dc3dde5f62af8be9cbe55da00",
+      "bytes": 28095,
+      "sha256": "2bf0b82032fc65ac2fa8f84c82cacc845efd4afea1526f448a001b9fa5ee8f10",
       "mode": "0644"
     },
     {
@@ -11119,8 +11119,8 @@
     },
     {
       "path": "scripts/gcp/production_contract_network.py",
-      "bytes": 2894,
-      "sha256": "18e8ac7142ca7d525068e444157e70daf76e5a442758d67e4506150c48c0f55c",
+      "bytes": 2893,
+      "sha256": "d7ebb524776e780619e3ce3fd807c3cd759207e942d048ffca80460c9e51df3e",
       "mode": "0644"
     },
     {
@@ -11173,8 +11173,8 @@
     },
     {
       "path": "scripts/gcp/slo_contract.py",
-      "bytes": 3226,
-      "sha256": "1f84675205d41b6f70e9a54de6547fffa2734d492ea5429adb2c7d2b2451e929",
+      "bytes": 3223,
+      "sha256": "bfaf62a45affa02c971d7d746385b8963e6d55133d0acd64ff5d92ae37cc3ead",
       "mode": "0644"
     },
     {

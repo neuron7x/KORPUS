@@ -1,6 +1,7 @@
 name: gcp-production
 
 on:
+  pull_request:
   push:
     branches: [main]
   workflow_dispatch:
@@ -8,7 +9,7 @@ on:
 permissions: {}
 
 concurrency:
-  group: gcp-production
+  group: gcp-production-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -46,6 +47,9 @@ jobs:
           python scripts/verify_gcp_slo.py --output reports/GCP_SLO_CONTRACT.json
           PYTHONPATH=apps/api/src:. python -m pytest \
             apps/api/tests/test_gcp_production_contract.py \
+            apps/api/tests/test_gcp_slo_contract.py \
+            apps/api/tests/test_gcp_terraform_structure.py \
+            apps/api/tests/test_embedding_backfill_deployment.py \
             apps/api/tests/test_gcp_container_vulnerability_gate.py \
             apps/api/tests/test_gcp_governance_bundle.py \
             apps/api/tests/test_gcp_live_postgres_gate.py \
@@ -74,7 +78,7 @@ jobs:
         run: |
           terraform fmt -check -recursive infra/gcp
           for stack in bootstrap foundation runtime; do
-            terraform -chdir="infra/gcp/${stack}" init -backend=false -input=false
+            terraform -chdir="infra/gcp/${stack}" init -backend=false -input=false -lockfile=readonly
             terraform -chdir="infra/gcp/${stack}" validate
           done
 

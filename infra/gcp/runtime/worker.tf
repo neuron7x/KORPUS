@@ -7,7 +7,7 @@ resource "google_cloud_run_v2_worker_pool" "ingestion" {
   # Worker pools are a continuous pull runtime. Capacity is explicit and does not
   # pretend queue depth can be inferred from HTTP request traffic.
   scaling {
-    scaling_mode         = "MANUAL"
+    scaling_mode          = "MANUAL"
     manual_instance_count = var.worker_instances
   }
 

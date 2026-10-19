@@ -5,10 +5,10 @@ resource "google_monitoring_uptime_check_config" "edge" {
   period       = "60s"
 
   http_check {
-    path         = "/healthz"
-    port         = 443
-    use_ssl      = true
-    validate_ssl = true
+    path           = "/healthz"
+    port           = 443
+    use_ssl        = true
+    validate_ssl   = true
     request_method = "GET"
   }
 
@@ -27,9 +27,9 @@ resource "google_monitoring_uptime_check_config" "edge" {
 }
 
 resource "google_monitoring_alert_policy" "edge_unavailable" {
-  project      = var.project_id
-  display_name = "KORPUS edge unavailable"
-  combiner     = "OR"
+  project               = var.project_id
+  display_name          = "KORPUS edge unavailable"
+  combiner              = "OR"
   notification_channels = var.notification_channel_ids
 
   conditions {

@@ -70,10 +70,20 @@ def test_worker_pool_autoscaling_mutation_is_killed(tmp_path: Path) -> None:
     root = _mutated_repo(
         tmp_path,
         "infra/gcp/runtime/worker.tf",
-        'scaling_mode         = "MANUAL"',
-        'scaling_mode         = "AUTOMATIC"',
+        'scaling_mode          = "MANUAL"',
+        'scaling_mode          = "AUTOMATIC"',
     )
     assert _status(root)["WORKER_POOL_MANUAL_CAPACITY"] is False
+
+
+def test_runtime_network_state_binding_mutation_is_killed(tmp_path: Path) -> None:
+    root = _mutated_repo(
+        tmp_path,
+        "infra/gcp/runtime/locals.tf",
+        "runtime_network  = local.foundation.runtime_network",
+        'runtime_network  = { name = "unbound-network" }',
+    )
+    assert _status(root)["PRIVATE_NETWORK_STATE_BINDING"] is False
 
 
 def test_worker_pool_http_shim_mutation_is_killed(tmp_path: Path) -> None:

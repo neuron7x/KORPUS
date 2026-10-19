@@ -21,7 +21,7 @@ def evaluate(root: Path) -> list[Predicate]:
         *evaluate_request_sli(slo),
         pred(
             "SLO_TARGET_IS_POLICY_VARIABLE",
-            "goal                 = var.availability_slo_goal" in slo
+            "goal                = var.availability_slo_goal" in slo
             and "default     = 0.995" in variables
             and "[EXTRAPOLATED_POLICY]" in variables
             and "var.availability_slo_goal >= 0.99" in variables
@@ -30,7 +30,7 @@ def evaluate(root: Path) -> list[Predicate]:
         ),
         pred(
             "SLO_ROLLING_PERIOD_BOUNDED",
-            "rolling_period_days  = var.availability_slo_rolling_days" in slo
+            "rolling_period_days = var.availability_slo_rolling_days" in slo
             and "default     = 30" in variables
             and "var.availability_slo_rolling_days >= 1" in variables
             and "var.availability_slo_rolling_days <= 30" in variables,
@@ -38,7 +38,7 @@ def evaluate(root: Path) -> list[Predicate]:
         ),
         pred(
             "SLO_DELETE_PROTECTED",
-            'deletion_policy      = "PREVENT"' in slo,
+            'deletion_policy     = "PREVENT"' in slo,
             "Terraform refuses accidental SLO deletion",
         ),
         pred(

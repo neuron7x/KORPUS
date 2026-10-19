@@ -358,7 +358,7 @@ def _group_03(s: Sources) -> list[Predicate]:
     )
     add(
         "WORKER_POOL_MANUAL_CAPACITY",
-        'scaling_mode         = "MANUAL"' in s.worker
+        'scaling_mode          = "MANUAL"' in s.worker
         and "manual_instance_count = var.worker_instances" in s.worker
         and (
             re.search(
