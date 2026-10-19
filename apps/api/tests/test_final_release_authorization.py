@@ -305,3 +305,90 @@ def test_expected_materials_are_recomputed_from_local_files() -> None:
     for uri, digest in actual.items():
         relative = uri.removeprefix("file:///")
         assert digest == hashlib.sha256((ROOT / relative).read_bytes()).hexdigest()
+
+@pytest.mark.parametrize(
+    "malformed",
+    [
+        None,
+        7,
+        {"uri": "file:///x"},
+        {"uri": 2, "digest": {"sha256": "0" * 64}},
+        {"uri": "file:///x", "digest": {"other": "0" * 64}},
+    ],
+)
+def test_release_material_refuses_invalid_dependency_shapes(malformed: object) -> None:
+    from korpus.application.final_release_provenance import _material_entry
+
+    assert _material_entry(malformed) is None
+
+
+def test_release_materials_refuse_missing_invalid_and_malformed_inputs() -> None:
+    from korpus.application.final_release_provenance import (
+        REQUIRED_BUILD_MATERIALS,
+        _resolved_materials_bound,
+    )
+
+    expected = {
+        f"file:///{relative}": hashlib.sha256(relative.encode()).hexdigest()
+        for relative in REQUIRED_BUILD_MATERIALS
+    }
+    valid = {
+        "resolvedDependencies": [
+            {"uri": uri, "digest": {"sha256": digest}}
+            for uri, digest in expected.items()
+        ]
+    }
+    assert _resolved_materials_bound(valid, expected)
+
+    incomplete = dict(expected)
+    incomplete.pop(next(iter(incomplete)))
+    assert not _resolved_materials_bound(valid, incomplete)
+
+    invalid_digest = dict(expected)
+    invalid_digest[next(iter(invalid_digest))] = "invalid-digest"
+    assert not _resolved_materials_bound(valid, invalid_digest)
+
+    malformed = list(valid["resolvedDependencies"])
+    malformed[0] = {"uri": "file:///x", "digest": {"sha256": "0" * 64}, "extra": True}
+    assert not _resolved_materials_bound({"resolvedDependencies": malformed}, expected)
+
+
+def test_release_timestamp_refuses_missing_unzoned_and_nonstring_values() -> None:
+    from korpus.application.final_release_provenance import _timestamp, _timestamps_bound
+
+    assert _timestamp(None) is None
+    assert _timestamp(123) is None
+    assert _timestamp("not-a-date") is None
+    assert _timestamp("2026-10-19T00:00:00") is None
+    assert not _timestamps_bound(
+        {"metadata": {"startedOn": None, "finishedOn": "2026-10-19T00:01:00Z"}},
+        datetime(2026, 10, 19, 0, 1, tzinfo=UTC),
+    )
+
+
+@pytest.mark.parametrize("payload", [b"[]", b"null", b'""', b"5"])
+def test_signed_evidence_refuses_nonobject_json(payload: bytes) -> None:
+    from korpus.application.final_release_evidence import strict_signed_json_object
+
+    with pytest.raises(ValueError, match="must contain an object"):
+        strict_signed_json_object(payload, "release evidence")
+
+
+def test_github_release_context_refuses_gitlab_and_invalid_commit() -> None:
+    from korpus.application.github_release_context import (
+        expected_github_release_environment,
+        github_release_context_mismatches,
+    )
+
+    canonical = expected_github_release_environment("v-test")
+    canonical["GITHUB_SHA"] = "a" * 40
+    assert github_release_context_mismatches(canonical, "v-test") == []
+    assert github_release_context_mismatches(
+        {**canonical, "GITLAB_CI": "true"}, "v-test"
+    ) == ["GITLAB_CI"]
+    assert github_release_context_mismatches(
+        {**canonical, "GITHUB_SHA": "invalid"}, "v-test"
+    ) == ["GITHUB_SHA"]
+    assert github_release_context_mismatches(
+        {**canonical, "GITLAB_CI": "true", "GITHUB_SHA": "invalid"}, "v-test"
+    ) == ["GITHUB_SHA", "GITLAB_CI"]
