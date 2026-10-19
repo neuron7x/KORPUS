@@ -12,12 +12,14 @@ sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 
 from final_release_context import (  # noqa: E402
     configure_parser,
-    failure,
     release_build_context,
     trusted_builder_ids,
 )
 from korpus.application.assurance_trust import trusted_fingerprints  # noqa: E402
 from korpus.application.final_release_authorization import evaluate_final_release  # noqa: E402
+from korpus.application.final_release_evidence import (  # noqa: E402
+    failed_candidate_verdict as failure,
+)
 from release_identity import release_tag  # noqa: E402
 
 TRUST = ROOT / "config/assurance/trusted-assurance-signers.json"
@@ -51,14 +53,11 @@ def _authorize(args: argparse.Namespace) -> dict[str, Any]:
         artifact_bytes=args.artifact.read_bytes(),
         source_manifest_bytes=args.source_manifest.read_bytes(),
         production_assurance_bytes=args.production_assurance.read_bytes(),
-        production_assurance=_json(args.production_assurance),
         release_manifest_name=args.release_manifest.name,
         release_manifest_bytes=args.release_manifest.read_bytes(),
-        release_manifest=_json(args.release_manifest),
         release_attestation=_json(args.release_attestation),
         builder_statement_name=args.builder_provenance.name,
         builder_statement_bytes=args.builder_provenance.read_bytes(),
-        builder_statement=_json(args.builder_provenance),
         builder_attestation=_json(args.builder_attestation),
         build_context=build_context,
         trusted_release_signers=trusted_fingerprints(
@@ -92,7 +91,7 @@ def main() -> int:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(payload, ensure_ascii=False, indent=2))
-    return 0 if payload.get("production_authorized") is True else 1
+    return 0 if payload.get("candidate_checks_passed") is True else 1
 
 
 if __name__ == "__main__":

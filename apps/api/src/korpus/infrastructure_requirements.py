@@ -600,24 +600,29 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
     _requirement(
         "release.github.oidc_attestation",
         "github-actions",
-        "the canonical release workflow emits GitHub OIDC attestations",
+        "the canonical candidate workflow emits and verifies a retained GitHub OIDC receipt",
         lambda c: (
             "id-token: write" in c.release_workflow_text
             and "attestations: write" in c.release_workflow_text
+            and "artifact-metadata: write" in c.release_workflow_text
             and "actions/attest@" in c.release_workflow_text
             and "subject-path: |" in c.release_workflow_text
+            and "gh attestation verify" in c.release_workflow_text
+            and "KORPUS_GITHUB_HOSTED_ATTESTATION.sigstore.json" in c.release_workflow_text
         ),
         "a locally signed manifest does not identify the hosted workflow that built it",
     ),
     _requirement(
         "release.github.sole_hosted_authority",
         "github-actions",
-        "the canonical GitHub workflow is the sole hosted release and deploy authority",
+        "GitHub is the sole hosted candidate-attestation plane and GitLab executes nothing",
         lambda c: (
             "neuron7x/KORPUS" in c.production_package_text
             and "1332311807" in c.production_package_text
             and "206596321" in c.production_package_text
             and "package_production_release.sh" in c.release_workflow_text
+            and "--check-candidate-context" in c.release_workflow_text
+            and "final-production-authorization" not in c.release_workflow_text
             and '[[ "${GITLAB_CI:-}" != "true" ]]' in c.production_package_text
             and "CI_COMMIT_" not in c.production_package_text
             and c.gitlab_delivery_is_inert()

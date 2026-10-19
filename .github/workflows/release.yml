@@ -1,4 +1,4 @@
-name: release-artifact
+name: release-candidate
 
 on:
   push:
@@ -29,8 +29,8 @@ jobs:
         with:
           python-version: 3.12.13
           check-latest: false
-      - name: Assert canonical protected release authority
-        run: bash scripts/package_production_release.sh --check-authority
+      - name: Assert canonical candidate-build context
+        run: bash scripts/package_production_release.sh --check-candidate-context
       - name: Install Node 22.23.2
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -60,7 +60,7 @@ jobs:
           make assemble-assurance PY=python
           make snapshot PY=python
           PYTHONPATH=scripts python scripts/verify_release_evidence.py
-      - name: Build and authorize deterministic production package
+      - name: Build deterministic release candidate
         id: package
         shell: bash
         env:
@@ -105,8 +105,8 @@ jobs:
             "dist/${stem}.release-attestation.json" \
             "dist/${stem}.builder-provenance.json" \
             "dist/${stem}.builder-attestation.json" \
-            "dist/${stem}.final-production-authorization.json" \
-            "dist/${stem}.production.sha256"; do
+            "dist/${stem}.candidate-admission.json" \
+            "dist/${stem}.candidate.sha256"; do
             test -s "$output"
           done
           echo "artifact=dist/${stem}.zip" >> "$GITHUB_OUTPUT"
@@ -114,9 +114,9 @@ jobs:
           echo "release_attestation=dist/${stem}.release-attestation.json" >> "$GITHUB_OUTPUT"
           echo "builder_provenance=dist/${stem}.builder-provenance.json" >> "$GITHUB_OUTPUT"
           echo "builder_attestation=dist/${stem}.builder-attestation.json" >> "$GITHUB_OUTPUT"
-          echo "final_authorization=dist/${stem}.final-production-authorization.json" >> "$GITHUB_OUTPUT"
-          echo "checksums=dist/${stem}.production.sha256" >> "$GITHUB_OUTPUT"
-      - name: Upload authorized candidate for isolated attestation
+          echo "candidate_admission=dist/${stem}.candidate-admission.json" >> "$GITHUB_OUTPUT"
+          echo "checksums=dist/${stem}.candidate.sha256" >> "$GITHUB_OUTPUT"
+      - name: Upload blocked candidate for isolated hosted attestation
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: korpus-release-candidate-${{ github.run_id }}-${{ github.run_attempt }}
@@ -126,38 +126,51 @@ jobs:
             ${{ steps.package.outputs.release_attestation }}
             ${{ steps.package.outputs.builder_provenance }}
             ${{ steps.package.outputs.builder_attestation }}
-            ${{ steps.package.outputs.final_authorization }}
+            ${{ steps.package.outputs.candidate_admission }}
             ${{ steps.package.outputs.checksums }}
             reports/PRODUCTION_ASSURANCE_REPORT.attestation.json
           if-no-files-found: error
           retention-days: 1
 
-  attest-and-publish:
-    name: attest-and-publish
+  attest-candidate:
+    name: attest-candidate
     needs: package-release-candidate
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       actions: read
+      artifact-metadata: write
       attestations: write
       contents: read
       id-token: write
     steps:
-      - name: Download authorized release candidate
+      - name: Download blocked release candidate
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: korpus-release-candidate-${{ github.run_id }}-${{ github.run_attempt }}
           path: release-candidate
-      - name: Generate GitHub OIDC release attestations
+      - name: Generate GitHub OIDC candidate attestations
+        id: github-attestation
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: |
             release-candidate/dist/*
             release-candidate/reports/PRODUCTION_ASSURANCE_REPORT.attestation.json
-      - name: Upload OIDC-attested release package
+      - name: Verify and retain the hosted artifact receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          bundle="${{ steps.github-attestation.outputs.bundle-path }}"
+          test -s "$bundle"
+          mapfile -t artifacts < <(find release-candidate/dist -maxdepth 1 -type f -name 'KORPUS_SYSTEM_*.zip' -print)
+          test "${#artifacts[@]}" -eq 1
+          gh attestation verify "${artifacts[0]}" --repo "$GITHUB_REPOSITORY" --bundle "$bundle"
+          cp "$bundle" release-candidate/dist/KORPUS_GITHUB_HOSTED_ATTESTATION.sigstore.json
+      - name: Upload OIDC-attested candidate
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: korpus-${{ github.ref_name }}
+          name: korpus-candidate-${{ github.ref_name }}
           path: |
             release-candidate/dist/*
             release-candidate/reports/PRODUCTION_ASSURANCE_REPORT.attestation.json

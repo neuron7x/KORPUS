@@ -35,6 +35,7 @@ def _mutating_commands(ci: dict[object, object]) -> list[str]:
 
 def test_gitlab_release_and_deploy_jobs_are_inert_tombstones() -> None:
     ci = yaml.safe_load((ROOT / ".gitlab-ci.yml").read_text(encoding="utf-8"))
+    assert ci["workflow"] == {"rules": [{"when": "never"}]}
     for name in ("production:release", "gcp:deploy-production"):
         job = ci[name]
         assert set(job) == {"stage", "rules", "script"}
