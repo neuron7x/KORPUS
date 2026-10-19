@@ -3771,7 +3771,7 @@
       "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register; the GOV-006 code_half note is data, merged via a helper so main did not gain a branch"
     },
     "scripts/check_clean_source_tree.py": {
-      "lines": 32,
+      "lines": 33,
       "max_complexity": 3,
       "max_function_args": 0,
       "max_function_lines": 11,

@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2112,
-  "root_sha256": "83cf58762d8aaa8e1459573c47eea7cee91ba4693813ac848facc5167df6802e",
+  "root_sha256": "552118ca307ddece205df9bc904e3fed8937b2108ba6f4ac1afe0879434c0a3c",
   "files": [
     {
       "path": ".dockerignore",
@@ -3620,7 +3620,7 @@
     {
       "path": "apps/api/tests/test_clean_source_release_boundary.py",
       "bytes": 4905,
-      "sha256": "736432902ca9ca7b50a82cc7f23c2fd4485630a981ce71dacff29266ae9c07e0",
+      "sha256": "312c779a8b86d89918a23a8e8665de1b7a78b7c5799e6bc07685996fa8acd0c7",
       "mode": "0644"
     },
     {
@@ -8216,7 +8216,7 @@
     {
       "path": "config/operations/module-budget.json",
       "bytes": 753438,
-      "sha256": "882f64fc3a0469cbe8450a293a1c457e6ac4e49c45637e93801ddb76a602f238",
+      "sha256": "1ce718a6b9af02e8dbaae2a49c82f48062dd31efd9bbf02916d238c1062ef597",
       "mode": "0644"
     },
     {
@@ -10747,8 +10747,8 @@
     },
     {
       "path": "scripts/check_clean_source_tree.py",
-      "bytes": 902,
-      "sha256": "027de0d190e6397bb0bda03bd9f81d3aca34f3ebbd8b9b9be08256128baaf264",
+      "bytes": 903,
+      "sha256": "36967e95c2964f2fe1b102b073d13d484a6acb21b5bbecd1bba9b311f3038b17",
       "mode": "0755"
     },
     {
