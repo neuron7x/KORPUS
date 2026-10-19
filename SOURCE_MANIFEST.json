@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2129,
-  "root_sha256": "d2aacdeb26a7dac9e5a9f113343ef5444647ab76c8382d30e80650e4fe8459a2",
+  "file_count": 2131,
+  "root_sha256": "45f680856ffad8b5ba0ea305fb072c959fd35cee544ccb5c304cf1daf4c64090",
   "files": [
     {
       "path": ".dockerignore",
@@ -3810,6 +3810,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_coverage_debt_issue54.py",
+      "bytes": 23853,
+      "sha256": "71de7fd816a3555193775faef4190924617e9637f1dcde32383ede4f33accbe0",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_coverage_merge_subject.py",
       "bytes": 5505,
       "sha256": "4a8373ea02a1134c28dc603b488a15c17eb769194d17e2b57f46b147f740e9b5",
@@ -5307,6 +5313,12 @@
       "path": "apps/api/tests/test_release_attestation_trust.py",
       "bytes": 2233,
       "sha256": "4281fe53cfb73e4eb7edea6eb0f32525db6daa8bf8e793d01d7048b898c1de6f",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_release_claim_coverage.py",
+      "bytes": 26097,
+      "sha256": "fd4ab273afc880a054a2c4823b669b6faf3cbe6a8033a814d1079a5352517165",
       "mode": "0644"
     },
     {
