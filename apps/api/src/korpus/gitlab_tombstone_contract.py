@@ -7,8 +7,8 @@ from typing import Any
 
 CONTROL_KEYS = {"workflow", "default", "stages", "variables"}
 FORBIDDEN_KEYS = {"include", "trigger", "id_tokens", "identity", "environment", "resource_group"}
-PIPELINE_SHA256 = "9e6c510b72cf94c3b1d92d32fb1ec595deebf418301911a6c7395773b291db80"
-POLICY_SHA256 = "57bdecb6343ceaa92c68f10db22b939fb849309590f617325a3162caf7c31802"
+PIPELINE_SHA256 = "3cc3ebfe1c55b41d1d849347e3ab7e8b9ff58ad769c6bbf8b8a582fca06d87fd"
+POLICY_SHA256 = "b4732c220a4d75e71265cef84f8d1b94c9f502ad8070871097df847303532f8d"
 TOMBSTONES = {
     "production:release": (
         "release",

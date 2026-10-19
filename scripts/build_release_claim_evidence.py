@@ -34,8 +34,16 @@ from korpus.application.release_claim_hosted import (  # noqa: E402
 from release_claim_projection import (  # noqa: E402
     inference_projection as _inference_projection,
 )
-from release_claim_projection import mutation_projection as _mutation_projection  # noqa: E402
+from release_claim_projection import (  # noqa: E402
+    mutation_execution_valid as _mutation_execution_valid,
+)
+from release_claim_projection import (  # noqa: E402
+    mutation_projection as _mutation_projection,
+)
 from release_claim_projection import stable_web as _stable_web  # noqa: E402
+from release_claim_projection import (  # noqa: E402
+    web_execution_valid as _web_execution_valid,
+)
 from release_identity import release_tag  # noqa: E402
 
 ATTESTATION_NAME = "RELEASE_CLAIM_ATTESTATION.json"
@@ -104,6 +112,7 @@ def _tap(path: Path) -> tuple[dict[str, int], str]:
         len(plans) == 1
         and int(plans[0]) == counts["tests"]
         and numbers == list(range(1, counts["tests"] + 1))
+        and re.search(r"^\s*Bail out!", text, re.MULTILINE | re.IGNORECASE) is None
         and "# todo" not in "\n".join(tail.lower() for _status, _number, tail in assertions)
         and assertion_passes == counts["pass"]
         and assertion_failures == counts["fail"]
@@ -123,6 +132,7 @@ def _provenance(payload: Mapping[str, Any], source: str, generator: str) -> bool
     value = payload.get("provenance")
     return bool(
         isinstance(value, Mapping)
+        and type(value.get("schema_version")) is int
         and value.get("schema_version") == 1
         and value.get("source_digest") == source
         and value.get("digest_scope") == "evidence_paths"
@@ -204,13 +214,8 @@ def _mutation_execution(root: Path, source: str, actual_path: Path) -> dict[str,
         not _provenance(actual, source, "scripts/run_mutation_tests.py")
         or not _provenance(canonical, source, "scripts/run_mutation_tests.py")
         or _mutation_projection(actual) != _mutation_projection(canonical)
-        or actual.get("status") != "PASS"
-        or actual.get("mutants") != len(actual.get("results", []))
-        or actual.get("killed") != actual.get("mutants")
-        or actual.get("survived") != []
-        or actual.get("invalid") != []
-        or actual.get("errors") != []
-        or any(row.get("status") != "KILLED" for row in actual.get("results", []))
+        or not _mutation_execution_valid(actual)
+        or not _mutation_execution_valid(canonical)
     ):
         raise ValueError("hosted mutation execution disagrees with canonical mutation evidence")
     artifacts = [evidence, alias]
@@ -272,14 +277,8 @@ def _web_execution(
         not _provenance(actual, source, "scripts/publish_web_regression.py")
         or not _provenance(canonical, source, "scripts/publish_web_regression.py")
         or _stable_web(actual) != _stable_web(canonical)
-        or actual.get("status") != "PASS"
-        or actual.get("release") != release
-        or actual.get("test_output_sha256") != actual_hash
-        or canonical.get("test_output_sha256") != canonical_hash
-        or actual.get("steps", {}).get("test")
-        != {"exit_code": 0, "status": "PASS", **actual_counts}
-        or canonical.get("steps", {}).get("test")
-        != {"exit_code": 0, "status": "PASS", **canonical_counts}
+        or not _web_execution_valid(actual, release, actual_counts, actual_hash)
+        or not _web_execution_valid(canonical, release, canonical_counts, canonical_hash)
         or actual_counts != canonical_counts
     ):
         raise ValueError("fresh web execution disagrees with canonical web evidence")

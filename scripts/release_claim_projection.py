@@ -85,6 +85,101 @@ def stable_web(payload: Mapping[str, Any]) -> dict[str, Any]:
     return normalized
 
 
+def _positive_int(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value > 0
+
+
+def _nonempty_string(value: object) -> bool:
+    return isinstance(value, str) and bool(value)
+
+
+def _nonempty_string_list(value: object) -> bool:
+    return bool(
+        isinstance(value, list) and value and all(isinstance(item, str) and item for item in value)
+    )
+
+
+def _mutation_result_valid(entry: object) -> bool:
+    if not isinstance(entry, Mapping):
+        return False
+    return bool(
+        entry.get("status") == "KILLED"
+        and _nonempty_string(entry.get("id"))
+        and _nonempty_string(entry.get("file"))
+        and _nonempty_string(entry.get("sandbox_mode"))
+        and isinstance(entry.get("returncode"), int)
+        and not isinstance(entry["returncode"], bool)
+        and entry["returncode"] != 0
+        and _positive_int(entry.get("target_occurrences"))
+        and _nonempty_string_list(entry.get("tests"))
+    )
+
+
+def _perfect_score(value: object) -> bool:
+    return type(value) is float and value == 1.0
+
+
+def _unique_mutation_ids(entries: list[object]) -> bool:
+    ids = {entry.get("id") for entry in entries if isinstance(entry, Mapping)}
+    return len(ids) == len(entries)
+
+
+def _exact_json(actual: object, expected: object) -> bool:
+    if type(actual) is not type(expected):
+        return False
+    if isinstance(expected, dict):
+        if not isinstance(actual, dict):
+            return False
+        return actual.keys() == expected.keys() and all(
+            _exact_json(actual[key], value) for key, value in expected.items()
+        )
+    return actual == expected
+
+
+def mutation_execution_valid(payload: Mapping[str, Any]) -> bool:
+    results = payload.get("results")
+    counts = (payload.get("mutants"), payload.get("valid_mutants"), payload.get("killed"))
+    empty = (payload.get("survived"), payload.get("invalid"), payload.get("errors"))
+    return bool(
+        isinstance(results, list)
+        and results
+        and payload.get("schema_version") == 3
+        and payload.get("status") == "PASS"
+        and _nonempty_string(payload.get("release"))
+        and payload.get("shard_index") is None
+        and _positive_int(payload.get("shard_count"))
+        and all(_positive_int(value) for value in counts)
+        and counts == (len(results),) * 3
+        and empty == ([], [], [])
+        and _perfect_score(payload.get("mutation_score"))
+        and _perfect_score(payload.get("mutation_score_over_catalogue"))
+        and all(_mutation_result_valid(entry) for entry in results)
+        and _unique_mutation_ids(results)
+    )
+
+
+def web_execution_valid(
+    payload: Mapping[str, Any], release: str, counts: Mapping[str, int], digest: str
+) -> bool:
+    step = {"exit_code": 0, "status": "PASS"}
+    expected_steps = {"lint": step, "test": {**step, **counts}, "build": step}
+    expected_totals = {
+        "tests": counts["tests"],
+        "passed": counts["pass"],
+        "failed": counts["fail"],
+        "skipped": counts["skipped"],
+    }
+    return bool(
+        payload.get("schema") == "korpus.web-regression.v1"
+        and payload.get("evidence_class") == "LOCAL_NODE_TEST_RUNNER"
+        and payload.get("status") == "PASS"
+        and payload.get("release") == release
+        and payload.get("test_output_sha256") == digest
+        and _exact_json(payload.get("steps"), expected_steps)
+        and all(_exact_json(payload.get(key), value) for key, value in expected_totals.items())
+    )
+
+
 def publish_companion(
     destination: Path, report_path: Path, source_path: Path, digest_field: str
 ) -> str | None:

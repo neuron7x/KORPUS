@@ -412,12 +412,12 @@ audit:closure:
 # Ran on the image's own python3 until 2026-08-05, which on trixie is 3.13 — so the
 # only job that exercised PostgreSQL tested a different interpreter from the one the
 # production image ships (3.12.13) and from every other job here. Nothing said so; the
-# hashed lock did, by refusing a cp313 wheel against cp312 hashes. The client tools
-# have to be pg17 to dump a pg17 server, so they come from pgdg rather than the job
-# moving to the database's image.
+# hashed lock did, by refusing a cp313 wheel against cp312 hashes. The retained job
+# uses the exact production interpreter base; its PostgreSQL 17 client comes from the
+# pinned Alpine distribution rather than changing the Python runtime.
 api:postgres-and-restore:
   stage: assurance
-  image: python:3.12.13-slim-bookworm@sha256:4766d8b510c428e595d74b9cc5bbb2fae8e26316fffb4adc89908d79aacd58a2
+  image: python:3.12.13-alpine3.23@sha256:601d3d3797e90e2534782e69c85fafb7971b43f24c7b1b079b7e48dd435e458d
   services:
     - name: pgvector/pgvector:0.8.5-pg17-trixie@sha256:69573b32242ca232f65871d4cb916ba7210a372b9bd74068204c1a9a57bada4f
       alias: postgres
@@ -448,12 +448,8 @@ api:postgres-and-restore:
     KORPUS_BACKUP_KEY_ID: "ci-ephemeral-v4"
   before_script:
     # git: test_manifest_generation shells out to it to assert the release manifest
-    # lists only tracked files, and slim images ship without it.
-    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git curl ca-certificates gnupg && rm -rf /var/lib/apt/lists/*
-    - install -d /usr/share/postgresql-common/pgdg
-    - curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
-    - echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-    - apt-get update -qq && apt-get install -y -qq --no-install-recommends postgresql-client-17 && rm -rf /var/lib/apt/lists/*
+    # lists only tracked files; the same base as production ships without these tools.
+    - apk add --no-cache git curl ca-certificates postgresql17-client
     - python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
     - python -m pip check
     # Роль застосунку створює `prepare_postgres_role.py` ДВОМА кроками пізніше, тож

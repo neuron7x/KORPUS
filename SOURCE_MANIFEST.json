@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2128,
-  "root_sha256": "c704f29ec180567f53b9585f7d9aaad4f625fa51ac75f880d2fb1934d8113704",
+  "file_count": 2129,
+  "root_sha256": "d2aacdeb26a7dac9e5a9f113343ef5444647ab76c8382d30e80650e4fe8459a2",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 65886,
-      "sha256": "10629e684975286ba5a874a200cf8fde8e21a622abeabedb17d88f520166d3be",
+      "bytes": 65388,
+      "sha256": "24427d18b292013cc70d37d31c768961fcee0c536a2aaa63ec0cee42a2f08017",
       "mode": "0644"
     },
     {
@@ -1837,8 +1837,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/release_claim_git_tree.py",
-      "bytes": 3361,
-      "sha256": "e9eed7606607819d9bea913f6adbc99b5b83cbd0d5ad8736ba0b9c3fcffde2ce",
+      "bytes": 5665,
+      "sha256": "f7ea634cc876ab3025b61343b867d7b5f83012bb838a3402c3cefb4140b609dd",
       "mode": "0644"
     },
     {
@@ -2192,7 +2192,7 @@
     {
       "path": "apps/api/src/korpus/gitlab_tombstone_contract.py",
       "bytes": 2453,
-      "sha256": "14d99587786fb1608ded03293a7cd2bb61bc05e1ea6b72c21e36b813878aac5e",
+      "sha256": "338263f1dfe3f4a89a70748edba3a450fd4f921a17b09a4a24bf7e4e9ce9690f",
       "mode": "0644"
     },
     {
@@ -4267,8 +4267,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 173270,
-      "sha256": "fa679a3f13e31d964c4386ae801d28460dac3a1ee622acdd77ee26df92e502b4",
+      "bytes": 173282,
+      "sha256": "a223fb6926071e087740bd543d06062dbec49074ea7ea1940d2eb765567c3b40",
       "mode": "0644"
     },
     {
@@ -5310,9 +5310,15 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_release_claim_git_tree_hardening.py",
+      "bytes": 3815,
+      "sha256": "3c0c28c0ad47127ab467d5c8033ed62c20e68f27182acd080388f0c8cfbddedb",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_release_claim_hosted_pipeline.py",
-      "bytes": 18925,
-      "sha256": "31519e038ba4d2570bc073f02d4a3a852ae5da403d7770c49b756e8532f2e0c8",
+      "bytes": 26643,
+      "sha256": "1ef3cefa5d32e7733023b8d15ab891e16e3d170a874e99148406707f6f95054a",
       "mode": "0644"
     },
     {
@@ -6596,7 +6602,7 @@
     {
       "path": "config/ci/gitlab-readonly-authority-v1.json",
       "bytes": 1985,
-      "sha256": "c1a7df33578c489343db2dd00100756544a029370eb7ad797842adf916b2b39e",
+      "sha256": "4b3be58642c2904265d6c3486e3fa4463a9a5d9ecfe49b8476e274d2dfe2e999",
       "mode": "0644"
     },
     {
@@ -8246,7 +8252,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5540,
-      "sha256": "b5488add946c1592adf63a39e0edfbde2ae2fddcda82d4e728985c9ba75f8387",
+      "sha256": "db2dc46142d5735ff472c113d0a1861585ac20ee3ab2c0283ae18065fedba797",
       "mode": "0644"
     },
     {
@@ -8287,8 +8293,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 762031,
-      "sha256": "578033077cec58b4fd393eeff52217c7b56133bc9cf7053fb2af1edca73213e7",
+      "bytes": 762967,
+      "sha256": "a3fb50c9121746c20e6aa9a715d1c8e235b0f410411734f03d6a6f5d243c371e",
       "mode": "0644"
     },
     {
@@ -10777,8 +10783,8 @@
     },
     {
       "path": "scripts/build_release_claim_evidence.py",
-      "bytes": 16225,
-      "sha256": "0a95f1d33ad0182241f64397d87e446aaba70711889cf4bb7b5d0fd1cd235e22",
+      "bytes": 16059,
+      "sha256": "5c84a46165367b172f272fc55150e09495595c4f42bcf32424d5ad67742ad140",
       "mode": "0755"
     },
     {
@@ -11929,8 +11935,8 @@
     },
     {
       "path": "scripts/release_claim_projection.py",
-      "bytes": 3832,
-      "sha256": "033d39ee194595e5798a68d49dff8e8eb3cba2338fbde52cb6e863a85f691dd3",
+      "bytes": 7334,
+      "sha256": "eabe2473d2e160020c04b95d5bd381e407c80660415566044afbd7f1455465a7",
       "mode": "0644"
     },
     {
@@ -12433,8 +12439,8 @@
     },
     {
       "path": "scripts/trusted_system_tools.py",
-      "bytes": 663,
-      "sha256": "56fe0ad935a89a96fd7eab88353e2b1a3b964cbeb7ebf8d91c0e99d7ca3e3d1d",
+      "bytes": 1175,
+      "sha256": "cb0b248f98640f103999c91d7c8365cf08e2154f8c2c94ca69596de47c0235a2",
       "mode": "0644"
     },
     {

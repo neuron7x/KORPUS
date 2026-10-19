@@ -105,6 +105,81 @@ def _tap(*, tests: int = 2, passed: int = 2, failed: int = 0, skipped: int = 0) 
     ).encode()
 
 
+def _provenance(generator: str) -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "source_digest": "a" * 64,
+        "digest_scope": "evidence_paths",
+        "generator": generator,
+        "generated_at": "2026-10-19T00:00:00+00:00",
+    }
+
+
+def _web_payload(test_output: bytes) -> dict[str, object]:
+    counts = {"tests": 2, "pass": 2, "fail": 0, "skipped": 0}
+    return {
+        "schema": "korpus.web-regression.v1",
+        "release": "v-test",
+        "status": "PASS",
+        "steps": {
+            "lint": {"exit_code": 0, "status": "PASS"},
+            "test": {"exit_code": 0, "status": "PASS", **counts},
+            "build": {"exit_code": 0, "status": "PASS"},
+        },
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "test_output_sha256": hashlib.sha256(test_output).hexdigest(),
+        "evidence_class": "LOCAL_NODE_TEST_RUNNER",
+        "provenance": _provenance("scripts/publish_web_regression.py"),
+    }
+
+
+def _mutation_payload() -> dict[str, object]:
+    return {
+        "schema_version": 3,
+        "status": "PASS",
+        "release": "v0.9.7",
+        "shard_index": None,
+        "shard_count": 1,
+        "mutants": 1,
+        "valid_mutants": 1,
+        "killed": 1,
+        "survived": [],
+        "invalid": [],
+        "errors": [],
+        "mutation_score": 1.0,
+        "mutation_score_over_catalogue": 1.0,
+        "provenance": _provenance("scripts/run_mutation_tests.py"),
+        "results": [
+            {
+                "id": "M1",
+                "file": "source.py",
+                "status": "KILLED",
+                "returncode": 1,
+                "target_occurrences": 1,
+                "tests": ["test_source.py::test_guard"],
+                "sandbox_mode": "full_copy",
+                "output_tail": "runtime noise",
+            }
+        ],
+    }
+
+
+def _write_json(path: Path, payload: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+
+def test_provenance_refuses_boolean_schema_version() -> None:
+    provenance = _provenance("scripts/run_mutation_tests.py")
+    provenance["schema_version"] = True
+    assert not producer._provenance(
+        {"provenance": provenance}, "a" * 64, "scripts/run_mutation_tests.py"
+    )
+
+
 def test_web_publisher_writes_exact_fresh_test_bytes(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -147,6 +222,76 @@ def test_web_publisher_writes_exact_fresh_test_bytes(
     assert execution["result"] == {"tests": 2, "pass": 2, "fail": 0, "skipped": 0}
 
 
+@pytest.mark.parametrize(
+    "poison",
+    [
+        "schema",
+        "evidence_class",
+        "lint_exit",
+        "lint_bool_exit",
+        "lint_status",
+        "test_exit",
+        "test_bool_count",
+        "test_status",
+        "build_exit",
+        "build_status",
+        "extra_step_field",
+        "top_level_totals",
+        "bool_top_level_total",
+    ],
+)
+def test_web_execution_validator_rejects_false_pass_fields(poison: str) -> None:
+    test_output = _tap()
+    payload = _web_payload(test_output)
+    counts = {"tests": 2, "pass": 2, "fail": 0, "skipped": 0}
+    digest = hashlib.sha256(test_output).hexdigest()
+    assert claim_projection.web_execution_valid(payload, "v-test", counts, digest)
+
+    poisoned = json.loads(json.dumps(payload))
+    if poison == "schema":
+        poisoned["schema"] = "korpus.web-regression.v0"
+    elif poison == "evidence_class":
+        poisoned["evidence_class"] = "SELF_REPORTED"
+    elif poison == "top_level_totals":
+        poisoned.update({"tests": 999, "passed": 998, "failed": 1})
+    elif poison == "bool_top_level_total":
+        poisoned["failed"] = False
+    elif poison == "extra_step_field":
+        poisoned["steps"]["lint"]["extra"] = 1
+    elif poison == "lint_bool_exit":
+        poisoned["steps"]["lint"]["exit_code"] = False
+    elif poison == "test_bool_count":
+        poisoned["steps"]["test"]["fail"] = False
+    else:
+        step, field = poison.split("_", maxsplit=1)
+        poisoned["steps"][step][field] = 1 if field == "exit" else "FAIL"
+        if field == "exit":
+            poisoned["steps"][step]["exit_code"] = poisoned["steps"][step].pop("exit")
+    assert not claim_projection.web_execution_valid(poisoned, "v-test", counts, digest)
+
+
+def test_web_execution_refuses_contradictory_pass_payload(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    test_output = _tap()
+    payload = _web_payload(test_output)
+    payload["steps"]["lint"] = {"exit_code": 1, "status": "FAIL"}
+    payload["steps"]["build"] = {"exit_code": 1, "status": "FAIL"}
+    payload.update({"tests": 999, "passed": 998, "failed": 1})
+    actual = tmp_path / "actual-web.json"
+    actual_tap = tmp_path / "actual-web.tap"
+    canonical = tmp_path / "reports/release/v-test/WEB_REGRESSION_REPORT.json"
+    canonical_tap = tmp_path / "reports/release/v-test/WEB_REGRESSION_REPORT.tap"
+    _write_json(actual, payload)
+    _write_json(canonical, payload)
+    actual_tap.write_bytes(test_output)
+    canonical_tap.write_bytes(test_output)
+    monkeypatch.setattr(producer, "_tracked", lambda _root, _paths: None)
+
+    with pytest.raises(ValueError, match="canonical web evidence"):
+        producer._web_execution(tmp_path, "v-test", "a" * 64, actual, actual_tap)
+
+
 def test_release_publisher_refuses_unbound_execution_companions(tmp_path: Path) -> None:
     report = tmp_path / "report.json"
     source = tmp_path / "execution.tap"
@@ -187,6 +332,11 @@ def test_tap_parser_refuses_duplicate_or_inconsistent_summaries(tmp_path: Path) 
     )
     with pytest.raises(ValueError, match="arithmetically invalid"):
         producer._tap(summary_only)
+
+    bailout = tmp_path / "bailout.tap"
+    bailout.write_bytes(_tap() + b"Bail out! catastrophic harness abort\n")
+    with pytest.raises(ValueError, match="arithmetically invalid"):
+        producer._tap(bailout)
 
 
 def test_junit_parser_refuses_counters_without_testcases(tmp_path: Path) -> None:
@@ -255,6 +405,75 @@ def test_mutation_comparison_ignores_only_runtime_noise() -> None:
 
     replay["results"][0]["target_occurrences"] = 0
     assert producer._mutation_projection(base) != producer._mutation_projection(replay)
+
+
+@pytest.mark.parametrize(
+    "poison",
+    [
+        "valid_mutants_zero",
+        "bool_mutants",
+        "unequal_counts",
+        "nonempty_survived",
+        "mutation_score",
+        "catalogue_score",
+        "result_status",
+        "bool_returncode",
+        "bool_target_occurrences",
+        "duplicate_id",
+        "empty_results",
+    ],
+)
+def test_mutation_execution_validator_rejects_false_pass_fields(poison: str) -> None:
+    payload = _mutation_payload()
+    assert claim_projection.mutation_execution_valid(payload)
+    poisoned = json.loads(json.dumps(payload))
+    if poison == "valid_mutants_zero":
+        poisoned["valid_mutants"] = 0
+    elif poison == "bool_mutants":
+        poisoned["mutants"] = True
+    elif poison == "unequal_counts":
+        poisoned["killed"] = 2
+    elif poison == "nonempty_survived":
+        poisoned["survived"] = ["M1"]
+    elif poison == "mutation_score":
+        poisoned["mutation_score"] = 0.0
+    elif poison == "catalogue_score":
+        poisoned["mutation_score_over_catalogue"] = True
+    elif poison == "result_status":
+        poisoned["results"][0]["status"] = "SURVIVED"
+    elif poison == "bool_returncode":
+        poisoned["results"][0]["returncode"] = True
+    elif poison == "bool_target_occurrences":
+        poisoned["results"][0]["target_occurrences"] = True
+    elif poison == "duplicate_id":
+        poisoned["results"].append(dict(poisoned["results"][0]))
+        poisoned.update({"mutants": 2, "valid_mutants": 2, "killed": 2})
+    else:
+        poisoned["results"] = []
+    assert not claim_projection.mutation_execution_valid(poisoned)
+
+
+def test_mutation_execution_refuses_internally_inconsistent_pass(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    payload = _mutation_payload()
+    payload.update(
+        {
+            "valid_mutants": 0,
+            "mutation_score": 0.0,
+            "mutation_score_over_catalogue": 0.0,
+        }
+    )
+    actual = tmp_path / "actual-mutation.json"
+    canonical = tmp_path / "reports/MUTATION_FULL_CATALOGUE_CURRENT.json"
+    alias = tmp_path / "reports/MUTATION_REPORT.json"
+    _write_json(actual, payload)
+    _write_json(canonical, payload)
+    _write_json(alias, payload)
+    monkeypatch.setattr(producer, "_tracked", lambda _root, _paths: None)
+
+    with pytest.raises(ValueError, match="canonical mutation evidence"):
+        producer._mutation_execution(tmp_path, "a" * 64, actual)
 
 
 def test_main_push_lane_reuses_heavy_jobs_and_attests_exact_payload() -> None:

@@ -2233,13 +2233,13 @@
       "reason": "Exact initial ceiling for immutable GitHub run identity, byte receipts, and importer admission bindings."
     },
     "apps/api/src/korpus/application/release_claim_git_tree.py": {
-      "lines": 97,
-      "max_complexity": 13,
+      "lines": 175,
+      "max_complexity": 10,
       "max_function_args": 2,
-      "max_function_lines": 25,
+      "max_function_lines": 26,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": "Exact initial ceiling for object-database reads of a declared Git tree without worktree substitution."
+      "reason": "Exact initial ceiling for isolated object-database reads plus byte-for-byte worktree parity immune to Git environment, config, and index hints."
     },
     "apps/api/src/korpus/application/release_claim_hosted.py": {
       "lines": 167,
@@ -3950,7 +3950,7 @@
       "reason": "Exact rebaseline adds byte digests and explicit per-object governance sentinels to the draft"
     },
     "scripts/build_release_claim_evidence.py": {
-      "lines": 391,
+      "lines": 390,
       "max_complexity": 11,
       "max_function_args": 5,
       "max_function_lines": 49,
@@ -5508,13 +5508,13 @@
       "reason": "Exact initial ceiling for byte-level imported release-claim validation and complete claim-set binding."
     },
     "scripts/release_claim_projection.py": {
-      "lines": 126,
+      "lines": 221,
       "max_complexity": 9,
       "max_function_args": 4,
       "max_function_lines": 20,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "Exact initial ceiling for deterministic claim projections and hash-bound execution-companion publication."
+      "reason": "Exact initial ceiling for deterministic claim projections, strict hosted-execution semantics, and hash-bound companion publication."
     },
     "scripts/record_ci_run.py": {
       "lines": 227,
@@ -6226,13 +6226,13 @@
       "proof_lines": 0
     },
     "scripts/trusted_system_tools.py": {
-      "lines": 30,
+      "lines": 45,
       "max_complexity": 4,
       "max_function_args": 1,
-      "max_function_lines": 12,
+      "max_function_lines": 13,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "Exact initial ceiling for root-owned executable resolution with an immutable binary digest."
+      "reason": "Exact initial ceiling for root-owned executable resolution and isolated Git process environments."
     },
     "scripts/validate_catalog_uri_uniqueness.py": {
       "lines": 209,
@@ -6706,6 +6706,27 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+    {
+      "changes": [
+        {
+          "from": {"lines": 97, "max_function_lines": 25},
+          "path": "apps/api/src/korpus/application/release_claim_git_tree.py",
+          "to": {"lines": 175, "max_function_lines": 26}
+        },
+        {
+          "from": {"lines": 126},
+          "path": "scripts/release_claim_projection.py",
+          "to": {"lines": 221}
+        },
+        {
+          "from": {"lines": 30, "max_function_lines": 12},
+          "path": "scripts/trusted_system_tools.py",
+          "to": {"lines": 45, "max_function_lines": 13}
+        }
+      ],
+      "on": "2026-10-19",
+      "reason": "Hosted evidence admission now rejects Git environment, config, index-hint, TAP bail-out, contradictory web totals, and malformed mutation-count substitution; exact measured ceilings name only the required fail-closed validators."
+    },
     {
       "changes": [
         {

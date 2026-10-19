@@ -679,7 +679,7 @@ def test_every_job_that_runs_the_suite_has_git_in_its_image() -> None:
             continue
         if name == ".python-job" or "extends: .python-job" in block:
             continue
-        if not re.search(r"apt-get install[^\n]*\bgit\b", block):
+        if not re.search(r"(?:apt-get install|apk add)[^\n]*\bgit\b", block):
             offenders.append(name)
     assert not offenders, (
         f"these jobs run the suite in an image with no git, so "

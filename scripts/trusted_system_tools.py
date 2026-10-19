@@ -26,5 +26,20 @@ def git_executable() -> str | None:
     return trusted_executable(GIT)
 
 
+def git_environment() -> dict[str, str]:
+    """Return an environment that cannot redirect Git to another repository/config."""
+    environment = {name: value for name, value in os.environ.items() if not name.startswith("GIT_")}
+    environment.update(
+        {
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_CONFIG_SYSTEM": os.devnull,
+            "GIT_ATTR_NOSYSTEM": "1",
+            "GIT_TERMINAL_PROMPT": "0",
+        }
+    )
+    return environment
+
+
 def ssh_keygen_executable() -> str | None:
     return trusted_executable(SSH_KEYGEN)
