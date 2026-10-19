@@ -59,6 +59,7 @@ jobs:
       - name: Validate repository and GitHub policy
         run: |
           set -o pipefail
+          python scripts/check_clean_source_tree.py
           make validate PY=python MUTATION_REPORT=var/mutation-report.json \
             REPOSITORY_CONTEXT=SOURCE_CHECKOUT PRODUCTION_CONTEXT=SOURCE_CHECKOUT \
             CURRENT_TRUTH_CONTEXT=SOURCE_CHECKOUT \

@@ -66,3 +66,9 @@ def test_release_evidence_verification_cannot_be_skipped_by_an_environment_varia
     assert not [line for line in code if "KORPUS_ENGINEERING_CANDIDATE" in line], (
         "змінна лишилась ВИКОНУВАНОЮ, а не спогадом у коментарі"
     )
+
+
+def test_github_ci_and_tagged_release_execute_clean_tree_guard() -> None:
+    for name in ("ci.yml", "release.yml"):
+        workflow = (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
+        assert "python scripts/check_clean_source_tree.py" in workflow

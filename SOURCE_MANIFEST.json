@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2112,
-  "root_sha256": "7376c7a9abb2d520621a1ff7c967fd0209588807045da55785ee8fde277564be",
+  "root_sha256": "23ca5e4abb7e1e9f88b95a1089a650a61b41c6e526bcbbb04ab5fb401ea339e4",
   "files": [
     {
       "path": ".dockerignore",
@@ -49,8 +49,8 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "bytes": 6296,
-      "sha256": "68965d64abd64b86fdb359b3c7fbbeab3a5d4c3d09ff77de850bc69f5e1092e0",
+      "bytes": 6348,
+      "sha256": "789772a54857706e3b3ee32043bbade52cc8f6a2750f8d5052aaaeae1b732818",
       "mode": "0644"
     },
     {
@@ -97,8 +97,8 @@
     },
     {
       "path": ".github/workflows/release.yml",
-      "bytes": 3088,
-      "sha256": "4ca68c975994b47eda3b7fa097a883d1a984dda1927839b3ce28590b32a40dc1",
+      "bytes": 3140,
+      "sha256": "01dc0bf148f63ad66936c3cd2b8f57204c5a0ffccab430122af4a84ed0afba75",
       "mode": "0644"
     },
     {
@@ -3619,8 +3619,8 @@
     },
     {
       "path": "apps/api/tests/test_clean_source_release_boundary.py",
-      "bytes": 4024,
-      "sha256": "5de8e5c66b8a02713d241b7c6e42d1529ea8c07a523015a05fada0efff87607b",
+      "bytes": 4297,
+      "sha256": "edf7abc9f60a458a95d89a7ef952303cbbb6f08f0a698767904597165b6e5ab8",
       "mode": "0644"
     },
     {
@@ -8174,7 +8174,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "e1d41f80b9474434269f2f3b19dd7b025ae321fbff8f4d8a9944525cf55973d9",
+      "sha256": "6d770522c91e706218269f3b43dbb703b10f99fc77c45519ee1be19ffa9057b7",
       "mode": "0644"
     },
     {
