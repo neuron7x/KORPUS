@@ -9,8 +9,9 @@ from types import SimpleNamespace
 
 import pytest
 from korpus.application import release_claim_git_tree as git_tree
-from korpus.application import release_claim_tree as claim_tree
+from korpus.application import release_claim_manifest_tree as manifest_tree
 from korpus.application.release_claim_tree import tracked_tree_digest
+from scripts.manifest_lib.integrity import manifest_root
 
 
 def _commit(root: Path, value: str) -> None:
@@ -147,7 +148,16 @@ def _gitless_record(root: Path) -> dict[str, object]:
 
 
 def _write_gitless_manifest(root: Path, records: object) -> None:
-    (root / "SOURCE_MANIFEST.json").write_text(json.dumps({"files": records}), encoding="utf-8")
+    valid = isinstance(records, list) and all(isinstance(item, dict) for item in records)
+    document = {
+        "schema": "korpus.source-manifest.v2",
+        "kind": "source",
+        "manifest_self_excluded": True,
+        "file_count": len(records) if isinstance(records, list) else 0,
+        "root_sha256": manifest_root(records) if valid else "",
+        "files": records,
+    }
+    (root / "SOURCE_MANIFEST.json").write_text(json.dumps(document), encoding="utf-8")
 
 
 def test_gitless_snapshot_rejects_content_and_mode_drift(tmp_path: Path) -> None:
@@ -183,7 +193,7 @@ def test_gitless_snapshot_rejects_false_records(tmp_path: Path, key: str, bad: o
 def test_manifest_record_refuses_unsafe_path(tmp_path: Path, path: str) -> None:
     record = _gitless_record(tmp_path)
     record["path"] = path
-    assert claim_tree._manifest_record((tmp_path, record)) is None
+    assert manifest_tree.manifest_record((tmp_path, record)) is None
 
 
 def test_gitless_snapshot_rejects_duplicate_and_missing_files(tmp_path: Path) -> None:
@@ -335,3 +345,60 @@ def test_git_tree_rejects_missing_authority(
     else:
         monkeypatch.setattr(git_tree, "_blob_bytes", lambda _root, _objects: None)
     assert git_tree.git_files(root) is None
+
+
+@pytest.mark.parametrize(
+    ("key", "invalid"),
+    [
+        ("schema", "wrong.schema"),
+        ("kind", "distribution"),
+        ("manifest_self_excluded", False),
+        ("file_count", 0),
+        ("root_sha256", "0" * 64),
+    ],
+)
+def test_gitless_manifest_header_must_be_bound(
+    tmp_path: Path, key: str, invalid: object
+) -> None:
+    record = _gitless_record(tmp_path)
+    _write_gitless_manifest(tmp_path, [record])
+    path = tmp_path / "SOURCE_MANIFEST.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data[key] = invalid
+    path.write_text(json.dumps(data), encoding="utf-8")
+    assert tracked_tree_digest(tmp_path) is None
+
+
+def test_gitless_snapshot_rejects_unlisted_included_source(tmp_path: Path) -> None:
+    record = _gitless_record(tmp_path)
+    _write_gitless_manifest(tmp_path, [record])
+    assert tracked_tree_digest(tmp_path) is not None
+    (tmp_path / "unlisted.py").write_text("data = 2\n", encoding="utf-8")
+    assert tracked_tree_digest(tmp_path) is None
+
+
+def test_gitless_snapshot_rejects_external_symlink_with_matching_bytes(tmp_path: Path) -> None:
+    root = tmp_path / "snapshot"
+    root.mkdir()
+    record = _gitless_record(root)
+    _write_gitless_manifest(root, [record])
+    assert tracked_tree_digest(root) is not None
+    outside = tmp_path / "outside.py"
+    outside.write_bytes((root / "source.py").read_bytes())
+    (root / "source.py").unlink()
+    (root / "source.py").symlink_to(outside)
+    assert tracked_tree_digest(root) is None
+
+
+def test_gitless_snapshot_refuses_dangling_git_marker(tmp_path: Path) -> None:
+    record = _gitless_record(tmp_path)
+    _write_gitless_manifest(tmp_path, [record])
+    assert tracked_tree_digest(tmp_path) is not None
+    (tmp_path / ".git").symlink_to(tmp_path / "missing-object-database")
+    assert tracked_tree_digest(tmp_path) is None
+
+
+def test_manifest_record_requires_canonical_relative_path(tmp_path: Path) -> None:
+    record = _gitless_record(tmp_path)
+    record["path"] = "./source.py"
+    assert manifest_tree.manifest_record((tmp_path, record)) is None

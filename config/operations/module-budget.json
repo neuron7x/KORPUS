@@ -2152,6 +2152,15 @@
       "proof_lines": 0,
       "reason": "Exact initial ceiling for isolated object-database reads plus byte-for-byte worktree parity immune to Git environment, config, and index hints."
     },
+    "apps/api/src/korpus/application/release_claim_manifest_tree.py": {
+      "lines": 76,
+      "max_complexity": 13,
+      "max_function_args": 2,
+      "max_function_lines": 25,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Exact initial bounded source-manifest restoration verifier: reject unlisted source, outside-root symlinks and malformed aggregate identity."
+    },
     "apps/api/src/korpus/application/release_claim_tree.py": {
       "lines": 71,
       "max_complexity": 13,
