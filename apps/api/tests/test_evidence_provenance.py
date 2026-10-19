@@ -175,6 +175,7 @@ def test_stamp_binds_to_the_tree_it_is_given(tmp_path: Path) -> None:
     (tmp_path / "scripts/run.py").write_text("pass\n", encoding="utf-8")
     block = stamp(tmp_path, "scripts/run.py")
     assert block["source_digest"] == compute_source_digest(tmp_path)
+    assert block["digest_scope"] == "evidence_paths"
     assert read_provenance({PROVENANCE_KEY: block}).generator == "scripts/run.py"
 
 

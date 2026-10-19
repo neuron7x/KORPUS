@@ -10,6 +10,8 @@ assert SPEC and SPEC.loader
 VERIFY = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(VERIFY)
 
+from manifest_lib.integrity import file_record, manifest_root  # noqa: E402
+
 
 def test_invalid_manifest_never_emits_a_supported_report(tmp_path: Path) -> None:
     release = tmp_path / "apps/api/src/korpus/release.json"
@@ -21,6 +23,44 @@ def test_invalid_manifest_never_emits_a_supported_report(tmp_path: Path) -> None
     )
     report = VERIFY.bound_report(tmp_path)
     assert report["status"] == "FAIL"
+
+
+def test_duplicate_manifest_path_is_rejected_even_when_aggregate_is_self_consistent(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "README.md"
+    target.write_text("canonical bytes\n", encoding="utf-8")
+    valid = file_record(target, Path("README.md"), source=True)
+    poisoned = {**valid, "sha256": "0" * 64}
+    records = [poisoned, valid]
+    (tmp_path / "SOURCE_MANIFEST.json").write_text(
+        __import__("json").dumps(
+            {
+                "schema": "korpus.source-manifest.v2",
+                "kind": "source",
+                "file_count": len(records),
+                "root_sha256": manifest_root(records),
+                "files": records,
+            }
+        ),
+        encoding="utf-8",
+    )
+    report = VERIFY.verify(tmp_path)
+    assert report["valid"] is False
+    assert any("duplicate manifest paths" in failure for failure in report["failures"])
+    assert any("record count mismatch" in failure for failure in report["failures"])
+
+
+def test_bound_manifest_report_names_its_digest_scope(tmp_path: Path) -> None:
+    release = tmp_path / "apps/api/src/korpus/release.json"
+    release.parent.mkdir(parents=True)
+    release.write_text(
+        '{"schema":"x","product":"x","version":"9","tag":"v9",'
+        '"artifact_stem":"x","distribution_artifact":"x.zip"}',
+        encoding="utf-8",
+    )
+    report = VERIFY.bound_report(tmp_path)
+    assert report["digest_scope"] == "evidence_paths"
 
 
 def test_evidence_refresh_verifies_the_manifest_before_rendering_claims() -> None:

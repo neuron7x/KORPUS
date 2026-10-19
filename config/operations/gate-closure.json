@@ -164,6 +164,13 @@
       "target": "production-engineering"
     },
     {
+      "class": "requires_ci_artifacts",
+      "closes_when": "коли gate-closure вимірюватиме канонічні GitHub workflow roots разом із локальними Makefile roots",
+      "on": "2026-10-19",
+      "reason": "Контекст PRODUCTION_EVIDENCE споживає source-bound GitHub receipts і запускається канонічним `.github/workflows/release.yml`; локальний `check` не має цих артефактів і не може правдиво підмінити hosted run. Ціль є досяжною в GitHub, але поточний gate-closure будує граф лише з Makefile.",
+      "target": "production-hard-predicates-evidence"
+    },
+    {
       "class": "requires_image_build",
       "closes_when": "коли лан збиратиме образ",
       "on": "2026-09-04",

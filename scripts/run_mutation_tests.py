@@ -4841,7 +4841,7 @@ MUTANTS = (
     ),
     Mutant(
         "M570_A_BRANCH_WITH_ITS_OWN_COMMITS_NEED_NOT_BE_NAMED",
-        "scripts/verify_branch_integration.py",
+        "scripts/branch_integration_contract.py",
         "    unnamed = sorted(set(diverged) - set(named))",
         "    unnamed = []",
         (
@@ -4852,9 +4852,9 @@ MUTANTS = (
     ),
     Mutant(
         "M571_A_RECORD_ABOUT_AN_ALREADY_MERGED_BRANCH_SURVIVES",
-        "scripts/verify_branch_integration.py",
-        "    merged = sorted(set(named) - set(diverged))",
-        "    merged = []",
+        "scripts/branch_integration_contract.py",
+        "    dead = sorted(set(named) - set(diverged))",
+        "    dead = []",
         (
             "apps/api/tests/test_branch_integration.py::"
             "test_a_record_about_an_already_merged_branch_is_refused",
@@ -4863,9 +4863,9 @@ MUTANTS = (
     ),
     Mutant(
         "M572_AN_ENTRY_MAY_STAY_SILENT_ABOUT_WHAT_IT_CARRIES",
-        "scripts/verify_branch_integration.py",
-        '        and not (isinstance(entry.get("carries"), str) and len(entry["carries"].strip()) >= 20)',
-        "        and False",
+        "scripts/branch_integration_contract.py",
+        '        if branch in diverged and not _nonempty(entry.get("carries"), 20)',
+        "        if branch in diverged and False",
         (
             "apps/api/tests/test_branch_integration.py::"
             "test_an_entry_that_does_not_say_what_it_carries_is_refused",
@@ -4874,8 +4874,8 @@ MUTANTS = (
     ),
     Mutant(
         "M573_A_CLEAN_BRANCH_MAY_LINGER_WITHOUT_A_REASON",
-        "scripts/verify_branch_integration.py",
-        '        if state.get("clean") and not named.get(branch, {}).get("clean_but_held")',
+        "scripts/branch_integration_contract.py",
+        '        if state.get("clean") and not _nonempty(named.get(branch, {}).get("clean_but_held"), 20)',
         "        if False",
         (
             "apps/api/tests/test_branch_integration.py::"
@@ -5915,9 +5915,9 @@ MUTANTS = (
     ),
     Mutant(
         "M667_AN_ACTIVE_WORKTREE_IS_MISREPORTED_AS_STRANDED",
-        "scripts/verify_branch_integration.py",
-        "        if ref == canonical or ref in active:",
-        "        if ref == canonical:",
+        "scripts/branch_integration_observation.py",
+        "        if branch == canonical or _active_ref(branch, head, active_heads):",
+        "        if branch == canonical:",
         (
             "apps/api/tests/test_branch_integration.py::"
             "test_an_active_worktree_branch_is_not_misreported_as_stranded",
@@ -5981,9 +5981,9 @@ MUTANTS = (
     ),
     Mutant(
         "M673_SOURCE_INTEGRITY_CLAIM_READS_AN_UNBOUND_MANIFEST",
-        "apps/api/src/korpus/application/release_claims.py",
-        '            "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json",',
-        '            "SOURCE_MANIFEST.json",',
+        "apps/api/src/korpus/application/release_claim_contracts.py",
+        '        "CLM-SOURCE-INTEGRITY": "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json",',
+        '        "CLM-SOURCE-INTEGRITY": "SOURCE_MANIFEST.json",',
         (
             "apps/api/tests/test_current_truth_hardening_v094.py::"
             "test_source_integrity_claim_uses_a_bound_verification_report",

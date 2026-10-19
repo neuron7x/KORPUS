@@ -4,13 +4,17 @@ import json
 import re
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
-from korpus.application.release_truth import evidence_digest
+from korpus.application.release_truth import blocker_registry, evidence_digest
 
 try:
+    from .clean_room_contract import clean_room_contract
+    from .current_truth_claims import claim_admission_checks as claim_admission_checks
     from .current_truth_contract import load_object
 except ImportError:  # direct script execution with scripts/ on sys.path
+    from clean_room_contract import clean_room_contract
+    from current_truth_claims import claim_admission_checks as claim_admission_checks
     from current_truth_contract import load_object
 
 
@@ -40,40 +44,6 @@ def _current_json(path: Path, release: str, digest: str) -> bool:
     # такий, що описує це дерево. Разом із `release_claims` це давало ланцюг, де
     # ВІДСУТНІСТЬ читалась як згода на ОБОХ кінцях.
     return bound is not None and bound == digest
-
-
-def _evidence_resolves(root: Path, claim: dict[str, object], release: str, digest: str) -> bool:
-    """Чи веде претензія до доказу, який описує САМЕ це дерево."""
-    evidence = claim.get("evidence")
-    if not isinstance(evidence, str) or not evidence:
-        return False
-    target = root / evidence
-    if not target.is_file():
-        return False
-    return target.suffix != ".json" or _current_json(target, release, digest)
-
-
-def claim_admission_checks(root: Path, release: str, digest: str) -> dict[str, bool]:
-    ledger = root / f"reports/release/{release}/final/CLAIM_LEDGER.json"
-    if not ledger.is_file():
-        return {"CLAIM_LEDGER.supported_evidence_resolves": False}
-    # Журнал читається ОДИН раз. Перша редакція викликала `load_object` двічі — і це не
-    # лише подвійна робота: два читання одного файла можуть дати різний вміст, якщо між
-    # ними хтось пише, і тоді два числа описують два різні журнали.
-    entries = [c for c in load_object(ledger).get("claims", ()) if isinstance(c, dict)]
-    claims = [c for c in entries if str(c.get("status", "")).startswith("SUPPORTED")]
-    unresolved = sum(1 for claim in claims if not _evidence_resolves(root, claim, release, digest))
-    # `all([])` істинне: нуль підтриманих претензій задовольняв би обидві перевірки
-    # тривіально. Порожній перелік — це UNKNOWN, а не досконалість.
-    resolved = bool(claims) and unresolved == 0
-    return {
-        "CLAIM_LEDGER.supported_evidence_resolves": resolved,
-        "CLAIM_LEDGER.supported_unresolved_zero": resolved,
-        "CLAIM_LEDGER.has_supported_claims": bool(claims),
-        # Решта онтології означає «не знаємо», не «ні»: вічне PENDING є дефектом.
-        "CLAIM_LEDGER.every_claim_decided_by_evidence": bool(entries)
-        and all(c.get("status") in ("SUPPORTED", "REFUTED_BY_EVIDENCE") for c in entries),
-    }
 
 
 #: Документ, на якому власник ухвалює рішення. Доти єдиний доказ релізу, якого не
@@ -124,28 +94,18 @@ def clean_room_checks(root: Path, digest: str) -> dict[str, bool]:
     path = root / CLEAN_ROOM
     if not path.is_file():
         return {f"{CLEAN_ROOM}.present": False}
-    payload = load_object(path)
-    pytest_block = payload.get("pytest")
-    counted = isinstance(pytest_block, dict) and isinstance(pytest_block.get("tests"), int)
+    checks = clean_room_contract(root, load_object(path), digest)
     return {
         f"{CLEAN_ROOM}.present": True,
-        f"{CLEAN_ROOM}.status_pass": payload.get("status") == "PASS",
-        f"{CLEAN_ROOM}.class_is_remote": payload.get("class") == "REMOTE_SOURCE_FRESH_DEPENDENCIES",
-        f"{CLEAN_ROOM}.source_bound": bool(digest) and payload.get("source_tree_sha256") == digest,
-        # Три перевірки вище стережуть САМООГОЛОШЕНІ скаляри: тризначний JSON
-        # {status, class, source_tree_sha256} без жодного сліду відтворення проходив їх
-        # усі. Довів незалежний верифікатор 06.09.2026 — гейт був живий (усі чотири
-        # негативні контролі червоніли), але стеріг не той предмет.
-        # Нижче — сліди самого ПРОГОНУ: скільки тестів виконано, скільки впало, який
-        # коміт відтворювався і чи названо походження залежностей. Артефакт, що каже
-        # PASS без жодного з них, більше не є доказом репродукції.
-        f"{CLEAN_ROOM}.run_counted": counted and pytest_block["tests"] > 0,
-        f"{CLEAN_ROOM}.run_clean": counted
-        and pytest_block.get("failures") == 0
-        and pytest_block.get("errors") == 0,
-        f"{CLEAN_ROOM}.names_candidate": bool(payload.get("candidate_sha")),
-        f"{CLEAN_ROOM}.names_dependency_origin": bool(payload.get("dependency_freeze_sha256")),
+        **{f"{CLEAN_ROOM}.{key}": value for key, value in checks.items()},
     }
+
+
+def _expected_registry(root: Path, release: str, digest: str) -> dict[str, Any] | None:
+    try:
+        return cast(dict[str, Any], blocker_registry(root, digest, release))
+    except (OSError, ValueError, KeyError, json.JSONDecodeError):
+        return None
 
 
 def blocker_state_checks(root: Path, release: str, digest: str) -> dict[str, bool]:
@@ -153,6 +113,8 @@ def blocker_state_checks(root: Path, release: str, digest: str) -> dict[str, boo
     if not path.is_file():
         return {"BLOCKER_REGISTRY.current_state_present": False}
     payload = load_object(path)
+    expected = _expected_registry(root, release, digest)
+    exact_fields = set(expected or {}) - {"generated_at"}
     return {
         "BLOCKER_REGISTRY.current_state_present": True,
         "BLOCKER_REGISTRY.hard_predicate_report_current": payload.get(
@@ -170,6 +132,14 @@ def blocker_state_checks(root: Path, release: str, digest: str) -> dict[str, boo
         # зеленою. `reports/` навмисно поза `source_tree_sha256`, тому прив'язка до
         # дерева змісту реєстру не визначає.
         "BLOCKER_REGISTRY.evidence_inputs_current": _evidence_inputs_current(root, payload),
+        "BLOCKER_REGISTRY.recomputed_exact": all(
+            payload.get(field) == expected[field] for field in exact_fields
+        )
+        if expected is not None
+        else False,
+        "BLOCKER_REGISTRY.production_status_coherent": payload.get("status") == expected["status"]
+        if expected is not None
+        else False,
     }
 
 

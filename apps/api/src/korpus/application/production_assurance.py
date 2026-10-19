@@ -54,7 +54,7 @@ def gate_payload(
         "schema": "korpus.production-gate.v1",
         "gate_id": gate_id,
         "status": status,
-        "source_tree_sha256": source_digest,
+        **{"source_tree_sha256": source_digest, "digest_scope": "evidence_paths"},
         "release": release,
         "checks": dict(checks),
         "failures": list(failures),

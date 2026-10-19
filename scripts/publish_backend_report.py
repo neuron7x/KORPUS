@@ -25,7 +25,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 
-from korpus.application.provenance import compute_source_digest  # noqa: E402
+from korpus.application.provenance import DIGEST_SCOPE, compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
 
@@ -71,7 +71,7 @@ def main() -> int:
         "schema": "korpus.full-backend-report.v2",
         "status": merge.get("status", "FAIL"),
         "release": release,
-        "source_tree_sha256": digest,
+        **{"source_tree_sha256": digest, "digest_scope": DIGEST_SCOPE},
         "collection_digest": merge.get("collection_digest"),
         "collected": merge.get("collection_count"),
         "passed": int(junit.get("tests", 0))

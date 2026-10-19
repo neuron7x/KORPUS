@@ -6,48 +6,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "apps/api/src")]
-from korpus.application.provenance import compute_source_digest
-from manifest_lib.integrity import manifest_failures, mode_string, record_failures
-from manifest_paths import source_paths
+from korpus.application.provenance import DIGEST_SCOPE, compute_source_digest
 from release_identity import release_tag
+from source_manifest_contract import verify_source_manifest
 
 
 def verify(root: Path) -> dict[str, object]:
-    path = root / "SOURCE_MANIFEST.json"
-    if not path.is_file():
-        return {"valid": False, "failures": ["SOURCE_MANIFEST.json is missing"]}
-    manifest = json.loads(path.read_text(encoding="utf-8"))
-    if manifest.get("schema") != "korpus.source-manifest.v2" or manifest.get("kind") != "source":
-        return {"valid": False, "failures": ["invalid source manifest schema"]}
-    records = manifest.get("files")
-    if not isinstance(records, list):
-        return {"valid": False, "failures": ["invalid source manifest records"]}
-    by_path = {str(record.get("path")): record for record in records if isinstance(record, dict)}
-    authoritative = [p.as_posix() for p in source_paths(root)]
-    failures = manifest_failures(manifest, records)
-    if sorted(by_path) != authoritative:
-        failures.append(
-            "path parity mismatch "
-            f"in_tree_not_in_manifest={sorted(set(authoritative) - set(by_path))} "
-            f"in_manifest_not_in_tree={sorted(set(by_path) - set(authoritative))}"
-        )
-    for relative in authoritative:
-        file, record = root / relative, by_path.get(relative)
-        if not file.is_file():
-            failures.append(f"missing source file: {relative}")
-        elif record is None:
-            continue
-        else:
-            failures.extend(
-                f"source {item}"
-                for item in record_failures(file, record, mode_string(file, source=True))
-            )
-    return {
-        "valid": not failures,
-        "files": len(authoritative),
-        "root_sha256": manifest.get("root_sha256"),
-        "failures": failures,
-    }
+    return verify_source_manifest(root)
 
 
 def bound_report(root: Path) -> dict[str, object]:
@@ -56,6 +21,7 @@ def bound_report(root: Path) -> dict[str, object]:
     payload["status"] = "PASS" if payload["valid"] else "FAIL"
     payload["release"] = release_tag(root)
     payload["source_tree_sha256"] = compute_source_digest(root)
+    payload["digest_scope"] = DIGEST_SCOPE
     return payload
 
 

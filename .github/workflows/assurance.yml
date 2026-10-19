@@ -85,6 +85,8 @@ jobs:
             var/operational-gate.json
             var/mutation-shard-*.log
             var/mutation-shards/*.json
+            var/production/inference_security-gate.json
+            var/production/inference_security.pytest.xml
           if-no-files-found: warn
           retention-days: 30
 
@@ -110,10 +112,7 @@ jobs:
       - name: Measure SQLite dialect
         run: make api-test PY=python
       - name: Bind SQLite coverage to source and workflow run
-        run: >-
-          python scripts/stamp_coverage_report.py --report var/coverage.json
-          --dialect sqlite --job sqlite-coverage
-          --receipt var/coverage-sqlite-receipt.json
+        run: python scripts/stamp_coverage_report.py --report var/coverage.json --dialect sqlite --job sqlite-coverage --receipt var/coverage-sqlite-receipt.json
       - name: Preserve SQLite coverage
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -126,6 +125,82 @@ jobs:
             var/coverage.json
             var/coverage-sqlite-receipt.json
           if-no-files-found: warn
+          retention-days: 30
+
+  release-claims:
+    name: release-claims
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/integration/canonical-convergence-20261019-v2')
+    needs: [research-assurance, sqlite-coverage]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install Node 22.23.2
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.23.2
+          check-latest: false
+      - name: Install locked web environment
+        run: npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
+      - name: Download full SQLite execution
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: sqlite-coverage-evidence
+          path: var/hosted/sqlite
+      - name: Download mutation and inference executions
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: research-assurance-evidence
+          path: var/hosted/research
+      - name: Execute fresh web regression
+        run: >-
+          python scripts/publish_web_regression.py
+          --out var/hosted/web/WEB_REGRESSION_REPORT.json
+          --tap-out var/hosted/web/WEB_REGRESSION_REPORT.tap
+      - name: Bind hosted executions to canonical release claims
+        run: >-
+          python scripts/build_release_claim_evidence.py
+          --sqlite-junit var/hosted/sqlite/pytest.xml
+          --mutation var/hosted/research/mutation-report.json
+          --inference var/hosted/research/production/inference_security-gate.json
+          --inference-junit var/hosted/research/production/inference_security.pytest.xml
+          --web var/hosted/web/WEB_REGRESSION_REPORT.json
+          --web-tap var/hosted/web/WEB_REGRESSION_REPORT.tap
+          --out-dir var/release-claim
+      - name: Attest exact release-claim payload
+        id: release-claim-provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8
+        with:
+          subject-path: var/release-claim/RELEASE_CLAIM_ATTESTATION.json
+      - name: Retain the GitHub Sigstore bundle
+        run: |
+          set -euo pipefail
+          bundle="${{ steps.release-claim-provenance.outputs.bundle-path }}"
+          test -s "$bundle"
+          cp "$bundle" var/release-claim/RELEASE_CLAIM_ATTESTATION.sigstore.json
+      - name: Preserve hosted release-claim evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-claim-evidence
+          overwrite: true
+          path: |
+            var/release-claim/RELEASE_CLAIM_ATTESTATION.json
+            var/release-claim/RELEASE_CLAIM_RECEIPT.json
+            var/release-claim/RELEASE_CLAIM_ATTESTATION.sigstore.json
+          if-no-files-found: error
           retention-days: 30
 
   assurance-drills:

@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v0.9.7",
-  "root_sha256": "ac136f8d21aa642d911d50fde48ccfa9b1dda9ba846d0fed64d36ce218101650",
+  "root_sha256": "ece105ad8075902d7f0a3de52585abcbe119df0c33db15c42747a2f5281e5b1f",
   "records": [
     {
       "path": ".github/dependabot.yml",
@@ -10,13 +10,13 @@
     },
     {
       "path": ".github/workflows/assurance.yml",
-      "sha256": "23d3cead359161f9759dd16b0400713b603c0073ed4dc061eb752390bd4bc30c",
-      "bytes": 2812
+      "sha256": "699b0498cc72269988540bd0e6b8814a0fa632d500cfcb95e43089af4a7d9256",
+      "bytes": 29634
     },
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "673e1ce0ad6715cf2c5c694df25f10612e022039f5ce1f3e86be0fbf164cd725",
-      "bytes": 3953
+      "sha256": "992d97ca4546c43a4a3c977579b4a44bd65d2e8d36658e9e3ebe0a14ec069786",
+      "bytes": 5991
     },
     {
       "path": ".github/workflows/dependency-review.yml",
@@ -55,18 +55,18 @@
     },
     {
       "path": ".github/workflows/release.yml",
-      "sha256": "4ca68c975994b47eda3b7fa097a883d1a984dda1927839b3ce28590b32a40dc1",
-      "bytes": 3088
+      "sha256": "1716e7e18fb07562c49808211c65344492e4ffadec7e69dde40e27ed47096a95",
+      "bytes": 8608
     },
     {
       "path": ".gitlab-ci.yml",
-      "sha256": "8598d032de483146598db5c56c3a6afb5dca8c2a480db85fa57de821f6e9fcd6",
-      "bytes": 67762
+      "sha256": "24427d18b292013cc70d37d31c768961fcee0c536a2aaa63ec0cee42a2f08017",
+      "bytes": 65388
     },
     {
       "path": "apps/api/Dockerfile",
-      "sha256": "3eb56a3122d14737fcb148e83da06df6e8e06587390bc4807b5e0cfa4b1d9476",
-      "bytes": 3117
+      "sha256": "6f1a151223d4967e947bc7d4b2382131ff3f1dd45c46b78e6426eaf857f2f274",
+      "bytes": 2816
     },
     {
       "path": "apps/api/requirements.dev.lock",
@@ -75,8 +75,8 @@
     },
     {
       "path": "apps/api/requirements.runtime.lock",
-      "sha256": "0ed5d1efdc14f1171b5d0409882a38eb5346a3b45bbf2707de5a069580d7a1f1",
-      "bytes": 7298
+      "sha256": "60e3bb637313250846513c24d5c8faeaa93d547a885ec4a6043ba15a0a7e7074",
+      "bytes": 8573
     },
     {
       "path": "apps/web/Dockerfile",

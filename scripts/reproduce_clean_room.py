@@ -24,7 +24,6 @@ import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parents[1]
 #: ОСНОВА й архів читаються з оголошення, а не вшиваються вдруге. Ролі змінились
@@ -34,6 +33,9 @@ ROOT = Path(__file__).resolve().parents[1]
 FORGES = json.loads((ROOT / "config/operations/forges.json").read_text(encoding="utf-8"))
 TRUNK = FORGES["forges"]["trunk"]["url"]
 ARCHIVE = FORGES["forges"]["archive"]["url"]
+
+from clean_room_contract import junit_counts  # noqa: E402
+from clean_room_publication import git_config, publish  # noqa: E402
 
 
 def forge_class(remote: str) -> str:
@@ -102,24 +104,7 @@ def _fresh_environment(work: Path) -> tuple[Path, str]:
     return python, hashlib.sha256(lock.read_bytes()).hexdigest()
 
 
-def _counts(junit: Path) -> dict[str, int]:
-    """Числа з JUnit XML, а не з тексту.
-
-    Підсумковий рядок pytest у цьому оточенні не друкувався взагалі, і розбір тексту
-    мовчки давав нуль тестів: «нічого не впало» і «нічого не бігало» виглядали однаково.
-    """
-    suite = ElementTree.parse(junit).getroot()
-    suite = suite if suite.tag == "testsuite" else suite[0]
-    total, skipped = int(suite.get("tests", "0")), int(suite.get("skipped", "0"))
-    return {
-        "tests": total - skipped,
-        "failures": int(suite.get("failures", "0")),
-        "errors": int(suite.get("errors", "0")),
-        "skipped": skipped,
-    }
-
-
-def _battery(work: Path, python: Path) -> tuple[int, dict[str, int]]:
+def _battery(work: Path, python: Path) -> tuple[int, dict[str, int], bytes]:
     junit = work / "clean-room-junit.xml"
     completed = _run(
         [
@@ -143,7 +128,7 @@ def _battery(work: Path, python: Path) -> tuple[int, dict[str, int]]:
     )
     if completed.returncode:
         print(completed.stdout[-4000:], file=sys.stderr)
-    return completed.returncode, _counts(junit)
+    return completed.returncode, junit_counts(junit), junit.read_bytes()
 
 
 def _digest_of(work: Path, python: Path) -> str:
@@ -161,11 +146,11 @@ def _digest_of(work: Path, python: Path) -> str:
     return measured.stdout.strip()
 
 
-def reproduce(remote: str, sha: str) -> dict[str, Any]:
+def reproduce(remote: str, sha: str) -> tuple[dict[str, Any], bytes]:
     with tempfile.TemporaryDirectory(prefix="korpus-clean-room-") as tmp:
         work = _clone(remote, sha, Path(tmp))
         python, freeze = _fresh_environment(work)
-        exit_code, pytest_block = _battery(work, python)
+        exit_code, pytest_block, junit = _battery(work, python)
         source_digest = _digest_of(work, python)
     return {
         "schema": "korpus.clean-room-remote.v1",
@@ -191,7 +176,7 @@ def reproduce(remote: str, sha: str) -> dict[str, Any]:
             "деревом, цим venv і цією машиною. НЕ є незалежною валідацією (L9): виконавець той "
             "самий, незалежні лише вхід і інтерпретатор."
         ),
-    }
+    }, junit
 
 
 def main() -> int:
@@ -204,24 +189,24 @@ def main() -> int:
     )
     parser.add_argument("--sha", required=True)
     parser.add_argument("--out", default=OUT)
+    parser.add_argument("--signer", default=None)
+    parser.add_argument("--signing-key", default=None)
     args = parser.parse_args()
-    payload = reproduce(args.remote, args.sha)
+    payload, junit = reproduce(args.remote, args.sha)
     payload["remote_class"] = forge_class(args.remote)
+    mirror = None
     if args.also:
-        # Незалежність ВХОДУ, а не інтерпретатора: два форжі, дві мережеві дороги, один
-        # дайджест. Якщо вони розійшлися — дзеркала несуть різні дерева під одним іменем.
-        mirror = reproduce(args.also, args.sha)
-        payload["mirror"] = {
-            "remote": args.also,
-            "source_tree_sha256": mirror["source_tree_sha256"],
-            "status": mirror["status"],
-            "digests_agree": mirror["source_tree_sha256"] == payload["source_tree_sha256"],
-        }
-        if not payload["mirror"]["digests_agree"]:
-            payload["status"] = "FAIL"
-    path = ROOT / args.out
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        mirror, mirror_junit = reproduce(args.also, args.sha)
+        mirror = (mirror, mirror_junit)
+    publish(
+        ROOT,
+        args.out,
+        payload,
+        junit,
+        args.signer or git_config(ROOT, "user.email"),
+        args.signing_key or git_config(ROOT, "user.signingkey"),
+        mirror,
+    )
     print(json.dumps(payload, ensure_ascii=False, indent=2))
     return 0 if payload["status"] == "PASS" else 1
 

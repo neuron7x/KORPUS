@@ -2,15 +2,15 @@
 
 ## Authority
 
-GitHub becomes the primary collaboration and CI transport for the current release line (`v0.9.7`). (ВИПРАВЛЕНО 02.09.2026: тут значилась лінія `v0.1.x`. Чинна тотожність релізу — **`0.9.7`**, `apps/api/src/korpus/release.json`; лінії v0.1.x більше немає)
+GitHub is the sole collaboration, CI, and merge authority for the current release line (`v0.9.7`).
 Repository scripts, manifests, tests, and release identity remain the semantic source of
-truth. The retained GitLab pipeline is a legacy parity/evidence surface during migration;
-it must not become a second policy implementation.
+truth. GitLab is retained as a read-only provenance archive and must not become a second
+policy implementation or delivery surface.
 
-## Required repository settings after import
+## Enforced repository settings
 
-These settings live outside Git and therefore cannot be truthfully marked PASS by this
-package. Configure them on the GitHub repository before treating `main` as protected:
+These settings live outside Git. Their measured state is recorded in
+`docs/operations/GITHUB_DEVELOPMENT_READINESS.json`; source text alone is not evidence:
 
 1. Default branch: `main`.
 2. Require pull requests before merge; prohibit direct pushes to `main`.
@@ -24,16 +24,10 @@ package. Configure them on the GitHub repository before treating `main` as prote
    in workflows that require them.
 10. Require signed release provenance verification for distributed ZIP artifacts.
 
-Repository-owner/CODEOWNERS identity is intentionally not fabricated in source. Add a
-valid `.github/CODEOWNERS` only after the canonical GitHub owner/team is known; an
-invented handle would create a control that appears configured but is not enforceable.
-The canonical owner is now observed as `@neuron7x`, so `.github/CODEOWNERS` records
-review intent. On 2026-08-12 GitHub returned `403` when branch protection was queried
-for this private repository because the account requires GitHub Pro or public visibility
-for that feature. Therefore CODEOWNERS review is **not an enforced merge predicate** in
-the current external state. `docs/operations/GITHUB_DEVELOPMENT_READINESS.json` records
-that blocker, and no document may describe `main` as protected until a later API
-observation proves it.
+The canonical owner observed from GitHub is `@neuron7x`; `.github/CODEOWNERS` records
+review intent. A sole-owner repository cannot truthfully claim independent human review,
+so the merge policy requires a pull request and resolved conversations but not a
+fabricated second approver. Independent verification remains an evidence predicate.
 
 ## Required checks encoded in source
 

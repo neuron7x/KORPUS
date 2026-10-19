@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
+import pytest
 from korpus.application.provenance import compute_source_digest
-from korpus.application.release_claims import claim_ledger
+from korpus.application.release_claims import claim_ledger, claim_status
 from korpus.application.release_truth import blocker_registry
 
+from scripts import current_truth_claims
 from scripts.current_truth_admission import (
     blocker_state_checks,
     claim_admission_checks,
@@ -38,13 +41,36 @@ def test_digest_binds_web_and_ci_release_surfaces(tmp_path: Path) -> None:
     assert len({first, second, third}) == 3
 
 
-def test_supported_claim_must_resolve_to_current_evidence(tmp_path: Path) -> None:
+def test_supported_claim_cannot_use_an_arbitrary_current_json(tmp_path: Path) -> None:
     release, digest = "v9", "a" * 64
     ledger = tmp_path / f"reports/release/{release}/final/CLAIM_LEDGER.json"
-    _write(ledger, {"claims": [{"status": "SUPPORTED", "evidence": "evidence.json"}]})
+    _write(
+        ledger,
+        {
+            "claims": [
+                {
+                    "id": "CLM-WEB",
+                    "status": "SUPPORTED",
+                    "evidence": "evidence.json",
+                }
+            ]
+        },
+    )
+    evidence = {
+        "schema": "korpus.web-regression.v1",
+        "release": release,
+        "source_tree_sha256": "b" * 64,
+        "digest_scope": "evidence_paths",
+        "status": "PASS",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "steps": {name: {"status": "PASS", "exit_code": 0} for name in ("lint", "test", "build")},
+    }
     _write(
         tmp_path / "evidence.json",
-        {"release": release, "source_tree_sha256": "b" * 64, "status": "PASS"},
+        evidence,
     )
     assert (
         claim_admission_checks(tmp_path, release, digest)[
@@ -54,14 +80,47 @@ def test_supported_claim_must_resolve_to_current_evidence(tmp_path: Path) -> Non
     )
     _write(
         tmp_path / "evidence.json",
-        {"release": release, "source_tree_sha256": digest, "status": "PASS"},
+        {**evidence, "source_tree_sha256": digest},
     )
-    assert (
-        claim_admission_checks(tmp_path, release, digest)[
-            "CLAIM_LEDGER.supported_evidence_resolves"
-        ]
-        is True
+    checks = claim_admission_checks(tmp_path, release, digest)
+    assert checks["CLAIM_LEDGER.supported_evidence_resolves"] is False
+    assert checks["CLAIM_LEDGER.exact_canonical_ledger"] is False
+
+
+def test_claim_ledger_requires_the_exact_canonical_claim_set(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    release, digest = "v9", "a" * 64
+    claims = [
+        {"id": "C1", "claim": "one", "status": "SUPPORTED", "evidence": "one.json"},
+        {
+            "id": "C2",
+            "claim": "two",
+            "status": "REFUTED_BY_EVIDENCE",
+            "evidence": "two.json",
+        },
+    ]
+    expected = {
+        "schema": "korpus.claim-ledger.v2",
+        "generated_at": "new",
+        "release": release,
+        "source_tree_sha256": digest,
+        "digest_scope": "evidence_paths",
+        "claims": claims,
+    }
+    monkeypatch.setattr(current_truth_claims, "claim_ledger", lambda *_: expected)
+    monkeypatch.setattr(
+        current_truth_claims,
+        "claim_status",
+        lambda _root, claim_id, *_: "SUPPORTED" if claim_id == "C1" else "REFUTED_BY_EVIDENCE",
     )
+    path = tmp_path / f"reports/release/{release}/final/CLAIM_LEDGER.json"
+    _write(path, {**expected, "generated_at": "recorded"})
+    assert claim_admission_checks(tmp_path, release, digest)["CLAIM_LEDGER.exact_canonical_ledger"]
+    _write(path, {**expected, "generated_at": "recorded", "claims": claims[:1]})
+    checks = claim_admission_checks(tmp_path, release, digest)
+    assert checks["CLAIM_LEDGER.exact_canonical_ledger"] is False
+    assert checks["CLAIM_LEDGER.status_matches_evidence"] is False
 
 
 def test_alias_checks_bind_git_imports_and_package_build(tmp_path: Path) -> None:
@@ -96,6 +155,30 @@ def test_source_integrity_claim_uses_a_bound_verification_report(tmp_path: Path)
     ledger = claim_ledger(tmp_path, "a" * 64, "v9")
     source = next(claim for claim in ledger["claims"] if claim["id"] == "CLM-SOURCE-INTEGRITY")
     assert source["evidence"] == "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json"
+
+
+def test_source_integrity_claim_recomputes_the_manifest_instead_of_trusting_pass(
+    tmp_path: Path,
+) -> None:
+    digest = "a" * 64
+    evidence = "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json"
+    _write(
+        tmp_path / evidence,
+        {
+            "schema": "korpus.source-manifest-verification.v1",
+            "release": "v9",
+            "source_tree_sha256": digest,
+            "digest_scope": "evidence_paths",
+            "status": "PASS",
+            "valid": True,
+            "files": 1,
+            "root_sha256": "0" * 64,
+            "failures": [],
+        },
+    )
+    assert (
+        claim_status(tmp_path, "CLM-SOURCE-INTEGRITY", evidence, digest, "v9") == "INVALID_EVIDENCE"
+    )
 
 
 # ── Пакет власника: єдиний доказ релізу, який доти не звірявся НІЧИМ.
@@ -420,8 +503,42 @@ def test_a_digest_recorded_for_another_path_does_not_vouch_for_this_one(
     assert checks["BLOCKER_REGISTRY.evidence_inputs_current"] is False
 
 
+def test_external_blockers_cannot_be_relabelled_as_production_pass(tmp_path: Path) -> None:
+    digest, release = "a" * 64, "v0.9.7"
+    _write(
+        tmp_path / "config/assurance/production-hard-predicates-v1.json",
+        {"predicates": [{"id": "p1", "required_proof_class": "EXTERNAL"}]},
+    )
+    _write(
+        tmp_path / "reports/PRODUCTION_HARD_PREDICATES.json",
+        {
+            "release": release,
+            "source_tree_sha256": digest,
+            "states": [
+                {
+                    "id": "p1",
+                    "software_ready": True,
+                    "externally_satisfied": False,
+                    "failed_external_checks": ["receipt"],
+                }
+            ],
+        },
+    )
+    forged = blocker_registry(tmp_path, digest, release)
+    forged["status"] = "PASS"
+    path = tmp_path / f"reports/release/{release}/final/BLOCKER_REGISTRY.json"
+    _write(path, forged)
+    checks = blocker_state_checks(tmp_path, release, digest)
+    assert checks["BLOCKER_REGISTRY.recomputed_exact"] is False
+    assert checks["BLOCKER_REGISTRY.production_status_coherent"] is False
+
+
 def _authorization_claims(root: Path, digest: str, registry: dict[str, object]) -> dict[str, str]:
-    _write(root / "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json", registry)
+    relative = "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json"
+    _write(root / relative, registry)
+    if not (root / ".git").exists():
+        subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+    subprocess.run(["git", "add", relative], cwd=root, check=True)
     ledger = claim_ledger(root, digest, "v0.9.7")
     return {
         claim["id"]: claim["status"]
@@ -430,7 +547,9 @@ def _authorization_claims(root: Path, digest: str, registry: dict[str, object]) 
     }
 
 
-def test_authorization_claims_are_read_from_the_registry_they_name(tmp_path: Path) -> None:
+def test_authorization_claims_are_read_from_the_registry_they_name(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Вирок мусить бути ФУНКЦІЄЮ доказу, а не рядком у коді.
 
     Доти `CLM-PRODUCTION-AUTH` і `CLM-INDEPENDENT` несли вписаний у джерело "REFUTED".
@@ -443,21 +562,47 @@ def test_authorization_claims_are_read_from_the_registry_they_name(tmp_path: Pat
     різні вироки; однаковий результат на всіх трьох означає, що константа повернулась.
     """
     digest = "a" * 64
-    base = {"release": "v0.9.7", "source_tree_sha256": digest}
+    monkeypatch.setattr(
+        "korpus.application.release_claim_blocker._report_valid", lambda _context: True
+    )
+    profile = tmp_path / "config/assurance/production-hard-predicates-v1.json"
+    report = tmp_path / "reports/PRODUCTION_HARD_PREDICATES.json"
+    _write(profile, {"predicates": []})
+    _write(report, {"release": "v0.9.7", "source_tree_sha256": digest, "states": []})
+    closed_registry = blocker_registry(tmp_path, digest, "v0.9.7")
+    closed = _authorization_claims(tmp_path, digest, closed_registry)
+    # A blocker registry can refute authorization, but cannot positively authorize it.
+    assert set(closed.values()) == {"INVALID_EVIDENCE"}, closed
 
-    closed = _authorization_claims(tmp_path, digest, {**base, "status": "PASS"})
-    assert set(closed.values()) == {"SUPPORTED"}, closed
-
-    open_blockers = _authorization_claims(tmp_path, digest, {**base, "status": "FAIL"})
+    _write(profile, {"predicates": [{"id": "p1", "required_proof_class": "EXTERNAL"}]})
+    _write(
+        report,
+        {
+            "release": "v0.9.7",
+            "source_tree_sha256": digest,
+            "states": [
+                {
+                    "id": "p1",
+                    "software_ready": True,
+                    "externally_satisfied": False,
+                    "failed_external_checks": ["external_receipt"],
+                }
+            ],
+        },
+    )
+    open_registry = blocker_registry(tmp_path, digest, "v0.9.7")
+    open_blockers = _authorization_claims(tmp_path, digest, open_registry)
     assert set(open_blockers.values()) == {"REFUTED_BY_EVIDENCE"}, open_blockers
 
     other_tree = _authorization_claims(
-        tmp_path, digest, {**base, "status": "PASS", "source_tree_sha256": "b" * 64}
+        tmp_path, digest, {**closed_registry, "source_tree_sha256": "b" * 64}
     )
     assert set(other_tree.values()) == {"STALE_EVIDENCE"}, other_tree
 
     # Реєстр БЕЗ вироку не виносить його мовчки: відсутність — не «ні» і не «так».
-    silent = _authorization_claims(tmp_path, digest, base)
+    silent_registry = dict(closed_registry)
+    silent_registry.pop("status")
+    silent = _authorization_claims(tmp_path, digest, silent_registry)
     assert set(silent.values()) == {"UNDECLARED_EVIDENCE"}, silent
 
 
@@ -488,15 +633,50 @@ def test_the_registry_verdict_is_computed_from_its_own_counts(tmp_path: Path) ->
 
 
 def _decided(root: Path, statuses: list[str]) -> bool:
+    digest = "a" * 64
+    source = {
+        "schema": "korpus.web-regression.v1",
+        "release": "v0.9.7",
+        "source_tree_sha256": digest,
+        "digest_scope": "evidence_paths",
+        "status": "PASS",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "steps": {name: {"status": "PASS", "exit_code": 0} for name in ("lint", "test", "build")},
+    }
+    blocker = {
+        "schema": "korpus.production-gate.v1",
+        "gate_id": "inference_security",
+        "evidence_class": "INTERNAL_ADVERSARIAL",
+        "release": "v0.9.7",
+        "source_tree_sha256": digest,
+        "digest_scope": "evidence_paths",
+        "status": "FAIL",
+        "checks": {"adversarial_suite": False},
+        "failures": ["adversarial_suite"],
+        "pytest_exit_code": 1,
+        "pytest": {"tests": 1, "failures": 1, "errors": 0, "skipped": 0},
+    }
+    _write(root / "source.json", source)
+    _write(root / "blocker.json", blocker)
+    claims = []
+    for n, status in enumerate(statuses):
+        refuted = status == "REFUTED_BY_EVIDENCE"
+        claims.append(
+            {
+                "id": "CLM-INFERENCE-SECURITY" if refuted else "CLM-WEB",
+                "status": status,
+                "evidence": "blocker.json" if refuted else "source.json",
+                "ordinal": n,
+            }
+        )
     _write(
         root / "reports/release/v0.9.7/final/CLAIM_LEDGER.json",
-        {
-            "claims": [
-                {"id": f"C{n}", "status": s, "evidence": "x.json"} for n, s in enumerate(statuses)
-            ]
-        },
+        {"claims": claims},
     )
-    checks = claim_admission_checks(root, "v0.9.7", "a" * 64)
+    checks = claim_admission_checks(root, "v0.9.7", digest)
     return checks["CLAIM_LEDGER.every_claim_decided_by_evidence"]
 
 
@@ -516,7 +696,7 @@ def test_a_claim_that_never_leaves_pending_is_unreachable_not_unmeasured(tmp_pat
     Порожній журнал перевіряється окремо: `all([])` істинне, тож нуль претензій
     задовольнив би закон тривіально — і саме так виглядав би журнал, який зламався.
     """
-    assert _decided(tmp_path, ["SUPPORTED", "REFUTED_BY_EVIDENCE"]) is True
+    assert _decided(tmp_path, ["SUPPORTED", "REFUTED_BY_EVIDENCE"]) is False
     assert _decided(tmp_path, ["SUPPORTED", "PENDING_EVIDENCE"]) is False
     assert _decided(tmp_path, ["SUPPORTED", "UNDECLARED_EVIDENCE"]) is False
     assert _decided(tmp_path, ["SUPPORTED", "STALE_EVIDENCE"]) is False

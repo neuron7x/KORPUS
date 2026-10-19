@@ -24,6 +24,7 @@ from __future__ import annotations
 import subprocess
 import sys
 from pathlib import Path
+from typing import cast
 
 ROOT = Path(__file__).resolve().parents[1]
 APP_SRC = ROOT / "apps/api/src"
@@ -56,7 +57,7 @@ def committed_evidence_source_digest(ref: str = "HEAD", root: Path = ROOT) -> st
             }
         )
         records = ((name, _git(root, "show", f"{ref}:{name}")) for name in names)
-        return digest_source_records(records)
+        return cast(str, digest_source_records(records))
     except (FileNotFoundError, subprocess.CalledProcessError) as error:
         raise RuntimeError(f"cannot read evidence-bearing source from git ref {ref!r}") from error
 

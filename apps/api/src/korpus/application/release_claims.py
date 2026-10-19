@@ -5,71 +5,78 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from korpus.application.provenance import DIGEST_SCOPE, PROVENANCE_KEY
+from korpus.application.provenance import DIGEST_SCOPE
+from korpus.application.release_claim_binding import binding, binding_scope
+from korpus.application.release_claim_common import EvidenceContext, sha256
+from korpus.application.release_claim_contracts import canonical_evidence, contract_valid
+
+CLAIMS = (
+    ("CLM-SOURCE-INTEGRITY", "Current source manifest is the release source boundary."),
+    ("CLM-REGRESSION", "Current backend regression is source-bound and failure-free."),
+    ("CLM-WEB", "Current web lint/build/test surface is source-bound and failure-free."),
+    ("CLM-MUTATION", "Declared full mutation catalogue has no surviving valid mutants."),
+    (
+        "CLM-INFERENCE-SECURITY",
+        "Current inference-security suite passes its declared attack surface.",
+    ),
+    ("CLM-PRODUCTION-AUTH", "System is production-authorized."),
+    ("CLM-INDEPENDENT", "System is independently validated."),
+)
 
 
-def binding(payload: dict[str, Any]) -> tuple[str | None, bool]:
-    """Прив'язка доказу до дерева: з ВЕРХНЬОГО рівня або з канонічного конверта.
-
-    Повертає `(дайджест | None, розбіжність)`.
-
-    Перша редакція цієї перевірки читала лише верхній рівень і оголосила
-    `reports/MUTATION_FULL_CATALOGUE_CURRENT.json` неприв'язаним. Він прив'язаний: його
-    дайджест лежить у `provenance.source_digest` — у конверті, який ставить
-    `korpus.application.provenance.stamp` і читає `read_provenance`, і який у цьому дереві
-    є СТАНДАРТОМ, а не винятком.
-
-    Це та сама вада, заради якої писалась ця функція, лише дзеркальна: там ВІДСУТНІСТЬ
-    читалась як згода, тут НАЯВНІСТЬ читалась як відсутність. Хибна відмова коштує
-    стільки ж, скільки хибне підтвердження, і помічається гірше — бо виглядає обережно.
-
-    Розбіжність між двома джерелами повертається окремим прапорцем, а не мовчазним
-    вибором сильнішого: два оголошення одного факту, які розійшлись, — це стан, про який
-    треба сказати, а не залагодити. `or` тут дав би застарілість замість розбіжності.
-    """
-    top = payload.get("source_tree_sha256", payload.get("source_digest"))
-    envelope = payload.get(PROVENANCE_KEY)
-    inner = envelope.get("source_digest") if isinstance(envelope, dict) else None
-    top = top if isinstance(top, str) else None
-    inner = inner if isinstance(inner, str) else None
-    if top is not None and inner is not None and top != inner:
-        return None, True
-    return (top if top is not None else inner), False
+def _identity(values: tuple[str, ...]) -> tuple[str, str] | None:
+    valid = len(values) == 2 and all(isinstance(value, str) for value in values)
+    return (values[0], values[1]) if valid else None
 
 
-def _claim_status(root: Path, evidence: str, source_digest: str, release: str) -> str:
-    path = root / evidence
-    if not path.is_file():
-        return "PENDING_EVIDENCE"
-    if path.suffix != ".json":
-        # Файл, якого ця функція не вміє прочитати, не є доказом «за». Раніше тут стояло
-        # `return "SUPPORTED"` — тобто претензія ставала підтриманою, НЕ ПРОЧИТАВШИ
-        # жодного байта. Доведено побудовою 02.09.2026: порожній `.txt` давав SUPPORTED.
-        return "UNDECLARED_EVIDENCE"
+def _read_payload(context: EvidenceContext) -> tuple[dict[str, Any] | None, str | None]:
+    if context.evidence != canonical_evidence(context.claim_id, context.release):
+        return None, "INVALID_EVIDENCE"
+    if not sha256(context.source_digest):
+        return None, "INVALID_EVIDENCE"
+    if not context.path.is_file():
+        return None, "PENDING_EVIDENCE"
+    if context.path.suffix != ".json":
+        return None, "UNDECLARED_EVIDENCE"
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return "INVALID_EVIDENCE"
+        payload = json.loads(context.path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return None, "INVALID_EVIDENCE"
     if not isinstance(payload, dict):
-        return "INVALID_EVIDENCE"
-    if "release" in payload and payload.get("release") != release:
+        return None, "INVALID_EVIDENCE"
+    return payload, None
+
+
+def _binding_status(payload: dict[str, Any], context: EvidenceContext) -> str | None:
+    if payload.get("release") != context.release:
         return "STALE_EVIDENCE"
     bound, divergent = binding(payload)
     if divergent:
-        # Два оголошення однієї прив'язки розійшлись. Слабше не перемагає мовчки.
         return "DIVERGENT_BINDING"
     if bound is None:
-        # Доказ БЕЗ прив'язки не є доказом про це дерево. Раніше умова була
-        # `bound is not None and bound != source_digest`, тож відсутність прив'язки
-        # проходила повз перевірку застарілості цілком.
         return "UNBOUND_EVIDENCE"
-    if bound != source_digest:
+    if bound != context.source_digest:
         return "STALE_EVIDENCE"
+    scope, scope_divergent = binding_scope(payload)
+    if scope_divergent:
+        return "DIVERGENT_SCOPE"
+    if scope != DIGEST_SCOPE:
+        return "UNSCOPED_EVIDENCE"
+    return None
+
+
+def _claim_status(context: EvidenceContext) -> str:
+    payload, refusal = _read_payload(context)
+    if payload is None:
+        return refusal or "INVALID_EVIDENCE"
+    refusal = _binding_status(payload, context)
+    if refusal is not None:
+        return refusal
     semantic = payload.get("status", payload.get("verdict"))
     if semantic is None:
-        # Артефакт, який не оголошує вироку, не виносить його мовчки. Раніше `None`
-        # стояв у тому самому кортежі, що й "PASS".
         return "UNDECLARED_EVIDENCE"
+    if not contract_valid(payload, context):
+        return "INVALID_EVIDENCE"
     return (
         "SUPPORTED"
         if semantic in ("PASS", "PASS_WITH_EXTERNAL_BLOCKERS")
@@ -77,59 +84,28 @@ def _claim_status(root: Path, evidence: str, source_digest: str, release: str) -
     )
 
 
+def claim_status(root: Path, claim_id: str, evidence: str, *identity: str) -> str:
+    """Judge one canonical claim; `identity` is exactly `(source_digest, release)`."""
+    values = _identity(identity)
+    if values is None:
+        return "INVALID_EVIDENCE"
+    source_digest, release = values
+    return _claim_status(EvidenceContext(root, claim_id, evidence, source_digest, release))
+
+
 def claim_ledger(root: Path, source_digest: str, release: str) -> dict[str, Any]:
-    claims = [
-        (
-            "CLM-SOURCE-INTEGRITY",
-            "Current source manifest is the release source boundary.",
-            "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json",
-        ),
-        (
-            "CLM-REGRESSION",
-            "Current backend regression is source-bound and failure-free.",
-            f"reports/release/{release}/FULL_BACKEND_REPORT.json",
-        ),
-        (
-            "CLM-WEB",
-            "Current web lint/build/test surface is source-bound and failure-free.",
-            f"reports/release/{release}/WEB_REGRESSION_REPORT.json",
-        ),
-        (
-            "CLM-MUTATION",
-            "Declared full mutation catalogue has no surviving valid mutants.",
-            "reports/MUTATION_FULL_CATALOGUE_CURRENT.json",
-        ),
-        (
-            "CLM-INFERENCE-SECURITY",
-            "Current inference-security suite passes its declared attack surface.",
-            f"reports/release/{release}/INFERENCE_SECURITY_GATE.json",
-        ),
-    ]
-    rendered = [
-        {
-            "id": i,
-            "claim": c,
-            "status": _claim_status(root, e, source_digest, release),
-            "evidence": e,
-        }
-        for i, c, e in claims
-    ]
-    # Доти обидві несли вписаний у код "REFUTED": правдивий і НЕФАЛЬСИФІКОВНИЙ разом.
-    registry = f"reports/release/{release}/final/BLOCKER_REGISTRY.json"
-    rendered.extend(
-        [
+    rendered = []
+    for claim_id, claim in CLAIMS:
+        evidence = canonical_evidence(claim_id, release)
+        assert evidence is not None
+        rendered.append(
             {
-                "id": i,
-                "claim": c,
-                "status": _claim_status(root, registry, source_digest, release),
-                "evidence": registry,
+                "id": claim_id,
+                "claim": claim,
+                "status": claim_status(root, claim_id, evidence, source_digest, release),
+                "evidence": evidence,
             }
-            for i, c in (
-                ("CLM-PRODUCTION-AUTH", "System is production-authorized."),
-                ("CLM-INDEPENDENT", "System is independently validated."),
-            )
-        ]
-    )
+        )
     return {
         "schema": "korpus.claim-ledger.v2",
         "generated_at": datetime.now(UTC).isoformat(),
@@ -138,3 +114,6 @@ def claim_ledger(root: Path, source_digest: str, release: str) -> dict[str, Any]
         "digest_scope": DIGEST_SCOPE,
         "claims": rendered,
     }
+
+
+__all__ = ["binding", "binding_scope", "claim_ledger", "claim_status"]

@@ -100,9 +100,18 @@ def test_preflight_accepts_current_local_evidence_but_never_self_authorizes(
 def test_ci_and_canonical_cycle_enforce_adaptive_gates() -> None:
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
     ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assurance = (ROOT / ".github/workflows/assurance.yml").read_text(encoding="utf-8")
     for target in ("coverage-ratchet", "determinism-gate", "stress-gate"):
         assert f"$(MAKE) {target}" in makefile or target in makefile
+    for target in ("determinism-gate", "stress-gate"):
         assert f"make {target}" in ci
+    for job in ("sqlite-coverage:", "postgres:", "coverage-union:"):
+        assert job in assurance
+    assert assurance.index("sqlite-coverage:") < assurance.index("coverage-union:")
+    assert assurance.index("postgres:") < assurance.index("coverage-union:")
+    assert "needs: [sqlite-coverage, postgres]" in assurance
+    assert "scripts/merge_dialect_coverage.py" in assurance
+    assert "scripts/coverage_gap_plan.py" in assurance
     assert "release-mutation-delta" in makefile
 
 
