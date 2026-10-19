@@ -476,15 +476,8 @@ def _group_04(s: Sources) -> list[Predicate]:
         and ("credentials_json:" not in s.production_workflow),
         "production workflow uses SHA-pinned Google auth with WIF and no key JSON input",
     )
-    # The predicate is named "action pins" and used to assert a list of exact SHAs. Those
-    # are different claims, and the difference is not academic: a legitimate pin bump made
-    # the contract fail on 2026-09-01 while every action stayed fully pinned. A check that
-    # reddens when the guarded property HOLDS teaches people to edit the check.
-    #
-    # The property itself is what production needs: no third-party action may be referenced
-    # by a mutable tag, because a tag can be moved under the release after review. So the
-    # rule now reads every `uses:` and demands a 40-hex commit, and it covers actions added
-    # tomorrow — which the fixed list never could.
+    # Guard the property, not a fixed allowlist: every third-party action must use an
+    # immutable full commit SHA, including actions added after this verifier was written.
     used = _WORKFLOW_USES.findall(s.production_workflow)
     third_party = [ref for ref in used if not ref.startswith("./")]
     add(
