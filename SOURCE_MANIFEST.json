@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2100,
-  "root_sha256": "1ed7456c3a02819cb022e169053a27513617fb5658157d8e5ae0077e2a3980d8",
+  "file_count": 2103,
+  "root_sha256": "e03a06146306ef8829e9760da1b401e36555ddfd3a3ce33373cc3cb12d6c333f",
   "files": [
     {
       "path": ".dockerignore",
@@ -2628,6 +2628,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_architecture_import_boundaries.py",
+      "bytes": 2637,
+      "sha256": "9bc5cd5ab5b9597d121cbff8baffd9711d95d626a237f8a334a84606a50a0d13",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_architecture.py",
       "bytes": 15425,
       "sha256": "5e5117cbcdb588ce0a10ed977abc8d9c45493dd5216a13186588bb8119c8f45c",
@@ -3012,6 +3018,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_capability_gateway_http_deadline.py",
+      "bytes": 5048,
+      "sha256": "8594b2219e7b3a2e454eb7afe8dccaded1d051c1b96761cee6dfb181cc4e544a",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_capability_gateway_http_refusals.py",
       "bytes": 14042,
       "sha256": "3215ec1010fac1fcd2fe0d3e93cd1235e49651b8a437abf5ef20247390788681",
@@ -3159,6 +3171,12 @@
       "path": "apps/api/tests/test_capability_gateway_result_boundary.py",
       "bytes": 5474,
       "sha256": "c4b2aa173de7d30bb0220b7685c0d153ca0fb0c46dfc8dab71944b1dbffbeaaa",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_capability_gateway_return_decisions.py",
+      "bytes": 2824,
+      "sha256": "afc628cd6004076c7e4e29b8c93c96032c8ec443020fbea6f790406ecd8d3ff3",
       "mode": "0644"
     },
     {
@@ -4783,8 +4801,8 @@
     },
     {
       "path": "apps/api/tests/test_query_planner_boundary.py",
-      "bytes": 9208,
-      "sha256": "ee0ab7746aea34217f438c2ad7adcbbd379e2601c9985750909b5858a9c798ae",
+      "bytes": 9216,
+      "sha256": "e0a7469c791423f947def4560ab49bd6791f5ec5f15cec312a2c7fd4dbc041b7",
       "mode": "0644"
     },
     {
