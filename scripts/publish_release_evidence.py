@@ -50,25 +50,11 @@ SOURCES = {
 
 
 def coverage_projection(digest: str, release: str) -> dict[str, Any] | None:
-    """`statement_coverage_percent` / `branch_coverage_percent`, which coverage.py omits."""
-    for candidate in ("var/coverage-union.json", "var/coverage.json"):
-        path = ROOT / candidate
-        if not path.is_file():
-            continue
-        totals = json.loads(path.read_text(encoding="utf-8")).get("totals", {})
-        statements = totals.get("num_statements", 0)
-        branches = totals.get("num_branches", 0)
-        if not statements or not branches:
-            continue
-        return {
-            "schema": "korpus.coverage-report.v1",
-            "status": "PASS",
-            "release": release,
-            "source_tree_sha256": digest,
-            "statement_coverage_percent": round(100.0 * totals["covered_lines"] / statements, 4),
-            "branch_coverage_percent": round(100.0 * totals["covered_branches"] / branches, 4),
-            "measured_from": candidate,
-        }
+    """Fail closed until GitHub-imported coverage is verified against exact artifact bytes.
+
+    Raw local coverage JSON is not proof of execution or GitHub run identity.
+    Issue #66 must supply a verified importer/admission path before publication.
+    """
     return None
 
 
