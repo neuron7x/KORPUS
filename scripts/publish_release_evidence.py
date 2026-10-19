@@ -59,9 +59,7 @@ def coverage_projection(digest: str, release: str) -> dict[str, Any] | None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--allow-unbound", action="store_true")
-    args = parser.parse_args()
+    argparse.ArgumentParser().parse_args()
 
     release = release_tag(ROOT)
     digest = compute_source_digest(ROOT)
@@ -90,7 +88,7 @@ def main() -> int:
         if divergent:
             refused.append({"report": name, "reason": "дві прив'язки в артефакті розійшлись"})
             continue
-        if bound != digest and not args.allow_unbound:
+        if bound != digest:
             refused.append(
                 {
                     "report": name,

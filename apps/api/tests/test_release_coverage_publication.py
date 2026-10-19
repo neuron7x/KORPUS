@@ -30,3 +30,9 @@ def test_raw_and_self_declared_union_cannot_publish_without_github_admission(
     assert module.coverage_projection("a" * 64, "v0.9.7") is None
     (evidence / "coverage-union.json").write_text(json.dumps({"totals": totals}))
     assert module.coverage_projection("a" * 64, "v0.9.7") is None
+
+
+def test_unbound_release_evidence_bypass_is_not_available() -> None:
+    source = (ROOT / "scripts/publish_release_evidence.py").read_text(encoding="utf-8")
+    assert "--allow-unbound" not in source
+    assert "if bound != digest:" in source
