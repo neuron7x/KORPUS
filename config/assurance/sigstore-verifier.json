@@ -1,0 +1,6 @@
+{
+  "schema": "korpus.sigstore-verifier.v1",
+  "path": "/usr/bin/gh",
+  "version": "2.100.0",
+  "sha256": "553949e2efa12842771efe6012aa4de21f1d591530ec17fc435f610f10e017ee"
+}
