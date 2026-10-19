@@ -39,6 +39,9 @@ def _mutated_repo(tmp_path: Path, relative: str, old: str, new: str) -> Path:
         ".github/workflows/gcp-foundation.yml",
         ".github/workflows/gcp-drill.yml",
         ".github/workflows/assurance.yml",
+        ".gitlab-ci.yml",
+        "scripts/gcp/authenticate_gitlab_wif.sh",
+        "scripts/gcp/deploy_gitlab_production.sh",
         ".gitignore",
     ]:
         dst = tmp_path / source
@@ -485,6 +488,16 @@ def test_canary_metric_admission_removal_is_killed(tmp_path: Path) -> None:
 
 
 # ------------------------- прив'язка дій: властивість, а не перелік конкретних SHA
+
+
+def test_gitlab_authority_reactivation_is_killed(tmp_path: Path) -> None:
+    root = _mutated_repo(
+        tmp_path,
+        ".gitlab-ci.yml",
+        "workflow:\n  rules:\n    - when: never",
+        "workflow:\n  rules:\n    - if: '$CI_COMMIT_BRANCH'",
+    )
+    assert _status(root)["GITLAB_PRODUCTION_AUTHORITY_RETIRED"] is False
 
 
 def test_action_pins_assert_the_property_not_a_fixed_list_of_shas() -> None:
