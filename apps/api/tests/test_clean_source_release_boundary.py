@@ -72,3 +72,13 @@ def test_github_ci_and_tagged_release_execute_clean_tree_guard() -> None:
     for name in ("ci.yml", "release.yml"):
         workflow = (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
         assert "python scripts/check_clean_source_tree.py" in workflow
+
+
+def test_packaging_git_is_isolated_from_environment_and_replace_objects() -> None:
+    source = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8")
+    boundary = source.index('while IFS= read -r key; do')
+    assert '[[ "$key" == GIT_* ]] && unset "$key"' in source
+    assert 'export GIT_NO_REPLACE_OBJECTS=1 GIT_CONFIG_NOSYSTEM=1' in source
+    assert 'from scripts.trusted_system_tools import git_executable' in source
+    assert 'git() { "$git_bin" --no-replace-objects "$@"; }' in source
+    assert boundary < source.index("current_head=") < source.index('git archive --format=tar')

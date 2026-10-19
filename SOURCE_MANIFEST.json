@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2112,
-  "root_sha256": "23ca5e4abb7e1e9f88b95a1089a650a61b41c6e526bcbbb04ab5fb401ea339e4",
+  "root_sha256": "83cf58762d8aaa8e1459573c47eea7cee91ba4693813ac848facc5167df6802e",
   "files": [
     {
       "path": ".dockerignore",
@@ -49,8 +49,8 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "bytes": 6348,
-      "sha256": "789772a54857706e3b3ee32043bbade52cc8f6a2750f8d5052aaaeae1b732818",
+      "bytes": 6835,
+      "sha256": "bf866cc24647394d8dc7f0957f2baf3c363a30150cbba13745752b11f7bf0579",
       "mode": "0644"
     },
     {
@@ -3619,8 +3619,8 @@
     },
     {
       "path": "apps/api/tests/test_clean_source_release_boundary.py",
-      "bytes": 4297,
-      "sha256": "edf7abc9f60a458a95d89a7ef952303cbbb6f08f0a698767904597165b6e5ab8",
+      "bytes": 4905,
+      "sha256": "736432902ca9ca7b50a82cc7f23c2fd4485630a981ce71dacff29266ae9c07e0",
       "mode": "0644"
     },
     {
@@ -8174,7 +8174,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "6d770522c91e706218269f3b43dbb703b10f99fc77c45519ee1be19ffa9057b7",
+      "sha256": "c8a8c049fbab8bea8c52e081e251da668a8b6bcddd286755c66f8ee58119053f",
       "mode": "0644"
     },
     {
@@ -11563,8 +11563,8 @@
     },
     {
       "path": "scripts/package_repository.sh",
-      "bytes": 5158,
-      "sha256": "e430719e75af1107f77caaecd533f8cf5cd345fa58380256038154a068ca4c90",
+      "bytes": 5735,
+      "sha256": "37c29ac7fb4f63f899055cc71b28e41e65a8f696e4873a52ab2a73e987452696",
       "mode": "0755"
     },
     {

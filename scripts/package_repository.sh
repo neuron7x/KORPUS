@@ -3,6 +3,17 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
+# Bind every packaging Git read to the same trusted object store as the source gate.
+while IFS= read -r key; do
+  [[ "$key" == GIT_* ]] && unset "$key"
+done < <(compgen -e)
+export GIT_NO_REPLACE_OBJECTS=1 GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null
+export GIT_CONFIG_SYSTEM=/dev/null GIT_ATTR_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0
+git_bin="$(python3 -c 'from scripts.trusted_system_tools import git_executable; print(git_executable() or "")')"
+[[ -n "$git_bin" ]] || { echo "trusted git executable unavailable" >&2; exit 1; }
+git() { "$git_bin" --no-replace-objects "$@"; }
+
+
 default_version="$(python3 -c 'import sys; sys.path.insert(0, "scripts"); from release_identity import release_tag; print(release_tag())')"
 version="${KORPUS_RELEASE_VERSION:-$default_version}"
 default_name="$(python3 -c 'import sys; sys.path.insert(0, "scripts"); from release_identity import load_release_identity; print(load_release_identity()["artifact_stem"])')"
