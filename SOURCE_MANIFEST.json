@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2098,
-  "root_sha256": "3650c11d9ad677de1dab90783cdbfba44a1f45d7bcc5ac724899a10beccebc6a",
+  "root_sha256": "160caf4b5c18cb556792609c149e0bcbb0b228fa672ec1223425898debf0c5a5",
   "files": [
     {
       "path": ".dockerignore",
@@ -79,8 +79,8 @@
     },
     {
       "path": ".github/workflows/gcp-production.yml",
-      "bytes": 26286,
-      "sha256": "8e61d83e0b4a5e6789a90644e8e863738bf9234ed39016fa50659a3d31de9f05",
+      "bytes": 26468,
+      "sha256": "58054271f8a34cb66c6464c2224a708614fa00da36484c30115598e284769e4a",
       "mode": "0644"
     },
     {
@@ -3901,8 +3901,8 @@
     },
     {
       "path": "apps/api/tests/test_embedding_backfill_deployment.py",
-      "bytes": 1137,
-      "sha256": "d4dc5388e9148d2bcef00cbcf84d610a48cfe6fd0a47c9a09f401e1435bf3452",
+      "bytes": 1164,
+      "sha256": "eb6db42321976d2479d4bec3e063cdab9c7c98a2abc8339c59e14de748c5a097",
       "mode": "0644"
     },
     {
@@ -8108,7 +8108,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "a70bce06d667f14f49b05cafdcc0e7e745774a15f487bee6507e1cf792c1f16b",
+      "sha256": "069ad59840501b916297608f4f56950d0ffa95c16b55d29d28cd0024af879027",
       "mode": "0644"
     },
     {
@@ -8869,8 +8869,8 @@
     },
     {
       "path": "docs/operations/CI_EVIDENCE.md",
-      "bytes": 5675,
-      "sha256": "fcfa48f89e69ea7c5995dacc5b88460b3d03be3818c2471961182e44f0693864",
+      "bytes": 6041,
+      "sha256": "99e580f656efcbf6fa71eefa7cb6e031bbd440ea75cf4f6e52b659b3b7c2fa03",
       "mode": "0644"
     },
     {

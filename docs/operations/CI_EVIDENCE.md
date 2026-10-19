@@ -86,6 +86,11 @@ seven Terraform files received only native formatter whitespace changes.
 Five production and SLO predicate literals and the existing worker negative
 control were aligned with that canonical output. The network and SLO mutation
 controls still reject broken state binding, policy bounds, and deletion protection.
+The first hosted full suite also exposed an embedding-backfill assertion that
+depended on one space before `=`. It now checks the exact runtime image binding
+independently of whitespace. The GCP verification job runs the existing backfill,
+SLO, and Terraform structure tests as well, so these controls provide early
+feedback alongside the production contract tests.
 
 The underlying contracts are documented by [GitHub's reusable workflow guide](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows),
 [workflow artifacts](https://docs.github.com/en/actions/how-tos/writing-workflows/choosing-what-your-workflow-does/storing-and-sharing-data-from-a-workflow),

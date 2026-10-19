@@ -13,7 +13,7 @@ def test_cloud_run_backfill_is_bounded_singleton_and_explicitly_enabled() -> Non
     assert "tostring(var.embedding_backfill_batch_size)" in job
     assert "tostring(var.embedding_backfill_max_batches)" in job
     assert re.search(r"image\s+= var\.api_image", job)
-    assert "KORPUS_RUNTIME_IMAGE_REF = var.api_image" in job
+    assert re.search(r"(?m)^\s*KORPUS_RUNTIME_IMAGE_REF\s*=\s*var\.api_image\s*$", job)
 
 
 def test_cloud_run_backfill_reads_token_from_secret_file_only() -> None:
