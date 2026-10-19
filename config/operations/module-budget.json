@@ -1465,11 +1465,11 @@
       "proof_lines": 0
     },
     "apps/api/src/korpus/application/final_release_authorization.py": {
-      "lines": 141,
-      "max_complexity": 7,
-      "max_function_args": 17,
-      "max_function_lines": 73,
-      "max_nesting": 1,
+      "lines": 126,
+      "max_complexity": 3,
+      "max_function_args": 14,
+      "max_function_lines": 72,
+      "max_nesting": 0,
       "proof_lines": 0,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
     },
@@ -6486,6 +6486,42 @@
       "max_function_lines": 36,
       "max_nesting": 3,
       "proof_lines": 0
+    },
+    "apps/api/src/korpus/application/github_release_context.py": {
+      "lines": 40,
+      "max_complexity": 4,
+      "max_function_args": 2,
+      "max_function_lines": 18,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54: one exact fail-closed GitHub release context shared by trust and release gates; initial measured ceiling."
+    },
+    "apps/api/src/korpus/application/final_release_evidence.py": {
+      "lines": 48,
+      "max_complexity": 4,
+      "max_function_args": 2,
+      "max_function_lines": 10,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #54: strict parsing of signed bytes and explicit blocked-candidate policy; initial measured ceiling."
+    },
+    "apps/api/src/korpus/application/final_release_provenance.py": {
+      "lines": 188,
+      "max_complexity": 13,
+      "max_function_args": 6,
+      "max_function_lines": 46,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54: source, material, GitHub invocation, and bounded timestamp provenance binding; initial measured ceiling."
+    },
+    "scripts/final_release_context.py": {
+      "lines": 90,
+      "max_complexity": 5,
+      "max_function_args": 2,
+      "max_function_lines": 22,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54: locally recomputed release materials and exact GitHub run/ref/SHA context; initial measured ceiling."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

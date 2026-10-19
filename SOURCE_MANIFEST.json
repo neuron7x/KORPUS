@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2103,
-  "root_sha256": "0cd22539513c4750a707509e67fa8427c1cc1f2bc3beb872e3f84c3afd36962b",
+  "file_count": 2107,
+  "root_sha256": "207cc0c5a2f10d613bee4b5d94cc376af141cb66a520bc084e4de8c2891d3b00",
   "files": [
     {
       "path": ".dockerignore",
@@ -1009,8 +1009,20 @@
     },
     {
       "path": "apps/api/src/korpus/application/final_release_authorization.py",
-      "bytes": 5542,
-      "sha256": "d897d20807a91dea31deab0f4c2c906f57f5f59263707506f4d5aa30379f0e57",
+      "bytes": 4434,
+      "sha256": "56284cfae8a5c47a8ddd4954a2ad6e5b532be96d9e70470c1b0595522d523613",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/final_release_evidence.py",
+      "bytes": 1453,
+      "sha256": "4a49e5b39e8fa7156bc2935aa503385acc2e750b119d9a36102372cbde10e906",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/final_release_provenance.py",
+      "bytes": 7149,
+      "sha256": "97ceab31aba9380ff2b41e4f3540ccd517ea0ad813b0c3cdbb643bf9908c9255",
       "mode": "0644"
     },
     {
@@ -1023,6 +1035,12 @@
       "path": "apps/api/src/korpus/application/gate_inventory.py",
       "bytes": 2152,
       "sha256": "b56a73c78df8c03ea67da046f669f9249bc4f55f96c8b2092d1cb65d77cd433f",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/github_release_context.py",
+      "bytes": 1525,
+      "sha256": "bde1a5e76404f6f4c9363f6778b055d43632a9d77f8ddf23de6e504c5ed28cf5",
       "mode": "0644"
     },
     {
@@ -3823,8 +3841,8 @@
     },
     {
       "path": "apps/api/tests/test_final_release_authorization.py",
-      "bytes": 5415,
-      "sha256": "845eeae06fed487bb28e878744c6bf42bb5265ce57882f151a63b30e808a6732",
+      "bytes": 12570,
+      "sha256": "217dbf21e4ddfaf2bbaa0344d81e513047bfa1df2804224977c5dab0f37b4765",
       "mode": "0644"
     },
     {
@@ -7861,8 +7879,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 750652,
-      "sha256": "f5cbd513df4915519fa52fb0635424cbd278d76e2220ceef68ace07ec38056bc",
+      "bytes": 752075,
+      "sha256": "9a0488a3686a2dd7c81287b24950fc913689608b3af125f948a1246acba86fd4",
       "mode": "0644"
     },
     {
@@ -10998,6 +11016,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/final_release_context.py",
+      "bytes": 3330,
+      "sha256": "2f9aa8eecfc2f6034d9a2b366c105f72f7ccfee26eee1c19098d9cc48cd5e1df",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/freeze_release_candidate.py",
       "bytes": 18215,
       "sha256": "e2196af546cf9b10bb0ec8b107106199e68600ebc2681ef640fcf0b652ad3304",
@@ -12445,8 +12469,8 @@
     },
     {
       "path": "scripts/verify_final_release_authorization.py",
-      "bytes": 4372,
-      "sha256": "a3d2f7f9fa44058745063351939903281a5320936ccd3cde4b55d0a2156aab9e",
+      "bytes": 3587,
+      "sha256": "d0055ce663738741264d9e24cdca8d0e7bfc3a4e55a7241d54e6a812a020076e",
       "mode": "0755"
     },
     {
