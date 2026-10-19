@@ -1380,6 +1380,51 @@ def test_source_digest_git_content_mode(monkeypatch: pytest.MonkeyPatch, tmp_pat
     assert len(got) == 64 and got != __import__("hashlib").sha256(b"").hexdigest()
 
 
+
+def test_identical_source_history_follows_valid_second_merge_parent(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import subprocess
+
+    module = _load_source_digest_module()
+
+    def git(*args: str) -> str:
+        completed = subprocess.run(
+            ["git", *args], cwd=tmp_path, check=True, capture_output=True, text=True
+        )
+        return completed.stdout.strip()
+
+    git("init", "-b", "main")
+    git("config", "user.name", "KORPUS test")
+    git("config", "user.email", "test@example.invalid")
+    (tmp_path / "source.txt").write_text("old\n", encoding="utf-8")
+    git("add", "source.txt")
+    git("commit", "-m", "old main")
+    old_main = git("rev-parse", "HEAD")
+
+    git("switch", "-c", "candidate")
+    (tmp_path / "source.txt").write_text("current\n", encoding="utf-8")
+    git("commit", "-am", "current source")
+    source_commit = git("rev-parse", "HEAD")
+    (tmp_path / "report.txt").write_text("verified\n", encoding="utf-8")
+    git("add", "report.txt")
+    git("commit", "-m", "evidence only")
+    evidence_commit = git("rev-parse", "HEAD")
+
+    git("switch", "main")
+    git("merge", "--no-ff", "candidate", "-m", "merge verified candidate")
+    merge_commit = git("rev-parse", "HEAD")
+
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "EVIDENCE_SOURCE_PATHS", ("source.txt",))
+    accepted = module.commits_with_identical_source(depth=8)
+
+    assert accepted[0] == merge_commit
+    assert evidence_commit in accepted
+    assert source_commit in accepted
+    assert old_main not in accepted
+
+
 def test_pec_training_model_edge_and_candidate_branches() -> None:
     from korpus.application import pec_training_model as tm
     from korpus.application.controller_profile import RuleCondition
