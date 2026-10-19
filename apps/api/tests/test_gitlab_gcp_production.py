@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import shlex
 from pathlib import Path
 
 import yaml
@@ -16,6 +17,22 @@ _MUTATING = re.compile(
 )
 
 
+_STATIC_SHELL_CHECK = re.compile(r"bash -n scripts/[A-Za-z0-9_./-]+\.sh\Z")
+
+
+def _non_pushing_kaniko(command: str) -> bool:
+    stripped = command.strip()
+    if not stripped.startswith("/kaniko/executor "):
+        return False
+    if any(token in stripped for token in (";", "&&", "||", "|", "`", "$(", "\n", "\r")):
+        return False
+    try:
+        argv = shlex.split(stripped)
+    except ValueError:
+        return False
+    return len(argv) >= 3 and argv[0] == "/kaniko/executor" and "--no-push" in argv
+
+
 def _mutating_commands(ci: dict[object, object]) -> list[str]:
     offenders: list[str] = []
     for name, job in ci.items():
@@ -27,9 +44,9 @@ def _mutating_commands(ci: dict[object, object]) -> list[str]:
                 continue
             for command in commands:
                 line = str(command)
-                if line.lstrip().startswith("bash -n "):
+                if _STATIC_SHELL_CHECK.fullmatch(line.strip()):
                     continue
-                if "/kaniko/executor" in line and "--no-push" in line:
+                if _non_pushing_kaniko(line):
                     continue
                 if "/kaniko/executor" in line or _MUTATING.search(line):
                     offenders.append(f"{name}.{field}: {line}")
@@ -59,10 +76,12 @@ def test_gitlab_read_only_scanner_rejects_mutating_commands() -> None:
                 "git push origin main",
                 "curl -X POST https://gitlab.example/releases",
                 "/kaniko/executor --destination registry.example/korpus:latest",
+                "bash -n scripts/gcp/deploy_gitlab_production.sh && git push origin main",
+                "/kaniko/executor --no-push --destination inert && /kaniko/executor --destination live",
             ]
         }
     }
-    assert len(_mutating_commands(poisoned)) == 3
+    assert len(_mutating_commands(poisoned)) == 5
 
 
 def test_legacy_gitlab_wif_provider_remains_fail_closed_for_static_provenance() -> None:

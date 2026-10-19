@@ -500,6 +500,16 @@ def test_gitlab_authority_reactivation_is_killed(tmp_path: Path) -> None:
     assert _status(root)["GITLAB_PRODUCTION_AUTHORITY_RETIRED"] is False
 
 
+def test_gitlab_syntax_check_with_execution_tail_is_killed(tmp_path: Path) -> None:
+    root = _mutated_repo(
+        tmp_path,
+        ".gitlab-ci.yml",
+        "- bash -n scripts/gcp/deploy_gitlab_production.sh",
+        "- bash -n scripts/gcp/deploy_gitlab_production.sh && scripts/gcp/deploy_gitlab_production.sh",
+    )
+    assert _status(root)["GITLAB_PRODUCTION_AUTHORITY_RETIRED"] is False
+
+
 def test_action_pins_assert_the_property_not_a_fixed_list_of_shas() -> None:
     """Предикат звався «дії прив'язані до SHA», а звіряв КОНКРЕТНІ SHA.
 

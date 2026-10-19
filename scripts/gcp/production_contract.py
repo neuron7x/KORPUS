@@ -629,7 +629,7 @@ def _gitlab_predicates(s: Sources) -> list[Predicate]:
                 )
             )
             and re.search(
-                r"(?m)^\s*-\s+(?!bash -n\s).*(?:package_production_release\.sh|deploy_gitlab_production\.sh)",
+                r"(?m)^\s*-\s+(?!bash -n scripts/[A-Za-z0-9_./-]+\.sh[ \t]*$).*(?:package_production_release\.sh|deploy_gitlab_production\.sh)",
                 s.gitlab_ci,
             )
             is None,

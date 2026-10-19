@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2103,
-  "root_sha256": "1fb87041ae83ad469cded9bf0872c3149d810139fdf7008e5fdf7bef2c99ad7b",
+  "root_sha256": "189c3ce610f6c2878823f7b92a57bd0d9454e511178ae1ad84fdad62b567cfc4",
   "files": [
     {
       "path": ".dockerignore",
@@ -3907,8 +3907,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_production_contract.py",
-      "bytes": 20296,
-      "sha256": "10fc49c4b9f5be48ee720e30aca3719b65697ec8a1fe98ab2d58660f5d9e23d0",
+      "bytes": 20696,
+      "sha256": "8135a7b2af65bc5dababc43358a6d24662b7906456f3549ec91acb8253390d0b",
       "mode": "0644"
     },
     {
@@ -3967,8 +3967,8 @@
     },
     {
       "path": "apps/api/tests/test_gitlab_gcp_production.py",
-      "bytes": 4925,
-      "sha256": "dc21ffb9138c18d9379b96daf06e47094227c482d26b3ecea32c6316174836af",
+      "bytes": 5633,
+      "sha256": "b94b4beb3ef2cf1ad964b22a721eaa8160b7e1cac8a74d1ab13ad7feefa5d5f1",
       "mode": "0644"
     },
     {
@@ -11149,8 +11149,8 @@
     },
     {
       "path": "scripts/gcp/production_contract.py",
-      "bytes": 27627,
-      "sha256": "21a05426c9141b0cdab2fe56715a0aa198de63786ae84cba8045294f59fd39a8",
+      "bytes": 27661,
+      "sha256": "8aec4733fd70b3bb388ad5dbbe05c354692ac38fbe6bcfd3b575c401369d003d",
       "mode": "0644"
     },
     {
