@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2103,
-  "root_sha256": "0cd22539513c4750a707509e67fa8427c1cc1f2bc3beb872e3f84c3afd36962b",
+  "root_sha256": "189c3ce610f6c2878823f7b92a57bd0d9454e511178ae1ad84fdad62b567cfc4",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 67784,
-      "sha256": "d56d1a470d19c550a70c2d495750aafbfb1f58cd87afb4dc3bb2464c841393a3",
+      "bytes": 65748,
+      "sha256": "dbc05fed17b531165a05519231976f9a20914c579bacbd08bb24003e37c87fad",
       "mode": "0644"
     },
     {
@@ -3907,8 +3907,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_production_contract.py",
-      "bytes": 19832,
-      "sha256": "e1a2e3b9672e52754fe9d55f4bfd4eed78206492ea5e20597cabb2f44ed551d9",
+      "bytes": 20696,
+      "sha256": "8135a7b2af65bc5dababc43358a6d24662b7906456f3549ec91acb8253390d0b",
       "mode": "0644"
     },
     {
@@ -3967,8 +3967,8 @@
     },
     {
       "path": "apps/api/tests/test_gitlab_gcp_production.py",
-      "bytes": 3571,
-      "sha256": "fe4306bd10b133fc851b6feb4ba4fbb0d7a3a8a602402e645f0f2df3b7e1c1ed",
+      "bytes": 5633,
+      "sha256": "b94b4beb3ef2cf1ad964b22a721eaa8160b7e1cac8a74d1ab13ad7feefa5d5f1",
       "mode": "0644"
     },
     {
@@ -4717,8 +4717,8 @@
     },
     {
       "path": "apps/api/tests/test_production_promotion_plumbing.py",
-      "bytes": 3965,
-      "sha256": "9f01a8ed9d2e50ad16ae45d218085df72a9312872a4cbec72ab981684bbb44b5",
+      "bytes": 3543,
+      "sha256": "ba78b5db6c79d0edfa2b8c932b6b0c57e73f5ba1e06571f4275bf9b1807a9be5",
       "mode": "0644"
     },
     {
@@ -7820,7 +7820,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "0e9b4adfc5645280652e54176cc2730be6aab43df3b1c47b703404c31a49cc5b",
+      "sha256": "e1d41f80b9474434269f2f3b19dd7b025ae321fbff8f4d8a9944525cf55973d9",
       "mode": "0644"
     },
     {
@@ -11149,8 +11149,8 @@
     },
     {
       "path": "scripts/gcp/production_contract.py",
-      "bytes": 28095,
-      "sha256": "2bf0b82032fc65ac2fa8f84c82cacc845efd4afea1526f448a001b9fa5ee8f10",
+      "bytes": 27661,
+      "sha256": "8aec4733fd70b3bb388ad5dbbe05c354692ac38fbe6bcfd3b575c401369d003d",
       "mode": "0644"
     },
     {
