@@ -628,16 +628,16 @@ def _gitlab_predicates(s: Sources) -> list[Predicate]:
         ),
         Predicate(
             "GITLAB_PRODUCTION_AUTHORITY_RETIRED",
-            "workflow:\n  rules:\n    - when: never" in s.gitlab_ci
-            and "GitLab release authority is retired" in s.gitlab_ci
-            and "GitLab deploy authority is retired" in s.gitlab_ci
-            and re.search(
-                r"(?m)^\\s*-\\s+(?!bash -n\\s).*package_production_release\\.sh",
-                s.gitlab_ci,
+            all(
+                token in s.gitlab_ci
+                for token in (
+                    "workflow:\n  rules:\n    - when: never",
+                    "GitLab release authority is retired",
+                    "GitLab deploy authority is retired",
+                )
             )
-            is None
             and re.search(
-                r"(?m)^\\s*-\\s+(?!bash -n\\s).*deploy_gitlab_production\\.sh",
+                r"(?m)^\s*-\s+(?!bash -n\s).*(?:package_production_release\.sh|deploy_gitlab_production\.sh)",
                 s.gitlab_ci,
             )
             is None,
