@@ -2,11 +2,15 @@
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
-[[ "$#" -le 1 ]] || { echo "usage: package_production_release.sh [--check-authority]" >&2; exit 2; }
-[[ "$#" -eq 0 || "${1:-}" == "--check-authority" ]] || { echo "unknown argument: ${1:-}" >&2; exit 2; }
-check_authority_only=false
+[[ "$#" -le 1 ]] || { echo "usage: package_production_release.sh [--check-candidate-context]" >&2; exit 2; }
 if [[ "${1:-}" == "--check-authority" ]]; then
-  check_authority_only=true
+  echo "an in-progress workflow cannot establish production release authority" >&2
+  exit 1
+fi
+[[ "$#" -eq 0 || "${1:-}" == "--check-candidate-context" ]] || { echo "unknown argument: ${1:-}" >&2; exit 2; }
+check_candidate_context_only=false
+if [[ "${1:-}" == "--check-candidate-context" ]]; then
+  check_candidate_context_only=true
 fi
 readonly canonical_repository="neuron7x/KORPUS"
 readonly canonical_repository_id="1332311807"
@@ -51,7 +55,7 @@ main_sha="$(git rev-parse --verify 'refs/remotes/origin/main^{commit}')"
 [[ "$event_sha" == "$head_sha" ]] || { echo "checked-out HEAD differs from the GitHub event SHA" >&2; exit 1; }
 [[ "$tag_sha" == "$head_sha" ]] || { echo "release tag does not resolve to checked-out HEAD" >&2; exit 1; }
 git merge-base --is-ancestor "$head_sha" "$main_sha" || { echo "release commit is not contained in canonical GitHub main" >&2; exit 1; }
-[[ "$check_authority_only" == false ]] || exit 0
+[[ "$check_candidate_context_only" == false ]] || exit 0
 : "${KORPUS_RELEASE_SIGNING_KEY:?KORPUS_RELEASE_SIGNING_KEY must point to an external Ed25519 private key}"
 : "${KORPUS_HOSTED_BUILDER_SIGNING_KEY:?hosted-builder Ed25519 signing key is required}"
 : "${KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256:?production-assurance trust root is required}"
@@ -75,7 +79,7 @@ manifest="dist/${name}.release-manifest.json"
 attestation="dist/${name}.release-attestation.json"
 builder_provenance="dist/${name}.builder-provenance.json"
 builder_attestation="dist/${name}.builder-attestation.json"
-final_authorization="dist/${name}.final-production-authorization.json"
+candidate_admission="dist/${name}.candidate-admission.json"
 invocation_id="https://github.com/${canonical_repository}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}"
 PYTHONPATH=apps/api/src:scripts python3 scripts/slsa_provenance.py generate --artifact "$artifact" --out "$builder_provenance" --builder-id "$KORPUS_TRUSTED_BUILDER_ID" --invocation-id "$invocation_id" --source-commit "$head_sha"
 python3 scripts/release_attestation.py sign --manifest "$builder_provenance" --key "$KORPUS_HOSTED_BUILDER_SIGNING_KEY" --out "$builder_attestation"
@@ -102,6 +106,6 @@ python3 scripts/release_attestation.py verify --manifest "$manifest" --attestati
 PYTHONPATH=apps/api/src:scripts python3 scripts/verify_final_release_authorization.py \
   --artifact "$artifact" --release-manifest "$manifest" --release-attestation "$attestation" \
   --builder-provenance "$builder_provenance" --builder-attestation "$builder_attestation" \
-  --out "$final_authorization"
-sha256sum "$artifact" "$manifest" "$attestation" "$builder_provenance" "$builder_attestation" "$final_authorization" > "dist/${name}.production.sha256"
-printf '%s\n' "$artifact" "$manifest" "$attestation" "$builder_provenance" "$builder_attestation" "$final_authorization"
+  --out "$candidate_admission"
+sha256sum "$artifact" "$manifest" "$attestation" "$builder_provenance" "$builder_attestation" "$candidate_admission" > "dist/${name}.candidate.sha256"
+printf '%s\n' "$artifact" "$manifest" "$attestation" "$builder_provenance" "$builder_attestation" "$candidate_admission"

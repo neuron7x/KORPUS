@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from korpus.application.final_release_authorization import evaluate_final_release
@@ -132,14 +133,11 @@ def _evaluate(data: dict[str, Any], **overrides: Any):
         "artifact_bytes": data["artifact"],
         "source_manifest_bytes": data["source_manifest"],
         "production_assurance_bytes": data["assurance_bytes"],
-        "production_assurance": data["assurance"],
         "release_manifest_name": RELEASE_MANIFEST_NAME,
         "release_manifest_bytes": data["release_manifest_bytes"],
-        "release_manifest": data["release_manifest"],
         "release_attestation": data["release_att"],
         "builder_statement_name": BUILDER_STATEMENT_NAME,
         "builder_statement_bytes": data["builder_bytes"],
-        "builder_statement": data["builder_statement"],
         "builder_attestation": data["builder_att"],
         "build_context": ReleaseBuildContext(
             release=RELEASE,
@@ -157,32 +155,42 @@ def _evaluate(data: dict[str, Any], **overrides: Any):
     return evaluate_final_release(**kwargs)
 
 
-def test_final_release_requires_bound_artifact_trusted_builder_and_distinct_release_signer() -> (
-    None
-):
-    verdict = _evaluate(_fixture())
-    assert verdict.authorized is True
-    assert verdict.as_dict()["failures"] == []
+def test_same_actor_with_two_distinct_keys_remains_blocked_from_production_authority() -> None:
+    data = _fixture()
+    assert data["builder_fp"] != data["release_fp"]
+    verdict = _evaluate(data)
+    payload = verdict.as_dict()
+    assert verdict.candidate_checks_passed is True
+    assert verdict.authorized is False
+    assert payload["status"] == "BLOCKED"
+    assert payload["candidate_checks_passed"] is True
+    assert payload["production_authorized"] is False
+    assert payload["authorization_blockers"] == [
+        "github_hosted_artifact_receipt_pending",
+        "completed_github_run_receipt_absent",
+        "independent_actor_receipts_absent",
+    ]
+    assert payload["checks"]["key_separation"] is True
 
 
 def test_final_release_rejects_untrusted_builder_identity() -> None:
     data = _fixture()
     verdict = _evaluate(data, trusted_builder_ids=set())
-    assert verdict.authorized is False
+    assert verdict.candidate_checks_passed is False
     assert verdict.checks["builder_trusted"] is False
 
 
 def test_final_release_rejects_untrusted_release_signer() -> None:
     data = _fixture()
     verdict = _evaluate(data, trusted_release_signers=set())
-    assert verdict.authorized is False
+    assert verdict.candidate_checks_passed is False
     assert verdict.checks["release_trusted_signer"] is False
 
 
 def test_final_release_rejects_artifact_digest_substitution() -> None:
     data = _fixture()
     verdict = _evaluate(data, artifact_bytes=b"substituted")
-    assert verdict.authorized is False
+    assert verdict.candidate_checks_passed is False
     assert verdict.checks["release_manifest_bound"] is False
     assert verdict.checks["builder_provenance_verified"] is False
 
@@ -191,10 +199,8 @@ def test_final_release_requires_upstream_production_authorization() -> None:
     data = _fixture()
     assurance = {"status": "PASS", "production_authorized": False}
     assurance_bytes = _json_bytes(assurance)
-    verdict = _evaluate(
-        data, production_assurance=assurance, production_assurance_bytes=assurance_bytes
-    )
-    assert verdict.authorized is False
+    verdict = _evaluate(data, production_assurance_bytes=assurance_bytes)
+    assert verdict.candidate_checks_passed is False
     assert verdict.checks["production_assurance_authorized"] is False
 
 
@@ -203,7 +209,7 @@ def test_final_release_rejects_release_manifest_without_exact_source_commit() ->
     data["release_manifest"].pop("git_commit")
     _resign_release(data)
     verdict = _evaluate(data)
-    assert verdict.authorized is False
+    assert verdict.candidate_checks_passed is False
     assert verdict.checks["release_manifest_git_commit"] is False
 
 
@@ -214,7 +220,7 @@ def test_final_release_rejects_wrong_build_type_and_source_commit() -> None:
     definition["externalParameters"]["sourceCommit"] = "b" * 40
     _resign_builder(data)
     verdict = _evaluate(data)
-    assert verdict.authorized is False
+    assert verdict.candidate_checks_passed is False
     assert verdict.checks["builder_build_type"] is False
     assert verdict.checks["builder_source_commit"] is False
 
@@ -225,7 +231,7 @@ def test_final_release_rejects_missing_or_substituted_resolved_material() -> Non
     dependencies[0]["digest"]["sha256"] = "0" * 64
     _resign_builder(data)
     verdict = _evaluate(data)
-    assert verdict.authorized is False
+    assert verdict.candidate_checks_passed is False
     assert verdict.checks["builder_materials_bound"] is False
 
 
@@ -235,7 +241,7 @@ def test_final_release_rejects_wrong_github_run_invocation() -> None:
     metadata["invocationId"] = "https://github.com/attacker/KORPUS/actions/runs/1/attempts/1"
     _resign_builder(data)
     verdict = _evaluate(data)
-    assert verdict.authorized is False
+    assert verdict.candidate_checks_passed is False
     assert verdict.checks["builder_invocation_bound"] is False
 
 
@@ -246,7 +252,7 @@ def test_final_release_rejects_missing_or_reversed_timestamps() -> None:
     metadata["finishedOn"] = "2026-10-19T00:01:00Z"
     _resign_builder(data)
     verdict = _evaluate(data)
-    assert verdict.authorized is False
+    assert verdict.candidate_checks_passed is False
     assert verdict.checks["builder_timestamps_valid"] is False
 
 
@@ -257,7 +263,7 @@ def test_final_release_rejects_timestamps_outside_the_current_github_run_window(
     metadata["finishedOn"] = "2000-01-01T00:01:00Z"
     _resign_builder(data)
     verdict = _evaluate(data)
-    assert verdict.authorized is False
+    assert verdict.candidate_checks_passed is False
     assert verdict.checks["builder_timestamps_valid"] is False
 
 
@@ -267,8 +273,30 @@ def test_final_release_rejects_attacker_workflow_even_when_explicitly_trusted() 
     data["builder_statement"]["predicate"]["runDetails"]["builder"]["id"] = attacker
     _resign_builder(data)
     verdict = _evaluate(data, trusted_builder_ids={attacker})
-    assert verdict.authorized is False
+    assert verdict.candidate_checks_passed is False
     assert verdict.checks["builder_trusted"] is False
+
+
+def test_signed_unrelated_bytes_cannot_borrow_canonical_mapping_semantics() -> None:
+    data = _fixture()
+    data["builder_bytes"] = _json_bytes({"signed": "unrelated"})
+    data["builder_att"], data["builder_fp"] = _attestation(
+        data["builder_bytes"], BUILDER_STATEMENT_NAME, data["builder_key"]
+    )
+    verdict = _evaluate(data)
+    assert verdict.candidate_checks_passed is False
+    assert verdict.checks["builder_statement_type"] is False
+    assert verdict.checks["builder_provenance_verified"] is False
+
+
+def test_signed_json_with_duplicate_keys_is_refused() -> None:
+    data = _fixture()
+    data["release_manifest_bytes"] = b'{"release":"v-test","release":"attacker"}\n'
+    data["release_att"], data["release_fp"] = _attestation(
+        data["release_manifest_bytes"], RELEASE_MANIFEST_NAME, data["release_key"]
+    )
+    with pytest.raises(ValueError, match="duplicate key"):
+        _evaluate(data)
 
 
 def test_expected_materials_are_recomputed_from_local_files() -> None:

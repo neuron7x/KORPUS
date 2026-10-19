@@ -21,14 +21,17 @@
 9. Record image digest, migration revision, calibration profile and corpus release identifier.
 10. Stop rollout on evidence, access, audit, readiness, restore or dependency regression.
 
-The only hosted release authority is `.github/workflows/release.yml` in
-`neuron7x/KORPUS` (repository id `1332311807`, owner id `206596321`). It admits a
-protected `v*` tag on a GitHub-hosted runner only when the tag in `release.json`,
-`GITHUB_REF`, `GITHUB_SHA`, checked-out `HEAD`, and the tag target agree, and that commit
-is contained in canonical GitHub `main`. GitHub OIDC attestations bind every uploaded
-release artifact to that workflow run. Missing protection, trust roots, signing keys,
-or identity fields stops the release. GitLab remains a legacy provenance plane and
-cannot authorize a canonical release.
+The canonical hosted candidate and attestation plane is `.github/workflows/release.yml`
+in `neuron7x/KORPUS` (repository id `1332311807`, owner id `206596321`). The build phase
+checks a protected `v*` tag against `release.json`, `GITHUB_REF`, `GITHUB_SHA`, checked-out
+`HEAD`, the tag target, and canonical GitHub `main`; these runner fields constrain the
+candidate but are not proof of hosted execution. A separate job creates a GitHub OIDC/
+Sigstore attestation for the exact candidate and verifies the retained bundle with
+`gh attestation verify`. The in-progress run has no completed-run receipt, and the
+candidate job holds both builder and release keys, so the report records key separation
+only and keeps `production_authorized=false`. Final production authorization requires a
+post-run completion receipt plus independent actor decisions. GitLab is globally disabled
+with `workflow.rules: [{when: never}]` and cannot execute repository-controlled code.
 
 ## Failure domains
 

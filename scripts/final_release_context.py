@@ -7,7 +7,6 @@ import os
 import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 
 from korpus.application.final_release_provenance import (
     REQUIRED_BUILD_MATERIALS,
@@ -47,16 +46,6 @@ def trusted_builder_ids(path: Path) -> set[str]:
     if os.getenv("KORPUS_TRUSTED_BUILDER_ID"):
         result.add(os.environ["KORPUS_TRUSTED_BUILDER_ID"])
     return result
-
-
-def failure(reason: str) -> dict[str, Any]:
-    return {
-        "schema": "korpus.final-production-authorization.v1",
-        "status": "FAIL",
-        "production_authorized": False,
-        "checks": {},
-        "failures": [reason],
-    }
 
 
 def configure_parser(parser: argparse.ArgumentParser, root: Path) -> None:

@@ -6,6 +6,10 @@ from dataclasses import dataclass
 from typing import Any
 
 from korpus.application.attested_evidence import verify_ed25519_attestation
+from korpus.application.final_release_evidence import (
+    PRODUCTION_AUTHORIZATION_BLOCKERS,
+    strict_signed_json_object,
+)
 from korpus.application.final_release_provenance import (
     ReleaseBuildContext,
     builder_provenance_checks,
@@ -25,17 +29,23 @@ class FinalReleaseVerdict:
     release_signer_fingerprint: str
 
     @property
-    def authorized(self) -> bool:
+    def candidate_checks_passed(self) -> bool:
         return all(self.checks.values())
+
+    @property
+    def authorized(self) -> bool:
+        return False
 
     def as_dict(self) -> dict[str, Any]:
         failures = [name for name, ok in self.checks.items() if not ok]
         return {
-            "schema": "korpus.final-production-authorization.v1",
-            "status": "PASS" if not failures else "FAIL",
-            "production_authorized": not failures,
+            "schema": "korpus.release-candidate-checks.v1",
+            "status": "BLOCKED" if not failures else "FAIL",
+            "candidate_checks_passed": not failures,
+            "production_authorized": False,
             "checks": dict(self.checks),
             "failures": failures,
+            "authorization_blockers": list(PRODUCTION_AUTHORIZATION_BLOCKERS),
             "builder_id": self.builder_id,
             "builder_signer_fingerprint": self.builder_signer_fingerprint,
             "release_signer_fingerprint": self.release_signer_fingerprint,
@@ -48,20 +58,22 @@ def evaluate_final_release(
     artifact_bytes: bytes,
     source_manifest_bytes: bytes,
     production_assurance_bytes: bytes,
-    production_assurance: Mapping[str, Any],
     release_manifest_name: str,
     release_manifest_bytes: bytes,
-    release_manifest: Mapping[str, Any],
     release_attestation: Mapping[str, Any],
     builder_statement_name: str,
     builder_statement_bytes: bytes,
-    builder_statement: Mapping[str, Any],
     builder_attestation: Mapping[str, Any],
     build_context: ReleaseBuildContext,
     trusted_release_signers: Collection[str],
     trusted_builder_signers: Collection[str],
     trusted_builder_ids: Collection[str],
 ) -> FinalReleaseVerdict:
+    production_assurance = strict_signed_json_object(
+        production_assurance_bytes, "production assurance"
+    )
+    release_manifest = strict_signed_json_object(release_manifest_bytes, "release manifest")
+    builder_statement = strict_signed_json_object(builder_statement_bytes, "builder statement")
     artifact_sha = _sha(artifact_bytes)
     builder_id, provenance_checks = builder_provenance_checks(
         builder_statement,
@@ -103,7 +115,7 @@ def evaluate_final_release(
         "builder_trusted_signer": builder_att.trusted_signer,
         "release_attestation_verified": release_att.cryptographically_valid,
         "release_trusted_signer": release_att.trusted_signer,
-        "separation_of_duties": bool(builder_att.fingerprint)
+        "key_separation": bool(builder_att.fingerprint)
         and builder_att.fingerprint != release_att.fingerprint,
     }
     return FinalReleaseVerdict(

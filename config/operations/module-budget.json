@@ -1474,13 +1474,22 @@
       "proof_lines": 0
     },
     "apps/api/src/korpus/application/final_release_authorization.py": {
-      "lines": 141,
-      "max_complexity": 7,
-      "max_function_args": 17,
-      "max_function_lines": 73,
-      "max_nesting": 1,
+      "lines": 126,
+      "max_complexity": 3,
+      "max_function_args": 14,
+      "max_function_lines": 72,
+      "max_nesting": 0,
       "proof_lines": 0,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/final_release_evidence.py": {
+      "lines": 48,
+      "max_complexity": 4,
+      "max_function_args": 2,
+      "max_function_lines": 10,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #54: strict parsing of signed bytes and explicit blocked-candidate policy; initial measured ceiling."
     },
     "apps/api/src/korpus/application/final_release_provenance.py": {
       "lines": 188,
@@ -3253,13 +3262,22 @@
       "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
     },
     "apps/api/src/korpus/gitlab_readonly_authority.py": {
-      "lines": 62,
-      "max_complexity": 8,
+      "lines": 3,
+      "max_complexity": 0,
+      "max_function_args": 0,
+      "max_function_lines": 0,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Issue #54: compatibility re-export; the shared exact tombstone contract lives in gitlab_tombstone_contract.py."
+    },
+    "apps/api/src/korpus/gitlab_tombstone_contract.py": {
+      "lines": 68,
+      "max_complexity": 6,
       "max_function_args": 2,
-      "max_function_lines": 12,
+      "max_function_lines": 16,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "Issue #54: exact semantic allowlist for the inert legacy GitLab validation plane; initial measured ceiling."
+      "reason": "Issue #54: one fail-closed whole-pipeline GitLab tombstone contract shared by both production verifiers; initial measured ceiling."
     },
     "apps/api/src/korpus/infrastructure_requirements.py": {
       "lines": null,
@@ -4367,7 +4385,7 @@
       "reason": "a snapshot of a Drive folder with provenance; fetching is not ingestion"
     },
     "scripts/final_release_context.py": {
-      "lines": 101,
+      "lines": 90,
       "max_complexity": 5,
       "max_function_args": 2,
       "max_function_lines": 22,
@@ -4448,10 +4466,10 @@
       "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/gcp/production_contract_authority.py": {
-      "lines": 119,
-      "max_complexity": 8,
+      "lines": 75,
+      "max_complexity": 4,
       "max_function_args": 2,
-      "max_function_lines": 41,
+      "max_function_lines": 32,
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Issue #54: canonical GitHub GCP authority plus exact inert GitLab pipeline predicates; initial measured ceiling."

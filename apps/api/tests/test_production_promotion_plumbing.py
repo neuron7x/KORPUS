@@ -109,26 +109,32 @@ def test_release_attestation_can_use_protected_runtime_trust(tmp_path: Path) -> 
     assert result.returncode == 0, result.stdout.decode() + result.stderr.decode()
 
 
-def test_github_is_the_tag_release_and_oidc_attestation_authority() -> None:
+def test_github_creates_a_hosted_oidc_receipt_without_claiming_run_completion() -> None:
     path = ROOT / ".github/workflows/release.yml"
     workflow = yaml.safe_load(path.read_text(encoding="utf-8"))
     package_job = workflow["jobs"]["package-release-candidate"]
-    attestation_job = workflow["jobs"]["attest-and-publish"]
+    attestation_job = workflow["jobs"]["attest-candidate"]
     source = path.read_text(encoding="utf-8")
     assert workflow["permissions"] == {}
     assert package_job["permissions"] == {"contents": "read"}
     assert attestation_job["needs"] == "package-release-candidate"
     assert attestation_job["permissions"] == {
         "actions": "read",
+        "artifact-metadata": "write",
         "contents": "read",
         "id-token": "write",
         "attestations": "write",
     }
     assert 'tags:\n      - "v*"' in source
     assert "package_production_release.sh" in source
-    assert "package_production_release.sh --check-authority" in source
+    assert "package_production_release.sh --check-candidate-context" in source
     assert "actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6" in source
     assert "subject-path: |" in source
+    assert "gh attestation verify" in source
+    assert "github-attestation.outputs.bundle-path" in source
+    assert "KORPUS_GITHUB_HOSTED_ATTESTATION.sigstore.json" in source
+    assert "final-production-authorization" not in source
+    assert "production.sha256" not in source
     script = "\n".join(
         str(step.get("run", "")) for step in package_job["steps"] if isinstance(step, dict)
     )
@@ -148,6 +154,41 @@ def test_github_is_the_tag_release_and_oidc_attestation_authority() -> None:
         < script.rindex("package_production_release.sh")
     )
     assert "production-hard-predicates-evidence" in source
+
+
+def test_fabricated_github_runtime_cannot_self_declare_production_authority() -> None:
+    env = os.environ.copy()
+    env.update(
+        {
+            "GITHUB_ACTIONS": "true",
+            "GITHUB_EVENT_NAME": "push",
+            "GITHUB_SERVER_URL": "https://github.com",
+            "GITHUB_REPOSITORY": "neuron7x/KORPUS",
+            "GITHUB_REPOSITORY_ID": "1332311807",
+            "GITHUB_REPOSITORY_OWNER_ID": "206596321",
+            "GITHUB_REF_PROTECTED": "true",
+            "GITHUB_REF_TYPE": "tag",
+            "GITHUB_REF_NAME": RELEASE_TAG,
+            "GITHUB_REF": f"refs/tags/{RELEASE_TAG}",
+            "GITHUB_SHA": "a" * 40,
+            "GITHUB_WORKFLOW_REF": (
+                f"neuron7x/KORPUS/.github/workflows/release.yml@refs/tags/{RELEASE_TAG}"
+            ),
+            "GITHUB_RUN_ID": "123456789",
+            "GITHUB_RUN_ATTEMPT": "1",
+            "RUNNER_ENVIRONMENT": "github-hosted",
+        }
+    )
+    result = subprocess.run(
+        ["bash", str(ROOT / "scripts/package_production_release.sh"), "--check-authority"],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert "cannot establish production release authority" in result.stderr
 
 
 def test_production_release_script_requires_exact_github_tag_ref_sha_and_runtime_trust() -> None:
@@ -207,6 +248,13 @@ def test_infrastructure_contract_rejects_reactivated_gitlab_wif() -> None:
     context.ci_config["gcp:deploy-production"]["id_tokens"] = {
         "GITLAB_OIDC_TOKEN": {"aud": "https://iam.googleapis.com"}
     }
+    assert not _sole_hosted_authority_holds(context)
+
+
+def test_infrastructure_contract_rejects_reactivated_gitlab_workflow() -> None:
+    context = load_context(ROOT)
+    assert _sole_hosted_authority_holds(context)
+    context.ci_config["workflow"] = {"rules": [{"when": "always"}]}
     assert not _sole_hosted_authority_holds(context)
 
 
