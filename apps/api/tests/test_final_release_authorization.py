@@ -391,3 +391,38 @@ def test_github_release_context_refuses_gitlab_and_invalid_commit() -> None:
         "GITHUB_SHA",
         "GITLAB_CI",
     ]
+
+@pytest.mark.parametrize(
+    ("field", "spoofed"),
+    [
+        ("GITHUB_REPOSITORY_ID", "1332311808"),
+        ("GITHUB_REPOSITORY_OWNER_ID", "206596322"),
+        ("GITHUB_REF_PROTECTED", "false"),
+        ("RUNNER_ENVIRONMENT", "self-hosted"),
+        ("GITHUB_WORKFLOW_REF", "neuron7x/KORPUS/.github/workflows/attacker.yml@refs/tags/v-test"),
+    ],
+)
+def test_release_context_refuses_spoofed_hosted_authority(field: str, spoofed: str) -> None:
+    from korpus.application.github_release_context import (
+        expected_github_release_environment,
+        github_release_context_mismatches,
+    )
+
+    environment = expected_github_release_environment("v-test")
+    environment["GITHUB_SHA"] = "a" * 40
+    environment[field] = spoofed
+    assert github_release_context_mismatches(environment, "v-test") == [field]
+
+
+@pytest.mark.parametrize(
+    ("field", "payload"),
+    [
+        ("assurance_bytes", b'{"status":"PASS","status":"FAIL"}\n'),
+        ("builder_bytes", b'{"_type":"trusted","_type":"attacker"}\n'),
+    ],
+)
+def test_duplicate_keys_in_other_signed_evidence_are_refused(field: str, payload: bytes) -> None:
+    fixture = _fixture()
+    fixture[field] = payload
+    with pytest.raises(ValueError, match="duplicate key"):
+        _evaluate(fixture)
