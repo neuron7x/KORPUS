@@ -66,11 +66,19 @@ def _object(path: Path) -> dict[str, Any]:
 
 def _junit(path: Path) -> dict[str, int]:
     try:
-        counts = junit_counts(ET.parse(path).getroot())
+        root = ET.parse(path).getroot()
+        counts = junit_counts(root)
     except (OSError, ET.ParseError, ValueError) as error:
         raise ValueError(f"invalid JUnit evidence: {path}") from error
-    if counts["tests"] < 1 or counts["failures"] or counts["errors"]:
-        raise ValueError(f"JUnit evidence is empty or failing: {path}")
+    cases = list(root.iter("testcase"))
+    observed = {
+        "tests": len(cases),
+        "failures": sum(child.tag == "failure" for case in cases for child in case),
+        "errors": sum(child.tag == "error" for case in cases for child in case),
+        "skipped": sum(child.tag == "skipped" for case in cases for child in case),
+    }
+    if counts != observed or counts["tests"] < 1 or counts["failures"] or counts["errors"]:
+        raise ValueError(f"JUnit evidence is empty, failing, or structurally inconsistent: {path}")
     return {field: int(counts[field]) for field in _JUNIT_FIELDS}
 
 
@@ -86,10 +94,26 @@ def _tap(path: Path) -> tuple[dict[str, int], str]:
         if len(matches) != 1:
             raise ValueError(f"TAP evidence has {len(matches)} {key} summaries: {path}")
         counts[key] = int(matches[0])
+    plans = re.findall(r"^1\.\.(\d+)(?:\s.*)?$", text, re.MULTILINE)
+    assertions = re.findall(r"^(not ok|ok)\s+(\d+)([^\r\n]*)$", text, re.MULTILINE)
+    numbers = [int(number) for _status, number, _tail in assertions]
+    assertion_failures = sum(status == "not ok" for status, _number, _tail in assertions)
+    assertion_skips = sum("# skip" in tail.lower() for _status, _number, tail in assertions)
+    assertion_passes = len(assertions) - assertion_failures - assertion_skips
+    structural = (
+        len(plans) == 1
+        and int(plans[0]) == counts["tests"]
+        and numbers == list(range(1, counts["tests"] + 1))
+        and "# todo" not in "\n".join(tail.lower() for _status, _number, tail in assertions)
+        and assertion_passes == counts["pass"]
+        and assertion_failures == counts["fail"]
+        and assertion_skips == counts["skipped"]
+    )
     if (
         counts["tests"] < 1
         or counts["fail"]
         or counts["tests"] != counts["pass"] + counts["fail"] + counts["skipped"]
+        or not structural
     ):
         raise ValueError(f"TAP evidence is empty, failing, or arithmetically invalid: {path}")
     return counts, hashlib.sha256(payload).hexdigest()

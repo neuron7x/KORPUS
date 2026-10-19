@@ -186,7 +186,8 @@ def validate_downloaded(
     receipt = object_from_bytes(files[RECEIPT_NAME], RECEIPT_NAME)
     if not _identity_bound(attestation, release, source, tracked, source_ref):
         raise ValueError("release-claim attestation identity is stale or malformed")
-    _claims_bound(root, attestation.get("claims"), _expected_artifacts(root, release))
+    if not _claims_bound(root, attestation.get("claims"), _expected_artifacts(root, release)):
+        raise ValueError("release-claim attestation claim set is invalid")
     subject = {
         "release-claims": {
             "release": release,

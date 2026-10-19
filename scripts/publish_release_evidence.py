@@ -33,6 +33,7 @@ sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from korpus.application.release_claims import binding  # noqa: E402
 from korpus.application.release_coverage_projection import project_coverage  # noqa: E402
+from release_claim_projection import publish_execution_companions  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 from source_digest import source_tree_digest  # noqa: E402
 
@@ -56,10 +57,14 @@ def coverage_projection(digest: str, release: str) -> dict[str, Any] | None:
     return project_coverage(ROOT, digest, release, source_tree_digest("HEAD"))
 
 
-def main() -> int:
+def _arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--allow-unbound", action="store_true")
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = _arguments()
 
     release = release_tag(ROOT)
     digest = compute_source_digest(ROOT)
@@ -98,6 +103,8 @@ def main() -> int:
             continue
         shutil.copyfile(source, destination / name)
         published.append(name)
+
+    publish_execution_companions(ROOT, destination, published, refused)
 
     result = {
         "schema": "korpus.release-evidence-publication.v1",

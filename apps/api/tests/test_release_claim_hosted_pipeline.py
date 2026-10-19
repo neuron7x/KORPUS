@@ -16,6 +16,7 @@ from korpus.application.release_claim_tree import tracked_tree_digest
 from scripts import build_release_claim_evidence as producer
 from scripts import import_release_claim_evidence as importer
 from scripts import publish_web_regression as web
+from scripts import release_claim_projection as claim_projection
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -80,13 +81,27 @@ def test_tracked_tree_digest_ignores_path_git_shims(
 
 
 def _tap(*, tests: int = 2, passed: int = 2, failed: int = 0, skipped: int = 0) -> bytes:
+    assertions = [f"ok {index} - passing {index}" for index in range(1, passed + 1)]
+    assertions.extend(
+        f"not ok {index} - failing {index}" for index in range(passed + 1, passed + failed + 1)
+    )
+    assertions.extend(
+        f"ok {index} - skipped {index} # SKIP"
+        for index in range(passed + failed + 1, passed + failed + skipped + 1)
+    )
     return (
-        "TAP version 13\n"
-        f"1..{tests}\n"
-        f"# tests {tests}\n"
-        f"# pass {passed}\n"
-        f"# fail {failed}\n"
-        f"# skipped {skipped}\n"
+        "\n".join(
+            [
+                "TAP version 13",
+                *assertions,
+                f"1..{tests}",
+                f"# tests {tests}",
+                f"# pass {passed}",
+                f"# fail {failed}",
+                f"# skipped {skipped}",
+                "",
+            ]
+        )
     ).encode()
 
 
@@ -132,6 +147,28 @@ def test_web_publisher_writes_exact_fresh_test_bytes(
     assert execution["result"] == {"tests": 2, "pass": 2, "fail": 0, "skipped": 0}
 
 
+def test_release_publisher_refuses_unbound_execution_companions(tmp_path: Path) -> None:
+    report = tmp_path / "report.json"
+    source = tmp_path / "execution.tap"
+    destination = tmp_path / "published.tap"
+    source.write_bytes(_tap())
+    report.write_text(
+        json.dumps({"test_output_sha256": hashlib.sha256(source.read_bytes()).hexdigest()}),
+        encoding="utf-8",
+    )
+    assert (
+        claim_projection.publish_companion(destination, report, source, "test_output_sha256")
+        is None
+    )
+    assert destination.read_bytes() == source.read_bytes()
+
+    source.write_bytes(_tap(tests=3, passed=3))
+    assert "does not bind" in str(
+        claim_projection.publish_companion(destination, report, source, "test_output_sha256")
+    )
+    assert not destination.exists()
+
+
 def test_tap_parser_refuses_duplicate_or_inconsistent_summaries(tmp_path: Path) -> None:
     duplicate = tmp_path / "duplicate.tap"
     duplicate.write_bytes(_tap() + b"# tests 2\n")
@@ -142,6 +179,38 @@ def test_tap_parser_refuses_duplicate_or_inconsistent_summaries(tmp_path: Path) 
     inconsistent.write_bytes(_tap(tests=3, passed=2))
     with pytest.raises(ValueError, match="arithmetically invalid"):
         producer._tap(inconsistent)
+
+    summary_only = tmp_path / "summary-only.tap"
+    summary_only.write_text(
+        "TAP version 13\n1..0\n# tests 2\n# pass 2\n# fail 0\n# skipped 0\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="arithmetically invalid"):
+        producer._tap(summary_only)
+
+
+def test_junit_parser_refuses_counters_without_testcases(tmp_path: Path) -> None:
+    counters_only = tmp_path / "counters-only.xml"
+    counters_only.write_text(
+        '<testsuite tests="2" failures="0" errors="0" skipped="0"/>\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="structurally inconsistent"):
+        producer._junit(counters_only)
+
+    valid = tmp_path / "valid.xml"
+    valid.write_text(
+        '<testsuite tests="1" failures="0" errors="0" skipped="0">'
+        '<testcase classname="tests.test_guard" name="test_guard"/>'
+        "</testsuite>\n",
+        encoding="utf-8",
+    )
+    assert producer._junit(valid) == {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+    }
 
 
 def test_mutation_comparison_ignores_only_runtime_noise() -> None:
@@ -404,6 +473,31 @@ def test_importer_binds_bundle_admission_to_exact_local_artifacts(tmp_path: Path
     )
     assert verified == [(commit, "refs/heads/main")]
     assert admission["artifacts"]["release-claim-evidence"]["artifact_id"] == 17
+
+    malformed_claim_sets = [
+        {},
+        {
+            claim_id: claim
+            for claim_id, claim in attestation["claims"].items()
+            if claim_id != "CLM-WEB"
+        },
+        {**attestation["claims"], "CLM-UNDECLARED": attestation["claims"]["CLM-WEB"]},
+    ]
+    for claims in malformed_claim_sets:
+        malformed = {**attestation, "claims": claims}
+        malformed_files = {
+            **files,
+            importer.ATTESTATION_NAME: (json.dumps(malformed, indent=2) + "\n").encode(),
+        }
+        with pytest.raises(ValueError, match="claim set"):
+            importer.validate_downloaded(
+                tmp_path,
+                identity,
+                17,
+                malformed_files,
+                source_ref="refs/heads/main",
+                verifier=verifier,
+            )
 
     (tmp_path / f"reports/release/{release}/WEB_REGRESSION_REPORT.json").write_text(
         '{"tampered":true}\n', encoding="utf-8"

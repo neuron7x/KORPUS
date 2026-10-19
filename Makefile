@@ -1845,7 +1845,7 @@ release-evidence:
 	$(MAKE) production-inference-security PY=$(PY)
 	$(MAKE) release-mutation-delta PY=$(PY)
 	$(MAKE) backend-report PY=$(PY)
-	PYTHONPATH=apps/api/src:scripts $(PY) scripts/publish_web_regression.py
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/publish_web_regression.py --tap-out var/web-regression.tap
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/publish_release_evidence.py
 	$(MAKE) local-production-preflight PY=$(PY)
 

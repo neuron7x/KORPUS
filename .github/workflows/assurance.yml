@@ -172,14 +172,7 @@ jobs:
           --tap-out var/hosted/web/WEB_REGRESSION_REPORT.tap
       - name: Bind hosted executions to canonical release claims
         run: >-
-          python scripts/build_release_claim_evidence.py
-          --sqlite-junit var/hosted/sqlite/pytest.xml
-          --mutation var/hosted/research/mutation-report.json
-          --inference var/hosted/research/production/inference_security-gate.json
-          --inference-junit var/hosted/research/production/inference_security.pytest.xml
-          --web var/hosted/web/WEB_REGRESSION_REPORT.json
-          --web-tap var/hosted/web/WEB_REGRESSION_REPORT.tap
-          --out-dir var/release-claim
+          python scripts/build_release_claim_evidence.py --sqlite-junit var/hosted/sqlite/pytest.xml --mutation var/hosted/research/mutation-report.json --inference var/hosted/research/production/inference_security-gate.json --inference-junit var/hosted/research/production/inference_security.pytest.xml --web var/hosted/web/WEB_REGRESSION_REPORT.json --web-tap var/hosted/web/WEB_REGRESSION_REPORT.tap --out-dir var/release-claim
       - name: Attest exact release-claim payload
         id: release-claim-provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8

@@ -45,6 +45,10 @@ observation proves it.
   aliases, implicit permissions, missing timeouts, persisted checkout credentials, and
   privileged PR triggers.
 
+The exact hosted artifact is admitted only by the pinned local verifier; for a selected
+successful Actions run use `python scripts/import_release_claim_evidence.py --run RUN_ID`
+and commit the four generated, hash-bound release-claim files through a pull request.
+
 ## Fail-closed boundary
 
 GitHub-hosted CI is not evidence for production secrets, live cluster reconciliation,

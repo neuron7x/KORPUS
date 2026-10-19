@@ -2232,6 +2232,51 @@
       "proof_lines": 0,
       "reason": "Exact initial ceiling for immutable GitHub run identity, byte receipts, and importer admission bindings."
     },
+    "apps/api/src/korpus/application/release_claim_git_tree.py": {
+      "lines": 97,
+      "max_complexity": 13,
+      "max_function_args": 2,
+      "max_function_lines": 25,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for object-database reads of a declared Git tree without worktree substitution."
+    },
+    "apps/api/src/korpus/application/release_claim_hosted.py": {
+      "lines": 167,
+      "max_complexity": 9,
+      "max_function_args": 5,
+      "max_function_lines": 43,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for hosted GitHub release-claim run identity and attestation admission."
+    },
+    "apps/api/src/korpus/application/release_claim_sigstore.py": {
+      "lines": 129,
+      "max_complexity": 13,
+      "max_function_args": 5,
+      "max_function_lines": 45,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for offline Sigstore bundle verification and signer-policy enforcement."
+    },
+    "apps/api/src/korpus/application/release_claim_sigstore_command.py": {
+      "lines": 39,
+      "max_complexity": 1,
+      "max_function_args": 5,
+      "max_function_lines": 34,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for constructing the pinned Sigstore verifier command."
+    },
+    "apps/api/src/korpus/application/release_claim_tree.py": {
+      "lines": 71,
+      "max_complexity": 13,
+      "max_function_args": 1,
+      "max_function_lines": 21,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for tracked-tree identity derived from immutable manifest entries."
+    },
     "apps/api/src/korpus/application/release_claims.py": {
       "lines": 140,
       "max_complexity": 12,
@@ -3904,6 +3949,15 @@
       "proof_lines": 0,
       "reason": "Exact rebaseline adds byte digests and explicit per-object governance sentinels to the draft"
     },
+    "scripts/build_release_claim_evidence.py": {
+      "lines": 391,
+      "max_complexity": 11,
+      "max_function_args": 5,
+      "max_function_lines": 49,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for building content-bound hosted release-claim evidence from canonical gate artefacts."
+    },
     "scripts/build_liveness_fixture.py": {
       "lines": 363,
       "max_complexity": 7,
@@ -4876,6 +4930,15 @@
       "proof_lines": 0,
       "reason": "bulk import: metadata from a manifest, every version quarantined, refusals named per file"
     },
+    "scripts/import_release_claim_evidence.py": {
+      "lines": 241,
+      "max_complexity": 9,
+      "max_function_args": 6,
+      "max_function_lines": 47,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for downloading and admitting one immutable hosted release-claim artifact."
+    },
     "scripts/inference_smoke.py": {
       "lines": 66,
       "max_complexity": 3,
@@ -5434,6 +5497,24 @@
       "max_nesting": 2,
       "proof_lines": 49,
       "reason": "registered 2026-08-29 при першому вимірі. Причина існування: 3 з 8 джерел, заблокованих як «URI не резолвиться, документа за ним немає», віддають PDF просто зараз (17.8 МБ, 145.8 МБ, 1.9 МБ), і ще 3 віддають КАРТКУ замість документа. Відмова, яку ніхто не переміряв, стоїть як факт. | 2026-08-30: 260→275. Вимір паралельної сесії показав, що вісь РОЗМІРУ картки й документи не розділяє: 92 захоплені документи 41 609…145 793 253 Б проти 6 карток 41 553…42 459, max(картки) < min(документи) = False. Поріг перейменовано з CARD_CEILING_BYTES на NOT_A_CARD_ABOVE_BYTES — він стеля «завелике, щоб бути карткою» (4.7× над найбільшою карткою), а не розділювач; тримається все на тому, що %PDF- перевіряється РАНІШЕ. Три проби ловлять майбутнє спрощення умови до розміру з обох боків діапазону."
+    },
+    "scripts/release_claim_import_contract.py": {
+      "lines": 217,
+      "max_complexity": 12,
+      "max_function_args": 6,
+      "max_function_lines": 55,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for byte-level imported release-claim validation and complete claim-set binding."
+    },
+    "scripts/release_claim_projection.py": {
+      "lines": 126,
+      "max_complexity": 9,
+      "max_function_args": 4,
+      "max_function_lines": 20,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for deterministic claim projections and hash-bound execution-companion publication."
     },
     "scripts/record_ci_run.py": {
       "lines": 227,
@@ -6143,6 +6224,15 @@
       "max_function_lines": 0,
       "max_nesting": 0,
       "proof_lines": 0
+    },
+    "scripts/trusted_system_tools.py": {
+      "lines": 30,
+      "max_complexity": 4,
+      "max_function_args": 1,
+      "max_function_lines": 12,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for root-owned executable resolution with an immutable binary digest."
     },
     "scripts/validate_catalog_uri_uniqueness.py": {
       "lines": 209,

@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2128,
-  "root_sha256": "a108b1fe168d182aa877e666fcfaf47ce184cbf9266e5b61406bdb45b3c182d1",
+  "root_sha256": "c704f29ec180567f53b9585f7d9aaad4f625fa51ac75f880d2fb1934d8113704",
   "files": [
     {
       "path": ".dockerignore",
@@ -43,8 +43,8 @@
     },
     {
       "path": ".github/workflows/assurance.yml",
-      "bytes": 33197,
-      "sha256": "180ae31f81a87f28401a28d80cf80fb6e282116aad94da77442594338d75dcc7",
+      "bytes": 33127,
+      "sha256": "476f40c4e469c8c77bd0bbf42ac5ef80b2d83b8d6435159abe1b4d980af7c9fa",
       "mode": "0644"
     },
     {
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 65388,
-      "sha256": "24427d18b292013cc70d37d31c768961fcee0c536a2aaa63ec0cee42a2f08017",
+      "bytes": 65886,
+      "sha256": "10629e684975286ba5a874a200cf8fde8e21a622abeabedb17d88f520166d3be",
       "mode": "0644"
     },
     {
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 133832,
-      "sha256": "035a11b8274a7254d26c8aa1354f1c979896932688cf60e0de859141f64d1f05",
+      "bytes": 133865,
+      "sha256": "c016defb01276d9f366de36e6fc08f430ad659d557f0b89f944097d688b27efa",
       "mode": "0644"
     },
     {
@@ -5311,8 +5311,8 @@
     },
     {
       "path": "apps/api/tests/test_release_claim_hosted_pipeline.py",
-      "bytes": 15660,
-      "sha256": "f2288227b4a12c935ac260e9ee31bb97d2cb36d4884f96c19f731f8d0a097533",
+      "bytes": 18925,
+      "sha256": "31519e038ba4d2570bc073f02d4a3a852ae5da403d7770c49b756e8532f2e0c8",
       "mode": "0644"
     },
     {
@@ -8245,8 +8245,8 @@
     },
     {
       "path": "config/operations/desired-state.json",
-      "bytes": 5539,
-      "sha256": "b4d52649617fa6af574476463059766019bf950ea989c787210a06bbc99bbaf0",
+      "bytes": 5540,
+      "sha256": "b5488add946c1592adf63a39e0edfbde2ae2fddcda82d4e728985c9ba75f8387",
       "mode": "0644"
     },
     {
@@ -8287,8 +8287,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 758674,
-      "sha256": "3452df2599c9129d5abc52e1f79b8a83b22baab1c22a81d33bd27131218ce22c",
+      "bytes": 762031,
+      "sha256": "578033077cec58b4fd393eeff52217c7b56133bc9cf7053fb2af1edca73213e7",
       "mode": "0644"
     },
     {
@@ -9043,8 +9043,8 @@
     },
     {
       "path": "docs/operations/GITHUB_REPOSITORY_POLICY.md",
-      "bytes": 3224,
-      "sha256": "1e7b9ceba567c0e108bf8a0a3cc95743f1f2f85d0815c5e2f5fb49c441b4a3e3",
+      "bytes": 3489,
+      "sha256": "549b7d3dee6b9ceb1eca540985f341e7f67a1f7d19793f8e0a3849e81f6c03a8",
       "mode": "0644"
     },
     {
@@ -9073,8 +9073,8 @@
     },
     {
       "path": "docs/operations/REQUIREMENTS_REGISTER.md",
-      "bytes": 50782,
-      "sha256": "ecb36a0cb42555bfc29cea4b30943219b986cd49841915d46a994acb46f7fa18",
+      "bytes": 51494,
+      "sha256": "6f3045e0437643f2c0e816f8e5f66f7657be536f00f89d8022815f45c08b9a61",
       "mode": "0644"
     },
     {
@@ -10777,8 +10777,8 @@
     },
     {
       "path": "scripts/build_release_claim_evidence.py",
-      "bytes": 14913,
-      "sha256": "1b353db97965db9477794e74c0eb2dfc5ca351cf8bdc13b56145e4d8bb71cbbe",
+      "bytes": 16225,
+      "sha256": "0a95f1d33ad0182241f64397d87e446aaba70711889cf4bb7b5d0fd1cd235e22",
       "mode": "0755"
     },
     {
@@ -11857,8 +11857,8 @@
     },
     {
       "path": "scripts/publish_release_evidence.py",
-      "bytes": 5083,
-      "sha256": "3d98c13b98c270a186e754faa0ce42c854ea54298cdea85c83ac0ada3e692932",
+      "bytes": 5302,
+      "sha256": "2acf5dd9dcfef52bacada1c960d7ba4913637c8259437edd3ec4c70dade9318f",
       "mode": "0755"
     },
     {
@@ -11923,14 +11923,14 @@
     },
     {
       "path": "scripts/release_claim_import_contract.py",
-      "bytes": 8292,
-      "sha256": "38fd42ef2d562aef7e84937571e1ed5a76321865014980be19020afa5daac104",
+      "bytes": 8375,
+      "sha256": "f470eb02d79851c9fd74bbd8627c41b12d836807002fe31ad2579eb480d5f925",
       "mode": "0644"
     },
     {
       "path": "scripts/release_claim_projection.py",
-      "bytes": 1945,
-      "sha256": "65d2db56a047eda724ab83937d9d4960de0215ffde9b829e2172ba6121b34639",
+      "bytes": 3832,
+      "sha256": "033d39ee194595e5798a68d49dff8e8eb3cba2338fbde52cb6e863a85f691dd3",
       "mode": "0644"
     },
     {
