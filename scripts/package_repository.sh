@@ -17,6 +17,9 @@ rm -f "dist/${name}.zip" "dist/${name}.zip.sha256"
 python3 "$root/scripts/check_release_identity.py"
 python3 "$root/scripts/verify_source_manifest.py"
 
+# Fail closed before admitting local evidence that could have read dirty source.
+python3 "$root/scripts/check_clean_source_tree.py"
+
 # 05.09.2026: тут стояла гілка `KORPUS_ENGINEERING_CANDIDATE=1`, яка МИНАЛА цю перевірку
 # і авторизувала пакування з двох полів `CANONICAL_RELEASE_REPORT.json`. Той файл не пише
 # ЖОДЕН крок: grep по дереву знаходить самих читачів, а введений він рукою одним комітом

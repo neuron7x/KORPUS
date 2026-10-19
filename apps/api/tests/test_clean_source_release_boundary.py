@@ -15,6 +15,15 @@ def test_package_producer_excludes_git_history_by_construction() -> None:
     assert "git rev-parse HEAD" in producer
 
 
+def test_packager_guards_exact_source_before_release_evidence_and_archive() -> None:
+    lines = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8").splitlines()
+    guard = 'python3 "$root/scripts/check_clean_source_tree.py"'
+    release = 'PYTHONPATH="$root/scripts" python3 "$root/scripts/verify_release_evidence.py"'
+    archive = 'git archive --format=tar "$source_commit" | tar -xf - -C "$tmp"'
+    assert lines.count(guard) == 1
+    assert lines.index(guard) < lines.index(release) < lines.index(archive)
+
+
 def test_only_formal_production_promotion_requires_the_release_tag() -> None:
     producer = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8")
     promotion = (ROOT / "scripts/package_production_release.sh").read_text(encoding="utf-8")

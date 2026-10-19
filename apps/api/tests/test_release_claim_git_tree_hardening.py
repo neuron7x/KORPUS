@@ -108,3 +108,21 @@ def test_git_environment_does_not_leak_back_to_process(tmp_path: Path) -> None:
     before = dict(os.environ)
     assert tracked_tree_digest(repository) is not None
     assert dict(os.environ) == before
+
+
+def test_digest_refuses_worktree_mode_drift(tmp_path: Path) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    _commit(repository, "answer = 1\n")
+    assert tracked_tree_digest(repository) is not None
+    (repository / "source.py").chmod(0o755)
+    assert tracked_tree_digest(repository) is None
+
+
+def test_digest_refuses_missing_tracked_source(tmp_path: Path) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    _commit(repository, "answer = 1\n")
+    assert tracked_tree_digest(repository) is not None
+    (repository / "source.py").unlink()
+    assert tracked_tree_digest(repository) is None
