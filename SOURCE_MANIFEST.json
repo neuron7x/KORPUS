@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2107,
-  "root_sha256": "86a474bc38019cfa5262e86df517865d305d95b4e48bd155f906102fc67adaf6",
+  "file_count": 2112,
+  "root_sha256": "7376c7a9abb2d520621a1ff7c967fd0209588807045da55785ee8fde277564be",
   "files": [
     {
       "path": ".dockerignore",
@@ -1818,6 +1818,18 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/src/korpus/application/release_claim_git_tree.py",
+      "bytes": 5665,
+      "sha256": "f7ea634cc876ab3025b61343b867d7b5f83012bb838a3402c3cefb4140b609dd",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/release_claim_tree.py",
+      "bytes": 2604,
+      "sha256": "ecd83dce1a780377a2245626d76ecc0d3587abd882b2b25ca4bfedaa1bf9e3b7",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/src/korpus/application/release_claims.py",
       "bytes": 6749,
       "sha256": "66550411d66c3b9f4170f5c90ffcd680c458b0086d1c6da99f61ea5df2e8f401",
@@ -3607,8 +3619,8 @@
     },
     {
       "path": "apps/api/tests/test_clean_source_release_boundary.py",
-      "bytes": 3493,
-      "sha256": "788004c403e1cd427fdf85514f5750a4b7b988e92381cac665f56e9a233d741a",
+      "bytes": 4024,
+      "sha256": "5de8e5c66b8a02713d241b7c6e42d1529ea8c07a523015a05fada0efff87607b",
       "mode": "0644"
     },
     {
@@ -5241,6 +5253,12 @@
       "path": "apps/api/tests/test_release_attestation_trust.py",
       "bytes": 2233,
       "sha256": "4281fe53cfb73e4eb7edea6eb0f32525db6daa8bf8e793d01d7048b898c1de6f",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_release_claim_git_tree_hardening.py",
+      "bytes": 4464,
+      "sha256": "db02689a9531d1eb3b2171dedba0b5511d3a74f32aced50be22abfb2e4d02efe",
       "mode": "0644"
     },
     {
@@ -8197,8 +8215,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 752075,
-      "sha256": "9a0488a3686a2dd7c81287b24950fc913689608b3af125f948a1246acba86fd4",
+      "bytes": 753438,
+      "sha256": "882f64fc3a0469cbe8450a293a1c457e6ac4e49c45637e93801ddb76a602f238",
       "mode": "0644"
     },
     {
@@ -10728,6 +10746,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/check_clean_source_tree.py",
+      "bytes": 902,
+      "sha256": "027de0d190e6397bb0bda03bd9f81d3aca34f3ebbd8b9b9be08256128baaf264",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/check_corpus_path_declarations.py",
       "bytes": 16357,
       "sha256": "7ab382c2a4638b58305b14c6fcf66c1fa1439bbef4283bf7107f279eb7737ec1",
@@ -11539,8 +11563,8 @@
     },
     {
       "path": "scripts/package_repository.sh",
-      "bytes": 5025,
-      "sha256": "1ed21077474c91c204a5d11261b8011cdcaf12227b33815fc98ab339438f27cf",
+      "bytes": 5158,
+      "sha256": "e430719e75af1107f77caaecd533f8cf5cd345fa58380256038154a068ca4c90",
       "mode": "0755"
     },
     {
@@ -12310,6 +12334,12 @@
       "bytes": 161,
       "sha256": "5bf54557b05e2adf9a7a97beba9cbc34b5aaeaff46f78030448140aba7b8963e",
       "mode": "0755"
+    },
+    {
+      "path": "scripts/trusted_system_tools.py",
+      "bytes": 1175,
+      "sha256": "cb0b248f98640f103999c91d7c8365cf08e2154f8c2c94ca69596de47c0235a2",
+      "mode": "0644"
     },
     {
       "path": "scripts/validate_catalog_uri_uniqueness.py",
