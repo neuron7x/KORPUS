@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2103,
-  "root_sha256": "e03a06146306ef8829e9760da1b401e36555ddfd3a3ce33373cc3cb12d6c333f",
+  "file_count": 2104,
+  "root_sha256": "90358caae001de9d06f41d5220f542ede4f6d637bcdcd7a93e0477d9625fca35",
   "files": [
     {
       "path": ".dockerignore",
@@ -7861,8 +7861,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 750299,
-      "sha256": "5c47a24e44d4399f3b27394549993541c90756a87975ac369b38850e3a74cd48",
+      "bytes": 750604,
+      "sha256": "f8cba211bee9d9bb41cb2866ce2a58f48e410590d5e2fc942111be085024537a",
       "mode": "0644"
     },
     {
@@ -8178,6 +8178,12 @@
       "mode": "0644"
     },
     {
+      "path": "docs/architecture/ISSUE_46_BOUNDARY_FIXES.md",
+      "bytes": 5281,
+      "sha256": "d1ac13941e7253d1cd80b03cd5b38a82090891189616a116c32427f4170e4b3a",
+      "mode": "0644"
+    },
+    {
       "path": "docs/architecture/OBSERVABILITY.md",
       "bytes": 674,
       "sha256": "e93387cec98c5244e222c1ccfcd404ffee1e434ed03fc357eb23b220ef0f3dcc",
@@ -8221,8 +8227,8 @@
     },
     {
       "path": "docs/architecture/SYSTEM.md",
-      "bytes": 5603,
-      "sha256": "52a725ca58a3a306512a03ff218c12ee8d020136031ea6a795c8d3d8ff4fe353",
+      "bytes": 7071,
+      "sha256": "0192c4c048908fe4483a3d6d6cbb87e2c76d00ecdabae255cf1f0da2c3a5f7c6",
       "mode": "0644"
     },
     {
@@ -11995,8 +12001,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 339592,
-      "sha256": "2382e99186d702419ff888e0b3b88e11e87aee1256ba4439be3b29ba6cf98c8d",
+      "bytes": 339672,
+      "sha256": "9c888b4ec62ad07c912656033791906ae3661c116d069bdf3dcfc11047c28a57",
       "mode": "0755"
     },
     {
