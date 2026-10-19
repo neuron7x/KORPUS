@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2107,
-  "root_sha256": "99504f0ff38c6f824a2143f51486eec4b756919075a7a234ed499d36260857cb",
+  "root_sha256": "86a474bc38019cfa5262e86df517865d305d95b4e48bd155f906102fc67adaf6",
   "files": [
     {
       "path": ".dockerignore",
@@ -4171,8 +4171,8 @@
     },
     {
       "path": "apps/api/tests/test_final_release_authorization.py",
-      "bytes": 17144,
-      "sha256": "c31b389cf6c2ca35385df64d18e7b834003dceddf106f14f389fad62cec30e78",
+      "bytes": 17180,
+      "sha256": "454ac204a13818d6874196137f20130889fadce45a1aea9a3f51a4b4babe2949",
       "mode": "0644"
     },
     {

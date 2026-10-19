@@ -392,6 +392,7 @@ def test_github_release_context_refuses_gitlab_and_invalid_commit() -> None:
         "GITLAB_CI",
     ]
 
+
 @pytest.mark.parametrize(
     ("field", "spoofed"),
     [
@@ -399,7 +400,10 @@ def test_github_release_context_refuses_gitlab_and_invalid_commit() -> None:
         ("GITHUB_REPOSITORY_OWNER_ID", "206596322"),
         ("GITHUB_REF_PROTECTED", "false"),
         ("RUNNER_ENVIRONMENT", "self-hosted"),
-        ("GITHUB_WORKFLOW_REF", "neuron7x/KORPUS/.github/workflows/attacker.yml@refs/tags/v-test"),
+        (
+            "GITHUB_WORKFLOW_REF",
+            "neuron7x/KORPUS/.github/workflows/attacker.yml@refs/tags/v-test",
+        ),
     ],
 )
 def test_release_context_refuses_spoofed_hosted_authority(field: str, spoofed: str) -> None:
