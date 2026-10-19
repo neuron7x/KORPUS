@@ -2143,6 +2143,24 @@
       "proof_lines": 0,
       "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
     },
+    "apps/api/src/korpus/application/release_claim_git_tree.py": {
+      "lines": 175,
+      "max_complexity": 10,
+      "max_function_args": 2,
+      "max_function_lines": 26,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for isolated object-database reads plus byte-for-byte worktree parity immune to Git environment, config, and index hints."
+    },
+    "apps/api/src/korpus/application/release_claim_tree.py": {
+      "lines": 71,
+      "max_complexity": 13,
+      "max_function_args": 1,
+      "max_function_lines": 21,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for tracked-tree identity derived from immutable manifest entries."
+    },
     "apps/api/src/korpus/application/release_claims.py": {
       "lines": 140,
       "max_complexity": 12,
@@ -3751,6 +3769,24 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register; the GOV-006 code_half note is data, merged via a helper so main did not gain a branch"
+    },
+    "scripts/check_clean_source_tree.py": {
+      "lines": 32,
+      "max_complexity": 3,
+      "max_function_args": 0,
+      "max_function_lines": 11,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Fail-closed clean-source packaging admission; exact implementation shape at introduction."
+    },
+    "scripts/trusted_system_tools.py": {
+      "lines": 45,
+      "max_complexity": 4,
+      "max_function_args": 1,
+      "max_function_lines": 13,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for root-owned executable resolution and isolated Git process environments."
     },
     "scripts/verify_audit_closure_local.py": {
       "lines": 48,
