@@ -147,9 +147,7 @@ def _gitless_record(root: Path) -> dict[str, object]:
 
 
 def _write_gitless_manifest(root: Path, records: object) -> None:
-    (root / "SOURCE_MANIFEST.json").write_text(
-        json.dumps({"files": records}), encoding="utf-8"
-    )
+    (root / "SOURCE_MANIFEST.json").write_text(json.dumps({"files": records}), encoding="utf-8")
 
 
 def test_gitless_snapshot_rejects_content_and_mode_drift(tmp_path: Path) -> None:
@@ -174,9 +172,7 @@ def test_gitless_snapshot_rejects_malformed_manifest(tmp_path: Path, invalid: st
     ("key", "bad"),
     [("sha256", "0" * 64), ("bytes", -1), ("mode", "0000")],
 )
-def test_gitless_snapshot_rejects_false_records(
-    tmp_path: Path, key: str, bad: object
-) -> None:
+def test_gitless_snapshot_rejects_false_records(tmp_path: Path, key: str, bad: object) -> None:
     record = _gitless_record(tmp_path)
     record[key] = bad
     _write_gitless_manifest(tmp_path, [record])
@@ -203,9 +199,7 @@ def test_gitless_snapshot_rejects_duplicate_and_missing_files(tmp_path: Path) ->
     "marker_kind",
     ["missing", "symlink", "garbage", "missing_target", "invalid_utf8", "multiline", "not_dir"],
 )
-def test_git_directory_marker_rejects_invalid_redirects(
-    tmp_path: Path, marker_kind: str
-) -> None:
+def test_git_directory_marker_rejects_invalid_redirects(tmp_path: Path, marker_kind: str) -> None:
     root = tmp_path / "root"
     root.mkdir()
     marker = root / ".git"
@@ -260,15 +254,13 @@ def test_tree_record_parser_refuses_malformed_input(raw: bytes) -> None:
 
 
 def test_tree_record_parser_preserves_exec_and_symlink_modes() -> None:
-    assert git_tree._record(b"100644 blob abc\tsource.py") == (
-        Path("source.py"), "0644", "abc"
-    )
+    assert git_tree._record(b"100644 blob abc\tsource.py") == (Path("source.py"), "0644", "abc")
     assert git_tree._record(b"100755 blob abc\texecutable.sh") == (
-        Path("executable.sh"), "0755", "abc"
+        Path("executable.sh"),
+        "0755",
+        "abc",
     )
-    assert git_tree._record(b"120000 blob abc\tlink") == (
-        Path("link"), "120000", "abc"
-    )
+    assert git_tree._record(b"120000 blob abc\tlink") == (Path("link"), "120000", "abc")
 
 
 def test_tree_listing_refuses_duplicates_and_excluded_only_entries() -> None:

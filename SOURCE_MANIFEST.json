@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2112,
-  "root_sha256": "3fc29333d2d5acd33950379a217ee08a4cce52d825a56a2bd13e0d24535606f6",
+  "root_sha256": "8dedf784f0c76249b121ee85302f83e3a576ef00471452e3c4520c9da6708fce",
   "files": [
     {
       "path": ".dockerignore",
@@ -5257,8 +5257,8 @@
     },
     {
       "path": "apps/api/tests/test_release_claim_git_tree_hardening.py",
-      "bytes": 12475,
-      "sha256": "e3f5718043f148cdd77f2e3323803bf659d9de1e95925a05717fb48f3869f27b",
+      "bytes": 12438,
+      "sha256": "bf718c7312e67e7bc7af8f7cfabbce2b55787090b5b8a485df38ae7fdcd59e65",
       "mode": "0644"
     },
     {
