@@ -227,7 +227,7 @@ class SourceProvenance:
     def as_dict(self) -> dict[str, Any]:
         return {
             "schema_version": self.schema_version,
-            "source_digest": self.source_digest,
+            **{"source_digest": self.source_digest, "digest_scope": DIGEST_SCOPE},
             "generator": self.generator,
             "generated_at": self.generated_at,
         }

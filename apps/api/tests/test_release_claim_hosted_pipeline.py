@@ -1,0 +1,419 @@
+from __future__ import annotations
+
+import hashlib
+import json
+import subprocess
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+import yaml
+from korpus.application.github_assurance_receipts import new_receipt
+from korpus.application.provenance import compute_source_digest
+from korpus.application.release_claim_hosted import CLAIM_EXECUTORS, new_attestation
+from korpus.application.release_claim_tree import tracked_tree_digest
+
+from scripts import build_release_claim_evidence as producer
+from scripts import import_release_claim_evidence as importer
+from scripts import publish_web_regression as web
+
+ROOT = Path(__file__).resolve().parents[3]
+
+
+def _commit_all(root: Path, message: str) -> None:
+    subprocess.run(["git", "-C", str(root), "add", "."], check=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(root),
+            "-c",
+            "user.name=KORPUS test",
+            "-c",
+            "user.email=test@example.invalid",
+            "commit",
+            "-qm",
+            message,
+        ],
+        check=True,
+    )
+
+
+def test_tracked_tree_digest_ignores_archive_attributes(tmp_path: Path) -> None:
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / ".gitattributes").write_text(
+        "hidden.py export-ignore\nabout.txt export-subst\n", encoding="utf-8"
+    )
+    (tmp_path / "hidden.py").write_text("secret = 1\n", encoding="utf-8")
+    (tmp_path / "about.txt").write_text("commit=$Format:%H$\n", encoding="utf-8")
+    _commit_all(tmp_path, "initial")
+    initial = tracked_tree_digest(tmp_path)
+
+    (tmp_path / "hidden.py").write_text("secret = 'changed'\n", encoding="utf-8")
+    _commit_all(tmp_path, "change export-ignored source")
+    changed = tracked_tree_digest(tmp_path)
+    assert changed is not None and changed != initial
+
+    report = tmp_path / "reports/evidence.json"
+    report.parent.mkdir()
+    report.write_text("{}\n", encoding="utf-8")
+    _commit_all(tmp_path, "excluded evidence only")
+    assert tracked_tree_digest(tmp_path) == changed
+
+
+def test_tracked_tree_digest_ignores_path_git_shims(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    subprocess.run(["git", "init", "-q", str(repository)], check=True)
+    (repository / "source.py").write_text("answer = 42\n", encoding="utf-8")
+    _commit_all(repository, "source")
+    expected = tracked_tree_digest(repository)
+    shim = tmp_path / "git"
+    marker = tmp_path / "path-git-executed"
+    shim.write_text(f"#!/bin/sh\ntouch '{marker}'\nexit 0\n", encoding="utf-8")
+    shim.chmod(0o755)
+    monkeypatch.setenv("PATH", str(tmp_path))
+    assert tracked_tree_digest(repository) == expected
+    assert not marker.exists()
+
+
+def _tap(*, tests: int = 2, passed: int = 2, failed: int = 0, skipped: int = 0) -> bytes:
+    return (
+        "TAP version 13\n"
+        f"1..{tests}\n"
+        f"# tests {tests}\n"
+        f"# pass {passed}\n"
+        f"# fail {failed}\n"
+        f"# skipped {skipped}\n"
+    ).encode()
+
+
+def test_web_publisher_writes_exact_fresh_test_bytes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    test_output = _tap()
+    outputs = {"lint": b"lint\n", "test": test_output, "build": b"build\n"}
+    monkeypatch.setattr(web, "_run", lambda name: (0, outputs[name]))
+    monkeypatch.setattr(web, "release_tag", lambda _root: "v-test")
+    monkeypatch.setattr(
+        web,
+        "stamp",
+        lambda _root, generator: {
+            "schema_version": 1,
+            "source_digest": "a" * 64,
+            "digest_scope": "evidence_paths",
+            "generator": generator,
+            "generated_at": "2026-10-19T00:00:00+00:00",
+        },
+    )
+    report, tap = tmp_path / "web.json", tmp_path / "web.tap"
+
+    assert web.main(["--out", str(report), "--tap-out", str(tap)]) == 0
+
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    assert tap.read_bytes() == test_output
+    assert payload["test_output_sha256"] == hashlib.sha256(test_output).hexdigest()
+    assert payload["steps"]["test"] == {
+        "exit_code": 0,
+        "status": "PASS",
+        "tests": 2,
+        "pass": 2,
+        "fail": 0,
+        "skipped": 0,
+    }
+    canonical = tmp_path / "reports/release/v-test"
+    canonical.mkdir(parents=True)
+    (canonical / "WEB_REGRESSION_REPORT.json").write_bytes(report.read_bytes())
+    (canonical / "WEB_REGRESSION_REPORT.tap").write_bytes(tap.read_bytes())
+    monkeypatch.setattr(producer, "_tracked", lambda _root, _paths: None)
+    execution = producer._web_execution(tmp_path, "v-test", "a" * 64, report, tap)
+    assert execution["result"] == {"tests": 2, "pass": 2, "fail": 0, "skipped": 0}
+
+
+def test_tap_parser_refuses_duplicate_or_inconsistent_summaries(tmp_path: Path) -> None:
+    duplicate = tmp_path / "duplicate.tap"
+    duplicate.write_bytes(_tap() + b"# tests 2\n")
+    with pytest.raises(ValueError, match="summaries"):
+        producer._tap(duplicate)
+
+    inconsistent = tmp_path / "inconsistent.tap"
+    inconsistent.write_bytes(_tap(tests=3, passed=2))
+    with pytest.raises(ValueError, match="arithmetically invalid"):
+        producer._tap(inconsistent)
+
+
+def test_mutation_comparison_ignores_only_runtime_noise() -> None:
+    base = {
+        "schema_version": 3,
+        "status": "PASS",
+        "release": "v0.9.7",
+        "shard_index": None,
+        "shard_count": 6,
+        "mutants": 1,
+        "valid_mutants": 1,
+        "killed": 1,
+        "survived": [],
+        "invalid": [],
+        "errors": [],
+        "mutation_score": 1.0,
+        "mutation_score_over_catalogue": 1.0,
+        "provenance": {
+            "schema_version": 1,
+            "source_digest": "a" * 64,
+            "digest_scope": "evidence_paths",
+            "generator": "scripts/run_mutation_tests.py",
+            "generated_at": "first",
+        },
+        "results": [
+            {
+                "id": "M1",
+                "file": "source.py",
+                "status": "KILLED",
+                "returncode": 1,
+                "target_occurrences": 1,
+                "tests": ["test_source.py::test_guard"],
+                "sandbox_mode": "full_copy",
+                "output_tail": "nondeterministic first run",
+            }
+        ],
+    }
+    replay = json.loads(json.dumps(base))
+    replay["provenance"]["generated_at"] = "second"
+    replay["results"][0]["output_tail"] = "nondeterministic second run"
+    assert producer._mutation_projection(base) == producer._mutation_projection(replay)
+
+    replay["results"][0]["target_occurrences"] = 0
+    assert producer._mutation_projection(base) != producer._mutation_projection(replay)
+
+
+def test_main_push_lane_reuses_heavy_jobs_and_attests_exact_payload() -> None:
+    workflow = yaml.safe_load(
+        (ROOT / ".github/workflows/assurance.yml").read_text(encoding="utf-8")
+    )
+    job = workflow["jobs"]["release-claims"]
+    condition = job["if"]
+    assert "github.event_name == 'push'" in condition
+    assert "github.ref == 'refs/heads/main'" in condition
+    assert "github.event_name == 'workflow_dispatch'" in condition
+    assert "refs/heads/integration/canonical-convergence-" in condition
+    assert "pull_request" not in condition
+    assert set(job["needs"]) == {"research-assurance", "sqlite-coverage"}
+    assert job["permissions"] == {
+        "contents": "read",
+        "id-token": "write",
+        "attestations": "write",
+    }
+    actions = {step.get("uses") for step in job["steps"]}
+    assert "actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1" in actions
+    assert "actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8" in actions
+    runs = "\n".join(str(step.get("run", "")) for step in job["steps"])
+    assert "build_release_claim_evidence.py" in runs
+    assert "publish_web_regression.py" in runs
+    assert "npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund" in runs
+    assert "run_mutation" not in runs
+    assert "make api-test" not in runs
+    assert "RELEASE_CLAIM_ATTESTATION.sigstore.json" in str(job)
+    assert "release-claim-evidence" in str(job)
+
+    research = workflow["jobs"]["research-assurance"]
+    assert "var/production/inference_security-gate.json" in str(research)
+    assert "var/production/inference_security.pytest.xml" in str(research)
+
+    assert producer.allowed_source_ref("refs/heads/main")
+    assert producer.allowed_source_ref("refs/heads/integration/canonical-convergence-20261019-v2")
+    assert not producer.allowed_source_ref("refs/heads/integration/arbitrary")
+
+
+def test_importer_transport_uses_the_pinned_gh_binary(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    observed: list[list[str]] = []
+
+    def run(command: list[str], **_kwargs: object) -> SimpleNamespace:
+        observed.append(command)
+        return SimpleNamespace(returncode=0, stdout='{"ok":true}', stderr="")
+
+    monkeypatch.setattr(importer, "verifier_executable", lambda _root: ("/usr/bin/gh", None))
+    monkeypatch.setattr(importer.subprocess, "run", run)
+    assert importer._gh_json("repos/neuron7x/KORPUS") == {"ok": True}
+    assert observed == [["/usr/bin/gh", "api", "repos/neuron7x/KORPUS"]]
+
+
+def test_importer_rejects_a_bundle_when_the_pinned_verifier_refuses(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(importer, "verify_sigstore_bundle", lambda *_args: False)
+    with pytest.raises(ValueError, match="Sigstore verification failed"):
+        importer._verify_sigstore(
+            tmp_path,
+            tmp_path / "attestation.json",
+            tmp_path / "bundle.json",
+            "a" * 40,
+            "refs/heads/main",
+        )
+
+
+def test_importer_binds_bundle_admission_to_exact_local_artifacts(tmp_path: Path) -> None:
+    release = "v1.2.3"
+    paths = {
+        f"reports/release/{release}/FULL_BACKEND_REPORT.json": b"{}\n",
+        "reports/regression/FULL_REGRESSION_CURRENT.json": b'{"shards":1}\n',
+        "reports/regression/shards/shard-0.json": b"{}\n",
+        "reports/regression/shards/shard-0.junit.xml": b'<testsuite tests="1"/>\n',
+        f"reports/release/{release}/WEB_REGRESSION_REPORT.json": b"{}\n",
+        f"reports/release/{release}/WEB_REGRESSION_REPORT.tap": _tap(tests=1, passed=1),
+        "reports/MUTATION_FULL_CATALOGUE_CURRENT.json": b"{}\n",
+        "reports/MUTATION_REPORT.json": b"{}\n",
+        f"reports/release/{release}/INFERENCE_SECURITY_GATE.json": b"{}\n",
+        f"reports/release/{release}/INFERENCE_SECURITY_GATE.junit.xml": b'<testsuite tests="1"/>\n',
+        "apps/api/src/korpus/release.json": json.dumps(
+            {
+                "schema": "korpus.release-identity.v1",
+                "product": "KORPUS",
+                "version": "1.2.3",
+                "tag": release,
+                "artifact_stem": "KORPUS",
+                "distribution_artifact": "KORPUS.zip",
+            }
+        ).encode(),
+    }
+    for relative, payload in paths.items():
+        target = tmp_path / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(payload)
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "add", "."], check=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(tmp_path),
+            "-c",
+            "user.name=KORPUS test",
+            "-c",
+            "user.email=test@example.invalid",
+            "commit",
+            "-qm",
+            "fixture",
+        ],
+        check=True,
+    )
+    commit = subprocess.run(
+        ["git", "-C", str(tmp_path), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    source = compute_source_digest(tmp_path)
+    executions = {
+        "CLM-REGRESSION": {
+            "executor": "backend",
+            "exit_code": 0,
+            "result": {"tests": 1},
+            "artifacts": [
+                f"reports/release/{release}/FULL_BACKEND_REPORT.json",
+                "reports/regression/FULL_REGRESSION_CURRENT.json",
+                "reports/regression/shards/shard-0.json",
+                "reports/regression/shards/shard-0.junit.xml",
+            ],
+        },
+        "CLM-WEB": {
+            "executor": "web",
+            "exit_code": 0,
+            "result": {"tests": 1},
+            "artifacts": [
+                f"reports/release/{release}/WEB_REGRESSION_REPORT.json",
+                f"reports/release/{release}/WEB_REGRESSION_REPORT.tap",
+            ],
+        },
+        "CLM-MUTATION": {
+            "executor": "mutation",
+            "exit_code": 0,
+            "result": {"mutants": 1},
+            "artifacts": [
+                "reports/MUTATION_FULL_CATALOGUE_CURRENT.json",
+                "reports/MUTATION_REPORT.json",
+            ],
+        },
+        "CLM-INFERENCE-SECURITY": {
+            "executor": "inference",
+            "exit_code": 0,
+            "result": {"tests": 1},
+            "artifacts": [
+                f"reports/release/{release}/INFERENCE_SECURITY_GATE.json",
+                f"reports/release/{release}/INFERENCE_SECURITY_GATE.junit.xml",
+            ],
+        },
+    }
+    assert set(executions) == set(CLAIM_EXECUTORS)
+    attestation = new_attestation(
+        tmp_path, release, source, executions, source_ref="refs/heads/main"
+    )
+    attestation_bytes = (json.dumps(attestation, indent=2) + "\n").encode()
+    identity = {
+        "repository": "neuron7x/KORPUS",
+        "repository_id": 1_332_311_807,
+        "repository_owner_id": 206_596_321,
+        "workflow_id": 332_983_284,
+        "workflow_path": ".github/workflows/assurance.yml",
+        "run_id": 42,
+        "run_attempt": 1,
+        "commit_sha": commit,
+    }
+    subjects = {
+        "release-claims": {
+            "release": release,
+            "source_tree_sha256": source,
+            "digest_scope": "evidence_paths",
+            "tracked_tree_sha256": attestation["tracked_tree_sha256"],
+            "source_ref": "refs/heads/main",
+            "claims": sorted(CLAIM_EXECUTORS),
+        }
+    }
+    receipt = new_receipt(
+        identity,
+        kind="release-claims",
+        job="release-claims",
+        source_tree_sha256=attestation["tracked_tree_sha256"],
+        artifacts={importer.ATTESTATION_NAME: attestation_bytes},
+        subjects=subjects,
+    )
+    files = {
+        importer.ATTESTATION_NAME: attestation_bytes,
+        importer.RECEIPT_NAME: (json.dumps(receipt, indent=2) + "\n").encode(),
+        importer.BUNDLE_NAME: b"signed-bundle",
+    }
+    verified: list[tuple[str, str]] = []
+
+    def verifier(
+        _root: Path, attestation_path: Path, bundle_path: Path, observed: str, ref: str
+    ) -> None:
+        assert attestation_path.read_bytes() == attestation_bytes
+        assert bundle_path.read_bytes() == b"signed-bundle"
+        verified.append((observed, ref))
+
+    admission = importer.validate_downloaded(
+        tmp_path,
+        identity,
+        17,
+        files,
+        source_ref="refs/heads/main",
+        verifier=verifier,
+    )
+    assert verified == [(commit, "refs/heads/main")]
+    assert admission["artifacts"]["release-claim-evidence"]["artifact_id"] == 17
+
+    (tmp_path / f"reports/release/{release}/WEB_REGRESSION_REPORT.json").write_text(
+        '{"tampered":true}\n', encoding="utf-8"
+    )
+    with pytest.raises(ValueError, match="CLM-WEB"):
+        importer.validate_downloaded(
+            tmp_path,
+            identity,
+            17,
+            files,
+            source_ref="refs/heads/main",
+            verifier=verifier,
+        )
