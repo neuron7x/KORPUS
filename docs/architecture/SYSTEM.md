@@ -124,7 +124,7 @@ between body chunks, at EOF and before returning decoded evidence. Plan-building
 reduces the initial transport timeout. This is a result-admission deadline, **not a
 preemptive wall-clock bound**: a blocked synchronous transport call is not interrupted.
 
-Verification and remaining limits: `ISSUE_46_BOUNDARY_FIXES.md`.
+Verification provenance: GitHub issue #62, adapted from PR #47 / issue #46.
 
 ## Extraction threshold
 
