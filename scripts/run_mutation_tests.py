@@ -3258,13 +3258,13 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        "M244_UNPROTECTED_CI_RUNTIME_TRUST_ACCEPTED",
-        "apps/api/src/korpus/application/assurance_trust.py",
-        '    if (\n        injected\n        and os.getenv("GITLAB_CI") == "true"\n        and os.getenv("CI_COMMIT_REF_PROTECTED") != "true"\n    ):',
+        "M244_UNPROTECTED_GITHUB_RUNTIME_TRUST_ACCEPTED",
+        "apps/api/src/korpus/application/assurance_trust_policy.py",
+        "    if injected and _hosted_ci() and github_release_context_mismatches(os.environ, RELEASE_TAG):",
         "    if False:",
         (
             "apps/api/tests/test_assurance_trust.py::"
-            "test_runtime_trust_root_is_refused_on_unprotected_ci",
+            "test_runtime_trust_root_is_refused_on_unprotected_github_ref",
         ),
     ),
     Mutant(
@@ -5840,24 +5840,24 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M660_AN_INTEGRATION_SOURCE_IS_JUDGED_AS_A_MIRROR",
+        "M660_AN_ARCHIVE_IS_JUDGED_AS_A_MIRROR",
         "scripts/verify_canonical_state.py",
         '    if entry.get("role") == MIRROR:\n        found.append(',
-        '    if entry.get("role") in (MIRROR, INTEGRATION_SOURCE):\n        found.append(',
+        '    if entry.get("role") in (MIRROR, ARCHIVE):\n        found.append(',
         (
             "apps/api/tests/test_canonical_state.py::"
-            "test_origin_is_an_integration_source_governed_by_the_branch_registry",
+            "test_origin_is_the_only_freshness_judged_canonical_mirror",
         ),
         full_copy=True,
     ),
     Mutant(
-        "M661_AN_INTEGRATION_SOURCE_NEED_NOT_NAME_ITS_GOVERNOR",
+        "M661_AN_ARCHIVE_NEED_NOT_DISABLE_PUSH",
         "scripts/verify_canonical_state.py",
-        '        valid = entry.get("governed_by") == INTEGRATION_REGISTRY',
-        "        valid = True",
+        '        entry.get("push_disabled") is True',
+        "        True",
         (
             "apps/api/tests/test_canonical_state.py::"
-            "test_an_integration_source_without_branch_governance_is_refused",
+            "test_an_archive_without_disabled_push_is_refused",
         ),
         full_copy=True,
     ),
@@ -5870,24 +5870,24 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M663_MEASUREMENT_FETCHES_INTEGRATION_BRANCHES_AS_A_MIRROR",
+        "M663_MEASUREMENT_FETCHES_ARCHIVE_BRANCHES_AS_A_MIRROR",
         "scripts/verify_canonical_state.py",
         '        if item.get("role") != MIRROR:\n            continue',
         "        if False:\n            continue",
         (
             "apps/api/tests/test_canonical_state.py::"
-            "test_measurement_never_treats_an_integration_source_as_a_mirror",
+            "test_measurement_never_treats_an_archive_as_a_mirror",
         ),
         full_copy=True,
     ),
     Mutant(
-        "M664_MEASUREMENT_DATES_INTEGRATION_BRANCHES_AS_A_MIRROR",
+        "M664_MEASUREMENT_DATES_ARCHIVE_BRANCHES_AS_A_MIRROR",
         "scripts/verify_canonical_state.py",
         '        if item.get("role") == MIRROR and isinstance(item.get("remote"), str)',
         '        if isinstance(item.get("remote"), str)',
         (
             "apps/api/tests/test_canonical_state.py::"
-            "test_measurement_never_treats_an_integration_source_as_a_mirror",
+            "test_measurement_never_treats_an_archive_as_a_mirror",
         ),
         full_copy=True,
     ),
