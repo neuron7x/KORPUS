@@ -453,8 +453,8 @@ def _group_03(s: Sources) -> list[Predicate]:
     return p
 
 
-#: `uses:` у робочому потоці. Порожній перелік — теж відмова: контракт, який зеленіє на
-#: потоці без жодної дії, доводить лише те, що файл прочитано.
+#: Third-party workflow actions must use immutable 40-hex commit pins; an empty action
+#: set does not satisfy the production contract.
 _WORKFLOW_USES = re.compile(r"^\s*(?:-\s*)?uses:\s*(\S+)", re.MULTILINE)
 #: Прив'язка до 40-шістнадцяткового коміту. Рухомий тег можна пересунути під релізом
 #: після рецензії — саме тому тег тут не прив'язка.
