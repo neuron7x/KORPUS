@@ -95,7 +95,6 @@ def test_retired_gitlab_release_job_is_inert() -> None:
         assert not job.get("dependencies")
 
 
-
 def test_production_release_script_requires_runtime_release_trust() -> None:
     source = (ROOT / "scripts/package_production_release.sh").read_text(encoding="utf-8")
     assert "--trust-env KORPUS_TRUSTED_RELEASE_SIGNER_SHA256 --require-trusted" in source

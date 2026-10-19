@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2103,
-  "root_sha256": "4752b83bf5089f0ba290281b6a705e20be926e38c2275eb64d1e392bbcc47f18",
+  "root_sha256": "a3b0f3c9aed948d5f563c609e37b44761ad0dafe812379901d5ac552efef0c66",
   "files": [
     {
       "path": ".dockerignore",
@@ -4717,8 +4717,8 @@
     },
     {
       "path": "apps/api/tests/test_production_promotion_plumbing.py",
-      "bytes": 3544,
-      "sha256": "1431a2687864568d60a748e6cf5e72714280361d618d462ee497ac3a2c1c7ee4",
+      "bytes": 3543,
+      "sha256": "ba78b5db6c79d0edfa2b8c932b6b0c57e73f5ba1e06571f4275bf9b1807a9be5",
       "mode": "0644"
     },
     {
