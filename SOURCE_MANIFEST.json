@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2103,
-  "root_sha256": "5a1d4dd39977a5c192df367b357d7b752339c76405c9a5b0c6fe4b8272cccabe",
+  "root_sha256": "0cd22539513c4750a707509e67fa8427c1cc1f2bc3beb872e3f84c3afd36962b",
   "files": [
     {
       "path": ".dockerignore",
@@ -50,7 +50,7 @@
     {
       "path": ".github/workflows/ci.yml",
       "bytes": 6296,
-      "sha256": "f967f161aae6598665743c14013154f3f962f4c87a517f909a25451e4dae2fcd",
+      "sha256": "68965d64abd64b86fdb359b3c7fbbeab3a5d4c3d09ff77de850bc69f5e1092e0",
       "mode": "0644"
     },
     {
@@ -62,43 +62,43 @@
     {
       "path": ".github/workflows/external-assurance-ingest.yml",
       "bytes": 2943,
-      "sha256": "6b7ca9139dda8f0a15e722da5a4a708237199598f63acf13c377adb39efcd97d",
+      "sha256": "2ac899305f539259238972ea04c9daedc13c02be3a566c830949a44d8c4b41a3",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/gcp-drill.yml",
       "bytes": 1965,
-      "sha256": "841d7bc701526d4ada64aeeb0dde1c56b13e737e54630b7c89ccdab2be2512ba",
+      "sha256": "a5014758f51a1037f60200f678483d285fbfb6348cac2b40677308a410acda7d",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/gcp-foundation.yml",
       "bytes": 3695,
-      "sha256": "74b02d6aa60455071c71f1424a75db7d4f99bc6da3d84ee4a4f9ed25c92c8a8d",
+      "sha256": "a593b795641c9eecd8e2b8f247681659d264e4f3014615e04615a718c07bd56f",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/gcp-production.yml",
       "bytes": 26468,
-      "sha256": "58054271f8a34cb66c6464c2224a708614fa00da36484c30115598e284769e4a",
+      "sha256": "b16bb54c9998db57fa084419847cee35548da6f77630ceea9864fb0291f551e2",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/pec-production-evidence.yml",
       "bytes": 4383,
-      "sha256": "9f10f665b7b73223ad0085a2c7a6ea2ee13dd6077b804f04ea255151029e0c1a",
+      "sha256": "16600d1a969166b167385a53f5a25a7d5a13fd03642733e2444cc090a48b177a",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/production-load-evidence.yml",
       "bytes": 3093,
-      "sha256": "0148643c714d1a02ee9742b71e23ff1c77796ca63d7b20088120045f5bd6c713",
+      "sha256": "dbbd3cd564583718d19ceb39a59a4ffcc8cca91a375dd00146ad830b3b17bca9",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/release.yml",
       "bytes": 3088,
-      "sha256": "d9f33342ab06a8d91f61b50005ece102a650c23c61e3cbe8f8335f7c61169d62",
+      "sha256": "4ca68c975994b47eda3b7fa097a883d1a984dda1927839b3ce28590b32a40dc1",
       "mode": "0644"
     },
     {
@@ -7820,7 +7820,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "069ad59840501b916297608f4f56950d0ffa95c16b55d29d28cd0024af879027",
+      "sha256": "0e9b4adfc5645280652e54176cc2730be6aab43df3b1c47b703404c31a49cc5b",
       "mode": "0644"
     },
     {
