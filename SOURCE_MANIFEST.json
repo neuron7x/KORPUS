@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2118,
-  "root_sha256": "b175d6709c357dcc9b05609dcc42d688fd2f2dba1fc7b4f63d854de29c9a5b17",
+  "file_count": 2120,
+  "root_sha256": "15d16628b86e192889ee8a89424b7a6481953dcce8d312a97a6382e27369a81d",
   "files": [
     {
       "path": ".dockerignore",
@@ -4797,6 +4797,12 @@
       "path": "apps/api/tests/test_owner_restricted_pdf.py",
       "bytes": 3505,
       "sha256": "f100afc06f87feff0417687e000e6ead9920e1e00013545482f44620da60c3f2",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_package_archive_snapshot.py",
+      "bytes": 3409,
+      "sha256": "ff744732b1f0f0de91f7e424b741b624fda1d2d73c4d4af316b894af3e4cf63f",
       "mode": "0644"
     },
     {
@@ -10548,6 +10554,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/artifact_snapshot.py",
+      "bytes": 1002,
+      "sha256": "0792730808385adc204548227c77b8c5c884a861a86306f4cac000c60f7ca3cb",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/assemble_assurance.py",
       "bytes": 7419,
       "sha256": "4d44f4b6f23b500dc4fb919c1474edfd92ecd71ce98a4ba70fe6467d88efe6aa",
@@ -12607,8 +12619,8 @@
     },
     {
       "path": "scripts/verify_package.py",
-      "bytes": 3699,
-      "sha256": "c0344a7e30a7634ed14fb74468516acc573b12f2b450d8a373be8d9a0fef4d97",
+      "bytes": 3640,
+      "sha256": "a6ea80962f51e3ce04a50f776b80671a8cbbaf2be054c3794c26d923bd19c5fe",
       "mode": "0755"
     },
     {
