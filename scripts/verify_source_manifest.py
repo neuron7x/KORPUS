@@ -14,7 +14,6 @@ from manifest_lib.integrity import manifest_failures, mode_string, record_failur
 from manifest_paths import source_included, source_paths
 from release_identity import release_tag
 
-
 _MANIFEST_FIELDS = frozenset(
     {"schema", "kind", "manifest_self_excluded", "file_count", "root_sha256", "files"}
 )
@@ -75,7 +74,7 @@ def verify(root: Path) -> dict[str, object]:
     if not path.is_file():
         return {"valid": False, "failures": ["SOURCE_MANIFEST.json is missing"]}
     try:
-        manifest = strict_signed_json_object(path.read_bytes(), "source manifest")
+        manifest = dict(strict_signed_json_object(path.read_bytes(), "source manifest"))
     except (OSError, ValueError) as error:
         return {"valid": False, "failures": [str(error)]}
     if manifest.get("schema") != "korpus.source-manifest.v2" or manifest.get("kind") != "source":
