@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2114,
-  "root_sha256": "b003afd28f28f8cff4468639564f8febfcca4c670bca2a13e349c5c3c2a590c3",
+  "root_sha256": "43139232988617691dff8909f8b8c3eebaa1622eb85c429f2fa23c6f783526e7",
   "files": [
     {
       "path": ".dockerignore",
@@ -1825,8 +1825,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/release_claim_manifest_tree.py",
-      "bytes": 2638,
-      "sha256": "b97bfe5ff40911fe9693d7a624a9ee472c619bcec5cf06161f52fb73dfa98229",
+      "bytes": 2785,
+      "sha256": "2edddace45e47f955110965f0d72388ba442ea209929ce4841b73ce281c80985",
       "mode": "0644"
     },
     {
@@ -5263,8 +5263,8 @@
     },
     {
       "path": "apps/api/tests/test_release_claim_git_tree_hardening.py",
-      "bytes": 14963,
-      "sha256": "870b70929a7434d9a9be15e5be414489da11426fbb16998ad1e0ad8e3b564f6e",
+      "bytes": 16649,
+      "sha256": "2ff6776c9c11de588f4691a77b52e39a231327f07f7a19de78ff969608ca1d58",
       "mode": "0644"
     },
     {

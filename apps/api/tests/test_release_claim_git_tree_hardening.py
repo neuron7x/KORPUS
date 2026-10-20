@@ -401,3 +401,51 @@ def test_manifest_record_requires_canonical_relative_path(tmp_path: Path) -> Non
     record = _gitless_record(tmp_path)
     record["path"] = "./source.py"
     assert manifest_tree.manifest_record((tmp_path, record)) is None
+
+
+@pytest.mark.parametrize(
+    ("target", "poison"),
+    [
+        ('"kind": "source"', '"kind": "distribution", "kind": "source"'),
+        ('"mode": "0644"', '"mode": "0755", "mode": "0644"'),
+        ('"path": "source.py"', '"path": "../outside", "path": "source.py"'),
+    ],
+)
+def test_gitless_manifest_rejects_duplicate_json_keys(
+    tmp_path: Path, target: str, poison: str
+) -> None:
+    record = _gitless_record(tmp_path)
+    _write_gitless_manifest(tmp_path, [record])
+    assert tracked_tree_digest(tmp_path) is not None
+    file = tmp_path / "SOURCE_MANIFEST.json"
+    original = file.read_text(encoding="utf-8")
+    assert target in original
+    file.write_text(original.replace(target, poison, 1), encoding="utf-8")
+    assert tracked_tree_digest(tmp_path) is None
+
+
+@pytest.mark.parametrize(
+    ("field", "invalid"),
+    [
+        ("file_count", 1.0),
+        ("file_count", True),
+        ("manifest_self_excluded", 1),
+    ],
+)
+def test_gitless_manifest_refuses_header_type_coercion(
+    tmp_path: Path, field: str, invalid: object
+) -> None:
+    record = _gitless_record(tmp_path)
+    _write_gitless_manifest(tmp_path, [record])
+    payload_path = tmp_path / "SOURCE_MANIFEST.json"
+    payload = json.loads(payload_path.read_text(encoding="utf-8"))
+    payload[field] = invalid
+    payload_path.write_text(json.dumps(payload), encoding="utf-8")
+    assert tracked_tree_digest(tmp_path) is None
+
+
+def test_gitless_manifest_refuses_noninteger_record_byte_count(tmp_path: Path) -> None:
+    record = _gitless_record(tmp_path)
+    record["bytes"] = float(record["bytes"])
+    _write_gitless_manifest(tmp_path, [record])
+    assert tracked_tree_digest(tmp_path) is None
