@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2123,
-  "root_sha256": "951dfb1282101527bfdf89c2d221e4bbe78e4f81d3f9b7fafa27f835df575ffd",
+  "root_sha256": "b0dd30867850af66d83aef4f7fef21dee596d667bd01d0002573e144654cd30a",
   "files": [
     {
       "path": ".dockerignore",
@@ -8258,7 +8258,7 @@
     {
       "path": "config/operations/module-budget.json",
       "bytes": 755056,
-      "sha256": "0ad632e3260664f3b6574c259cf5879222b0dbabcad3e53db7f1b05fb0811e54",
+      "sha256": "dfd81b81142741b26e71930d17b45c5517539efae8dd2938a6645fc76006416f",
       "mode": "0644"
     },
     {
