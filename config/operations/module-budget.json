@@ -588,6 +588,15 @@
       "proof_lines": 0,
       "reason": "PR#44: під `mypy --strict` псевдонім не є експортом, доки не оголошений — `from korpus import __version__` давав attr-defined при наявному атрибуті. `__all__` це ТВЕРДЖЕННЯ, не придушення."
     },
+    "apps/api/src/korpus/answer_composition.py": {
+      "lines": 92,
+      "max_complexity": 9,
+      "max_function_args": 7,
+      "max_function_lines": 44,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #62 (adapted from #47/#46): transport-independent answer composition from one calibration read."
+    },
     "apps/api/src/korpus/api/__init__.py": {
       "lines": 0,
       "max_complexity": 0,
@@ -612,15 +621,6 @@
       "max_function_lines": 8,
       "max_nesting": 1,
       "proof_lines": 0
-    },
-    "apps/api/src/korpus/answer_composition.py": {
-      "lines": 92,
-      "max_complexity": 9,
-      "max_function_args": 7,
-      "max_function_lines": 44,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "Issue #62 (adapted from #47/#46): transport-independent answer composition from one calibration read."
     },
     "apps/api/src/korpus/api/dependencies.py": {
       "lines": 187,
@@ -657,14 +657,6 @@
       "max_nesting": 3,
       "proof_lines": 0
     },
-    "apps/api/src/korpus/api/routes.py": {
-      "lines": 29,
-      "max_complexity": 0,
-      "max_function_args": 0,
-      "max_function_lines": 0,
-      "max_nesting": 0,
-      "proof_lines": 0
-    },
     "apps/api/src/korpus/api/routes_admin.py": {
       "lines": 177,
       "max_complexity": 7,
@@ -699,19 +691,19 @@
       "max_nesting": 2,
       "proof_lines": 0
     },
-    "apps/api/src/korpus/api/routes_billing.py": {
-      "lines": 165,
-      "max_complexity": 5,
-      "max_function_args": 5,
-      "max_function_lines": 37,
-      "max_nesting": 1,
-      "proof_lines": 0
-    },
     "apps/api/src/korpus/api/routes_billing_callbacks.py": {
       "lines": 72,
       "max_complexity": 8,
       "max_function_args": 3,
       "max_function_lines": 26,
+      "max_nesting": 1,
+      "proof_lines": 0
+    },
+    "apps/api/src/korpus/api/routes_billing.py": {
+      "lines": 165,
+      "max_complexity": 5,
+      "max_function_args": 5,
+      "max_function_lines": 37,
       "max_nesting": 1,
       "proof_lines": 0
     },
@@ -786,6 +778,14 @@
       "max_nesting": 1,
       "proof_lines": 0
     },
+    "apps/api/src/korpus/api/routes.py": {
+      "lines": 29,
+      "max_complexity": 0,
+      "max_function_args": 0,
+      "max_function_lines": 0,
+      "max_nesting": 0,
+      "proof_lines": 0
+    },
     "apps/api/src/korpus/api/source_disclosure.py": {
       "lines": 70,
       "max_complexity": 1,
@@ -855,15 +855,6 @@
       "proof_lines": 0,
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
     },
-    "apps/api/src/korpus/application/answer_audit.py": {
-      "lines": 132,
-      "max_complexity": 8,
-      "max_function_args": 16,
-      "max_function_lines": 114,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "Журнал відповіді несе `corpus_snapshot` поруч із `corpus_release`. Перше каже, який реліз НАЗВАЛИ; друге — який стан ЧИТАЛИ, з монотонною епохою, тож два записи про один реліз розрізняються, якщо між ними корпус рухався. Шістнадцятий параметр — сам токен: передати його через глобальний стан означало б зробити журнал залежним від порядку викликів."
-    },
     "apps/api/src/korpus/application/answer_audit_envelope.py": {
       "lines": 22,
       "max_complexity": 1,
@@ -872,6 +863,15 @@
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "v0.6.0: pure source-bound query audit envelope"
+    },
+    "apps/api/src/korpus/application/answer_audit.py": {
+      "lines": 132,
+      "max_complexity": 8,
+      "max_function_args": 16,
+      "max_function_lines": 114,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Журнал відповіді несе `corpus_snapshot` поруч із `corpus_release`. Перше каже, який реліз НАЗВАЛИ; друге — який стан ЧИТАЛИ, з монотонною епохою, тож два записи про один реліз розрізняються, якщо між ними корпус рухався. Шістнадцятий параметр — сам токен: передати його через глобальний стан означало б зробити журнал залежним від порядку викликів."
     },
     "apps/api/src/korpus/application/answer_query.py": {
       "lines": 845,
@@ -900,15 +900,6 @@
       "proof_lines": 0,
       "reason": "Портовано знімок корпусу з GitHub-лінії 01.09.2026: одна відповідь читає ОДИН стан корпусу, а не кілька незалежних читань під датою `as_of`. `corpus_state_epoch` дає монотонний маркер, `evidence_sealing` прив'язує схвалення до конкретного набору доказів, і журнал відповіді несе `corpus_snapshot` поруч із `corpus_release`."
     },
-    "apps/api/src/korpus/application/assurance.py": {
-      "lines": 129,
-      "max_complexity": 12,
-      "max_function_args": 6,
-      "max_function_lines": 84,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "04.09.2026, ЧЕТВЕРТИЙ контрприклад незалежного верифікатора: `lost_events`, `lost_documents` і `lost_documents_total` вимірювались, друкувались і НЕ СУДИЛИСЬ ніким. Відновлення, що втратило п'ять тисяч документів, і бездоганне відновлення отримували ОДИН вирок — `recovery_numeric_problem` питає лише форму числа (скінченне, невід'ємне), а `classify_recovery` цих полів не читав узагалі. Форма без порога є описом, а не умовою. Тепер судиться ВЕЛИЧИНА: надлишок понад вікно, яке навчання створює навмисно, і будь-яка втрата подій журналу. RPO лишається несудженим СВІДОМО — оголошеної цілі не існує, і вигаданий поріг тут підробив би повноваження (§2.9); несуджене назване, не прибране."
-    },
     "apps/api/src/korpus/application/assurance_calculus.py": {
       "lines": 330,
       "max_complexity": 14,
@@ -935,6 +926,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "ACT-010: external protected trust-root injection without source mutation; measured ratchet ceiling | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
+    },
+    "apps/api/src/korpus/application/assurance.py": {
+      "lines": 129,
+      "max_complexity": 12,
+      "max_function_args": 6,
+      "max_function_lines": 84,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "04.09.2026, ЧЕТВЕРТИЙ контрприклад незалежного верифікатора: `lost_events`, `lost_documents` і `lost_documents_total` вимірювались, друкувались і НЕ СУДИЛИСЬ ніким. Відновлення, що втратило п'ять тисяч документів, і бездоганне відновлення отримували ОДИН вирок — `recovery_numeric_problem` питає лише форму числа (скінченне, невід'ємне), а `classify_recovery` цих полів не читав узагалі. Форма без порога є описом, а не умовою. Тепер судиться ВЕЛИЧИНА: надлишок понад вікно, яке навчання створює навмисно, і будь-яка втрата подій журналу. RPO лишається несудженим СВІДОМО — оголошеної цілі не існує, і вигаданий поріг тут підробив би повноваження (§2.9); несуджене назване, не прибране."
     },
     "apps/api/src/korpus/application/attested_evidence.py": {
       "lines": 66,
@@ -1280,14 +1280,6 @@
       "proof_lines": 0,
       "reason": "Допуск оголошеного предмета звіряється за ПОЧАТКОМ слова, не дослівним підрядком. Дослівний вимагав від людини називного відмінка, бо роль береться із заголовка документа як є: виміряно 01.09.2026 на живому продукті 1 із 14 у родовому проти 14/14 у називному. Прилад не новий — пошук уже шукає основу як ПРЕФІКС (`candidate_terms` віддає `днювальн*` до FTS), тож `tokenize` чіпати не довелось: гіпотеза «доведеться замикати список суфіксів» перевірена й ВІДКИНУТА до реалізації. Дослід на три плечі: 0.0714 → 0.8571 при незмінних чотирьох батареях. +36 рядків — здебільшого запис про те, чому 4 символи взято з власної константи системи (`_ukrainian_stem` не лишає основу коротшою) і чому короткі слова ігноруються."
     },
-    "apps/api/src/korpus/application/deployment.py": {
-      "lines": 204,
-      "max_complexity": 21,
-      "max_function_args": 2,
-      "max_function_lines": 53,
-      "max_nesting": 6,
-      "proof_lines": 0
-    },
     "apps/api/src/korpus/application/deployment_contract.py": {
       "lines": 38,
       "max_complexity": 0,
@@ -1296,6 +1288,14 @@
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/deployment.py": {
+      "lines": 204,
+      "max_complexity": 21,
+      "max_function_args": 2,
+      "max_function_lines": 53,
+      "max_nesting": 6,
+      "proof_lines": 0
     },
     "apps/api/src/korpus/application/determinism.py": {
       "lines": 110,
@@ -1394,15 +1394,6 @@
       "proof_lines": 0,
       "reason": "Exact rebaseline adds deployment simulation, evaluation-cue blinding and dependency-failure TEVV predicates"
     },
-    "apps/api/src/korpus/application/evidence.py": {
-      "lines": 352,
-      "max_complexity": 11,
-      "max_function_args": 3,
-      "max_function_lines": 47,
-      "max_nesting": 3,
-      "proof_lines": 0,
-      "reason": "v0.6.0: dual zero-width canonical projections close metamorphic IPI bypass; exact measured expansion | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
-    },
     "apps/api/src/korpus/application/evidence_admission.py": {
       "lines": 194,
       "max_complexity": 4,
@@ -1437,6 +1428,15 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
+    },
+    "apps/api/src/korpus/application/evidence.py": {
+      "lines": 352,
+      "max_complexity": 11,
+      "max_function_args": 3,
+      "max_function_lines": 47,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "v0.6.0: dual zero-width canonical projections close metamorphic IPI bypass; exact measured expansion | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "apps/api/src/korpus/application/exact_environment.py": {
       "lines": 30,
@@ -1473,6 +1473,24 @@
       "proof_lines": 0,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
     },
+    "apps/api/src/korpus/application/final_release_evidence.py": {
+      "lines": 48,
+      "max_complexity": 4,
+      "max_function_args": 2,
+      "max_function_lines": 10,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #54: strict parsing of signed bytes and explicit blocked-candidate policy; initial measured ceiling."
+    },
+    "apps/api/src/korpus/application/final_release_provenance.py": {
+      "lines": 188,
+      "max_complexity": 13,
+      "max_function_args": 6,
+      "max_function_lines": 46,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54: source, material, GitHub invocation, and bounded timestamp provenance binding; initial measured ceiling."
+    },
     "apps/api/src/korpus/application/fingerprints.py": {
       "lines": 28,
       "max_complexity": 6,
@@ -1488,6 +1506,15 @@
       "max_function_lines": 18,
       "max_nesting": 2,
       "proof_lines": 0
+    },
+    "apps/api/src/korpus/application/github_release_context.py": {
+      "lines": 40,
+      "max_complexity": 4,
+      "max_function_args": 2,
+      "max_function_lines": 18,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54: one exact fail-closed GitHub release context shared by trust and release gates; initial measured ceiling."
     },
     "apps/api/src/korpus/application/gold_annotation.py": {
       "lines": 184,
@@ -1507,15 +1534,6 @@
       "proof_lines": 0,
       "reason": "v0.8.0 bounded inference fixpoint controller"
     },
-    "apps/api/src/korpus/application/ingestion.py": {
-      "lines": 513,
-      "max_complexity": 19,
-      "max_function_args": 14,
-      "max_function_lines": 98,
-      "max_nesting": 3,
-      "proof_lines": 0,
-      "reason": "Raised 508 -> 513 lines / 93 -> 98 function lines on 2026-08-28 to carry the comment recording why both `require_corpus_governance` arms are unreachable (the constructor refuses that configuration). Prose about excluded branches, not new behaviour."
-    },
     "apps/api/src/korpus/application/ingestion_jobs.py": {
       "lines": 226,
       "max_complexity": 8,
@@ -1524,6 +1542,15 @@
       "max_nesting": 4,
       "proof_lines": 0,
       "reason": "Raised 220 -> 226 lines / 66 -> 72 function lines on 2026-08-28 to carry the comment recording why the two malformed-job guards in run_once are unreachable (validate_target runs inside claim; proved in test_a_corrupted_job_row_is_refused_at_claim_not_at_execution). Prose about an excluded branch, not new behaviour."
+    },
+    "apps/api/src/korpus/application/ingestion.py": {
+      "lines": 513,
+      "max_complexity": 19,
+      "max_function_args": 14,
+      "max_function_lines": 98,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Raised 508 -> 513 lines / 93 -> 98 function lines on 2026-08-28 to carry the comment recording why both `require_corpus_governance` arms are unreachable (the constructor refuses that configuration). Prose about excluded branches, not new behaviour."
     },
     "apps/api/src/korpus/application/junit_contracts.py": {
       "lines": 35,
@@ -1692,15 +1719,6 @@
       "proof_lines": 0,
       "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
     },
-    "apps/api/src/korpus/application/pec_audit.py": {
-      "lines": 15,
-      "max_complexity": 3,
-      "max_function_args": 2,
-      "max_function_lines": 10,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
-    },
     "apps/api/src/korpus/application/pec_audit_trace.py": {
       "lines": 55,
       "max_complexity": 12,
@@ -1709,6 +1727,15 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
+    },
+    "apps/api/src/korpus/application/pec_audit.py": {
+      "lines": 15,
+      "max_complexity": 3,
+      "max_function_args": 2,
+      "max_function_lines": 10,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
     "apps/api/src/korpus/application/pec_cache.py": {
       "lines": 60,
@@ -1790,14 +1817,6 @@
       "proof_lines": 0,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
     },
-    "apps/api/src/korpus/application/pec_metamorphic.py": {
-      "lines": 6,
-      "max_complexity": 0,
-      "max_function_args": 0,
-      "max_function_lines": 0,
-      "max_nesting": 0,
-      "proof_lines": 0
-    },
     "apps/api/src/korpus/application/pec_metamorphic_eval.py": {
       "lines": 75,
       "max_complexity": 13,
@@ -1815,6 +1834,14 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
+    },
+    "apps/api/src/korpus/application/pec_metamorphic.py": {
+      "lines": 6,
+      "max_complexity": 0,
+      "max_function_args": 0,
+      "max_function_lines": 0,
+      "max_nesting": 0,
+      "proof_lines": 0
     },
     "apps/api/src/korpus/application/pec_metrics_context.py": {
       "lines": 23,
@@ -1834,14 +1861,6 @@
       "proof_lines": 0,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
-    "apps/api/src/korpus/application/pec_promotion.py": {
-      "lines": 35,
-      "max_complexity": 5,
-      "max_function_args": 2,
-      "max_function_lines": 11,
-      "max_nesting": 1,
-      "proof_lines": 0
-    },
     "apps/api/src/korpus/application/pec_promotion_bindings.py": {
       "lines": 97,
       "max_complexity": 4,
@@ -1850,6 +1869,14 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/pec_promotion.py": {
+      "lines": 35,
+      "max_complexity": 5,
+      "max_function_args": 2,
+      "max_function_lines": 11,
+      "max_nesting": 1,
+      "proof_lines": 0
     },
     "apps/api/src/korpus/application/pec_replay.py": {
       "lines": 120,
@@ -1869,14 +1896,6 @@
       "proof_lines": 0,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
     },
-    "apps/api/src/korpus/application/pec_retrieval.py": {
-      "lines": 137,
-      "max_complexity": 8,
-      "max_function_args": 12,
-      "max_function_lines": 36,
-      "max_nesting": 3,
-      "proof_lines": 0
-    },
     "apps/api/src/korpus/application/pec_retrieval_types.py": {
       "lines": 35,
       "max_complexity": 1,
@@ -1885,6 +1904,14 @@
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "acyclic PEC retrieval value and capability contracts"
+    },
+    "apps/api/src/korpus/application/pec_retrieval.py": {
+      "lines": 137,
+      "max_complexity": 8,
+      "max_function_args": 12,
+      "max_function_lines": 36,
+      "max_nesting": 3,
+      "proof_lines": 0
     },
     "apps/api/src/korpus/application/pec_revision_binding.py": {
       "lines": 51,
@@ -1910,15 +1937,6 @@
       "max_function_lines": 19,
       "max_nesting": 0,
       "proof_lines": 0
-    },
-    "apps/api/src/korpus/application/pec_training.py": {
-      "lines": 25,
-      "max_complexity": 0,
-      "max_function_args": 0,
-      "max_function_lines": 0,
-      "max_nesting": 0,
-      "proof_lines": 0,
-      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
     "apps/api/src/korpus/application/pec_training_lineage.py": {
       "lines": 30,
@@ -1947,14 +1965,14 @@
       "proof_lines": 0,
       "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
     },
-    "apps/api/src/korpus/application/plasticity.py": {
-      "lines": 341,
-      "max_complexity": 12,
-      "max_function_args": 7,
-      "max_function_lines": 128,
-      "max_nesting": 5,
+    "apps/api/src/korpus/application/pec_training.py": {
+      "lines": 25,
+      "max_complexity": 0,
+      "max_function_args": 0,
+      "max_function_lines": 0,
+      "max_nesting": 0,
       "proof_lines": 0,
-      "reason": "bounded deterministic adaptation state machine; safety thresholds can only tighten automatically"
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
     "apps/api/src/korpus/application/plasticity_config.py": {
       "lines": 20,
@@ -1974,13 +1992,14 @@
       "proof_lines": 0,
       "reason": "finite-state executable reference model for the exact bounded-plasticity policy"
     },
-    "apps/api/src/korpus/application/policy.py": {
-      "lines": 95,
-      "max_complexity": 5,
-      "max_function_args": 3,
-      "max_function_lines": 10,
-      "max_nesting": 1,
-      "proof_lines": 0
+    "apps/api/src/korpus/application/plasticity.py": {
+      "lines": 341,
+      "max_complexity": 12,
+      "max_function_args": 7,
+      "max_function_lines": 128,
+      "max_nesting": 5,
+      "proof_lines": 0,
+      "reason": "bounded deterministic adaptation state machine; safety thresholds can only tighten automatically"
     },
     "apps/api/src/korpus/application/policy_evidence.py": {
       "lines": 32,
@@ -1990,6 +2009,14 @@
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "v0.6.0: deterministic policy decision identity for audit correlation"
+    },
+    "apps/api/src/korpus/application/policy.py": {
+      "lines": 95,
+      "max_complexity": 5,
+      "max_function_args": 3,
+      "max_function_lines": 10,
+      "max_nesting": 1,
+      "proof_lines": 0
     },
     "apps/api/src/korpus/application/ports.py": {
       "lines": 269,
@@ -2018,15 +2045,6 @@
       "proof_lines": 0,
       "reason": "exact locale-aware printed-decimal parser"
     },
-    "apps/api/src/korpus/application/production_assurance.py": {
-      "lines": 62,
-      "max_complexity": 5,
-      "max_function_args": 7,
-      "max_function_lines": 20,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
-    },
     "apps/api/src/korpus/application/production_assurance_external.py": {
       "lines": 40,
       "max_complexity": 2,
@@ -2035,6 +2053,15 @@
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "03.09.2026: клас незалежності TEVV порівнюється з ОГОЛОШЕНИМ у профілі, а не з вкарбованим у код рядком EXTERNAL_INDEPENDENT — саме вкарбованість давала двом несумісним політикам жити поруч; +коментар про це."
+    },
+    "apps/api/src/korpus/application/production_assurance.py": {
+      "lines": 62,
+      "max_complexity": 5,
+      "max_function_args": 7,
+      "max_function_lines": 20,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "apps/api/src/korpus/application/production_hard_predicates.py": {
       "lines": 377,
@@ -2063,14 +2090,6 @@
       "proof_lines": 0,
       "reason": "v6.8.2 assurance-boundary hardening: initial ceiling for recomputed production-report verification"
     },
-    "apps/api/src/korpus/application/provenance.py": {
-      "lines": 300,
-      "max_complexity": 11,
-      "max_function_args": 2,
-      "max_function_lines": 41,
-      "max_nesting": 3,
-      "proof_lines": 0
-    },
     "apps/api/src/korpus/application/provenance_surface.py": {
       "lines": 40,
       "max_complexity": 0,
@@ -2079,6 +2098,14 @@
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/provenance.py": {
+      "lines": 300,
+      "max_complexity": 11,
+      "max_function_args": 2,
+      "max_function_lines": 41,
+      "max_nesting": 3,
+      "proof_lines": 0
     },
     "apps/api/src/korpus/application/quantity_math.py": {
       "lines": 40,
@@ -2116,15 +2143,6 @@
       "proof_lines": 0,
       "reason": "readiness criterion and finite-target validation kernel"
     },
-    "apps/api/src/korpus/application/recovery.py": {
-      "lines": 208,
-      "max_complexity": 12,
-      "max_function_args": 2,
-      "max_function_lines": 64,
-      "max_nesting": 3,
-      "proof_lines": 0,
-      "reason": "04.09.2026, П'ЯТИЙ контрприклад незалежного верифікатора: суддя порівнював ПОТУЖНІСТЬ із розміром вікна, а не ТОТОЖНІСТЬ із тим, що навчання створило. Виміряно запуском: `lost_documents_total=3000` при вікні 5000 і нулі фікстурної втрати давало `FIXTURE_SCALE` без жодної скарги; обслуговуваний корпус має 256 документів, тобто міг зникнути ЦІЛКОМ, а доказ відновлення лишився б «виміряним». Дозвіл виданий не на кількість рядків, а на КОНКРЕТНУ множину. Знаменник замінено на ІДЕНТИФІКОВАНУ втрату (`lost_documents`), яку виробник уже рахує — нового виміру не знадобилось, знадобився інший знаменник. Формулювання скарги теж виправлено: доти воно казало «понад те, що навчання створило навмисно», що при нулі фікстур було неправдою про світ."
-    },
     "apps/api/src/korpus/application/recovery_contracts.py": {
       "lines": 43,
       "max_complexity": 7,
@@ -2133,6 +2151,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "recovery evidence numeric admissibility kernel"
+    },
+    "apps/api/src/korpus/application/recovery.py": {
+      "lines": 208,
+      "max_complexity": 12,
+      "max_function_args": 2,
+      "max_function_lines": 64,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "04.09.2026, П'ЯТИЙ контрприклад незалежного верифікатора: суддя порівнював ПОТУЖНІСТЬ із розміром вікна, а не ТОТОЖНІСТЬ із тим, що навчання створило. Виміряно запуском: `lost_documents_total=3000` при вікні 5000 і нулі фікстурної втрати давало `FIXTURE_SCALE` без жодної скарги; обслуговуваний корпус має 256 документів, тобто міг зникнути ЦІЛКОМ, а доказ відновлення лишився б «виміряним». Дозвіл виданий не на кількість рядків, а на КОНКРЕТНУ множину. Знаменник замінено на ІДЕНТИФІКОВАНУ втрату (`lost_documents`), яку виробник уже рахує — нового виміру не знадобилось, знадобився інший знаменник. Формулювання скарги теж виправлено: доти воно казало «понад те, що навчання створило навмисно», що при нулі фікстур було неправдою про світ."
     },
     "apps/api/src/korpus/application/regression_receipt_identity.py": {
       "lines": 48,
@@ -2248,15 +2275,6 @@
       "max_nesting": 4,
       "proof_lines": 0
     },
-    "apps/api/src/korpus/application/retrieval.py": {
-      "lines": 358,
-      "max_complexity": 13,
-      "max_function_args": 13,
-      "max_function_lines": 76,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "Клас оголошеного предмета став ГРАДУЙОВАНИМ: довжина збігу замість членства. «Командир» є підрядком «Безпосередні командири», тож бінарний клас ставив узагальнення поруч із конкретним і віддавав перемогу релевантності. Порядок уже обчислювався в `subjects_in_question` і губився при перетворенні на множину. Виміряно: `subject` 0.8352 → 0.9451. Заразом прибрано ДРУГЕ означення того самого поняття — `retrieval_hybrid` мав власну копію логіки поруч із `declared_subject`."
-    },
     "apps/api/src/korpus/application/retrieval_execution.py": {
       "lines": 148,
       "max_complexity": 6,
@@ -2293,14 +2311,14 @@
       "proof_lines": 0,
       "reason": "Спостерігач набору кандидатів. Гістограма `korpus_retrieval_candidates` була ОГОЛОШЕНА і не наповнювалась жодним рядком дерева, тож три конкурентні пояснення хвостової затримки — промах кеша, черга за GIL, розростання набору — давали ОДНАКОВІ спостереження. Порожній ряд у Prometheus не відрізняється від системи без навантаження. Форма списана з `pec_metrics_context`, а не вигадана заново: другий механізм для того самого завдання розійшовся б із першим."
     },
-    "apps/api/src/korpus/application/risk.py": {
-      "lines": 100,
-      "max_complexity": 4,
-      "max_function_args": 4,
-      "max_function_lines": 48,
-      "max_nesting": 1,
+    "apps/api/src/korpus/application/retrieval.py": {
+      "lines": 358,
+      "max_complexity": 13,
+      "max_function_args": 13,
+      "max_function_lines": 76,
+      "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
+      "reason": "Клас оголошеного предмета став ГРАДУЙОВАНИМ: довжина збігу замість членства. «Командир» є підрядком «Безпосередні командири», тож бінарний клас ставив узагальнення поруч із конкретним і віддавав перемогу релевантності. Порядок уже обчислювався в `subjects_in_question` і губився при перетворенні на множину. Виміряно: `subject` 0.8352 → 0.9451. Заразом прибрано ДРУГЕ означення того самого поняття — `retrieval_hybrid` мав власну копію логіки поруч із `declared_subject`."
     },
     "apps/api/src/korpus/application/risk_rules.py": {
       "lines": 163,
@@ -2309,6 +2327,15 @@
       "max_function_lines": 13,
       "max_nesting": 2,
       "proof_lines": 0
+    },
+    "apps/api/src/korpus/application/risk.py": {
+      "lines": 100,
+      "max_complexity": 4,
+      "max_function_args": 4,
+      "max_function_lines": 48,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
     },
     "apps/api/src/korpus/application/runtime_contracts.py": {
       "lines": 36,
@@ -2397,14 +2424,6 @@
       "max_nesting": 0,
       "proof_lines": 0
     },
-    "apps/api/src/korpus/application/tevv.py": {
-      "lines": 134,
-      "max_complexity": 6,
-      "max_function_args": 5,
-      "max_function_lines": 33,
-      "max_nesting": 1,
-      "proof_lines": 0
-    },
     "apps/api/src/korpus/application/tevv_assessor.py": {
       "lines": 16,
       "max_complexity": 3,
@@ -2450,6 +2469,14 @@
       "proof_lines": 0,
       "reason": "Exact ceiling after strict required-cohort policy validation | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
+    "apps/api/src/korpus/application/tevv.py": {
+      "lines": 134,
+      "max_complexity": 6,
+      "max_function_args": 5,
+      "max_function_lines": 33,
+      "max_nesting": 1,
+      "proof_lines": 0
+    },
     "apps/api/src/korpus/application/trace.py": {
       "lines": 32,
       "max_complexity": 3,
@@ -2467,15 +2494,6 @@
       "proof_lines": 0,
       "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
     },
-    "apps/api/src/korpus/application/tuning.py": {
-      "lines": 111,
-      "max_complexity": 8,
-      "max_function_args": 5,
-      "max_function_lines": 48,
-      "max_nesting": 3,
-      "proof_lines": 0,
-      "reason": "Lower ratchet after held-out validation decomposition | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
-    },
     "apps/api/src/korpus/application/tuning_validation.py": {
       "lines": 77,
       "max_complexity": 8,
@@ -2484,6 +2502,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Exact initial ceiling for non-compensatory held-out admission"
+    },
+    "apps/api/src/korpus/application/tuning.py": {
+      "lines": 111,
+      "max_complexity": 8,
+      "max_function_args": 5,
+      "max_function_lines": 48,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Lower ratchet after held-out validation decomposition | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "apps/api/src/korpus/billing_composition.py": {
       "lines": 81,
@@ -2519,15 +2546,6 @@
       "proof_lines": 0,
       "reason": "the composition root: the only module that names both an application port and an infrastructure adapter, so neither layer has to"
     },
-    "apps/api/src/korpus/config.py": {
-      "lines": 492,
-      "max_complexity": 4,
-      "max_function_args": 2,
-      "max_function_lines": 20,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "ratchet ceiling lowered after production-plane decomposition | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
-    },
     "apps/api/src/korpus/config_namespace.py": {
       "lines": 46,
       "max_complexity": 0,
@@ -2545,6 +2563,15 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Semantic cross-field policy extracted while preserving contractual failure order"
+    },
+    "apps/api/src/korpus/config.py": {
+      "lines": 492,
+      "max_complexity": 4,
+      "max_function_args": 2,
+      "max_function_lines": 20,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "ratchet ceiling lowered after production-plane decomposition | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "apps/api/src/korpus/controlled_requirement_core.py": {
       "lines": 52,
@@ -2614,6 +2641,14 @@
       "max_function_lines": 13,
       "max_nesting": 1,
       "proof_lines": 0
+    },
+    "apps/api/src/korpus/infrastructure_requirements.py": {
+      "lines": null,
+      "max_complexity": 12,
+      "max_function_args": 5,
+      "max_function_lines": 94,
+      "max_nesting": 1,
+      "reason": "Реєстр вимог росте на один запис із кожною новою властивістю системи; складність і форма функцій залишаються обмеженими окремо."
     },
     "apps/api/src/korpus/infrastructure/__init__.py": {
       "lines": 10,
@@ -2739,20 +2774,20 @@
       "max_nesting": 3,
       "proof_lines": 0
     },
-    "apps/api/src/korpus/infrastructure/corpus_snapshot.py": {
-      "lines": 295,
-      "max_complexity": 6,
-      "max_function_args": 5,
-      "max_function_lines": 110,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "Портовано знімок корпусу з GitHub-лінії 01.09.2026: одна відповідь читає ОДИН стан корпусу, а не кілька незалежних читань під датою `as_of`. `corpus_state_epoch` дає монотонний маркер, `evidence_sealing` прив'язує схвалення до конкретного набору доказів, і журнал відповіді несе `corpus_snapshot` поруч із `corpus_release`."
-    },
     "apps/api/src/korpus/infrastructure/corpus_snapshot_guards.py": {
       "lines": 249,
       "max_complexity": 14,
       "max_function_args": 3,
       "max_function_lines": 90,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Портовано знімок корпусу з GitHub-лінії 01.09.2026: одна відповідь читає ОДИН стан корпусу, а не кілька незалежних читань під датою `as_of`. `corpus_state_epoch` дає монотонний маркер, `evidence_sealing` прив'язує схвалення до конкретного набору доказів, і журнал відповіді несе `corpus_snapshot` поруч із `corpus_release`."
+    },
+    "apps/api/src/korpus/infrastructure/corpus_snapshot.py": {
+      "lines": 295,
+      "max_complexity": 6,
+      "max_function_args": 5,
+      "max_function_lines": 110,
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Портовано знімок корпусу з GitHub-лінії 01.09.2026: одна відповідь читає ОДИН стан корпусу, а не кілька незалежних читань під датою `as_of`. `corpus_state_epoch` дає монотонний маркер, `evidence_sealing` прив'язує схвалення до конкретного набору доказів, і журнал відповіді несе `corpus_snapshot` поруч із `corpus_release`."
@@ -2765,15 +2800,6 @@
       "max_nesting": 2,
       "proof_lines": 0
     },
-    "apps/api/src/korpus/infrastructure/embedding_backfill.py": {
-      "lines": 128,
-      "max_complexity": 11,
-      "max_function_args": 6,
-      "max_function_lines": 80,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "Reduced exact ceiling after moving the orchestration contract into the application layer"
-    },
     "apps/api/src/korpus/infrastructure/embedding_backfill_lock.py": {
       "lines": 38,
       "max_complexity": 3,
@@ -2782,6 +2808,15 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Initial exact ceiling for a session-scoped PostgreSQL singleton reconciliation lease"
+    },
+    "apps/api/src/korpus/infrastructure/embedding_backfill.py": {
+      "lines": 128,
+      "max_complexity": 11,
+      "max_function_args": 6,
+      "max_function_lines": 80,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Reduced exact ceiling after moving the orchestration contract into the application layer"
     },
     "apps/api/src/korpus/infrastructure/embedding_envelope.py": {
       "lines": 18,
@@ -2837,21 +2872,21 @@
       "proof_lines": 0,
       "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
     },
-    "apps/api/src/korpus/infrastructure/gcs.py": {
-      "lines": 324,
-      "max_complexity": 13,
-      "max_function_args": 7,
-      "max_function_lines": 31,
-      "max_nesting": 4,
-      "proof_lines": 0,
-      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
-    },
     "apps/api/src/korpus/infrastructure/gcs_audit_anchor.py": {
       "lines": 100,
       "max_complexity": 11,
       "max_function_args": 5,
       "max_function_lines": 23,
       "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/gcs.py": {
+      "lines": 324,
+      "max_complexity": 13,
+      "max_function_args": 7,
+      "max_function_lines": 31,
+      "max_nesting": 4,
       "proof_lines": 0,
       "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
     },
@@ -2962,14 +2997,6 @@
       "proof_lines": 0,
       "reason": "ACT-LRN-003 exact ceiling after objective competency edge insertion"
     },
-    "apps/api/src/korpus/infrastructure/liqpay.py": {
-      "lines": 208,
-      "max_complexity": 10,
-      "max_function_args": 6,
-      "max_function_lines": 44,
-      "max_nesting": 1,
-      "proof_lines": 0
-    },
     "apps/api/src/korpus/infrastructure/liqpay_math.py": {
       "lines": 56,
       "max_complexity": 9,
@@ -2978,6 +3005,14 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "LiqPay bounded exact callback arithmetic"
+    },
+    "apps/api/src/korpus/infrastructure/liqpay.py": {
+      "lines": 208,
+      "max_complexity": 10,
+      "max_function_args": 6,
+      "max_function_lines": 44,
+      "max_nesting": 1,
+      "proof_lines": 0
     },
     "apps/api/src/korpus/infrastructure/model_contract.py": {
       "lines": 109,
@@ -3084,15 +3119,6 @@
       "proof_lines": 0,
       "reason": "PEC v1 initial ratchet: low-cardinality observability primitive measured at first integration; ceiling may only move down"
     },
-    "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1254,
-      "max_complexity": 13,
-      "max_function_args": 17,
-      "max_function_lines": 88,
-      "max_nesting": 4,
-      "proof_lines": 0,
-      "reason": "04.09.2026, ВИМІРЯНА причина повільного добору на PostgreSQL: під RLS повнотекстова умова НЕ МОЖЕ стати умовою індексу — `ts_match_vq`, `to_tsvector` і `ts_rank_cd` мають `proleakproof = f`, а безпекові умови стоять рівнем нижче, тож «securely promotable» ця умова не буває ніколи. Індекс `ix_evidence_spans_search` існував і був недосяжний, а `to_tsvector('simple', s.text)` рахувався на КОЖНОМУ з 31 464 прольотів. Міграція 0023 дає генерований стовпець; запит читає його. Виміряно на пілоті: 3.48 с → 0.97 с у базі, 3.9 с → 1.6 с у відповіді, ті самі span_id на чотирьох питаннях."
-    },
     "apps/api/src/korpus/infrastructure/repository_search.py": {
       "lines": 111,
       "max_complexity": 8,
@@ -3101,6 +3127,15 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/repository.py": {
+      "lines": 1254,
+      "max_complexity": 13,
+      "max_function_args": 17,
+      "max_function_lines": 88,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "04.09.2026, ВИМІРЯНА причина повільного добору на PostgreSQL: під RLS повнотекстова умова НЕ МОЖЕ стати умовою індексу — `ts_match_vq`, `to_tsvector` і `ts_rank_cd` мають `proleakproof = f`, а безпекові умови стоять рівнем нижче, тож «securely promotable» ця умова не буває ніколи. Індекс `ix_evidence_spans_search` існував і був недосяжний, а `to_tsvector('simple', s.text)` рахувався на КОЖНОМУ з 31 464 прольотів. Міграція 0023 дає генерований стовпець; запит читає його. Виміряно на пілоті: 3.48 с → 0.97 с у базі, 3.9 с → 1.6 с у відповіді, ті самі span_id на чотирьох питаннях."
     },
     "apps/api/src/korpus/infrastructure/resource_contracts.py": {
       "lines": 43,
@@ -3164,15 +3199,6 @@
       "max_nesting": 1,
       "proof_lines": 0
     },
-    "apps/api/src/korpus/infrastructure/runtime.py": {
-      "lines": 89,
-      "max_complexity": 3,
-      "max_function_args": 2,
-      "max_function_lines": 34,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "ratchet ceiling lowered after production-plane decomposition"
-    },
     "apps/api/src/korpus/infrastructure/runtime_cloud.py": {
       "lines": 46,
       "max_complexity": 5,
@@ -3182,6 +3208,15 @@
       "proof_lines": 0,
       "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
     },
+    "apps/api/src/korpus/infrastructure/runtime.py": {
+      "lines": 89,
+      "max_complexity": 3,
+      "max_function_args": 2,
+      "max_function_lines": 34,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "ratchet ceiling lowered after production-plane decomposition"
+    },
     "apps/api/src/korpus/infrastructure/schema.py": {
       "lines": 256,
       "max_complexity": 0,
@@ -3190,15 +3225,6 @@
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "Дві додані таблиці/колонки порту: `corpus_state_epoch` (монотонний лічильник стану корпусу) і `evidence_digest` у версіях (дайджест ЗАПЕЧАТАНОГО набору доказів). `source_hash` каже, з чого версію зробили; `evidence_digest` — що саме затвердили."
-    },
-    "apps/api/src/korpus/infrastructure/semantic.py": {
-      "lines": 195,
-      "max_complexity": 8,
-      "max_function_args": 6,
-      "max_function_lines": 64,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "Exact rebaseline adds only the deterministic index lifecycle seam; DDL generation remains extracted"
     },
     "apps/api/src/korpus/infrastructure/semantic_coverage.py": {
       "lines": 76,
@@ -3227,6 +3253,15 @@
       "proof_lines": 0,
       "reason": "Портовано знімок корпусу з GitHub-лінії 01.09.2026: одна відповідь читає ОДИН стан корпусу, а не кілька незалежних читань під датою `as_of`. `corpus_state_epoch` дає монотонний маркер, `evidence_sealing` прив'язує схвалення до конкретного набору доказів, і журнал відповіді несе `corpus_snapshot` поруч із `corpus_release`."
     },
+    "apps/api/src/korpus/infrastructure/semantic.py": {
+      "lines": 195,
+      "max_complexity": 8,
+      "max_function_args": 6,
+      "max_function_lines": 64,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Exact rebaseline adds only the deterministic index lifecycle seam; DDL generation remains extracted"
+    },
     "apps/api/src/korpus/infrastructure/tenancy_repository.py": {
       "lines": 242,
       "max_complexity": 4,
@@ -3251,14 +3286,6 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
-    },
-    "apps/api/src/korpus/infrastructure_requirements.py": {
-      "lines": null,
-      "max_complexity": 12,
-      "max_function_args": 5,
-      "max_function_lines": 94,
-      "max_nesting": 1,
-      "reason": "Реєстр вимог росте на один запис із кожною новою властивістю системи; складність і форма функцій залишаються обмеженими окремо."
     },
     "apps/api/src/korpus/kubernetes_requirements.py": {
       "lines": null,
@@ -3436,15 +3463,6 @@
       "proof_lines": 0,
       "reason": "v0.6.0: isolated fail-closed browser CSRF decision"
     },
-    "apps/api/src/korpus/security/browser_oidc.py": {
-      "lines": 196,
-      "max_complexity": 10,
-      "max_function_args": 9,
-      "max_function_lines": 30,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "v0.8.2 browser URL construction extracted; provider query cannot shadow flow parameters"
-    },
     "apps/api/src/korpus/security/browser_oidc_urls.py": {
       "lines": 42,
       "max_complexity": 3,
@@ -3453,6 +3471,15 @@
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "v0.8.2 bounded OIDC URL canonicalization and authorization-query construction"
+    },
+    "apps/api/src/korpus/security/browser_oidc.py": {
+      "lines": 196,
+      "max_complexity": 10,
+      "max_function_args": 9,
+      "max_function_lines": 30,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "v0.8.2 browser URL construction extracted; provider query cannot shadow flow parameters"
     },
     "apps/api/src/korpus/security/corpus_governance.py": {
       "lines": 89,
@@ -3497,15 +3524,6 @@
       "proof_lines": 0,
       "reason": "v0.8.2 transport-shape boundary for external/local model endpoints"
     },
-    "apps/api/src/korpus/security/oidc.py": {
-      "lines": 120,
-      "max_complexity": 10,
-      "max_function_args": 12,
-      "max_function_lines": 38,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "v0.8.2 OIDC header/audience/azp/nonce predicates extracted into independently testable claims module"
-    },
     "apps/api/src/korpus/security/oidc_claims.py": {
       "lines": 61,
       "max_complexity": 12,
@@ -3523,6 +3541,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "v0.9.5 math hardening: finite/discrete OIDC freshness and cache timing contracts; initial bounded kernel ceiling"
+    },
+    "apps/api/src/korpus/security/oidc.py": {
+      "lines": 120,
+      "max_complexity": 10,
+      "max_function_args": 12,
+      "max_function_lines": 38,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "v0.8.2 OIDC header/audience/azp/nonce predicates extracted into independently testable claims module"
     },
     "apps/api/src/korpus/security/reviewers.py": {
       "lines": 77,
@@ -3610,6 +3637,15 @@
       "proof_lines": 0,
       "reason": "ACT-007: aggregate pinned CI scanner execution markers; initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
+    "scripts/artifact_snapshot.py": {
+      "lines": 28,
+      "max_complexity": 4,
+      "max_function_args": 2,
+      "max_function_lines": 15,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #22: initial exact measured ceilings for descriptor-pinned package archive snapshot verification; no existing module ceiling raised."
+    },
     "scripts/assemble_assurance.py": {
       "lines": 162,
       "max_complexity": 12,
@@ -3646,6 +3682,24 @@
       "proof_lines": 38,
       "reason": "Ставить audit_key_id, що відповідає дійсності. Fail-closed на неперевірюваному журналі; незмінність 7223 хешів звіряється до/після, не проголошується."
     },
+    "scripts/audit_closure_evidence.py": {
+      "lines": 48,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 23,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "2026-10-03: exact initial ceiling for the evidence-class selector extracted from the inherited audit registry; local scanner output can satisfy local closure without overwriting or impersonating pinned-CI evidence."
+    },
+    "scripts/audit_closure_validation.py": {
+      "lines": 72,
+      "max_complexity": 9,
+      "max_function_args": 4,
+      "max_function_lines": 30,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "2026-10-03: exact initial ceiling for the single closure predicate shared by canonical and local evidence lanes."
+    },
     "scripts/audit_corpus_admission.py": {
       "lines": 167,
       "max_complexity": 12,
@@ -3681,6 +3735,15 @@
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "Initial measured ceiling for fail-closed runtime corpus, reference-version and object-integrity admission | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
+    },
+    "scripts/audit_scanner_summary.py": {
+      "lines": 130,
+      "max_complexity": 12,
+      "max_function_args": 3,
+      "max_function_lines": 35,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "2026-10-04: exact initial ceiling for semantic validation and source-tree binding of scanner evidence; extracted so the shared closure-predicate ceiling did not balloon."
     },
     "scripts/backfill_span_embeddings_sqlite.py": {
       "lines": 123,
@@ -3743,33 +3806,6 @@
       "proof_lines": 0,
       "reason": "v0.9.7 reduced exact measured ceiling after canonicalization/decomposition | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
-    "scripts/audit_closure_evidence.py": {
-      "lines": 48,
-      "max_complexity": 8,
-      "max_function_args": 2,
-      "max_function_lines": 23,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "2026-10-03: exact initial ceiling for the evidence-class selector extracted from the inherited audit registry; local scanner output can satisfy local closure without overwriting or impersonating pinned-CI evidence."
-    },
-    "scripts/audit_closure_validation.py": {
-      "lines": 72,
-      "max_complexity": 9,
-      "max_function_args": 4,
-      "max_function_lines": 30,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "2026-10-03: exact initial ceiling for the single closure predicate shared by canonical and local evidence lanes."
-    },
-    "scripts/audit_scanner_summary.py": {
-      "lines": 130,
-      "max_complexity": 12,
-      "max_function_args": 3,
-      "max_function_lines": 35,
-      "max_nesting": 3,
-      "proof_lines": 0,
-      "reason": "2026-10-04: exact initial ceiling for semantic validation and source-tree binding of scanner evidence; extracted so the shared closure-predicate ceiling did not balloon."
-    },
     "scripts/build_audit_closure.py": {
       "lines": 871,
       "max_complexity": 17,
@@ -3778,33 +3814,6 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register; the GOV-006 code_half note is data, merged via a helper so main did not gain a branch"
-    },
-    "scripts/check_clean_source_tree.py": {
-      "lines": 33,
-      "max_complexity": 3,
-      "max_function_args": 0,
-      "max_function_lines": 11,
-      "max_nesting": 0,
-      "proof_lines": 0,
-      "reason": "Fail-closed clean-source packaging admission; exact implementation shape at introduction."
-    },
-    "scripts/trusted_system_tools.py": {
-      "lines": 45,
-      "max_complexity": 4,
-      "max_function_args": 1,
-      "max_function_lines": 13,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "Exact initial ceiling for root-owned executable resolution and isolated Git process environments."
-    },
-    "scripts/verify_audit_closure_local.py": {
-      "lines": 48,
-      "max_complexity": 1,
-      "max_function_args": 0,
-      "max_function_lines": 21,
-      "max_nesting": 0,
-      "proof_lines": 0,
-      "reason": "2026-10-03: exact initial ceiling for the non-writing local audit-closure adapter."
     },
     "scripts/build_import_manifest.py": {
       "lines": 252,
@@ -3959,6 +3968,15 @@
       "proof_lines": 0,
       "reason": "гейт, що робить виконуваним правило «стелю можна лише знижувати»",
       "worst_function": "_named_paths"
+    },
+    "scripts/check_clean_source_tree.py": {
+      "lines": 33,
+      "max_complexity": 3,
+      "max_function_args": 0,
+      "max_function_lines": 11,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Fail-closed clean-source packaging admission; exact implementation shape at introduction."
     },
     "scripts/check_corpus_path_declarations.py": {
       "lines": 258,
@@ -4146,6 +4164,15 @@
       "proof_lines": 44,
       "reason": "новий гейт: цілість аргументів у юнітах systemd; початковий точний вимір і є стелею ратчета"
     },
+    "scripts/collect_dialect_coverage.py": {
+      "lines": 197,
+      "max_complexity": 11,
+      "max_function_args": 2,
+      "max_function_lines": 59,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #56: initial bounded producer for measured native coverage and source/run-bound execution receipts."
+    },
     "scripts/compare_retrieval_configs.py": {
       "lines": 138,
       "max_complexity": 9,
@@ -4190,6 +4217,15 @@
       "proof_lines": 0,
       "reason": "freezes and signs what the corpus contained, so a citation can be traced to its release"
     },
+    "scripts/coverage_execution_contract.py": {
+      "lines": 365,
+      "max_complexity": 7,
+      "max_function_args": 7,
+      "max_function_lines": 52,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #56: initial bounded coverage source, artifact, version, configuration and run identity contract."
+    },
     "scripts/coverage_gap_plan.py": {
       "lines": 109,
       "max_complexity": 6,
@@ -4198,6 +4234,15 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.5.0: deterministic risk-weighted coverage ratchet with absolute uncovered-edge ceiling"
+    },
+    "scripts/coverage_union.py": {
+      "lines": 149,
+      "max_complexity": 7,
+      "max_function_args": 8,
+      "max_function_lines": 39,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #56: initial bounded admission and native combination of two verified dialect coverage executions."
     },
     "scripts/current_truth_admission.py": {
       "lines": 190,
@@ -4225,6 +4270,15 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
+    },
+    "scripts/current_truth_source.py": {
+      "lines": 142,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 40,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #56: source-run evidence admission and context/output helpers; exact initial measured ceiling, with existing ceilings unchanged."
     },
     "scripts/deploy_public_web.py": {
       "lines": 253,
@@ -4375,6 +4429,15 @@
       "proof_lines": 0,
       "reason": "a snapshot of a Drive folder with provenance; fetching is not ingestion"
     },
+    "scripts/final_release_context.py": {
+      "lines": 90,
+      "max_complexity": 5,
+      "max_function_args": 2,
+      "max_function_lines": 22,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54: locally recomputed release materials and exact GitHub run/ref/SHA context; initial measured ceiling."
+    },
     "scripts/freeze_release_candidate.py": {
       "lines": 265,
       "max_complexity": 12,
@@ -4437,15 +4500,6 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.9.2 staged production promotion admission; exact initial measurement is the ratchet ceiling"
-    },
-    "scripts/gcp/production_contract.py": {
-      "lines": 646,
-      "max_complexity": 14,
-      "max_function_args": 3,
-      "max_function_lines": 126,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/gcp/production_contract_canary.py": {
       "lines": 46,
@@ -4555,6 +4609,15 @@
       "proof_lines": 0,
       "reason": "explicit edge TLS policy predicate; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
+    "scripts/gcp/production_contract.py": {
+      "lines": 646,
+      "max_complexity": 14,
+      "max_function_args": 3,
+      "max_function_lines": 126,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
+    },
     "scripts/gcp/production_inputs.py": {
       "lines": 227,
       "max_complexity": 13,
@@ -4573,20 +4636,20 @@
       "proof_lines": 0,
       "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
     },
-    "scripts/gcp/slo_contract.py": {
-      "lines": 73,
-      "max_complexity": 7,
-      "max_function_args": 1,
-      "max_function_lines": 63,
-      "max_nesting": 0,
-      "proof_lines": 0,
-      "reason": "v0.8.2 production request-SLI decomposition; exact measured value becomes the ratchet ceiling"
-    },
     "scripts/gcp/slo_contract_types.py": {
       "lines": 16,
       "max_complexity": 1,
       "max_function_args": 3,
       "max_function_lines": 2,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "v0.8.2 production request-SLI decomposition; exact measured value becomes the ratchet ceiling"
+    },
+    "scripts/gcp/slo_contract.py": {
+      "lines": 73,
+      "max_complexity": 7,
+      "max_function_args": 1,
+      "max_function_lines": 63,
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "v0.8.2 production request-SLI decomposition; exact measured value becomes the ratchet ceiling"
@@ -4724,6 +4787,15 @@
       "proof_lines": 0,
       "reason": "WEB-001: the browser's constraints generated from the OpenAPI contract and policy.py"
     },
+    "scripts/github_actions_graph.py": {
+      "lines": 146,
+      "max_complexity": 8,
+      "max_function_args": 4,
+      "max_function_lines": 18,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #56: extracted job policy, explicit dependency graph and same-commit reusable workflow validation; existing validator ceilings preserved."
+    },
     "scripts/heal_corpus_from_backup.py": {
       "lines": 607,
       "max_complexity": 8,
@@ -4814,6 +4886,15 @@
       "proof_lines": 0,
       "reason": "registered 2026-08-29: shared ISO-date parser, extracted after an equivalent-input probe found three gates rejecting a valid datetime and accepting compact and week-numbered forms"
     },
+    "scripts/load_probe_lib/metrics.py": {
+      "lines": 67,
+      "max_complexity": 5,
+      "max_function_args": 5,
+      "max_function_lines": 32,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "04.09.2026, ДВА контрприклади незалежного верифікатора, обидва однієї форми — число рахується над множиною, яку хтось мовчки звузив майже до порожньої. (1) Сторож проби навантаження питав `>0`, а не «досить»: ОДНА відповідь 200 зі 101 206 давала всі тринадцять перевірок гейта надійності зеленими, бо кожне число про затримку бралося з відмов 401 на дверях; рейтинг лише по 200 теж проходить — вибірка з одного елемента дає p95, що дорівнює цьому елементу, — тож ліки на ЗНАМЕННИКУ: підлога 0.95 на частку відповіданих, і сама частка виходить у звіт. (2) `_latest_protected_write` — шосте й єдине непереведене місце — читало RPO без брокера: `documents` під RLS дає нуль внеску, `audit_events` RLS не має, тож RPO рахувався з самого журналу аудиту. Відновлення, що втратило всі документи, але відновило ланцюг, дало б «нічого не втрачено»."
+    },
     "scripts/load_probe.py": {
       "lines": 406,
       "max_complexity": 12,
@@ -4823,14 +4904,14 @@
       "proof_lines": 122,
       "reason": "Чотири рішення винесено з циклів і обробників у названі функції, щоб самоперевірка могла їх накрити: `bearer_for`, `should_back_off`, `within_deadline`, `started_seconds`/`age_from`."
     },
-    "scripts/load_probe_lib/metrics.py": {
-      "lines": 67,
-      "max_complexity": 5,
-      "max_function_args": 5,
-      "max_function_lines": 32,
-      "max_nesting": 1,
+    "scripts/make_context.py": {
+      "lines": 24,
+      "max_complexity": 2,
+      "max_function_args": 2,
+      "max_function_lines": 11,
+      "max_nesting": 0,
       "proof_lines": 0,
-      "reason": "04.09.2026, ДВА контрприклади незалежного верифікатора, обидва однієї форми — число рахується над множиною, яку хтось мовчки звузив майже до порожньої. (1) Сторож проби навантаження питав `>0`, а не «досить»: ОДНА відповідь 200 зі 101 206 давала всі тринадцять перевірок гейта надійності зеленими, бо кожне число про затримку бралося з відмов 401 на дверях; рейтинг лише по 200 теж проходить — вибірка з одного елемента дає p95, що дорівнює цьому елементу, — тож ліки на ЗНАМЕННИКУ: підлога 0.95 на частку відповіданих, і сама частка виходить у звіт. (2) `_latest_protected_write` — шосте й єдине непереведене місце — читало RPO без брокера: `documents` під RLS дає нуль внеску, `audit_events` RLS не має, тож RPO рахувався з самого журналу аудиту. Відновлення, що втратило всі документи, але відновило ланцюг, дало б «нічого не втрачено»."
+      "reason": "Issue #56: source-run evidence admission and context/output helpers; exact initial measured ceiling, with existing ceilings unchanged."
     },
     "scripts/manifest_lib/integrity.py": {
       "lines": 81,
@@ -4982,6 +5063,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "canonicalizes equivalent OpenAPI generator encodings so contract gates track HTTP semantics"
+    },
+    "scripts/owner_packet_measurements.py": {
+      "lines": 87,
+      "max_complexity": 4,
+      "max_function_args": 3,
+      "max_function_lines": 19,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "2026-10-03, НОВИЙ. Fail-closed межа між source-bound пакетом власника й ефемерними load/recovery вимірами: відсутній, нечитабельний або чужий артефакт рендериться як UNKNOWN, а не успадковується під новим дайджестом."
     },
     "scripts/package_full_ssot.py": {
       "lines": 32,
@@ -5167,6 +5257,14 @@
       "proof_lines": 27,
       "reason": "04.09.2026: самоперевірка стала звіряти ВИРОК, а не сусідню функцію. Виміряно пробою фальсифікованості: `verify_branch_consolidation` не червонів від жодної з десяти отрут у власне рішення (звіряння дайджесту, повнота мутацій, збирання вироку), бо звіряв парсер тексту й кількість alembic-голів; `postgres_gate_process` не звіряв рішення ПРОПУСТИТИ гейт, а пропуск повертає None, не відмову. Після правок: 0/10 → 5/10 і 0/3 → 3/3. Зростання — доказові рядки, і вони під власною стелею."
     },
+    "scripts/postgres_process_diagnostics.py": {
+      "lines": 94,
+      "max_complexity": 7,
+      "max_function_args": 4,
+      "max_function_lines": 36,
+      "max_nesting": 3,
+      "proof_lines": 0
+    },
     "scripts/postgres_role_hardening.py": {
       "lines": 72,
       "max_complexity": 3,
@@ -5346,15 +5444,6 @@
       "proof_lines": 0,
       "reason": "Initial measured ceiling for retrieval-yield and Wilson uncertainty reporting"
     },
-    "scripts/owner_packet_measurements.py": {
-      "lines": 87,
-      "max_complexity": 4,
-      "max_function_args": 3,
-      "max_function_lines": 19,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "2026-10-03, НОВИЙ. Fail-closed межа між source-bound пакетом власника й ефемерними load/recovery вимірами: відсутній, нечитабельний або чужий артефакт рендериться як UNKNOWN, а не успадковується під новим дайджестом."
-    },
     "scripts/refresh_owner_packet.py": {
       "lines": 150,
       "max_complexity": 6,
@@ -5453,6 +5542,15 @@
       "max_nesting": 3,
       "proof_lines": 86,
       "reason": "Читач дістав журнал помилок бази і власний негативний контроль. Стеля ФУНКЦІЙ не піднімалась: `arm` розвантажено в `damage_of`, `main` — у `run_child_mode`."
+    },
+    "scripts/requirements_report_io.py": {
+      "lines": 25,
+      "max_complexity": 5,
+      "max_function_args": 3,
+      "max_function_lines": 15,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #56: source-run evidence admission and context/output helpers; exact initial measured ceiling, with existing ceilings unchanged."
     },
     "scripts/respan_from_source.py": {
       "lines": 265,
@@ -5906,6 +6004,15 @@
       "proof_lines": 0,
       "reason": "v0.4.0: artifact/material-bound SLSA v1.2 provenance with explicit untrusted local builder; initial measured ratchet ceiling"
     },
+    "scripts/snapshot_admission.py": {
+      "lines": 39,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 27,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #22: exact initial measured ceiling for finite descriptor-pinned compressed-input admission, no other module ceilings raised."
+    },
     "scripts/snapshot_assurance.py": {
       "lines": 255,
       "max_complexity": 10,
@@ -6000,6 +6107,15 @@
       "max_function_lines": 0,
       "max_nesting": 0,
       "proof_lines": 0
+    },
+    "scripts/trusted_system_tools.py": {
+      "lines": 45,
+      "max_complexity": 4,
+      "max_function_args": 1,
+      "max_function_lines": 13,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for root-owned executable resolution and isolated Git process environments."
     },
     "scripts/validate_catalog_uri_uniqueness.py": {
       "lines": 209,
@@ -6159,6 +6275,15 @@
       "max_nesting": 2,
       "proof_lines": 134,
       "reason": "2026-09-06: SI розрізняє «звіт про інше джерело» і «те саме джерело, інший коміт». Доти обидва стани мали одну назву, і кожен коміт доказів знецінював засвідчення незалежності, якого не торкався."
+    },
+    "scripts/verify_audit_closure_local.py": {
+      "lines": 48,
+      "max_complexity": 1,
+      "max_function_args": 0,
+      "max_function_lines": 21,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "2026-10-03: exact initial ceiling for the non-writing local audit-closure adapter."
     },
     "scripts/verify_audit.py": {
       "lines": 9,
@@ -6321,6 +6446,14 @@
       "proof_lines": 0,
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
+    "scripts/verify_package_build_identity.py": {
+      "lines": 76,
+      "max_complexity": 15,
+      "max_function_args": 1,
+      "max_function_lines": 32,
+      "max_nesting": 1,
+      "proof_lines": 0
+    },
     "scripts/verify_package.py": {
       "lines": 101,
       "max_complexity": 6,
@@ -6329,14 +6462,6 @@
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling | 2026-08-29: +7 рядків — обидва маніфестні верифікатори писали `missing=`/`extra=` у ПРОТИЛЕЖНИХ значеннях; названо за напрямком (in_manifest_not_in_archive / in_archive_not_in_manifest), бо випадок підкладеного файлу — один із них, і читач, який узяв не той, дивиться повз нього. Плюс пропуск порожнього запису: він давав `mode mismatch: None expected=None` по рядку на файл, жоден не називав шляху."
-    },
-    "scripts/verify_package_build_identity.py": {
-      "lines": 76,
-      "max_complexity": 15,
-      "max_function_args": 1,
-      "max_function_lines": 32,
-      "max_nesting": 1,
-      "proof_lines": 0
     },
     "scripts/verify_pec_controller.py": {
       "lines": 7,
@@ -6469,122 +6594,6 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
-    },
-    "scripts/current_truth_source.py": {
-      "lines": 142,
-      "max_complexity": 6,
-      "max_function_args": 3,
-      "max_function_lines": 40,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "Issue #56: source-run evidence admission and context/output helpers; exact initial measured ceiling, with existing ceilings unchanged."
-    },
-    "scripts/make_context.py": {
-      "lines": 24,
-      "max_complexity": 2,
-      "max_function_args": 2,
-      "max_function_lines": 11,
-      "max_nesting": 0,
-      "proof_lines": 0,
-      "reason": "Issue #56: source-run evidence admission and context/output helpers; exact initial measured ceiling, with existing ceilings unchanged."
-    },
-    "scripts/requirements_report_io.py": {
-      "lines": 25,
-      "max_complexity": 5,
-      "max_function_args": 3,
-      "max_function_lines": 15,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "Issue #56: source-run evidence admission and context/output helpers; exact initial measured ceiling, with existing ceilings unchanged."
-    },
-    "scripts/collect_dialect_coverage.py": {
-      "lines": 197,
-      "max_complexity": 11,
-      "max_function_args": 2,
-      "max_function_lines": 59,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "Issue #56: initial bounded producer for measured native coverage and source/run-bound execution receipts."
-    },
-    "scripts/coverage_execution_contract.py": {
-      "lines": 365,
-      "max_complexity": 7,
-      "max_function_args": 7,
-      "max_function_lines": 52,
-      "max_nesting": 3,
-      "proof_lines": 0,
-      "reason": "Issue #56: initial bounded coverage source, artifact, version, configuration and run identity contract."
-    },
-    "scripts/coverage_union.py": {
-      "lines": 149,
-      "max_complexity": 7,
-      "max_function_args": 8,
-      "max_function_lines": 39,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "Issue #56: initial bounded admission and native combination of two verified dialect coverage executions."
-    },
-    "scripts/github_actions_graph.py": {
-      "lines": 146,
-      "max_complexity": 8,
-      "max_function_args": 4,
-      "max_function_lines": 18,
-      "max_nesting": 3,
-      "proof_lines": 0,
-      "reason": "Issue #56: extracted job policy, explicit dependency graph and same-commit reusable workflow validation; existing validator ceilings preserved."
-    },
-    "scripts/postgres_process_diagnostics.py": {
-      "lines": 94,
-      "max_complexity": 7,
-      "max_function_args": 4,
-      "max_function_lines": 36,
-      "max_nesting": 3,
-      "proof_lines": 0
-    },
-    "apps/api/src/korpus/application/github_release_context.py": {
-      "lines": 40,
-      "max_complexity": 4,
-      "max_function_args": 2,
-      "max_function_lines": 18,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "Issue #54: one exact fail-closed GitHub release context shared by trust and release gates; initial measured ceiling."
-    },
-    "apps/api/src/korpus/application/final_release_evidence.py": {
-      "lines": 48,
-      "max_complexity": 4,
-      "max_function_args": 2,
-      "max_function_lines": 10,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "Issue #54: strict parsing of signed bytes and explicit blocked-candidate policy; initial measured ceiling."
-    },
-    "apps/api/src/korpus/application/final_release_provenance.py": {
-      "lines": 188,
-      "max_complexity": 13,
-      "max_function_args": 6,
-      "max_function_lines": 46,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "Issue #54: source, material, GitHub invocation, and bounded timestamp provenance binding; initial measured ceiling."
-    },
-    "scripts/final_release_context.py": {
-      "lines": 90,
-      "max_complexity": 5,
-      "max_function_args": 2,
-      "max_function_lines": 22,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "Issue #54: locally recomputed release materials and exact GitHub run/ref/SHA context; initial measured ceiling."
-    },
-    "scripts/artifact_snapshot.py": {
-      "lines": 28,
-      "max_complexity": 4,
-      "max_function_args": 2,
-      "max_function_lines": 15,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "Issue #22: initial exact measured ceilings for descriptor-pinned package archive snapshot verification; no existing module ceiling raised."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

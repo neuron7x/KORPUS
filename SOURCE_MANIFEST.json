@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2122,
-  "root_sha256": "6e7c1f01575755b4234929821e9ec5284a896c944e95f55eebf80315b8697a07",
+  "file_count": 2123,
+  "root_sha256": "951dfb1282101527bfdf89c2d221e4bbe78e4f81d3f9b7fafa27f835df575ffd",
   "files": [
     {
       "path": ".dockerignore",
@@ -5623,8 +5623,8 @@
     },
     {
       "path": "apps/api/tests/test_snapshot_admission.py",
-      "bytes": 2966,
-      "sha256": "e80cec1f1b2dffdd578a94cd6f46a81dc971a4497290f9015a9fd34a1ba68590",
+      "bytes": 4613,
+      "sha256": "e512c5fd6d44e31d7a9d30ec8e39dc99b02c4f1f9d26ca536e19d64629b21e90",
       "mode": "0644"
     },
     {
@@ -8257,8 +8257,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 754704,
-      "sha256": "28ce2cadbe82f8fec4ae23202e1f9dccb8f510ae166bce77e1fecc451ac52693",
+      "bytes": 755056,
+      "sha256": "0ad632e3260664f3b6574c259cf5879222b0dbabcad3e53db7f1b05fb0811e54",
       "mode": "0644"
     },
     {
@@ -9051,6 +9051,12 @@
       "path": "docs/operations/TEVV_PLAN_V5.md",
       "bytes": 1883,
       "sha256": "831fee3e89013b1fb84bd1462a9828911fb17f376f1c26e45072cae82694b583",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/operations/ZIP_SNAPSHOT_THREAT_MODEL.md",
+      "bytes": 1907,
+      "sha256": "f9d97cfa4a688de51279ba3a6c0fd9130919e4432d4d0080f643144cf91c6ab8",
       "mode": "0644"
     },
     {
