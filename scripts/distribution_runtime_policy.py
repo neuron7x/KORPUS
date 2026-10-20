@@ -1,4 +1,4 @@
-"""Reject unauthenticated runtime paths before ZIP extraction."""
+"""Reject opaque runtime paths while retaining verified report evidence."""
 
 from __future__ import annotations
 
@@ -6,11 +6,18 @@ import zipfile
 
 
 def _opaque_path(name: str) -> bool:
-    parts = name.casefold().strip("/").split("/")
-    preceding = ["", *parts[:-1]]
-    return any(
-        (part == "evidence" and prior != "handoff") or (prior, part) == ("var", "releases")
-        for prior, part in zip(preceding, parts, strict=True)
+    parts = [part.rstrip(" .").casefold() for part in name.strip("/").split("/")]
+    pairs = set(zip(parts, parts[1:], strict=False))
+    trusted = (
+        parts[0] == "reports"
+        or parts[1:2] == ["reports"]
+        or parts[:2] == ["handoff", "evidence"]
+        or parts[1:3] == ["handoff", "evidence"]
+    )
+    return (
+        ("var", "evidence") in pairs
+        or ("var", "releases") in pairs
+        or ("evidence" in parts and not trusted)
     )
 
 

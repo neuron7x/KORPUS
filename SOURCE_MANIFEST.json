@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2126,
-  "root_sha256": "f0ee3b1b409b7c9c6bedaa34aeb2a5f9e43401a4c28d23de756c0ea08987c573",
+  "root_sha256": "d1c22f779f4a9e4de56d6682578ea8f6e95a94c2ccd65c0c7da015ed5dab2954",
   "files": [
     {
       "path": ".dockerignore",
@@ -3895,8 +3895,8 @@
     },
     {
       "path": "apps/api/tests/test_distribution_runtime_boundary.py",
-      "sha256": "3ba5b32cdb937e56edc79cf5c91df8aa86bcee4efddd5e50fecdc7c119341ea5",
-      "bytes": 3621,
+      "sha256": "c09c87f89fae68a6dbf44609c49b357940daeeb5cc8b61e6f0ab368d6089a3cc",
+      "bytes": 4693,
       "mode": "0644"
     },
     {
@@ -8263,8 +8263,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 757502,
-      "sha256": "b2f617c76f4fc54c2e2b43d7af06d33d3b1c2633e7b3dd1ce9cfb28455af1544",
+      "bytes": 758067,
+      "sha256": "d72aaf0643f666acb728b9466c131f3b92c590b0610cb904f0751cfa13327f17",
       "mode": "0644"
     },
     {
@@ -8995,8 +8995,8 @@
     },
     {
       "path": "docs/operations/DISTRIBUTION_RUNTIME_BOUNDARY.md",
-      "sha256": "3e0d865488496dab4282208678f11fe2dd0779d22d31e60c77e21c850c62f1da",
-      "bytes": 1762,
+      "sha256": "c62a59da433174bfc02f308629a822c5991f3ab7d0cdd9c8f1e3cad710c2f96b",
+      "bytes": 1920,
       "mode": "0644"
     },
     {
@@ -11053,8 +11053,8 @@
     },
     {
       "path": "scripts/distribution_runtime_policy.py",
-      "sha256": "24fd5f46f39a1ba281775c0f9cfc670991c39205c7c86365ebe692bf7b48bb4c",
-      "bytes": 642,
+      "sha256": "e0c5ba8a34a0939310f7f5e715ce2d37f2342e9f31ccf44e7e8270e63ff5234e",
+      "bytes": 858,
       "mode": "0644"
     },
     {

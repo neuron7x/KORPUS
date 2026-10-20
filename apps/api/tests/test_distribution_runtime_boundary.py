@@ -108,3 +108,36 @@ def test_authorized_handoff_evidence_is_not_misclassified(tmp_path: Path) -> Non
     failures, count = verify(archive)
     assert failures == []
     assert count == 3
+
+
+@pytest.mark.parametrize(
+    "member",
+    [
+        "reports/release/v0.8.0/evidence/report.json",
+        "KORPUS/reports/release/v0.8.0/evidence/report.json",
+    ],
+)
+def test_release_report_evidence_remains_admitted(tmp_path: Path, member: str) -> None:
+    archive = tmp_path / "report.zip"
+    _build_zip(archive, prefix="", poisoned=False, extra_member=member)
+    failures, count = verify(archive)
+    assert failures == []
+    assert count == 3
+
+
+@pytest.mark.parametrize(
+    "member",
+    [
+        "evidence./registry.json",
+        "evidence /registry.json",
+        "var/releases./object.json",
+        "KORPUS/Evidence./registry.json",
+        "KORPUS/var/RELEASES /object.json",
+    ],
+)
+def test_windows_path_aliases_cannot_hide_opaque_evidence(tmp_path: Path, member: str) -> None:
+    archive = tmp_path / "windows-alias.zip"
+    _build_zip(archive, prefix="", poisoned=False, extra_member=member)
+    failures, count = verify(archive)
+    assert count == 0
+    assert any("unverified runtime evidence forbidden" in failure for failure in failures)
