@@ -1,4 +1,5 @@
 """Bind ZIP verification and reported SHA-256 to one private byte snapshot."""
+
 from __future__ import annotations
 
 import hashlib
