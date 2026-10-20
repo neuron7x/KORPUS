@@ -1,4 +1,4 @@
-name: issue-54-inputs
+name: issue-54-readonly-validation
 
 on:
   push:
@@ -9,64 +9,100 @@ permissions:
   contents: read
 
 jobs:
-  prepare:
+  validate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/apps/api/src
+      KORPUS_ENVIRONMENT: test
+      KORPUS_SCHEMA_MODE: auto
+      KORPUS_DATABASE_URL: sqlite:///${{ github.workspace }}/var/governance-tests.db
+      KORPUS_OBJECT_ROOT: ${{ github.workspace }}/var/objects
+      KORPUS_AUTH_MODE: dev
+      KORPUS_DEV_MODE_ACKNOWLEDGEMENT: I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE
+      KORPUS_BIND_HOST: 127.0.0.1
+      KORPUS_AUDIT_HMAC_KEY: ci-only-audit-key
+      KORPUS_JWT_SECRET: ci-only-jwt-key
     steps:
-      - name: Checkout exact verified main
+      - name: Checkout immutable preparation inputs
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: 538598a92445e6c9a87d1c082da982a8977a0061
+          ref: ${{ github.sha }}
+          fetch-depth: 0
           persist-credentials: false
-          fetch-depth: 1
       - name: Install exact Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: 3.12.13
           check-latest: false
-      - name: Export bounded public-source inputs
+      - name: Validate and apply exact patch in disposable workspace
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = 538598a92445e6c9a87d1c082da982a8977a0061
-          mkdir -p var/issue54-inputs
+          mkdir -p var/objects var/issue54-evidence
+          python - <<'PY'
+          import base64
+          import gzip
+          import hashlib
+          import subprocess
+          from pathlib import Path
+          encoded = Path('.github/maintenance/issue54.patch.gz.b64').read_bytes()
+          blob = hashlib.sha1(b'blob ' + str(len(encoded)).encode() + b'\0' + encoded).hexdigest()
+          assert blob == '9cef430cc63321aa1406b2b988b8888ebd4bcf5e'
+          # Correct the two recorded temporary-transport transcription errors, then require exact digest.
+          text = encoded.decode().replace('VXzQLQrUrDVnuUV', 'VXzQLQrLnunUV').replace('TR95Dr66p8dcHvCK0', 'TR95Dr66CK0')
+          patch = gzip.decompress(base64.b64decode(text.strip(), validate=True))
+          assert hashlib.sha256(patch).hexdigest() == 'da3c494d6dc51a899e29e48a93163a9ade608682db2f6f2ac053cd8264caef37'
+          Path('var/issue54.patch').write_bytes(patch)
+          subprocess.run(['git', 'apply', '--check', '--index', 'var/issue54.patch'], check=True)
+          subprocess.run(['git', 'apply', '--index', 'var/issue54.patch'], check=True)
+          PY
+          git rm .github/maintenance/issue54.patch.gz.b64 .github/workflows/issue-54-inputs.yml
+          python scripts/generate_manifest.py --kind source
+          python scripts/sync_package_build_identity.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = json.loads(Path('SOURCE_MANIFEST.json').read_text())
+          assert manifest['file_count'] == 2117
+          assert manifest['root_sha256'] == '20733091c09f3c6abff0317de0e659fa290ec6ceb0f0d1f02710d817f322b992'
+          PY
+          git add SOURCE_MANIFEST.json PACKAGE_BUILD.json
+          git diff --cached --check
+      - name: Install hash-locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes -r apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Execute locked-environment verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/run_quality_gate.py > var/issue54-evidence/quality.log
+          python -m pytest -q apps/api/tests/test_canonical_state.py apps/api/tests/test_forge_roles.py apps/api/tests/test_canonical_declaration.py --junitxml=var/issue54-evidence/pytest.xml 2>&1 | tee var/issue54-evidence/pytest.log
+          python scripts/verify_canonical_state.py --selftest > var/issue54-evidence/selftest.log
+          python scripts/check_module_budget.py > var/issue54-evidence/module-budget.json
+          python scripts/generate_desired_state.py --check > var/issue54-evidence/desired-state.json
+          python scripts/verify_source_manifest.py > var/issue54-evidence/source-manifest.json
           python - <<'PY'
           import hashlib
           import json
-          import re
           import subprocess
-          import zipfile
           from pathlib import Path
-          root = Path.cwd()
-          names = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
-          fixed = {'SOURCE_MANIFEST.json', 'PACKAGE_BUILD.json', 'ruff.toml', 'mypy-scripts.ini', 'Makefile', 'AGENTS.md', 'apps/api/pyproject.toml', 'apps/api/requirements.dev.lock', 'apps/api/requirements.runtime.lock'}
-          selected = []
-          for name in names:
-              if not name:
-                  continue
-              include = name in fixed or name.startswith(('scripts/', 'config/operations/', 'config/desired-state/', '.github/workflows/'))
-              include = include or (name.startswith('apps/api/tests/') and any(term in name.lower() for term in ('canon', 'forge', 'gate_parity', 'module_budget', 'budget_raise', 'branch_integration')))
-              if include:
-                  path = root / name
-                  if not path.is_file() or path.is_symlink():
-                      raise SystemExit('Non-regular allowlisted input: ' + name)
-                  selected.append(name)
-          with zipfile.ZipFile('var/issue54-inputs/inputs.zip', 'w', zipfile.ZIP_DEFLATED) as bundle:
-              for name in sorted(selected):
-                  bundle.write(name, name)
-          lock = Path('apps/api/requirements.dev.lock').read_text()
-          match = re.search(r'(?m)^ruff==[^\n]+(?:\n[ \t]+[^\n]+)*', lock)
-          if match is None or '--hash=sha256:' not in match.group(0):
-              raise SystemExit('Locked Ruff with hashes not found')
-          Path('var/issue54-inputs/ruff.lock').write_text(match.group(0) + '\n')
-          evidence = {'source_commit': '538598a92445e6c9a87d1c082da982a8977a0061', 'files': {name: {'bytes': len(Path(name).read_bytes()), 'sha256': hashlib.sha256(Path(name).read_bytes()).hexdigest()} for name in sorted(selected)}}
-          Path('var/issue54-inputs/input-receipt.json').write_text(json.dumps(evidence, sort_keys=True, indent=2) + '\n')
+          base = '538598a92445e6c9a87d1c082da982a8977a0061'
+          allowed = {'config/operations/forges.json', 'config/operations/canonical-state.json', 'config/operations/module-budget.json', 'scripts/verify_canonical_state.py', 'scripts/run_mutation_tests.py', 'apps/api/tests/test_canonical_state.py', 'apps/api/tests/test_forge_roles.py', 'SOURCE_MANIFEST.json', 'PACKAGE_BUILD.json'}
+          actual = set(subprocess.check_output(['git', 'diff', '--name-only', base]).decode().splitlines())
+          assert actual == allowed, sorted(actual ^ allowed)
+          patch = subprocess.check_output(['git', 'diff', '--binary', base])
+          Path('var/issue54-evidence/KORPUS_Forge_Governance.patch').write_bytes(patch)
+          receipt = {'base_commit': base, 'source_manifest_root': json.loads(Path('SOURCE_MANIFEST.json').read_text())['root_sha256'], 'patch_sha256': hashlib.sha256(patch).hexdigest(), 'changed_files': sorted(actual), 'repository_write_performed': False, 'production_authorized': False, 'full_ci_completed': False}
+          Path('var/issue54-evidence/receipt.json').write_text(json.dumps(receipt, sort_keys=True, indent=2) + '\n')
           PY
-          python -m pip download --no-deps --require-hashes -r var/issue54-inputs/ruff.lock -d var/issue54-inputs
-      - name: Upload exact maintenance inputs
+      - name: Preserve read-only candidate verification evidence
+        if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: issue54-exact-inputs-${{ github.run_attempt }}
-          path: var/issue54-inputs/
-          if-no-files-found: error
-          retention-days: 2
+          name: issue54-readonly-evidence-${{ github.run_attempt }}
+          path: var/issue54-evidence/
+          if-no-files-found: warn
+          retention-days: 7
