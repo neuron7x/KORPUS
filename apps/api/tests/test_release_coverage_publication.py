@@ -92,8 +92,11 @@ def test_duplicate_source_binding_key_is_refused(tmp_path: Path) -> None:
     path = tmp_path / "var/gate.json"
     path.parent.mkdir()
     path.write_text(
-        '{"source_tree_sha256":"' + "b" * 64
-        + '","source_tree_sha256":"' + "a" * 64 + '","status":"PASS"}',
+        '{"source_tree_sha256":"'
+        + "b" * 64
+        + '","source_tree_sha256":"'
+        + "a" * 64
+        + '","status":"PASS"}',
         encoding="utf-8",
     )
     refused: list[dict[str, str]] = []
