@@ -58,26 +58,8 @@ def coverage_projection(digest: str, release: str) -> dict[str, Any] | None:
     return None
 
 
-def main() -> int:
-    argparse.ArgumentParser().parse_args()
-
-    release = release_tag(ROOT)
-    digest = compute_source_digest(ROOT)
-    destination = ROOT / "reports/release" / release
-    destination.mkdir(parents=True, exist_ok=True)
-
-    # Revoke stale output before verifying this attempt.
-    for name in ("COVERAGE_REPORT.json", *SOURCES):
-        (destination / name).unlink(missing_ok=True)
-
-    published: list[str] = []
+def _admit_reports(digest: str, refused: list[dict[str, str]]) -> list[tuple[str, Path]]:
     approved: list[tuple[str, Path]] = []
-    refused: list[dict[str, str]] = []
-
-    coverage = coverage_projection(digest, release)
-    if coverage is None:
-        refused.append({"report": "COVERAGE_REPORT.json", "reason": "no coverage totals on disk"})
-
     for name, relative in SOURCES.items():
         source = ROOT / relative
         if not source.is_file():
@@ -97,6 +79,29 @@ def main() -> int:
             )
             continue
         approved.append((name, source))
+    return approved
+
+
+def main() -> int:
+    argparse.ArgumentParser().parse_args()
+
+    release = release_tag(ROOT)
+    digest = compute_source_digest(ROOT)
+    destination = ROOT / "reports/release" / release
+    destination.mkdir(parents=True, exist_ok=True)
+
+    # Revoke stale output before verifying this attempt.
+    for name in ("COVERAGE_REPORT.json", *SOURCES):
+        (destination / name).unlink(missing_ok=True)
+
+    published: list[str] = []
+    refused: list[dict[str, str]] = []
+
+    coverage = coverage_projection(digest, release)
+    if coverage is None:
+        refused.append({"report": "COVERAGE_REPORT.json", "reason": "no coverage totals on disk"})
+
+    approved = _admit_reports(digest, refused)
 
     # Never leave a partial PASS-looking release after any evidence refusal.
     if not refused:
