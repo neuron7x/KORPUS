@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import stat
 from pathlib import Path
 
+from korpus.application.final_release_evidence import strict_signed_json_object as strict_json
 from korpus.application.release_claim_git_tree import TreeFile, _working_paths
 from scripts.manifest_lib.integrity import manifest_root
 from scripts.manifest_paths import source_included
@@ -43,7 +43,7 @@ def manifest_record(candidate: tuple[Path, object]) -> TreeFile | None:
     mode, content = result
     valid = (
         hashlib.sha256(content).hexdigest() == record.get("sha256")
-        and len(content) == record.get("bytes")
+        and (type(record.get("bytes")), record.get("bytes")) == (int, len(content))
         and mode == record.get("mode")
     )
     return (relative, mode, content) if valid else None
@@ -51,7 +51,7 @@ def manifest_record(candidate: tuple[Path, object]) -> TreeFile | None:
 
 def manifest_files(root: Path) -> list[TreeFile] | None:
     try:
-        payload = json.loads((root / "SOURCE_MANIFEST.json").read_text(encoding="utf-8"))
+        payload = strict_json((root / "SOURCE_MANIFEST.json").read_bytes(), "source manifest")
         if not isinstance(payload, dict):
             return None
         records = payload.get("files")
@@ -64,7 +64,7 @@ def manifest_files(root: Path) -> list[TreeFile] | None:
             "file_count": len(records),
             "root_sha256": manifest_root(records),
         }
-        if any(payload.get(key) != value for key, value in expected.items()):
+        if any((type(payload.get(k)), payload.get(k)) != (type(v), v) for k, v in expected.items()):
             return None
         files = [manifest_record((root, record)) for record in records]
         if any(item is None for item in files):
