@@ -50,50 +50,16 @@ SOURCES = {
 
 
 def coverage_projection(digest: str, release: str) -> dict[str, Any] | None:
-    """`statement_coverage_percent` / `branch_coverage_percent`, which coverage.py omits."""
-    for candidate in ("var/coverage-union.json", "var/coverage.json"):
-        path = ROOT / candidate
-        if not path.is_file():
-            continue
-        totals = json.loads(path.read_text(encoding="utf-8")).get("totals", {})
-        statements = totals.get("num_statements", 0)
-        branches = totals.get("num_branches", 0)
-        if not statements or not branches:
-            continue
-        return {
-            "schema": "korpus.coverage-report.v1",
-            "status": "PASS",
-            "release": release,
-            "source_tree_sha256": digest,
-            "statement_coverage_percent": round(100.0 * totals["covered_lines"] / statements, 4),
-            "branch_coverage_percent": round(100.0 * totals["covered_branches"] / branches, 4),
-            "measured_from": candidate,
-        }
+    """Fail closed until GitHub-imported coverage is verified against exact artifact bytes.
+
+    Raw local coverage JSON is not proof of execution or GitHub run identity.
+    Issue #66 must supply a verified importer/admission path before publication.
+    """
     return None
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--allow-unbound", action="store_true")
-    args = parser.parse_args()
-
-    release = release_tag(ROOT)
-    digest = compute_source_digest(ROOT)
-    destination = ROOT / "reports/release" / release
-    destination.mkdir(parents=True, exist_ok=True)
-
-    published: list[str] = []
-    refused: list[dict[str, str]] = []
-
-    coverage = coverage_projection(digest, release)
-    if coverage is None:
-        refused.append({"report": "COVERAGE_REPORT.json", "reason": "no coverage totals on disk"})
-    else:
-        (destination / "COVERAGE_REPORT.json").write_text(
-            json.dumps(coverage, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-        )
-        published.append("COVERAGE_REPORT.json")
-
+def _admit_reports(digest: str, refused: list[dict[str, str]]) -> list[tuple[str, Path]]:
+    approved: list[tuple[str, Path]] = []
     for name, relative in SOURCES.items():
         source = ROOT / relative
         if not source.is_file():
@@ -104,7 +70,7 @@ def main() -> int:
         if divergent:
             refused.append({"report": name, "reason": "дві прив'язки в артефакті розійшлись"})
             continue
-        if bound != digest and not args.allow_unbound:
+        if bound != digest:
             refused.append(
                 {
                     "report": name,
@@ -112,8 +78,41 @@ def main() -> int:
                 }
             )
             continue
-        shutil.copyfile(source, destination / name)
-        published.append(name)
+        approved.append((name, source))
+    return approved
+
+
+def main() -> int:
+    argparse.ArgumentParser().parse_args()
+
+    release = release_tag(ROOT)
+    digest = compute_source_digest(ROOT)
+    destination = ROOT / "reports/release" / release
+    destination.mkdir(parents=True, exist_ok=True)
+
+    # Revoke stale output before verifying this attempt.
+    for name in ("COVERAGE_REPORT.json", *SOURCES):
+        (destination / name).unlink(missing_ok=True)
+
+    published: list[str] = []
+    refused: list[dict[str, str]] = []
+
+    coverage = coverage_projection(digest, release)
+    if coverage is None:
+        refused.append({"report": "COVERAGE_REPORT.json", "reason": "no coverage totals on disk"})
+
+    approved = _admit_reports(digest, refused)
+
+    # Never leave a partial PASS-looking release after any evidence refusal.
+    if not refused:
+        assert coverage is not None
+        (destination / "COVERAGE_REPORT.json").write_text(
+            json.dumps(coverage, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        published.append("COVERAGE_REPORT.json")
+        for name, source in approved:
+            shutil.copyfile(source, destination / name)
+            published.append(name)
 
     result = {
         "schema": "korpus.release-evidence-publication.v1",

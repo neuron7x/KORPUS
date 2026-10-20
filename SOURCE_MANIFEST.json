@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2113,
-  "root_sha256": "52ed23ca32c68df6631a44f6eddbee59a23ea31b0b97035e72f499576cfb3d23",
+  "file_count": 2114,
+  "root_sha256": "43139232988617691dff8909f8b8c3eebaa1622eb85c429f2fa23c6f783526e7",
   "files": [
     {
       "path": ".dockerignore",
@@ -5265,6 +5265,12 @@
       "path": "apps/api/tests/test_release_claim_git_tree_hardening.py",
       "bytes": 16649,
       "sha256": "2ff6776c9c11de588f4691a77b52e39a231327f07f7a19de78ff969608ca1d58",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_release_coverage_publication.py",
+      "bytes": 2354,
+      "sha256": "1f238b4e2f148d7dbf4c1a59bcb3e02e474a9b0a476043efb381019922cbe1ac",
       "mode": "0644"
     },
     {
@@ -11785,8 +11791,8 @@
     },
     {
       "path": "scripts/publish_release_evidence.py",
-      "bytes": 5684,
-      "sha256": "9022d5e0fede92d14a37e2b1c8515ef8e224f76d78264a858abb54efc32fcdc9",
+      "bytes": 5490,
+      "sha256": "adb063848a15a2599371172133da520cd120fda61c9d6213fa9c37b6ff65525e",
       "mode": "0755"
     },
     {
