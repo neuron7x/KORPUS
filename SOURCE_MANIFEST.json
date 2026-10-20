@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2115,
-  "root_sha256": "31bad943f7adfb25ac145e984818ff6e992bc7917c85440f88963a9b73d6d174",
+  "file_count": 2116,
+  "root_sha256": "5e636d88837df514de64001e64bf70c2deca65e04c3ffefdf473ec1fb2529015",
   "files": [
     {
       "path": ".dockerignore",
@@ -5619,6 +5619,12 @@
       "path": "apps/api/tests/test_source_content_probe.py",
       "bytes": 4532,
       "sha256": "d82f5c54bd58efd6b628d4a5854d3fb91f8df1a9de5c881743935fc47a368bbf",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_source_digest_gitless_refusals.py",
+      "bytes": 4999,
+      "sha256": "eea6172ca3970f2089ee0b6f8c4699f93e33cce60271a859ca8400ce1a146246",
       "mode": "0644"
     },
     {
@@ -12313,8 +12319,8 @@
     },
     {
       "path": "scripts/source_digest.py",
-      "bytes": 5450,
-      "sha256": "7b75fce71b677c05dd97b5997148088d875bae0df6b1ffaac62a47cd380f6c1b",
+      "bytes": 4940,
+      "sha256": "48701eb2e2c604da86b83afe7ba97b87d5e885e8c6d8b63610835aa1857a8f3d",
       "mode": "0755"
     },
     {
