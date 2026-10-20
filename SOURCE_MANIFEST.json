@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2117,
-  "root_sha256": "b67cfce3182ed0ef74ef7f69b2a5d138ede7c597eebce78431cbcc1e69a2bdef",
+  "root_sha256": "20733091c09f3c6abff0317de0e659fa290ec6ceb0f0d1f02710d817f322b992",
   "files": [
     {
       "path": ".dockerignore",
@@ -3235,8 +3235,8 @@
     },
     {
       "path": "apps/api/tests/test_canonical_state.py",
-      "bytes": 16501,
-      "sha256": "6eecebfa8dcf50abdf977bc5ec39ddb82adf2094baa1fed03c8d4b7885fc78fb",
+      "bytes": 21611,
+      "sha256": "9f9aea9ba41fa20ab5348a9f1bce6e8bf25ac2eff6b2962e6e9313b4bf33f5d8",
       "mode": "0644"
     },
     {
@@ -4201,8 +4201,8 @@
     },
     {
       "path": "apps/api/tests/test_forge_roles.py",
-      "bytes": 4444,
-      "sha256": "23cfb82d92a0b791f357de298c83ccc23204421f05715e92d81e3e18170bfb76",
+      "bytes": 5434,
+      "sha256": "67a12c591e617c5493dbc6b39722b2f94a891b8f066694aef2568e1b2cd34beb",
       "mode": "0644"
     },
     {
@@ -8173,8 +8173,8 @@
     },
     {
       "path": "config/operations/canonical-state.json",
-      "bytes": 5229,
-      "sha256": "9e8ddc43c29590a932fe3b3f5b998fb11af82e61839269b17cc62b6d606a9e22",
+      "bytes": 4921,
+      "sha256": "f82347a63568155fc033316b3062a6977cde5b4ffefda5c9c06091d9dbff9e9a",
       "mode": "0644"
     },
     {
@@ -8221,8 +8221,8 @@
     },
     {
       "path": "config/operations/forges.json",
-      "bytes": 2370,
-      "sha256": "8e8b575d1fc4a0055bf1afb25976f312f587b5901b3d63490f0d373d5c65da95",
+      "bytes": 1154,
+      "sha256": "e286e8d5674ac639a94d083cc9c779f5c4a484c0941690c660fa0a424c1684ad",
       "mode": "0644"
     },
     {
@@ -8240,7 +8240,7 @@
     {
       "path": "config/operations/module-budget.json",
       "bytes": 754346,
-      "sha256": "6b2d0bf7e44c7157b3c3a484ec431941f5ffbb373b5607bf75c42a24418724e5",
+      "sha256": "703657fc7dfcc7145f2ee795b38549041f04ebab35021964d0507591b2886d5a",
       "mode": "0644"
     },
     {
@@ -12097,8 +12097,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 339672,
-      "sha256": "9c888b4ec62ad07c912656033791906ae3661c116d069bdf3dcfc11047c28a57",
+      "bytes": 341728,
+      "sha256": "b7161dbc761ada0e8cc7a1494341847bdc6558c49f2652b2ae0342f74cb07d84",
       "mode": "0755"
     },
     {
@@ -12511,8 +12511,8 @@
     },
     {
       "path": "scripts/verify_canonical_state.py",
-      "bytes": 25842,
-      "sha256": "e4326f71c128d38e64043d06eda701b279931ca2bc2961fec405af6f6142fa8e",
+      "bytes": 25431,
+      "sha256": "e2ea8fbdc92ca0f1cde1fd1e1a613c8bff62af5f43d2766668103dd316f97ab0",
       "mode": "0755"
     },
     {
