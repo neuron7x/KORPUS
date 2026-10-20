@@ -5906,6 +5906,15 @@
       "proof_lines": 0,
       "reason": "v0.4.0: artifact/material-bound SLSA v1.2 provenance with explicit untrusted local builder; initial measured ratchet ceiling"
     },
+    "scripts/snapshot_admission.py": {
+      "lines": 39,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 27,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #22: exact initial measured ceiling for finite descriptor-pinned compressed-input admission, no other module ceilings raised."
+    },
     "scripts/snapshot_assurance.py": {
       "lines": 255,
       "max_complexity": 10,

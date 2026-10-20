@@ -66,16 +66,69 @@ def test_file_mutation_during_copy_is_rejected(tmp_path: Path, mutation: str) ->
                         writer.truncate(0)
             return chunk
 
-    with archive.open("rb") as source, tempfile.TemporaryFile(mode="w+b") as snapshot:
-        with pytest.raises(RuntimeError, match="archive changed during snapshot"):
-            _admission().copy_bounded(MutatingSource(source), snapshot)
+    with (
+        archive.open("rb") as source,
+        tempfile.TemporaryFile(mode="w+b") as snapshot,
+        pytest.raises(RuntimeError, match="archive changed during snapshot"),
+    ):
+        _admission().copy_bounded(MutatingSource(source), snapshot)
 
 
 def test_nonregular_descriptor_is_rejected_before_read() -> None:
     read_fd, write_fd = os.pipe()
     try:
-        with os.fdopen(read_fd, "rb") as source, tempfile.TemporaryFile(mode="w+b") as snap:
-            with pytest.raises(RuntimeError, match="regular file"):
-                _admission().copy_bounded(source, snap)
+        with (
+            os.fdopen(read_fd, "rb") as source,
+            tempfile.TemporaryFile(mode="w+b") as snap,
+            pytest.raises(RuntimeError, match="regular file"),
+        ):
+            _admission().copy_bounded(source, snap)
     finally:
         os.close(write_fd)
+
+
+@pytest.mark.parametrize("length", [0, 1, 4096, 1_048_575, 1_048_576, 1_048_577, 2_097_183])
+def test_cross_chunk_byte_identity_and_exact_admission_boundary(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, length: int
+) -> None:
+    import random
+
+    data = random.Random(0xC0FFEE).randbytes(length)
+    archive = tmp_path / "boundary.zip"
+    archive.write_bytes(data)
+    module = _admission()
+    monkeypatch.setattr(module, "MAX_ARCHIVE_BYTES", length)
+    with archive.open("rb") as source, tempfile.TemporaryFile(mode="w+b") as snap:
+        assert module.copy_bounded(source, snap) == hashlib.sha256(data).hexdigest()
+        assert snap.read() == data
+
+    if length:
+        monkeypatch.setattr(module, "MAX_ARCHIVE_BYTES", length - 1)
+        with (
+            archive.open("rb") as source,
+            tempfile.TemporaryFile(mode="w+b") as snap,
+            pytest.raises(RuntimeError, match="input budget exceeded"),
+        ):
+            module.copy_bounded(source, snap)
+
+
+def test_premature_eof_fails_closed(tmp_path: Path) -> None:
+    archive = tmp_path / "truncated.zip"
+    archive.write_bytes(b"original content")
+
+    class EarlyEOF:
+        def __init__(self, opened):
+            self.opened = opened
+
+        def fileno(self) -> int:
+            return self.opened.fileno()
+
+        def read(self, size: int) -> bytes:
+            return b""
+
+    with (
+        archive.open("rb") as source,
+        tempfile.TemporaryFile(mode="w+b") as snap,
+        pytest.raises(RuntimeError, match="premature EOF"),
+    ):
+        _admission().copy_bounded(EarlyEOF(source), snap)
