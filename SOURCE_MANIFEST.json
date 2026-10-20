@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2114,
-  "root_sha256": "43139232988617691dff8909f8b8c3eebaa1622eb85c429f2fa23c6f783526e7",
+  "root_sha256": "b5bedc7af0964fea67c1d83b6f7364ea5eefab394fb0aaec386a92bc391f4b5b",
   "files": [
     {
       "path": ".dockerignore",
@@ -5623,8 +5623,8 @@
     },
     {
       "path": "apps/api/tests/test_source_manifest_evidence.py",
-      "bytes": 1340,
-      "sha256": "6ef92dcf7363e2c0af71c5141d135392f3bc91f4565cc253dd20a18786255ea7",
+      "bytes": 4357,
+      "sha256": "58ac2f809ea53016b04fc03d36135723226a3ca8b49c2b44d107f3d174ad4a03",
       "mode": "0644"
     },
     {
@@ -12643,8 +12643,8 @@
     },
     {
       "path": "scripts/verify_source_manifest.py",
-      "bytes": 2989,
-      "sha256": "1f42818edc13808b6b5931b648f64d8d0c26ec1f8f1b7e4949fd46871a01bd15",
+      "bytes": 5771,
+      "sha256": "2cda1ea13305ee151b5a39afeab41e83fcbc679844bd5588ccb4fb63bdec4102",
       "mode": "0755"
     },
     {
