@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2120,
-  "root_sha256": "773820e533737112301c9f6d396a4ceb489c9376db4da72fe45bde282220744d",
+  "root_sha256": "6c0f03cd1524129eda88c95cf439bd8b81076a3aa089655d3e45902cccacc1b7",
   "files": [
     {
       "path": ".dockerignore",
@@ -4987,8 +4987,8 @@
     },
     {
       "path": "apps/api/tests/test_pilot_runtime_units.py",
-      "bytes": 4454,
-      "sha256": "232a9fafdd3f4e0f4e6d2b4def900de4659da257959c801828ea0d56b7fc85d0",
+      "bytes": 4756,
+      "sha256": "42b54640d2d23923b3b5b042639fde38618ef8f45e19b53e1d7dcea828a8677f",
       "mode": "0644"
     },
     {
@@ -11449,8 +11449,8 @@
     },
     {
       "path": "scripts/install_pilot_runtime.py",
-      "bytes": 1663,
-      "sha256": "b14a5ccec285b6b5b7bdbf0c4fe809ac0df4d65e2fcf894e718fa4fe4d81f0e6",
+      "bytes": 1676,
+      "sha256": "b3d79814e41a0034ea62f61d6d7803eff577d79a2c863173342f1c5ed4b5c139",
       "mode": "0755"
     },
     {

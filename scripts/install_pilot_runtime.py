@@ -15,7 +15,7 @@ UNITS = ("korpus-pilot-api.service", "korpus-pilot-web.service")
 
 # Absolute path; systemd rejects quotes, backslashes and controls in executables.
 # Reject dollars (environment expansion) and trailing whitespace (raw path trim).
-SUPPORTED_ROOT = re.compile(r"""/[^\x00-\x1f\x7f\\"'$]*(?<!\s)""")
+SUPPORTED_ROOT = re.compile(r"""/[^\x00-\x1f\x7f\ud800-\udfff\\"'$]*(?<!\s)""")
 
 
 def render(name: str) -> str:

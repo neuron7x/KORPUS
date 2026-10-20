@@ -84,6 +84,10 @@ def test_root_is_escaped_for_each_systemd_context(
     "root",
     [
         "relative/path",
+        "/srv/pilot\ud800",
+        "/srv/pilot\udbff",
+        "/srv/pilot\udc00",
+        "/srv/pilot\udfff",
         "/srv/pilot\nextra",
         "/srv/pilot\rextra",
         "/srv/pilot\textra",
@@ -111,11 +115,21 @@ def test_render_rejects_unknown_units() -> None:
         INSTALLER.render("../other.service")
 
 
+@pytest.mark.parametrize(
+    "root",
+    [
+        '/srv/invalid"root',
+        "/srv/pilot\ud800",
+        "/srv/pilot\udbff",
+        "/srv/pilot\udc00",
+        "/srv/pilot\udfff",
+    ],
+)
 def test_invalid_root_does_not_write_or_contact_systemd(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, root: str
 ) -> None:
     target = tmp_path / "not-created"
-    monkeypatch.setattr(INSTALLER, "ROOT", Path('/srv/invalid"root'))
+    monkeypatch.setattr(INSTALLER, "ROOT", Path(root))
     monkeypatch.setattr(INSTALLER, "TARGET", target)
 
     def unexpected_subprocess(*args: object, **kwargs: object) -> None:
