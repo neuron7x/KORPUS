@@ -13,3 +13,7 @@ Source-manifest inventory no longer silently exempts `.bundle` paths. `git archi
 `apps/api/tests/test_distribution_runtime_boundary.py` runs positive and poisoned self-consistent ZIP fixtures in flat and single-root layouts, asserts package producer exclusions, and verifies `.bundle` source eligibility. Record hosted exact-head API, PostgreSQL, research assurance, coverage and mutation results before merge. Do not weaken existing checks.
 
 Production signing #8 remains a separate unsolved byte-identity/signature contract, and effective `main` protection issue #72 is mandatory. `production_authorized=false`; no deployment.
+
+## Normalized-empty pathname components
+
+Reject any path component that becomes empty after trailing-dot/space normalization. Apply this refusal before extraction even when an otherwise allowed reports or handoff prefix is present. Ordinary nonempty reports and handoff paths retain their existing contract. This is a parser guard, not production authorization.

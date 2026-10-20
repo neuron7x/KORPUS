@@ -141,3 +141,26 @@ def test_windows_path_aliases_cannot_hide_opaque_evidence(tmp_path: Path, member
     failures, count = verify(archive)
     assert count == 0
     assert any("unverified runtime evidence forbidden" in failure for failure in failures)
+
+
+@pytest.mark.parametrize("component", ["", ".", "..", "...", " ", " . "])
+def test_normalized_empty_components_are_refused(component: str) -> None:
+    from scripts.distribution_runtime_policy import _opaque_path
+
+    assert _opaque_path(f"documents/{component}/file.txt")
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "docs/README.md",
+        "reports/release/v0.9.7/evidence/report.json",
+        "KORPUS/reports/release/v0.9.7/evidence/report.json",
+        "handoff/evidence/current/MANIFEST.json",
+        "KORPUS/handoff/evidence/current/MANIFEST.json",
+    ],
+)
+def test_normalized_path_guard_preserves_allowed_contracts(path: str) -> None:
+    from scripts.distribution_runtime_policy import _opaque_path
+
+    assert not _opaque_path(path)
