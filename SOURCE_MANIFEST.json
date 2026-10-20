@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2120,
-  "root_sha256": "6c0f03cd1524129eda88c95cf439bd8b81076a3aa089655d3e45902cccacc1b7",
+  "file_count": 2122,
+  "root_sha256": "70aef9ee483eaab1152a1e816ea0247f48f181047de205024ebc0610e3daac13",
   "files": [
     {
       "path": ".dockerignore",
@@ -5622,6 +5622,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_snapshot_admission.py",
+      "bytes": 2966,
+      "sha256": "e80cec1f1b2dffdd578a94cd6f46a81dc971a4497290f9015a9fd34a1ba68590",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_snapshot_refuses_stale_evidence.py",
       "bytes": 3936,
       "sha256": "1bbd59cb4e2d308ca4007c7a032647facae19b2d804f09c1a5baef57126898a8",
@@ -10555,8 +10561,8 @@
     },
     {
       "path": "scripts/artifact_snapshot.py",
-      "bytes": 1002,
-      "sha256": "0792730808385adc204548227c77b8c5c884a861a86306f4cac000c60f7ca3cb",
+      "bytes": 876,
+      "sha256": "8db413354d27d221eaf45c8797c8a71568b8231d3c6bdb726f964379973140c9",
       "mode": "0644"
     },
     {
@@ -12316,6 +12322,12 @@
       "bytes": 12203,
       "sha256": "6d71b6fa697af9be673d1ed7d38a5884877ac68b8fbf9e50d83970f95db21e93",
       "mode": "0755"
+    },
+    {
+      "path": "scripts/snapshot_admission.py",
+      "bytes": 1389,
+      "sha256": "46c11df2fd2f4e7e70b97ce983e217cfc8a5f6109386e4859aae922996e0375a",
+      "mode": "0644"
     },
     {
       "path": "scripts/snapshot_assurance.py",
