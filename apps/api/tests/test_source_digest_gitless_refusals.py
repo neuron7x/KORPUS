@@ -107,9 +107,9 @@ def test_gitless_source_digest_refuses_ambiguous_or_substituted_snapshot(
         (tmp_path / "alias.py").symlink_to(tmp_path / "outside.py")
     else:
         (tmp_path / ".git").mkdir()
-    with pytest.raises(RuntimeError, match="manifest|git metadata"):
+    with pytest.raises(RuntimeError, match=r"manifest|git metadata"):
         digest.source_tree_digest()
-    with pytest.raises(RuntimeError, match="manifest|git metadata"):
+    with pytest.raises(RuntimeError, match=r"manifest|git metadata"):
         digest.included_paths()
 
 

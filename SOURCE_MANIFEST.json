@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2116,
-  "root_sha256": "5e636d88837df514de64001e64bf70c2deca65e04c3ffefdf473ec1fb2529015",
+  "root_sha256": "5514e2695331fa870964403fa5883ed4d013ada2b379047485dc6942920908d4",
   "files": [
     {
       "path": ".dockerignore",
@@ -5623,8 +5623,8 @@
     },
     {
       "path": "apps/api/tests/test_source_digest_gitless_refusals.py",
-      "bytes": 4999,
-      "sha256": "eea6172ca3970f2089ee0b6f8c4699f93e33cce60271a859ca8400ce1a146246",
+      "bytes": 5001,
+      "sha256": "796c16fc8fa88fc737421530c4289aaaf2bc2a4362b451ce0ecba551a8bb6d03",
       "mode": "0644"
     },
     {
