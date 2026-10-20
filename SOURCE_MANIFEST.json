@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2126,
-  "root_sha256": "47d57bef848a13aa7c0370473b1bc6a30d88711c9ffb3c896c407fb6cb22aab8",
+  "root_sha256": "f0ee3b1b409b7c9c6bedaa34aeb2a5f9e43401a4c28d23de756c0ea08987c573",
   "files": [
     {
       "path": ".dockerignore",
@@ -4543,8 +4543,8 @@
     },
     {
       "path": "apps/api/tests/test_manifest_generation.py",
-      "bytes": 4776,
-      "sha256": "a5b192b11d3a49e9b97d6608e2024bdbb33ea07f0088c7fa9815cbd4ddd46185",
+      "bytes": 5025,
+      "sha256": "762dfa2bff0249db7e837d26ec86a7d596be2d7ca9db46f0d4623a8ae4894157",
       "mode": "0644"
     },
     {
