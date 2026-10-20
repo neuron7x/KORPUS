@@ -35,7 +35,6 @@ def source_included(relative: Path) -> bool:
         relative.name not in LOCAL_EXCLUDED_FILES,
         not relative.name.startswith(".coverage."),
         relative.name not in MANIFEST_NAMES,
-        relative.suffix != ".bundle",
         not (relative.parts[:2] == ("infra", "secrets") and relative.suffix == ".txt"),
     )
     return all(checks)

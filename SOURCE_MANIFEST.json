@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2123,
-  "root_sha256": "7dc7d5b2fe63a9f528840e218ab54e9c7841946c6d84c70749f0a9ed8d287e92",
+  "file_count": 2126,
+  "root_sha256": "69895ca2062fdcb894ff0a8c72ae7127e86bec31e6fdf61bae31293aae98b442",
   "files": [
     {
       "path": ".dockerignore",
@@ -3891,6 +3891,12 @@
       "path": "apps/api/tests/test_dialect_coverage_producers_agree.py",
       "bytes": 6695,
       "sha256": "90df8ebf5666532dd28702baccbf3b907b70d2fa7483cb4b4cb9c6623fb6a8a7",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_distribution_runtime_boundary.py",
+      "sha256": "91871e8f4dc471f94bc6716e6137f1600d04b3e79a001d5d08210d4395e3bd48",
+      "bytes": 2385,
       "mode": "0644"
     },
     {
@@ -8257,8 +8263,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 756248,
-      "sha256": "9e0509a0fa34d16ce7b460ec0ee145e53d240a890fed055f969d2202c84b759c",
+      "bytes": 756621,
+      "sha256": "c80f3ea50a7d2585780e5a796194b8ff821113ae6b698197a074dd9f2bdf6dd8",
       "mode": "0644"
     },
     {
@@ -8985,6 +8991,12 @@
       "path": "docs/operations/CURRENT_STATUS.md",
       "bytes": 3200,
       "sha256": "de30f68eb9f0c5afc50c6aa6f5126ffc3b204131e7c3ad041e5f04b6ab9da917",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/operations/DISTRIBUTION_RUNTIME_BOUNDARY.md",
+      "sha256": "6ca87988e705e6c5cceb6f6cac8d20984ba1557d694fe7fb7ea31ad6ecfefc54",
+      "bytes": 1613,
       "mode": "0644"
     },
     {
@@ -11040,6 +11052,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/distribution_runtime_policy.py",
+      "sha256": "9a24e4c5e0c5e1a7543582739a68eda49af27b215a9659738c3b3f183f9713e4",
+      "bytes": 632,
+      "mode": "0644"
+    },
+    {
       "path": "scripts/embedding_candidate_metrics.py",
       "bytes": 1357,
       "sha256": "699aef8ad1e05223575ed58162d398691138744321b9194465cc00768e13a46f",
@@ -11515,8 +11533,8 @@
     },
     {
       "path": "scripts/manifest_paths.py",
-      "bytes": 3715,
-      "sha256": "ad036883df60929b56012ed51a5825f6688f8588fbc0a1bb160c00c0ded13a3c",
+      "bytes": 3677,
+      "sha256": "72a75fe69f0ba3c3a1693e433d9f143f39af256b7ab556fe56852c3e3a0f8306",
       "mode": "0644"
     },
     {
@@ -11623,8 +11641,8 @@
     },
     {
       "path": "scripts/package_repository.sh",
-      "bytes": 6106,
-      "sha256": "9a93475e4b96d167f79ac1932d8264b6da8c27cc8c603c546605f905bac0d9f2",
+      "bytes": 6161,
+      "sha256": "5746543ab743a401a6cb0d871b9587cd362fa56c2f9b30582bbbbaa5b6ed13b3",
       "mode": "0755"
     },
     {
@@ -12637,8 +12655,8 @@
     },
     {
       "path": "scripts/verify_package.py",
-      "bytes": 3640,
-      "sha256": "a6ea80962f51e3ce04a50f776b80671a8cbbaf2be054c3794c26d923bd19c5fe",
+      "bytes": 3652,
+      "sha256": "c9a31078a20eda213ed00d4bc20d07f8f5cb3d288026c52c102a070b5439d874",
       "mode": "0755"
     },
     {

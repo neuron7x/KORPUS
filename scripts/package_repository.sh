@@ -63,25 +63,23 @@ for artifact in source-sbom.cdx.json api-sbom.cdx.json web-sbom.cdx.json; do
 done
 find "$tmp" -type f -path '*/infra/secrets/*.txt' -delete
 
-if [[ -d var/evidence ]]; then
-  mkdir -p "$tmp/evidence"
-  cp -a var/evidence/. "$tmp/evidence/"
-fi
-if [[ -d var/releases ]]; then
-  mkdir -p "$tmp/evidence/releases"
-  cp -a var/releases/. "$tmp/evidence/releases/"
+# Opaque local runtime evidence is not authenticated by source package verification.
+if [[ -e "$tmp/evidence" ]]; then
+  echo "unverified runtime evidence forbidden in canonical package" >&2
+  exit 1
 fi
 
 cat > "$tmp/PACKAGE_BOUNDARY.md" <<'DOC'
 # Що в цьому пакеті
 
 Це один перевірюваний clean-source distribution artifact: exact committed source,
-release reports, selected evidence and manifests. `DISTRIBUTION_MANIFEST.json` описує
+verified release reports, selected SBOMs and manifests. `DISTRIBUTION_MANIFEST.json` описує
 точні байти архіву; `SOURCE_MANIFEST.json` — canonical source boundary.
 
 ## Навмисно не включено
 
 - `.git`, branches, refs, pull-request lineage та deleted historical blobs;
+- unverified runtime registries (`var/evidence`, `var/releases`);
 - production secrets та credentials;
 - приватний/обмежений corpus payload;
 - production authorization або зовнішня атестація, якщо вони не були реально отримані.

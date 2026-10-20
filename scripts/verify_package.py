@@ -14,6 +14,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from artifact_snapshot import verify_snapshot
+from distribution_runtime_policy import opaque_runtime_failures
 from manifest_lib.integrity import archive_modes, archive_root, record_failures
 from zip_safety import safety_failures
 
@@ -45,7 +46,6 @@ def _verify_tree(
     )
     if sorted(records) != actual:
         # Name mismatch directions explicitly so injected archive files stay visible.
-        # The verifier must not silently ignore a file missing from the manifest.
         failures.append(
             "path parity mismatch "
             f"in_manifest_not_in_archive={sorted(set(records) - set(actual))} "
@@ -64,7 +64,7 @@ def verify(archive: Path | BinaryIO) -> tuple[list[str], int]:
     with tempfile.TemporaryDirectory(prefix="korpus-package-verify-") as tmp_name:
         tmp = Path(tmp_name)
         with zipfile.ZipFile(archive) as zf:
-            safety = safety_failures(zf)
+            safety = safety_failures(zf) + opaque_runtime_failures(zf)
             if safety:
                 return safety, 0
             zf.extractall(tmp)

@@ -4277,6 +4277,15 @@
       "proof_lines": 0,
       "reason": "Точна виміряна початкова стеля. Діагностика розведення запиту й розмірного зсуву — інструмент виміру гіпотез про пошук, не гейт."
     },
+    "scripts/distribution_runtime_policy.py": {
+      "lines": 21,
+      "max_complexity": 7,
+      "max_function_args": 1,
+      "max_function_lines": 14,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issues #18/#20: exact initial measured size and shape for opaque runtime-evidence ZIP admission policy, no waiver or increased existing budget."
+    },
     "scripts/embedding_candidate_metrics.py": {
       "lines": 32,
       "max_complexity": 13,
