@@ -1,28 +1,15 @@
 #!/usr/bin/env python3
-"""Publish the artefacts a run produced into the release directory the preflight reads.
+"""Publish only source-bound release evidence from exactly validated bytes.
 
-`run_local_production_preflight.py` reads eleven reports from `reports/release/<tag>/` and
-requires each to be bound to the current source tree. Every one of them is produced by a
-target in this pipeline and written under `var/` — and nothing carried them across. The
-copies in the release directory were placed by hand, dated weeks before the tree they were
-supposed to describe, so the preflight reported eleven local failures that were entirely
-about staleness and said nothing about the gates themselves.
-
-Each report is copied only when it is already bound to this tree. A gate that ran against
-different source is not republished under a fresh digest — that would launder a stale
-result into a current-looking one, which is the exact failure the binding check exists to
-catch.
-
-COVERAGE_REPORT is a projection rather than a copy: `preflight_report_pass` reads
-`statement_coverage_percent` and `branch_coverage_percent`, which coverage.py's own JSON
-does not carry under those names.
+Reject missing, ambiguous or stale reports. Never re-read a candidate after checking
+its source binding. Coverage remains blocked until issue #66 supplies authenticated
+GitHub run/attempt/artifact-byte admission.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import sys
 from pathlib import Path
 from typing import Any
@@ -30,6 +17,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 
+from korpus.application.final_release_evidence import strict_signed_json_object  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from korpus.application.release_claims import binding  # noqa: E402
 from release_identity import release_tag  # noqa: E402
@@ -58,14 +46,19 @@ def coverage_projection(digest: str, release: str) -> dict[str, Any] | None:
     return None
 
 
-def _admit_reports(digest: str, refused: list[dict[str, str]]) -> list[tuple[str, Path]]:
-    approved: list[tuple[str, Path]] = []
+def _admit_reports(digest: str, refused: list[dict[str, str]]) -> list[tuple[str, bytes]]:
+    approved: list[tuple[str, bytes]] = []
     for name, relative in SOURCES.items():
         source = ROOT / relative
         if not source.is_file():
             refused.append({"report": name, "reason": f"no artefact at {relative}"})
             continue
-        report = json.loads(source.read_text(encoding="utf-8"))
+        try:
+            payload = source.read_bytes()
+            report = dict(strict_signed_json_object(payload, f"release report {name}"))
+        except (OSError, ValueError) as error:
+            refused.append({"report": name, "reason": f"invalid source evidence: {error}"})
+            continue
         bound, divergent = binding(report)
         if divergent:
             refused.append({"report": name, "reason": "дві прив'язки в артефакті розійшлись"})
@@ -78,7 +71,7 @@ def _admit_reports(digest: str, refused: list[dict[str, str]]) -> list[tuple[str
                 }
             )
             continue
-        approved.append((name, source))
+        approved.append((name, payload))
     return approved
 
 
@@ -110,8 +103,8 @@ def main() -> int:
             json.dumps(coverage, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
         published.append("COVERAGE_REPORT.json")
-        for name, source in approved:
-            shutil.copyfile(source, destination / name)
+        for name, payload in approved:
+            (destination / name).write_bytes(payload)
             published.append(name)
 
     result = {
