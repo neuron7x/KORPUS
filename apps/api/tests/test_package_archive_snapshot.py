@@ -1,4 +1,5 @@
 """Deterministic archive-path replacement controls for issue #22."""
+
 from __future__ import annotations
 
 import hashlib
