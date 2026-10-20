@@ -591,6 +591,21 @@
         "max_function_lines": 11
       },
       "reason": "Codex independent P2 review: reject stale permissive snapshot ratchet after extraction into separately budgeted snapshot_admission.py."
+    },
+    {
+      "on": "2026-10-20",
+      "path": "scripts/distribution_runtime_policy.py",
+      "from": {
+        "max_complexity": 7,
+        "max_function_lines": 14,
+        "max_nesting": 1
+      },
+      "to": {
+        "max_complexity": 4,
+        "max_function_lines": 7,
+        "max_nesting": 0
+      },
+      "reason": "Adversarial path normalization reduced branching and eliminated mutable wrapper-root admission assumptions."
     }
   ],
   "modules": {
@@ -4278,13 +4293,13 @@
       "reason": "Точна виміряна початкова стеля. Діагностика розведення запиту й розмірного зсуву — інструмент виміру гіпотез про пошук, не гейт."
     },
     "scripts/distribution_runtime_policy.py": {
-      "lines": 21,
-      "max_complexity": 7,
+      "lines": 22,
+      "max_complexity": 4,
       "max_function_args": 1,
-      "max_function_lines": 14,
-      "max_nesting": 1,
+      "max_function_lines": 7,
+      "max_nesting": 0,
       "proof_lines": 0,
-      "reason": "Issues #18/#20: exact initial measured size and shape for opaque runtime-evidence ZIP admission policy, no waiver or increased existing budget."
+      "reason": "Issue #20 / independent P1 review: one extra line to reject casefold aliases, var paths and ambiguous multi-root ZIPs while explicitly preserving tracked handoff evidence. Measured 22/4/7/0."
     },
     "scripts/embedding_candidate_metrics.py": {
       "lines": 32,
@@ -12941,6 +12956,17 @@
       "path": "scripts/audit_scanner_summary.py",
       "reason": "10.10.2026 `source:package` уперше добіг до пакування і впав на «source digest mismatch»: `audit:closure` дописував у трекований KORPUS_v5_FINDINGS_CLOSURE.json поле `produced_evidence` з комітом сканерів, тож файл розходився з маніфестом джерела в кожному конвеєрі за побудовою. Прив'язка тепер пишеться в var/audit-closure-binding.json; виробник цього файла живе поруч із самою прив'язкою.",
       "to": 130
+    },
+    {
+      "on": "2026-10-20",
+      "path": "scripts/distribution_runtime_policy.py",
+      "from": {
+        "lines": 21
+      },
+      "to": {
+        "lines": 22
+      },
+      "reason": "P1 review found runtime-path alias and mixed-root bypass; one additional line permits a clearer type-safe component predicate with narrower complexity, function-length and nesting ceilings."
     }
   ],
   "recorded_at": "2026-10-04",

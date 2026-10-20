@@ -1,21 +1,22 @@
-"""Refuse unauthenticated runtime evidence before ZIP extraction."""
+"""Reject unauthenticated runtime paths before ZIP extraction."""
 
 from __future__ import annotations
 
 import zipfile
 
 
+def _opaque_path(name: str) -> bool:
+    parts = name.casefold().strip("/").split("/")
+    preceding = ["", *parts[:-1]]
+    return any(
+        (part == "evidence" and prior != "handoff") or (prior, part) == ("var", "releases")
+        for prior, part in zip(preceding, parts, strict=True)
+    )
+
+
 def opaque_runtime_failures(zf: zipfile.ZipFile) -> list[str]:
-    names = [info.filename for info in zf.infolist()]
-    roots = {name.split("/", 1)[0] for name in names}
-    prefixes = [""]
-    if len(roots) == 1:
-        prefixes.append(f"{next(iter(roots))}/")
     return [
-        f"unverified runtime evidence forbidden: {name!r}"
-        for name in names
-        if any(
-            name == f"{prefix}evidence" or name.startswith(f"{prefix}evidence/")
-            for prefix in prefixes
-        )
+        f"unverified runtime evidence forbidden: {info.filename!r}"
+        for info in zf.infolist()
+        if _opaque_path(info.filename)
     ]

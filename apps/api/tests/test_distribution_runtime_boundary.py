@@ -16,10 +16,14 @@ from scripts.verify_package import verify
 ROOT = Path(__file__).resolve().parents[3]
 
 
-def _build_zip(archive: Path, *, prefix: str, poisoned: bool) -> None:
+def _build_zip(
+    archive: Path, *, prefix: str, poisoned: bool, extra_member: str | None = None
+) -> None:
     files = {"proof.txt": b"verified source"}
     if poisoned:
         files["evidence/registry.json"] = b'{"digest":"internally-consistent"}'
+    if extra_member is not None:
+        files[extra_member] = b"additional bound file"
     manifest = {
         "schema": "korpus.distribution-manifest.v2",
         "kind": "distribution",
@@ -69,3 +73,37 @@ def test_producer_keeps_reports_but_never_copies_runtime_registry() -> None:
     assert "cp -a var/evidence" not in producer
     assert "cp -a var/releases" not in producer
     assert '[[ -e "$tmp/evidence" ]]' in producer
+
+@pytest.mark.parametrize(
+    "member",
+    [
+        "var/evidence/registry.json",
+        "var/releases/object.json",
+        "Evidence/registry.json",
+        "EvIdEnCe/registry.json",
+        "KORPUS/evidence/registry.json",
+        "KORPUS/var/releases/object.json",
+        "KORPUS/EVIDENCE/registry.json",
+        "other/var/ReLeAsEs/object.json",
+        "other/Evidence/registry.json",
+    ],
+)
+def test_runtime_path_alias_and_multiroot_poison(tmp_path: Path, member: str) -> None:
+    archive = tmp_path / "poison.zip"
+    _build_zip(archive, prefix="", poisoned=False, extra_member=member)
+    failures, count = verify(archive)
+    assert count == 0
+    assert any("unverified runtime evidence forbidden" in failure for failure in failures)
+
+
+def test_authorized_handoff_evidence_is_not_misclassified(tmp_path: Path) -> None:
+    archive = tmp_path / "handoff.zip"
+    _build_zip(
+        archive,
+        prefix="",
+        poisoned=False,
+        extra_member="handoff/evidence/current/MANIFEST.json",
+    )
+    failures, count = verify(archive)
+    assert failures == []
+    assert count == 3
