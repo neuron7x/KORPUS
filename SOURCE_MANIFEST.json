@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2114,
-  "root_sha256": "d31c616aa1c505c75d62b093e82396972144fbc42ca98993b6609df905f7d2e3",
+  "file_count": 2115,
+  "root_sha256": "6812438e7374da6f745e47111c616cf7266cc1465039de1744c6d4f13990b764",
   "files": [
     {
       "path": ".dockerignore",
@@ -11466,6 +11466,12 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/manifest_lib/source_contract.py",
+      "bytes": 2672,
+      "sha256": "97eb8d2fdc0021882de2a4faf7279659331ddf6ae4cdcebb349cfa03fbded396",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/manifest_paths.py",
       "bytes": 3715,
       "sha256": "ad036883df60929b56012ed51a5825f6688f8588fbc0a1bb160c00c0ded13a3c",
@@ -12643,8 +12649,8 @@
     },
     {
       "path": "scripts/verify_source_manifest.py",
-      "bytes": 5776,
-      "sha256": "4678d47806354a04bf3f7f1d6655c23524324c0cc28c2c4bd4c86529be1038fc",
+      "bytes": 2785,
+      "sha256": "d8c6d3a9c8613be04504966a26a11eade15cbd9cac7dfec06090be26415fe70d",
       "mode": "0755"
     },
     {
