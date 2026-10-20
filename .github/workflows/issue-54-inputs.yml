@@ -1,0 +1,72 @@
+name: issue-54-inputs
+
+on:
+  push:
+    branches: [governance/issue-54-forge-contract]
+    paths: [.github/workflows/issue-54-inputs.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact verified main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 538598a92445e6c9a87d1c082da982a8977a0061
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Install exact Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Export bounded public-source inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 538598a92445e6c9a87d1c082da982a8977a0061
+          mkdir -p var/issue54-inputs
+          python - <<'PY'
+          import hashlib
+          import json
+          import re
+          import subprocess
+          import zipfile
+          from pathlib import Path
+          root = Path.cwd()
+          names = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          fixed = {'SOURCE_MANIFEST.json', 'PACKAGE_BUILD.json', 'ruff.toml', 'mypy-scripts.ini', 'Makefile', 'AGENTS.md', 'apps/api/pyproject.toml', 'apps/api/requirements.dev.lock', 'apps/api/requirements.runtime.lock'}
+          selected = []
+          for name in names:
+              if not name:
+                  continue
+              include = name in fixed or name.startswith(('scripts/', 'config/operations/', 'config/desired-state/', '.github/workflows/'))
+              include = include or (name.startswith('apps/api/tests/') and any(term in name.lower() for term in ('canon', 'forge', 'gate_parity', 'module_budget', 'budget_raise', 'branch_integration')))
+              if include:
+                  path = root / name
+                  if not path.is_file() or path.is_symlink():
+                      raise SystemExit('Non-regular allowlisted input: ' + name)
+                  selected.append(name)
+          with zipfile.ZipFile('var/issue54-inputs/inputs.zip', 'w', zipfile.ZIP_DEFLATED) as bundle:
+              for name in sorted(selected):
+                  bundle.write(name, name)
+          lock = Path('apps/api/requirements.dev.lock').read_text()
+          match = re.search(r'(?m)^ruff==[^\n]+(?:\n[ \t]+[^\n]+)*', lock)
+          if match is None or '--hash=sha256:' not in match.group(0):
+              raise SystemExit('Locked Ruff with hashes not found')
+          Path('var/issue54-inputs/ruff.lock').write_text(match.group(0) + '\n')
+          evidence = {'source_commit': '538598a92445e6c9a87d1c082da982a8977a0061', 'files': {name: {'bytes': len(Path(name).read_bytes()), 'sha256': hashlib.sha256(Path(name).read_bytes()).hexdigest()} for name in sorted(selected)}}
+          Path('var/issue54-inputs/input-receipt.json').write_text(json.dumps(evidence, sort_keys=True, indent=2) + '\n')
+          PY
+          python -m pip download --no-deps --require-hashes -r var/issue54-inputs/ruff.lock -d var/issue54-inputs
+      - name: Upload exact maintenance inputs
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: issue54-exact-inputs-${{ github.run_attempt }}
+          path: var/issue54-inputs/
+          if-no-files-found: error
+          retention-days: 2
