@@ -74,6 +74,7 @@ def test_producer_keeps_reports_but_never_copies_runtime_registry() -> None:
     assert "cp -a var/releases" not in producer
     assert '[[ -e "$tmp/evidence" ]]' in producer
 
+
 @pytest.mark.parametrize(
     "member",
     [
