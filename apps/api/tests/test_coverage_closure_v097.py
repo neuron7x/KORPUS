@@ -1280,23 +1280,52 @@ def test_military_knowledge_cycle_and_effective_index_traversal() -> None:
     assert idx.neighborhood("n0", max_depth=3) == ("n0", "n1", "n2")
 
 
+def _write_source_digest_manifest(root: Path, records: list[dict[str, object]]) -> None:
+    from scripts.manifest_lib.integrity import manifest_root
+
+    manifest = {
+        "schema": "korpus.source-manifest.v2",
+        "kind": "source",
+        "manifest_self_excluded": True,
+        "file_count": len(records),
+        "root_sha256": manifest_root(records),
+        "files": records,
+    }
+    (root / "SOURCE_MANIFEST.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+
+
 def test_source_digest_empty_git_tree_falls_back_to_manifest(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
+    import hashlib
     import importlib.util
+
+    from scripts.manifest_lib.integrity import file_record
 
     module_path = Path(__file__).parents[3] / "scripts" / "source_digest.py"
     spec = importlib.util.spec_from_file_location("source_digest_under_test", module_path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
+
+    target = tmp_path / "README.md"
+    target.write_text("release", encoding="utf-8")
+    _write_source_digest_manifest(tmp_path, [file_record(target, Path("README.md"), source=True)])
     monkeypatch.setattr(module, "_git", lambda *args: b"")
-    monkeypatch.setattr(module, "_archive_paths", lambda: [Path("README.md")])
     monkeypatch.setattr(module, "ROOT", tmp_path)
-    (tmp_path / "README.md").write_text("release", encoding="utf-8")
     assert module._git_paths("HEAD") is None
+
     digest = module.source_tree_digest("HEAD")
-    assert digest != __import__("hashlib").sha256(b"").hexdigest()
+    expected = hashlib.sha256()
+    relative = b"README.md"
+    content = b"release"
+    expected.update(len(relative).to_bytes(4, "big"))
+    expected.update(relative)
+    expected.update(len(content).to_bytes(8, "big"))
+    expected.update(content)
+    assert digest == expected.hexdigest()
 
 
 def _load_source_digest_module():
@@ -1315,6 +1344,8 @@ def test_source_digest_inclusion_git_and_archive_validation(
 ) -> None:
     import subprocess
 
+    from scripts.manifest_lib.integrity import file_record
+
     module = _load_source_digest_module()
     assert module._included("README.md")
     assert not module._included("reports/x.json")
@@ -1328,34 +1359,35 @@ def test_source_digest_inclusion_git_and_archive_validation(
     assert module._git_paths("HEAD") == [Path("README.md")]
 
     monkeypatch.setattr(module, "ROOT", tmp_path)
-    with pytest.raises(RuntimeError, match="neither Git metadata"):
+    refusal = "restored source manifest"
+    with pytest.raises(RuntimeError, match=refusal):
         module._archive_paths()
+
     manifest = tmp_path / "SOURCE_MANIFEST.json"
-    manifest.write_text(json.dumps({"files": "bad"}), encoding="utf-8")
-    with pytest.raises(RuntimeError, match="invalid source manifest"):
+    for poison in ({"files": "bad"}, {"files": ["bad"]}):
+        manifest.write_text(json.dumps(poison), encoding="utf-8")
+        with pytest.raises(RuntimeError, match=refusal):
+            module._archive_paths()
+
+    missing = {"path": "missing.txt", "bytes": 1, "sha256": "0" * 64, "mode": "0644"}
+    _write_source_digest_manifest(tmp_path, [missing])
+    with pytest.raises(RuntimeError, match=refusal):
         module._archive_paths()
-    manifest.write_text(json.dumps({"files": ["bad"]}), encoding="utf-8")
-    with pytest.raises(RuntimeError, match="record"):
-        module._archive_paths()
-    manifest.write_text(
-        json.dumps({"files": [{"path": "missing.txt", "sha256": "0" * 64}]}), encoding="utf-8"
-    )
-    with pytest.raises(RuntimeError, match="missing or unsafe"):
-        module._archive_paths()
+
     target = tmp_path / "a.txt"
     target.write_text("x", encoding="utf-8")
-    manifest.write_text(
-        json.dumps({"files": [{"path": "a.txt", "sha256": "0" * 64}]}), encoding="utf-8"
-    )
-    with pytest.raises(RuntimeError, match="hash mismatch"):
+    valid = file_record(target, Path("a.txt"), source=True)
+    altered = {**valid, "sha256": "0" * 64}
+    _write_source_digest_manifest(tmp_path, [altered])
+    with pytest.raises(RuntimeError, match=refusal):
         module._archive_paths()
-    digest = __import__("hashlib").sha256(b"x").hexdigest()
-    manifest.write_text(
-        json.dumps(
-            {"files": [{"path": "a.txt", "sha256": digest}, {"path": "reports/x", "sha256": "x"}]}
-        ),
-        encoding="utf-8",
-    )
+
+    excluded = {"path": "reports/x", "bytes": 0, "sha256": "0" * 64, "mode": "0644"}
+    _write_source_digest_manifest(tmp_path, [valid, excluded])
+    with pytest.raises(RuntimeError, match=refusal):
+        module._archive_paths()
+
+    _write_source_digest_manifest(tmp_path, [valid])
     assert module._archive_paths() == [Path("a.txt")]
     monkeypatch.setattr(
         module, "_git", lambda *args: (_ for _ in ()).throw(subprocess.CalledProcessError(1, "git"))

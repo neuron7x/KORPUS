@@ -12,7 +12,6 @@ Carry `digest_scope` beside the value and compare scopes before hashes.
 from __future__ import annotations
 
 import hashlib
-import json
 import subprocess
 import sys
 from pathlib import Path
@@ -20,8 +19,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "apps/api/src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from korpus.application.provenance_surface import EVIDENCE_SOURCE_PATHS
+from korpus.application.release_claim_manifest_tree import manifest_files
 from manifest_paths import source_included
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,28 +55,19 @@ def _git_paths(ref: str) -> list[Path] | None:
     return included or None
 
 
+def _archive_files() -> list[tuple[Path, bytes]]:
+    """Use exact verified gitless snapshot bytes, not a self-declared file subset."""
+    marker = ROOT / ".git"
+    if marker.exists() or marker.is_symlink():
+        raise RuntimeError("git metadata is present but the Git tree cannot be verified")
+    files = manifest_files(ROOT)
+    if files is None:
+        raise RuntimeError("restored source manifest is incomplete or ambiguous")
+    return [(path, content) for path, _mode, content in files]
+
+
 def _archive_paths() -> list[Path]:
-    manifest_path = ROOT / "SOURCE_MANIFEST.json"
-    if not manifest_path.is_file():
-        raise RuntimeError("neither Git metadata nor SOURCE_MANIFEST.json is available")
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    records = manifest.get("files")
-    if not isinstance(records, list):
-        raise RuntimeError("invalid source manifest")
-    paths: list[Path] = []
-    for record in records:
-        if not isinstance(record, dict) or not isinstance(record.get("path"), str):
-            raise RuntimeError("invalid source manifest record")
-        relative = record["path"]
-        if not _included(relative):
-            continue
-        path = (ROOT / relative).resolve()
-        if ROOT not in path.parents or not path.is_file():
-            raise RuntimeError(f"source-manifest file is missing or unsafe: {relative}")
-        if hashlib.sha256(path.read_bytes()).hexdigest() != record.get("sha256"):
-            raise RuntimeError(f"source-manifest hash mismatch: {relative}")
-        paths.append(Path(relative))
-    return sorted(paths, key=lambda value: value.as_posix())
+    return [path for path, _content in _archive_files()]
 
 
 def _same_evidence_source(commit: str, head: str) -> bool:
@@ -128,15 +120,14 @@ def included_paths(ref: str = "HEAD") -> list[Path]:
 
 def source_tree_digest(ref: str = "HEAD") -> str:
     git_paths = _git_paths(ref)
-    paths = git_paths if git_paths is not None else _archive_paths()
+    files = (
+        ((path, _git("show", f"{ref}:{path.as_posix()}")) for path in git_paths)
+        if git_paths is not None
+        else _archive_files()
+    )
     hasher = hashlib.sha256()
-    for relative_path in paths:
+    for relative_path, content in files:
         relative = relative_path.as_posix().encode("utf-8")
-        content = (
-            _git("show", f"{ref}:{relative_path.as_posix()}")
-            if git_paths is not None
-            else (ROOT / relative_path).read_bytes()
-        )
         hasher.update(len(relative).to_bytes(4, "big"))
         hasher.update(relative)
         hasher.update(len(content).to_bytes(8, "big"))
