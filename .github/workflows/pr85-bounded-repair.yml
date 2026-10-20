@@ -1,0 +1,210 @@
+name: pr85-bounded-repair
+
+on:
+  push:
+    branches: [audit/pr85-empty-component-fix-20261021]
+    paths: [.github/workflows/pr85-bounded-repair.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr85-bounded-repair-20261021
+  cancel-in-progress: false
+
+env:
+  EXPECTED_HEAD: eee2929507321107262cc8b8258505c616bf446b
+  TARGET_BRANCH: security/issue-18-20-distribution-boundary
+  EVIDENCE_DIR: ${{ runner.temp }}/pr85-repair
+  PYTHONDONTWRITEBYTECODE: '1'
+  PYTHONUNBUFFERED: '1'
+  PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/apps/api/src
+  KORPUS_ENVIRONMENT: test
+  KORPUS_SCHEMA_MODE: auto
+  KORPUS_DATABASE_URL: sqlite:///${{ github.workspace }}/var/ci.db
+  KORPUS_OBJECT_ROOT: ${{ github.workspace }}/var/objects
+  KORPUS_AUTH_MODE: dev
+  KORPUS_DEV_MODE_ACKNOWLEDGEMENT: I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE
+  KORPUS_BIND_HOST: 127.0.0.1
+  KORPUS_AUDIT_HMAC_KEY: ci-only-audit-key
+  KORPUS_JWT_SECRET: ci-only-jwt-key
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      patch_sha: ${{ steps.patch.outputs.patch_sha }}
+    steps:
+      - name: Checkout exact repair subject without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: eee2929507321107262cc8b8258505c616bf446b
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install canonical Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          set -euo pipefail
+          mkdir -p "$EVIDENCE_DIR" var
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test "$(git ls-remote origin "refs/heads/$TARGET_BRANCH" | cut -f1)" = "$EXPECTED_HEAD"
+          python -m pip install --no-deps --require-hashes -r apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Apply bounded parser correction and pure pathname tests
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          source = Path('scripts/distribution_runtime_policy.py')
+          original = source.read_bytes()
+          assert hashlib.sha256(original).hexdigest() == 'ea8bdbda83d4f9065b8933621e78e128664fd0f02bf9924e3b93d395dc2f14c4'
+          text = original.decode()
+          old_trust = '        parts[0] == "reports"\n        or parts[1:2] == ["reports"]\n'
+          old_return = '        ("var", "evidence") in pairs\n'
+          assert text.count(old_trust) == text.count(old_return) == 1
+          text = text.replace(old_trust, '        "reports" in parts[:2]\n')
+          text = text.replace(old_return, '        not all(parts)\n        or ("var", "evidence") in pairs\n')
+          source.write_text(text)
+          tests = Path('apps/api/tests/test_distribution_runtime_boundary.py')
+          assert 'test_normalized_empty_components_are_refused' not in tests.read_text()
+          addition = '''
+
+          @pytest.mark.parametrize("component", ["", ".", "..", "...", " ", " . "])
+          def test_normalized_empty_components_are_refused(component: str) -> None:
+              from scripts.distribution_runtime_policy import _opaque_path
+
+              assert _opaque_path(f"documents/{component}/file.txt")
+
+
+          @pytest.mark.parametrize(
+              "path",
+              [
+                  "docs/README.md",
+                  "reports/release/v0.9.7/evidence/report.json",
+                  "KORPUS/reports/release/v0.9.7/evidence/report.json",
+                  "handoff/evidence/current/MANIFEST.json",
+                  "KORPUS/handoff/evidence/current/MANIFEST.json",
+              ],
+          )
+          def test_normalized_path_guard_preserves_allowed_contracts(path: str) -> None:
+              from scripts.distribution_runtime_policy import _opaque_path
+
+              assert not _opaque_path(path)
+          '''
+          tests.write_text(tests.read_text().rstrip() + '\n' + addition)
+          doc = Path('docs/operations/DISTRIBUTION_RUNTIME_BOUNDARY.md')
+          doc.write_text(doc.read_text().rstrip() + '\n\n## Normalized-empty pathname components\n\nReject any path component that becomes empty after trailing-dot/space normalization. Apply this refusal before extraction even when an otherwise allowed reports or handoff prefix is present. Ordinary nonempty reports and handoff paths retain their existing contract. This is a parser guard, not production authorization.\n')
+          PY
+      - name: Verify focused tests, quality and exact budgets
+        run: |
+          set -euo pipefail
+          python -m ruff format scripts/distribution_runtime_policy.py apps/api/tests/test_distribution_runtime_boundary.py
+          python -m pytest apps/api/tests/test_distribution_runtime_boundary.py apps/api/tests/test_manifest_generation.py -q 2>&1 | tee "$EVIDENCE_DIR/focused-tests.log"
+          make api-lint PY=python 2>&1 | tee "$EVIDENCE_DIR/quality.log"
+          python scripts/check_module_budget.py > "$EVIDENCE_DIR/module-budget.json"
+          git diff --exit-code -- config/operations/module-budget.json
+      - name: Rebind canonical manifests and prepare validated patch
+        id: patch
+        run: |
+          set -euo pipefail
+          git add scripts/distribution_runtime_policy.py apps/api/tests/test_distribution_runtime_boundary.py docs/operations/DISTRIBUTION_RUNTIME_BOUNDARY.md
+          python scripts/generate_manifest.py --kind source --output SOURCE_MANIFEST.json
+          python scripts/sync_package_build_identity.py
+          python scripts/verify_source_manifest.py > "$EVIDENCE_DIR/source-manifest-verification.json"
+          python scripts/verify_package_build_identity.py > "$EVIDENCE_DIR/package-identity.log"
+          git add SOURCE_MANIFEST.json PACKAGE_BUILD.json
+          git diff --cached --check
+          python - <<'PY'
+          import hashlib, json, os, subprocess
+          from pathlib import Path
+          allowed = {'scripts/distribution_runtime_policy.py', 'apps/api/tests/test_distribution_runtime_boundary.py', 'docs/operations/DISTRIBUTION_RUNTIME_BOUNDARY.md', 'SOURCE_MANIFEST.json', 'PACKAGE_BUILD.json'}
+          changed = set(subprocess.check_output(['git', 'diff', '--cached', '--name-only'], text=True).splitlines())
+          assert changed == allowed, changed
+          manifest = json.loads(Path('SOURCE_MANIFEST.json').read_text())
+          assert manifest['file_count'] == 2126
+          patch = subprocess.check_output(['git', 'diff', '--binary', '--cached', 'HEAD'])
+          out = Path(os.environ['EVIDENCE_DIR'])
+          (out/'change.patch').write_bytes(patch)
+          digest = hashlib.sha256(patch).hexdigest()
+          (out/'verification-receipt.json').write_text(json.dumps({'expected_head': os.environ['EXPECTED_HEAD'], 'patch_sha256': digest, 'source_manifest_root': manifest['root_sha256'], 'changed_files': sorted(changed), 'production_authorized': False}, indent=2)+'\n')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'patch_sha={digest}\n')
+          print('Validated patch SHA-256:', digest)
+          PY
+      - name: Preserve verification output
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: pr85-validated-repair-${{ github.run_id }}
+          path: ${{ runner.temp }}/pr85-repair/
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout unchanged expected parent
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: eee2929507321107262cc8b8258505c616bf446b
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download same-run validated patch
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: pr85-validated-repair-${{ github.run_id }}
+          path: ${{ runner.temp }}/pr85-repair
+      - name: Independently verify patch scope and source bytes without executing repository code
+        env:
+          EXPECTED_PATCH_SHA: ${{ needs.verify.outputs.patch_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          python3 - <<'PY'
+          import hashlib, os
+          from pathlib import Path
+          patch=Path(os.environ['EVIDENCE_DIR'])/'change.patch'
+          assert hashlib.sha256(patch.read_bytes()).hexdigest() == os.environ['EXPECTED_PATCH_SHA']
+          PY
+          git -c core.hooksPath=/dev/null apply --index "$EVIDENCE_DIR/change.patch"
+          git diff --cached --check
+          python3 - <<'PY'
+          import hashlib, json, subprocess
+          from pathlib import Path
+          allowed={'scripts/distribution_runtime_policy.py','apps/api/tests/test_distribution_runtime_boundary.py','docs/operations/DISTRIBUTION_RUNTIME_BOUNDARY.md','SOURCE_MANIFEST.json','PACKAGE_BUILD.json'}
+          actual=set(subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines())
+          assert actual == allowed, actual
+          m=json.loads(Path('SOURCE_MANIFEST.json').read_text()); build=json.loads(Path('PACKAGE_BUILD.json').read_text())
+          assert len(m['files']) == m['file_count'] == 2126
+          for item in m['files']:
+              p=Path(item['path']); assert not p.is_absolute() and '..' not in p.parts
+              data=p.read_bytes()
+              assert len(data)==item['bytes'] and hashlib.sha256(data).hexdigest()==item['sha256'], str(p)
+              assert ('0755' if p.stat().st_mode & 0o111 else '0644')==item['mode'], str(p)
+          raw=''.join(f"{x['path']}\0{x['mode']}\0{x['sha256']}\n" for x in m['files']).encode()
+          assert hashlib.sha256(raw).hexdigest()==m['root_sha256']==build['source_manifest_root_sha256']
+          assert build['history_included'] is False and build['source_commit'] is None
+          print('Independent 2126-record byte/mode verification PASS')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -c core.hooksPath=/dev/null commit -m 'fix(package): reject normalized-empty pathname components before extraction [#20]' -m 'Preserve exact 30/5/14 module ceilings, add 11 pure pathname regression cases, update boundary documentation, and regenerate 2126-file source manifest plus package identity. Read-only verification job and independent publish byte/scope checks passed. No main update, threshold waiver or production authorization.'
+      - name: Publish only the authorized feature branch with a fast-forward lease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$TARGET_BRANCH" = 'security/issue-18-20-distribution-boundary'
+          test "$(git ls-remote origin "refs/heads/$TARGET_BRANCH" | cut -f1)" = "$EXPECTED_HEAD"
+          git -c credential.helper='!f() { printf "%s\n" "username=x-access-token" "password=$GH_TOKEN"; }; f' push origin "HEAD:refs/heads/$TARGET_BRANCH"
+          printf 'Published feature commit: `%s`\n\nNo merge or deployment.\n' "$(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          git show --stat --oneline HEAD
