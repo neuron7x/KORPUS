@@ -4841,6 +4841,15 @@
       "proof_lines": 0,
       "reason": "v6.8.1: new bounded helper centralizes POSIX mode/digest integrity without raising existing manifest verifier ceilings | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
+    "scripts/manifest_lib/source_contract.py": {
+      "lines": 66,
+      "max_complexity": 14,
+      "max_function_args": 1,
+      "max_function_lines": 20,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "2026-10-20 / #67 / PR #77: extracted strict source-manifest parser; exact AST measurements from scripts/check_module_budget.py (66 lines, complexity 14, function 20 lines, one argument, nesting 1); new module assigned its measured ceilings without relaxing existing module ratchets."
+    },
     "scripts/manifest_paths.py": {
       "lines": 90,
       "max_complexity": 5,

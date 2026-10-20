@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2114,
-  "root_sha256": "43139232988617691dff8909f8b8c3eebaa1622eb85c429f2fa23c6f783526e7",
+  "file_count": 2115,
+  "root_sha256": "31bad943f7adfb25ac145e984818ff6e992bc7917c85440f88963a9b73d6d174",
   "files": [
     {
       "path": ".dockerignore",
@@ -5623,8 +5623,8 @@
     },
     {
       "path": "apps/api/tests/test_source_manifest_evidence.py",
-      "bytes": 1340,
-      "sha256": "6ef92dcf7363e2c0af71c5141d135392f3bc91f4565cc253dd20a18786255ea7",
+      "bytes": 4357,
+      "sha256": "58ac2f809ea53016b04fc03d36135723226a3ca8b49c2b44d107f3d174ad4a03",
       "mode": "0644"
     },
     {
@@ -8227,8 +8227,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 753832,
-      "sha256": "2d8ab1e4a86b3bb4df9aae955cee9ec7519c96f02f056457c38e4b0cbf64a66d",
+      "bytes": 754346,
+      "sha256": "6b2d0bf7e44c7157b3c3a484ec431941f5ffbb373b5607bf75c42a24418724e5",
       "mode": "0644"
     },
     {
@@ -11466,6 +11466,12 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/manifest_lib/source_contract.py",
+      "bytes": 2672,
+      "sha256": "97eb8d2fdc0021882de2a4faf7279659331ddf6ae4cdcebb349cfa03fbded396",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/manifest_paths.py",
       "bytes": 3715,
       "sha256": "ad036883df60929b56012ed51a5825f6688f8588fbc0a1bb160c00c0ded13a3c",
@@ -12643,8 +12649,8 @@
     },
     {
       "path": "scripts/verify_source_manifest.py",
-      "bytes": 2989,
-      "sha256": "1f42818edc13808b6b5931b648f64d8d0c26ec1f8f1b7e4949fd46871a01bd15",
+      "bytes": 2786,
+      "sha256": "360fcea7f84dcc642f3691297fa09bf61e9092f80f2c4a7d3bef410249d911f9",
       "mode": "0755"
     },
     {

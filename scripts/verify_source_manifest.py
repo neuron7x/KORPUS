@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "apps/api/src")]
 from korpus.application.provenance import compute_source_digest
 from manifest_lib.integrity import manifest_failures, mode_string, record_failures
+from manifest_lib.source_contract import load_source_manifest
 from manifest_paths import source_paths
 from release_identity import release_tag
 
@@ -16,13 +17,11 @@ def verify(root: Path) -> dict[str, object]:
     path = root / "SOURCE_MANIFEST.json"
     if not path.is_file():
         return {"valid": False, "failures": ["SOURCE_MANIFEST.json is missing"]}
-    manifest = json.loads(path.read_text(encoding="utf-8"))
-    if manifest.get("schema") != "korpus.source-manifest.v2" or manifest.get("kind") != "source":
-        return {"valid": False, "failures": ["invalid source manifest schema"]}
-    records = manifest.get("files")
-    if not isinstance(records, list):
-        return {"valid": False, "failures": ["invalid source manifest records"]}
-    by_path = {str(record.get("path")): record for record in records if isinstance(record, dict)}
+    try:
+        manifest, records = load_source_manifest(path)
+    except (OSError, ValueError) as error:
+        return {"valid": False, "failures": [str(error)]}
+    by_path = {record["path"]: record for record in records}
     authoritative = [p.as_posix() for p in source_paths(root)]
     failures = manifest_failures(manifest, records)
     if sorted(by_path) != authoritative:
