@@ -1355,7 +1355,7 @@ def test_source_digest_inclusion_git_and_archive_validation(
         module, "_git", lambda *args: (_ for _ in ()).throw(subprocess.CalledProcessError(1, "git"))
     )
     assert module._git_paths("HEAD") is None
-    monkeypatch.setattr(module, "_git", lambda *args: b"reports/x.json\\0README.md\\0")
+    monkeypatch.setattr(module, "_git", lambda *args: b"reports/x.json\0README.md\0")
     assert module._git_paths("HEAD") == [Path("README.md")]
 
     monkeypatch.setattr(module, "ROOT", tmp_path)
