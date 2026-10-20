@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import zipfile
+from itertools import pairwise
 
 
 def _opaque_path(name: str) -> bool:
     parts = [part.rstrip(" .").casefold() for part in name.strip("/").split("/")]
-    pairs = set(zip(parts, parts[1:], strict=False))
+    pairs = set(pairwise(parts))
     trusted = (
         parts[0] == "reports"
         or parts[1:2] == ["reports"]

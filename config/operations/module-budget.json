@@ -4293,13 +4293,13 @@
       "reason": "Точна виміряна початкова стеля. Діагностика розведення запиту й розмірного зсуву — інструмент виміру гіпотез про пошук, не гейт."
     },
     "scripts/distribution_runtime_policy.py": {
-      "lines": 29,
+      "lines": 30,
       "max_complexity": 5,
       "max_function_args": 1,
       "max_function_lines": 14,
       "max_nesting": 0,
       "proof_lines": 0,
-      "reason": "Issue #20 P1 review: preserve tracked reports/release/.../evidence and handoff/evidence while rejecting opaque runtime paths with casefold plus Windows-trailing-dot/space normalization; exact 29/5/14/0."
+      "reason": "Issue #20: exact 30-line module after stdlib itertools.pairwise replacing adjacent zip, fixing RUF007 without weakening reserved-path semantics; function-shape ceilings unchanged."
     },
     "scripts/embedding_candidate_metrics.py": {
       "lines": 32,
@@ -12982,6 +12982,17 @@
         "max_function_lines": 14
       },
       "reason": "Independent P1 review proved reports/release evidence false positives and Windows extraction alias evasion. Added explicit admissible report roots and normalized path components with regression tests, no default gate changed."
+    },
+    {
+      "on": "2026-10-21",
+      "path": "scripts/distribution_runtime_policy.py",
+      "from": {
+        "lines": 29
+      },
+      "to": {
+        "lines": 30
+      },
+      "reason": "Canonical Ruff RUF007 requires importing itertools.pairwise rather than adjacent list-zip; one additional standard-library import, no behavior or function-shape growth."
     }
   ],
   "recorded_at": "2026-10-04",
