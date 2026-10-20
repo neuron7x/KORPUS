@@ -24,7 +24,7 @@ EnvironmentFile=%h/.local/state/korpus-pilot/api.env
 # уже залапкований; тут я повторила помилку, якої той файл уже не робить.
 # 8030 is owned by PBT CRM on the pilot host.  A fixed, declared KORPUS port keeps
 # process attribution unambiguous for readiness probes and incident response.
-ExecStart="@KORPUS_ROOT@/apps/api/.venv/bin/python" -m uvicorn korpus.main:app --host 127.0.0.1 --port 8040 --log-level warning --workers 2
+ExecStart="@KORPUS_ROOT@/apps/api/.venv/bin/python" -m uvicorn korpus.main:app --app-dir apps/api/src --host 127.0.0.1 --port 8040 --log-level warning --workers 2
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=20

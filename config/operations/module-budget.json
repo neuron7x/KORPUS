@@ -4779,13 +4779,13 @@
       "reason": "Третій вхід `check-nightly` і безпека проби мутацій: копія дерева замість редагування на місці, обробник сигналів, замок із перевіркою живості. Мутанти M480–M482."
     },
     "scripts/install_pilot_runtime.py": {
-      "lines": 34,
-      "max_complexity": 2,
+      "lines": 46,
+      "max_complexity": 3,
       "max_function_args": 1,
-      "max_function_lines": 10,
+      "max_function_lines": 11,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "23.09.2026: ідемпотентне встановлення двох оголошених юнітів приватного пілоту; точна початкова виміряна стеля."
+      "reason": "Issue #83: validate systemd workspace paths and unit names, escape literal percent specifiers, and render both units before filesystem writes. Supported-path regex keeps render at 9 lines; main gains one pre-render step. Verified by 21 pilot tests (19 added); no default ceilings or gate logic changed."
     },
     "scripts/install_public_runtime.py": {
       "lines": 35,
@@ -6589,6 +6589,21 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+    {
+      "on": "2026-10-20",
+      "path": "scripts/install_pilot_runtime.py",
+      "from": {
+        "lines": 34,
+        "max_complexity": 2,
+        "max_function_lines": 10
+      },
+      "to": {
+        "lines": 46,
+        "max_complexity": 3,
+        "max_function_lines": 11
+      },
+      "reason": "Issue #83: validate systemd workspace paths and unit names, escape literal percent specifiers, and render both units before filesystem writes. Supported-path regex keeps render at 9 lines; main gains one pre-render step. Verified by 21 pilot tests (19 added); no default ceilings or gate logic changed."
+    },
     {
       "changes": [
         {

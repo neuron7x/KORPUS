@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2120,
-  "root_sha256": "3fb79586b862d6607c18d145928e4a2645d1ddd7420074a6c3fe4cd7ed4833fd",
+  "root_sha256": "773820e533737112301c9f6d396a4ceb489c9376db4da72fe45bde282220744d",
   "files": [
     {
       "path": ".dockerignore",
@@ -4987,8 +4987,8 @@
     },
     {
       "path": "apps/api/tests/test_pilot_runtime_units.py",
-      "bytes": 899,
-      "sha256": "50ade53fbae29160b480e656768510165aec89b1842161063b97dd6863339335",
+      "bytes": 4454,
+      "sha256": "232a9fafdd3f4e0f4e6d2b4def900de4659da257959c801828ea0d56b7fc85d0",
       "mode": "0644"
     },
     {
@@ -8251,8 +8251,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 754704,
-      "sha256": "28ce2cadbe82f8fec4ae23202e1f9dccb8f510ae166bce77e1fecc451ac52693",
+      "bytes": 755432,
+      "sha256": "b3687dd1e277fd39046028bbea154198744adab4a5b84bc820fcb2b4908f6dce",
       "mode": "0644"
     },
     {
@@ -8431,8 +8431,8 @@
     },
     {
       "path": "deploy/pilot/korpus-pilot-api.service",
-      "bytes": 2484,
-      "sha256": "fafc8c2b2714775b8f3f5ae382d68edf49ccff94e82b51137468d1c44ed16fa4",
+      "bytes": 2507,
+      "sha256": "67721afae52344cd3d77b7276f821668eaab60debdb403a17f14242aff047cec",
       "mode": "0644"
     },
     {
@@ -11449,8 +11449,8 @@
     },
     {
       "path": "scripts/install_pilot_runtime.py",
-      "bytes": 1059,
-      "sha256": "43335f866f7da211e4b688fbc9ae8c564a67e0128e11001c00403fcebfc63a69",
+      "bytes": 1663,
+      "sha256": "b14a5ccec285b6b5b7bdbf0c4fe809ac0df4d65e2fcf894e718fa4fe4d81f0e6",
       "mode": "0755"
     },
     {
