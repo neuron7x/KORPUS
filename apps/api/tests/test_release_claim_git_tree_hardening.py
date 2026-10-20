@@ -402,6 +402,7 @@ def test_manifest_record_requires_canonical_relative_path(tmp_path: Path) -> Non
     record["path"] = "./source.py"
     assert manifest_tree.manifest_record((tmp_path, record)) is None
 
+
 @pytest.mark.parametrize(
     ("target", "poison"),
     [
