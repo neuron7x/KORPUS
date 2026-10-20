@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from korpus.application.provenance_surface import EVIDENCE_SOURCE_PATHS
 from korpus.application.release_claim_manifest_tree import manifest_files
 from manifest_paths import source_included
+from trusted_system_tools import git_environment, git_executable
 
 ROOT = Path(__file__).resolve().parents[1]
 DIGEST_SCOPE = "tracked_tree"
@@ -40,7 +41,16 @@ def _included(name: str) -> bool:
 
 
 def _git(*args: str) -> bytes:
-    return subprocess.run(["git", *args], cwd=ROOT, check=True, capture_output=True).stdout
+    executable = git_executable()
+    if executable is None:
+        raise FileNotFoundError("trusted Git executable unavailable")
+    return subprocess.run(
+        [executable, "--no-replace-objects", "-C", str(ROOT), *args],
+        cwd=ROOT,
+        env=git_environment(),
+        check=True,
+        capture_output=True,
+    ).stdout
 
 
 def _git_paths(ref: str) -> list[Path] | None:
@@ -71,15 +81,11 @@ def _archive_paths() -> list[Path]:
 
 
 def _same_evidence_source(commit: str, head: str) -> bool:
-    return (
-        subprocess.run(
-            ["git", "diff", "--quiet", commit, head, "--", *EVIDENCE_SOURCE_PATHS],
-            cwd=ROOT,
-            capture_output=True,
-            check=False,
-        ).returncode
-        == 0
-    )
+    try:
+        _git("diff", "--quiet", commit, head, "--", *EVIDENCE_SOURCE_PATHS)
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return False
+    return True
 
 
 def commits_with_identical_source(ref: str = "HEAD", depth: int = 64) -> tuple[str, ...]:
