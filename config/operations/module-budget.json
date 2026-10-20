@@ -6576,6 +6576,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Issue #54: locally recomputed release materials and exact GitHub run/ref/SHA context; initial measured ceiling."
+    },
+    "scripts/artifact_snapshot.py": {
+      "lines": 28,
+      "max_complexity": 4,
+      "max_function_args": 2,
+      "max_function_lines": 15,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #22: initial exact measured ceilings for descriptor-pinned package archive snapshot verification; no existing module ceiling raised."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
