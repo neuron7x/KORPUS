@@ -124,13 +124,10 @@ def test_an_absent_reproduction_is_absent_not_silently_fine(tmp_path: Path) -> N
 
 
 def test_the_reproduction_names_the_trunk_not_the_archive() -> None:
-    """Найсильніший позитивний доказ свідчив про АРХІВ, а не про основу.
+    """Reproduction must use the current canonical forge, not historical remote roles.
 
-    Перша редакція `reproduce_clean_room.py` тягнула з GitHub, а власний `post-commit`
-    цього дерева називає GitHub «дзеркало-архів: Actions заблоковані білінгом, він
-    нічого не запускає й НІЧОГО НЕ СТВЕРДЖУЄ, лише зберігає». Вирок конвеєра виносить
-    GitLab. Отже репродукція доводила відтворюваність не того дерева, яке судять.
-    Знайдено незалежною сесією 06.09.2026 — підміна ПРЕДМЕТА, не помилка коду.
+    Historical GitLab-trunk/GitHub-archive observations remain provenance, not
+    execution authority. Exact canonical and archive URLs must not be interchanged.
     """
     import importlib.util
 
@@ -142,6 +139,6 @@ def test_the_reproduction_names_the_trunk_not_the_archive() -> None:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 
-    assert "gitlab.com" in module.TRUNK
-    assert "github.com" in module.ARCHIVE
+    assert module.TRUNK == "https://github.com/neuron7x/KORPUS.git"
+    assert module.ARCHIVE == "https://gitlab.com/neuron7x/korpus-platform.git"
     assert module.TRUNK != module.ARCHIVE

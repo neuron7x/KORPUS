@@ -16,6 +16,7 @@ REGISTRY = ROOT / "config/operations/canonical-state.json"
 SCHEMA = "korpus.canonical-state.v1"
 MIRROR = "mirror"
 INTEGRATION_SOURCE = "integration-source"
+ARCHIVE = "archive"
 INTEGRATION_REGISTRY = "config/operations/branch-integration.json"
 
 
@@ -53,6 +54,10 @@ def observe(root: Path = ROOT, fetch: bool = False) -> dict[str, Any]:
         "head_branch": _git("rev-parse", "--abbrev-ref", "HEAD", root=root),
         "branches": sorted(branches),
         "remotes": {name: _git("remote", "get-url", name, root=root) for name in remotes},
+        "push_urls": {
+            name: (_git("remote", "get-url", "--push", "--all", name, root=root) or "").splitlines()
+            for name in remotes
+        },
         "worktrees": worktrees,
         "root": str(root),
     }
@@ -117,11 +122,7 @@ def _check_canonical_branch(
 
 
 def _check_checked_out(observation: dict[str, Any], registry: dict[str, Any]) -> dict[str, str]:
-    """Чи КАНОНІЧНИЙ каталог стоїть на канонічній гілці.
-
-    У worktree відповідь інша за побудовою, і оголосити це відмовою означало б
-    червоніти з ВЛАСНОЇ причини — вада, яку цей самий гейт існує ловити.
-    """
+    """Judge checkout only at the explicitly declared canonical workspace root."""
     declared_root = registry.get("canonical_root")
     if not isinstance(declared_root, str):
         return _finding("canonical_checked_out", "UNKNOWN", "реєстр не називає канонічного кореня")
@@ -205,18 +206,7 @@ def _check_trunk(measured: dict[str, Any], registry: dict[str, Any]) -> list[dic
 
 
 def _staleness(check: str, name: Any, days: float | None, ceiling: Any) -> dict[str, str]:
-    """Скільки діб відстає, проти НАЗВАНОГО порогу.
-
-    Це поріг, а не ратчет, і різниця тут суттєва. Перша версія міряла кількість
-    комітів відставання й ставила стелю на виміряному числі — і почервоніла на
-    ПЕРШОМУ ж власному коміті: кожен коміт у канонічну гілку додає одиницю, тож
-    стелю довелося б піднімати щоразу. Ратчет на величині, яка росте від роботи,
-    перетворюється на податок на роботу.
-
-    Вік стовбура від роботи не росте: його збільшує лише ЧАС, а fast-forward
-    обнуляє. Саме це ми й хочемо сказати — «стовбур мусить оновлюватись», а не
-    «працюйте менше».
-    """
+    """Judge mirror age against the declared time threshold, never commit count."""
     if days is None:
         return _finding(check, "UNKNOWN", f"{name}: вік не виміряно")
     if not isinstance(ceiling, (int, float)):
@@ -304,6 +294,8 @@ def _publication_findings(
             )
         )
         return found
+    if entry.get("role") == ARCHIVE:
+        found.append(_archive_push(name, observation))
     if entry.get("role") == MIRROR:
         found.append(
             _staleness(
@@ -318,6 +310,12 @@ def _publication_findings(
 
 def _publication_role(name: str, entry: dict[str, Any]) -> dict[str, str]:
     role = entry.get("role")
+    if role == ARCHIVE:
+        reason = entry.get("reason")
+        valid = (
+            entry.get("push_disabled") is True and isinstance(reason, str) and bool(reason.strip())
+        )
+        return _finding(f"publication_role:{name}", "PASS" if valid else "FAIL", "archive policy")
     if role == MIRROR:
         valid = isinstance(entry.get("tracks"), str) and isinstance(entry.get("max_days"), int)
     elif role == INTEGRATION_SOURCE:
@@ -326,6 +324,22 @@ def _publication_role(name: str, entry: dict[str, Any]) -> dict[str, str]:
         return _finding(f"publication_role:{name}", "FAIL", f"невідома роль: {role}")
     detail = f"роль {role} має виконуваний контракт" if valid else f"роль {role} без контракту"
     return _finding(f"publication_role:{name}", "PASS" if valid else "FAIL", detail)
+
+
+def _archive_push(name: str, observation: dict[str, Any]) -> dict[str, str]:
+    """A declared archive is read-only only when every effective push URL is disabled."""
+    observed = observation.get("push_urls")
+    urls = observed.get(name) if isinstance(observed, dict) else None
+    valid = (
+        isinstance(urls, list)
+        and bool(urls)
+        and all(
+            isinstance(url, str) and url.startswith("disabled://") and bool(url[11:].strip())
+            for url in urls
+        )
+    )
+    detail = "all observed push URLs disabled" if valid else "push target is live or unmeasured"
+    return _finding(f"publication_push_disabled:{name}", "PASS" if valid else "FAIL", detail)
 
 
 def _check_worktrees(observation: dict[str, Any], registry: dict[str, Any]) -> dict[str, str]:
@@ -345,12 +359,7 @@ def _check_worktrees(observation: dict[str, Any], registry: dict[str, Any]) -> d
 
 
 def _check_undecided(observation: dict[str, Any], registry: dict[str, Any]) -> dict[str, str]:
-    """Поверхня публікації, чия РОЛЬ ще не вирішена.
-
-    Це не недбалість і не діра в реєстрі: вона названа, виміряна й описана. Але поки
-    рішення немає, вона лишається другою поверхнею публікації, якої не міряє жодна
-    вісь, — і гейт мусить казати про це щоразу, а не один раз у листуванні.
-    """
+    """An observed publication whose role is undecided is a refusal, not silent acceptance."""
     pending = registry.get("awaiting_decision")
     pending = pending if isinstance(pending, list) else []
     live = sorted(

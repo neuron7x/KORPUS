@@ -85,3 +85,19 @@ def test_local_remotes_are_described_not_assumed(tmp_path: Path) -> None:
     assert set(roles) <= {"TRUNK", "ARCHIVE"}
     for role, remote in roles.items():
         assert remote, f"{role}: ім'я віддаленого порожнє"
+
+
+def test_canonical_forge_matches_current_github_and_archive_publication_contract() -> None:
+    forges = json.loads(DECLARATION.read_text(encoding="utf-8"))["forges"]
+    registry = json.loads((ROOT / "config/operations/canonical-state.json").read_text())
+    publications = {item["remote"]: item for item in registry["publications"]}
+    assert forges["trunk"]["url"] == "https://github.com/neuron7x/KORPUS.git"
+    assert forges["archive"]["url"] == "https://gitlab.com/neuron7x/korpus-platform.git"
+    assert publications["origin"]["url"] == forges["trunk"]["ssh"]
+    assert publications["origin"]["role"] == "mirror"
+    assert publications["origin"]["tracks"] == registry["canonical_branch"]
+    assert publications["gitlab"]["url"] == forges["archive"]["ssh"]
+    assert publications["gitlab"]["role"] == "archive"
+    assert publications["gitlab"]["push_disabled"] is True
+    assert forges["archive"]["push_disabled"] is True
+    assert publications["gitlab"]["reason"].strip()

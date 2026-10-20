@@ -23,6 +23,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/verify_canonical_state.py"
 REGISTRY = ROOT / "config/operations/canonical-state.json"
@@ -53,6 +55,10 @@ def _observation() -> dict[str, Any]:
         "remotes": {
             "gitlab": publications["gitlab"]["url"],
             "origin": publications["origin"]["url"],
+        },
+        "push_urls": {
+            "origin": [publications["origin"]["url"]],
+            "gitlab": ["disabled://read-only"],
         },
         "worktrees": [registry["canonical_root"], "/home/neuro7/.korpus-worktrees/a"],
         "root": registry["canonical_root"],
@@ -85,9 +91,23 @@ def _measured() -> dict[str, Any]:
         "trunk_behind": 126,
         "trunk_days": _registry_with_trunk()["trunk"]["max_days"] - 0.5,
         "trunk_is_ancestor": True,
-        "publication_behind": {"gitlab": 107},
-        "publication_days": {"gitlab": registry["publications"][0]["max_days"] - 0.5},
+        "publication_behind": {"origin": 107, "gitlab": 107},
+        "publication_days": {
+            "origin": registry["publications"][0]["max_days"] - 0.5,
+            "gitlab": 1.5,
+        },
     }
+
+
+def _registry_with_integration_source() -> dict[str, Any]:
+    """Keep historical role rules falsifiable without assigning them to current GitHub."""
+    registry = _registry()
+    for item in registry["publications"]:
+        if item["remote"] == "origin":
+            item.update(role="integration-source", governed_by=GATE.INTEGRATION_REGISTRY)
+        else:
+            item.update(role="mirror", tracks=CANON, max_days=2)
+    return registry
 
 
 def _finding(findings: list[dict[str, str]], check: str) -> dict[str, str]:
@@ -134,11 +154,11 @@ def test_the_publication_is_judged_by_age_too() -> None:
         _observation(),
         {
             **_measured(),
-            "publication_days": {"gitlab": registry["publications"][0]["max_days"] + 1},
+            "publication_days": {"origin": registry["publications"][0]["max_days"] + 1},
         },
         registry,
     )
-    assert _finding(stale, "publication_staleness:gitlab")["verdict"] == "FAIL"
+    assert _finding(stale, "publication_staleness:origin")["verdict"] == "FAIL"
 
 
 def test_age_is_measured_between_two_dates_and_missing_one_is_unknown() -> None:
@@ -163,7 +183,7 @@ def test_a_remote_pointing_somewhere_else_than_declared_is_refused() -> None:
 
 
 def test_origin_is_an_integration_source_governed_by_the_branch_registry() -> None:
-    findings = GATE.assess(_observation(), _measured(), _registry())
+    findings = GATE.assess(_observation(), _measured(), _registry_with_integration_source())
     assert _finding(findings, "publication_role_decided")["verdict"] == "PASS"
     assert _finding(findings, "publication_role:origin")["verdict"] == "PASS"
     assert not any(item["check"] == "publication_staleness:origin" for item in findings)
@@ -179,7 +199,7 @@ def test_the_undecided_remote_is_named_and_stays_red_until_decided() -> None:
 
 
 def test_an_integration_source_without_branch_governance_is_refused() -> None:
-    registry = _registry()
+    registry = _registry_with_integration_source()
     origin = next(item for item in registry["publications"] if item["remote"] == "origin")
     origin.pop("governed_by")
     findings = GATE.assess(_observation(), _measured(), registry)
@@ -188,7 +208,9 @@ def test_an_integration_source_without_branch_governance_is_refused() -> None:
 
 def test_an_unknown_publication_role_is_refused() -> None:
     registry = _registry()
-    registry["publications"][0]["role"] = "decorative"
+    next(item for item in registry["publications"] if item["remote"] == "gitlab")["role"] = (
+        "decorative"
+    )
     findings = GATE.assess(_observation(), _measured(), registry)
     assert _finding(findings, "publication_role:gitlab")["verdict"] == "FAIL"
 
@@ -203,7 +225,7 @@ def test_measurement_never_treats_an_integration_source_as_a_mirror(monkeypatch:
     monkeypatch.setattr(GATE, "behind", remember)
     monkeypatch.setattr(GATE, "committed_at", remember)
     monkeypatch.setattr(GATE, "is_ancestor", remember)
-    measured = GATE.measure(_observation(), _registry())
+    measured = GATE.measure(_observation(), _registry_with_integration_source())
     assert set(measured["publication_behind"]) == {"gitlab"}
     assert set(measured["publication_days"]) == {"gitlab"}
     assert not any(ref.startswith("origin/") for ref in refs)
@@ -333,3 +355,101 @@ def test_gate_reddens_on_every_defect_separately() -> None:
         [sys.executable, str(SCRIPT), "--selftest"], capture_output=True, text=True, check=False
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
+
+
+def test_current_mirror_is_github_and_archive_age_is_not_mirror_lag() -> None:
+    registry = _registry()
+    findings = GATE.assess(_observation(), _measured(), registry)
+    assert GATE.verdict(findings) == "PASS"
+    assert _finding(findings, "publication_staleness:origin")["verdict"] == "PASS"
+    assert _finding(findings, "publication_push_disabled:gitlab")["verdict"] == "PASS"
+    assert not any(item["check"] == "publication_staleness:gitlab" for item in findings)
+
+
+@pytest.mark.parametrize("disabled", [None, False, 0, 1, "true", [], {}])
+def test_archive_role_requires_exact_boolean_push_disable(disabled: object) -> None:
+    registry = _registry()
+    archive = next(item for item in registry["publications"] if item["role"] == "archive")
+    archive["push_disabled"] = disabled
+    result = GATE.assess(_observation(), _measured(), registry)
+    assert _finding(result, "publication_role:gitlab")["verdict"] == "FAIL"
+
+
+@pytest.mark.parametrize("reason", [None, "", "   ", False, 3, [], {}])
+def test_archive_role_requires_nonblank_string_reason(reason: object) -> None:
+    registry = _registry()
+    archive = next(item for item in registry["publications"] if item["role"] == "archive")
+    archive["reason"] = reason
+    result = GATE.assess(_observation(), _measured(), registry)
+    assert _finding(result, "publication_role:gitlab")["verdict"] == "FAIL"
+
+
+@pytest.mark.parametrize(
+    "observed",
+    [
+        None,
+        {},
+        {"gitlab": None},
+        {"gitlab": []},
+        {"gitlab": "disabled://read-only"},
+        {"gitlab": [None]},
+        {"gitlab": [False]},
+        {"gitlab": [""]},
+        {"gitlab": ["disabled://"]},
+        {"gitlab": ["disabled://   "]},
+        {"gitlab": ["https://example.invalid/archive.git"]},
+        {"gitlab": ["disabled://read-only", "https://example.invalid/archive.git"]},
+        {"gitlab": ["git@example.invalid:archive.git"]},
+        {"gitlab": ["/tmp/archive.git"]},
+    ],
+)
+def test_archive_never_passes_on_missing_malformed_or_live_push_evidence(observed: object) -> None:
+    observation = {**_observation(), "push_urls": observed}
+    result = GATE.assess(observation, _measured(), _registry())
+    assert _finding(result, "publication_push_disabled:gitlab")["verdict"] == "FAIL"
+
+
+def test_archive_has_no_age_measurement_and_mirror_does(monkeypatch: Any) -> None:
+    refs: list[str] = []
+
+    def remember(ref: str, *_args: Any, **_kwargs: Any):
+        refs.append(ref)
+        return None
+
+    monkeypatch.setattr(GATE, "behind", remember)
+    monkeypatch.setattr(GATE, "committed_at", remember)
+    monkeypatch.setattr(GATE, "is_ancestor", remember)
+    measured = GATE.measure(_observation(), _registry())
+    assert set(measured["publication_behind"]) == {"origin"}
+    assert set(measured["publication_days"]) == {"origin"}
+    assert not any(ref.startswith("gitlab/") for ref in refs)
+    assert any(ref.startswith("origin/") for ref in refs)
+
+
+def test_observer_reads_every_effective_push_url_without_modifying_remotes(tmp_path: Path) -> None:
+    subprocess.run(["git", "init", "--quiet", str(tmp_path)], check=True)
+
+    def git(*args: str):
+        return subprocess.run(
+            ["git", "-C", str(tmp_path), *args], capture_output=True, text=True, check=True
+        )
+
+    git("remote", "add", "gitlab", "https://example.invalid/archive.git")
+    observation = GATE.observe(tmp_path)
+    assert observation["push_urls"]["gitlab"] == ["https://example.invalid/archive.git"]
+    assert GATE._archive_push("gitlab", observation)["verdict"] == "FAIL"
+
+    git("config", "--add", "remote.gitlab.pushurl", "disabled://archive-read-only")
+    observation = GATE.observe(tmp_path)
+    assert observation["push_urls"]["gitlab"] == ["disabled://archive-read-only"]
+    assert GATE._archive_push("gitlab", observation)["verdict"] == "PASS"
+
+    git("config", "--add", "remote.gitlab.pushurl", "https://example.invalid/second.git")
+    before = git("config", "--local", "--list").stdout
+    observation = GATE.observe(tmp_path)
+    assert observation["push_urls"]["gitlab"] == [
+        "disabled://archive-read-only",
+        "https://example.invalid/second.git",
+    ]
+    assert GATE._archive_push("gitlab", observation)["verdict"] == "FAIL"
+    assert git("config", "--local", "--list").stdout == before

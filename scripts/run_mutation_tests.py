@@ -49,6 +49,56 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M728_ARCHIVE_POLICY_ACCEPTS_TRUTHY_DISABLE",
+        "scripts/verify_canonical_state.py",
+        'entry.get("push_disabled") is True and isinstance(reason, str) and bool(reason.strip())',
+        'bool(entry.get("push_disabled")) and isinstance(reason, str) and bool(reason.strip())',
+        (
+            "apps/api/tests/test_canonical_state.py::test_archive_role_requires_exact_boolean_push_disable",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M729_ARCHIVE_POLICY_ACCEPTS_BLANK_REASON",
+        "scripts/verify_canonical_state.py",
+        "and isinstance(reason, str) and bool(reason.strip())",
+        "and isinstance(reason, str)",
+        (
+            "apps/api/tests/test_canonical_state.py::test_archive_role_requires_nonblank_string_reason",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M730_ARCHIVE_ACCEPTS_ANY_DISABLED_PUSH_URL",
+        "scripts/verify_canonical_state.py",
+        "        and all(\n            isinstance(url, str)",
+        "        and any(\n            isinstance(url, str)",
+        (
+            "apps/api/tests/test_canonical_state.py::test_archive_never_passes_on_missing_malformed_or_live_push_evidence",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M731_ARCHIVE_OBSERVER_ONLY_READS_FIRST_PUSH_URL",
+        "scripts/verify_canonical_state.py",
+        '"get-url", "--push", "--all", name',
+        '"get-url", "--push", name',
+        (
+            "apps/api/tests/test_canonical_state.py::test_observer_reads_every_effective_push_url_without_modifying_remotes",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M732_ARCHIVE_IS_JUDGED_AS_CURRENT_MIRROR",
+        "scripts/verify_canonical_state.py",
+        '    if entry.get("role") == MIRROR:\n        found.append(',
+        '    if entry.get("role") in (MIRROR, ARCHIVE):\n        found.append(',
+        (
+            "apps/api/tests/test_canonical_state.py::test_current_mirror_is_github_and_archive_age_is_not_mirror_lag",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M630_FOLD_SKIPS_NEW_WINNERS",
         "apps/api/src/korpus/application/retrieval.py",
         "        for other in selected[seen:]:",

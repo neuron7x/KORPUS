@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from scripts.manifest_paths import source_included
@@ -11,7 +12,12 @@ def test_package_producer_excludes_git_history_by_construction() -> None:
     producer = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8")
     assert "git bundle" not in producer
     assert 'git archive --format=tar "$source_commit"' in producer
-    assert '"history_included":false' in producer
+    gate = 'python3 "$root/scripts/verify_package_build_identity.py" --root "$tmp"'
+    assert gate in producer
+    metadata = json.loads((ROOT / "PACKAGE_BUILD.json").read_text(encoding="utf-8"))
+    assert metadata["schema"] == "korpus.package-build.v2"
+    assert metadata["history_included"] is False
+    assert metadata["source_commit"] is None
     assert "git rev-parse HEAD" in producer
 
 

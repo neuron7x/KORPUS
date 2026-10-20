@@ -50,8 +50,9 @@ trap cleanup EXIT INT TERM
 
 # Freeze exactly one committed source revision. No .git, branches, refs or deleted blobs.
 git archive --format=tar "$source_commit" | tar -xf - -C "$tmp"
-printf '{"schema":"korpus.package-build.v1","source_commit":"%s","release":"%s","history_included":false}\n' \
-  "$source_commit" "$version" > "$tmp/PACKAGE_BUILD.json"
+# The archived v2 build metadata is part of the immutable source claim.
+# Never overwrite it with a legacy v1 receipt or an invented gitless commit.
+python3 "$root/scripts/verify_package_build_identity.py" --root "$tmp" > /dev/null
 
 if [[ -d reports ]]; then
   rm -rf "$tmp/reports"
@@ -85,10 +86,12 @@ release reports, selected evidence and manifests. `DISTRIBUTION_MANIFEST.json` �
 - приватний/обмежений corpus payload;
 - production authorization або зовнішня атестація, якщо вони не були реально отримані.
 
-Відсутність production-only evidence не маскується як PASS. `PACKAGE_BUILD.json` зв'язує
-архів з одним commit source tree. Старі гілки не є частиною release payload.
+Відсутність production-only evidence не маскується як PASS. `PACKAGE_BUILD.json`
+прив'язаний до `SOURCE_MANIFEST.json` і не приписує gitless архіву власного Git
+commit. Git SHA належить лише зовнішньому provenance поточного CI.
 DOC
 
+python3 "$root/scripts/verify_package_build_identity.py" --root "$tmp" > /dev/null
 [[ "$(git rev-parse HEAD)" == "$source_commit" ]] || { echo "HEAD moved before manifest construction" >&2; exit 1; }
 python3 "$root/scripts/generate_manifest.py" "$tmp" --kind distribution --output "$tmp/DISTRIBUTION_MANIFEST.json"
 (
