@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2115,
-  "root_sha256": "6812438e7374da6f745e47111c616cf7266cc1465039de1744c6d4f13990b764",
+  "root_sha256": "23f8f32ac94575770010920024c644d29538eafe082b300f73603283f62ffcba",
   "files": [
     {
       "path": ".dockerignore",
@@ -12649,8 +12649,8 @@
     },
     {
       "path": "scripts/verify_source_manifest.py",
-      "bytes": 2785,
-      "sha256": "d8c6d3a9c8613be04504966a26a11eade15cbd9cac7dfec06090be26415fe70d",
+      "bytes": 2786,
+      "sha256": "360fcea7f84dcc642f3691297fa09bf61e9092f80f2c4a7d3bef410249d911f9",
       "mode": "0755"
     },
     {

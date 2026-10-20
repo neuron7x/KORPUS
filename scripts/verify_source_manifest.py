@@ -12,6 +12,7 @@ from manifest_lib.source_contract import load_source_manifest
 from manifest_paths import source_paths
 from release_identity import release_tag
 
+
 def verify(root: Path) -> dict[str, object]:
     path = root / "SOURCE_MANIFEST.json"
     if not path.is_file():
