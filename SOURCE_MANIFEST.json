@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2117,
-  "root_sha256": "20733091c09f3c6abff0317de0e659fa290ec6ceb0f0d1f02710d817f322b992",
+  "file_count": 2118,
+  "root_sha256": "c09054a182a96224e46ce4ddd23360443d6d21d7f81d8b009e325cbbdf188122",
   "files": [
     {
       "path": ".dockerignore",
@@ -3619,8 +3619,8 @@
     },
     {
       "path": "apps/api/tests/test_clean_room_admission.py",
-      "bytes": 7093,
-      "sha256": "67020c0f82905cf6653c32ec4082a33a1c08586f53fd1807b39dab84ca55c7b4",
+      "bytes": 6600,
+      "sha256": "c3e7df438d6696d3959632459761435bfbf2937f3dc03d33eedf2b34f808fe9f",
       "mode": "0644"
     },
     {
@@ -4815,6 +4815,12 @@
       "path": "apps/api/tests/test_package_zip_safety.py",
       "bytes": 7153,
       "sha256": "baaee63c2d5fbda2a4aa47e339c9f670ea167ec144c988c54522c511b2741e34",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_packager_gitless_metadata.py",
+      "bytes": 2821,
+      "sha256": "4fbcc9cca4e9a49fd27a67916a9faf980aea240359f611448003ebd36e4790d8",
       "mode": "0644"
     },
     {
@@ -11593,8 +11599,8 @@
     },
     {
       "path": "scripts/package_repository.sh",
-      "bytes": 5867,
-      "sha256": "5287a32a6dac70ec83c284bc1b0722c81ae8210e433dace7b7a2cfa4317b98d7",
+      "bytes": 6106,
+      "sha256": "9a93475e4b96d167f79ac1932d8264b6da8c27cc8c603c546605f905bac0d9f2",
       "mode": "0755"
     },
     {
@@ -11905,8 +11911,8 @@
     },
     {
       "path": "scripts/reproduce_clean_room.py",
-      "bytes": 11667,
-      "sha256": "2657b1363539ffe0221c6f20624b19c29d920c78d217e39a4998a6adb9c8de21",
+      "bytes": 11516,
+      "sha256": "8660f49405b168d35160071d8f659988593374a5aad867abc6ac2e12984179db",
       "mode": "0755"
     },
     {

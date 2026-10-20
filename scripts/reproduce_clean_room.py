@@ -61,10 +61,9 @@ OUT = "reports/closure/CLEAN_ROOM_REPRODUCTION.json"
 def local_remotes_by_role(root: Path) -> dict[str, str]:
     """Які віддалені ЦЬОГО клону несуть яку роль — за URL, не за іменем.
 
-    Заради цього все й робилось. Хто хоче штовхнути в основу, більше не має
-    вгадувати, чи `origin` тут означає основу: він питає й дістає ім'я, яке
-    в ЦЬОМУ клоні на неї вказує. У каноні відповідь — `{"TRUNK": "gitlab",
-    "ARCHIVE": "origin"}`, і саме ця перевернутість півдня водила доказ не туди.
+    Роль визначається URL, а не назвою remote: GitHub — канонічний TRUNK,
+    GitLab — read-only ARCHIVE. Старі імена remote залишаються історичними,
+    а фактичну конфігурацію цього checkout потрібно спостерігати окремо.
     """
     listed = _run(["git", "-C", str(root), "remote", "-v"], root)
     found: dict[str, str] = {}
