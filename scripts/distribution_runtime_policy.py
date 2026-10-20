@@ -8,9 +8,9 @@ import zipfile
 def opaque_runtime_failures(zf: zipfile.ZipFile) -> list[str]:
     names = [info.filename for info in zf.infolist()]
     roots = {name.split("/", 1)[0] for name in names}
-    prefixes = ("",)
+    prefixes = [""]
     if len(roots) == 1:
-        prefixes += (f"{next(iter(roots))}/",)
+        prefixes.append(f"{next(iter(roots))}/")
     return [
         f"unverified runtime evidence forbidden: {name!r}"
         for name in names
