@@ -56,3 +56,60 @@ def test_failed_publication_revokes_stale_files(monkeypatch, tmp_path: Path) -> 
     assert module.main() == 1
     assert not (output / "COVERAGE_REPORT.json").exists()
     assert not (output / "DETERMINISM_GATE.json").exists()
+
+
+def _publisher_under_test(tmp_path: Path):
+    script = ROOT / "scripts/publish_release_evidence.py"
+    spec = importlib.util.spec_from_file_location("release_bytes_under_test", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.ROOT = tmp_path
+    module.SOURCES = {"GATE.json": "var/gate.json"}
+    return module
+
+
+def test_report_publisher_admits_exact_source_bytes_not_a_mutable_path(tmp_path: Path) -> None:
+    publisher = _publisher_under_test(tmp_path)
+    candidate = tmp_path / "var/gate.json"
+    candidate.parent.mkdir()
+    original = json.dumps({"source_tree_sha256": "a" * 64, "status": "PASS"}).encode()
+    candidate.write_bytes(original)
+    refusals: list[dict[str, str]] = []
+    admitted = publisher._admit_reports("a" * 64, refusals)
+    assert refusals == []
+    assert admitted == [("GATE.json", original)]
+    candidate.write_text(
+        json.dumps({"source_tree_sha256": "a" * 64, "status": "FAIL"}), encoding="utf-8"
+    )
+    destination = tmp_path / "admitted.json"
+    destination.write_bytes(admitted[0][1])
+    assert destination.read_bytes() == original != candidate.read_bytes()
+
+
+def test_duplicate_source_binding_key_is_refused(tmp_path: Path) -> None:
+    publisher = _publisher_under_test(tmp_path)
+    path = tmp_path / "var/gate.json"
+    path.parent.mkdir()
+    path.write_text(
+        '{"source_tree_sha256":"'
+        + "b" * 64
+        + '","source_tree_sha256":"'
+        + "a" * 64
+        + '","status":"PASS"}',
+        encoding="utf-8",
+    )
+    refused: list[dict[str, str]] = []
+    assert publisher._admit_reports("a" * 64, refused) == []
+    assert len(refused) == 1 and refused[0]["report"] == "GATE.json"
+
+
+def test_malformed_or_nonobject_release_claim_refused(tmp_path: Path) -> None:
+    publisher = _publisher_under_test(tmp_path)
+    path = tmp_path / "var/gate.json"
+    path.parent.mkdir()
+    for poison in ("{", "[]", "null"):
+        path.write_text(poison, encoding="utf-8")
+        refused: list[dict[str, str]] = []
+        assert publisher._admit_reports("a" * 64, refused) == []
+        assert len(refused) == 1 and "invalid source evidence" in refused[0]["reason"]

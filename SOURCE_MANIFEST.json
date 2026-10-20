@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2117,
-  "root_sha256": "fe8402b33beabbaf4f22bdf44125eafe00f30fcaa43f037aeed155b827671790",
+  "root_sha256": "b67cfce3182ed0ef74ef7f69b2a5d138ede7c597eebce78431cbcc1e69a2bdef",
   "files": [
     {
       "path": ".dockerignore",
@@ -5269,8 +5269,8 @@
     },
     {
       "path": "apps/api/tests/test_release_coverage_publication.py",
-      "bytes": 2354,
-      "sha256": "1f238b4e2f148d7dbf4c1a59bcb3e02e474a9b0a476043efb381019922cbe1ac",
+      "bytes": 4607,
+      "sha256": "96322662d58126d125505b22d5b5ea204611db77b71f2c5aba7441af79325eff",
       "mode": "0644"
     },
     {
@@ -11809,8 +11809,8 @@
     },
     {
       "path": "scripts/publish_release_evidence.py",
-      "bytes": 5490,
-      "sha256": "adb063848a15a2599371172133da520cd120fda61c9d6213fa9c37b6ff65525e",
+      "bytes": 5019,
+      "sha256": "e4ea21d0ca6c5cc6e229c98b1f25c68205f7fa0a379efc906ef3809625921616",
       "mode": "0755"
     },
     {
