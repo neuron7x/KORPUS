@@ -108,8 +108,8 @@ def _public_https_url(url: object) -> bool:
             parts.scheme != "https"
             or not host
             or parts.port is not None
-            or parts.fragment
-            or parts.query
+            or "#" in url
+            or "?" in url
             or parts.username is not None
             or parts.password is not None
         ):

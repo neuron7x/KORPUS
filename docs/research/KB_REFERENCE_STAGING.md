@@ -44,3 +44,15 @@ The separate 128-KiB descriptor-read bound and all production-denial fields are 
 
 References: https://jsonlines.org/ and
 https://docs.python.org/3.12/library/stdtypes.html#str.splitlines .
+
+## URL component admission
+
+Metadata reference URLs must have no query or fragment component, including an
+empty component introduced by a literal `?` or `#`. The identity key deliberately
+contains only hostname and canonical path; silently admitting and dropping those
+delimiters would conflate distinct URI references. Percent-encoded `%3F` and `%23`
+in a path remain path data and are not decoded into component separators.
+This is a local syntax/identity policy, never DNS, egress or reuse authorization.
+
+Reference: RFC 3986 sections 5.3 and 6.2.3,
+https://www.rfc-editor.org/rfc/rfc3986.html .
