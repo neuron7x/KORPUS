@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2141,
-  "root_sha256": "1b495959b358d6987c153b62d9cf9ccf3b061fb6de3fffefb3f0dac14ce4aa8f",
+  "root_sha256": "e4c7d9db3b9766a378244a22952963266abb6cda2d0469a2dfeb0235c59b75fc",
   "files": [
     {
       "path": ".dockerignore",
@@ -12745,8 +12745,8 @@
     },
     {
       "path": "scripts/verify_package.py",
-      "bytes": 4028,
-      "sha256": "636585e26d6225d6bf96c19679a85f1482a7dfc250b2024c6ed3301e5ac7c21f",
+      "bytes": 3772,
+      "sha256": "3048920eeb7dc03f97f4e2eae31666c854797e06a59dd0808fef7769e8ef6750",
       "mode": "0755"
     },
     {
@@ -12793,8 +12793,8 @@
     },
     {
       "path": "scripts/verify_release_evidence.py",
-      "bytes": 2281,
-      "sha256": "66d329b2320b24348218556ab91dbb2d2024c8c70fe4540ba0c2cf7bc41e2120",
+      "bytes": 2293,
+      "sha256": "fd156fd384366510301f1089293d1c8ef6df4edf890c10a7c9140d3e07bef4ab",
       "mode": "0755"
     },
     {

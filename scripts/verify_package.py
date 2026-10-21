@@ -18,8 +18,10 @@ from distribution_runtime_policy import opaque_runtime_failures
 from manifest_lib.integrity import archive_modes, archive_root, record_failures
 from zip_safety import safety_failures
 
+Record = dict[str, object]
 
-def _load_records(root: Path, failures: list[str]) -> dict[str, dict[str, object]]:
+
+def _load_records(root: Path, failures: list[str]) -> dict[str, Record]:
     path = root / "DISTRIBUTION_MANIFEST.json"
     if not path.is_file():
         raise RuntimeError("DISTRIBUTION_MANIFEST.json missing from archive")
@@ -30,24 +32,16 @@ def _load_records(root: Path, failures: list[str]) -> dict[str, dict[str, object
     if not isinstance(records, list):
         failures.append("invalid distribution manifest records")
         return {}
-    result: dict[str, dict[str, object]] = {}
-    for record in records:
-        if not isinstance(record, dict) or not isinstance(record.get("path"), str):
-            failures.append("invalid distribution manifest record")
-            continue
-        relative = str(record["path"])
-        if relative in result:
-            failures.append(f"duplicate distribution manifest path: {relative}")
-            continue
-        result[relative] = record
+    result = {
+        str(record["path"]): record
+        for record in records
+        if isinstance(record, dict) and isinstance(record.get("path"), str)
+    }
+    failures += ["invalid/duplicate distribution manifest path"] * (len(result) != len(records))
     return result
 
 
-def _verify_tree(
-    root: Path,
-    records: dict[str, dict[str, object]],
-    archive_modes: dict[str, str],
-) -> list[str]:
+def _verify_tree(root: Path, records: dict[str, Record], modes: dict[str, str]) -> list[str]:
     failures = []
     actual = sorted(
         p.relative_to(root).as_posix()
@@ -65,7 +59,7 @@ def _verify_tree(
         record = records.get(relative)
         if record is None:
             continue  # named by the parity line above; an empty record reports path=None
-        failures.extend(record_failures(root / relative, record, archive_modes.get(relative)))
+        failures.extend(record_failures(root / relative, record, modes.get(relative)))
     return failures
 
 
@@ -95,12 +89,7 @@ def main() -> int:
         failures, files, digest = verify_snapshot(archive, verify)
     except (RuntimeError, OSError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
         failures, files, digest = [str(exc)], 0, None
-    payload = {
-        "valid": not failures,
-        "archive": str(archive),
-        "sha256": digest,
-        "files": files,
-    }
+    payload = {"valid": not failures, "archive": str(archive), "sha256": digest, "files": files}
     if failures:
         payload["failures"] = failures
     print(json.dumps(payload, indent=2))

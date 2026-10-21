@@ -14,29 +14,23 @@ from source_digest import source_tree_digest
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORTS = ROOT / "reports"
-
-
-def sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+REPORT_NAMES = ("RESEARCH_ASSURANCE_REPORT.json", "ASSURANCE_SNAPSHOT.json")
 
 
 def main() -> int:
     failures: list[str] = []
-    assurance_path = REPORTS / "RESEARCH_ASSURANCE_REPORT.json"
-    snapshot_path = REPORTS / "ASSURANCE_SNAPSHOT.json"
+    assurance_path, snapshot_path = (REPORTS / name for name in REPORT_NAMES)
     if not assurance_path.is_file() or not snapshot_path.is_file():
         raise SystemExit("release evidence is missing")
     assurance = json.loads(assurance_path.read_text(encoding="utf-8"))
     snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
     expected_release = os.getenv("KORPUS_RELEASE_VERSION", release_tag())
-    if assurance.get("status") != "PASS":
-        failures.append("assurance status is not PASS")
+    failures.extend(["assurance status is not PASS"] * (assurance.get("status") != "PASS"))
     actual_digest = source_tree_digest("HEAD")
-    if assurance.get("source_tree_sha256") != actual_digest:
-        failures.append("assurance source digest does not match committed HEAD")
+    digest_matches = assurance.get("source_tree_sha256") == actual_digest
+    failures += ["assurance source digest does not match committed HEAD"] * (not digest_matches)
     binding_failure = evidence_source_binding_failure(assurance.get("evidence_source_sha256"))
-    if binding_failure:
-        failures.append(binding_failure)
+    failures.extend([str(binding_failure)] * (binding_failure is not None))
     if snapshot.get("status") != "PASS" or snapshot.get("release") != expected_release:
         failures.append("assurance snapshot release/status mismatch")
     for record in snapshot.get("records", []):
@@ -44,7 +38,7 @@ def main() -> int:
         if (
             not path.is_file()
             or path.stat().st_size != record.get("bytes")
-            or sha256(path) != record.get("sha256")
+            or hashlib.sha256(path.read_bytes()).hexdigest() != record.get("sha256")
         ):
             failures.append(f"snapshot record mismatch: {record.get('path')}")
     if failures:
