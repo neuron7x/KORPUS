@@ -1,0 +1,145 @@
+name: canonical-convergence-audit
+
+# Temporary controller evidence, not a source-admission or production check.
+on:
+  push:
+    branches: [integration/canonical-main-20261021]
+    paths: [.github/workflows/canonical-convergence-audit.yml]
+permissions:
+  contents: read
+concurrency:
+  group: canonical-convergence-audit
+  cancel-in-progress: false
+jobs:
+  inventory:
+    if: github.repository == 'neuron7x/KORPUS'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Read immutable audit and complete branch graph
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install exact Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Inventory without executing repository code
+        shell: bash
+        run: |
+          python - <<'PY'
+          import collections
+          import functools
+          import hashlib
+          import json
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
+
+          PINS = {
+              'main': '345c0f7daf1da2152d0e554cc8733381ca5a1e9e',
+              'stack': '1d9329d8c08cc96ded90f8580017275267a6225f',
+              'kb': '1a79f590579422de28c6e5ff7997a3b1d9beb18e',
+          }
+          BRANCHES = {
+              'main': 'main',
+              'stack': 'security/issue-20-report-evidence-boundary',
+              'kb': 'research/kb-reference-metadata-gate-20261021',
+          }
+          SELF = 'integration/canonical-main-20261021'
+          OUT = Path(os.environ['RUNNER_TEMP']) / 'canonical-convergence'
+          OUT.mkdir()
+          ENV = {k: v for k, v in os.environ.items() if k not in ('GH_TOKEN', 'GITHUB_TOKEN', 'GIT_EXTERNAL_DIFF')}
+          ENV.update(GIT_NO_REPLACE_OBJECTS='1', GIT_TERMINAL_PROMPT='0')
+
+          def git(*args, codes=(0,)):
+              result = subprocess.run(['git', '--no-replace-objects', *args], env=ENV,
+                                      capture_output=True, timeout=90, check=False)
+              if result.returncode not in codes:
+                  raise RuntimeError(f'git {args[0]} returned {result.returncode}: {result.stderr[:500]!r}')
+              return result
+
+          def text(*args):
+              return git(*args).stdout.decode('utf-8').strip()
+
+          @functools.lru_cache(maxsize=None)
+          def ancestor(a, b):
+              return git('merge-base', '--is-ancestor', a, b, codes=(0, 1)).returncode == 0
+
+          def write(name, value):
+              data = (json.dumps(value, ensure_ascii=True, indent=2, sort_keys=True) + '\n').encode()
+              (OUT / name).write_bytes(data)
+
+          if text('rev-parse', '--is-shallow-repository') != 'false':
+              raise RuntimeError('A complete graph is required')
+          heads = {}
+          for line in text('for-each-ref', '--format=%(refname)\t%(objectname)', 'refs/remotes/origin/').splitlines():
+              ref, sha = line.split('\t')
+              name = ref.removeprefix('refs/remotes/origin/')
+              if name == 'HEAD':
+                  continue
+              if not re.fullmatch('[0-9a-f]{40}', sha):
+                  raise RuntimeError('Invalid SHA')
+              heads[name] = sha
+          if not 1 <= len(heads) <= 1000:
+              raise RuntimeError('Branch count outside audit bound')
+          for role, name in BRANCHES.items():
+              if heads.get(name) != PINS[role]:
+                  raise RuntimeError(f'Source drift for {role}; do not continue')
+          main = PINS['main']
+          rows = []
+          for name, sha in sorted(heads.items()):
+              behind, ahead = map(int, text('rev-list', '--left-right', '--count', f'{main}...{sha}').split())
+              included = ancestor(sha, main)
+              tree = text('rev-parse', f'{sha}^{{tree}}')
+              parents = text('show', '-s', '--format=%P', sha).split()
+              row = dict(branch=name, sha=sha, tree=tree, parents=parents, ahead=ahead, behind=behind,
+                         included_in_main=included, audit_branch=(name == SELF))
+              row['contained_in_heads'] = [other for other, target in sorted(heads.items())
+                                           if other not in (name, SELF, 'main') and ancestor(sha, target)]
+              row['classification'] = ('MAIN' if name == 'main' else 'AUDIT_ONLY' if name == SELF else
+                                       'IN_MAIN' if included else 'AHEAD' if behind == 0 else 'DIVERGED')
+              if not included and name != SELF:
+                  changes = git('diff', '--no-ext-diff', '--no-textconv', '--name-only', '-z', main, sha).stdout
+                  row['changed_paths_vs_main'] = [p.decode('utf-8') for p in changes.split(b'\0') if p]
+                  cherries = text('cherry', main, sha).splitlines()
+                  row['patch_equivalent_nonmerge_commits'] = sum(x.startswith('- ') for x in cherries)
+                  row['unmatched_nonmerge_commits'] = sum(x.startswith('+ ') for x in cherries)
+                  row['patch_comparison_is_not_semantic_review'] = True
+              rows.append(row)
+          for role, sha in PINS.items():
+              entries = []
+              for raw in git('ls-tree', '-r', '-z', sha).stdout.split(b'\0'):
+                  if raw:
+                      meta, path = raw.split(b'\t', 1)
+                      mode, kind, blob = meta.decode().split()
+                      entries.append(dict(path=path.decode('utf-8'), mode=mode, type=kind, sha=blob))
+              write(role + '-tree.json', entries)
+              for path, suffix in [('SOURCE_MANIFEST.json', 'manifest'), ('PACKAGE_BUILD.json', 'package'),
+                                   ('config/operations/module-budget.json', 'budget')]:
+                  (OUT / (role + '-' + suffix + '.json')).write_bytes(git('show', f'{sha}:{path}').stdout)
+              if role != 'main':
+                  (OUT / (role + '.diff')).write_bytes(git('diff', '--no-ext-diff', '--no-textconv', main, sha).stdout)
+          report = dict(schema='korpus.canonical-convergence-inventory.v1', pins=PINS,
+                        run_id=os.environ['GITHUB_RUN_ID'], workflow_sha=os.environ['GITHUB_SHA'],
+                        branch_count=len(rows), counts=dict(collections.Counter(r['classification'] for r in rows)),
+                        branches=rows, merge_authorized=False, production_authorized=False,
+                        interpretation='Graph and patch inventory only; not CI, security, deletion or merge approval.')
+          write('inventory.json', report)
+          files = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(OUT.iterdir())}
+          write('SHA256.json', files)
+          print(json.dumps({'branch_count': len(rows), 'counts': report['counts'], 'pins': PINS}, sort_keys=True))
+          for row in rows:
+              print(row['classification'], row['branch'], row['sha'], 'ahead', row['ahead'], 'behind', row['behind'])
+          PY
+      - name: Preserve immutable inventory evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: canonical-convergence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/canonical-convergence/
+          if-no-files-found: error
+          retention-days: 14
