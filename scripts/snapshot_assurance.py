@@ -40,8 +40,8 @@ def sha256(path: Path) -> str:
 
 
 def load_json(path: Path) -> dict[str, object]:
-    if not path.is_file():
-        raise SystemExit(f"missing assurance output: {path}")
+    if not path.is_file() or path.is_symlink():
+        raise SystemExit(f"missing or symlinked assurance output: {path}")
     return dict(strict_signed_json_object(path.read_bytes(), f"assurance output {path}"))
 
 
@@ -77,6 +77,7 @@ def complete_snapshot_records(value: object) -> list[dict[str, object]]:
         return []
     valid = all(
         (path := ROOT / str(item["path"])).is_file()
+        and not path.is_symlink()
         and path.stat().st_size == item.get("bytes")
         and hashlib.sha256(path.read_bytes()).hexdigest() == item.get("sha256")
         for item in records

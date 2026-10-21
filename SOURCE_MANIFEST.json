@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2141,
-  "root_sha256": "2b8c5fd4b22f082ca6a73f4c3acf6a018a0e5e4b0f6057b6d2f40f86e23f385c",
+  "root_sha256": "6ecacf3afa28985ea06c9f79c6b7f6acfe541c520740e284038f1db7648cef54",
   "files": [
     {
       "path": ".dockerignore",
@@ -1345,8 +1345,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/final_release_evidence.py",
-      "bytes": 1453,
-      "sha256": "4a49e5b39e8fa7156bc2935aa503385acc2e750b119d9a36102372cbde10e906",
+      "bytes": 1522,
+      "sha256": "8b9cb744b7d4701574cba6b8a1b2fce42b7dfd4df73f435e0aa900cc44e420b4",
       "mode": "0644"
     },
     {
@@ -4117,8 +4117,8 @@
     },
     {
       "path": "apps/api/tests/test_evidence_source_binding.py",
-      "bytes": 12399,
-      "sha256": "1795bc0aced7f60c4d33d71dda5e7c3ad89217663eb2cd98cccbaf7fe653f1dd",
+      "bytes": 14310,
+      "sha256": "fad741c1e2bf9e77026c221fab24d2598df4e03098de3367645eb60dcf2ec2c1",
       "mode": "0644"
     },
     {
@@ -4585,8 +4585,8 @@
     },
     {
       "path": "apps/api/tests/test_manifest_generation.py",
-      "bytes": 5025,
-      "sha256": "762dfa2bff0249db7e837d26ec86a7d596be2d7ca9db46f0d4623a8ae4894157",
+      "bytes": 7420,
+      "sha256": "e36b81d9e0bf914e9bdad40bc72bad7a5ddc6cd5ddb80830644c6a809f4491cb",
       "mode": "0644"
     },
     {
@@ -5701,8 +5701,8 @@
     },
     {
       "path": "apps/api/tests/test_source_manifest_evidence.py",
-      "bytes": 4357,
-      "sha256": "58ac2f809ea53016b04fc03d36135723226a3ca8b49c2b44d107f3d174ad4a03",
+      "bytes": 5269,
+      "sha256": "2c3138614c2b0b4f80ba2d4a569bb87d2bb40a9d86b5f8461dad67b80a73cdac",
       "mode": "0644"
     },
     {
@@ -11611,8 +11611,8 @@
     },
     {
       "path": "scripts/manifest_lib/integrity.py",
-      "bytes": 2751,
-      "sha256": "c92cbb98bd72940a2b1c8defc901cb9c657e400322442956159bd57788e3f664",
+      "bytes": 2753,
+      "sha256": "e0345d576f23da5ae248ce960a55b009e4608cd0f3aeb94d56e5dcb5aa52a1c7",
       "mode": "0644"
     },
     {
@@ -11623,8 +11623,8 @@
     },
     {
       "path": "scripts/manifest_paths.py",
-      "bytes": 3677,
-      "sha256": "72a75fe69f0ba3c3a1693e433d9f143f39af256b7ab556fe56852c3e3a0f8306",
+      "bytes": 3072,
+      "sha256": "68d98077b0dcc9b31df86bd45cf262ab40a00f909d6e477ddc7eede8461221a9",
       "mode": "0644"
     },
     {
@@ -12445,8 +12445,8 @@
     },
     {
       "path": "scripts/snapshot_assurance.py",
-      "bytes": 10233,
-      "sha256": "b60cadfa2c46d2fe0c4999aac7e581596922cba451d346cb050e9b842a1ed74f",
+      "bytes": 10301,
+      "sha256": "b46a37bf693efb9b11bdbaf4f999f0dc7f4e2a6d7139a78c68dca3d8ae62a6bf",
       "mode": "0755"
     },
     {
@@ -12805,8 +12805,8 @@
     },
     {
       "path": "scripts/verify_source_manifest.py",
-      "bytes": 2786,
-      "sha256": "360fcea7f84dcc642f3691297fa09bf61e9092f80f2c4a7d3bef410249d911f9",
+      "bytes": 2854,
+      "sha256": "6d6bf2592d3093fa43645e436fc069bb1fb68972d7ee0c92296c741238c721ed",
       "mode": "0755"
     },
     {

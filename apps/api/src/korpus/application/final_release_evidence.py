@@ -11,26 +11,26 @@ PRODUCTION_AUTHORIZATION_BLOCKERS = (
 )
 
 
-class _DuplicateKey(ValueError):
+class _InvalidJsonValue(ValueError):
     pass
 
 
-def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+def _unique_object(pairs: list[tuple[str, Any]] | str) -> dict[str, Any]:
+    if isinstance(pairs, str):
+        raise _InvalidJsonValue(f"non-finite constant {pairs}")
     result: dict[str, Any] = {}
     for key, value in pairs:
         if key in result:
-            raise _DuplicateKey(repr(key))
+            raise _InvalidJsonValue(f"duplicate key {key!r}")
         result[key] = value
     return result
 
 
 def strict_signed_json_object(data: bytes, label: str) -> Mapping[str, Any]:
     try:
-        value = json.loads(data, object_pairs_hook=_unique_object)
-    except _DuplicateKey as error:
-        raise ValueError(f"{label} contains duplicate key {error}") from error
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise ValueError(f"{label} is not valid JSON") from error
+        value = json.loads(data, object_pairs_hook=_unique_object, parse_constant=_unique_object)
+    except (_InvalidJsonValue, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError(f"{label} is not valid JSON: {error}") from error
     if not isinstance(value, dict):
         raise ValueError(f"{label} must contain an object")
     return value

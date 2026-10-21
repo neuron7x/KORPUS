@@ -288,3 +288,49 @@ def test_release_verifier_rejects_snapshot_limitation_omission(
     monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
     monkeypatch.setattr(module, "evidence_source_binding_failure", lambda _claimed: None)
     assert module.main() == 1
+
+
+def test_release_verifier_rejects_symlinked_snapshot_record(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    report = reports / "EVAL_REPORT.json"
+    outside = tmp_path / "outside-eval.json"
+    outside.write_bytes(report.read_bytes())
+    report.unlink()
+    report.symlink_to(outside)
+    monkeypatch.setattr(module, "REPORTS", reports)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setitem(module.complete_snapshot_records.__globals__, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "release_tag", lambda: "v-test")
+    monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
+    monkeypatch.setattr(module, "evidence_source_binding_failure", lambda _claimed: None)
+    assert module.main() == 1
+
+
+def test_release_verifier_rejects_symlinked_snapshot_document(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    snapshot = reports / "ASSURANCE_SNAPSHOT.json"
+    outside = tmp_path / "outside-snapshot.json"
+    snapshot.rename(outside)
+    snapshot.symlink_to(outside)
+    monkeypatch.setattr(module, "REPORTS", reports)
+    with pytest.raises(SystemExit, match="symlinked assurance output"):
+        module.main()
+
+
+def test_release_verifier_rejects_nonfinite_json(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    assurance = reports / "RESEARCH_ASSURANCE_REPORT.json"
+    text = assurance.read_text(encoding="utf-8")
+    assurance.write_text(text.replace('"status":', '"metric": NaN, "status":', 1))
+    monkeypatch.setattr(module, "REPORTS", reports)
+    with pytest.raises(ValueError, match="non-finite constant NaN"):
+        module.main()

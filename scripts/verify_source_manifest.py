@@ -15,8 +15,8 @@ from release_identity import release_tag
 
 def verify(root: Path) -> dict[str, object]:
     path = root / "SOURCE_MANIFEST.json"
-    if not path.is_file():
-        return {"valid": False, "failures": ["SOURCE_MANIFEST.json is missing"]}
+    if path.is_symlink() or not path.is_file():
+        return {"valid": False, "failures": ["SOURCE_MANIFEST.json is missing or symlinked"]}
     try:
         manifest, records = load_source_manifest(path)
     except (OSError, ValueError) as error:
@@ -32,8 +32,8 @@ def verify(root: Path) -> dict[str, object]:
         )
     for relative in authoritative:
         file, record = root / relative, by_path.get(relative)
-        if not file.is_file():
-            failures.append(f"missing source file: {relative}")
+        if file.is_symlink() or not file.is_file():
+            failures.append(f"missing or symlinked source file: {relative}")
         elif record is None:
             continue
         else:

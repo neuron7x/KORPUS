@@ -17,6 +17,8 @@ def mode_string(path: Path, *, source: bool = False) -> str:
 
 
 def file_record(path: Path, relative: Path, *, source: bool = False) -> dict[str, object]:
+    if path.is_symlink():
+        raise ValueError(f"manifest entry is a symlink: {relative.as_posix()}")
     content = path.read_bytes()
     return {
         "path": relative.as_posix(),
@@ -55,18 +57,15 @@ def archive_modes(zf: zipfile.ZipFile, root_name: str) -> dict[str, str]:
     for info in zf.infolist():
         if info.is_dir():
             continue
-        name = (
-            info.filename[len(prefix) :]
-            if prefix and info.filename.startswith(prefix)
-            else info.filename
-        )
+        name = info.filename.removeprefix(prefix)
         if name != "DISTRIBUTION_MANIFEST.json":
             result[name] = f"{(info.external_attr >> 16) & 0o777:04o}"
     return result
 
 
 def record_failures(path: Path, record: dict[str, object], mode: str | None = None) -> list[str]:
-    content, relative = path.read_bytes(), str(record.get("path"))
+    relative = str(record.get("path"))
+    content = path.read_bytes()
     failures: list[str] = []
     if (
         record.get("bytes") != len(content)
