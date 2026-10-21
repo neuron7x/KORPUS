@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import subprocess
@@ -32,6 +33,7 @@ from evidence_source_binding import (  # noqa: E402
     committed_evidence_source_digest,
     evidence_source_binding_failure,
 )
+from snapshot_assurance import SOURCES  # noqa: E402
 
 
 def _evidence_surface_is_clean() -> bool:
@@ -97,6 +99,26 @@ def test_an_unreadable_ref_is_a_refusal_not_a_pass() -> None:
     )
 
 
+def test_path_git_substitution_cannot_forge_committed_source(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    marker = tmp_path / "fake-git-invoked"
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    fake_git = fake_bin / "git"
+    fake_git.write_text(
+        f"#!/bin/sh\nprintf '%s' invoked > {marker}\nexit 0\n",
+        encoding="utf-8",
+    )
+    fake_git.chmod(0o755)
+    expected = committed_evidence_source_digest(root=ROOT)
+
+    monkeypatch.setenv("PATH", str(fake_bin))
+
+    assert committed_evidence_source_digest(root=ROOT) == expected
+    assert not marker.exists()
+
+
 def _release_verifier():
     script = ROOT / "scripts" / "verify_release_evidence.py"
     spec = importlib.util.spec_from_file_location("verify_release_evidence_binding_test", script)
@@ -109,7 +131,8 @@ def _release_verifier():
 def _release_fixture(tmp_path: Path, evidence_digest: str) -> Path:
     reports = tmp_path / "reports"
     reports.mkdir()
-    (reports / "RESEARCH_ASSURANCE_REPORT.json").write_text(
+    assurance_path = reports / "RESEARCH_ASSURANCE_REPORT.json"
+    assurance_path.write_text(
         json.dumps(
             {
                 "status": "PASS",
@@ -119,8 +142,21 @@ def _release_fixture(tmp_path: Path, evidence_digest: str) -> Path:
         ),
         encoding="utf-8",
     )
+    records = []
+    for name in (*SOURCES, "RESEARCH_ASSURANCE_REPORT.json"):
+        path = reports / name
+        if not path.is_file():
+            path.write_bytes(f"fixture:{name}\n".encode())
+        content = path.read_bytes()
+        records.append(
+            {
+                "path": path.relative_to(tmp_path).as_posix(),
+                "bytes": len(content),
+                "sha256": hashlib.sha256(content).hexdigest(),
+            }
+        )
     (reports / "ASSURANCE_SNAPSHOT.json").write_text(
-        json.dumps({"status": "PASS", "release": "v-test", "records": []}),
+        json.dumps({"status": "PASS", "release": "v-test", "records": records}),
         encoding="utf-8",
     )
     return reports
@@ -131,6 +167,8 @@ def test_release_verifier_rejects_evidence_source_mismatch(
 ) -> None:
     module = _release_verifier()
     monkeypatch.setattr(module, "REPORTS", _release_fixture(tmp_path, "a" * 64))
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setitem(module.complete_snapshot_records.__globals__, "ROOT", tmp_path)
     monkeypatch.setattr(module, "release_tag", lambda: "v-test")
     monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
     monkeypatch.setattr(
@@ -146,7 +184,27 @@ def test_release_verifier_accepts_matching_evidence_source_binding(
 ) -> None:
     module = _release_verifier()
     monkeypatch.setattr(module, "REPORTS", _release_fixture(tmp_path, "b" * 64))
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setitem(module.complete_snapshot_records.__globals__, "ROOT", tmp_path)
     monkeypatch.setattr(module, "release_tag", lambda: "v-test")
     monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
     monkeypatch.setattr(module, "evidence_source_binding_failure", lambda _claimed: None)
     assert module.main() == 0
+
+
+def test_release_verifier_rejects_an_empty_snapshot_record_set(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    snapshot = reports / "ASSURANCE_SNAPSHOT.json"
+    payload = json.loads(snapshot.read_text(encoding="utf-8"))
+    payload["records"] = []
+    snapshot.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(module, "REPORTS", reports)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setitem(module.complete_snapshot_records.__globals__, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "release_tag", lambda: "v-test")
+    monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
+    monkeypatch.setattr(module, "evidence_source_binding_failure", lambda _claimed: None)
+    assert module.main() == 1

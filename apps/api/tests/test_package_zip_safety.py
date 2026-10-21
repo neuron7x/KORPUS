@@ -10,6 +10,8 @@ from pathlib import Path
 
 import pytest
 
+from scripts.manifest_lib.integrity import manifest_root
+
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -33,20 +35,32 @@ def _safety_module():
     return module
 
 
+def _complete(manifest: dict[str, object]) -> dict[str, object]:
+    records = manifest["files"]
+    assert isinstance(records, list)
+    return {
+        **manifest,
+        "manifest_self_excluded": True,
+        "file_count": len(records),
+        "root_sha256": manifest_root(records),
+    }
+
+
 def _manifest(payload: bytes) -> bytes:
+    record = {
+        "path": "payload.txt",
+        "bytes": len(payload),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "mode": "0644",
+    }
     return json.dumps(
-        {
-            "schema": "korpus.distribution-manifest.v2",
-            "kind": "distribution",
-            "files": [
-                {
-                    "path": "payload.txt",
-                    "bytes": len(payload),
-                    "sha256": hashlib.sha256(payload).hexdigest(),
-                    "mode": "0644",
-                }
-            ],
-        }
+        _complete(
+            {
+                "schema": "korpus.distribution-manifest.v2",
+                "kind": "distribution",
+                "files": [record],
+            }
+        )
     ).encode()
 
 
@@ -72,6 +86,56 @@ def test_valid_archive_remains_accepted(tmp_path: Path) -> None:
     assert count == 2
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("kind", "wrong-kind"),
+        ("manifest_self_excluded", False),
+        ("file_count", 999),
+        ("file_count", True),
+        ("root_sha256", "0" * 64),
+    ],
+)
+def test_invalid_manifest_header_is_rejected(tmp_path: Path, field: str, value: object) -> None:
+    payload = b"safe\n"
+    manifest = json.loads(_manifest(payload))
+    manifest[field] = value
+    archive = tmp_path / f"invalid-{field}.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(_info("payload.txt"), payload)
+        zf.writestr(_info("DISTRIBUTION_MANIFEST.json"), json.dumps(manifest))
+    failures, count = _module().verify(archive)
+    assert count == 2
+    assert failures
+
+
+def test_duplicate_json_record_key_is_rejected(tmp_path: Path) -> None:
+    payload = b"safe\n"
+    manifest = _manifest(payload).replace(
+        b'"path": "payload.txt"', b'"path": "other.txt", "path": "payload.txt"', 1
+    )
+    archive = tmp_path / "duplicate-json-key.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(_info("payload.txt"), payload)
+        zf.writestr(_info("DISTRIBUTION_MANIFEST.json"), manifest)
+    with pytest.raises(ValueError, match="duplicate key"):
+        _module().verify(archive)
+
+
+@pytest.mark.parametrize(("field", "value"), [("bytes", True), ("unexpected", "field")])
+def test_invalid_record_shape_is_rejected(tmp_path: Path, field: str, value: object) -> None:
+    payload = b"x"
+    manifest = json.loads(_manifest(payload))
+    manifest["files"][0][field] = value
+    archive = tmp_path / f"invalid-record-{field}.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(_info("payload.txt"), payload)
+        zf.writestr(_info("DISTRIBUTION_MANIFEST.json"), json.dumps(manifest))
+    failures, count = _module().verify(archive)
+    assert count == 1
+    assert failures
+
+
 def test_parent_traversal_is_rejected_before_extraction(tmp_path: Path) -> None:
     archive = tmp_path / "traversal.zip"
     with zipfile.ZipFile(archive, "w") as zf:
@@ -90,11 +154,13 @@ def test_duplicate_distribution_manifest_path_is_rejected(tmp_path: Path) -> Non
         "mode": "0644",
     }
     manifest = json.dumps(
-        {
-            "schema": "korpus.distribution-manifest.v2",
-            "kind": "distribution",
-            "files": [{**record, "sha256": "0" * 64}, record],
-        }
+        _complete(
+            {
+                "schema": "korpus.distribution-manifest.v2",
+                "kind": "distribution",
+                "files": [{**record, "sha256": "0" * 64}, record],
+            }
+        )
     ).encode()
     archive = tmp_path / "duplicate-manifest-path.zip"
     with zipfile.ZipFile(archive, "w") as zf:
@@ -209,11 +275,13 @@ def test_nested_distribution_manifest_is_not_an_unbound_blind_spot(tmp_path: Pat
         "mode": "0644",
     }
     outer = json.dumps(
-        {
-            "schema": "korpus.distribution-manifest.v2",
-            "kind": "distribution",
-            "files": [record],
-        }
+        _complete(
+            {
+                "schema": "korpus.distribution-manifest.v2",
+                "kind": "distribution",
+                "files": [record],
+            }
+        )
     ).encode()
     with zipfile.ZipFile(archive, "w") as zf:
         zf.writestr(_info("KORPUS_SOURCE/DISTRIBUTION_MANIFEST.json"), nested)

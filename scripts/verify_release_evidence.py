@@ -3,13 +3,13 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 from pathlib import Path
 
 from evidence_source_binding import evidence_source_binding_failure
 from release_identity import release_tag
+from snapshot_assurance import complete_snapshot_records
 from source_digest import source_tree_digest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,20 +27,15 @@ def main() -> int:
     expected_release = os.getenv("KORPUS_RELEASE_VERSION", release_tag())
     failures.extend(["assurance status is not PASS"] * (assurance.get("status") != "PASS"))
     actual_digest = source_tree_digest("HEAD")
-    digest_matches = assurance.get("source_tree_sha256") == actual_digest
-    failures += ["assurance source digest does not match committed HEAD"] * (not digest_matches)
+    failures += ["assurance source digest does not match committed HEAD"] * (
+        assurance.get("source_tree_sha256") != actual_digest
+    )
     binding_failure = evidence_source_binding_failure(assurance.get("evidence_source_sha256"))
     failures.extend([str(binding_failure)] * (binding_failure is not None))
     if snapshot.get("status") != "PASS" or snapshot.get("release") != expected_release:
         failures.append("assurance snapshot release/status mismatch")
-    for record in snapshot.get("records", []):
-        path = ROOT / str(record.get("path", ""))
-        if (
-            not path.is_file()
-            or path.stat().st_size != record.get("bytes")
-            or hashlib.sha256(path.read_bytes()).hexdigest() != record.get("sha256")
-        ):
-            failures.append(f"snapshot record mismatch: {record.get('path')}")
+    records = complete_snapshot_records(snapshot.get("records"))
+    failures += ["assurance snapshot record set/content mismatch"] * (not records)
     if failures:
         print(json.dumps({"valid": False, "failures": failures}, indent=2))
         return 1

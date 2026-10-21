@@ -1,22 +1,16 @@
 #!/usr/bin/env python3
 """Прив'язати живі докази забезпечення до байтів, ЗАКОМІЧЕНИХ у git.
 
-Виміряно 01.09.2026, і вимір був вирішальним. `compute_source_digest` рахує
-дайджест РОБОЧОГО дерева. Одна правка в будь-якому доказовому файлі — і він
-розходиться з HEAD:
-
-    дерево робоче : e4c4d94295e72fde21477e33
-    дерево HEAD   : 9c1960c0158310dca0b694e1
-
+Виміряно 01.09.2026: одна правка розводить дайджест РОБОЧОГО дерева з HEAD
+(e4c4d94295e72fde21477e33 проти 9c1960c0158310dca0b694e1).
 Ніщо в дереві цієї розбіжності не питало. Отже звіт про забезпечення міг бути
 виданий, підписаний і опублікований із `source_digest`, якого немає в ЖОДНОМУ
 коміті: пізніше його неможливо відтворити, бо байти, які він описує, існували
 лише в робочому дереві, якого вже немає. Це не «застарілий доказ» — це доказ
 про стан, до якого не можна повернутись.
 
-Дайджест закоміченого рахується ТІЄЮ САМОЮ функцією (`digest_source_records`),
-що й дайджест дерева. Друга реалізація того ж числа розійшлася б на першому
-уточненні правила, і розбіжність читалась би як «дерево змінилось».
+Дайджест коміту й дерева рахує ТА САМА `digest_source_records`: друга реалізація
+розійшлася б на першому уточненні правила.
 """
 
 from __future__ import annotations
@@ -24,6 +18,8 @@ from __future__ import annotations
 import subprocess
 import sys
 from pathlib import Path
+
+from trusted_system_tools import git_environment, git_executable
 
 ROOT = Path(__file__).resolve().parents[1]
 APP_SRC = ROOT / "apps/api/src"
@@ -38,8 +34,15 @@ from korpus.application.provenance import (  # noqa: E402
 
 
 def _git(root: Path, *args: str) -> bytes:
-    completed = subprocess.run(["git", *args], cwd=root, check=True, capture_output=True)
-    return completed.stdout
+    if (executable := git_executable()) is None:
+        raise FileNotFoundError("trusted Git executable unavailable")
+    return subprocess.run(
+        [executable, "--no-replace-objects", *args],
+        cwd=root,
+        env=git_environment(),
+        check=True,
+        capture_output=True,
+    ).stdout
 
 
 def committed_evidence_source_digest(ref: str = "HEAD", root: Path = ROOT) -> str:

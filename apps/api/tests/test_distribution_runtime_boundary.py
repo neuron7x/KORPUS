@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+from scripts.manifest_lib.integrity import manifest_root
 from scripts.manifest_paths import source_included
 from scripts.verify_package import verify
 
@@ -43,6 +44,12 @@ def _build_zip(
             for name, body in sorted(files.items())
         ],
     }
+    records = manifest["files"]
+    manifest.update(
+        manifest_self_excluded=True,
+        file_count=len(records),
+        root_sha256=manifest_root(records),
+    )
     files["DISTRIBUTION_MANIFEST.json"] = json.dumps(manifest).encode()
     with zipfile.ZipFile(archive, "w") as target:
         for name, body in files.items():

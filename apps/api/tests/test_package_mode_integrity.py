@@ -5,6 +5,8 @@ import json
 import zipfile
 from pathlib import Path
 
+from scripts.manifest_lib.integrity import manifest_root
+
 
 def _module(root: Path):
     script = root / "scripts" / "verify_package.py"
@@ -34,6 +36,12 @@ def _write_zip(path: Path, *, stored_mode: int) -> None:
 
     manifest["files"][0]["bytes"] = len(payload)
     manifest["files"][0]["sha256"] = hashlib.sha256(payload).hexdigest()
+    records = manifest["files"]
+    manifest.update(
+        manifest_self_excluded=True,
+        file_count=len(records),
+        root_sha256=manifest_root(records),
+    )
     with zipfile.ZipFile(path, "w") as zf:
         root = "KORPUS/"
         info = zipfile.ZipInfo(root + "scripts/run.sh")
@@ -81,6 +89,12 @@ def _write_zip_with_intruder(path: Path) -> None:
             }
         ],
     }
+    records = manifest["files"]
+    manifest.update(
+        manifest_self_excluded=True,
+        file_count=len(records),
+        root_sha256=manifest_root(records),
+    )
     with zipfile.ZipFile(path, "w") as zf:
         root = "KORPUS/"
         info = zipfile.ZipInfo(root + "scripts/run.sh")

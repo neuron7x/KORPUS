@@ -10,12 +10,12 @@ from pathlib import Path
 from typing import BinaryIO
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
+sys.path[:0] = [str(SCRIPT_DIR), str(SCRIPT_DIR.parent / "apps/api/src")]
 
 from artifact_snapshot import verify_snapshot
 from distribution_runtime_policy import opaque_runtime_failures
-from manifest_lib.integrity import archive_modes, archive_root, record_failures
+from korpus.application.final_release_evidence import strict_signed_json_object
+from manifest_lib import integrity
 from zip_safety import safety_failures
 
 Record = dict[str, object]
@@ -25,19 +25,17 @@ def _load_records(root: Path, failures: list[str]) -> dict[str, Record]:
     path = root / "DISTRIBUTION_MANIFEST.json"
     if not path.is_file():
         raise RuntimeError("DISTRIBUTION_MANIFEST.json missing from archive")
-    manifest = json.loads(path.read_text(encoding="utf-8"))
-    if manifest.get("schema") != "korpus.distribution-manifest.v2":
-        failures.append("invalid distribution manifest schema")
+    manifest = dict(strict_signed_json_object(path.read_bytes(), "distribution manifest"))
+    header = manifest.get("schema"), manifest.get("kind"), manifest.get("manifest_self_excluded")
+    if header != ("korpus.distribution-manifest.v2", "distribution", True):
+        failures.append("invalid distribution manifest header")
     records = manifest.get("files")
     if not isinstance(records, list):
         failures.append("invalid distribution manifest records")
         return {}
-    result = {
-        str(record["path"]): record
-        for record in records
-        if isinstance(record, dict) and isinstance(record.get("path"), str)
-    }
+    result = {str(record["path"]): record for record in records if integrity.valid_record(record)}
     failures += ["invalid/duplicate distribution manifest path"] * (len(result) != len(records))
+    failures += integrity.manifest_failures(manifest, list(result.values()))
     return result
 
 
@@ -49,7 +47,6 @@ def _verify_tree(root: Path, records: dict[str, Record], modes: dict[str, str]) 
         if p.is_file() and p.relative_to(root).as_posix() != "DISTRIBUTION_MANIFEST.json"
     )
     if sorted(records) != actual:
-        # Name mismatch directions explicitly so injected archive files stay visible.
         failures.append(
             "path parity mismatch "
             f"in_manifest_not_in_archive={sorted(set(records) - set(actual))} "
@@ -59,7 +56,7 @@ def _verify_tree(root: Path, records: dict[str, Record], modes: dict[str, str]) 
         record = records.get(relative)
         if record is None:
             continue  # named by the parity line above; an empty record reports path=None
-        failures.extend(record_failures(root / relative, record, modes.get(relative)))
+        failures.extend(integrity.record_failures(root / relative, record, modes.get(relative)))
     return failures
 
 
@@ -72,8 +69,8 @@ def verify(archive: Path | BinaryIO) -> tuple[list[str], int]:
             if safety:
                 return safety, 0
             zf.extractall(tmp)
-            root = archive_root(tmp)
-            modes = archive_modes(zf, root.name if root != tmp else "")
+            root = integrity.archive_root(tmp)
+            modes = integrity.archive_modes(zf, root.name if root != tmp else "")
         records = _load_records(root, failures)
         failures.extend(_verify_tree(root, records, modes))
         return failures, len(records) + 1
@@ -87,7 +84,7 @@ def main() -> int:
         raise SystemExit(f"archive missing: {archive}")
     try:
         failures, files, digest = verify_snapshot(archive, verify)
-    except (RuntimeError, OSError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
+    except (RuntimeError, OSError, ValueError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
         failures, files, digest = [str(exc)], 0, None
     payload = {"valid": not failures, "archive": str(archive), "sha256": digest, "files": files}
     if failures:

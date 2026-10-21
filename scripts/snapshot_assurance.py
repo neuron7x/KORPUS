@@ -47,6 +47,21 @@ def load_json(path: Path) -> dict[str, object]:
     return value
 
 
+def complete_snapshot_records(value: object) -> list[dict[str, object]]:
+    records = value if isinstance(value, list) else []
+    expected = {f"reports/{name}" for name in (*SOURCES, "RESEARCH_ASSURANCE_REPORT.json")}
+    paths = {str(item.get("path", "")) for item in records if isinstance(item, dict)}
+    if len(paths) != len(records) or paths != expected:
+        return []
+    valid = all(
+        (path := ROOT / str(item["path"])).is_file()
+        and path.stat().st_size == item.get("bytes")
+        and hashlib.sha256(path.read_bytes()).hexdigest() == item.get("sha256")
+        for item in records
+    )
+    return records if valid else []
+
+
 def assemble_ci_report() -> dict[str, object]:
     junit = VAR / "pytest.xml"
     coverage = VAR / "coverage.xml"
@@ -67,8 +82,7 @@ def assemble_ci_report() -> dict[str, object]:
         and suite.attrib.get("errors", "0") == "0"
         and eval_report.get("status_accuracy") == 1.0
         and eval_report.get("leakage_failures") == 0
-        # Over the whole catalogue: an INVALID mutant leaves mutation_score's
-        # denominator and would otherwise keep the figure at 1.000 (ADR-0008).
+        # INVALID remains in the full-catalogue denominator (ADR-0008).
         and mutation_report.get("mutation_score_over_catalogue") == 1.0
         and migration_report.get("table_set_match") is True
         and migration_report.get("sqlite_fts5_present") is True
@@ -107,12 +121,8 @@ def assemble_ci_report() -> dict[str, object]:
     }
 
 
-#: The var artifacts the operational gate hashed, keyed by the name it stored the digest
-#: under in `evidence_sha256`. Promotion re-hashes each and refuses on any mismatch: the
-#: gate can only have passed over the bytes it hashed, and promoting a different file
-#: beside that PASS is the exact "green next to a stale artifact" this project exists to
-#: refuse. Not a paranoia check — it caught a FAIL operational-gate.json sitting in var
-#: while a PASS assurance was assembled from CI artifacts (2026-08-08).
+#: Re-hash every artifact the gate named in `evidence_sha256`; promotion must copy those
+#: exact bytes, not a stale file beside a green gate (observed 2026-08-08).
 _GATE_HASHED_EVIDENCE = {
     "eval": "eval-report.json",
     "mutation": "mutation-report.json",
@@ -150,17 +160,13 @@ def _verify_evidence_matches_the_gate() -> None:
 def _verify_evidence_source_is_committed(assurance: dict[str, object]) -> None:
     """Просування доказу, чиє джерело не закомічене, — це доказ про недосяжний стан.
 
-    Перша версія цієї перевірки читала `provenance.source_digest` і мовчки
-    поверталась, коли поля немає. Звіт про забезпечення НЕ МАЄ такого поля: у нього
-    `evidence_source_sha256` і `provenance` як РЯДОК. Тобто перевірка була досяжна,
-    зелена й не міряла нічого — вада, яку показав лише негативний контроль на
-    справжньому гейті, а не юніт-тест.
+    Попередня перевірка читала відсутнє `provenance.source_digest` і мовчки
+    поверталась; негативний контроль на справжньому гейті викрив зелений no-op.
 
     Другий урок був у ТІМ, ЩО порівнювати. У дереві два різні дайджести джерела:
     `evidence_paths` (двадцять оголошених доказових шляхів) і `tracked_tree` (усе
-    відстежене мінус згенероване). Порівняти один з другим — рівно та помилка, про
-    яку попереджають обидва модулі: вирок «дерево змінилось» там, де порівняли дві
-    різні міри. Тому спершу звіряється ОБЛАСТЬ, і лише потім число.
+    відстежене мінус згенероване). Порівняння різних мір хибно каже «дерево
+    змінилось», тому спершу звіряється ОБЛАСТЬ, і лише потім число.
 
     Невідома область і відсутній дайджест — ВІДМОВА, не пропуск.
     """

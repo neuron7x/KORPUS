@@ -12,6 +12,8 @@ from pathlib import Path
 
 import pytest
 
+from scripts.manifest_lib.integrity import manifest_root
+
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -40,6 +42,12 @@ def _valid_zip(path: Path) -> None:
             }
         ],
     }
+    records = manifest["files"]
+    manifest.update(
+        manifest_self_excluded=True,
+        file_count=len(records),
+        root_sha256=manifest_root(records),
+    )
     with zipfile.ZipFile(path, "w") as zf:
         for name, content in (
             ("KORPUS/proof.txt", body),
