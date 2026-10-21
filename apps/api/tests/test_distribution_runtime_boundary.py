@@ -109,12 +109,8 @@ def test_runtime_path_alias_and_multiroot_poison(tmp_path: Path, member: str) ->
     assert any("unverified runtime evidence forbidden" in failure for failure in failures)
 
 
-@pytest.mark.parametrize(
-    "member", ["history.bundle", "KORPUS/history.bundle", "HISTORY.BUNDLE."]
-)
-def test_history_bundles_fail_even_with_consistent_manifest(
-    tmp_path: Path, member: str
-) -> None:
+@pytest.mark.parametrize("member", ["history.bundle", "KORPUS/history.bundle", "HISTORY.BUNDLE."])
+def test_history_bundles_fail_even_with_consistent_manifest(tmp_path: Path, member: str) -> None:
     archive = tmp_path / "bundled-history.zip"
     _build_zip(archive, prefix="", poisoned=False, extra_member=member)
     failures, count = verify(archive)
@@ -127,7 +123,7 @@ def test_producer_rejects_staged_bundle_without_changing_clean_files(
 ) -> None:
     producer = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8")
     marker = "# A tracked bundle is source-digest-eligible"
-    guard = producer.split(marker, 1)[1].split("# Opaque local runtime evidence", 1)[0]
+    guard = marker + producer.split(marker, 1)[1].split("# Opaque local runtime evidence", 1)[0]
     command = 'set -euo pipefail\ntmp="$1"\n' + guard
 
     def status() -> int:

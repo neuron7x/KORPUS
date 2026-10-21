@@ -8,7 +8,7 @@ from itertools import pairwise
 
 def _opaque_path(name: str) -> bool:
     parts = [part.rstrip(" .").casefold() for part in name.strip("/").split("/")]
-    before = parts[: (parts + ["evidence"]).index("evidence")]
+    before = parts[: [*parts, "evidence"].index("evidence")]
     trusted = (
         ["reports", "release"] in [before[:2], before[1:3]]
         or before == ["handoff"]
