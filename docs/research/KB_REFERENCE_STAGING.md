@@ -30,3 +30,17 @@ engineering safety, accessibility/metadata provenance and agency reliability.
 It has no network collector and does not grant access to NATO/Army+ content. Never
 promote excluded weapon, targeting, explosive, offensive cyber or restricted materials
 by changing the catalog's labels.
+
+## JSONL framing and parser budget
+
+Records are separated only by LF; CRLF and an optional final newline are supported.
+Unicode line-separator characters inside JSON strings are data, not record boundaries.
+For existing compatibility, ASCII JSON-whitespace-only blank lines are ignored; this
+is an explicit extension, not strict JSON Lines conformance. Other whitespace-only
+lines are malformed and must not disappear. `MAX_ROWS` bounds accepted **plus rejected**
+nonblank rows, so malformed rows cannot evade the parse/diagnostic budget.
+`source_records` still counts schema-valid metadata rows, never indexable records.
+The separate 128-KiB descriptor-read bound and all production-denial fields are unchanged.
+
+References: https://jsonlines.org/ and
+https://docs.python.org/3.12/library/stdtypes.html#str.splitlines .

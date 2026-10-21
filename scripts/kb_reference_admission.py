@@ -191,11 +191,11 @@ def verify_catalog(path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
     errors: list[str] = []
     records: list[dict[str, Any]] = []
     try:
-        for line_number, line in enumerate(_read_catalog(path).splitlines(), 1):
-            if not line.strip():
+        for line_number, line in enumerate(_read_catalog(path).split("\n"), 1):
+            if not line.strip(" \t\r"):
                 continue
-            if len(records) >= MAX_ROWS:
-                raise ValueError("source count exceeds bounded maximum")
+            if len(records) + len(errors) >= MAX_ROWS:
+                raise ValueError("catalog row count exceeds bounded maximum")
             try:
                 row = json.loads(line, object_pairs_hook=_unique, parse_constant=_nonfinite)
             except (ValueError, UnicodeError, RecursionError) as exc:
