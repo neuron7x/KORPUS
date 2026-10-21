@@ -336,14 +336,15 @@ def test_release_verifier_rejects_symlinked_reports_directory(
         module.main()
 
 
+@pytest.mark.parametrize("nonfinite", ("NaN", "1e9999", "-1e9999"))
 def test_release_verifier_rejects_nonfinite_json(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, nonfinite: str
 ) -> None:
     module = _release_verifier()
     reports = _release_fixture(tmp_path, "b" * 64)
     assurance = reports / "RESEARCH_ASSURANCE_REPORT.json"
     text = assurance.read_text(encoding="utf-8")
-    assurance.write_text(text.replace('"status":', '"metric": NaN, "status":', 1))
+    assurance.write_text(text.replace('"status":', f'"metric": {nonfinite}, "status":', 1))
     monkeypatch.setattr(module, "REPORTS", reports)
-    with pytest.raises(ValueError, match="non-finite constant NaN"):
+    with pytest.raises(ValueError, match="non-finite"):
         module.main()

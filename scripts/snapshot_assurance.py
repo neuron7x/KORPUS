@@ -4,16 +4,16 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import shutil
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "apps/api/src")]
+from assurance_publication import publish  # noqa: E402
 from evidence_source_binding import evidence_source_binding_failure  # noqa: E402
 from korpus.application.final_release_evidence import strict_signed_json_object  # noqa: E402
-from path_admission import regular_file  # noqa: E402
+from path_admission import regular_file, symlink_free  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 from source_digest import source_tree_digest  # noqa: E402
 
@@ -209,13 +209,11 @@ def main() -> int:
     _verify_evidence_matches_the_gate()
     _verify_evidence_source_is_committed(assurance)
 
-    if REPORTS.is_symlink():
+    if not symlink_free(REPORTS):
         raise SystemExit("assurance reports directory must not be a symlink")
     REPORTS.mkdir(exist_ok=True)
     assurance_path = REPORTS / "RESEARCH_ASSURANCE_REPORT.json"
-    assurance_path.write_text(
-        json.dumps(assurance, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
+    publish(assurance_path, (json.dumps(assurance, ensure_ascii=False, indent=2) + "\n").encode())
     records: list[dict[str, object]] = [
         {
             "path": assurance_path.relative_to(ROOT).as_posix(),
@@ -228,7 +226,7 @@ def main() -> int:
         if not regular_file(source):
             raise SystemExit(f"missing assurance output: {source}")
         destination = REPORTS / destination_name
-        shutil.copyfile(source, destination)
+        publish(destination, source.read_bytes())
         records.append(
             {
                 "path": destination.relative_to(ROOT).as_posix(),
@@ -245,7 +243,7 @@ def main() -> int:
         "limitations": limitations,
     }
     index_path = REPORTS / "ASSURANCE_SNAPSHOT.json"
-    index_path.write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    publish(index_path, (json.dumps(index, ensure_ascii=False, indent=2) + "\n").encode())
     print(json.dumps(index, ensure_ascii=False, indent=2))
     return 0
 

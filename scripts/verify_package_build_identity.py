@@ -11,10 +11,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "apps/api/src")]
 
 from korpus.application.final_release_evidence import strict_signed_json_object  # noqa: E402
+from package_identity_contract import BUILD_FIELDS, valid_release_identity  # noqa: E402
 from path_admission import regular_file  # noqa: E402
 
 HEX40, HEX64 = re.compile(r"^[0-9a-f]{40}$"), re.compile(r"^[0-9a-f]{64}$")
-BUILD_FIELDS = frozenset(["schema", "release", "source_manifest_root_sha256", "history_included", "source_commit", "import_required_to_obtain_git_commit", "derived_from_source_commit"])  # fmt: skip
 
 
 def _load(path: Path) -> dict[str, object]:
@@ -30,14 +30,14 @@ def verify(root: Path) -> list[str]:
         release = _load(root / "apps/api/src/korpus/release.json")
     except (OSError, ValueError) as error:
         return [f"package/source identity JSON unreadable: {error}"]
-    manifest_root = source.get("root_sha256")
-    version, tag = release.get("version"), release.get("tag")
+    manifest_root, version, tag = source.get("root_sha256"), release.get("version"), release.get("tag")  # fmt: skip
     derived = build.get("derived_from_source_commit")
     valid_tag = isinstance(version, str) and bool(version) and tag == f"v{version}"  # fmt: skip
     valid_derived = derived is None or (isinstance(derived, str) and bool(HEX40.fullmatch(derived)))  # fmt: skip
     checks = {
         "package build fields mismatch": set(build) == BUILD_FIELDS,
         "package build schema mismatch": build.get("schema") == "korpus.package-build.v2",
+        "release identity contract mismatch": valid_release_identity(release),
         "release identity tag/version mismatch": valid_tag,
         "package build release mismatch": build.get("release") == tag,
         "source manifest schema mismatch": source.get("schema") == "korpus.source-manifest.v2",

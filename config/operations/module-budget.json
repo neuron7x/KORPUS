@@ -3640,6 +3640,15 @@
       "proof_lines": 0,
       "reason": "ACT-007: aggregate pinned CI scanner execution markers; initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
+    "scripts/assurance_publication.py": {
+      "lines": 12,
+      "max_complexity": 2,
+      "max_function_args": 2,
+      "max_function_lines": 5,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for fail-closed assurance destination publication without raising snapshot_assurance.py ratchets."
+    },
     "scripts/assemble_assurance.py": {
       "lines": 162,
       "max_complexity": 12,
@@ -4899,13 +4908,13 @@
       "reason": "v0.2.0: package-only evidence boundary expanded explicitly; 69-line canonical boundary becomes the new ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/path_admission.py": {
-      "lines": 11,
-      "max_complexity": 3,
-      "max_function_args": 1,
-      "max_function_lines": 6,
-      "max_nesting": 1,
+      "lines": 27,
+      "max_complexity": 6,
+      "max_function_args": 2,
+      "max_function_lines": 13,
+      "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "Exact initial ceiling for shared symlink-free regular-file admission."
+      "reason": "Exact initial ceiling for shared symlink-free regular-file admission and exclusive output replacement."
     },
     "scripts/measure_audit_integrity.py": {
       "lines": 295,
@@ -5039,6 +5048,15 @@
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "v0.9.3: new bounded module; exact initial measurement becomes the ratchet ceiling"
+    },
+    "scripts/package_identity_contract.py": {
+      "lines": 22,
+      "max_complexity": 2,
+      "max_function_args": 1,
+      "max_function_lines": 14,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for strict package release-identity shape and type admission without raising verifier ratchets."
     },
     "scripts/patch_policy.py": {
       "lines": 197,
@@ -6617,13 +6635,22 @@
       "reason": "Issue #54: one exact fail-closed GitHub release context shared by trust and release gates; initial measured ceiling."
     },
     "apps/api/src/korpus/application/final_release_evidence.py": {
-      "lines": 48,
+      "lines": 29,
+      "max_complexity": 1,
+      "max_function_args": 1,
+      "max_function_lines": 10,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Issue #54: explicit blocked-candidate policy; strict JSON parsing extracted and this ratchet lowered."
+    },
+    "apps/api/src/korpus/application/strict_json.py": {
+      "lines": 43,
       "max_complexity": 4,
       "max_function_args": 2,
-      "max_function_lines": 10,
+      "max_function_lines": 13,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "Issue #54: strict parsing of signed bytes and explicit blocked-candidate policy; initial measured ceiling."
+      "reason": "Exact initial ceiling for duplicate-free finite JSON object parsing, including exponent-overflow refusal."
     },
     "apps/api/src/korpus/application/final_release_provenance.py": {
       "lines": 188,

@@ -29,9 +29,11 @@ def _fixture(tmp_path: Path) -> Path:
         json.dumps(
             {
                 "schema": "korpus.release-identity.v1",
+                "product": "KORPUS",
                 "version": "0.4.0",
                 "tag": "v0.4.0",
                 "artifact_stem": "KORPUS_SYSTEM_v0.4.0",
+                "distribution_artifact": "KORPUS_SYSTEM_v0.4.0.zip",
             }
         ),
         encoding="utf-8",
@@ -148,3 +150,32 @@ def test_unexpected_package_build_field_is_rejected(tmp_path: Path) -> None:
     build["unexpected"] = None
     build_path.write_text(json.dumps(build), encoding="utf-8")
     assert "package build fields mismatch" in module.verify(root)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    (
+        ("schema", "wrong.schema"),
+        ("product", "OTHER"),
+        ("artifact_stem", 1),
+        ("distribution_artifact", "wrong.zip"),
+    ),
+)
+def test_release_identity_contract_is_exact(tmp_path: Path, field: str, value: object) -> None:
+    module = _module()
+    root = _fixture(tmp_path)
+    release_path = root / "apps/api/src/korpus/release.json"
+    release = json.loads(release_path.read_text(encoding="utf-8"))
+    release[field] = value
+    release_path.write_text(json.dumps(release), encoding="utf-8")
+    assert "release identity contract mismatch" in module.verify(root)
+
+
+def test_release_identity_fields_are_exact(tmp_path: Path) -> None:
+    module = _module()
+    root = _fixture(tmp_path)
+    release_path = root / "apps/api/src/korpus/release.json"
+    release = json.loads(release_path.read_text(encoding="utf-8"))
+    release["unexpected"] = None
+    release_path.write_text(json.dumps(release), encoding="utf-8")
+    assert "release identity contract mismatch" in module.verify(root)
