@@ -45,6 +45,8 @@ def test_original_foundation_sources_remain_metadata_only() -> None:
         "https://example..org/",
         "https://example.org/#fragment",
         "https://example.org\\@evil.org/",
+        "https://example.org/%GZ",
+        "https://example.org/%",
     ],
 )
 def test_unsafe_catalog_urls_are_refused(url: str) -> None:
@@ -94,6 +96,9 @@ def test_duplicate_ids_and_urls_are_refused(tmp_path: Path) -> None:
         ("SRC_W3C_PROV", "https://WWW.W3.ORG/TR/prov-overview/"),
         ("SRC_W3C_PROV", "HTTPS://WwW.W3.OrG/TR/prov-overview/"),
         ("SRC_ARMY_PLUS", "https://aplus.mod.gov.ua"),
+        ("SRC_W3C_PROV", "https://www.w3.org/TR/%70rov-overview/"),
+        ("SRC_W3C_PROV", "https://www.w3.org/TR/draft/../prov-overview/"),
+        ("SRC_W3C_PROV", "https://www.w3.org/TR/%2e/prov-overview/"),
     ],
 )
 def test_canonical_url_duplicates_are_refused(
@@ -134,3 +139,13 @@ def test_nonfinite_json_is_refused(tmp_path: Path) -> None:
     path = tmp_path / "bad.jsonl"
     path.write_text('{"a": NaN}\n', encoding="utf-8")
     assert verify_catalog(path)["structure_status"] == "FAIL"
+
+
+def test_excessive_json_nesting_is_a_structured_refusal(tmp_path: Path) -> None:
+    catalog = tmp_path / "recursive.jsonl"
+    catalog.write_text("[" * 3000 + "null" + "]" * 3000 + "\n", encoding="utf-8")
+    verdict = verify_catalog(catalog)
+    assert verdict["structure_status"] == "FAIL"
+    assert verdict["production_authorized"] is False
+    assert verdict["indexable"] == 0
+    assert verdict["errors"]

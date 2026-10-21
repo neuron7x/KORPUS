@@ -46,6 +46,38 @@ CATEGORIES = frozenset(
 )
 SOURCE_ID = re.compile(r"SRC_[A-Z0-9_]{2,64}\Z")
 HOST_LABEL = re.compile(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\Z")
+_PERCENT_ESCAPE = re.compile(r"%([0-9A-Fa-f]{2})")
+_UNRESERVED = frozenset("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
+
+
+def _canonical_path(path: str) -> str:
+    """RFC 3986-safe comparison key: decode only unreserved percent escapes.
+
+    Reserved escapes retain their boundary; path case and literal double slashes
+    remain significant. Only dot segments (including encoded dots) are removed.
+    """
+
+    def decode_unreserved(match: re.Match[str]) -> str:
+        char = chr(int(match.group(1), 16))
+        return char if char in _UNRESERVED else "%" + match.group(1).upper()
+
+    value = _PERCENT_ESCAPE.sub(decode_unreserved, path or "/")
+    segments = value.split("/")
+    stack = [""]
+    for index, segment in enumerate(segments[1:], 1):
+        if segment in {".", ".."}:
+            if segment == ".." and len(stack) > 1:
+                stack.pop()
+            if index == len(segments) - 1:
+                stack.append("")
+        else:
+            stack.append(segment)
+    return "/".join(stack)
+
+
+def _canonical_source_url(url: str) -> tuple[str | None, str]:
+    parts = urlsplit(url)
+    return parts.hostname, _canonical_path(parts.path)
 
 
 def _unique(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -65,7 +97,7 @@ def _public_https_url(url: object) -> bool:
     """Syntax-only: NOT a network/egress authorization or a DNS safety check."""
     if not isinstance(url, str) or not url or any(ord(c) <= 32 or ord(c) == 127 for c in url):
         return False
-    if "\\" in url:
+    if "\\" in url or re.search(r"%(?![0-9A-Fa-f]{2})", url):
         return False
     try:
         parts = urlsplit(url)
@@ -136,7 +168,7 @@ def verify_catalog(path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
                 raise ValueError("source count exceeds bounded maximum")
             try:
                 row = json.loads(line, object_pairs_hook=_unique, parse_constant=_nonfinite)
-            except (ValueError, UnicodeError) as exc:
+            except (ValueError, UnicodeError, RecursionError) as exc:
                 errors.append(f"line {line_number}: invalid JSON: {exc}")
                 continue
             if not _valid_row(row):
@@ -146,14 +178,11 @@ def verify_catalog(path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
         if not records:
             errors.append("empty catalog")
         ids = [row["source_id"] for row in records]
-        # RFC 3986 URI scheme and DNS host are case-insensitive; path case is not.
-        # An absent path is the same origin resource as an explicit root slash.
-        urls = [
-            (urlsplit(row["url"]).hostname, urlsplit(row["url"]).path or "/") for row in records
-        ]
+        # URI scheme/DNS host are case-insensitive; normalize unreserved/path aliases.
+        urls = [_canonical_source_url(row["url"]) for row in records]
         if len(set(ids)) != len(ids) or len(set(urls)) != len(urls):
             errors.append("duplicate source id or canonical URL")
-    except (OSError, UnicodeError, ValueError) as exc:
+    except (OSError, UnicodeError, ValueError, RecursionError) as exc:
         errors.append(str(exc))
     return {
         "gate": "PUBLIC_REFERENCE_METADATA_STRUCTURE",
