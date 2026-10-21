@@ -81,6 +81,32 @@ def test_parent_traversal_is_rejected_before_extraction(tmp_path: Path) -> None:
     assert any("non-canonical archive path rejected" in item for item in failures)
 
 
+def test_duplicate_distribution_manifest_path_is_rejected(tmp_path: Path) -> None:
+    payload = b"safe\\n"
+    record = {
+        "path": "payload.txt",
+        "bytes": len(payload),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "mode": "0644",
+    }
+    manifest = json.dumps(
+        {
+            "schema": "korpus.distribution-manifest.v2",
+            "kind": "distribution",
+            "files": [{**record, "sha256": "0" * 64}, record],
+        }
+    ).encode()
+    archive = tmp_path / "duplicate-manifest-path.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(_info("payload.txt"), payload)
+        zf.writestr(_info("DISTRIBUTION_MANIFEST.json"), manifest)
+
+    failures, count = _module().verify(archive)
+
+    assert count == 2
+    assert any("duplicate distribution manifest path" in item for item in failures)
+
+
 def test_duplicate_name_is_rejected(tmp_path: Path) -> None:
     archive = tmp_path / "duplicate.zip"
     with zipfile.ZipFile(archive, "w") as zf:

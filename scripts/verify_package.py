@@ -30,7 +30,17 @@ def _load_records(root: Path, failures: list[str]) -> dict[str, dict[str, object
     if not isinstance(records, list):
         failures.append("invalid distribution manifest records")
         return {}
-    return {str(record.get("path")): record for record in records if isinstance(record, dict)}
+    result: dict[str, dict[str, object]] = {}
+    for record in records:
+        if not isinstance(record, dict) or not isinstance(record.get("path"), str):
+            failures.append("invalid distribution manifest record")
+            continue
+        relative = str(record["path"])
+        if relative in result:
+            failures.append(f"duplicate distribution manifest path: {relative}")
+            continue
+        result[relative] = record
+    return result
 
 
 def _verify_tree(
