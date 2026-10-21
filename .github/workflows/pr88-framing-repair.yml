@@ -1,0 +1,242 @@
+name: pr88-framing-repair
+
+# Temporary exact-source producer. No ref updates, merge, deployment or acquisition.
+on:
+  pull_request:
+    types: [synchronize]
+    paths: [.github/workflows/pr88-framing-repair.yml]
+permissions:
+  contents: read
+concurrency:
+  group: pr88-framing-repair
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: >-
+      github.repository == 'neuron7x/KORPUS' &&
+      github.event.pull_request.number == 88 &&
+      github.event.pull_request.head.repo.full_name == 'neuron7x/KORPUS' &&
+      github.event.pull_request.head.ref == 'research/kb-reference-metadata-gate-20261021'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: write
+    env:
+      ORIGINAL_HEAD: 81f4a279614afaa771e3e0fa2578fb85cc67903e
+      EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+      TEST_BLOB: 5048522d76419928e42e3782001329a0716c924b
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+      PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/scripts:${{ github.workspace }}/apps/api/src
+      KORPUS_ENVIRONMENT: test
+      KORPUS_SCHEMA_MODE: auto
+      KORPUS_DATABASE_URL: sqlite:///${{ github.workspace }}/var/pr88-framing.db
+      KORPUS_OBJECT_ROOT: ${{ github.workspace }}/var/objects
+      KORPUS_AUTH_MODE: dev
+      KORPUS_DEV_MODE_ACKNOWLEDGEMENT: I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE
+      KORPUS_BIND_HOST: 127.0.0.1
+      KORPUS_AUDIT_HMAC_KEY: ci-only-audit-key
+      KORPUS_JWT_SECRET: ci-only-jwt-key
+    steps:
+      - name: Checkout exact request head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Refuse drift and isolate original source
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EVENT_HEAD"
+          test "$(git rev-parse HEAD^)" = "$ORIGINAL_HEAD"
+          test "$(git diff --name-only "$ORIGINAL_HEAD" "$EVENT_HEAD")" = '.github/workflows/pr88-framing-repair.yml'
+          git checkout --detach "$ORIGINAL_HEAD"
+          test -z "$(git status --porcelain)"
+          mkdir -p var
+      - name: Install exact Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Retrieve exact reviewed regression blob
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64, hashlib, json, os, urllib.request
+          from pathlib import Path
+          sha = os.environ['TEST_BLOB']
+          request = urllib.request.Request(
+              'https://api.github.com/repos/neuron7x/KORPUS/git/blobs/' + sha,
+              headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json'})
+          with urllib.request.urlopen(request, timeout=30) as response:
+              blob = json.load(response)
+          assert blob['sha'] == sha and blob['encoding'] == 'base64'
+          data = base64.b64decode(blob['content'])
+          assert hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest() == sha
+          Path('var/framing-tests.py').write_bytes(data)
+          PY
+      - name: Verify baseline, repair framing, and rebind exact source
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, subprocess, sys, xml.etree.ElementTree as ET
+          from pathlib import Path
+          from scripts import check_module_budget as budget_gate
+          from scripts.generate_manifest import build_manifest, write_manifest
+          from scripts.verify_source_manifest import verify as verify_source
+          from scripts.verify_package_build_identity import verify as verify_build
+          root = Path.cwd()
+          source = Path('scripts/kb_reference_admission.py')
+          test = Path('apps/api/tests/test_kb_reference_framing.py')
+          docs = Path('docs/research/KB_REFERENCE_STAGING.md')
+          before = source.read_bytes()
+          assert hashlib.sha1(b'blob ' + str(len(before)).encode() + b'\0' + before).hexdigest() == 'de2c3c525d7f6f3c18218674411b6b8dc5bc2621'
+          old_manifest = json.loads(Path('SOURCE_MANIFEST.json').read_text())
+          assert build_manifest(root) == old_manifest
+          assert verify_source(root)['valid'] is True and verify_build(root) == []
+          old_shape = budget_gate.measure()[str(source)]
+          assert not test.exists()
+          test.write_bytes(Path('var/framing-tests.py').read_bytes())
+          test.chmod(0o644)
+          baseline = subprocess.run([sys.executable, '-m', 'pytest', '-q', str(test), '-p', 'no:cacheprovider', '--tb=short', '--junitxml=var/framing-baseline.xml'], capture_output=True, text=True, check=False)
+          Path('var/framing-baseline.log').write_text(baseline.stdout + baseline.stderr)
+          suites = list(ET.parse('var/framing-baseline.xml').getroot().iter('testsuite'))
+          counts = {key: sum(int(s.get(key, '0')) for s in suites) for key in ('tests', 'failures', 'errors', 'skipped')}
+          assert baseline.returncode == 1 and counts == {'tests': 37, 'failures': 29, 'errors': 0, 'skipped': 0}, counts
+          print('BASELINE', json.dumps(counts))
+          text = before.decode()
+          replacements = {
+              'enumerate(_read_catalog(path).splitlines(), 1)': 'enumerate(_read_catalog(path).split("\\n"), 1)',
+              'if not line.strip():': 'if not line.strip(" \\t\\r"):',
+              'if len(records) >= MAX_ROWS:': 'if len(records) + len(errors) >= MAX_ROWS:',
+              'source count exceeds bounded maximum': 'catalog row count exceeds bounded maximum',
+          }
+          for old, new in replacements.items():
+              assert text.count(old) == 1
+              text = text.replace(old, new)
+          source.write_text(text)
+          assert budget_gate.measure()[str(source)] == old_shape
+          assert len(text.splitlines()) == 242
+          with docs.open('a', encoding='utf-8') as stream:
+              stream.write('\n## JSONL framing and parser budget\n\nRecords are separated only by LF; CRLF and an optional final newline are supported.\nUnicode line-separator characters inside JSON strings are data, not record boundaries.\nFor existing compatibility, ASCII JSON-whitespace-only blank lines are ignored; this\nis an explicit extension, not strict JSON Lines conformance. Other whitespace-only\nlines are malformed and must not disappear. `MAX_ROWS` bounds accepted **plus rejected**\nnonblank rows, so malformed rows cannot evade the parse/diagnostic budget.\n`source_records` still counts schema-valid metadata rows, never indexable records.\nThe separate 128-KiB descriptor-read bound and all production-denial fields are unchanged.\n\nReferences: https://jsonlines.org/ and\nhttps://docs.python.org/3.12/library/stdtypes.html#str.splitlines .\n')
+          subprocess.run(['git', 'add', '--intent-to-add', str(test)], check=True)
+          manifest = write_manifest(root, Path('SOURCE_MANIFEST.json'), kind='source')
+          assert manifest['file_count'] == old_manifest['file_count'] + 1 == 2124
+          old_records = {item['path']: item for item in old_manifest['files']}
+          records = {item['path']: item for item in manifest['files']}
+          assert set(records) - set(old_records) == {str(test)}
+          assert not (set(old_records) - set(records))
+          assert sorted(p for p in old_records if records[p] != old_records[p]) == sorted([str(source), str(docs)])
+          package = Path('PACKAGE_BUILD.json')
+          package_text = package.read_text()
+          assert package_text.count(old_manifest['root_sha256']) == 1
+          package.write_text(package_text.replace(old_manifest['root_sha256'], manifest['root_sha256']))
+          assert verify_source(root)['valid'] is True and verify_build(root) == []
+          expected = sorted([str(source), str(test), str(docs), 'SOURCE_MANIFEST.json', 'PACKAGE_BUILD.json'])
+          assert sorted(subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines()) == expected
+          receipt = {'schema': 'korpus.pr88-framing-repair.v1', 'status': 'PREPARED_NOT_ADMITTED', 'original_head': os.environ['ORIGINAL_HEAD'], 'request_head': os.environ['EVENT_HEAD'], 'baseline': counts, 'module_shape_unchanged': True, 'changed_paths': expected, 'source_file_count': manifest['file_count'], 'source_manifest_root_sha256': manifest['root_sha256'], 'merge_authorized': False, 'production_authorized': False}
+          Path('var/framing-receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
+          PY
+      - name: Run unchanged quality, budget and identity gates
+        run: |
+          set -euo pipefail
+          python -m ruff format --check scripts/kb_reference_admission.py apps/api/tests/test_kb_reference_framing.py
+          python -m ruff check scripts/kb_reference_admission.py apps/api/tests/test_kb_reference_framing.py
+          python -m mypy scripts/kb_reference_admission.py
+          python scripts/check_module_budget.py > var/framing-budget.json
+          python -c 'import json; r=json.load(open("var/framing-budget.json")); assert r["status"]=="PASS" and not r["unbudgeted"] and not r["violations"]'
+          python scripts/check_budget_raises_are_named.py --base "$ORIGINAL_HEAD"
+          python scripts/verify_source_manifest.py
+          python scripts/verify_package_build_identity.py
+          git diff --check
+      - name: Run isolated negative controls and restored full focused suite
+        run: |
+          python - <<'PY'
+          import json, subprocess, sys, xml.etree.ElementTree as ET
+          from pathlib import Path
+          source = Path('scripts/kb_reference_admission.py')
+          fixed = source.read_text()
+          test = 'apps/api/tests/test_kb_reference_framing.py'
+          mutants = {
+              'unicode_splitlines': ('_read_catalog(path).split("\\n")', '_read_catalog(path).splitlines()'),
+              'unicode_whitespace_discard': ('line.strip(" \\t\\r")', 'line.strip()'),
+              'rejected_rows_uncounted': ('len(records) + len(errors) >= MAX_ROWS', 'len(records) >= MAX_ROWS'),
+              'row_boundary_off_by_one': ('len(records) + len(errors) >= MAX_ROWS', 'len(records) + len(errors) > MAX_ROWS'),
+          }
+          controls = []
+          try:
+              for name, (old, new) in mutants.items():
+                  assert fixed.count(old) == 1
+                  source.write_text(fixed.replace(old, new))
+                  xml = 'var/framing-mutant-' + name + '.xml'
+                  run = subprocess.run([sys.executable, '-m', 'pytest', '-q', test, '-p', 'no:cacheprovider', '--tb=short', '--junitxml=' + xml], capture_output=True, text=True, check=False)
+                  Path('var/framing-mutant-' + name + '.log').write_text(run.stdout + run.stderr)
+                  suites = list(ET.parse(xml).getroot().iter('testsuite'))
+                  assert run.returncode == 1 and sum(int(s.get('failures', '0')) for s in suites) > 0
+                  assert sum(int(s.get('errors', '0')) for s in suites) == 0
+                  controls.append(name)
+                  print('NEGATIVE_CONTROL_REJECTED', name)
+          finally:
+              source.write_text(fixed)
+          tests = [str(p) for p in sorted(Path('apps/api/tests').glob('test_kb_reference*.py'))]
+          tests += ['apps/api/tests/test_gate_parity.py::test_every_module_is_in_the_budget']
+          tests += [str(p) for p in sorted(Path('apps/api/tests').glob('test_*budget*.py'))]
+          command = [sys.executable, '-m', 'pytest', '-q', *tests, '-p', 'no:cacheprovider', '--junitxml=var/framing-focused.xml']
+          subprocess.run(command, check=True)
+          suites = list(ET.parse('var/framing-focused.xml').getroot().iter('testsuite'))
+          counts = {key: sum(int(s.get(key, '0')) for s in suites) for key in ('tests', 'failures', 'errors', 'skipped')}
+          assert counts['tests'] >= 123 and counts['failures'] == counts['errors'] == counts['skipped'] == 0, counts
+          subprocess.run([sys.executable, 'scripts/verify_source_manifest.py'], check=True)
+          subprocess.run([sys.executable, 'scripts/verify_package_build_identity.py'], check=True)
+          receipt = json.loads(Path('var/framing-receipt.json').read_text())
+          receipt.update({'focused_counts': counts, 'negative_controls_rejected': controls, 'verification_command': command, 'quality_budget_identity_passed': True})
+          Path('var/framing-receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
+          print('FOCUSED', json.dumps(counts))
+          PY
+      - name: Publish tested unreferenced blobs only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64, hashlib, json, os, urllib.request
+          from pathlib import Path
+          def request(path, payload=None):
+              data = None if payload is None else json.dumps(payload).encode()
+              req = urllib.request.Request('https://api.github.com/repos/neuron7x/KORPUS' + path, data=data, headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'}, method='GET' if data is None else 'POST')
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  return json.load(response)
+          pr = request('/pulls/88')
+          assert pr['state'] == 'open' and not pr['merged'] and pr['head']['sha'] == os.environ['EVENT_HEAD']
+          assert pr['head']['ref'] == 'research/kb-reference-metadata-gate-20261021' and pr['base']['ref'] == 'main'
+          path = Path('var/framing-receipt.json')
+          receipt = json.loads(path.read_text())
+          assert receipt['quality_budget_identity_passed'] and len(receipt['negative_controls_rejected']) == 4
+          blobs = []
+          for name in receipt['changed_paths']:
+              data = Path(name).read_bytes()
+              expected = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+              result = request('/git/blobs', {'encoding': 'base64', 'content': base64.b64encode(data).decode()})
+              assert result['sha'] == expected
+              blobs.append({'path': name, 'mode': '100644', 'type': 'blob', 'sha': expected, 'sha256': hashlib.sha256(data).hexdigest()})
+          receipt.update({'status': 'VERIFIED_BLOBS_NOT_ADMITTED', 'workflow_run_id': os.environ['GITHUB_RUN_ID'], 'blobs': blobs})
+          text = json.dumps(receipt, indent=2) + '\n'
+          path.write_text(text)
+          print(text)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('## PR #88 tested repair, not merge authorization\n\n```json\n' + text + '```\n')
+          PY
+      - name: Preserve GitHub verification evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: pr88-framing-repair-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            var/framing-*.json
+            var/framing-*.xml
+            var/framing-*.log
+          if-no-files-found: error
+          retention-days: 7
