@@ -87,6 +87,10 @@ def test_producer_keeps_reports_but_never_copies_runtime_registry() -> None:
         "KORPUS/EVIDENCE/registry.json",
         "other/var/ReLeAsEs/object.json",
         "other/Evidence/registry.json",
+        "reports/evidence/registry.json",
+        "reports/staged/evidence/registry.json",
+        "KORPUS/reports/evidence/registry.json",
+        "KORPUS/reports/staged/evidence/registry.json",
     ],
 )
 def test_runtime_path_alias_and_multiroot_poison(tmp_path: Path, member: str) -> None:

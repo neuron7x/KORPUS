@@ -10,7 +10,7 @@ def _opaque_path(name: str) -> bool:
     parts = [part.rstrip(" .").casefold() for part in name.strip("/").split("/")]
     pairs = set(pairwise(parts))
     trusted = (
-        "reports" in parts[:2]
+        ["reports", "release"] in [parts[:2], parts[1:3]]
         or parts[:2] == ["handoff", "evidence"]
         or parts[1:3] == ["handoff", "evidence"]
     )
