@@ -18,13 +18,18 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def _build_zip(
-    archive: Path, *, prefix: str, poisoned: bool, extra_member: str | None = None
+    archive: Path,
+    *,
+    prefix: str,
+    poisoned: bool,
+    extra_member: str | None = None,
+    extra_payload: bytes = b"additional bound file",
 ) -> None:
     files = {"proof.txt": b"verified source"}
     if poisoned:
         files["evidence/registry.json"] = b'{"digest":"internally-consistent"}'
     if extra_member is not None:
-        files[extra_member] = b"additional bound file"
+        files[extra_member] = extra_payload
     manifest = {
         "schema": "korpus.distribution-manifest.v2",
         "kind": "distribution",
@@ -129,6 +134,7 @@ def test_producer_rejects_staged_bundle_without_changing_clean_files(
     def status() -> int:
         return subprocess.run(
             ["bash", "-c", command, "bundle-guard", str(tmp_path)],
+            cwd=ROOT,
             check=False,
             capture_output=True,
             text=True,
@@ -136,11 +142,31 @@ def test_producer_rejects_staged_bundle_without_changing_clean_files(
 
     (tmp_path / "safe.txt").write_bytes(b"clean")
     assert status() == 0
-    for name in ("history.bundle", "HISTORY.BUNDLE."):
+    for name, payload in (
+        ("history.bundle", b"synthetic historical blob"),
+        ("HISTORY.BUNDLE.", b"synthetic historical blob"),
+        ("history.dat", b"# v2 git bundle\nsynthetic refs"),
+        ("history.bin", b"# v3 git bundle\nsynthetic refs"),
+    ):
         path = tmp_path / name
-        path.write_bytes(b"synthetic historical blob")
+        path.write_bytes(payload)
         assert status() == 1
         path.unlink()
+
+
+@pytest.mark.parametrize("header", [b"# v2 git bundle\n", b"# v3 git bundle\n"])
+def test_disguised_bundle_magic_is_rejected(tmp_path: Path, header: bytes) -> None:
+    archive = tmp_path / "disguised.zip"
+    _build_zip(
+        archive,
+        prefix="",
+        poisoned=False,
+        extra_member="reports/release/v0.8.0/history.dat",
+        extra_payload=header + b"synthetic history",
+    )
+    failures, count = verify(archive)
+    assert count == 0
+    assert any("git bundle forbidden" in failure for failure in failures)
 
 
 def test_authorized_handoff_evidence_is_not_misclassified(tmp_path: Path) -> None:

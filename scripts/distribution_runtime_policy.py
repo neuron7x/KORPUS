@@ -1,9 +1,9 @@
-"""Reject opaque runtime aliases without treating hashes as authenticity."""
-
 from __future__ import annotations
 
 import zipfile
 from itertools import pairwise
+
+from git_bundle_policy import bundle_zip_failures
 
 
 def _opaque_path(name: str) -> bool:
@@ -27,4 +27,4 @@ def opaque_runtime_failures(zf: zipfile.ZipFile) -> list[str]:
         f"unverified runtime evidence forbidden: {info.filename!r}"
         for info in zf.infolist()
         if _opaque_path(info.filename)
-    ]
+    ] + bundle_zip_failures(zf)

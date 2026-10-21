@@ -64,7 +64,7 @@ def verify(archive: Path | BinaryIO) -> tuple[list[str], int]:
     with tempfile.TemporaryDirectory(prefix="korpus-package-verify-") as tmp_name:
         tmp = Path(tmp_name)
         with zipfile.ZipFile(archive) as zf:
-            safety = safety_failures(zf) + opaque_runtime_failures(zf)
+            safety = safety_failures(zf) or opaque_runtime_failures(zf)
             if safety:
                 return safety, 0
             zf.extractall(tmp)

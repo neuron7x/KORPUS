@@ -68,11 +68,10 @@ if python3 - "$tmp" <<'PY'
 import sys
 from pathlib import Path
 
+from scripts.git_bundle_policy import is_bundle_path
+
 files = Path(sys.argv[1]).rglob("*")
-raise SystemExit(not any(
-    item.is_file() and item.name.casefold().rstrip(" .").endswith(".bundle")
-    for item in files
-))
+raise SystemExit(not any(is_bundle_path(item) for item in files))
 PY
 then
   echo "history bundle forbidden in canonical package" >&2

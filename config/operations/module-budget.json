@@ -6572,6 +6572,15 @@
       "proof_lines": 0,
       "reason": "Issue #56: initial bounded admission and native combination of two verified dialect coverage executions."
     },
+    "scripts/git_bundle_policy.py": {
+      "lines": 36,
+      "max_complexity": 6,
+      "max_function_args": 1,
+      "max_function_lines": 12,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #20: exact initial measured Git bundle byte-signature admission for producer and ZIP consumer, with no third-party dependencies."
+    },
     "scripts/github_actions_graph.py": {
       "lines": 146,
       "max_complexity": 8,

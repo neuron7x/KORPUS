@@ -83,7 +83,7 @@ def _record_entry(
         failures.append(f"duplicate archive entry rejected: {canonical!r}")
     exact.add(canonical)
     normalized_path = canonical.rstrip("/")
-    alias_key = re.sub(r"[ .]+(?=/|$)", "", normalized_path.casefold())
+    alias_key = re.sub(r"[ .]+(?=/|$)", "", re.sub(r'[<>:"|?*]', "_", normalized_path.casefold()))
     prior = folded.get(alias_key)
     if prior is not None and prior != normalized_path:
         failures.append(f"casefold/alias collision rejected: {prior!r} vs {canonical!r}")

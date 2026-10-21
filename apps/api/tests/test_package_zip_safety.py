@@ -6,6 +6,8 @@ import json
 import stat
 import sys
 import zipfile
+
+import pytest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -113,6 +115,27 @@ def test_windows_normalized_alias_collision_refused_before_extraction(
         failures, count = _module().verify(archive)
         assert count == 0
         assert any("casefold/alias collision rejected" in item for item in failures)
+
+
+@pytest.mark.parametrize(
+    ("left", "right"),
+    [
+        ("proof?.txt", "proof*.txt"),
+        ("proof:.txt", "proof?.txt"),
+        ("a<.txt", "a>.txt"),
+        ("file|.txt", "file*.txt"),
+    ],
+)
+def test_windows_illegal_character_collision_is_rejected(
+    tmp_path: Path, left: str, right: str
+) -> None:
+    archive = tmp_path / "windows-illegal-alias.zip"
+    with zipfile.ZipFile(archive, "w") as target:
+        target.writestr(_info(left), b"first")
+        target.writestr(_info(right), b"second")
+    failures, count = _module().verify(archive)
+    assert count == 0
+    assert any("casefold/alias collision rejected" in item for item in failures)
 
 
 def test_symlink_entry_is_rejected(tmp_path: Path) -> None:

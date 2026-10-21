@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2126,
-  "root_sha256": "16e4432d1900e7a1060ae59dd4e92ee8943ec8b446ee244655d8d8ce32cb8795",
+  "file_count": 2127,
+  "root_sha256": "4078ae7096580973a3edb247f4e12f5015773a234cb620605754fd2a057549cb",
   "files": [
     {
       "path": ".dockerignore",
@@ -3895,8 +3895,8 @@
     },
     {
       "path": "apps/api/tests/test_distribution_runtime_boundary.py",
-      "bytes": 7414,
-      "sha256": "5a9d2b8c010af0486ade45eabeb42e6ecf5c220575e890e0f1c19198abbfcb4a",
+      "bytes": 8228,
+      "sha256": "bdd858a82d7e55a86e1c7b7583d17a90a33865622dc12987bcc8ae1f9a5633ef",
       "mode": "0644"
     },
     {
@@ -4825,8 +4825,8 @@
     },
     {
       "path": "apps/api/tests/test_package_zip_safety.py",
-      "bytes": 7844,
-      "sha256": "6b74b604d4a8dbc2aa22a1392b84d42ac47eda8a240a4d9656780e26c9f49ee5",
+      "bytes": 8528,
+      "sha256": "dc525f33c6b7b0e44c98dc32f04a6748b36bc2c9abee12f8d43a0117b9d243fd",
       "mode": "0644"
     },
     {
@@ -8263,8 +8263,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 758414,
-      "sha256": "c3d284f859a3e4f068f5fc9cadf5e2982200b52848628acd026ab8cf4a4640c5",
+      "bytes": 758768,
+      "sha256": "5a587ee918a10f8d89dac13869700a6cda6d35c092cb4474b0b9b1dfd83b08b5",
       "mode": "0644"
     },
     {
@@ -8995,8 +8995,8 @@
     },
     {
       "path": "docs/operations/DISTRIBUTION_RUNTIME_BOUNDARY.md",
-      "bytes": 2766,
-      "sha256": "bf2991eb1d393926a95dce50a682b3feb42495e487adf0a4c01fffe035d4e7ff",
+      "bytes": 2823,
+      "sha256": "af89095889bc88c5dcaf682422571844b970a4df4dee64ab73eee8842d10962f",
       "mode": "0644"
     },
     {
@@ -11053,8 +11053,8 @@
     },
     {
       "path": "scripts/distribution_runtime_policy.py",
-      "bytes": 910,
-      "sha256": "b29519d96721e21a4164a7dca0a343514e0469f1b99d75e9e77f04829f955b87",
+      "bytes": 909,
+      "sha256": "a823cfb969436e6e3e31e49c88f72052cbef23b8e4bb08423e49c76a6f053d57",
       "mode": "0644"
     },
     {
@@ -11424,6 +11424,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/git_bundle_policy.py",
+      "bytes": 1081,
+      "sha256": "a0a66765f0853e82546f268a1e04bb0942bd89a00eff1d5f0d14d9f072933d11",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/github_actions_graph.py",
       "bytes": 5505,
       "sha256": "7628af1957a0d8ecd4ba5e06b7fc3f4ed392e94eca5f15736eb1adc99db98a36",
@@ -11641,8 +11647,8 @@
     },
     {
       "path": "scripts/package_repository.sh",
-      "bytes": 6589,
-      "sha256": "3825f85145e41b7416f8ef805e91f925008402a2fceb983b2a8508d9b4103f0b",
+      "bytes": 6581,
+      "sha256": "739d0f126e198217571823a2be003124eb928f508eec76dcec08afbcf012f7a2",
       "mode": "0755"
     },
     {
@@ -12655,8 +12661,8 @@
     },
     {
       "path": "scripts/verify_package.py",
-      "bytes": 3652,
-      "sha256": "c9a31078a20eda213ed00d4bc20d07f8f5cb3d288026c52c102a070b5439d874",
+      "bytes": 3653,
+      "sha256": "116ed4f3b9d25fd805e8f7a46b38d6b75211cc5f9ed9dc6a432f3aaf0f970851",
       "mode": "0755"
     },
     {
@@ -12751,8 +12757,8 @@
     },
     {
       "path": "scripts/zip_safety.py",
-      "bytes": 5279,
-      "sha256": "ba9e662a0461e8febfabe6b04f4b0811a5407c2a85f0b969b882e2632f4bda28",
+      "bytes": 5306,
+      "sha256": "d27bf418d3adbd9d5e8607b55f70b8398c774509c7bcf621ffad63c373785725",
       "mode": "0755"
     },
     {
