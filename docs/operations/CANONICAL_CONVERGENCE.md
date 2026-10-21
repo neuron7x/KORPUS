@@ -36,26 +36,57 @@ Mutation controls substantiate named finite properties, not universal exploit re
 Existing warnings, conditional test skips, release-signing obligations and any uncovered behavior
 must remain visible rather than being relabelled as solved.
 
-## Branch disposition
+## Branch disposition (2026-10-21 continuation)
 
-Twenty-five branch tips are already ancestors of main and require no repeated merge.
-The package stack ancestry is represented once; do not independently merge its component PRs
-and the same aggregate. The standalone audit/pr85-empty-component-fix-20261021 tip is retained
-until its auxiliary history is reconciled. The seven divergent tips are not blindly imported:
+The original CANONICAL_BRANCH_INVENTORY.json remains an immutable dated observation.
+The companion CANONICAL_BRANCH_DISPOSITION.json records subsequent source-level decisions,
+exact legacy pins, current-test matches and retained implementation dependencies.
+Twenty-five tips were already ancestors of the main baseline. The package stack is represented
+once; do not merge both its component PRs and the aggregate as independent source imports.
 
-| Branch | Exact observed head | Ahead / behind main | Disposition |
-| --- | --- | --- | --- |
-| `agent/ci-local-ref-isolation-20261018` | `df008029c6d630bdbe825cacd214715a95337772` | 10 / 132 | retain; semantic disposition pending |
-| `codex/finalize-canonical-20261018` | `54db6bdbf2091a3bf7a66cf1124aa0c1a364931e` | 2 / 113 | retain; semantic disposition pending |
-| `codex/issue-46-architecture` | `4cfd7a26945617fbe2c14fcadcf335e3d6def48e` | 4 / 161 | retain; semantic disposition pending |
-| `codex/issue-6-release-evidence` | `7469e4a080e4a4b0a98825d91c3d695594317e16` | 7 / 132 | retain; semantic disposition pending |
-| `governance/issue-54-forge-contract` | `398c3ac524e20d9d986cfb7df4c07cd54f1073be` | 4 / 1 | retain; semantic disposition pending |
-| `proposal/korpus-capability-gateway-v1-20260904` | `f90a409bb8e2ab13aa90a15ed979885e2f43b413` | 152 / 265 | retain; semantic disposition pending |
-| `work/issue-54-hosted-bootstrap` | `aa8fb96463f967ad7e7e4b0a83633f283c9511b1` | 43 / 113 | retain; semantic disposition pending |
+Read-only static audit run 39629417088 examined all five residual tips against source
+c2abdb69edd273c53e3a7bb2344f1ffb3be2a158. Artifact 12357074758 was independently hash-checked:
+363e3d95c1ad36dfa8020655acfef0e7f463cb8d62b01df8a14a0e5d8c57b305.
+All 730 internal evidence-file hashes were verified. No legacy code was executed.
 
-The complete machine-readable snapshot is CANONICAL_BRANCH_INVENTORY.json beside this document.
-Containment and patch identity are not semantic approval, deletion authority or production evidence.
-No branch, tag, issue or existing PR is silently deleted/closed by this candidate.
+| Legacy tip | Disposition | Rationale |
+| --- | --- | --- |
+| agent/ci-local-ref-isolation-20261018 | SUPERSEDED | Four changed definitions retained; three named tests pass in original candidate CI. |
+| codex/issue-46-architecture | SUPERSEDED | Current composition, gateway and deadline implementation covers the changes; 50 matched cases pass. The old local verification log remains historical. |
+| codex/issue-6-release-evidence | ADAPTED_PENDING_FULL_CI | Restore isolated receipt staging only; preserve newer dependencies and controls; never promote its 86 generated paths as fresh evidence. |
+| proposal/korpus-capability-gateway-v1-20260904 | SUPERSEDED | Current hardened implementation retains all 247 named test functions (277 matched cases pass). Do not reintroduce the unused registry.versions helper as a public API. |
+| work/issue-54-hosted-bootstrap | RETAIN_EXCLUDED_PENDING_SCOPED_ADAPTATION | 33 absent paths belong in a scoped current-architecture assessment under #66/#67, not a blind workflow rollback. Those obligations remain OPEN. |
+
+The auxiliary governance/issue-54-forge-contract and audit/pr85-empty-component-fix-20261021
+tips have no additional net source import (review 5601034069). codex/finalize-canonical-20261018
+is semantically superseded by current all-parent traversal and its killed M727 control
+(review 5602153926). Source disposition is not ancestry equivalence: all refs and original
+commits remain intact; no branch, tag, issue or component PR is deleted or silently closed.
+Five of five residual tips are classified; not all historic implementation debt is closed.
+
+## Regression-receipt staging correction
+
+The previous backend-report target overwrote tracked shard receipts while later workers still
+inspected the checkout. A failed worker could leave a mixture of old and new evidence.
+Each invocation now creates a unique staging directory under var, directs every worker there,
+preserves prior tracked receipts during worker execution, and stops before promotion if a worker
+fails. Positive shard count is required. Normal exit and handled signals clean the temporary path.
+Only a fully successful worker loop replaces the canonical shard directory; the original exact
+shard-merge verifier and backend publisher then run unchanged. Direct regression-shard commands
+retain their original output default and may explicitly set REGRESSION_SHARD_DIR.
+
+Sixteen isolated tests execute the actual Make recipes with inert Python producers: normal and
+space-containing workspaces, two/three workers, failure of first/later workers, explicit staging
+paths, and invalid counts. Named guard regressions test early live writes, ignored worker failures
+premature deletion, and omitted cleanup. Tests do not activate services, acquire content or invoke production tools.
+The existing no-deletion-before-self-tests contract is retained and made order-sensitive: deletion
+is forbidden before/during the worker loop, while verified post-worker promotion remains allowed.
+Its test name and all other shard-contract checks are preserved.
+This is worker-phase isolation, NOT crash-atomic directory promotion or concurrent-worktree support.
+A promotion/merge/publisher failure still blocks completion; the one-worktree-per-agent contract applies.
+
+The complete generated source identity is rebound after this change. Full hosted CI and independent
+CODE/SECURITY assessment must cover the final commit; earlier c2abdb69 results are historical.
 
 ## Operator validation
 

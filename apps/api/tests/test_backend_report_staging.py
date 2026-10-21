@@ -1,4 +1,5 @@
 """Execute actual Make recipes with inert producers to verify publication ordering."""
+
 from __future__ import annotations
 
 import json
@@ -13,7 +14,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
 
-RUNNER = r'''
+RUNNER = r"""
 import argparse
 import json
 import os
@@ -42,7 +43,7 @@ else:
     assert sorted(r["index"] for r in records) == list(range(int(os.environ["SHARD_COUNT"])))
     assert all(r["fresh"] for r in records)
     args.out.write_text(json.dumps({"validated": True}))
-'''
+"""
 
 
 def _recipe(source: str, name: str) -> str:
@@ -79,16 +80,33 @@ def _workspace(tmp_path: Path, spaced: bool) -> Path:
     return root
 
 
-def _make(root: Path, *arguments: str, count: int, fail: int | None = None) -> subprocess.CompletedProcess[str]:
+def _make(
+    root: Path, *arguments: str, count: int, fail: int | None = None
+) -> subprocess.CompletedProcess[str]:
     executable = shutil.which("make")
     assert executable is not None, "GNU Make is required for recipe integration tests"
-    env = {k: v for k, v in os.environ.items() if k not in {"MAKEFLAGS", "MFLAGS", "MAKELEVEL", "FAIL_SHARD"}}
+    env = {
+        k: v
+        for k, v in os.environ.items()
+        if k not in {"MAKEFLAGS", "MFLAGS", "MAKELEVEL", "FAIL_SHARD"}
+    }
     env["SHARD_COUNT"] = str(count)
     if fail is not None:
         env["FAIL_SHARD"] = str(fail)
     return subprocess.run(
-        [executable, "--no-print-directory", *arguments, f"PY={sys.executable}", f"REGRESSION_SHARDS={count}"],
-        cwd=root, env=env, capture_output=True, text=True, check=False, timeout=30,
+        [
+            executable,
+            "--no-print-directory",
+            *arguments,
+            f"PY={sys.executable}",
+            f"REGRESSION_SHARDS={count}",
+        ],
+        cwd=root,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=30,
     )
 
 
@@ -108,7 +126,10 @@ def test_workers_preserve_prior_receipts_and_publish_only_after_success(
         assert len(list((root / "reports/regression/shards").glob("*.json"))) == count
     else:
         assert result.returncode != 0
-        observed = {str(p.relative_to(root)): p.read_text() for p in (root / "reports/regression/shards").iterdir()}
+        observed = {
+            str(p.relative_to(root)): p.read_text()
+            for p in (root / "reports/regression/shards").iterdir()
+        }
         assert observed == expected, result.stdout + result.stderr
         assert not (root / "published").exists()
         assert not (root / "reports/regression/FULL_REGRESSION_CURRENT.json").exists()
@@ -118,7 +139,13 @@ def test_workers_preserve_prior_receipts_and_publish_only_after_success(
 @pytest.mark.parametrize("spaced", [False, True])
 def test_explicit_shard_directory_is_honored(tmp_path: Path, spaced: bool) -> None:
     root = _workspace(tmp_path, spaced)
-    result = _make(root, "regression-shard", "SHARD_INDEX=0", "REGRESSION_SHARD_DIR=var/custom staging", count=2)
+    result = _make(
+        root,
+        "regression-shard",
+        "SHARD_INDEX=0",
+        "REGRESSION_SHARD_DIR=var/custom staging",
+        count=2,
+    )
     assert result.returncode == 0, result.stdout + result.stderr
     assert (root / "var/custom staging/shard-0.json").is_file()
     expected = json.loads((root / "expected.json").read_text())
@@ -131,7 +158,10 @@ def test_invalid_shard_count_preserves_prior_receipts(tmp_path: Path, count: int
     result = _make(root, "backend-report", count=count)
     assert result.returncode != 0
     expected = json.loads((root / "expected.json").read_text())
-    observed = {str(p.relative_to(root)): p.read_text() for p in (root / "reports/regression/shards").iterdir()}
+    observed = {
+        str(p.relative_to(root)): p.read_text()
+        for p in (root / "reports/regression/shards").iterdir()
+    }
     assert observed == expected
     assert not (root / "published").exists()
     assert not list((root / "var").glob("regression-shards.*"))

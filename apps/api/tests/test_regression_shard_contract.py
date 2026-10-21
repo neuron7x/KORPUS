@@ -215,5 +215,14 @@ def test_backend_report_does_not_delete_tracked_receipts_before_self_tests() -> 
     makefile = (root / "Makefile").read_text(encoding="utf-8")
     recipe = makefile.split("backend-report:\n", 1)[1].split("\n\n", 1)[0]
 
-    assert "rm -rf reports/regression/shards" not in recipe
-    assert "$(MAKE) regression-shard" in recipe
+    workers, separator, promotion = recipe.partition("\t  done;")
+    assert separator, "worker loop must finish before publication"
+    assert "rm -rf reports/regression/shards" not in workers
+    assert "$(MAKE) regression-shard SHARD_INDEX=" in workers
+    assert "@set -eu;" in workers
+    assert 'REGRESSION_SHARD_DIR="$$stage"' in workers
+    assert (
+        promotion.index("rm -rf reports/regression/shards")
+        < promotion.index('mv "$$stage"/* reports/regression/shards/')
+        < promotion.index("$(MAKE) regression-shard-merge")
+    )

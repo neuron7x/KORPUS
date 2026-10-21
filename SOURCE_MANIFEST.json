@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2139,
-  "root_sha256": "a7254d7f456c40bc51ee6c328be7e64a7c9ed533ff750bb23299f00db46d7282",
+  "file_count": 2141,
+  "root_sha256": "ccc95bf0c741cba1ced334250678fcbf4808f95a41dbd5ef0dd8cf552d245b17",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 134791,
-      "sha256": "9c84b7d27e80fa8ceb3d56d39914e6d4d8792be2bf39d516e13579c21aee9a09",
+      "bytes": 135096,
+      "sha256": "93c8e6f4363b91c0454433f9b1e16f917499104107c03f4a2d62e439a918021a",
       "mode": "0644"
     },
     {
@@ -3102,6 +3102,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_backend_report_staging.py",
+      "bytes": 6340,
+      "sha256": "b84dc13e53eaace49c6476c73d86b71757e8825babc907112fae256b3a9f2d0e",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_billing_events.py",
       "bytes": 29312,
       "sha256": "f7f94c578b90733fc09a6d7a3e355789b8a7dc452ba73a3f024d038ecf68ca3d",
@@ -5299,8 +5305,8 @@
     },
     {
       "path": "apps/api/tests/test_regression_shard_contract.py",
-      "bytes": 7588,
-      "sha256": "25073e2a82a9353849d1da753030d2eca2ca6f29a4844cbbfff11878a862d580",
+      "bytes": 8035,
+      "sha256": "34c4aa1cf4203d5368386eea28eed030f931b61a967d77ddf61d9e15d62e033d",
       "mode": "0644"
     },
     {
@@ -9030,6 +9036,12 @@
       "mode": "0644"
     },
     {
+      "path": "docs/operations/CANONICAL_BRANCH_DISPOSITION.json",
+      "bytes": 8489,
+      "sha256": "c49d1383c1a7c234941a5d2ca5975b1822e7d454f4700de0a56eee5a16929224",
+      "mode": "0644"
+    },
+    {
       "path": "docs/operations/CANONICAL_BRANCH_INVENTORY.json",
       "bytes": 40521,
       "sha256": "0aad3ad1e79a62c9c2efa9519190a82a1ad66759c23659199c36a65b857d3889",
@@ -9037,8 +9049,8 @@
     },
     {
       "path": "docs/operations/CANONICAL_CONVERGENCE.md",
-      "bytes": 4960,
-      "sha256": "c0df0f4760676eeb13d87bb62fa7606e6c61dfe572a2259cfe9b2dcc98a6b5fb",
+      "bytes": 7542,
+      "sha256": "ad8ecd2060aa9fb3caa3aebb5993a3ca523297894822feb9a0cad8837b5feefc",
       "mode": "0644"
     },
     {
