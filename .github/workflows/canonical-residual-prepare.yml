@@ -5,6 +5,7 @@ on:
     branches: [integration/canonical-main-20261021]
     paths:
       - .github/canonical_residual_prepare.py
+      - .github/canonical_residual_revision.py
       - .github/canonical_staging_cases.py
       - .github/workflows/canonical-residual-prepare.yml
 permissions:
@@ -63,13 +64,13 @@ jobs:
         run: |
           python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
           python -m pip check
-      - name: Execute bounded preparation with read-only repository credentials
+      - name: Execute pinned preparation revision with read-only credentials
         shell: bash
         run: |
           set -euo pipefail
           test "$(git hash-object .github/canonical_residual_prepare.py)" = 35081c980356c6d37222040a49e0b58bb9602592
-          cp .github/canonical_residual_prepare.py "$RUNNER_TEMP/canonical_residual_prepare.py"
-          python "$RUNNER_TEMP/canonical_residual_prepare.py"
+          test "$(git hash-object .github/canonical_residual_revision.py)" = c3d2fc6f0d9d1888469d1997ce1c994581a6baa5
+          python .github/canonical_residual_revision.py
       - name: Preserve actual tests and candidate payload
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -91,7 +92,7 @@ jobs:
         with:
           name: residual-prepared-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/residual-prepared
-      - name: Publish six verified content-addressed blobs only
+      - name: Publish seven verified content-addressed blobs only
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -116,6 +117,7 @@ jobs:
           assert receipt['repaired'] == {'tests': 16, 'failures': 0, 'errors': 0, 'skipped': 0}
           assert receipt['combined_focused']['failures'] == receipt['combined_focused']['errors'] == receipt['combined_focused']['skipped'] == 0
           allowed = {'Makefile', 'apps/api/tests/test_backend_report_staging.py',
+                     'apps/api/tests/test_regression_shard_contract.py',
                      'docs/operations/CANONICAL_CONVERGENCE.md',
                      'docs/operations/CANONICAL_BRANCH_DISPOSITION.json',
                      'SOURCE_MANIFEST.json', 'PACKAGE_BUILD.json'}
