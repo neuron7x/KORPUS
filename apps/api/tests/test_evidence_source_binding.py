@@ -156,7 +156,15 @@ def _release_fixture(tmp_path: Path, evidence_digest: str) -> Path:
             }
         )
     (reports / "ASSURANCE_SNAPSHOT.json").write_text(
-        json.dumps({"status": "PASS", "release": "v-test", "records": records}),
+        json.dumps(
+            {
+                "schema": "korpus.assurance-snapshot.v1",
+                "status": "PASS",
+                "release": "v-test",
+                "records": records,
+                "limitations": [],
+            }
+        ),
         encoding="utf-8",
     )
     return reports
@@ -200,6 +208,29 @@ def test_release_verifier_rejects_an_empty_snapshot_record_set(
     snapshot = reports / "ASSURANCE_SNAPSHOT.json"
     payload = json.loads(snapshot.read_text(encoding="utf-8"))
     payload["records"] = []
+    snapshot.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(module, "REPORTS", reports)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setitem(module.complete_snapshot_records.__globals__, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "release_tag", lambda: "v-test")
+    monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
+    monkeypatch.setattr(module, "evidence_source_binding_failure", lambda _claimed: None)
+    assert module.main() == 1
+
+
+@pytest.mark.parametrize(
+    ("mutation", "value"),
+    [("schema", "wrong.schema"), ("bytes", True), ("unexpected", "field")],
+)
+def test_release_verifier_rejects_malformed_snapshot_contract(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mutation: str, value: object
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    snapshot = reports / "ASSURANCE_SNAPSHOT.json"
+    payload = json.loads(snapshot.read_text(encoding="utf-8"))
+    target = payload if mutation == "schema" else payload["records"][0]
+    target[mutation] = value
     snapshot.write_text(json.dumps(payload), encoding="utf-8")
     monkeypatch.setattr(module, "REPORTS", reports)
     monkeypatch.setattr(module, "ROOT", tmp_path)

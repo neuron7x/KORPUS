@@ -47,6 +47,25 @@ def load_json(path: Path) -> dict[str, object]:
     return value
 
 
+def snapshot_contract_valid(snapshot: object) -> bool:
+    if not isinstance(snapshot, dict):
+        return False
+    records = snapshot.get("records")
+    return (
+        set(snapshot) == {"schema", "release", "status", "records", "limitations"}
+        and snapshot.get("schema") == "korpus.assurance-snapshot.v1"
+        and isinstance(records, list)
+        and all(
+            isinstance(record, dict)
+            and set(record) == {"path", "bytes", "sha256"}
+            and isinstance(record.get("path"), str)
+            and type(record.get("bytes")) is int
+            and isinstance(record.get("sha256"), str)
+            for record in records
+        )
+    )
+
+
 def complete_snapshot_records(value: object) -> list[dict[str, object]]:
     records = value if isinstance(value, list) else []
     expected = {f"reports/{name}" for name in (*SOURCES, "RESEARCH_ASSURANCE_REPORT.json")}
@@ -82,7 +101,6 @@ def assemble_ci_report() -> dict[str, object]:
         and suite.attrib.get("errors", "0") == "0"
         and eval_report.get("status_accuracy") == 1.0
         and eval_report.get("leakage_failures") == 0
-        # INVALID remains in the full-catalogue denominator (ADR-0008).
         and mutation_report.get("mutation_score_over_catalogue") == 1.0
         and migration_report.get("table_set_match") is True
         and migration_report.get("sqlite_fts5_present") is True
@@ -121,8 +139,6 @@ def assemble_ci_report() -> dict[str, object]:
     }
 
 
-#: Re-hash every artifact the gate named in `evidence_sha256`; promotion must copy those
-#: exact bytes, not a stale file beside a green gate (observed 2026-08-08).
 _GATE_HASHED_EVIDENCE = {
     "eval": "eval-report.json",
     "mutation": "mutation-report.json",
@@ -134,8 +150,6 @@ _GATE_HASHED_EVIDENCE = {
 def _verify_evidence_matches_the_gate() -> None:
     gate = VAR / "operational-gate.json"
     if not gate.is_file():
-        # No gate ran — assemble_ci_report already refuses a non-PASS assurance, and a
-        # missing gate is a non-PASS. Nothing to cross-check here.
         return
     recorded = load_json(gate).get("evidence_sha256")
     if not isinstance(recorded, dict):
@@ -158,18 +172,7 @@ def _verify_evidence_matches_the_gate() -> None:
 
 
 def _verify_evidence_source_is_committed(assurance: dict[str, object]) -> None:
-    """Просування доказу, чиє джерело не закомічене, — це доказ про недосяжний стан.
-
-    Попередня перевірка читала відсутнє `provenance.source_digest` і мовчки
-    поверталась; негативний контроль на справжньому гейті викрив зелений no-op.
-
-    Другий урок був у ТІМ, ЩО порівнювати. У дереві два різні дайджести джерела:
-    `evidence_paths` (двадцять оголошених доказових шляхів) і `tracked_tree` (усе
-    відстежене мінус згенероване). Порівняння різних мір хибно каже «дерево
-    змінилось», тому спершу звіряється ОБЛАСТЬ, і лише потім число.
-
-    Невідома область і відсутній дайджест — ВІДМОВА, не пропуск.
-    """
+    """Refuse evidence that is not bound to committed bytes in its declared scope."""
     scope = assurance.get("digest_scope")
     claimed = assurance.get("evidence_source_sha256")
     if claimed is None:
@@ -192,11 +195,7 @@ def _verify_evidence_source_is_committed(assurance: dict[str, object]) -> None:
     elif scope == "evidence_paths":
         failure = evidence_source_binding_failure(claimed, root=ROOT)
     else:
-        raise SystemExit(
-            f"assurance report declares an unknown digest scope {scope!r}: "
-            "two different source digests exist in this tree and comparing them "
-            "reports a changed tree when the tree did not change"
-        )
+        raise SystemExit(f"assurance report declares an unknown digest scope {scope!r}")
     if failure is not None:
         raise SystemExit(
             f"{failure}: доказ описує стан, якого немає в жодному коміті, "

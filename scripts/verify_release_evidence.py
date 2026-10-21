@@ -9,7 +9,7 @@ from pathlib import Path
 
 from evidence_source_binding import evidence_source_binding_failure
 from release_identity import release_tag
-from snapshot_assurance import complete_snapshot_records
+from snapshot_assurance import complete_snapshot_records, snapshot_contract_valid
 from source_digest import source_tree_digest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,7 +34,11 @@ def main() -> int:
     failures.extend([str(binding_failure)] * (binding_failure is not None))
     if snapshot.get("status") != "PASS" or snapshot.get("release") != expected_release:
         failures.append("assurance snapshot release/status mismatch")
-    records = complete_snapshot_records(snapshot.get("records"))
+    records = (
+        complete_snapshot_records(snapshot.get("records"))
+        if snapshot_contract_valid(snapshot)
+        else []
+    )
     failures += ["assurance snapshot record set/content mismatch"] * (not records)
     if failures:
         print(json.dumps({"valid": False, "failures": failures}, indent=2))
