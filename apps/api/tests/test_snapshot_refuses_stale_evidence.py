@@ -100,3 +100,18 @@ def test_a_missing_hashed_artifact_is_refused(tmp_path: Path, monkeypatch) -> No
     monkeypatch.setattr(module, "VAR", var)
     with pytest.raises(SystemExit, match=r"did not hash|refusing to promote"):
         module._verify_evidence_matches_the_gate()
+
+
+@pytest.mark.parametrize("limitations", [True, "not-a-list", {}, [1]])
+def test_snapshot_refuses_malformed_assurance_limitations(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, limitations: object
+) -> None:
+    module = _load_module()
+    var = tmp_path / "var"
+    var.mkdir()
+    (var / "research-assurance-report.json").write_text(
+        json.dumps({"status": "PASS", "limitations": limitations}), encoding="utf-8"
+    )
+    monkeypatch.setattr(module, "VAR", var)
+    with pytest.raises(SystemExit, match="limitations must be a list of strings"):
+        module.main()

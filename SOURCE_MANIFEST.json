@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2141,
-  "root_sha256": "43f6ed3178a158305834ae676ad97413d67fdd73e024e2f3187ea54cdec15644",
+  "root_sha256": "2b8c5fd4b22f082ca6a73f4c3acf6a018a0e5e4b0f6057b6d2f40f86e23f385c",
   "files": [
     {
       "path": ".dockerignore",
@@ -4117,8 +4117,8 @@
     },
     {
       "path": "apps/api/tests/test_evidence_source_binding.py",
-      "bytes": 10288,
-      "sha256": "b27e772268b4fca86a7568f8fa965bd1abd06e7e24be23859a1ed932d7734c51",
+      "bytes": 12399,
+      "sha256": "1795bc0aced7f60c4d33d71dda5e7c3ad89217663eb2cd98cccbaf7fe653f1dd",
       "mode": "0644"
     },
     {
@@ -5677,8 +5677,8 @@
     },
     {
       "path": "apps/api/tests/test_snapshot_refuses_stale_evidence.py",
-      "bytes": 3936,
-      "sha256": "1bbd59cb4e2d308ca4007c7a032647facae19b2d804f09c1a5baef57126898a8",
+      "bytes": 4520,
+      "sha256": "ab1fc34c6a56bf02ebe17235c7d7a347c4ca39e3b00f79598fb184060fd3df51",
       "mode": "0644"
     },
     {
@@ -12445,8 +12445,8 @@
     },
     {
       "path": "scripts/snapshot_assurance.py",
-      "bytes": 10021,
-      "sha256": "9b2f6dbb44cd3819de5513e36ef9c0c8ed6bce66a98facdb3f87188f2bbe1a11",
+      "bytes": 10233,
+      "sha256": "b60cadfa2c46d2fe0c4999aac7e581596922cba451d346cb050e9b842a1ed74f",
       "mode": "0755"
     },
     {
@@ -12793,8 +12793,8 @@
     },
     {
       "path": "scripts/verify_release_evidence.py",
-      "bytes": 2185,
-      "sha256": "faf763af9e7d445daf18db31480ad704167dc4a88ec909733da12bd2600292a2",
+      "bytes": 2247,
+      "sha256": "0b3c5377799c5c244eef21919a19e5fb85061c7bb1844e7980beb1e4be35388a",
       "mode": "0755"
     },
     {

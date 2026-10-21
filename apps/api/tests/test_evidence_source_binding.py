@@ -220,7 +220,15 @@ def test_release_verifier_rejects_an_empty_snapshot_record_set(
 
 @pytest.mark.parametrize(
     ("mutation", "value"),
-    [("schema", "wrong.schema"), ("bytes", True), ("unexpected", "field")],
+    [
+        ("schema", "wrong.schema"),
+        ("bytes", True),
+        ("unexpected", "field"),
+        ("limitations", True),
+        ("limitations", "not-a-list"),
+        ("limitations", {}),
+        ("limitations", [1]),
+    ],
 )
 def test_release_verifier_rejects_malformed_snapshot_contract(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mutation: str, value: object
@@ -229,9 +237,50 @@ def test_release_verifier_rejects_malformed_snapshot_contract(
     reports = _release_fixture(tmp_path, "b" * 64)
     snapshot = reports / "ASSURANCE_SNAPSHOT.json"
     payload = json.loads(snapshot.read_text(encoding="utf-8"))
-    target = payload if mutation == "schema" else payload["records"][0]
+    target = payload if mutation in {"schema", "limitations"} else payload["records"][0]
     target[mutation] = value
     snapshot.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(module, "REPORTS", reports)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setitem(module.complete_snapshot_records.__globals__, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "release_tag", lambda: "v-test")
+    monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
+    monkeypatch.setattr(module, "evidence_source_binding_failure", lambda _claimed: None)
+    assert module.main() == 1
+
+
+def test_release_verifier_rejects_duplicate_snapshot_keys(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    snapshot = reports / "ASSURANCE_SNAPSHOT.json"
+    text = snapshot.read_text(encoding="utf-8")
+    snapshot.write_text(
+        text.replace('"schema":', '"schema": "wrong.schema", "schema":', 1),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(module, "REPORTS", reports)
+    with pytest.raises(ValueError, match="duplicate key"):
+        module.main()
+
+
+def test_release_verifier_rejects_snapshot_limitation_omission(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    assurance = reports / "RESEARCH_ASSURANCE_REPORT.json"
+    payload = json.loads(assurance.read_text(encoding="utf-8"))
+    payload["limitations"] = ["DO NOT DEPLOY"]
+    assurance.write_text(json.dumps(payload), encoding="utf-8")
+    snapshot = reports / "ASSURANCE_SNAPSHOT.json"
+    snapshot_payload = json.loads(snapshot.read_text(encoding="utf-8"))
+    for record in snapshot_payload["records"]:
+        if record["path"] == "reports/RESEARCH_ASSURANCE_REPORT.json":
+            content = assurance.read_bytes()
+            record.update(bytes=len(content), sha256=hashlib.sha256(content).hexdigest())
+    snapshot.write_text(json.dumps(snapshot_payload), encoding="utf-8")
     monkeypatch.setattr(module, "REPORTS", reports)
     monkeypatch.setattr(module, "ROOT", tmp_path)
     monkeypatch.setitem(module.complete_snapshot_records.__globals__, "ROOT", tmp_path)

@@ -11,12 +11,13 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from evidence_source_binding import evidence_source_binding_failure
-from release_identity import release_tag
-from source_digest import source_tree_digest
-
 ROOT = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "apps/api/src")]
+from evidence_source_binding import evidence_source_binding_failure  # noqa: E402
+from korpus.application.final_release_evidence import strict_signed_json_object  # noqa: E402
+from release_identity import release_tag  # noqa: E402
+from source_digest import source_tree_digest  # noqa: E402
+
 VAR = ROOT / "var"
 REPORTS = ROOT / "reports"
 SOURCES = {
@@ -41,10 +42,11 @@ def sha256(path: Path) -> str:
 def load_json(path: Path) -> dict[str, object]:
     if not path.is_file():
         raise SystemExit(f"missing assurance output: {path}")
-    value = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict):
-        raise SystemExit(f"assurance output is not an object: {path}")
-    return value
+    return dict(strict_signed_json_object(path.read_bytes(), f"assurance output {path}"))
+
+
+def limitations_valid(value: object) -> bool:
+    return isinstance(value, list) and all(isinstance(item, str) for item in value)
 
 
 def snapshot_contract_valid(snapshot: object) -> bool:
@@ -54,6 +56,7 @@ def snapshot_contract_valid(snapshot: object) -> bool:
     return (
         set(snapshot) == {"schema", "release", "status", "records", "limitations"}
         and snapshot.get("schema") == "korpus.assurance-snapshot.v1"
+        and limitations_valid(snapshot.get("limitations"))
         and isinstance(records, list)
         and all(
             isinstance(record, dict)
@@ -129,13 +132,7 @@ def assemble_ci_report() -> dict[str, object]:
         "migration": migration_report,
         "scale": scale_report,
         "operational": operational_report,
-        "limitations": [
-            (
-                "The package job runs only after required CI gates succeed; "
-                "their logs remain CI artifacts."
-            ),
-            "Synthetic evaluation does not authorize real restricted corpus deployment.",
-        ],
+        "limitations": ["Package gate logs stay in CI.", "Restricted deployment is unauthorized."],
     }
 
 
@@ -208,6 +205,9 @@ def main() -> int:
     assurance = load_json(assurance_path) if assurance_path.is_file() else assemble_ci_report()
     if assurance.get("status") != "PASS":
         raise SystemExit("refusing to snapshot a failing assurance run")
+    limitations = assurance.get("limitations", [])
+    if not limitations_valid(limitations):
+        raise SystemExit("assurance limitations must be a list of strings")
     _verify_evidence_matches_the_gate()
     _verify_evidence_source_is_committed(assurance)
 
@@ -242,7 +242,7 @@ def main() -> int:
         "release": os.getenv("KORPUS_RELEASE_VERSION", release_tag()),
         "status": "PASS",
         "records": records,
-        "limitations": assurance.get("limitations", []),
+        "limitations": limitations,
     }
     index_path = REPORTS / "ASSURANCE_SNAPSHOT.json"
     index_path.write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

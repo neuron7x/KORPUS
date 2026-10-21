@@ -9,7 +9,7 @@ from pathlib import Path
 
 from evidence_source_binding import evidence_source_binding_failure
 from release_identity import release_tag
-from snapshot_assurance import complete_snapshot_records, snapshot_contract_valid
+from snapshot_assurance import complete_snapshot_records, load_json, snapshot_contract_valid
 from source_digest import source_tree_digest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,8 +22,8 @@ def main() -> int:
     assurance_path, snapshot_path = (REPORTS / name for name in REPORT_NAMES)
     if not assurance_path.is_file() or not snapshot_path.is_file():
         raise SystemExit("release evidence is missing")
-    assurance = json.loads(assurance_path.read_text(encoding="utf-8"))
-    snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    assurance = load_json(assurance_path)
+    snapshot = load_json(snapshot_path)
     expected_release = os.getenv("KORPUS_RELEASE_VERSION", release_tag())
     failures.extend(["assurance status is not PASS"] * (assurance.get("status") != "PASS"))
     actual_digest = source_tree_digest("HEAD")
@@ -34,12 +34,13 @@ def main() -> int:
     failures.extend([str(binding_failure)] * (binding_failure is not None))
     if snapshot.get("status") != "PASS" or snapshot.get("release") != expected_release:
         failures.append("assurance snapshot release/status mismatch")
-    records = (
-        complete_snapshot_records(snapshot.get("records"))
-        if snapshot_contract_valid(snapshot)
-        else []
+    failures += ["assurance snapshot limitations mismatch"] * (
+        snapshot.get("limitations") != assurance.get("limitations", [])
     )
-    failures += ["assurance snapshot record set/content mismatch"] * (not records)
+    if not snapshot_contract_valid(snapshot) or not complete_snapshot_records(
+        snapshot.get("records")
+    ):
+        failures.append("assurance snapshot record set/content mismatch")
     if failures:
         print(json.dumps({"valid": False, "failures": failures}, indent=2))
         return 1
