@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git hash-object .github/pr90_merge_input_prepare.py)" = ca5316266943cf6231b77dfa4ca195a7afd61b22
+          test "$(git hash-object .github/pr90_merge_input_prepare.py)" = 563cf37f7484db4e942e899ebe5f225a2a3ae0a0
           cp .github/pr90_merge_input_prepare.py "$RUNNER_TEMP/pr90_merge_input_prepare.py"
           python "$RUNNER_TEMP/pr90_merge_input_prepare.py"
       - name: Retain actual JUnit, quality logs and payload

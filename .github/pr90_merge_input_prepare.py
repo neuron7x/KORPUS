@@ -106,7 +106,7 @@ def suite(tag, paths, count, fail=False, select=None):
 
 
 assert git("rev-parse", "HEAD").decode().strip() == os.environ["GITHUB_SHA"]
-assert git("rev-parse", "HEAD^").decode().strip() == SOURCE
+assert git("rev-parse", "HEAD^").decode().strip() == "053480be080248eaf150f6c4dc6dcd9637630535"
 assert git("rev-parse", "refs/remotes/origin/main").decode().strip() == MAIN
 request = os.environ["GITHUB_SHA"]
 git("checkout", "--detach", SOURCE)
@@ -147,7 +147,7 @@ repaired = suite("repaired", [TEST], 32)
 p.write_text(fixed.replace(new, '\t$(MAKE) regression-shard-merge REGRESSION_SHARD_DIR="$(REGRESSION_SHARD_DIR)" PY=$(PY)\n'))
 control = suite("inherited-directory-control", [TEST], 16, fail=True, select=selector)
 p.write_text(fixed)
-combined = suite("restored-combined", [TEST, "apps/api/tests/test_regression_shard_contract.py"], 48)
+combined = suite("restored-combined", [TEST, "apps/api/tests/test_regression_shard_contract.py", "apps/api/tests/test_release_adaptation_automation_v050.py"], 48)
 p = Path(DOC)
 p.write_text(p.read_text() + DOC_ADDITION)
 git("add", "--", "Makefile", TEST, DOC)
