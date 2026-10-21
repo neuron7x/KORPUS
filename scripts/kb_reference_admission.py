@@ -115,7 +115,8 @@ def _valid_row(row: object) -> bool:
     ):
         return False
     return (
-        row["access_model"] in {"PUBLIC_LANDING", "PUBLIC_CATALOG_AUTH_CONTENT", "UNKNOWN"}
+        isinstance(row["access_model"], str)
+        and row["access_model"] in {"PUBLIC_LANDING", "PUBLIC_CATALOG_AUTH_CONTENT", "UNKNOWN"}
         and row["reuse_status"] == "UNASSESSED"
         and row["integration_mode"] == "METADATA_ONLY"
     )

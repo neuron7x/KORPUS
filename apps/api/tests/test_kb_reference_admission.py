@@ -57,6 +57,8 @@ def test_unsafe_catalog_urls_are_refused(url: str) -> None:
         ("reuse_status", "APPROVED"),
         ("integration_mode", "INDEXABLE"),
         ("access_model", "AUTHORIZED"),
+        ("access_model", ["PUBLIC_LANDING"]),
+        ("access_model", {"kind": "PUBLIC_LANDING"}),
         ("category_ids", ["T00_OFFENSIVE_TACTICS"]),
         ("category_ids", []),
         ("url", "https://127.0.0.1/"),
