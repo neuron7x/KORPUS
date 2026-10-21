@@ -99,7 +99,7 @@ def _public_https_url(url: object) -> bool:
     """Syntax-only: NOT a network/egress authorization or a DNS safety check."""
     if not isinstance(url, str) or not url or any(ord(c) <= 32 or ord(c) >= 127 for c in url):
         return False
-    if "\\" in url or re.search(r"%(?![0-9A-Fa-f]{2})", url):
+    if re.search(r"[^A-Za-z0-9._~!$&'()*+,;=:@/%-]|%(?![0-9A-Fa-f]{2})", url):
         return False
     try:
         parts = urlsplit(url)

@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2126,
-  "root_sha256": "71eb1e52f499928d691ef61ae214e1048bff2f5c8c9e0c7370ab6e71a2eb4f10",
+  "file_count": 2127,
+  "root_sha256": "bc3c0f26105db500fe6f29cb4e22b438e937ccf1081249c926e80a5074b16bd0",
   "files": [
     {
       "path": ".dockerignore",
@@ -4485,6 +4485,12 @@
       "path": "apps/api/tests/test_kb_reference_framing.py",
       "bytes": 5547,
       "sha256": "c1dfd5e8240e3e9df11c5876f66bcfd1d33c13594230ceccf5f6ca9596a8aa15",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_kb_reference_uri_grammar.py",
+      "bytes": 3154,
+      "sha256": "cc46171e1aefbfacaa29af7ec691b9be035512dad8124d69c3903c789e4c254d",
       "mode": "0644"
     },
     {
@@ -9841,8 +9847,8 @@
     },
     {
       "path": "docs/research/KB_REFERENCE_STAGING.md",
-      "bytes": 4168,
-      "sha256": "7338b1ff2ba9a2dd757d98cbaf1e05c8c0b49be4ddfba041759f7b6ccdb9735d",
+      "bytes": 4815,
+      "sha256": "43e34c8188df6a88365065a97702e1891e1dd075f0e51e29c007a260f42af56a",
       "mode": "0644"
     },
     {
@@ -11503,8 +11509,8 @@
     },
     {
       "path": "scripts/kb_reference_admission.py",
-      "bytes": 8672,
-      "sha256": "26b4e5c26083094d265803f50ae482700bfe82fa691295f2ea6110449322e773",
+      "bytes": 8689,
+      "sha256": "82613d9ba83ede785de1115d1e7ff3f9639b53334529c5fdccc4041659922bc8",
       "mode": "0644"
     },
     {

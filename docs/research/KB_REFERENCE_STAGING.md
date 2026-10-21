@@ -71,3 +71,10 @@ identity admission without adding a normalization dependency or granting rights.
 References: RFC 3986 section 2 and RFC 3987 section 3.1,
 https://www.rfc-editor.org/rfc/rfc3986.html and
 https://www.rfc-editor.org/rfc/rfc3987.html .
+
+
+## ASCII URI character grammar
+
+The no-query/no-fragment HTTPS policy admits only RFC 3986 path characters: unreserved characters, sub-delimiters, colon, at-sign, slash and valid percent triplets. Raw excluded ASCII characters such as brackets, quotes, braces, caret, backtick and vertical bar are refused before canonical identity comparison. Their percent-encoded spellings remain path data; the validator does not decode reserved escapes or claim remote resource equivalence. This is an offline syntax boundary, not network or reuse authorization.
+
+Reference: RFC 3986 sections 2.2, 2.3 and 3.3, https://www.rfc-editor.org/rfc/rfc3986.html .
