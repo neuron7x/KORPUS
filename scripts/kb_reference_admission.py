@@ -149,8 +149,7 @@ def verify_catalog(path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
         # RFC 3986 URI scheme and DNS host are case-insensitive; path case is not.
         # An absent path is the same origin resource as an explicit root slash.
         urls = [
-            (urlsplit(row["url"]).hostname, urlsplit(row["url"]).path or "/")
-            for row in records
+            (urlsplit(row["url"]).hostname, urlsplit(row["url"]).path or "/") for row in records
         ]
         if len(set(ids)) != len(ids) or len(set(urls)) != len(urls):
             errors.append("duplicate source id or canonical URL")

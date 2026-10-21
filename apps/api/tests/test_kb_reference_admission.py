@@ -88,7 +88,6 @@ def test_duplicate_ids_and_urls_are_refused(tmp_path: Path) -> None:
     assert "duplicate" in str(_gate(tmp_path, rows)["errors"])
 
 
-
 @pytest.mark.parametrize(
     ("original_id", "alternate_url"),
     [
