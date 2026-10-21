@@ -4898,6 +4898,15 @@
       "proof_lines": 0,
       "reason": "v0.2.0: package-only evidence boundary expanded explicitly; 69-line canonical boundary becomes the new ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
+    "scripts/path_admission.py": {
+      "lines": 11,
+      "max_complexity": 3,
+      "max_function_args": 1,
+      "max_function_lines": 6,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for shared symlink-free regular-file admission."
+    },
     "scripts/measure_audit_integrity.py": {
       "lines": 295,
       "max_complexity": 15,

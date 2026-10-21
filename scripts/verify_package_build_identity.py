@@ -1,73 +1,72 @@
 #!/usr/bin/env python3
-"""Verify clean-source package-build metadata against canonical source/release identity."""
-
 from __future__ import annotations
 
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
 
-HEX40 = re.compile(r"^[0-9a-f]{40}$")
-HEX64 = re.compile(r"^[0-9a-f]{64}$")
+ROOT = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "apps/api/src")]
+
+from korpus.application.final_release_evidence import strict_signed_json_object  # noqa: E402
+from path_admission import regular_file  # noqa: E402
+
+HEX40, HEX64 = re.compile(r"^[0-9a-f]{40}$"), re.compile(r"^[0-9a-f]{64}$")
+BUILD_FIELDS = frozenset(["schema", "release", "source_manifest_root_sha256", "history_included", "source_commit", "import_required_to_obtain_git_commit", "derived_from_source_commit"])  # fmt: skip
 
 
-def _release_tag(root: Path) -> str:
-    path = root / "apps/api/src/korpus/release.json"
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    version = str(payload.get("version", ""))
-    tag = str(payload.get("tag", ""))
-    if not version or tag != f"v{version}":
-        raise ValueError("release identity tag/version mismatch")
-    return tag
+def _load(path: Path) -> dict[str, object]:
+    if not regular_file(path):
+        raise ValueError(f"{path.name} missing or symlinked")
+    return dict(strict_signed_json_object(path.read_bytes(), path.name))
 
 
 def verify(root: Path) -> list[str]:
-    failures: list[str] = []
-    build_path = root / "PACKAGE_BUILD.json"
-    source_path = root / "SOURCE_MANIFEST.json"
-    if not build_path.is_file():
-        return ["PACKAGE_BUILD.json missing"]
-    if not source_path.is_file():
-        return ["SOURCE_MANIFEST.json missing"]
     try:
-        build = json.loads(build_path.read_text(encoding="utf-8"))
-        source = json.loads(source_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
+        build = _load(root / "PACKAGE_BUILD.json")
+        source = _load(root / "SOURCE_MANIFEST.json")
+        release = _load(root / "apps/api/src/korpus/release.json")
+    except (OSError, ValueError) as error:
         return [f"package/source identity JSON unreadable: {error}"]
-    if build.get("schema") != "korpus.package-build.v2":
-        failures.append("package build schema mismatch")
-    if build.get("release") != _release_tag(root):
-        failures.append("package build release mismatch")
     manifest_root = source.get("root_sha256")
-    if not isinstance(manifest_root, str) or not HEX64.fullmatch(manifest_root):
-        failures.append("source manifest root is not a SHA-256 digest")
-    if build.get("source_manifest_root_sha256") != manifest_root:
-        failures.append("package build source manifest root mismatch")
-    if build.get("history_included") is not False:
-        failures.append("clean-source package must exclude Git history")
-    if build.get("source_commit") is not None:
-        failures.append("gitless canonical package must not invent a source commit")
-    if build.get("import_required_to_obtain_git_commit") is not True:
-        failures.append("gitless canonical package must state that import creates commit identity")
+    version, tag = release.get("version"), release.get("tag")
     derived = build.get("derived_from_source_commit")
-    if derived is not None and (not isinstance(derived, str) or not HEX40.fullmatch(derived)):
-        failures.append("derived source commit must be null or a 40-char Git object id")
-    return failures
+    valid_tag = isinstance(version, str) and bool(version) and tag == f"v{version}"  # fmt: skip
+    valid_derived = derived is None or (isinstance(derived, str) and bool(HEX40.fullmatch(derived)))  # fmt: skip
+    checks = {
+        "package build fields mismatch": set(build) == BUILD_FIELDS,
+        "package build schema mismatch": build.get("schema") == "korpus.package-build.v2",
+        "release identity tag/version mismatch": valid_tag,
+        "package build release mismatch": build.get("release") == tag,
+        "source manifest schema mismatch": source.get("schema") == "korpus.source-manifest.v2",
+        "source manifest root is not a SHA-256 digest": isinstance(manifest_root, str)
+        and bool(HEX64.fullmatch(manifest_root)),
+        "package build source manifest root mismatch": build.get("source_manifest_root_sha256")
+        == manifest_root,
+        "clean-source package must exclude Git history": build.get("history_included") is False,
+        "gitless canonical package must not invent a source commit": build.get("source_commit")
+        is None,
+        "gitless canonical package must state that import creates commit identity": build.get(
+            "import_required_to_obtain_git_commit"
+        )
+        is True,
+        "derived source commit must be null or a 40-char Git object id": valid_derived,
+    }
+    return [message for message, passed in checks.items() if not passed]
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
-    args = parser.parse_args()
-    root = args.root.resolve()
+    parser.add_argument("--root", type=Path, default=ROOT)
+    root = parser.parse_args().root.absolute()
     failures = verify(root)
-    payload = {
-        "schema": "korpus.package-build-verification.v1",
-        "status": "PASS" if not failures else "FAIL",
-        "release": _release_tag(root),
-        "failures": failures,
-    }
+    try:
+        release = _load(root / "apps/api/src/korpus/release.json").get("tag")
+    except (OSError, ValueError):
+        release = None
+    payload = {"schema": "korpus.package-build-verification.v1", "status": "PASS" if not failures else "FAIL", "release": release, "failures": failures}  # fmt: skip
     print(json.dumps(payload, indent=2))
     return 1 if failures else 0
 

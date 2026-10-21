@@ -4,6 +4,8 @@ import hashlib
 import zipfile
 from pathlib import Path
 
+from path_admission import regular_file
+
 
 def archive_root(tmp: Path) -> Path:
     entries = list(tmp.iterdir())
@@ -17,7 +19,7 @@ def mode_string(path: Path, *, source: bool = False) -> str:
 
 
 def file_record(path: Path, relative: Path, *, source: bool = False) -> dict[str, object]:
-    if path.is_symlink():
+    if not regular_file(path):
         raise ValueError(f"manifest entry is a symlink: {relative.as_posix()}")
     content = path.read_bytes()
     return {
@@ -36,8 +38,7 @@ def manifest_root(records: list[dict[str, object]]) -> str:
 
 
 def manifest_failures(manifest: dict[str, object], records: list[dict[str, object]]) -> list[str]:
-    count = manifest.get("file_count")
-    expected = len(records), manifest_root(records)
+    count, expected = manifest.get("file_count"), (len(records), manifest_root(records))
     valid = type(count) is int and (count, manifest.get("root_sha256")) == expected
     return [] if valid else ["manifest aggregate integrity mismatch"]
 

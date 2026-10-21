@@ -323,6 +323,19 @@ def test_release_verifier_rejects_symlinked_snapshot_document(
         module.main()
 
 
+def test_release_verifier_rejects_symlinked_reports_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    outside = tmp_path / "outside-reports"
+    reports.rename(outside)
+    reports.symlink_to(outside, target_is_directory=True)
+    monkeypatch.setattr(module, "REPORTS", reports)
+    with pytest.raises(SystemExit, match="symlinked assurance output"):
+        module.main()
+
+
 def test_release_verifier_rejects_nonfinite_json(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

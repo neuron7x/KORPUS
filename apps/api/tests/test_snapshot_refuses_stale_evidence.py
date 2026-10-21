@@ -115,3 +115,28 @@ def test_snapshot_refuses_malformed_assurance_limitations(
     monkeypatch.setattr(module, "VAR", var)
     with pytest.raises(SystemExit, match="limitations must be a list of strings"):
         module.main()
+
+
+def test_snapshot_refuses_symlinked_source_artifact(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _load_module()
+    var, reports = tmp_path / "var", tmp_path / "reports"
+    var.mkdir()
+    (var / "research-assurance-report.json").write_text(
+        json.dumps({"status": "PASS", "limitations": []}), encoding="utf-8"
+    )
+    for source_name in module.SOURCES.values():
+        (var / source_name).write_text("{}", encoding="utf-8")
+    outside = tmp_path / "outside-pytest.xml"
+    outside.write_text("<testsuite/>", encoding="utf-8")
+    (var / "pytest.xml").unlink()
+    (var / "pytest.xml").symlink_to(outside)
+    monkeypatch.setattr(module, "VAR", var)
+    monkeypatch.setattr(module, "REPORTS", reports)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "_verify_evidence_matches_the_gate", lambda: None)
+    monkeypatch.setattr(module, "_verify_evidence_source_is_committed", lambda _report: None)
+
+    with pytest.raises(SystemExit, match="missing assurance output"):
+        module.main()

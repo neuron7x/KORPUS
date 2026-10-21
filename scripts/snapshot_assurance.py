@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-"""Promote successful assurance outputs into content-hashed release evidence."""
-
 from __future__ import annotations
 
 import hashlib
@@ -15,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "apps/api/src")]
 from evidence_source_binding import evidence_source_binding_failure  # noqa: E402
 from korpus.application.final_release_evidence import strict_signed_json_object  # noqa: E402
+from path_admission import regular_file  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 from source_digest import source_tree_digest  # noqa: E402
 
@@ -40,7 +39,7 @@ def sha256(path: Path) -> str:
 
 
 def load_json(path: Path) -> dict[str, object]:
-    if not path.is_file() or path.is_symlink():
+    if not regular_file(path):
         raise SystemExit(f"missing or symlinked assurance output: {path}")
     return dict(strict_signed_json_object(path.read_bytes(), f"assurance output {path}"))
 
@@ -76,8 +75,7 @@ def complete_snapshot_records(value: object) -> list[dict[str, object]]:
     if len(paths) != len(records) or paths != expected:
         return []
     valid = all(
-        (path := ROOT / str(item["path"])).is_file()
-        and not path.is_symlink()
+        regular_file(path := ROOT / str(item["path"]))
         and path.stat().st_size == item.get("bytes")
         and hashlib.sha256(path.read_bytes()).hexdigest() == item.get("sha256")
         for item in records
@@ -170,7 +168,6 @@ def _verify_evidence_matches_the_gate() -> None:
 
 
 def _verify_evidence_source_is_committed(assurance: dict[str, object]) -> None:
-    """Refuse evidence that is not bound to committed bytes in its declared scope."""
     scope = assurance.get("digest_scope")
     claimed = assurance.get("evidence_source_sha256")
     if claimed is None:
@@ -212,6 +209,8 @@ def main() -> int:
     _verify_evidence_matches_the_gate()
     _verify_evidence_source_is_committed(assurance)
 
+    if REPORTS.is_symlink():
+        raise SystemExit("assurance reports directory must not be a symlink")
     REPORTS.mkdir(exist_ok=True)
     assurance_path = REPORTS / "RESEARCH_ASSURANCE_REPORT.json"
     assurance_path.write_text(
@@ -226,7 +225,7 @@ def main() -> int:
     ]
     for destination_name, source_name in SOURCES.items():
         source = VAR / source_name
-        if not source.is_file():
+        if not regular_file(source):
             raise SystemExit(f"missing assurance output: {source}")
         destination = REPORTS / destination_name
         shutil.copyfile(source, destination)
