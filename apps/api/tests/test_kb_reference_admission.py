@@ -1,10 +1,12 @@
 """Negative controls for the separate KORPUS KB metadata-only research stage."""
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
 import pytest
+
 from scripts.kb_reference_admission import DEFAULT_CATALOG, _public_https_url, verify_catalog
 
 
@@ -28,26 +30,39 @@ def test_original_foundation_sources_remain_metadata_only() -> None:
     assert result["network_access_performed"] is False
 
 
-@pytest.mark.parametrize("url", [
-    "http://example.org/", "https://127.0.0.1/", "https://[::1]/",
-    "https://example.org:8443/", "https://user:pass@example.org/",
-    "https://example.org/?token=opaque", "https://localhost/",
-    "https://host.local/", "https://example.org./", "https://example..org/",
-    "https://example.org/#fragment", "https://example.org\\@evil.org/",
-])
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://example.org/",
+        "https://127.0.0.1/",
+        "https://[::1]/",
+        "https://example.org:8443/",
+        "https://user:pass@example.org/",
+        "https://example.org/?token=opaque",
+        "https://localhost/",
+        "https://host.local/",
+        "https://example.org./",
+        "https://example..org/",
+        "https://example.org/#fragment",
+        "https://example.org\\@evil.org/",
+    ],
+)
 def test_unsafe_catalog_urls_are_refused(url: str) -> None:
     assert _public_https_url(url) is False
 
 
-@pytest.mark.parametrize("field,value", [
-    ("reuse_status", "APPROVED"),
-    ("integration_mode", "INDEXABLE"),
-    ("access_model", "AUTHORIZED"),
-    ("category_ids", ["T00_OFFENSIVE_TACTICS"]),
-    ("category_ids", []),
-    ("url", "https://127.0.0.1/"),
-    ("source_id", "SRC_BAD/../"),
-])
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("reuse_status", "APPROVED"),
+        ("integration_mode", "INDEXABLE"),
+        ("access_model", "AUTHORIZED"),
+        ("category_ids", ["T00_OFFENSIVE_TACTICS"]),
+        ("category_ids", []),
+        ("url", "https://127.0.0.1/"),
+        ("source_id", "SRC_BAD/../"),
+    ],
+)
 def test_privilege_escalation_or_out_of_scope_field_blocks(
     tmp_path: Path, field: str, value: object
 ) -> None:

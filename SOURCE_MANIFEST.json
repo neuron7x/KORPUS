@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2122,
-  "root_sha256": "f52d675060850d75510c6505fd321596359e7d93ef5dc8855b853b646aed05ea",
+  "root_sha256": "8ad6c4b5ee840e02169d04ffb4a02507840a116cf7c4f12a6278ae54c13c738c",
   "files": [
     {
       "path": ".dockerignore",
@@ -4465,8 +4465,8 @@
     },
     {
       "path": "apps/api/tests/test_kb_reference_admission.py",
-      "bytes": 3593,
-      "sha256": "5f8af1e90ecc44823502c2bb22dc33627ccdb6f2d3cb0afa8e8f63cf3336f132",
+      "bytes": 3729,
+      "sha256": "f1d6e3754996caa28b7982bb1d4e86eb4e8052a903fbed1f44c6ae7f56d19e16",
       "mode": "0644"
     },
     {
@@ -11479,8 +11479,8 @@
     },
     {
       "path": "scripts/kb_reference_admission.py",
-      "bytes": 5986,
-      "sha256": "54023dda7cf3eae560079168deafc0ab2b4dcb00a8144b219491acef414663c4",
+      "bytes": 6011,
+      "sha256": "84ad949b6493be73693c1e9fd13256700d23548f4bea569df46c55a2648b0ac6",
       "mode": "0644"
     },
     {

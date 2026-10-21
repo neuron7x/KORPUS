@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Fail-closed validation of *metadata-only* public reference leads.
 
 This validator never downloads, indexes, quotes or authenticates source content.
@@ -21,8 +20,14 @@ MAX_BYTES = 128 * 1024
 MAX_ROWS = 256
 FIELDS = frozenset(
     {
-        "source_id", "title", "publisher", "url", "category_ids",
-        "access_model", "reuse_status", "integration_mode",
+        "source_id",
+        "title",
+        "publisher",
+        "url",
+        "category_ids",
+        "access_model",
+        "reuse_status",
+        "integration_mode",
     }
 )
 CATEGORIES = frozenset(
