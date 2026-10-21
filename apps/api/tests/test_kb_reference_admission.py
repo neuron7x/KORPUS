@@ -88,6 +88,28 @@ def test_duplicate_ids_and_urls_are_refused(tmp_path: Path) -> None:
     assert "duplicate" in str(_gate(tmp_path, rows)["errors"])
 
 
+
+@pytest.mark.parametrize(
+    ("original_id", "alternate_url"),
+    [
+        ("SRC_W3C_PROV", "https://WWW.W3.ORG/TR/prov-overview/"),
+        ("SRC_W3C_PROV", "HTTPS://WwW.W3.OrG/TR/prov-overview/"),
+        ("SRC_ARMY_PLUS", "https://aplus.mod.gov.ua"),
+    ],
+)
+def test_canonical_url_duplicates_are_refused(
+    tmp_path: Path, original_id: str, alternate_url: str
+) -> None:
+    rows = _rows()
+    original = next(row for row in rows if row["source_id"] == original_id)
+    rows.append({**original, "source_id": "SRC_CANONICAL_ALIAS", "url": alternate_url})
+    result = _gate(tmp_path, rows)
+    assert result["structure_status"] == "FAIL"
+    assert "duplicate" in str(result["errors"])
+    assert result["production_authorized"] is False
+    assert result["indexable"] == 0
+
+
 def test_duplicate_json_fields_are_refused(tmp_path: Path) -> None:
     path = tmp_path / "catalog.jsonl"
     path.write_text('{"a":1,"a":2}\n', encoding="utf-8")

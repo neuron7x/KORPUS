@@ -146,7 +146,12 @@ def verify_catalog(path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
         if not records:
             errors.append("empty catalog")
         ids = [row["source_id"] for row in records]
-        urls = [row["url"] for row in records]
+        # RFC 3986 URI scheme and DNS host are case-insensitive; path case is not.
+        # An absent path is the same origin resource as an explicit root slash.
+        urls = [
+            (urlsplit(row["url"]).hostname, urlsplit(row["url"]).path or "/")
+            for row in records
+        ]
         if len(set(ids)) != len(ids) or len(set(urls)) != len(urls):
             errors.append("duplicate source id or canonical URL")
     except (OSError, UnicodeError, ValueError) as exc:
