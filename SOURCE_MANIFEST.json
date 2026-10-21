@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2118,
-  "root_sha256": "b175d6709c357dcc9b05609dcc42d688fd2f2dba1fc7b4f63d854de29c9a5b17",
+  "file_count": 2122,
+  "root_sha256": "f52d675060850d75510c6505fd321596359e7d93ef5dc8855b853b646aed05ea",
   "files": [
     {
       "path": ".dockerignore",
@@ -4464,6 +4464,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_kb_reference_admission.py",
+      "bytes": 3593,
+      "sha256": "5f8af1e90ecc44823502c2bb22dc33627ccdb6f2d3cb0afa8e8f63cf3336f132",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_lane_head_binding.py",
       "bytes": 6566,
       "sha256": "4cd9d6469f26244357c9142f49c814c83a03937d41acfc8fd5dd3451bb1b78ea",
@@ -8148,6 +8154,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/kb/reference_sources.jsonl",
+      "bytes": 5448,
+      "sha256": "ab66b1672a0bf4202bff7132a9759e1a710fbd9dd95f6fbf7b983043c4f17e3e",
+      "mode": "0644"
+    },
+    {
       "path": "config/operations/admission-grounds.json",
       "bytes": 7885,
       "sha256": "da2c6ffa2949c36dfa8026251af7cb67850381dc9446a513e31b1a3e1ccaa6f0",
@@ -9804,6 +9816,12 @@
       "mode": "0644"
     },
     {
+      "path": "docs/research/KB_REFERENCE_STAGING.md",
+      "bytes": 1940,
+      "sha256": "ebbf27eb0394940d294b837eb92df267bbe14dd8dae0d7de4e07623857cd37c6",
+      "mode": "0644"
+    },
+    {
       "path": "docs/research/KORPUS_PREDICTIVE_EVIDENCE_CONTROL_IMPLEMENTATION_ACT_2026-08-21.md",
       "bytes": 39929,
       "sha256": "c91158df0587dcebdbbbc7ad955ec5a2d0326dea31c0dfffefe6650c29767031",
@@ -11457,6 +11475,12 @@
       "path": "scripts/iso_dates.py",
       "bytes": 1553,
       "sha256": "5bac3f07ff86affb76199050c15e5632e8a6ba18405c71f64804284f2005467b",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/kb_reference_admission.py",
+      "bytes": 5986,
+      "sha256": "54023dda7cf3eae560079168deafc0ab2b4dcb00a8144b219491acef414663c4",
       "mode": "0644"
     },
     {
