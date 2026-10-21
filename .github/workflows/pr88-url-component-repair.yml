@@ -1,0 +1,251 @@
+name: pr88-url-component-repair
+
+# Temporary PR-88-only verifier/producer; never updates refs or merges.
+on:
+  pull_request:
+    types: [synchronize]
+    paths: [.github/workflows/pr88-url-component-repair.yml]
+permissions:
+  contents: read
+concurrency:
+  group: pr88-url-component-repair
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: >-
+      github.repository == 'neuron7x/KORPUS' &&
+      github.event.pull_request.number == 88 &&
+      github.event.pull_request.head.repo.full_name == 'neuron7x/KORPUS' &&
+      github.event.pull_request.head.ref == 'research/kb-reference-metadata-gate-20261021'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      SOURCE_HEAD: bfe334fe8846a4e1e5328767f010302f006e795b
+      EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+      PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/scripts:${{ github.workspace }}/apps/api/src
+      KORPUS_ENVIRONMENT: test
+      KORPUS_SCHEMA_MODE: auto
+      KORPUS_DATABASE_URL: sqlite:///${{ github.workspace }}/var/pr88-url.db
+      KORPUS_OBJECT_ROOT: ${{ github.workspace }}/var/objects
+      KORPUS_AUTH_MODE: dev
+      KORPUS_DEV_MODE_ACKNOWLEDGEMENT: I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE
+      KORPUS_BIND_HOST: 127.0.0.1
+      KORPUS_AUDIT_HMAC_KEY: ci-only-audit-key
+      KORPUS_JWT_SECRET: ci-only-jwt-key
+    steps:
+      - name: Checkout immutable repair request
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check source lease and isolate original tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EVENT_HEAD"
+          test "$(git rev-parse HEAD^)" = "$SOURCE_HEAD"
+          test "$(git diff --name-only "$SOURCE_HEAD" "$EVENT_HEAD")" = '.github/workflows/pr88-url-component-repair.yml'
+          git checkout --detach "$SOURCE_HEAD"
+          test -z "$(git status --porcelain)"
+          mkdir -p var
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install hash-locked verification dependencies
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Verify original refusal gap and exact candidate repair
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          import subprocess
+          import sys
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          from scripts import check_module_budget as budget_gate
+          from scripts.generate_manifest import build_manifest, write_manifest
+          from scripts.verify_package_build_identity import verify as verify_build
+          from scripts.verify_source_manifest import verify as verify_source
+
+          root = Path.cwd()
+          source = root / "scripts/kb_reference_admission.py"
+          test = root / "apps/api/tests/test_kb_reference_url_components.py"
+          document = root / "docs/research/KB_REFERENCE_STAGING.md"
+          manifest_path = root / "SOURCE_MANIFEST.json"
+          package_path = root / "PACKAGE_BUILD.json"
+          original = source.read_text(encoding="utf-8")
+          original_shape = budget_gate.measure()["scripts/kb_reference_admission.py"]
+          old_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          assert build_manifest(root) == old_manifest
+          assert verify_source(root)["valid"] is True and verify_build(root) == []
+          assert not test.exists(), "New regression file already exists; refuse drift"
+          test_source = '"""Offline URL-component controls for the metadata-only reference gate."""\n\nfrom __future__ import annotations\n\nimport json\nfrom pathlib import Path\n\nimport pytest\n\nfrom scripts.kb_reference_admission import (\n    _canonical_source_url,\n    _public_https_url,\n    verify_catalog,\n)\n\n\n@pytest.mark.parametrize(\n    "url",\n    [\n        "https://example.org?",\n        "https://example.org#",\n        "https://example.org/?",\n        "https://example.org/#",\n        "https://example.org/path?",\n        "https://example.org/path#",\n        "https://example.org/path?#",\n        "https://example.org/path?query",\n        "https://example.org/path#fragment",\n        "https://example.org/path%3F?",\n        "https://example.org/path%23#",\n    ],\n)\ndef test_query_and_fragment_components_are_not_admitted(url: str) -> None:\n    assert _public_https_url(url) is False\n\n\n@pytest.mark.parametrize(\n    "url",\n    [\n        "https://example.org/path%3F",\n        "https://example.org/path%3f",\n        "https://example.org/path%23",\n        "https://example.org/path%3F%23",\n    ],\n)\ndef test_encoded_delimiters_remain_path_data(url: str) -> None:\n    assert _public_https_url(url) is True\n\n\n@pytest.mark.parametrize("suffix", ["?", "#", "?#"])\ndef test_empty_component_is_rejected_by_catalog_gate(tmp_path: Path, suffix: str) -> None:\n    row = {\n        "source_id": "SRC_COMPONENT_BOUNDARY",\n        "title": "Public reference",\n        "publisher": "Example publisher",\n        "url": "https://example.org/path" + suffix,\n        "category_ids": ["T07_DATA_PROVENANCE_AND_RIGHTS"],\n        "access_model": "PUBLIC_LANDING",\n        "reuse_status": "UNASSESSED",\n        "integration_mode": "METADATA_ONLY",\n    }\n    path = tmp_path / "catalog.jsonl"\n    path.write_text(json.dumps(row) + "\\n", encoding="utf-8")\n    result = verify_catalog(path)\n    assert result["structure_status"] == "FAIL"\n    assert result["source_records"] == 0\n    assert any("invalid metadata-only source record" in error for error in result["errors"])\n    assert result["candidate_status"] == "BLOCKED"\n    assert result["indexable"] == result["acquired"] == result["rights_cleared"] == 0\n    assert result["production_authorized"] is False\n    assert result["network_access_performed"] is False\n\n\n@pytest.mark.parametrize("suffix", ["%3F", "%23"])\ndef test_encoded_delimiters_keep_distinct_resource_keys(suffix: str) -> None:\n    original = "https://example.org/path"\n    assert _canonical_source_url(original + suffix) != _canonical_source_url(original)\n'
+          doc_text = '\n## URL component admission\n\nMetadata reference URLs must have no query or fragment component, including an\nempty component introduced by a literal `?` or `#`. The identity key deliberately\ncontains only hostname and canonical path; silently admitting and dropping those\ndelimiters would conflate distinct URI references. Percent-encoded `%3F` and `%23`\nin a path remain path data and are not decoded into component separators.\nThis is a local syntax/identity policy, never DNS, egress or reuse authorization.\n\nReference: RFC 3986 sections 5.3 and 6.2.3,\nhttps://www.rfc-editor.org/rfc/rfc3986.html .\n'
+          test.write_text(test_source, encoding="utf-8")
+          subprocess.run([sys.executable, "-m", "ruff", "format", str(test)], check=True)
+
+          def run_tests(paths, label):
+              output = root / ("var/pr88-url-" + label + ".xml")
+              command = [sys.executable, "-m", "pytest", "-q", *paths, "-p", "no:cacheprovider", "--tb=short", "--junitxml=" + str(output)]
+              result = subprocess.run(command, capture_output=True, text=True, check=False)
+              (root / ("var/pr88-url-" + label + ".log")).write_text(result.stdout + result.stderr, encoding="utf-8")
+              suites = ET.parse(output).getroot().iter("testsuite")
+              totals = {key: 0 for key in ("tests", "failures", "errors", "skipped")}
+              for suite in suites:
+                  for key in totals:
+                      totals[key] += int(suite.get(key, "0"))
+              assert totals["errors"] == totals["skipped"] == 0, totals
+              print(label, json.dumps(totals), "exit", result.returncode)
+              return result.returncode, totals
+
+          code, baseline = run_tests([str(test)], "baseline")
+          assert code == 1 and baseline == {"tests": 20, "failures": 12, "errors": 0, "skipped": 0}, baseline
+          assert original.count("            or parts.fragment\n") == 1
+          assert original.count("            or parts.query\n") == 1
+          repaired = original.replace("            or parts.fragment\n", '            or "#" in url\n').replace("            or parts.query\n", '            or "?" in url\n')
+          source.write_text(repaired, encoding="utf-8")
+          assert budget_gate.measure()["scripts/kb_reference_admission.py"] == original_shape
+          assert "## URL component admission" not in document.read_text(encoding="utf-8")
+          document.write_text(document.read_text(encoding="utf-8") + doc_text, encoding="utf-8")
+          manifest = write_manifest(root, manifest_path, kind="source")
+          assert manifest["file_count"] == old_manifest["file_count"] + 1 == 2125
+          before_records = {record["path"]: record for record in old_manifest["files"]}
+          after_records = {record["path"]: record for record in manifest["files"]}
+          assert set(after_records) - set(before_records) == {str(test.relative_to(root))}
+          assert set(before_records) - set(after_records) == set()
+          changed_existing = sorted(path for path in before_records if before_records[path] != after_records[path])
+          assert changed_existing == ["docs/research/KB_REFERENCE_STAGING.md", "scripts/kb_reference_admission.py"]
+          package = package_path.read_text(encoding="utf-8")
+          assert package.count(old_manifest["root_sha256"]) == 1
+          package_path.write_text(package.replace(old_manifest["root_sha256"], manifest["root_sha256"]), encoding="utf-8")
+          assert verify_source(root)["valid"] is True and verify_build(root) == []
+
+          paths = [str(path) for path in sorted((root / "apps/api/tests").glob("test_kb_reference_*.py"))]
+          paths.append("apps/api/tests/test_gate_parity.py::test_every_module_is_in_the_budget")
+          paths += [str(path) for path in sorted((root / "apps/api/tests").glob("test_*budget*.py"))]
+          code, focused = run_tests(paths, "focused")
+          assert code == 0 and focused["failures"] == 0 and focused["tests"] == 143, focused
+          controls = {}
+          mutations = {
+              "empty_query_guard_removed": repaired.replace('            or "?" in url\n', "            or parts.query\n"),
+              "empty_fragment_guard_removed": repaired.replace('            or "#" in url\n', "            or parts.fragment\n"),
+              "encoded_path_data_rejected": repaired.replace('            or "#" in url\n', '            or "#" in url or "%23" in url\n'),
+          }
+          try:
+              for label, mutation in mutations.items():
+                  assert mutation != repaired
+                  source.write_text(mutation, encoding="utf-8")
+                  code, counts = run_tests([str(test)], label)
+                  assert code == 1 and counts["failures"] > 0, counts
+                  controls[label] = counts
+          finally:
+              source.write_text(repaired, encoding="utf-8")
+          code, restored = run_tests(paths, "restored")
+          assert code == 0 and restored == focused
+          assert budget_gate.measure()["scripts/kb_reference_admission.py"] == original_shape
+          assert verify_source(root)["valid"] is True and verify_build(root) == []
+          commands = [
+              [sys.executable, "-m", "ruff", "check", str(source), str(test)],
+              [sys.executable, "-m", "ruff", "format", "--check", str(source), str(test)],
+              [sys.executable, "-m", "mypy", str(source)],
+              [sys.executable, "scripts/check_module_budget.py"],
+              [sys.executable, "scripts/check_budget_raises_are_named.py", "--base", os.environ["SOURCE_HEAD"]],
+              [sys.executable, "scripts/verify_source_manifest.py"],
+              [sys.executable, "scripts/verify_package_build_identity.py"],
+              ["git", "diff", "--check"],
+          ]
+          for command in commands:
+              subprocess.run(command, check=True)
+          tracked = subprocess.check_output(["git", "diff", "--name-only"], text=True).splitlines()
+          untracked = subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard"], text=True).splitlines()
+          expected = sorted(["PACKAGE_BUILD.json", "SOURCE_MANIFEST.json", str(test.relative_to(root)), "docs/research/KB_REFERENCE_STAGING.md", "scripts/kb_reference_admission.py"])
+          assert sorted(tracked + untracked) == expected, (tracked, untracked)
+          receipt = {
+              "schema": "korpus.pr88-url-component-repair.v1",
+              "status": "VERIFIED_NOT_ADMITTED",
+              "original_head": os.environ["SOURCE_HEAD"],
+              "repair_request_head": os.environ["EVENT_HEAD"],
+              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+              "baseline": baseline, "focused": focused, "restored": restored,
+              "guard_controls": controls,
+              "module_shape_unchanged": True,
+              "existing_budgets_unchanged": True,
+              "source_file_count": manifest["file_count"],
+              "source_manifest_root_sha256": manifest["root_sha256"],
+              "changed_paths": expected,
+              "quality_commands": commands,
+              "merge_authorized": False, "production_authorized": False,
+          }
+          (root / "var/pr88-url-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
+          print(json.dumps(receipt, indent=2))
+          PY
+      - name: Publish tested unreferenced blobs only
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64
+          import hashlib
+          import json
+          import os
+          import urllib.request
+          from pathlib import Path
+
+          api = "https://api.github.com/repos/neuron7x/KORPUS"
+          def request(path, payload=None):
+              data = None if payload is None else json.dumps(payload).encode("utf-8")
+              req = urllib.request.Request(api + path, data=data, headers={
+                  "Authorization": "Bearer " + os.environ["GH_TOKEN"],
+                  "Accept": "application/vnd.github+json", "Content-Type": "application/json",
+                  "X-GitHub-Api-Version": "2022-11-28",
+              }, method="GET" if data is None else "POST")
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  return json.load(response)
+
+          pr = request("/pulls/88")
+          assert pr["state"] == "open" and not pr["merged"]
+          assert pr["head"]["sha"] == os.environ["EVENT_HEAD"], "PR advanced; refuse stale publication"
+          assert pr["head"]["ref"] == "research/kb-reference-metadata-gate-20261021"
+          assert pr["base"]["ref"] == "main" and pr["base"]["sha"] == "345c0f7daf1da2152d0e554cc8733381ca5a1e9e"
+          path = Path("var/pr88-url-receipt.json")
+          receipt = json.loads(path.read_text(encoding="utf-8"))
+          assert receipt["status"] == "VERIFIED_NOT_ADMITTED"
+          assert receipt["restored"] == {"tests": 143, "failures": 0, "errors": 0, "skipped": 0}
+          blobs = []
+          for name in receipt["changed_paths"]:
+              data = Path(name).read_bytes()
+              sha = hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
+              result = request("/git/blobs", {"encoding": "base64", "content": base64.b64encode(data).decode("ascii")})
+              assert result["sha"] == sha
+              blobs.append({"path": name, "mode": "100644", "type": "blob", "sha": sha, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()})
+          receipt["blobs"] = blobs
+          receipt["status"] = "VERIFIED_BLOBS_NOT_ADMITTED"
+          text = json.dumps(receipt, indent=2) + "\n"
+          path.write_text(text, encoding="utf-8")
+          print("PR88_URL_REPAIR_RECEIPT_BEGIN\n" + text + "PR88_URL_REPAIR_RECEIPT_END")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("## PR #88 URL repair: no merge authorization\n\n```json\n" + text + "```\n")
+          PY
+      - name: Preserve verification evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: pr88-url-component-repair-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            var/pr88-url-*.json
+            var/pr88-url-*.xml
+            var/pr88-url-*.log
+          if-no-files-found: error
+          retention-days: 7
