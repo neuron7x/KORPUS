@@ -8,7 +8,8 @@ permissions are included. No authenticated/permissioned source exports are attem
 
 ## Gate and boundary
 
-Run `python scripts/kb_reference_admission.py` from any directory. The default
+From the repository root, run `python scripts/kb_reference_admission.py`.
+Use an absolute script path when invoking from another directory. The default
 catalog is `config/kb/reference_sources.jsonl`. `structure_status=PASS` certifies
 **local JSONL shape only**, never publisher identity, licensing, semantic validity or
 network access. `candidate_status=BLOCKED` and `production_authorized=false` are
@@ -56,3 +57,17 @@ This is a local syntax/identity policy, never DNS, egress or reuse authorization
 
 Reference: RFC 3986 sections 5.3 and 6.2.3,
 https://www.rfc-editor.org/rfc/rfc3986.html .
+
+## ASCII URL spelling
+
+The URL field accepts ASCII URI spelling, not literal non-ASCII IRIs. Non-ASCII
+URL code points are refused before parsing; use a reviewed percent-encoded URI
+for an international path and an ASCII IDNA hostname where applicable. This
+gate does not perform IRI conversion, Unicode normalization, DNS resolution or
+remote resource-equivalence discovery. Percent-encoded path bytes remain data;
+Unicode titles and publishers remain supported. This closes mixed literal/encoded
+identity admission without adding a normalization dependency or granting rights.
+
+References: RFC 3986 section 2 and RFC 3987 section 3.1,
+https://www.rfc-editor.org/rfc/rfc3986.html and
+https://www.rfc-editor.org/rfc/rfc3987.html .
