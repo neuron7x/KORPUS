@@ -1,0 +1,280 @@
+name: pr88-file-boundary-repair
+
+# Temporary PR-only evidence producer. Publishes blobs, never refs or merges.
+# Remove from the final candidate tree after the tested blobs are committed.
+on:
+  pull_request:
+    types: [synchronize]
+    paths: [.github/workflows/pr88-file-boundary-repair.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr88-file-boundary-repair
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: >-
+      github.repository == 'neuron7x/KORPUS' &&
+      github.event.pull_request.number == 88 &&
+      github.event.pull_request.head.repo.full_name == 'neuron7x/KORPUS' &&
+      github.event.pull_request.head.ref == 'research/kb-reference-metadata-gate-20261021'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      ORIGINAL_HEAD: 5cadf9bf8d4a7c34b2adf353a8e2162f130cd384
+      EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+      PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/scripts:${{ github.workspace }}/apps/api/src
+      KORPUS_ENVIRONMENT: test
+      KORPUS_SCHEMA_MODE: auto
+      KORPUS_DATABASE_URL: sqlite:///${{ github.workspace }}/var/pr88-repair.db
+      KORPUS_OBJECT_ROOT: ${{ github.workspace }}/var/objects
+      KORPUS_AUTH_MODE: dev
+      KORPUS_DEV_MODE_ACKNOWLEDGEMENT: I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE
+      KORPUS_BIND_HOST: 127.0.0.1
+      KORPUS_AUDIT_HMAC_KEY: ci-only-audit-key
+      KORPUS_JWT_SECRET: ci-only-jwt-key
+    steps:
+      - name: Checkout exact repair request
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Pin source and refuse concurrent changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EVENT_HEAD"
+          test "$(git rev-parse HEAD^)" = "$ORIGINAL_HEAD"
+          test "$(git diff --name-only "$ORIGINAL_HEAD" "$EVENT_HEAD")" = '.github/workflows/pr88-file-boundary-repair.yml'
+          git checkout --detach "$ORIGINAL_HEAD"
+          test -z "$(git status --porcelain)"
+          mkdir -p var
+      - name: Install pinned Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install hash-locked verification environment
+        run: |
+          python -m pip install --quiet --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Load exact proposed blobs and prove the prior regression
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64
+          import hashlib
+          import json
+          import os
+          import subprocess
+          import sys
+          import urllib.request
+          from pathlib import Path
+          from scripts.verify_source_manifest import verify as verify_source
+          from scripts.verify_package_build_identity import verify as verify_build
+          assert verify_source(Path.cwd())['valid'] is True
+          assert verify_build(Path.cwd()) == []
+          blobs = {
+              'apps/api/tests/test_kb_reference_file_boundary.py': '1e6eecbb71aec294929be71e38526a9ceaad2abb',
+              'scripts/kb_reference_admission.py': 'de2c3c525d7f6f3c18218674411b6b8dc5bc2621',
+          }
+          contents = {}
+          for name, sha in blobs.items():
+              request = urllib.request.Request(
+                  'https://api.github.com/repos/neuron7x/KORPUS/git/blobs/' + sha,
+                  headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json'},
+              )
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  obj = json.load(response)
+              assert obj['encoding'] == 'base64'
+              data = base64.b64decode(obj['content'])
+              actual = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+              assert actual == sha == obj['sha']
+              contents[name] = data
+          test_path = 'apps/api/tests/test_kb_reference_file_boundary.py'
+          Path(test_path).write_bytes(contents[test_path])
+          node = test_path + '::test_reader_never_reopens_path_as_text'
+          result = subprocess.run([sys.executable, '-m', 'pytest', '-q', node, '-p', 'no:cacheprovider', '--tb=short'], capture_output=True, text=True, check=False, timeout=60)
+          Path('var/pr88-original-negative-control.log').write_text(result.stdout + result.stderr)
+          assert result.returncode == 1, result.stdout + result.stderr
+          assert 'FAILED' in result.stdout and 'FAIL' in result.stdout
+          Path('scripts/kb_reference_admission.py').write_bytes(contents['scripts/kb_reference_admission.py'])
+          print('Original path-reopen implementation rejected by the new regression test.')
+          PY
+      - name: Canonical formatting and static checks
+        run: |
+          python -m ruff format scripts/kb_reference_admission.py apps/api/tests/test_kb_reference_file_boundary.py
+          python -m ruff check scripts/kb_reference_admission.py apps/api/tests/test_kb_reference_file_boundary.py
+          python -m mypy --config-file apps/api/pyproject.toml --cache-dir var/mypy-pr88 scripts/kb_reference_admission.py
+      - name: Verify bounded unit controls and six isolated guard mutations
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          import sys
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          source = Path('scripts/kb_reference_admission.py')
+          original = source.read_text()
+          test = 'apps/api/tests/test_kb_reference_file_boundary.py'
+          subprocess.run([sys.executable, '-m', 'pytest', '-q', test, '-p', 'no:cacheprovider', '--junitxml=var/pr88-boundary-tests.xml'], check=True, timeout=60)
+          mutations = {
+              'missing_nofollow': ('os.O_RDONLY | nofollow | nonblock', 'os.O_RDONLY | nonblock'),
+              'missing_nonblock': ('os.O_RDONLY | nofollow | nonblock', 'os.O_RDONLY | nofollow'),
+              'unbounded_read': ('stream.read(MAX_BYTES + 1)', 'stream.read()'),
+              'missing_byte_check': ('if len(data) > MAX_BYTES:', 'if False:'),
+              'missing_change_check': ('getattr(before, key) != getattr(after, key)', 'False'),
+              'missing_descriptor_close': ('os.close(descriptor)', 'pass'),
+          }
+          killed = []
+          try:
+              for name, (old, new) in mutations.items():
+                  assert original.count(old) == 1, name
+                  source.write_text(original.replace(old, new))
+                  report = 'var/pr88-mutant-' + name + '.xml'
+                  result = subprocess.run([sys.executable, '-m', 'pytest', '-q', test, '-p', 'no:cacheprovider', '--tb=short', '--junitxml=' + report], capture_output=True, text=True, check=False, timeout=60)
+                  Path('var/pr88-mutant-' + name + '.log').write_text(result.stdout + result.stderr)
+                  suites = list(ET.parse(report).getroot().iter('testsuite'))
+                  assert result.returncode == 1 and sum(int(s.get('errors', 0)) for s in suites) == 0, name
+                  assert sum(int(s.get('failures', 0)) for s in suites) > 0, name
+                  killed.append(name)
+                  print('NEGATIVE_CONTROL_REJECTED', name)
+          finally:
+              source.write_text(original)
+          subprocess.run([sys.executable, '-m', 'pytest', '-q', test, '-p', 'no:cacheprovider'], check=True, timeout=60)
+          Path('var/pr88-boundary-controls.json').write_text(json.dumps({'baseline_rejected': True, 'mutations_rejected': killed, 'restored_tests_passed': True}, indent=2) + '\n')
+          PY
+      - name: Bind the exact security change without relaxing unrelated budgets
+        shell: bash
+        run: |
+          python - <<'PY'
+          import copy
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+          from scripts import check_module_budget as gate
+          from scripts.check_budget_raises_are_named import raises_without_a_reason
+          from scripts.generate_manifest import write_manifest
+          from scripts.verify_source_manifest import verify as verify_source
+          from scripts.verify_package_build_identity import verify as verify_build
+          root = Path.cwd()
+          target = 'scripts/kb_reference_admission.py'
+          budget_path = Path('config/operations/module-budget.json')
+          before_text = budget_path.read_text()
+          before = json.loads(before_text)
+          after = copy.deepcopy(before)
+          measured = gate.measure()[target]
+          entry = after['modules'][target]
+          old_lines = entry['lines']
+          assert old_lines == 212 and 212 < measured['lines'] <= 250
+          for key in ('max_complexity', 'max_function_lines', 'max_function_args', 'max_nesting', 'proof_lines'):
+              assert measured[key] <= entry[key], (key, measured[key], entry[key])
+          entry['lines'] = measured['lines']
+          reason = 'PR #88 Codex P2 4334124081: add a single-descriptor, nofollow/nonblocking, byte-bounded reader and observable-change refusal. Only this not-yet-merged module grows; input limits, function ceilings, other module budgets and existing tests are unchanged. Twenty-four new file-boundary controls and six isolated guard mutations verify the added behavior.'
+          entry['reason'] = reason
+          assert raises_without_a_reason(before, after), 'Unnamed growth must fail before recording its reason'
+          after.setdefault('raised', []).append({'on': '2026-10-21', 'path': target, 'from': {'lines': old_lines}, 'to': {'lines': entry['lines']}, 'reason': reason})
+          assert raises_without_a_reason(before, after) == []
+          for path, old in before['modules'].items():
+              if path != target:
+                  assert after['modules'][path] == old, path
+          assert gate.module_violations(target, measured, entry) == []
+          formats = [sort for sort in (True, False) if json.dumps(before, ensure_ascii=False, indent=2, sort_keys=sort) + '\n' == before_text]
+          assert formats
+          budget_path.write_text(json.dumps(after, ensure_ascii=False, indent=2, sort_keys=formats[0]) + '\n')
+          subprocess.run(['git', 'add', 'apps/api/tests/test_kb_reference_file_boundary.py'], check=True)
+          old_manifest = json.loads(Path('SOURCE_MANIFEST.json').read_text())
+          manifest = write_manifest(root, root / 'SOURCE_MANIFEST.json', kind='source')
+          assert manifest['file_count'] == old_manifest['file_count'] + 1 == 2123
+          package = Path('PACKAGE_BUILD.json')
+          package_text = package.read_text()
+          assert package_text.count(old_manifest['root_sha256']) == 1
+          package.write_text(package_text.replace(old_manifest['root_sha256'], manifest['root_sha256']))
+          assert verify_source(root)['valid'] is True
+          assert verify_build(root) == []
+          expected = ['PACKAGE_BUILD.json', 'SOURCE_MANIFEST.json', 'apps/api/tests/test_kb_reference_file_boundary.py', 'config/operations/module-budget.json', target]
+          changed = sorted(subprocess.check_output(['git', 'diff', 'HEAD', '--name-only'], text=True).splitlines())
+          assert changed == expected, changed
+          receipt = {'schema': 'korpus.pr88-file-boundary-repair.v1', 'original_head': os.environ['ORIGINAL_HEAD'], 'request_head': os.environ['EVENT_HEAD'], 'changed_paths': changed, 'measurement': measured, 'other_budgets_unchanged': True, 'named_line_increase': [old_lines, entry['lines']], 'source_file_count': manifest['file_count'], 'source_manifest_root_sha256': manifest['root_sha256'], 'merge_authorized': False, 'production_authorized': False}
+          Path('var/pr88-file-boundary-repair.json').write_text(json.dumps(receipt, indent=2) + '\n')
+          print(json.dumps(receipt, indent=2))
+          PY
+      - name: Run unchanged regression and identity gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/check_module_budget.py > var/pr88-module-budget.json
+          python -c 'import json; r=json.load(open("var/pr88-module-budget.json")); assert r["status"]=="PASS" and not r["unbudgeted"] and not r["violations"]'
+          python scripts/check_budget_raises_are_named.py --base "$ORIGINAL_HEAD"
+          python scripts/verify_source_manifest.py
+          python scripts/verify_package_build_identity.py
+          python -m pytest -q apps/api/tests/test_kb_reference_admission.py apps/api/tests/test_kb_reference_file_boundary.py apps/api/tests/test_gate_parity.py::test_every_module_is_in_the_budget apps/api/tests/test_*budget*.py -p no:cacheprovider --junitxml=var/pr88-focused-tests.xml
+          git diff HEAD --check
+      - name: Publish tested unreferenced blobs only
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64
+          import hashlib
+          import json
+          import os
+          import urllib.request
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          api = 'https://api.github.com/repos/neuron7x/KORPUS'
+          def request(path, payload=None):
+              data = None if payload is None else json.dumps(payload).encode()
+              req = urllib.request.Request(api + path, data=data, headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'}, method='GET' if data is None else 'POST')
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  return json.load(response)
+          pr = request('/pulls/88')
+          assert pr['state'] == 'open' and not pr['merged']
+          assert pr['head']['sha'] == os.environ['EVENT_HEAD'], 'Concurrent PR advance; refuse stale publication'
+          assert pr['head']['ref'] == 'research/kb-reference-metadata-gate-20261021' and pr['base']['ref'] == 'main'
+          receipt_path = Path('var/pr88-file-boundary-repair.json')
+          receipt = json.loads(receipt_path.read_text())
+          suites = list(ET.parse('var/pr88-focused-tests.xml').getroot().iter('testsuite'))
+          totals = {key: sum(int(s.get(key, 0)) for s in suites) for key in ('tests', 'failures', 'errors', 'skipped')}
+          assert totals['tests'] >= 86 and totals['failures'] == totals['errors'] == totals['skipped'] == 0, totals
+          receipt['focused_tests'] = totals
+          receipt['negative_controls'] = json.loads(Path('var/pr88-boundary-controls.json').read_text())
+          receipt['blobs'] = []
+          for name in receipt['changed_paths']:
+              data = Path(name).read_bytes()
+              expected = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+              obj = request('/git/blobs', {'encoding': 'base64', 'content': base64.b64encode(data).decode()})
+              assert obj['sha'] == expected
+              receipt['blobs'].append({'path': name, 'mode': '100644', 'type': 'blob', 'sha': expected, 'sha256': hashlib.sha256(data).hexdigest()})
+          receipt['workflow_run_id'] = os.environ['GITHUB_RUN_ID']
+          receipt['status'] = 'TESTED_BLOBS_NOT_MERGE_AUTHORIZATION'
+          text = json.dumps(receipt, indent=2) + '\n'
+          receipt_path.write_text(text)
+          print('BEGIN_PR88_VERIFIED_BLOBS\n' + text + 'END_PR88_VERIFIED_BLOBS')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('## PR #88 file-boundary repair: not merge authorization\n\n```json\n' + text + '```\n')
+          PY
+      - name: Preserve evidence on GitHub
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: pr88-file-boundary-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            var/pr88-*.json
+            var/pr88-*.xml
+            var/pr88-*.log
+          if-no-files-found: error
+          retention-days: 14
