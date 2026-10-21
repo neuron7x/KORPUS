@@ -47,7 +47,7 @@ def _canonical_name(name: str) -> tuple[str | None, str | None]:
     if not body:
         return None, f"archive root entry rejected: {name!r}"
     parts = body.split("/")
-    if set(parts) & {"", ".", ".."}:
+    if set(parts) & {"", ".", ".."} or any(not part.rstrip(" .") for part in parts):
         return None, f"non-canonical archive path rejected: {name!r}"
     canonical = PurePosixPath(*parts).as_posix() + ("/" if is_dir else "")
     if canonical != name:
