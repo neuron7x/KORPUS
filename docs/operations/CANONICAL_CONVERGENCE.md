@@ -101,3 +101,17 @@ receipts, all required CI jobs, and independent code AND security findings. Requ
 server-side main protection and a genuine negative-control refusal record under #72.
 No direct main write, force-push, permission bypass or automatic repinning is permitted.
 A future rollback is a reviewed tested revert PR, not history rewriting or removal of gates.
+
+## Merge input binding after staging
+
+The backend-report merge command explicitly pins REGRESSION_SHARD_DIR to
+reports/regression/shards, the directory to which its successful workers promote.
+Caller environment/command-line directory overrides cannot redirect that merge to
+another receipt set. Direct regression-shard and regression-shard-merge commands
+retain their explicit-directory interfaces. This is an input-binding invariant,
+not a claim of crash-atomic promotion or concurrent-worktree safety.
+
+Sixteen additional inert Make-recipe cases cover both override channels, empty and
+populated caller directories, normal/spaced workspaces, and two/three workers.
+They check the exact merge input paths, fresh worker records, unchanged caller
+files and temporary cleanup. Existing worker-failure tests remain active.

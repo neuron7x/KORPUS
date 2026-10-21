@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2141,
-  "root_sha256": "ccc95bf0c741cba1ced334250678fcbf4808f95a41dbd5ef0dd8cf552d245b17",
+  "root_sha256": "ead905a96ca41f4e6e2e966f8291f49de772efba1ce79f4a88e3f5578f87f119",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 135096,
-      "sha256": "93c8e6f4363b91c0454433f9b1e16f917499104107c03f4a2d62e439a918021a",
+      "bytes": 135143,
+      "sha256": "bce145c09f588071af44dc61753a9703a5664cff4262d71e0550720390d709eb",
       "mode": "0644"
     },
     {
@@ -3103,8 +3103,8 @@
     },
     {
       "path": "apps/api/tests/test_backend_report_staging.py",
-      "bytes": 6340,
-      "sha256": "b84dc13e53eaace49c6476c73d86b71757e8825babc907112fae256b3a9f2d0e",
+      "bytes": 8251,
+      "sha256": "b7c8aaa499599010bf2218c1c0c58560c6e295982cf03c869b3aca3b1b72184e",
       "mode": "0644"
     },
     {
@@ -9049,8 +9049,8 @@
     },
     {
       "path": "docs/operations/CANONICAL_CONVERGENCE.md",
-      "bytes": 7542,
-      "sha256": "ad8ecd2060aa9fb3caa3aebb5993a3ca523297894822feb9a0cad8837b5feefc",
+      "bytes": 8364,
+      "sha256": "d282fedf204a0d55103ba83469abcbac7945d23ca6ba8ce51125ab5f48a0576f",
       "mode": "0644"
     },
     {

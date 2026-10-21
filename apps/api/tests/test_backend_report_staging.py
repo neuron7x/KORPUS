@@ -39,6 +39,7 @@ if args.command == "run":
     if os.getenv("FAIL_SHARD") == str(args.shard_index):
         raise SystemExit(7)
 else:
+    Path("merged-receipts.json").write_text(json.dumps(args.receipts))
     records = [json.loads(Path(p).read_text()) for p in args.receipts]
     assert sorted(r["index"] for r in records) == list(range(int(os.environ["SHARD_COUNT"])))
     assert all(r["fresh"] for r in records)
@@ -81,16 +82,22 @@ def _workspace(tmp_path: Path, spaced: bool) -> Path:
 
 
 def _make(
-    root: Path, *arguments: str, count: int, fail: int | None = None
+    root: Path,
+    *arguments: str,
+    count: int,
+    fail: int | None = None,
+    shard_dir: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     executable = shutil.which("make")
     assert executable is not None, "GNU Make is required for recipe integration tests"
     env = {
         k: v
         for k, v in os.environ.items()
-        if k not in {"MAKEFLAGS", "MFLAGS", "MAKELEVEL", "FAIL_SHARD"}
+        if k not in {"MAKEFLAGS", "MFLAGS", "MAKELEVEL", "FAIL_SHARD", "REGRESSION_SHARD_DIR"}
     }
     env["SHARD_COUNT"] = str(count)
+    if shard_dir is not None:
+        env["REGRESSION_SHARD_DIR"] = shard_dir
     if fail is not None:
         env["FAIL_SHARD"] = str(fail)
     return subprocess.run(
@@ -164,4 +171,45 @@ def test_invalid_shard_count_preserves_prior_receipts(tmp_path: Path, count: int
     }
     assert observed == expected
     assert not (root / "published").exists()
+    assert not list((root / "var").glob("regression-shards.*"))
+
+
+@pytest.mark.parametrize("spaced", [False, True])
+@pytest.mark.parametrize("count", [2, 3])
+@pytest.mark.parametrize("populated", [False, True])
+@pytest.mark.parametrize("override", ["environment", "command-line"])
+def test_backend_merge_reads_promoted_receipts_not_caller_directory(
+    tmp_path: Path, spaced: bool, count: int, populated: bool, override: str
+) -> None:
+    root = _workspace(tmp_path, spaced)
+    relative = "var/caller receipts"
+    caller = root / relative
+    caller.mkdir(parents=True)
+    if populated:
+        for index in range(count):
+            (caller / f"shard-{index}.json").write_text(
+                json.dumps({"index": index, "fresh": True, "origin": "caller"}),
+                encoding="utf-8",
+            )
+    before = {p.name: p.read_bytes() for p in caller.iterdir()}
+    arguments = ["backend-report"]
+    if override == "command-line":
+        arguments.append(f"REGRESSION_SHARD_DIR={relative}")
+    result = _make(
+        root,
+        *arguments,
+        count=count,
+        shard_dir=relative if override == "environment" else None,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    merged = json.loads((root / "merged-receipts.json").read_text())
+    assert sorted(merged) == [
+        f"reports/regression/shards/shard-{index}.json" for index in range(count)
+    ]
+    assert all(
+        json.loads((root / path).read_text()) == {"index": index, "fresh": True}
+        for index, path in enumerate(sorted(merged))
+    )
+    assert {p.name: p.read_bytes() for p in caller.iterdir()} == before
+    assert (root / "published").read_text() == "yes"
     assert not list((root / "var").glob("regression-shards.*"))

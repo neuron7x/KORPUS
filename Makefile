@@ -1866,5 +1866,5 @@ backend-report:
 	  rm -rf reports/regression/shards; \
 	  mkdir -p reports/regression/shards; \
 	  mv "$$stage"/* reports/regression/shards/
-	$(MAKE) regression-shard-merge PY=$(PY)
+	$(MAKE) regression-shard-merge REGRESSION_SHARD_DIR=reports/regression/shards PY=$(PY)
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/publish_backend_report.py
