@@ -9,7 +9,9 @@ from __future__ import annotations
 import argparse
 import ipaddress
 import json
+import os
 import re
+import stat
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -154,14 +156,42 @@ def _valid_row(row: object) -> bool:
     )
 
 
+def _read_catalog(path: Path) -> str:
+    """Read one bounded regular-file descriptor, refusing final-component symlinks.
+
+    Parent directories must be trusted. Metadata comparisons detect observable
+    concurrent writes; they do not claim a filesystem-level atomic snapshot.
+    """
+    nofollow = getattr(os, "O_NOFOLLOW", 0)
+    nonblock = getattr(os, "O_NONBLOCK", 0)
+    if not nofollow or not nonblock:
+        raise ValueError("safe catalog opening is unsupported on this platform")
+    descriptor = os.open(path, os.O_RDONLY | nofollow | nonblock)
+    try:
+        before = os.fstat(descriptor)
+        if not stat.S_ISREG(before.st_mode) or before.st_size > MAX_BYTES:
+            raise ValueError("nonregular or oversized catalog")
+        with os.fdopen(descriptor, "rb", closefd=False) as stream:
+            data = stream.read(MAX_BYTES + 1)
+        after = os.fstat(descriptor)
+        if len(data) > MAX_BYTES:
+            raise ValueError("catalog exceeds bounded byte maximum")
+        fields = ("st_dev", "st_ino", "st_mode", "st_size", "st_mtime_ns", "st_ctime_ns")
+        if len(data) != before.st_size or any(
+            getattr(before, key) != getattr(after, key) for key in fields
+        ):
+            raise ValueError("catalog changed during bounded read")
+        return data.decode("utf-8")
+    finally:
+        os.close(descriptor)
+
+
 def verify_catalog(path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
     """Reject unknown rights or escalation fields; preserve zero admission by design."""
     errors: list[str] = []
     records: list[dict[str, Any]] = []
     try:
-        if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_BYTES:
-            raise ValueError("missing, symlinked or oversized catalog")
-        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        for line_number, line in enumerate(_read_catalog(path).splitlines(), 1):
             if not line.strip():
                 continue
             if len(records) >= MAX_ROWS:

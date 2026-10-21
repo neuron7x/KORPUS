@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2122,
-  "root_sha256": "83f4b63e41102403f9f5507d2e1ecd27c96c2c61c83ed4c1e1b8bdab8a18c11f",
+  "file_count": 2123,
+  "root_sha256": "187422d298ced85336c51ecdb6c99f302655f8ca9befe9b18d5054983815ad39",
   "files": [
     {
       "path": ".dockerignore",
@@ -4470,6 +4470,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_kb_reference_file_boundary.py",
+      "bytes": 8299,
+      "sha256": "743feb41fb697be3f9b0cb26c45573bfbc3f738597ee43de65f689f42e614f01",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_lane_head_binding.py",
       "bytes": 6566,
       "sha256": "4cd9d6469f26244357c9142f49c814c83a03937d41acfc8fd5dd3451bb1b78ea",
@@ -8257,8 +8263,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 754763,
-      "sha256": "21b409368424026b142d4531514dd715cc4672be12e9329dafd7a13d1ce64d5b",
+      "bytes": 755474,
+      "sha256": "67ed93ac4c4eacebac96effc2e45423d239a6bfb96b52857f3e174591ced1b56",
       "mode": "0644"
     },
     {
@@ -11479,8 +11485,8 @@
     },
     {
       "path": "scripts/kb_reference_admission.py",
-      "bytes": 7434,
-      "sha256": "8716b2198da5a1374aff04f9f057f6dc4cea577fa62172a092cb2867d05c039e",
+      "bytes": 8652,
+      "sha256": "810aee8cef578f5fbbb61bbed56e4ef2eb7d5d316a84a9333dfe4bb533650782",
       "mode": "0644"
     },
     {
