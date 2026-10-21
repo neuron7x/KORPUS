@@ -97,6 +97,24 @@ def test_casefold_alias_is_rejected(tmp_path: Path) -> None:
     assert any("casefold/alias collision rejected" in item for item in failures)
 
 
+def test_windows_normalized_alias_collision_refused_before_extraction(
+    tmp_path: Path,
+) -> None:
+    for number, alternative in enumerate(
+        (
+            "reports./release/v0.8.0/evidence/report.json",
+            "reports /release/v0.8.0/evidence/report.json",
+        )
+    ):
+        archive = tmp_path / f"alias-{number}.zip"
+        with zipfile.ZipFile(archive, "w") as zf:
+            zf.writestr(_info("reports/release/v0.8.0/evidence/report.json"), b"a")
+            zf.writestr(_info(alternative), b"b")
+        failures, count = _module().verify(archive)
+        assert count == 0
+        assert any("casefold/alias collision rejected" in item for item in failures)
+
+
 def test_symlink_entry_is_rejected(tmp_path: Path) -> None:
     archive = tmp_path / "symlink.zip"
     with zipfile.ZipFile(archive, "w") as zf:

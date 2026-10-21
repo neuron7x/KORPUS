@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import stat
+import subprocess
 import zipfile
 from pathlib import Path
 
@@ -73,6 +74,9 @@ def test_producer_keeps_reports_but_never_copies_runtime_registry() -> None:
     assert "cp -a var/evidence" not in producer
     assert "cp -a var/releases" not in producer
     assert '[[ -e "$tmp/evidence" ]]' in producer
+    assert "history bundle forbidden in canonical package" in producer
+    assert "not independently authenticated as a set" in producer
+    assert "verified release reports" not in producer
 
 
 @pytest.mark.parametrize(
@@ -91,6 +95,10 @@ def test_producer_keeps_reports_but_never_copies_runtime_registry() -> None:
         "reports/staged/evidence/registry.json",
         "KORPUS/reports/evidence/registry.json",
         "KORPUS/reports/staged/evidence/registry.json",
+        "evidence/reports/release/registry.json",
+        "evidence/handoff/evidence/registry.json",
+        "KORPUS/evidence/reports/release/registry.json",
+        "KORPUS/evidence/handoff/evidence/registry.json",
     ],
 )
 def test_runtime_path_alias_and_multiroot_poison(tmp_path: Path, member: str) -> None:
@@ -99,6 +107,44 @@ def test_runtime_path_alias_and_multiroot_poison(tmp_path: Path, member: str) ->
     failures, count = verify(archive)
     assert count == 0
     assert any("unverified runtime evidence forbidden" in failure for failure in failures)
+
+
+@pytest.mark.parametrize(
+    "member", ["history.bundle", "KORPUS/history.bundle", "HISTORY.BUNDLE."]
+)
+def test_history_bundles_fail_even_with_consistent_manifest(
+    tmp_path: Path, member: str
+) -> None:
+    archive = tmp_path / "bundled-history.zip"
+    _build_zip(archive, prefix="", poisoned=False, extra_member=member)
+    failures, count = verify(archive)
+    assert count == 0
+    assert any("bundle forbidden" in failure for failure in failures)
+
+
+def test_producer_rejects_staged_bundle_without_changing_clean_files(
+    tmp_path: Path,
+) -> None:
+    producer = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8")
+    marker = "# A tracked bundle is source-digest-eligible"
+    guard = producer.split(marker, 1)[1].split("# Opaque local runtime evidence", 1)[0]
+    command = 'set -euo pipefail\ntmp="$1"\n' + guard
+
+    def status() -> int:
+        return subprocess.run(
+            ["bash", "-c", command, "bundle-guard", str(tmp_path)],
+            check=False,
+            capture_output=True,
+            text=True,
+        ).returncode
+
+    (tmp_path / "safe.txt").write_bytes(b"clean")
+    assert status() == 0
+    for name in ("history.bundle", "HISTORY.BUNDLE."):
+        path = tmp_path / name
+        path.write_bytes(b"synthetic historical blob")
+        assert status() == 1
+        path.unlink()
 
 
 def test_authorized_handoff_evidence_is_not_misclassified(tmp_path: Path) -> None:

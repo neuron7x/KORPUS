@@ -26,6 +26,7 @@ resource_failures = import_module(
 def _basic_name_failure(name: str) -> str | None:
     checks = (
         (not name, "empty archive entry name"),
+        (name.casefold().rstrip(" .").endswith(".bundle"), f"bundle forbidden: {name}"),
         ("\x00" in name, f"NUL byte in archive entry: {name!r}"),
         ("\\" in name, f"backslash path separator rejected: {name!r}"),
         (unicodedata.normalize("NFC", name) != name, f"non-NFC archive entry rejected: {name!r}"),
@@ -81,9 +82,8 @@ def _record_entry(
     if canonical in exact:
         failures.append(f"duplicate archive entry rejected: {canonical!r}")
     exact.add(canonical)
-
     normalized_path = canonical.rstrip("/")
-    alias_key = normalized_path.casefold()
+    alias_key = re.sub(r"[ .]+(?=/|$)", "", normalized_path.casefold())
     prior = folded.get(alias_key)
     if prior is not None and prior != normalized_path:
         failures.append(f"casefold/alias collision rejected: {prior!r} vs {canonical!r}")

@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2126,
-  "root_sha256": "07e11e4567b1381d60eab97c50e46144ba8ead3a08574d1b66882b3ee3772d4b",
+  "root_sha256": "5c47b207f1b0487989bc4f411776fe9c56f8b3fd9ab807b6516a0c520a86558a",
   "files": [
     {
       "path": ".dockerignore",
@@ -3895,8 +3895,8 @@
     },
     {
       "path": "apps/api/tests/test_distribution_runtime_boundary.py",
-      "bytes": 5648,
-      "sha256": "60a876ca367728d8e185ae379fe9f34478a5d09ed045140d52f562681aed67e3",
+      "bytes": 7417,
+      "sha256": "3e2be9e5999f682f88f27d96e4da5f8cded6c1e2ec52fe97a74f63d4be8f0f81",
       "mode": "0644"
     },
     {
@@ -4825,8 +4825,8 @@
     },
     {
       "path": "apps/api/tests/test_package_zip_safety.py",
-      "bytes": 7153,
-      "sha256": "baaee63c2d5fbda2a4aa47e339c9f670ea167ec144c988c54522c511b2741e34",
+      "bytes": 7844,
+      "sha256": "6b74b604d4a8dbc2aa22a1392b84d42ac47eda8a240a4d9656780e26c9f49ee5",
       "mode": "0644"
     },
     {
@@ -8995,8 +8995,8 @@
     },
     {
       "path": "docs/operations/DISTRIBUTION_RUNTIME_BOUNDARY.md",
-      "bytes": 2436,
-      "sha256": "ad43e79282fd01f3f23d1bc5713159cdcc700a78693d3341135082b2884b1d81",
+      "bytes": 2766,
+      "sha256": "bf2991eb1d393926a95dce50a682b3feb42495e487adf0a4c01fffe035d4e7ff",
       "mode": "0644"
     },
     {
@@ -11053,8 +11053,8 @@
     },
     {
       "path": "scripts/distribution_runtime_policy.py",
-      "bytes": 886,
-      "sha256": "3764c2dbe60959d05a8ca1919885722519b53d6111f007a98deb0f6cb488726a",
+      "bytes": 912,
+      "sha256": "2085b71e574a3dcf80286214cd48cd54aa43626264172665988a39672b1017b0",
       "mode": "0644"
     },
     {
@@ -11641,8 +11641,8 @@
     },
     {
       "path": "scripts/package_repository.sh",
-      "bytes": 6161,
-      "sha256": "5746543ab743a401a6cb0d871b9587cd362fa56c2f9b30582bbbbaa5b6ed13b3",
+      "bytes": 6589,
+      "sha256": "3825f85145e41b7416f8ef805e91f925008402a2fceb983b2a8508d9b4103f0b",
       "mode": "0755"
     },
     {
@@ -12751,8 +12751,8 @@
     },
     {
       "path": "scripts/zip_safety.py",
-      "bytes": 5162,
-      "sha256": "3277da88362d96186818c3f27566cdf3b2af4b37a79e1306c09fd97a89a60e86",
+      "bytes": 5279,
+      "sha256": "ba9e662a0461e8febfabe6b04f4b0811a5407c2a85f0b969b882e2632f4bda28",
       "mode": "0755"
     },
     {

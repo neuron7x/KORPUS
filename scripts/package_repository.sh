@@ -63,6 +63,22 @@ for artifact in source-sbom.cdx.json api-sbom.cdx.json web-sbom.cdx.json; do
 done
 find "$tmp" -type f -path '*/infra/secrets/*.txt' -delete
 
+# A tracked bundle is source-digest-eligible, but must never enter a release archive.
+if python3 - "$tmp" <<'PY'
+import sys
+from pathlib import Path
+
+files = Path(sys.argv[1]).rglob("*")
+raise SystemExit(not any(
+    item.is_file() and item.name.casefold().rstrip(" .").endswith(".bundle")
+    for item in files
+))
+PY
+then
+  echo "history bundle forbidden in canonical package" >&2
+  exit 1
+fi
+
 # Opaque local runtime evidence is not authenticated by source package verification.
 if [[ -e "$tmp/evidence" ]]; then
   echo "unverified runtime evidence forbidden in canonical package" >&2
@@ -73,8 +89,9 @@ cat > "$tmp/PACKAGE_BOUNDARY.md" <<'DOC'
 # Що в цьому пакеті
 
 Це один перевірюваний clean-source distribution artifact: exact committed source,
-verified release reports, selected SBOMs and manifests. `DISTRIBUTION_MANIFEST.json` описує
-точні байти архіву; `SOURCE_MANIFEST.json` — canonical source boundary.
+copied reports (not independently authenticated as a set), selected SBOMs and
+manifests. `DISTRIBUTION_MANIFEST.json` описує точні байти архіву;
+`SOURCE_MANIFEST.json` — canonical source boundary.
 
 ## Навмисно не включено
 
