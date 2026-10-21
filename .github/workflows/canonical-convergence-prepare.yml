@@ -60,7 +60,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git hash-object .github/canonical_convergence_prepare.py)" = c5d26a5a5cfd82927d13d9fe33acc5b6cf0ea79e
+          test "$(git hash-object .github/canonical_convergence_prepare.py)" = ce03f42ebd3c50d6e2bbbc4663a92db123eb4c84
           cp .github/canonical_convergence_prepare.py "$RUNNER_TEMP/canonical_convergence_prepare.py"
           python "$RUNNER_TEMP/canonical_convergence_prepare.py"
       - name: Retain actual JUnit logs and source payload
@@ -124,7 +124,8 @@ jobs:
           for row in entries:
               path = payload / row['path']
               assert not path.is_symlink() and stat.S_ISREG(path.stat().st_mode)
-              assert row['mode'] == '100644' and row['type'] == 'blob'
+              expected_mode = '100755' if row['path'] == 'scripts/zip_safety.py' else '100644'
+              assert row['mode'] == expected_mode and row['type'] == 'blob'
               data = path.read_bytes()
               assert len(data) == row['bytes'] <= 2000000
               assert hashlib.sha256(data).hexdigest() == row['sha256']

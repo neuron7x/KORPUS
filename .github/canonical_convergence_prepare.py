@@ -16,7 +16,7 @@ PINS = {
 }
 BRANCHES = {'main': 'main', 'stack': 'security/issue-20-report-evidence-boundary',
             'kb': 'research/kb-reference-metadata-gate-20261021'}
-EXPECTED_PARENT = '506695da7b0d3e7347d746a2bea6252364259dbf'
+EXPECTED_PARENT = '200b55aca7ba5e37fd3e86b508f16ac2ac5303cf'
 ROOT = Path.cwd()
 OUT = Path(os.environ['RUNNER_TEMP']) / 'canonical-prepared'
 OUT.mkdir()
@@ -345,7 +345,8 @@ for path in changed_paths:
     meta = git('ls-files', '-s', '--', path).split(b'\t', 1)[0].decode().split()
     mode, blob, stage = meta
     data = (ROOT / path).read_bytes()
-    assert stage == '0' and mode == '100644'
+    # Preserve the sole inherited executable; every other prepared path is regular data.
+    assert stage == '0' and mode == ('100755' if path == ZIP_SOURCE else '100644')
     assert hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest() == blob
     entries.append({'path': path, 'mode': mode, 'type': 'blob', 'sha': blob,
                     'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data),
