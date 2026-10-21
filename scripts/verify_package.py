@@ -7,12 +7,15 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
+from typing import BinaryIO
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from manifest_lib.integrity import archive_modes, archive_root, file_sha256, record_failures
+from artifact_snapshot import verify_snapshot
+from distribution_runtime_policy import opaque_runtime_failures
+from manifest_lib.integrity import archive_modes, archive_root, record_failures
 from zip_safety import safety_failures
 
 
@@ -42,10 +45,7 @@ def _verify_tree(
         if p.is_file() and p.relative_to(root).as_posix() != "DISTRIBUTION_MANIFEST.json"
     )
     if sorted(records) != actual:
-        # The same two words meant the opposite thing in verify_source_manifest.py — there
-        # `missing` was tree-minus-manifest, here it is manifest-minus-tree. Both are now
-        # named by direction, because the injected-file case is one of them and a reader
-        # picking the wrong one looks away from it.
+        # Name mismatch directions explicitly so injected archive files stay visible.
         failures.append(
             "path parity mismatch "
             f"in_manifest_not_in_archive={sorted(set(records) - set(actual))} "
@@ -59,12 +59,12 @@ def _verify_tree(
     return failures
 
 
-def verify(archive: Path) -> tuple[list[str], int]:
+def verify(archive: Path | BinaryIO) -> tuple[list[str], int]:
     failures: list[str] = []
     with tempfile.TemporaryDirectory(prefix="korpus-package-verify-") as tmp_name:
         tmp = Path(tmp_name)
         with zipfile.ZipFile(archive) as zf:
-            safety = safety_failures(zf)
+            safety = safety_failures(zf) or opaque_runtime_failures(zf)
             if safety:
                 return safety, 0
             zf.extractall(tmp)
@@ -82,13 +82,13 @@ def main() -> int:
     if not archive.is_file():
         raise SystemExit(f"archive missing: {archive}")
     try:
-        failures, files = verify(archive)
+        failures, files, digest = verify_snapshot(archive, verify)
     except (RuntimeError, OSError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
-        failures, files = [str(exc)], 0
+        failures, files, digest = [str(exc)], 0, None
     payload = {
         "valid": not failures,
         "archive": str(archive),
-        "sha256": file_sha256(archive),
+        "sha256": digest,
         "files": files,
     }
     if failures:

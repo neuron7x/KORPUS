@@ -576,6 +576,36 @@
       ],
       "note": "Виробник маркерів сканерів внесено з виміряною стелею дня.",
       "on": "2026-09-08"
+    },
+    {
+      "on": "2026-10-20",
+      "path": "scripts/artifact_snapshot.py",
+      "from": {
+        "lines": 28,
+        "max_complexity": 4,
+        "max_function_lines": 15
+      },
+      "to": {
+        "lines": 25,
+        "max_complexity": 3,
+        "max_function_lines": 11
+      },
+      "reason": "Codex independent P2 review: reject stale permissive snapshot ratchet after extraction into separately budgeted snapshot_admission.py."
+    },
+    {
+      "on": "2026-10-20",
+      "path": "scripts/distribution_runtime_policy.py",
+      "from": {
+        "max_complexity": 7,
+        "max_function_lines": 14,
+        "max_nesting": 1
+      },
+      "to": {
+        "max_complexity": 4,
+        "max_function_lines": 7,
+        "max_nesting": 0
+      },
+      "reason": "Adversarial path normalization reduced branching and eliminated mutable wrapper-root admission assumptions."
     }
   ],
   "modules": {
@@ -4262,6 +4292,15 @@
       "proof_lines": 0,
       "reason": "Точна виміряна початкова стеля. Діагностика розведення запиту й розмірного зсуву — інструмент виміру гіпотез про пошук, не гейт."
     },
+    "scripts/distribution_runtime_policy.py": {
+      "lines": 30,
+      "max_complexity": 5,
+      "max_function_args": 1,
+      "max_function_lines": 14,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Issue #20: exact 30-line module after stdlib itertools.pairwise replacing adjacent zip, fixing RUF007 without weakening reserved-path semantics; function-shape ceilings unchanged."
+    },
     "scripts/embedding_candidate_metrics.py": {
       "lines": 32,
       "max_complexity": 13,
@@ -4779,13 +4818,13 @@
       "reason": "Третій вхід `check-nightly` і безпека проби мутацій: копія дерева замість редагування на місці, обробник сигналів, замок із перевіркою живості. Мутанти M480–M482."
     },
     "scripts/install_pilot_runtime.py": {
-      "lines": 34,
-      "max_complexity": 2,
+      "lines": 46,
+      "max_complexity": 3,
       "max_function_args": 1,
-      "max_function_lines": 10,
+      "max_function_lines": 11,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "23.09.2026: ідемпотентне встановлення двох оголошених юнітів приватного пілоту; точна початкова виміряна стеля."
+      "reason": "Issue #83: validate systemd workspace paths and unit names, escape literal percent specifiers, and render both units before filesystem writes. Supported-path regex keeps render at 9 lines; main gains one pre-render step. Verified by 29 collected pilot tests (27 added); no default ceilings or gate logic changed."
     },
     "scripts/install_public_runtime.py": {
       "lines": 35,
@@ -5906,6 +5945,15 @@
       "proof_lines": 0,
       "reason": "v0.4.0: artifact/material-bound SLSA v1.2 provenance with explicit untrusted local builder; initial measured ratchet ceiling"
     },
+    "scripts/snapshot_admission.py": {
+      "lines": 39,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 27,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #22: exact initial measured ceiling for finite descriptor-pinned compressed-input admission, no other module ceilings raised."
+    },
     "scripts/snapshot_assurance.py": {
       "lines": 255,
       "max_complexity": 10,
@@ -6524,6 +6572,15 @@
       "proof_lines": 0,
       "reason": "Issue #56: initial bounded admission and native combination of two verified dialect coverage executions."
     },
+    "scripts/git_bundle_policy.py": {
+      "lines": 36,
+      "max_complexity": 6,
+      "max_function_args": 1,
+      "max_function_lines": 12,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #20: exact initial measured Git bundle byte-signature admission for producer and ZIP consumer, with no third-party dependencies."
+    },
     "scripts/github_actions_graph.py": {
       "lines": 146,
       "max_complexity": 8,
@@ -6576,10 +6633,43 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Issue #54: locally recomputed release materials and exact GitHub run/ref/SHA context; initial measured ceiling."
+    },
+    "scripts/artifact_snapshot.py": {
+      "lines": 25,
+      "max_complexity": 3,
+      "max_function_args": 2,
+      "max_function_lines": 11,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #22: recalibrated exact 25-line/complexity-3/11-line-function ceiling after bounded capture extraction; no growth permitted."
+    },
+    "scripts/kb_reference_admission.py": {
+      "lines": 242,
+      "max_complexity": 15,
+      "max_function_lines": 43,
+      "max_function_args": 1,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "PR #88 Codex P2 4334124081: add a single-descriptor, nofollow/nonblocking, byte-bounded reader and observable-change refusal. Only this not-yet-merged module grows; input limits, function ceilings, other module budgets and existing tests are unchanged. Twenty-four new file-boundary controls and six isolated guard mutations verify the added behavior."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+    {
+      "on": "2026-10-20",
+      "path": "scripts/install_pilot_runtime.py",
+      "from": {
+        "lines": 34,
+        "max_complexity": 2,
+        "max_function_lines": 10
+      },
+      "to": {
+        "lines": 46,
+        "max_complexity": 3,
+        "max_function_lines": 11
+      },
+      "reason": "Issue #83: validate systemd workspace paths and unit names, escape literal percent specifiers, and render both units before filesystem writes. Supported-path regex keeps render at 9 lines; main gains one pre-render step. Verified by 29 collected pilot tests (27 added); no default ceilings or gate logic changed."
+    },
     {
       "changes": [
         {
@@ -12884,6 +12974,54 @@
       "path": "scripts/audit_scanner_summary.py",
       "reason": "10.10.2026 `source:package` уперше добіг до пакування і впав на «source digest mismatch»: `audit:closure` дописував у трекований KORPUS_v5_FINDINGS_CLOSURE.json поле `produced_evidence` з комітом сканерів, тож файл розходився з маніфестом джерела в кожному конвеєрі за побудовою. Прив'язка тепер пишеться в var/audit-closure-binding.json; виробник цього файла живе поруч із самою прив'язкою.",
       "to": 130
+    },
+    {
+      "on": "2026-10-20",
+      "path": "scripts/distribution_runtime_policy.py",
+      "from": {
+        "lines": 21
+      },
+      "to": {
+        "lines": 22
+      },
+      "reason": "P1 review found runtime-path alias and mixed-root bypass; one additional line permits a clearer type-safe component predicate with narrower complexity, function-length and nesting ceilings."
+    },
+    {
+      "on": "2026-10-20",
+      "path": "scripts/distribution_runtime_policy.py",
+      "from": {
+        "lines": 22,
+        "max_complexity": 4,
+        "max_function_lines": 7
+      },
+      "to": {
+        "lines": 29,
+        "max_complexity": 5,
+        "max_function_lines": 14
+      },
+      "reason": "Independent P1 review proved reports/release evidence false positives and Windows extraction alias evasion. Added explicit admissible report roots and normalized path components with regression tests, no default gate changed."
+    },
+    {
+      "on": "2026-10-21",
+      "path": "scripts/distribution_runtime_policy.py",
+      "from": {
+        "lines": 29
+      },
+      "to": {
+        "lines": 30
+      },
+      "reason": "Canonical Ruff RUF007 requires importing itertools.pairwise rather than adjacent list-zip; one additional standard-library import, no behavior or function-shape growth."
+    },
+    {
+      "on": "2026-10-21",
+      "path": "scripts/kb_reference_admission.py",
+      "from": {
+        "lines": 212
+      },
+      "to": {
+        "lines": 242
+      },
+      "reason": "PR #88 Codex P2 4334124081: add a single-descriptor, nofollow/nonblocking, byte-bounded reader and observable-change refusal. Only this not-yet-merged module grows; input limits, function ceilings, other module budgets and existing tests are unchanged. Twenty-four new file-boundary controls and six isolated guard mutations verify the added behavior."
     }
   ],
   "recorded_at": "2026-10-04",

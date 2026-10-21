@@ -57,7 +57,7 @@ def test_distribution_manifest_includes_untracked_package_artifacts(tmp_path: Pa
     assert paths == ["evidence.json", "source.txt"]
 
 
-def test_git_bundle_is_distribution_artifact_not_source(tmp_path: Path) -> None:
+def test_git_bundle_is_source_eligible_and_digest_bound(tmp_path: Path) -> None:
     root = Path(__file__).resolve().parents[3]
     module = _module(root)
     package = tmp_path / "package"
@@ -68,11 +68,17 @@ def test_git_bundle_is_distribution_artifact_not_source(tmp_path: Path) -> None:
     source_manifest = module.build_manifest(package, kind="source")
     distribution_manifest = module.build_manifest(package, kind="distribution")
 
-    assert [record["path"] for record in source_manifest["files"]] == ["source.txt"]
+    assert [record["path"] for record in source_manifest["files"]] == [
+        "release.bundle",
+        "source.txt",
+    ]
     assert [record["path"] for record in distribution_manifest["files"]] == [
         "release.bundle",
         "source.txt",
     ]
+    original_root = source_manifest["root_sha256"]
+    (package / "release.bundle").write_bytes(b"git-bundle-changed")
+    assert module.build_manifest(package, kind="source")["root_sha256"] != original_root
 
 
 def test_manifest_binds_posix_mode(tmp_path: Path) -> None:

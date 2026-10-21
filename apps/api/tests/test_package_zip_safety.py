@@ -8,6 +8,8 @@ import sys
 import zipfile
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -95,6 +97,64 @@ def test_casefold_alias_is_rejected(tmp_path: Path) -> None:
         zf.writestr(_info("a.txt"), b"b")
     failures, _ = _module().verify(archive)
     assert any("casefold/alias collision rejected" in item for item in failures)
+
+
+def test_windows_normalized_alias_collision_refused_before_extraction(
+    tmp_path: Path,
+) -> None:
+    for number, alternative in enumerate(
+        (
+            "reports./release/v0.8.0/evidence/report.json",
+            "reports /release/v0.8.0/evidence/report.json",
+        )
+    ):
+        archive = tmp_path / f"alias-{number}.zip"
+        with zipfile.ZipFile(archive, "w") as zf:
+            zf.writestr(_info("reports/release/v0.8.0/evidence/report.json"), b"a")
+            zf.writestr(_info(alternative), b"b")
+        failures, count = _module().verify(archive)
+        assert count == 0
+        assert any("casefold/alias collision rejected" in item for item in failures)
+
+
+@pytest.mark.parametrize(
+    ("left", "right"),
+    [
+        ("proof?.txt", "proof*.txt"),
+        ("proof:.txt", "proof?.txt"),
+        ("a<.txt", "a>.txt"),
+        ("file|.txt", "file*.txt"),
+    ],
+)
+def test_windows_illegal_character_collision_is_rejected(
+    tmp_path: Path, left: str, right: str
+) -> None:
+    archive = tmp_path / "windows-illegal-alias.zip"
+    with zipfile.ZipFile(archive, "w") as target:
+        target.writestr(_info(left), b"first")
+        target.writestr(_info(right), b"second")
+    failures, count = _module().verify(archive)
+    assert count == 0
+    assert any("casefold/alias collision rejected" in item for item in failures)
+
+
+@pytest.mark.parametrize(
+    "member",
+    [". /proof.txt", "... /proof.txt", " /proof.txt", "KORPUS/. /proof.txt"],
+)
+def test_windows_dropped_components_are_rejected_before_extraction(
+    tmp_path: Path, member: str
+) -> None:
+    archive = tmp_path / "empty-component.zip"
+    with zipfile.ZipFile(archive, "w") as target:
+        target.writestr(_info(member), b"first")
+        target.writestr(_info("proof.txt"), b"second")
+    with zipfile.ZipFile(archive) as source:
+        safety = _safety_module().safety_failures(source)
+    assert any("non-canonical archive path rejected" in item for item in safety)
+    failures, count = _module().verify(archive)
+    assert count == 0
+    assert any("non-canonical archive path rejected" in item for item in failures)
 
 
 def test_symlink_entry_is_rejected(tmp_path: Path) -> None:
