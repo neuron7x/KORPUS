@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import zipfile
 from pathlib import Path
-from typing import BinaryIO
+from typing import IO
 
 HEADERS = (b"# v2 git bundle\n", b"# v3 git bundle\n")
 
 
-def is_bundle_stream(stream: BinaryIO) -> bool:
+def is_bundle_stream(stream: IO[bytes]) -> bool:
     return stream.read(16).startswith(HEADERS)
 
 
