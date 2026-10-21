@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2141,
-  "root_sha256": "c24bfa12c848f974f78ba2b034f325d5bf0cef2a0de2c52228033a4e2aaa3faf",
+  "root_sha256": "2a19d09dacc8d68b620b20672a3f3c89e22610a302920a25b719ef5a798a87a8",
   "files": [
     {
       "path": ".dockerignore",
@@ -11611,8 +11611,8 @@
     },
     {
       "path": "scripts/manifest_lib/integrity.py",
-      "bytes": 2763,
-      "sha256": "10a4a9d3e250d24ab691a3bc620bd7564df90af9a5b355272f9abc9cd22984c1",
+      "bytes": 2751,
+      "sha256": "c92cbb98bd72940a2b1c8defc901cb9c657e400322442956159bd57788e3f664",
       "mode": "0644"
     },
     {

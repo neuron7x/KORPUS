@@ -28,7 +28,7 @@ def file_record(path: Path, relative: Path, *, source: bool = False) -> dict[str
 
 def manifest_root(records: list[dict[str, object]]) -> str:
     canonical = "".join(
-        f"{item.get('path')}\0{item.get('mode')}\0{item.get('sha256')}\n" for item in records
+        f"{item['path']}\0{item['mode']}\0{item['sha256']}\n" for item in records
     ).encode()
     return hashlib.sha256(canonical).hexdigest()
 
