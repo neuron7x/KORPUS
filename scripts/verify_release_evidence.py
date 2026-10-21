@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 
+from evidence_source_binding import evidence_source_binding_failure
 from release_identity import release_tag
 from source_digest import source_tree_digest
 
@@ -33,6 +34,9 @@ def main() -> int:
     actual_digest = source_tree_digest("HEAD")
     if assurance.get("source_tree_sha256") != actual_digest:
         failures.append("assurance source digest does not match committed HEAD")
+    binding_failure = evidence_source_binding_failure(assurance.get("evidence_source_sha256"))
+    if binding_failure:
+        failures.append(binding_failure)
     if snapshot.get("status") != "PASS" or snapshot.get("release") != expected_release:
         failures.append("assurance snapshot release/status mismatch")
     for record in snapshot.get("records", []):

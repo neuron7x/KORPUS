@@ -17,6 +17,8 @@
 
 from __future__ import annotations
 
+import importlib.util
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -93,3 +95,58 @@ def test_an_unreadable_ref_is_a_refusal_not_a_pass() -> None:
         evidence_source_binding_failure("a" * 64, ref="refs/heads/гілка-якої-немає", root=ROOT)
         == "assurance evidence source digest cannot be verified against committed HEAD"
     )
+
+
+def _release_verifier():
+    script = ROOT / "scripts" / "verify_release_evidence.py"
+    spec = importlib.util.spec_from_file_location("verify_release_evidence_binding_test", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _release_fixture(tmp_path: Path, evidence_digest: str) -> Path:
+    reports = tmp_path / "reports"
+    reports.mkdir()
+    (reports / "RESEARCH_ASSURANCE_REPORT.json").write_text(
+        json.dumps(
+            {
+                "status": "PASS",
+                "source_tree_sha256": "tracked-head",
+                "evidence_source_sha256": evidence_digest,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (reports / "ASSURANCE_SNAPSHOT.json").write_text(
+        json.dumps({"status": "PASS", "release": "v-test", "records": []}),
+        encoding="utf-8",
+    )
+    return reports
+
+
+def test_release_verifier_rejects_evidence_source_mismatch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    monkeypatch.setattr(module, "REPORTS", _release_fixture(tmp_path, "a" * 64))
+    monkeypatch.setattr(module, "release_tag", lambda: "v-test")
+    monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
+    monkeypatch.setattr(
+        module,
+        "evidence_source_binding_failure",
+        lambda _claimed: "assurance evidence source digest does not match committed HEAD",
+    )
+    assert module.main() == 1
+
+
+def test_release_verifier_accepts_matching_evidence_source_binding(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    monkeypatch.setattr(module, "REPORTS", _release_fixture(tmp_path, "b" * 64))
+    monkeypatch.setattr(module, "release_tag", lambda: "v-test")
+    monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
+    monkeypatch.setattr(module, "evidence_source_binding_failure", lambda _claimed: None)
+    assert module.main() == 0
