@@ -1,0 +1,40 @@
+name: canonical-residual-audit
+
+# Temporary read-only lineage measurement; remove before final source admission.
+on:
+  push:
+    branches: [integration/canonical-main-20261021]
+    paths:
+      - .github/workflows/canonical-residual-audit.yml
+      - .github/canonical_residual_audit.py
+permissions:
+  contents: read
+concurrency:
+  group: canonical-residual-audit
+  cancel-in-progress: false
+jobs:
+  inspect:
+    if: github.repository == 'neuron7x/KORPUS'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Read immutable request and complete repository history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Compare pinned history without executing legacy source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object .github/canonical_residual_audit.py)" = 7aeddae04c13621cad45ec77808a51d9ee739d31
+          python3 .github/canonical_residual_audit.py
+      - name: Retain bounded static evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: residual-static-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/residual-audit/
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 14
