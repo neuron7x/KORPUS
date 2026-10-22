@@ -157,6 +157,28 @@ def test_windows_dropped_components_are_rejected_before_extraction(
     assert any("non-canonical archive path rejected" in item for item in failures)
 
 
+@pytest.mark.parametrize(
+    ("parent", "child"),
+    [
+        ("foo.", "foo/bar.txt"),
+        ("foo ", "foo/bar/"),
+        ("foo?", "foo_/bar.txt"),
+        ("A", "a/bar/"),
+    ],
+)
+def test_windows_normalized_file_parent_collision_is_rejected(
+    tmp_path: Path, parent: str, child: str
+) -> None:
+    archive = tmp_path / "windows-parent-collision.zip"
+    with zipfile.ZipFile(archive, "w") as target:
+        target.writestr(_info(parent), b"file")
+        mode = stat.S_IFDIR | 0o755 if child.endswith("/") else stat.S_IFREG | 0o644
+        target.writestr(_info(child, mode), b"" if child.endswith("/") else b"child")
+    failures, count = _module().verify(archive)
+    assert count == 0
+    assert any("file/directory prefix collision rejected" in item for item in failures)
+
+
 def test_symlink_entry_is_rejected(tmp_path: Path) -> None:
     archive = tmp_path / "symlink.zip"
     with zipfile.ZipFile(archive, "w") as zf:

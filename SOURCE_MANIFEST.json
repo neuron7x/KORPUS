@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2127,
-  "root_sha256": "cf31ab90c875d7196910012dbb603d1b57d3a6b3d91d9dcc957890e8405af408",
+  "root_sha256": "1203784df890d0273a4d8c5db199c2ddc480eddafd2b569d72db64b59d699f4d",
   "files": [
     {
       "path": ".dockerignore",
@@ -4825,8 +4825,8 @@
     },
     {
       "path": "apps/api/tests/test_package_zip_safety.py",
-      "bytes": 9299,
-      "sha256": "ef70689afbbc6cf687279975e229a198d1f97a2cdf617cda19d3f626f67b2d13",
+      "bytes": 10090,
+      "sha256": "01deb5f8f6b28c78318baa96e7ba866d39aeb7c7107f07e8584d9963a361912d",
       "mode": "0644"
     },
     {
@@ -12757,8 +12757,8 @@
     },
     {
       "path": "scripts/zip_safety.py",
-      "bytes": 5354,
-      "sha256": "1ce5c5f7170f91cb4ecc6ee6a801bc6839fb124d71a573109ae34fb6ff8f96ee",
+      "bytes": 5327,
+      "sha256": "cedfc0361d595ec68ddf09bc0f8ccccc7b859aab865b01b8dd9ad18d29770944",
       "mode": "0755"
     },
     {

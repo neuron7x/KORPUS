@@ -47,7 +47,7 @@ def _canonical_name(name: str) -> tuple[str | None, str | None]:
     if not body:
         return None, f"archive root entry rejected: {name!r}"
     parts = body.split("/")
-    if set(parts) & {"", ".", ".."} or any(not part.rstrip(" .") for part in parts):
+    if "" in {part.rstrip(" .") for part in parts}:
         return None, f"non-canonical archive path rejected: {name!r}"
     canonical = PurePosixPath(*parts).as_posix() + ("/" if is_dir else "")
     if canonical != name:
@@ -93,7 +93,7 @@ def _record_entry(
     type_failure = _type_failure(info)
     if type_failure:
         failures.append(type_failure)
-    (dir_paths if info.is_dir() else file_paths).add(normalized_path)
+    (dir_paths if info.is_dir() else file_paths).add(alias_key)
     return failures
 
 
@@ -102,7 +102,7 @@ def _structural_collision_failures(file_paths: set[str], dir_paths: set[str]) ->
         f"file/directory alias collision rejected: {path!r}"
         for path in sorted(file_paths & dir_paths)
     ]
-    for path in sorted(file_paths):
+    for path in sorted(file_paths | dir_paths):
         parts = path.split("/")
         parents = ("/".join(parts[:index]) for index in range(1, len(parts)))
         failures.extend(
