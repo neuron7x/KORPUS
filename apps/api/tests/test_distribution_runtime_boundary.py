@@ -24,8 +24,9 @@ def _build_zip(
     poisoned: bool,
     extra_member: str | None = None,
     extra_payload: bytes = b"additional bound file",
+    include_proof: bool = True,
 ) -> None:
-    files = {"proof.txt": b"verified source"}
+    files = {"proof.txt": b"verified source"} if include_proof else {}
     if poisoned:
         files["evidence/registry.json"] = b'{"digest":"internally-consistent"}'
     if extra_member is not None:
@@ -68,6 +69,100 @@ def test_opaque_runtime_payload_fails_before_extraction(
         assert files == 2
 
 
+@pytest.mark.parametrize(
+    ("prefix", "poisoned", "extra_member"),
+    [
+        ("handoff/", True, None),
+        ("HANDOFF/", True, None),
+        ("handoff./", True, None),
+        ("reports/", False, "release/v1/evidence/report.json"),
+    ],
+)
+def test_sole_trusted_wrapper_cannot_relabel_opaque_evidence(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    prefix: str,
+    poisoned: bool,
+    extra_member: str | None,
+) -> None:
+    archive = tmp_path / "wrapper-bypass.zip"
+    _build_zip(
+        archive,
+        prefix=prefix,
+        poisoned=poisoned,
+        extra_member=extra_member,
+        include_proof=False,
+    )
+    with zipfile.ZipFile(archive) as candidate:
+        assert len(candidate.infolist()) == 2
+    monkeypatch.setattr(
+        zipfile.ZipFile,
+        "extractall",
+        lambda *_args, **_kwargs: pytest.fail("opaque evidence reached extraction"),
+    )
+    failures, count = verify(archive)
+    assert count == 0
+    assert len(failures) == 1
+    assert failures[0].startswith("unverified runtime evidence forbidden:")
+
+
+def test_sole_handoff_wrapper_without_opaque_evidence_remains_admitted(
+    tmp_path: Path,
+) -> None:
+    archive = tmp_path / "safe-wrapper.zip"
+    _build_zip(archive, prefix="handoff/", poisoned=False)
+    assert verify(archive) == ([], 2)
+
+
+@pytest.mark.parametrize(
+    ("opaque_member", "manifest_member", "third_member"),
+    [
+        (
+            "handoff./evidence/registry.json",
+            "handoff/DISTRIBUTION_MANIFEST.json",
+            None,
+        ),
+        (
+            "HANDOFF/evidence/registry.json",
+            "handoff/DISTRIBUTION_MANIFEST.json",
+            None,
+        ),
+        (
+            "handoff /evidence/registry.json",
+            "handoff/DISTRIBUTION_MANIFEST.json",
+            "other/proof.txt",
+        ),
+    ],
+)
+def test_alias_equivalent_mixed_roots_fail_before_extraction(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    opaque_member: str,
+    manifest_member: str,
+    third_member: str | None,
+) -> None:
+    from scripts.zip_safety import safety_failures
+
+    archive = tmp_path / "root-alias-bypass.zip"
+    members = [opaque_member, manifest_member] + ([third_member] if third_member else [])
+    with zipfile.ZipFile(archive, "w") as target:
+        for member in members:
+            info = zipfile.ZipInfo(member)
+            info.create_system = 3
+            info.external_attr = (stat.S_IFREG | 0o644) << 16
+            target.writestr(info, b"{}")
+    with zipfile.ZipFile(archive) as candidate:
+        assert safety_failures(candidate) == []
+    monkeypatch.setattr(
+        zipfile.ZipFile,
+        "extractall",
+        lambda *_args, **_kwargs: pytest.fail("root alias reached extraction"),
+    )
+    failures, count = verify(archive)
+    assert count == 0
+    assert "archive root aliases forbidden" in failures
+
+
 def test_history_bundle_is_source_eligible() -> None:
     assert source_included(Path("history.bundle"))
     assert source_included(Path("subfolder/deleted-history.bundle"))
@@ -102,6 +197,10 @@ def test_producer_keeps_reports_but_never_copies_runtime_registry() -> None:
         "KORPUS/reports/staged/evidence/registry.json",
         "evidence/reports/release/registry.json",
         "evidence/handoff/evidence/registry.json",
+        "other/handoff/evidence/registry.json",
+        "other/reports/release/v1/evidence/report.json",
+        "KORPUS/handoff/evidence/current/MANIFEST.json",
+        "KORPUS/reports/release/v1/evidence/report.json",
         "KORPUS/evidence/reports/release/registry.json",
         "KORPUS/evidence/handoff/evidence/registry.json",
     ],
@@ -169,11 +268,12 @@ def test_disguised_bundle_magic_is_rejected(tmp_path: Path, header: bytes) -> No
     assert any("git bundle forbidden" in failure for failure in failures)
 
 
-def test_authorized_handoff_evidence_is_not_misclassified(tmp_path: Path) -> None:
+@pytest.mark.parametrize("prefix", ["", "KORPUS/"])
+def test_authorized_handoff_evidence_is_not_misclassified(tmp_path: Path, prefix: str) -> None:
     archive = tmp_path / "handoff.zip"
     _build_zip(
         archive,
-        prefix="",
+        prefix=prefix,
         poisoned=False,
         extra_member="handoff/evidence/current/MANIFEST.json",
     )
@@ -182,16 +282,15 @@ def test_authorized_handoff_evidence_is_not_misclassified(tmp_path: Path) -> Non
     assert count == 3
 
 
-@pytest.mark.parametrize(
-    "member",
-    [
-        "reports/release/v0.8.0/evidence/report.json",
-        "KORPUS/reports/release/v0.8.0/evidence/report.json",
-    ],
-)
-def test_release_report_evidence_remains_admitted(tmp_path: Path, member: str) -> None:
+@pytest.mark.parametrize("prefix", ["", "KORPUS/"])
+def test_release_report_evidence_remains_admitted(tmp_path: Path, prefix: str) -> None:
     archive = tmp_path / "report.zip"
-    _build_zip(archive, prefix="", poisoned=False, extra_member=member)
+    _build_zip(
+        archive,
+        prefix=prefix,
+        poisoned=False,
+        extra_member="reports/release/v0.8.0/evidence/report.json",
+    )
     failures, count = verify(archive)
     assert failures == []
     assert count == 3
@@ -227,9 +326,7 @@ def test_normalized_empty_components_are_refused(component: str) -> None:
     [
         "docs/README.md",
         "reports/release/v0.9.7/evidence/report.json",
-        "KORPUS/reports/release/v0.9.7/evidence/report.json",
         "handoff/evidence/current/MANIFEST.json",
-        "KORPUS/handoff/evidence/current/MANIFEST.json",
     ],
 )
 def test_normalized_path_guard_preserves_allowed_contracts(path: str) -> None:
