@@ -158,6 +158,62 @@ def test_windows_dropped_components_are_rejected_before_extraction(
 
 
 @pytest.mark.parametrize(
+    "member",
+    [
+        "CON",
+        "root/CON/",
+        "root/con.txt/",
+        "root/PrN.log/evidence.json",
+        "root/AUX  .txt/",
+        "root/NUL./leaf.txt",
+        "root/COM1/",
+        "root/com9.txt/",
+        "root/COM².txt/",
+        "root/LPT1/leaf.txt",
+        "root/lpt9.log/",
+        "root/COM¹.txt/",
+        "root/lpt³/",
+        "root/CONIN$/",
+        "root/conout$.txt/",
+    ],
+)
+def test_windows_reserved_device_component_is_rejected_before_extraction(
+    tmp_path: Path, member: str
+) -> None:
+    archive = tmp_path / "windows-device.zip"
+    mode = stat.S_IFDIR | 0o755 if member.endswith("/") else stat.S_IFREG | 0o644
+    with zipfile.ZipFile(archive, "w") as target:
+        target.writestr(_info(member, mode), b"" if member.endswith("/") else b"payload")
+    failures, count = _module().verify(archive)
+    assert count == 0
+    assert any("Win32 reserved device component rejected" in item for item in failures)
+
+
+def test_windows_device_near_misses_remain_accepted(tmp_path: Path) -> None:
+    archive = tmp_path / "windows-device-near-misses.zip"
+    members = (
+        "root/CONSOLE/",
+        "root/COM0.txt",
+        "root/COM10/",
+        "root/LPT0.txt",
+        "root/LPT10/",
+        "root/AUXILIARY.txt",
+        "root/NULL/",
+        "root/PRNTER.txt",
+        "root/CLOCK$/",
+        "root/CONİN$/",
+        "root/con_name/",
+        "root/com¹x.txt",
+    )
+    with zipfile.ZipFile(archive, "w") as target:
+        for member in members:
+            mode = stat.S_IFDIR | 0o755 if member.endswith("/") else stat.S_IFREG | 0o644
+            target.writestr(_info(member, mode), b"" if member.endswith("/") else b"payload")
+    with zipfile.ZipFile(archive) as source:
+        assert _safety_module().safety_failures(source) == []
+
+
+@pytest.mark.parametrize(
     ("parent", "child"),
     [
         ("foo.", "foo/bar.txt"),
