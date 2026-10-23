@@ -245,6 +245,7 @@ def test_normalized_path_guard_preserves_allowed_contracts(path: str) -> None:
 
     assert not _opaque_path(path)
 
+
 def test_runtime_policy_imports_in_isolated_process() -> None:
     command = (
         "import sys; sys.path.insert(0, '.'); "
