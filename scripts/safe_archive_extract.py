@@ -5,6 +5,7 @@ from __future__ import annotations
 import zipfile
 from importlib import import_module
 from pathlib import Path
+from typing import cast
 
 _prefix = f"{__package__}." if __package__ else ""
 safety_failures = import_module(_prefix + "zip_safety").safety_failures
@@ -16,4 +17,4 @@ def extract_safe_archive(archive: Path, destination: Path) -> Path:
         failures = safety_failures(zf)
         if failures:
             raise RuntimeError("unsafe release ZIP: " + "; ".join(failures))
-        return publish_safe_zip(zf, destination)
+        return cast(Path, publish_safe_zip(zf, destination))
