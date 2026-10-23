@@ -6576,6 +6576,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Issue #54: locally recomputed release materials and exact GitHub run/ref/SHA context; initial measured ceiling."
+    },
+    "scripts/kb_reference_admission.py": {
+      "lines": 242,
+      "max_complexity": 15,
+      "max_function_lines": 43,
+      "max_function_args": 1,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "PR #88 Codex P2 4334124081: add a single-descriptor, nofollow/nonblocking, byte-bounded reader and observable-change refusal. Only this not-yet-merged module grows; input limits, function ceilings, other module budgets and existing tests are unchanged. Twenty-four new file-boundary controls and six isolated guard mutations verify the added behavior."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -12884,6 +12893,17 @@
       "path": "scripts/audit_scanner_summary.py",
       "reason": "10.10.2026 `source:package` уперше добіг до пакування і впав на «source digest mismatch»: `audit:closure` дописував у трекований KORPUS_v5_FINDINGS_CLOSURE.json поле `produced_evidence` з комітом сканерів, тож файл розходився з маніфестом джерела в кожному конвеєрі за побудовою. Прив'язка тепер пишеться в var/audit-closure-binding.json; виробник цього файла живе поруч із самою прив'язкою.",
       "to": 130
+    },
+    {
+      "on": "2026-10-21",
+      "path": "scripts/kb_reference_admission.py",
+      "from": {
+        "lines": 212
+      },
+      "to": {
+        "lines": 242
+      },
+      "reason": "PR #88 Codex P2 4334124081: add a single-descriptor, nofollow/nonblocking, byte-bounded reader and observable-change refusal. Only this not-yet-merged module grows; input limits, function ceilings, other module budgets and existing tests are unchanged. Twenty-four new file-boundary controls and six isolated guard mutations verify the added behavior."
     }
   ],
   "recorded_at": "2026-10-04",
