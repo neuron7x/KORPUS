@@ -1,15 +1,14 @@
-"""Extraction primitive that refuses unsafe ZIPs before writing any member."""
+"""Fail-closed ZIP admission followed by failure-atomic publication."""
 
 from __future__ import annotations
 
-import os
 import zipfile
 from importlib import import_module
 from pathlib import Path
 
-safety_failures = import_module(
-    f"{__package__ + chr(46) if __package__ else chr(39) * 0}zip_safety"
-).safety_failures
+_prefix = f"{__package__}." if __package__ else ""
+safety_failures = import_module(_prefix + "zip_safety").safety_failures
+publish_safe_zip = import_module(_prefix + "archive_atomic_publish").publish_safe_zip
 
 
 def extract_safe_archive(archive: Path, destination: Path) -> Path:
@@ -17,10 +16,4 @@ def extract_safe_archive(archive: Path, destination: Path) -> Path:
         failures = safety_failures(zf)
         if failures:
             raise RuntimeError("unsafe release ZIP: " + "; ".join(failures))
-        zf.extractall(destination)
-        for info in zf.infolist():
-            if not info.is_dir():
-                mode = (info.external_attr >> 16) & 0o777
-                if mode:
-                    os.chmod(destination / info.filename, mode)
-    return next(destination.iterdir())
+        return publish_safe_zip(zf, destination)
