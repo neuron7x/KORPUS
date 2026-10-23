@@ -134,11 +134,12 @@ class RequestBoundRetriever(Retriever):
         semantic_enabled: bool,
     ) -> list[RetrievedEvidence]:
         delegate = self.delegate
-        action: Callable[[], list[RetrievedEvidence]]
-        if isinstance(delegate, SemanticControllableRetriever):
-            action = lambda: delegate.search_with_semantic(
-                identity, text, corpus_ids, as_of, limit, semantic_enabled=semantic_enabled
-            )
-        else:
-            action = lambda: delegate.search(identity, text, corpus_ids, as_of, limit)
+
+        def action() -> list[RetrievedEvidence]:
+            if isinstance(delegate, SemanticControllableRetriever):
+                return delegate.search_with_semantic(
+                    identity, text, corpus_ids, as_of, limit, semantic_enabled=semantic_enabled
+                )
+            return delegate.search(identity, text, corpus_ids, as_of, limit)
+
         return self._read(identity, corpus_ids, as_of, action)
