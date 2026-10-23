@@ -1,7 +1,10 @@
 import zipfile
+from importlib import import_module
 from itertools import pairwise
 
-from git_bundle_policy import bundle_zip_failures
+bundle_zip_failures = import_module(
+    f"{__package__}.git_bundle_policy" if __package__ else "git_bundle_policy"
+).bundle_zip_failures
 
 
 def _opaque_path(name: str) -> bool:
