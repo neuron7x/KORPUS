@@ -81,9 +81,7 @@ def validate_answer_token(
 class RequestBoundRetriever(Retriever):
     """Use the captured token for every retrieval variant, including cache hits."""
 
-    def __init__(
-        self, repository: Repository, delegate: Retriever, token: CorpusReadToken
-    ) -> None:
+    def __init__(self, repository: Repository, delegate: Retriever, token: CorpusReadToken) -> None:
         self.repository = repository
         self.delegate = delegate
         self.token = token
