@@ -6,6 +6,7 @@ import hashlib
 import json
 import stat
 import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
@@ -243,3 +244,19 @@ def test_normalized_path_guard_preserves_allowed_contracts(path: str) -> None:
     from scripts.distribution_runtime_policy import _opaque_path
 
     assert not _opaque_path(path)
+
+def test_runtime_policy_imports_in_isolated_process() -> None:
+    command = (
+        "import sys; sys.path.insert(0, '.'); "
+        "from scripts.distribution_runtime_policy import _opaque_path; "
+        "assert _opaque_path('var/evidence/registry.json'); "
+        "assert not _opaque_path('reports/release/v1/evidence/report.json')"
+    )
+    result = subprocess.run(
+        [sys.executable, "-I", "-c", command],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr

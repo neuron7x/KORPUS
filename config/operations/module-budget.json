@@ -4302,13 +4302,13 @@
       "reason": "Точна виміряна початкова стеля. Діагностика розведення запиту й розмірного зсуву — інструмент виміру гіпотез про пошук, не гейт."
     },
     "scripts/distribution_runtime_policy.py": {
-      "lines": 30,
+      "lines": 34,
       "max_complexity": 5,
       "max_function_args": 1,
       "max_function_lines": 14,
       "max_nesting": 0,
       "proof_lines": 0,
-      "reason": "Issue #20: exact 30-line module after stdlib itertools.pairwise replacing adjacent zip, fixing RUF007 without weakening reserved-path semantics; function-shape ceilings unchanged."
+      "reason": "P2 precise isolated module import fix: bounded typed callable, no Python Any leakage; 34 lines, safety predicates unchanged."
     },
     "scripts/embedding_candidate_metrics.py": {
       "lines": 32,
@@ -13058,6 +13058,17 @@
         "lines": 242
       },
       "reason": "PR #88 Codex P2 4334124081: add a single-descriptor, nofollow/nonblocking, byte-bounded reader and observable-change refusal. Only this not-yet-merged module grows; input limits, function ceilings, other module budgets and existing tests are unchanged. Twenty-four new file-boundary controls and six isolated guard mutations verify the added behavior."
+    },
+    {
+      "on": "2026-10-23",
+      "path": "scripts/distribution_runtime_policy.py",
+      "from": {
+        "lines": 30
+      },
+      "to": {
+        "lines": 34
+      },
+      "reason": "Address exact PR #86 isolated package context and PR #87 scripts-mypy no-any-return failures; source-format measurement, no security gate relaxation."
     }
   ],
   "recorded_at": "2026-10-04",
