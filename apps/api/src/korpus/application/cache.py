@@ -100,7 +100,8 @@ class CachedRetriever(Retriever):
         # Ключ мусить нести ТУ САМУ релізну тотожність, яку відповідь назве читачеві.
         # Поки їх було дві, кеш умів віддати відповідь, засвідчену іншим релізом, ніж
         # той, за яким її поклали, — і жодне поле не розрізняло ці два випадки.
-        release_id = cache_release_token(self.repository, identity, corpus_ids, as_of).release_id
+        token = cache_release_token(self.repository, identity, corpus_ids, as_of)
+        release_id = token.release_id
         material = "\x1f".join(
             [
                 identity.subject,
@@ -119,6 +120,7 @@ class CachedRetriever(Retriever):
                 as_of.isoformat(),
                 str(limit),
                 self.configuration_id,
+                str(token.state_epoch),
                 release_id,
                 normalize_text(text),
             ]
