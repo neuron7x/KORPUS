@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2146,
-  "root_sha256": "d4fe40f59c1d444c121bfd270c7abc13371534f540e7d067788eca9cc54fd321",
+  "file_count": 2149,
+  "root_sha256": "6c06f7385347cdb407ff0efbf9b78b465df1f1804b728ba2f4928807465a2edf",
   "files": [
     {
       "path": ".dockerignore",
@@ -5592,6 +5592,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_safe_archive_extract_atomicity.py",
+      "bytes": 3730,
+      "sha256": "57add3ea775973d1e77a247f803bda23e8e4545d9000623a2c52f7c45e79c90d",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_schema_revision_pin.py",
       "bytes": 3319,
       "sha256": "3dcb29a5eb166971db6e9da5daa54a061df361989939af352f29663efba5c62b",
@@ -8329,8 +8335,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 761895,
-      "sha256": "e4931a4f75975598b3db33972d93e4337b7121d11ae956fea343b3325f087f70",
+      "bytes": 762512,
+      "sha256": "e2bde18ffc5ca0d949dba0f9a95ba2af3c63e97686670b1d1a089866860a8e6f",
       "mode": "0644"
     },
     {
@@ -10668,6 +10674,18 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/archive_atomic_publish.py",
+      "bytes": 1526,
+      "sha256": "33e92c0c443fe137cd434541ab5ab9a01e94c23f041962d5ad1e1954cb667638",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/archive_name_limits.py",
+      "bytes": 747,
+      "sha256": "50a5572c28c01defcf184249645d1edbf7d1af160da25b2e81b1df03ef370d52",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/artifact_snapshot.py",
       "bytes": 876,
       "sha256": "8db413354d27d221eaf45c8797c8a71568b8231d3c6bdb726f964379973140c9",
@@ -12421,8 +12439,8 @@
     },
     {
       "path": "scripts/safe_archive_extract.py",
-      "bytes": 865,
-      "sha256": "84312811d9f955da9676b1aa1896f8043fec729b560589cce6590a43ea0725f9",
+      "bytes": 728,
+      "sha256": "433622a10bfde73e9906109f2530c3d8b72d7654f3a7fa5e760e2e5d3a2cd248",
       "mode": "0644"
     },
     {
@@ -12871,8 +12889,8 @@
     },
     {
       "path": "scripts/zip_safety.py",
-      "bytes": 5461,
-      "sha256": "7688e5572426ddca78f159b4f37e62e019898debc5bef6ca85641e6b317015b7",
+      "bytes": 5635,
+      "sha256": "43b3087bad93d7211b360fb7dbe4ee761207d8a46e5e016c88176acabbbf6d50",
       "mode": "0755"
     },
     {

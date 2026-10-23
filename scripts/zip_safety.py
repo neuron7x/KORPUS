@@ -9,17 +9,16 @@ import re
 import stat
 import unicodedata
 import zipfile
+from importlib import import_module
 from pathlib import Path, PurePosixPath
 
 _DRIVE = re.compile(r"^[A-Za-z]:")
 _WINDOWS_DEVICES = {"CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"} | {
     f"{prefix}{suffix}" for prefix in ("COM", "LPT") for suffix in "123456789¹²³"
 }
-from importlib import import_module
-
-resource_failures = import_module(
-    f"{__package__ + chr(46) if __package__ else chr(39) * 0}zip_resource_policy"
-).resource_failures
+_prefix = f"{__package__}." if __package__ else ""
+resource_failures = import_module(_prefix + "zip_resource_policy").resource_failures
+name_length_failure = import_module(_prefix + "archive_name_limits").name_length_failure
 
 
 def _basic_name_failure(name: str) -> str | None:
@@ -35,6 +34,7 @@ def _basic_name_failure(name: str) -> str | None:
         (unicodedata.normalize("NFC", name) != name, f"non-NFC archive entry rejected: {name!r}"),
         (name.startswith("/") or bool(_DRIVE.match(name)), f"absolute path rejected: {name!r}"),
         (windows_device, f"Win32 reserved device component rejected: {name!r}"),
+        ((length_error := name_length_failure(name)) is not None, length_error or ""),
     )
     return next((message for failed, message in checks if failed), None)
 
