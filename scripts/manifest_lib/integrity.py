@@ -58,7 +58,7 @@ def archive_modes(zf: zipfile.ZipFile, root_name: str) -> dict[str, str]:
             else info.filename
         )
         if name != "DISTRIBUTION_MANIFEST.json":
-            result[name] = f"{(info.external_attr >> 16) & 0o777:04o}"
+            result[name] = f"0{((info.external_attr >> 16) & 0o7777):o}"
     return result
 
 

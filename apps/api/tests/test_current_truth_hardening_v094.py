@@ -2,18 +2,22 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
+import pytest
 from korpus.application.provenance import compute_source_digest
-from korpus.application.release_claims import claim_ledger
+from korpus.application.release_claims import claim_ledger, claim_status
 from korpus.application.release_truth import blocker_registry
 
+from scripts import current_truth_claims
 from scripts.current_truth_admission import (
     blocker_state_checks,
     claim_admission_checks,
     owner_packet_checks,
 )
 from scripts.current_truth_aliases import alias_checks
+from scripts.current_truth_contract import owner_metadata_line
 
 
 def _write(path: Path, payload: object) -> None:
@@ -38,13 +42,36 @@ def test_digest_binds_web_and_ci_release_surfaces(tmp_path: Path) -> None:
     assert len({first, second, third}) == 3
 
 
-def test_supported_claim_must_resolve_to_current_evidence(tmp_path: Path) -> None:
+def test_supported_claim_cannot_use_an_arbitrary_current_json(tmp_path: Path) -> None:
     release, digest = "v9", "a" * 64
     ledger = tmp_path / f"reports/release/{release}/final/CLAIM_LEDGER.json"
-    _write(ledger, {"claims": [{"status": "SUPPORTED", "evidence": "evidence.json"}]})
+    _write(
+        ledger,
+        {
+            "claims": [
+                {
+                    "id": "CLM-WEB",
+                    "status": "SUPPORTED",
+                    "evidence": "evidence.json",
+                }
+            ]
+        },
+    )
+    evidence = {
+        "schema": "korpus.web-regression.v1",
+        "release": release,
+        "source_tree_sha256": "b" * 64,
+        "digest_scope": "evidence_paths",
+        "status": "PASS",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "steps": {name: {"status": "PASS", "exit_code": 0} for name in ("lint", "test", "build")},
+    }
     _write(
         tmp_path / "evidence.json",
-        {"release": release, "source_tree_sha256": "b" * 64, "status": "PASS"},
+        evidence,
     )
     assert (
         claim_admission_checks(tmp_path, release, digest)[
@@ -54,21 +81,61 @@ def test_supported_claim_must_resolve_to_current_evidence(tmp_path: Path) -> Non
     )
     _write(
         tmp_path / "evidence.json",
-        {"release": release, "source_tree_sha256": digest, "status": "PASS"},
+        {**evidence, "source_tree_sha256": digest},
     )
-    assert (
-        claim_admission_checks(tmp_path, release, digest)[
-            "CLAIM_LEDGER.supported_evidence_resolves"
-        ]
-        is True
-    )
+    checks = claim_admission_checks(tmp_path, release, digest)
+    assert checks["CLAIM_LEDGER.supported_evidence_resolves"] is False
+    assert checks["CLAIM_LEDGER.exact_canonical_ledger"] is False
 
 
-def test_alias_checks_bind_git_imports_and_package_build(tmp_path: Path) -> None:
+def test_claim_ledger_requires_the_exact_canonical_claim_set(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    release, digest = "v9", "a" * 64
+    claims = [
+        {"id": "C1", "claim": "one", "status": "SUPPORTED", "evidence": "one.json"},
+        {
+            "id": "C2",
+            "claim": "two",
+            "status": "REFUTED_BY_EVIDENCE",
+            "evidence": "two.json",
+        },
+    ]
+    expected = {
+        "schema": "korpus.claim-ledger.v2",
+        "generated_at": "new",
+        "release": release,
+        "source_tree_sha256": digest,
+        "digest_scope": "evidence_paths",
+        "claims": claims,
+    }
+    monkeypatch.setattr(current_truth_claims, "claim_ledger", lambda *_: expected)
+    monkeypatch.setattr(
+        current_truth_claims,
+        "claim_status",
+        lambda _root, claim_id, *_: "SUPPORTED" if claim_id == "C1" else "REFUTED_BY_EVIDENCE",
+    )
+    path = tmp_path / f"reports/release/{release}/final/CLAIM_LEDGER.json"
+    _write(path, {**expected, "generated_at": "recorded"})
+    assert claim_admission_checks(tmp_path, release, digest)["CLAIM_LEDGER.exact_canonical_ledger"]
+    _write(path, {**expected, "generated_at": "recorded", "claims": claims[:1]})
+    checks = claim_admission_checks(tmp_path, release, digest)
+    assert checks["CLAIM_LEDGER.exact_canonical_ledger"] is False
+    assert checks["CLAIM_LEDGER.status_matches_evidence"] is False
+
+
+def test_stale_package_aliases_never_enter_current_truth(tmp_path: Path) -> None:
     release, artifact = "v9", "KORPUS_v9.zip"
-    _write(tmp_path / "apps/api/src/korpus/release.json", {"distribution_artifact": artifact})
+    source = tmp_path / "apps/api/src/korpus/module.py"
+    source.parent.mkdir(parents=True)
+    source.write_text("VALUE = 1\n", encoding="utf-8")
+    _write(
+        tmp_path / "apps/api/src/korpus/release.json",
+        {"distribution_artifact": artifact},
+    )
+    first_digest = compute_source_digest(tmp_path)
     _write(tmp_path / "RELEASE_ENVELOPE.json", {"release": release})
-    report = {"release": release}
+    report = {"release": release, "source_tree_sha256": first_digest, "status": "PASS"}
     _write(tmp_path / "CANONICAL_RELEASE_REPORT.json", report)
     _write(tmp_path / "reports/CANONICAL_RELEASE_REPORT.json", report)
     _write(
@@ -78,10 +145,11 @@ def test_alias_checks_bind_git_imports_and_package_build(tmp_path: Path) -> None
     _write(tmp_path / "PACKAGE_BUILD.json", {"release": release})
     for name in ("GITHUB_IMPORT.md", "GITLAB_IMPORT.md"):
         (tmp_path / name).write_text(f"{release} {artifact}\n", encoding="utf-8")
-    checks = alias_checks(tmp_path, release)
-    assert all(checks.values())
-    (tmp_path / "GITHUB_IMPORT.md").write_text(f"{release} stale.zip\n", encoding="utf-8")
-    assert alias_checks(tmp_path, release)["GITHUB_IMPORT.md.artifact_bound"] is False
+
+    assert alias_checks(tmp_path, release) == {}
+    source.write_text("VALUE = 2\n", encoding="utf-8")
+    assert compute_source_digest(tmp_path) != first_digest
+    assert alias_checks(tmp_path, release) == {}, "stale non-evidence aliases were readmitted"
 
 
 def test_release_claims_use_portable_mutation_evidence(tmp_path: Path) -> None:
@@ -96,6 +164,30 @@ def test_source_integrity_claim_uses_a_bound_verification_report(tmp_path: Path)
     ledger = claim_ledger(tmp_path, "a" * 64, "v9")
     source = next(claim for claim in ledger["claims"] if claim["id"] == "CLM-SOURCE-INTEGRITY")
     assert source["evidence"] == "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json"
+
+
+def test_source_integrity_claim_recomputes_the_manifest_instead_of_trusting_pass(
+    tmp_path: Path,
+) -> None:
+    digest = "a" * 64
+    evidence = "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json"
+    _write(
+        tmp_path / evidence,
+        {
+            "schema": "korpus.source-manifest-verification.v1",
+            "release": "v9",
+            "source_tree_sha256": digest,
+            "digest_scope": "evidence_paths",
+            "status": "PASS",
+            "valid": True,
+            "files": 1,
+            "root_sha256": "0" * 64,
+            "failures": [],
+        },
+    )
+    assert (
+        claim_status(tmp_path, "CLM-SOURCE-INTEGRITY", evidence, digest, "v9") == "INVALID_EVIDENCE"
+    )
 
 
 # ── Пакет власника: єдиний доказ релізу, який доти не звірявся НІЧИМ.
@@ -113,11 +205,16 @@ def _packet(tmp_path: Path, body: str) -> Path:
     return tmp_path
 
 
+def _bound_packet(release: str, digest: str, body: str = "") -> str:
+    return f"# Пакет\n\n{owner_metadata_line(release, digest)}\n\n{body}"
+
+
 def test_a_packet_naming_this_candidate_is_bound(tmp_path: Path) -> None:
-    """Позитивне плече: пакет, що називає реліз І дайджест дерева, прив'язаний."""
-    root = _packet(tmp_path, "# Пакет\n\nреліз v0.9.7, дерево " + "a" * 64 + "\n")
+    """Позитивне плече: точний машинний конверт прив'язаний."""
+    root = _packet(tmp_path, _bound_packet("v0.9.7", "a" * 64))
     checks = owner_packet_checks(root, "v0.9.7", "a" * 64)
     assert checks[f"{PACKET}.present"] is True
+    assert checks[f"{PACKET}.metadata_exact"] is True
     assert checks[f"{PACKET}.release_bound"] is True
     assert checks[f"{PACKET}.source_bound"] is True
 
@@ -128,14 +225,14 @@ def test_a_packet_about_another_tree_is_not_source_bound(tmp_path: Path) -> None
     Без дайджесту пакет про попередній коміт виглядав би прив'язаним, і власник
     підписував би стан, якого документ не описує.
     """
-    root = _packet(tmp_path, "# Пакет\n\nреліз v0.9.7, дерево " + "b" * 64 + "\n")
+    root = _packet(tmp_path, _bound_packet("v0.9.7", "b" * 64))
     checks = owner_packet_checks(root, "v0.9.7", "a" * 64)
     assert checks[f"{PACKET}.release_bound"] is True
     assert checks[f"{PACKET}.source_bound"] is False
 
 
 def test_a_packet_about_another_release_is_not_release_bound(tmp_path: Path) -> None:
-    root = _packet(tmp_path, "# Пакет\n\nреліз v0.9.6, дерево " + "a" * 64 + "\n")
+    root = _packet(tmp_path, _bound_packet("v0.9.6", "a" * 64))
     checks = owner_packet_checks(root, "v0.9.7", "a" * 64)
     assert checks[f"{PACKET}.release_bound"] is False
 
@@ -157,6 +254,33 @@ def test_empty_release_or_digest_cannot_bind_anything(tmp_path: Path) -> None:
     checks = owner_packet_checks(root, "", "")
     assert checks[f"{PACKET}.release_bound"] is False
     assert checks[f"{PACKET}.source_bound"] is False
+
+
+def test_negated_prose_cannot_bind_the_owner_packet(tmp_path: Path) -> None:
+    digest = "a" * 64
+    root = _packet(
+        tmp_path,
+        f"# Пакет\n\nЦей пакет НЕ для v0.9.7 і НЕ для дерева {digest}.\n",
+    )
+    checks = owner_packet_checks(root, "v0.9.7", digest)
+    assert checks[f"{PACKET}.metadata_unique"] is False
+    assert checks[f"{PACKET}.release_bound"] is False
+    assert checks[f"{PACKET}.source_bound"] is False
+
+
+def test_wrong_or_duplicate_owner_metadata_is_not_exact(tmp_path: Path) -> None:
+    release, digest = "v0.9.7", "a" * 64
+    correct = owner_metadata_line(release, digest)
+    wrong_schema = correct.replace(
+        "korpus.owner-packet-metadata.v1", "korpus.owner-packet-metadata.v0"
+    )
+    wrong = owner_packet_checks(_packet(tmp_path, f"# Пакет\n{wrong_schema}\n"), release, digest)
+    assert wrong[f"{PACKET}.schema_exact"] is False
+    duplicate = owner_packet_checks(
+        _packet(tmp_path, f"# Пакет\n{correct}\n{correct}\n"), release, digest
+    )
+    assert duplicate[f"{PACKET}.metadata_unique"] is False
+    assert duplicate[f"{PACKET}.source_bound"] is False
 
 
 def test_two_surfaces_under_one_field_name_are_not_compared_by_number(tmp_path: Path) -> None:
@@ -204,6 +328,78 @@ def test_two_surfaces_under_one_field_name_are_not_compared_by_number(tmp_path: 
     drifted = report_binding_checks(tmp_path, release, digest)
     assert drifted["reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.scope_named"] is True
     assert drifted["reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.source_bound"] is False
+
+
+def test_current_reports_reject_fail_and_wrong_schema_even_when_bound(tmp_path: Path) -> None:
+    from scripts.current_truth_contract import report_binding_checks
+
+    release, digest = "v9", "a" * 64
+    common = {
+        "release": release,
+        "source_tree_sha256": digest,
+        "digest_scope": "evidence_paths",
+    }
+    dependency = tmp_path / "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json"
+    _write(
+        dependency,
+        {
+            **common,
+            "schema": "korpus.dependency-lock-verification.v2",
+            "status": "PASS",
+            "failures": [],
+        },
+    )
+    _write(
+        tmp_path / "reports/STANDARDS_CONTROL_MAP_VERIFICATION.json",
+        {
+            **common,
+            "schema": "korpus.standards-control-map-verification.v2",
+            "status": "PASS",
+            "failures": [],
+        },
+    )
+    _write(
+        tmp_path / "reports/EXECUTABLE_EVIDENCE_INDEX_CURRENT.json",
+        {
+            **common,
+            "schema": "korpus.executable-evidence-index.v2",
+            "source_python_modules": 1,
+            "test_python_modules": 1,
+            "test_functions_static": 1,
+            "test_file_prefix_modules": 1,
+            "method": "AST enumeration over current source/test tree",
+        },
+    )
+    key = "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json"
+    admitted = report_binding_checks(tmp_path, release, digest)
+    assert admitted[f"{key}.schema_exact"] is True
+    assert admitted[f"{key}.contract_valid"] is True
+
+    _write(
+        dependency,
+        {
+            **common,
+            "schema": "korpus.dependency-lock-verification.v2",
+            "status": "FAIL",
+            "failures": ["seeded failure"],
+        },
+    )
+    failed = report_binding_checks(tmp_path, release, digest)
+    assert failed[f"{key}.source_bound"] is True
+    assert failed[f"{key}.contract_valid"] is False
+
+    _write(
+        dependency,
+        {
+            **common,
+            "schema": "korpus.dependency-lock-verification.v1",
+            "status": "PASS",
+            "failures": [],
+        },
+    )
+    wrong_schema = report_binding_checks(tmp_path, release, digest)
+    assert wrong_schema[f"{key}.source_bound"] is True
+    assert wrong_schema[f"{key}.schema_exact"] is False
 
 
 def test_the_final_truth_artifacts_name_their_surface(tmp_path: Path) -> None:
@@ -268,6 +464,7 @@ def test_a_packet_that_names_a_commit_is_refused_even_when_the_digest_is_right(
     digest = "a" * 64
     body = (
         "# Пакет власника — приватний пілот KORPUS v0.9.7\n\n"
+        f"{owner_metadata_line('v0.9.7', digest)}\n"
         "**КАНДИДАТ:** `d2964c6e5386bb8ab7f6cfcec3af855a876bbf8d`\n"
         f"**ДАЙДЖЕСТ ДЖЕРЕЛА:** `{digest}`\n"
     )
@@ -286,6 +483,7 @@ def test_a_packet_bound_only_by_digest_is_accepted(tmp_path: Path) -> None:
     digest = "a" * 64
     body = (
         "# Пакет власника — приватний пілот KORPUS v0.9.7\n\n"
+        f"{owner_metadata_line('v0.9.7', digest)}\n"
         f"**ДАЙДЖЕСТ ДЖЕРЕЛА:** `{digest}`\n"
         "**Кандидат** — коміт, який несе цей дайджест; його називає захищений тег.\n"
     )
@@ -305,6 +503,7 @@ def test_the_refusal_is_about_the_claim_not_about_hex_anywhere(tmp_path: Path) -
     digest = "a" * 64
     body = (
         "# Пакет власника — приватний пілот KORPUS v0.9.7\n\n"
+        f"{owner_metadata_line('v0.9.7', digest)}\n"
         f"**ДАЙДЖЕСТ ДЖЕРЕЛА:** `{digest}`\n\n"
         "Вада знайдена на `d2964c6e5386bb8ab7f6cfcec3af855a876bbf8d` і закрита на\n"
         "наступному коміті; КАНДИДАТ згадується тут як слово, не як прив'язка.\n"
@@ -420,8 +619,42 @@ def test_a_digest_recorded_for_another_path_does_not_vouch_for_this_one(
     assert checks["BLOCKER_REGISTRY.evidence_inputs_current"] is False
 
 
+def test_external_blockers_cannot_be_relabelled_as_production_pass(tmp_path: Path) -> None:
+    digest, release = "a" * 64, "v0.9.7"
+    _write(
+        tmp_path / "config/assurance/production-hard-predicates-v1.json",
+        {"predicates": [{"id": "p1", "required_proof_class": "EXTERNAL"}]},
+    )
+    _write(
+        tmp_path / "reports/PRODUCTION_HARD_PREDICATES.json",
+        {
+            "release": release,
+            "source_tree_sha256": digest,
+            "states": [
+                {
+                    "id": "p1",
+                    "software_ready": True,
+                    "externally_satisfied": False,
+                    "failed_external_checks": ["receipt"],
+                }
+            ],
+        },
+    )
+    forged = blocker_registry(tmp_path, digest, release)
+    forged["status"] = "PASS"
+    path = tmp_path / f"reports/release/{release}/final/BLOCKER_REGISTRY.json"
+    _write(path, forged)
+    checks = blocker_state_checks(tmp_path, release, digest)
+    assert checks["BLOCKER_REGISTRY.recomputed_exact"] is False
+    assert checks["BLOCKER_REGISTRY.production_status_coherent"] is False
+
+
 def _authorization_claims(root: Path, digest: str, registry: dict[str, object]) -> dict[str, str]:
-    _write(root / "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json", registry)
+    relative = "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json"
+    _write(root / relative, registry)
+    if not (root / ".git").exists():
+        subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+    subprocess.run(["git", "add", relative], cwd=root, check=True)
     ledger = claim_ledger(root, digest, "v0.9.7")
     return {
         claim["id"]: claim["status"]
@@ -430,7 +663,9 @@ def _authorization_claims(root: Path, digest: str, registry: dict[str, object]) 
     }
 
 
-def test_authorization_claims_are_read_from_the_registry_they_name(tmp_path: Path) -> None:
+def test_authorization_claims_are_read_from_the_registry_they_name(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Вирок мусить бути ФУНКЦІЄЮ доказу, а не рядком у коді.
 
     Доти `CLM-PRODUCTION-AUTH` і `CLM-INDEPENDENT` несли вписаний у джерело "REFUTED".
@@ -443,21 +678,51 @@ def test_authorization_claims_are_read_from_the_registry_they_name(tmp_path: Pat
     різні вироки; однаковий результат на всіх трьох означає, що константа повернулась.
     """
     digest = "a" * 64
-    base = {"release": "v0.9.7", "source_tree_sha256": digest}
+    monkeypatch.setattr(
+        "korpus.application.release_claim_blocker._report_valid", lambda _context: True
+    )
+    monkeypatch.setattr(
+        "korpus.application.release_claim_contracts.canonical_paths_admitted",
+        lambda _root, _paths: True,
+    )
+    profile = tmp_path / "config/assurance/production-hard-predicates-v1.json"
+    report = tmp_path / "reports/PRODUCTION_HARD_PREDICATES.json"
+    _write(profile, {"predicates": []})
+    _write(report, {"release": "v0.9.7", "source_tree_sha256": digest, "states": []})
+    closed_registry = blocker_registry(tmp_path, digest, "v0.9.7")
+    closed = _authorization_claims(tmp_path, digest, closed_registry)
+    # A blocker registry can refute authorization, but cannot positively authorize it.
+    assert set(closed.values()) == {"INVALID_EVIDENCE"}, closed
 
-    closed = _authorization_claims(tmp_path, digest, {**base, "status": "PASS"})
-    assert set(closed.values()) == {"SUPPORTED"}, closed
-
-    open_blockers = _authorization_claims(tmp_path, digest, {**base, "status": "FAIL"})
+    _write(profile, {"predicates": [{"id": "p1", "required_proof_class": "EXTERNAL"}]})
+    _write(
+        report,
+        {
+            "release": "v0.9.7",
+            "source_tree_sha256": digest,
+            "states": [
+                {
+                    "id": "p1",
+                    "software_ready": True,
+                    "externally_satisfied": False,
+                    "failed_external_checks": ["external_receipt"],
+                }
+            ],
+        },
+    )
+    open_registry = blocker_registry(tmp_path, digest, "v0.9.7")
+    open_blockers = _authorization_claims(tmp_path, digest, open_registry)
     assert set(open_blockers.values()) == {"REFUTED_BY_EVIDENCE"}, open_blockers
 
     other_tree = _authorization_claims(
-        tmp_path, digest, {**base, "status": "PASS", "source_tree_sha256": "b" * 64}
+        tmp_path, digest, {**closed_registry, "source_tree_sha256": "b" * 64}
     )
     assert set(other_tree.values()) == {"STALE_EVIDENCE"}, other_tree
 
     # Реєстр БЕЗ вироку не виносить його мовчки: відсутність — не «ні» і не «так».
-    silent = _authorization_claims(tmp_path, digest, base)
+    silent_registry = dict(closed_registry)
+    silent_registry.pop("status")
+    silent = _authorization_claims(tmp_path, digest, silent_registry)
     assert set(silent.values()) == {"UNDECLARED_EVIDENCE"}, silent
 
 
@@ -488,15 +753,50 @@ def test_the_registry_verdict_is_computed_from_its_own_counts(tmp_path: Path) ->
 
 
 def _decided(root: Path, statuses: list[str]) -> bool:
+    digest = "a" * 64
+    source = {
+        "schema": "korpus.web-regression.v1",
+        "release": "v0.9.7",
+        "source_tree_sha256": digest,
+        "digest_scope": "evidence_paths",
+        "status": "PASS",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "steps": {name: {"status": "PASS", "exit_code": 0} for name in ("lint", "test", "build")},
+    }
+    blocker = {
+        "schema": "korpus.production-gate.v1",
+        "gate_id": "inference_security",
+        "evidence_class": "INTERNAL_ADVERSARIAL",
+        "release": "v0.9.7",
+        "source_tree_sha256": digest,
+        "digest_scope": "evidence_paths",
+        "status": "FAIL",
+        "checks": {"adversarial_suite": False},
+        "failures": ["adversarial_suite"],
+        "pytest_exit_code": 1,
+        "pytest": {"tests": 1, "failures": 1, "errors": 0, "skipped": 0},
+    }
+    _write(root / "source.json", source)
+    _write(root / "blocker.json", blocker)
+    claims = []
+    for n, status in enumerate(statuses):
+        refuted = status == "REFUTED_BY_EVIDENCE"
+        claims.append(
+            {
+                "id": "CLM-INFERENCE-SECURITY" if refuted else "CLM-WEB",
+                "status": status,
+                "evidence": "blocker.json" if refuted else "source.json",
+                "ordinal": n,
+            }
+        )
     _write(
         root / "reports/release/v0.9.7/final/CLAIM_LEDGER.json",
-        {
-            "claims": [
-                {"id": f"C{n}", "status": s, "evidence": "x.json"} for n, s in enumerate(statuses)
-            ]
-        },
+        {"claims": claims},
     )
-    checks = claim_admission_checks(root, "v0.9.7", "a" * 64)
+    checks = claim_admission_checks(root, "v0.9.7", digest)
     return checks["CLAIM_LEDGER.every_claim_decided_by_evidence"]
 
 
@@ -516,7 +816,7 @@ def test_a_claim_that_never_leaves_pending_is_unreachable_not_unmeasured(tmp_pat
     Порожній журнал перевіряється окремо: `all([])` істинне, тож нуль претензій
     задовольнив би закон тривіально — і саме так виглядав би журнал, який зламався.
     """
-    assert _decided(tmp_path, ["SUPPORTED", "REFUTED_BY_EVIDENCE"]) is True
+    assert _decided(tmp_path, ["SUPPORTED", "REFUTED_BY_EVIDENCE"]) is False
     assert _decided(tmp_path, ["SUPPORTED", "PENDING_EVIDENCE"]) is False
     assert _decided(tmp_path, ["SUPPORTED", "UNDECLARED_EVIDENCE"]) is False
     assert _decided(tmp_path, ["SUPPORTED", "STALE_EVIDENCE"]) is False

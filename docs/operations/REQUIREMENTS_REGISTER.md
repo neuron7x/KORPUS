@@ -4,7 +4,7 @@
 
 Вимоги з префіксом `k8s.` побудовані з `deploy/kubernetes/base`: покомпонентні правила породжуються з набору документів, тому перелік описує саме це розгортання, а не Kubernetes узагалі.
 
-Усього вимог: **338**.
+Усього вимог: **341**.
 
 Кожна має ідентифікатор, за яким її можна процитувати в аудиті, позначити як прийнятий ризик із названим власником, зіставити з мутантом і порахувати. До 05.08.2026 їх не було: перевірка існувала як рядок, дописаний у місці збою.
 
@@ -210,6 +210,14 @@
 | `compose.worker.present` | the worker service is defined | — |
 | `compose.worker.resource_ceiling` | worker declares memory and CPU ceilings | one unbounded service takes the host down with it |
 | `compose.worker.unprivileged` | worker does not run privileged | a privileged container is the host |
+
+## github-actions
+
+| id | вимога | чому |
+|---|---|---|
+| `release.github.oidc_attestation` | the canonical candidate workflow emits and verifies a retained GitHub OIDC receipt | a locally signed manifest does not identify the hosted workflow that built it |
+| `release.github.protected_tag_context` | the canonical release workflow accepts version tags and enforces protected GitHub context | a tag label alone does not bind a release to the canonical workflow and source commit |
+| `release.github.sole_hosted_authority` | GitHub is the sole hosted candidate-attestation plane and GitLab executes nothing | two hosted release authorities can publish different artifacts under one release identity |
 
 ## gitlab-ci
 

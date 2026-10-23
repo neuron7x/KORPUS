@@ -8,6 +8,8 @@ import sys
 import zipfile
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -32,18 +34,23 @@ def _safety_module():
 
 
 def _manifest(payload: bytes) -> bytes:
+    record = {
+        "path": "payload.txt",
+        "bytes": len(payload),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "mode": "0644",
+    }
+    root = hashlib.sha256(
+        f"{record['path']}\0{record['mode']}\0{record['sha256']}\n".encode()
+    ).hexdigest()
     return json.dumps(
         {
             "schema": "korpus.distribution-manifest.v2",
             "kind": "distribution",
-            "files": [
-                {
-                    "path": "payload.txt",
-                    "bytes": len(payload),
-                    "sha256": hashlib.sha256(payload).hexdigest(),
-                    "mode": "0644",
-                }
-            ],
+            "manifest_self_excluded": True,
+            "file_count": 1,
+            "root_sha256": root,
+            "files": [record],
         }
     ).encode()
 
@@ -105,6 +112,62 @@ def test_symlink_entry_is_rejected(tmp_path: Path) -> None:
     assert any("non-regular archive entry rejected" in item for item in failures)
 
 
+@pytest.mark.parametrize(
+    ("name", "mode"),
+    [
+        ("KORPUS/.git", stat.S_IFREG | 0o644),
+        ("KORPUS/.git", stat.S_IFLNK | 0o777),
+        ("KORPUS/.git/", stat.S_IFDIR | 0o755),
+        ("KORPUS/.git/config", stat.S_IFREG | 0o644),
+        ("KORPUS/vendor/.GIT/config", stat.S_IFREG | 0o644),
+        ("KORPUS/.gitmodules", stat.S_IFREG | 0o644),
+        ("KORPUS/.git./config", stat.S_IFREG | 0o644),
+        ("KORPUS/.git /config", stat.S_IFREG | 0o644),
+        ("KORPUS/.gitmodules.", stat.S_IFREG | 0o644),
+        ("KORPUS/vendor/.GIT.../HEAD", stat.S_IFREG | 0o644),
+        ("KORPUS/.git::$DATA", stat.S_IFREG | 0o644),
+        ("KORPUS/.git:x/config", stat.S_IFREG | 0o644),
+        ("KORPUS/git~1/config", stat.S_IFREG | 0o644),
+        ("KORPUS/.gitmodules::$DATA", stat.S_IFREG | 0o644),
+        ("KORPUS/GITMOD~1", stat.S_IFREG | 0o644),
+        ("KORPUS/.g\u200cit/config", stat.S_IFREG | 0o644),
+        ("KORPUS/.gitmod\u200cules", stat.S_IFREG | 0o644),
+    ],
+)
+def test_git_and_submodule_metadata_are_rejected(tmp_path: Path, name: str, mode: int) -> None:
+    archive = tmp_path / "git-metadata.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(_info(name, mode), b"gitdir: attacker\n")
+
+    failures, count = _module().verify(archive)
+
+    assert count == 0
+    assert any("Git metadata archive path rejected" in item for item in failures)
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "KORPUS/report.json:secret",
+        "KORPUS/CON",
+        "KORPUS/NUL.txt",
+        "KORPUS/com1.log",
+        "KORPUS/LPT9",
+        "KORPUS/payload.json.",
+        "KORPUS/payload.json ",
+    ],
+)
+def test_windows_unsafe_names_are_rejected(tmp_path: Path, name: str) -> None:
+    archive = tmp_path / "windows-unsafe.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(_info(name, stat.S_IFREG | 0o644), b"payload\n")
+
+    failures, count = _module().verify(archive)
+
+    assert count == 0
+    assert any("Windows" in item for item in failures)
+
+
 def test_backslash_alias_is_rejected(tmp_path: Path) -> None:
     archive = tmp_path / "backslash.zip"
     with zipfile.ZipFile(archive, "w") as zf:
@@ -126,6 +189,11 @@ def test_nested_distribution_manifest_is_not_an_unbound_blind_spot(tmp_path: Pat
         {
             "schema": "korpus.distribution-manifest.v2",
             "kind": "distribution",
+            "manifest_self_excluded": True,
+            "file_count": 1,
+            "root_sha256": hashlib.sha256(
+                f"{record['path']}\0{record['mode']}\0{record['sha256']}\n".encode()
+            ).hexdigest(),
             "files": [record],
         }
     ).encode()

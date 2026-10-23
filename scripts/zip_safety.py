@@ -16,11 +16,20 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 _DRIVE = re.compile(r"^[A-Za-z]:")
+_WINDOWS_DEVICE = re.compile(
+    r"(?:con|prn|aux|nul|clock\$|conin\$|conout\$|com[1-9¹²³]|lpt[1-9¹²³])"
+    r"(?:\..*)?\Z",
+    re.IGNORECASE,
+)
+_WINDOWS_FORBIDDEN = frozenset('<>:"|?*')
 from importlib import import_module
 
 resource_failures = import_module(
     f"{__package__ + chr(46) if __package__ else chr(39) * 0}zip_resource_policy"
 ).resource_failures
+git_metadata_path = import_module(
+    f"{__package__ + chr(46) if __package__ else chr(39) * 0}manifest_paths"
+).git_metadata_path
 
 
 def _basic_name_failure(name: str) -> str | None:
@@ -54,9 +63,22 @@ def _canonical_name(name: str) -> tuple[str | None, str | None]:
     return canonical, None
 
 
+def _windows_name_failure(canonical: str) -> str | None:
+    for part in PurePosixPath(canonical.rstrip("/")).parts:
+        if any(ord(character) < 32 for character in part) or set(part) & _WINDOWS_FORBIDDEN:
+            return f"Windows-unsafe archive component rejected: {part!r}"
+        if part.rstrip(" .") != part:
+            return f"Windows trailing-dot/space alias rejected: {part!r}"
+        if _WINDOWS_DEVICE.fullmatch(part) is not None:
+            return f"Windows reserved device name rejected: {part!r}"
+    return None
+
+
 def _type_failure(info: zipfile.ZipInfo) -> str | None:
     mode = (info.external_attr >> 16) & 0xFFFF
     file_type = stat.S_IFMT(mode)
+    if stat.S_IMODE(mode) & 0o7000:
+        return f"special permission bits rejected: {info.filename!r} mode={mode:o}"
     if info.is_dir():
         if file_type not in {0, stat.S_IFDIR}:
             return f"directory entry carries non-directory mode: {info.filename!r}"
@@ -64,6 +86,26 @@ def _type_failure(info: zipfile.ZipInfo) -> str | None:
     if file_type not in {0, stat.S_IFREG}:
         return f"non-regular archive entry rejected: {info.filename!r} mode={mode:o}"
     return None
+
+
+def _metadata_failures(canonical: str) -> list[str]:
+    path = PurePosixPath(canonical.rstrip("/"))
+    message = f"Git metadata archive path rejected: {canonical!r}"
+    return [message] if git_metadata_path(path) else []
+
+
+def _alias_failures(canonical: str, exact: set[str], folded: dict[str, str]) -> list[str]:
+    failures: list[str] = []
+    if canonical in exact:
+        failures.append(f"duplicate archive entry rejected: {canonical!r}")
+    exact.add(canonical)
+    normalized = canonical.rstrip("/")
+    prior = folded.get(normalized.casefold())
+    if prior is not None and prior != normalized:
+        failures.append(f"casefold/alias collision rejected: {prior!r} vs {canonical!r}")
+    else:
+        folded[normalized.casefold()] = normalized
+    return failures
 
 
 def _record_entry(
@@ -77,19 +119,12 @@ def _record_entry(
     if path_failure:
         return [path_failure]
     assert canonical is not None
-    failures: list[str] = []
-    if canonical in exact:
-        failures.append(f"duplicate archive entry rejected: {canonical!r}")
-    exact.add(canonical)
-
+    failures = _metadata_failures(canonical)
+    windows_failure = _windows_name_failure(canonical)
+    if windows_failure:
+        failures.append(windows_failure)
+    failures.extend(_alias_failures(canonical, exact, folded))
     normalized_path = canonical.rstrip("/")
-    alias_key = normalized_path.casefold()
-    prior = folded.get(alias_key)
-    if prior is not None and prior != normalized_path:
-        failures.append(f"casefold/alias collision rejected: {prior!r} vs {canonical!r}")
-    else:
-        folded[alias_key] = normalized_path
-
     type_failure = _type_failure(info)
     if type_failure:
         failures.append(type_failure)

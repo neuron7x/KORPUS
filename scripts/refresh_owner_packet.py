@@ -31,6 +31,10 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 sys.path.insert(0, str(ROOT / "scripts"))
+from current_truth_contract import (  # noqa: E402
+    OWNER_METADATA_PREFIX,
+    owner_metadata_line,
+)
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from owner_packet_measurements import load_block, recovery_block  # noqa: E402
 
@@ -41,6 +45,8 @@ REGISTRY = ROOT / "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json"
 PREDICATES = ROOT / "reports/PRODUCTION_HARD_PREDICATES.json"
 
 DIGEST_LINE = re.compile(r"^\*\*ДАЙДЖЕСТ ДЖЕРЕЛА:\*\* `([0-9a-f]{64})`", re.MULTILINE)
+METADATA_LINE = re.compile(rf"^<!-- {OWNER_METADATA_PREFIX}\b[^\n]*-->$", re.MULTILINE)
+FIRST_HEADING = re.compile(r"^(#[^\n]*\n)", re.MULTILINE)
 LOAD_TABLE = re.compile(r"\| холодний перший \|.*?\n\| сплеск \|[^\n]*\n", re.S)
 RECOVERY_LINE = re.compile(r"^RTO \*\*[^\n]*\n", re.MULTILINE)
 #: Заголовок ВХОДИТЬ у проліт навмисно. Доти блок починався з `software_ready`, тож
@@ -94,11 +100,27 @@ def _constant(value: str) -> Callable[[re.Match[str]], str]:
     return _replace
 
 
+def bind_metadata(text: str, metadata_line: str) -> str:
+    """Оновити єдиний машинний конверт; проза не є прив'язкою."""
+    matches = list(METADATA_LINE.finditer(text))
+    if len(matches) > 1:
+        raise SystemExit("у пакеті більше одного machine-readable metadata конверта")
+    if matches:
+        return METADATA_LINE.sub(_constant(metadata_line), text, count=1)
+    if OWNER_METADATA_PREFIX in text:
+        raise SystemExit("пошкоджений machine-readable metadata конверт пакета")
+    heading = FIRST_HEADING.search(text)
+    if heading is None:
+        raise SystemExit("якоря немає в пакеті: заголовок")
+    return f"{text[: heading.end()]}\n{metadata_line}\n{text[heading.end() :]}"
+
+
 def render(text: str) -> str:
     digest = compute_source_digest(ROOT)
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
     predicates = json.loads(PREDICATES.read_text(encoding="utf-8"))
     release = str(registry.get("release", ""))
+    text = bind_metadata(text, owner_metadata_line(release, digest))
     for pattern, replacement, label in (
         (DIGEST_LINE, f"**ДАЙДЖЕСТ ДЖЕРЕЛА:** `{digest}`", "прив'язка"),
         (LOAD_TABLE, load_block(LOAD, digest, release), "таблиця навантаження"),

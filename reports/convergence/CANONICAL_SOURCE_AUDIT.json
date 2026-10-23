@@ -1,0 +1,454 @@
+{
+  "schema": "korpus.canonical-source-audit.v1",
+  "generated_at": "2026-10-19T01:47:44Z",
+  "authority": "EVIDENCE_ONLY_NON_AUTHORITATIVE",
+  "candidate": {
+    "root_label": "canonical-convergence-20261019",
+    "branch": "integration/canonical-convergence-20261019-v2",
+    "head_sha": "15cc63f9230e8a619fccc3c93d4d8d39ca36f296",
+    "head_tree_sha": "9b29805a9dde54c6fc58de4f64fef2214ed545cd",
+    "remote_authorities": {
+      "github": {
+        "url": "git@github.com:neuron7x/KORPUS.git",
+        "canonical_ref": "refs/heads/main",
+        "canonical_sha": "9b3fecfabac11c9b4bb1929b54a390000ec389d7"
+      },
+      "gitlab": {
+        "url": "git@gitlab.com:neuron7x/korpus-platform.git",
+        "canonical_ref": "refs/heads/main",
+        "canonical_sha": "9b3fecfabac11c9b4bb1929b54a390000ec389d7"
+      }
+    }
+  },
+  "scope": {
+    "local_scan": {
+      "roots_seen": 40,
+      "readable_roots": 37,
+      "broken_gitfiles": 3,
+      "unique_object_stores": 32,
+      "excluded_lineages": [
+        {
+          "label": "PBT_CRM",
+          "reason": "foreign repository lineage in a mixed Claude cache; origin and commit graph do not identify KORPUS"
+        }
+      ]
+    },
+    "object_graph": {
+      "reachable_unique_commits": 1638,
+      "reachable_unique_tips": 182,
+      "unreachable_unique_commits": 552,
+      "unreachable_unique_tips": 124
+    },
+    "reachable_tip_classification": {
+      "candidate_ancestor": 93,
+      "signed_archive": 77,
+      "equivalent_synthetic_or_superseded": 12,
+      "total": 182
+    }
+  },
+  "remote_ref_inventory": {
+    "github": {
+      "raw_ref_records": 310,
+      "base_refs": 182,
+      "unique_advertised_objects": 256,
+      "missing_objects": 0,
+      "raw_capture_sha256": "16f6db20a5d959d65584fc2c7c4fd1063233d71882bd9cf3937dccc2bccdc3d2",
+      "sorted_capture_sha256": "e118c6de0391abf7b63a2d2a51e818a8db91c7c6ae72eaa6dd482626353d7e71",
+      "classification": {
+        "heads": {
+          "total": 15,
+          "candidate_ancestor": 12,
+          "nonancestor": 3
+        },
+        "pull_request_heads": {
+          "total": 27,
+          "candidate_ancestor": 5,
+          "nonancestor": 22
+        },
+        "pull_request_merges": {
+          "total": 5,
+          "candidate_ancestor": 0,
+          "nonancestor": 5
+        },
+        "tags": {
+          "total": 135,
+          "candidate_ancestor": 62,
+          "nonancestor": 73
+        }
+      },
+      "heads": [
+        {
+          "ref": "refs/heads/closure/all-eight",
+          "sha": "0b141ea9aeb7f234b9f4eb034b0fffabba8ad446",
+          "disposition": "CANDIDATE_ANCESTOR"
+        },
+        {
+          "ref": "refs/heads/closure/mutation-probe-rc",
+          "sha": "311d1039eb58a515f62f1336ba6fd0659c3cf08e",
+          "disposition": "CANDIDATE_ANCESTOR"
+        },
+        {
+          "ref": "refs/heads/closure/falsifiability-wider",
+          "sha": "44d34f24a7c182e170879e3d027ceb0bb84475f7",
+          "disposition": "CANDIDATE_ANCESTOR"
+        },
+        {
+          "ref": "refs/heads/integration/capability-gateway-v1",
+          "sha": "45d303cab96a6ee0650b37f4cf7156a0ffef308c",
+          "disposition": "CANDIDATE_ANCESTOR"
+        },
+        {
+          "ref": "refs/heads/codex/issue-46-architecture",
+          "sha": "4cfd7a26945617fbe2c14fcadcf335e3d6def48e",
+          "disposition": "CANDIDATE_ANCESTOR"
+        },
+        {
+          "ref": "refs/heads/codex/finalize-canonical-20261018",
+          "sha": "54db6bdbf2091a3bf7a66cf1124aa0c1a364931e",
+          "disposition": "CANDIDATE_ANCESTOR"
+        },
+        {
+          "ref": "refs/heads/dependabot/github_actions/github-actions-c673fd7efc",
+          "sha": "737bc863e4511aa747e84a1c5bfb59c5bfe5d4d1",
+          "disposition": "CANDIDATE_ANCESTOR"
+        },
+        {
+          "ref": "refs/heads/codex/issue-6-release-evidence",
+          "sha": "7469e4a080e4a4b0a98825d91c3d695594317e16",
+          "disposition": "SIGNED_ARCHIVE"
+        },
+        {
+          "ref": "refs/heads/closure/all-nine",
+          "sha": "86071ba79bdb785c14cbdfca748fdde81afade9e",
+          "disposition": "CANDIDATE_ANCESTOR"
+        },
+        {
+          "ref": "refs/heads/main",
+          "sha": "9b3fecfabac11c9b4bb1929b54a390000ec389d7",
+          "disposition": "CANDIDATE_ANCESTOR"
+        },
+        {
+          "ref": "refs/heads/integration/pr44-on-main",
+          "sha": "bd055dc6f673a6e5161229e65be977a029454794",
+          "disposition": "CANDIDATE_ANCESTOR"
+        },
+        {
+          "ref": "refs/heads/codex/pilot-readiness-20261003",
+          "sha": "cb35708669119c9eca7aa92c7a55ca0eac946995",
+          "disposition": "CANDIDATE_ANCESTOR"
+        },
+        {
+          "ref": "refs/heads/agent/ci-local-ref-isolation-20261018",
+          "sha": "df008029c6d630bdbe825cacd214715a95337772",
+          "disposition": "SIGNED_ARCHIVE"
+        },
+        {
+          "ref": "refs/heads/closure/selftests-that-cannot-fail",
+          "sha": "ed81a28e307897a1931e134b5fb12a87f9c12931",
+          "disposition": "CANDIDATE_ANCESTOR"
+        },
+        {
+          "ref": "refs/heads/proposal/korpus-capability-gateway-v1-20260904",
+          "sha": "f90a409bb8e2ab13aa90a15ed979885e2f43b413",
+          "disposition": "SIGNED_ARCHIVE"
+        }
+      ]
+    },
+    "gitlab": {
+      "raw_ref_records": 206,
+      "base_refs": 120,
+      "unique_advertised_objects": 184,
+      "missing_objects": 0,
+      "raw_capture_sha256": "0e2988586b6c9eb7350e0cd52a1393d121179e8ec226b651982c62242db118ca",
+      "sorted_capture_sha256": "512f9f2b8acea4773b0f37ad13bfc2476d5c2b15dbcc5a7337a782452c12af9a",
+      "classification": {
+        "heads": {
+          "total": 3,
+          "candidate_ancestor": 3,
+          "nonancestor": 0
+        },
+        "merge_request_heads": {
+          "total": 13,
+          "candidate_ancestor": 12,
+          "nonancestor": 1
+        },
+        "merge_request_merges": {
+          "total": 13,
+          "candidate_ancestor": 0,
+          "nonancestor": 13
+        },
+        "tags": {
+          "total": 91,
+          "candidate_ancestor": 52,
+          "nonancestor": 39
+        }
+      },
+      "heads": [
+        {
+          "ref": "refs/heads/codex/issue-46-architecture",
+          "sha": "4cfd7a26945617fbe2c14fcadcf335e3d6def48e",
+          "disposition": "CANDIDATE_ANCESTOR"
+        },
+        {
+          "ref": "refs/heads/codex/finalize-canonical-20261018",
+          "sha": "54db6bdbf2091a3bf7a66cf1124aa0c1a364931e",
+          "disposition": "CANDIDATE_ANCESTOR"
+        },
+        {
+          "ref": "refs/heads/main",
+          "sha": "9b3fecfabac11c9b4bb1929b54a390000ec389d7",
+          "disposition": "CANDIDATE_ANCESTOR"
+        }
+      ],
+      "sole_nonancestor_merge_request_head": {
+        "ref": "refs/merge-requests/10/head",
+        "sha": "c4864da240f86b6438368e3212cbc31cd833b70b",
+        "disposition": "SIGNED_ARCHIVE"
+      }
+    }
+  },
+  "archive_tags": [
+    {
+      "remote": "github",
+      "tag": "archive/convergence-2026-10-19/github-pr49-head",
+      "tag_object": "b24a6ef3825828c0954596998e5043487db0732c",
+      "target": "df008029c6d630bdbe825cacd214715a95337772",
+      "verify_exit_code": 0,
+      "signer": "neuron7x@gmail.com",
+      "fingerprint": "SHA256:w7ynAVmM58JG9ksD/CaRjP+6k4AMb0pF2MW362VyhEc"
+    },
+    {
+      "remote": "github",
+      "tag": "archive/convergence-2026-10-19/github-issue-6-release-evidence",
+      "tag_object": "bf33f108f0073c86ef6ab57914232db190608fe6",
+      "target": "7469e4a080e4a4b0a98825d91c3d695594317e16",
+      "verify_exit_code": 0,
+      "signer": "neuron7x@gmail.com",
+      "fingerprint": "SHA256:w7ynAVmM58JG9ksD/CaRjP+6k4AMb0pF2MW362VyhEc"
+    },
+    {
+      "remote": "github",
+      "tag": "archive/convergence-2026-10-19/github-pr44-proposal-head",
+      "tag_object": "33672531640d91b9c11ac2fba2fb0c3d6c5c30bd",
+      "target": "f90a409bb8e2ab13aa90a15ed979885e2f43b413",
+      "verify_exit_code": 0,
+      "signer": "neuron7x@gmail.com",
+      "fingerprint": "SHA256:w7ynAVmM58JG9ksD/CaRjP+6k4AMb0pF2MW362VyhEc"
+    },
+    {
+      "remote": "gitlab",
+      "tag": "archive/2026-10-18/superseded-issue-6-release-evidence",
+      "tag_object": "727d99de0013165d4fec175ee68c607f64f09d70",
+      "target": "c4864da240f86b6438368e3212cbc31cd833b70b",
+      "verify_exit_code": 0,
+      "signer": "neuron7x@gmail.com",
+      "fingerprint": "SHA256:w7ynAVmM58JG9ksD/CaRjP+6k4AMb0pF2MW362VyhEc"
+    }
+  ],
+  "remote_exception_checks": [
+    {
+      "ref": "refs/pull/32/head",
+      "sha": "ec4d2a20096f3ae1c63670c3d80bdb6e439d09cc",
+      "classification": "SEMANTICALLY_INTEGRATED_DEPENDENCY_BUMP",
+      "patch_id": "9e98fa267ba75541e7f437f16bd6b51a217de6c0",
+      "integrating_commit": "a6b24ba585b53334820e2cc576e64435a6c2bb81",
+      "evidence": "actions/attest is pinned to 1e69f48acb82d1966a394da916b4c1698aa569d6 (v4.2.2) in the PR, integrating commit, and candidate HEAD"
+    }
+  ],
+  "missing_from_candidate": [
+    {
+      "sha": "0d364b190db1ce3b0db8103d89b72f90b52f6472",
+      "tip": false,
+      "classification": "GIT_STASH_INDEX_HELPER",
+      "reason": "stash index helper for integration/canon-v6; not a product capability"
+    },
+    {
+      "sha": "1123ff5a648b8609a3d8a3225e8d34ec90ff4892",
+      "tip": false,
+      "classification": "ADVERSARIAL_SECRET_SCAN_PROBE",
+      "reason": "adds secret_probe.py and a probe baseline solely to exercise secret scanning"
+    },
+    {
+      "sha": "337d2da4b72c165123aca5f83814a33d3eda9e74",
+      "tip": true,
+      "classification": "SUPERSEDED_DEVELOPMENT_CONTROLS",
+      "reason": "candidate contains the same five control paths with equal or later content"
+    },
+    {
+      "sha": "347f424720dcbae71cd3e0c2942671dc0d88ace8",
+      "tip": true,
+      "classification": "NEGATIVE_CONTROL",
+      "reason": "deliberately poisons engineering_readiness_percent with 999.9"
+    },
+    {
+      "sha": "3aed4ed31c6b6f139ce1e0bf4db90e44ffddc38c",
+      "tip": true,
+      "classification": "SUPERSEDED_DEPENDENCY_SECURITY_UPDATE",
+      "reason": "candidate lock is later: cryptography 50.0.0 and urllib3 2.8.0 supersede the older update"
+    },
+    {
+      "sha": "48764dca2a1d6bc235cf12cca4e75fd05001d632",
+      "tip": true,
+      "classification": "GIT_STASH_WIP_HELPER",
+      "reason": "two-parent stash WIP helper with conflict-stage state; not a product branch"
+    },
+    {
+      "sha": "535b8a838b70e58c3e369ab9de5615342595a4d2",
+      "tip": true,
+      "classification": "READINESS_PROBE",
+      "reason": "adds only reports/ENGINEERING_READINESS_94_7_PROBE.json"
+    },
+    {
+      "sha": "7a7e6af6992dbc598277c9e79a80375fb0aa3a66",
+      "tip": true,
+      "classification": "REPORTS_ONLY_EVIDENCE",
+      "reason": "adds only reports/ENGINEERING_READINESS_94_7_CURRENT.json"
+    },
+    {
+      "sha": "9ca34a0a31886ca94ea510537a4691b2ff57d18a",
+      "tip": false,
+      "classification": "SUPERSEDED_SECURITY_CI",
+      "reason": "candidate carries later pinned gitleaks, Trivy, pip-audit, and aggregate security controls"
+    },
+    {
+      "sha": "a62534078a87ba85228227f0be1b4e5708b9de27",
+      "tip": true,
+      "classification": "READINESS_PROBE",
+      "reason": "adds only reports/PROBE_READINESS.json"
+    },
+    {
+      "sha": "bd2b0bc3f802cdb1078d34645321f6b06c3ef628",
+      "tip": true,
+      "classification": "NEGATIVE_CONTROL",
+      "reason": "deliberate single source-byte mutation of engineering_readiness.py"
+    }
+  ],
+  "missing_from_candidate_count": 11,
+  "stronger_missing": 0,
+  "stronger_missing_scope": "reachable and unreachable commit objects plus all advertised remote refs",
+  "working_tree_head_gap": {
+    "status": "FAIL",
+    "tracked_modified_files": 46,
+    "untracked_critical_files": 29,
+    "pre_report_status_sha256": "0e0d99eac685555fd74de7b0d3697ec01db9c5713442f142ae73e817c3404763",
+    "reason": "the candidate working tree contains release-claim and trust-root capability absent from candidate HEAD",
+    "untracked_critical_paths": [
+      "apps/api/src/korpus/application/release_claim_admission.py",
+      "apps/api/src/korpus/application/release_claim_backend.py",
+      "apps/api/src/korpus/application/release_claim_backend_receipts.py",
+      "apps/api/src/korpus/application/release_claim_binding.py",
+      "apps/api/src/korpus/application/release_claim_blocker.py",
+      "apps/api/src/korpus/application/release_claim_common.py",
+      "apps/api/src/korpus/application/release_claim_contracts.py",
+      "apps/api/src/korpus/application/release_claim_hosted.py",
+      "apps/api/src/korpus/application/release_claim_hosted_contract.py",
+      "apps/api/src/korpus/application/release_claim_inference.py",
+      "apps/api/src/korpus/application/release_claim_mutation.py",
+      "apps/api/src/korpus/application/release_claim_sigstore.py",
+      "apps/api/src/korpus/application/release_claim_tree.py",
+      "apps/api/src/korpus/application/release_claim_web.py",
+      "apps/api/tests/test_release_claim_evidence_contracts.py",
+      "apps/api/tests/test_release_claim_hosted_pipeline.py",
+      "config/assurance/github-attestation-trusted-root.jsonl",
+      "config/assurance/sigstore-verifier.json",
+      "config/operations/trusted-git-signers",
+      "scripts/branch_integration_contract.py",
+      "scripts/branch_integration_declaration.py",
+      "scripts/branch_integration_observation.py",
+      "scripts/build_release_claim_evidence.py",
+      "scripts/clean_room_contract.py",
+      "scripts/clean_room_publication.py",
+      "scripts/current_truth_claims.py",
+      "scripts/import_release_claim_evidence.py",
+      "scripts/release_claim_import_contract.py",
+      "scripts/source_manifest_contract.py"
+    ]
+  },
+  "gate_observations": {
+    "branch_integration": {
+      "status": "PASS",
+      "findings": 7,
+      "exit_code": 0
+    },
+    "source_manifest": {
+      "status": "FAIL",
+      "files": 2115,
+      "source_digest_mismatches": 21,
+      "root_sha256": "227b5d60126bd31dbf9f70c9fa11dc09ea876ec08453db40d297b228c25a9880",
+      "source_tree_sha256": "f0f7184263416eea957036556be4037581405124c032ab1995657d31d11af500",
+      "exit_code": 1
+    },
+    "targeted_false_pass_tests": {
+      "status": "PASS",
+      "exit_code": 0,
+      "skipped": 1,
+      "targets": [
+        "apps/api/tests/test_release_claim_evidence_contracts.py",
+        "apps/api/tests/test_release_claim_hosted_pipeline.py",
+        "apps/api/tests/test_branch_integration.py",
+        "apps/api/tests/test_clean_room_admission.py"
+      ]
+    },
+    "hosted_sigstore_consumer": {
+      "executable_false_pass_found": false,
+      "verifier_path": "/usr/bin/gh",
+      "verifier_sha256": "553949e2efa12842771efe6012aa4de21f1d591530ec17fc435f610f10e017ee",
+      "trusted_root_sha256": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c",
+      "candidate_head_contains_consumer_and_trust_root": false
+    }
+  },
+  "method": {
+    "local": "enumerate KORPUS-lineage git roots and worktrees; deduplicate common object directories; enumerate ref tips; run full no-reflog fsck per object store; deduplicate commit IDs; compare each commit and tip to candidate HEAD; inspect each nonancestor tree and subject",
+    "remote": "query publication URLs directly with git ls-remote for every head, tag, pull-request or merge-request ref; dereference annotated tags; verify each object exists locally; classify each commit against candidate HEAD",
+    "capability": "compare path sets, blobs, dependency pins, workflow action pins, and negative-control intent; a differing commit identity alone is not treated as a missing capability",
+    "archive_trust": "verify annotated archive tags with repository-scoped SSH allowed_signers and require the exact signer identity and fingerprint"
+  },
+  "commands": [
+    {
+      "command": "git rev-parse HEAD && git rev-parse HEAD^{tree}",
+      "exit_code": 0
+    },
+    {
+      "command": "git ls-remote git@github.com:neuron7x/KORPUS.git 'refs/heads/*' 'refs/tags/*' 'refs/pull/*'",
+      "exit_code": 0
+    },
+    {
+      "command": "git ls-remote git@gitlab.com:neuron7x/korpus-platform.git 'refs/heads/*' 'refs/tags/*' 'refs/merge-requests/*'",
+      "exit_code": 0
+    },
+    {
+      "command": "LC_ALL=C.UTF-8 git fsck --unreachable --no-reflogs --no-progress --full",
+      "exit_code": 0,
+      "scope": "each of 32 deduplicated KORPUS object stores"
+    },
+    {
+      "command": "git merge-base --is-ancestor <tip> 15cc63f9230e8a619fccc3c93d4d8d39ca36f296",
+      "exit_code": 0,
+      "scope": "93 candidate-ancestor reachable tips"
+    },
+    {
+      "command": "git -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=config/operations/trusted-git-signers verify-tag --raw <archive-tag>",
+      "exit_code": 0,
+      "scope": "four archive tags"
+    },
+    {
+      "command": "PYTHONPATH=apps/api/src:.:scripts apps/api/.venv/bin/python scripts/verify_branch_integration.py --root . --registry config/operations/branch-integration.json --out <branch-audit>",
+      "exit_code": 0
+    },
+    {
+      "command": "PYTHONPATH=apps/api/src:.:scripts apps/api/.venv/bin/python scripts/verify_source_manifest.py --root . --out <manifest-audit>",
+      "exit_code": 1
+    },
+    {
+      "command": "PYTHONPATH=apps/api/src:.:scripts apps/api/.venv/bin/python -m pytest -q apps/api/tests/test_release_claim_evidence_contracts.py apps/api/tests/test_release_claim_hosted_pipeline.py apps/api/tests/test_branch_integration.py apps/api/tests/test_clean_room_admission.py --disable-warnings --maxfail=1",
+      "exit_code": 0
+    },
+    {
+      "command": "git ls-files --error-unmatch apps/api/src/korpus/application/release_claim_sigstore.py config/assurance/github-attestation-trusted-root.jsonl config/assurance/sigstore-verifier.json",
+      "exit_code": 1
+    }
+  ],
+  "source_convergence_verdict": "PASS",
+  "candidate_head_verdict": "FAIL",
+  "verdict": "FAIL"
+}

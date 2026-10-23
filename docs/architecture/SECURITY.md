@@ -21,7 +21,7 @@
 - Source bytes are content-addressed by SHA-256.
 - Document states follow an explicit transition graph.
 - Audit events use canonical serialization and HMAC-SHA256 chaining.
-- GitLab uses protected branches, CODEOWNERS, independent verification, secret scan, SBOM and dependency audit.
+- GitHub `main` is the delivery authority: protected pull-request merges, CODEOWNERS review intent, signed commits, CodeQL, secret scanning, SBOM and dependency audit. GitLab is read-only provenance.
 
 ## Known limitations
 

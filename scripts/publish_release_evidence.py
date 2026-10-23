@@ -31,7 +31,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 
 from korpus.application.provenance import compute_source_digest  # noqa: E402
-from korpus.application.release_claims import binding  # noqa: E402
+from korpus.application.release_claims import binding, binding_scope  # noqa: E402
 from korpus.application.release_coverage_projection import project_coverage  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 from source_digest import source_tree_digest  # noqa: E402
@@ -54,6 +54,21 @@ SOURCES = {
 def coverage_projection(digest: str, release: str) -> dict[str, Any] | None:
     """Project only exact GitHub-admitted union bytes; never re-label raw totals."""
     return project_coverage(ROOT, digest, release, source_tree_digest("HEAD"))
+
+
+def refusal_reason(report: dict[str, Any], expected: tuple[str, bool]) -> str | None:
+    digest, allow_unbound = expected
+    bound, divergent = binding(report)
+    if divergent:
+        return "дві прив'язки в артефакті розійшлись"
+    scope, scope_divergent = binding_scope(report)
+    if scope_divergent:
+        return "дві назви digest scope розійшлись"
+    if not allow_unbound and scope != "evidence_paths":
+        return "artefact does not name evidence_paths"
+    if not allow_unbound and bound != digest:
+        return f"artefact is bound to {str(bound)[:12]}, tree is {digest[:12]}"
+    return None
 
 
 def main() -> int:
@@ -84,17 +99,9 @@ def main() -> int:
             refused.append({"report": name, "reason": f"no artefact at {relative}"})
             continue
         report = json.loads(source.read_text(encoding="utf-8"))
-        bound, divergent = binding(report)
-        if divergent:
-            refused.append({"report": name, "reason": "дві прив'язки в артефакті розійшлись"})
-            continue
-        if bound != digest and not args.allow_unbound:
-            refused.append(
-                {
-                    "report": name,
-                    "reason": f"artefact is bound to {str(bound)[:12]}, tree is {digest[:12]}",
-                }
-            )
+        reason = refusal_reason(report, (digest, args.allow_unbound))
+        if reason:
+            refused.append({"report": name, "reason": reason})
             continue
         shutil.copyfile(source, destination / name)
         published.append(name)

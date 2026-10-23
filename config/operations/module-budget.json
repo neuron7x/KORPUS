@@ -1,6 +1,45 @@
 {
   "lowered": [
     {
+      "changes": [],
+      "new_modules": [
+        "scripts/build_release_claim_evidence.py",
+        "scripts/import_release_claim_evidence.py",
+        "scripts/release_claim_import_contract.py"
+      ],
+      "on": "2026-10-19",
+      "reason": "Hosted release-claim lane розділено на producer, GitHub transport CLI та чистий import contract; для кожного зафіксовано точний перший вимір без підняття стандартних стель."
+    },
+    {
+      "changes": [
+        {
+          "from": {
+            "lines": 299,
+            "max_complexity": 11,
+            "max_function_args": 3,
+            "max_function_lines": 64,
+            "max_nesting": 2,
+            "proof_lines": 58
+          },
+          "path": "scripts/verify_branch_integration.py",
+          "to": {
+            "lines": 203,
+            "max_complexity": 7,
+            "max_function_args": 2,
+            "max_function_lines": 45,
+            "max_nesting": 1,
+            "proof_lines": 10
+          }
+        }
+      ],
+      "new_modules": [
+        "scripts/branch_integration_contract.py",
+        "scripts/branch_integration_observation.py"
+      ],
+      "on": "2026-10-19",
+      "reason": "Живі remote heads, точний schema/disposition contract і published signed-tag proof розділено на I/O, чисте судження та CLI; стелі оркестратора опущено до виміряної форми."
+    },
+    {
       "changes": [
         {
           "from": {
@@ -2232,11 +2271,155 @@
       "proof_lines": 0,
       "reason": "Exact initial ceiling for immutable GitHub run identity, byte receipts, and importer admission bindings."
     },
-    "apps/api/src/korpus/application/release_claims.py": {
-      "lines": 140,
-      "max_complexity": 12,
+    "apps/api/src/korpus/application/release_claim_admission.py": {
+      "lines": 242,
+      "max_complexity": 10,
+      "max_function_args": 2,
+      "max_function_lines": 27,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #54, measured 2026-10-19: admission requires the exact canonical GitHub origin plus a HEAD SSH signature verified against the verifier-pinned trust anchor; package markers in either the filesystem or signed HEAD, untracked paths, dirty index content, embedded unsigned Git and NTFS/HFS Git aliases all fail closed."
+    },
+    "apps/api/src/korpus/application/release_claim_backend.py": {
+      "lines": 44,
+      "max_complexity": 4,
+      "max_function_args": 2,
+      "max_function_lines": 31,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Backend report projection and hosted-execution dispatch after receipt parsing was isolated."
+    },
+    "apps/api/src/korpus/application/release_claim_backend_receipts.py": {
+      "lines": 196,
+      "max_complexity": 11,
       "max_function_args": 4,
-      "max_function_lines": 61,
+      "max_function_lines": 32,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for collection, shard identity, bucket, JUnit, and merge receipt admission."
+    },
+    "apps/api/src/korpus/application/release_claim_binding.py": {
+      "lines": 27,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 8,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for conflict-aware source digest and digest-scope declarations."
+    },
+    "apps/api/src/korpus/application/release_claim_blocker.py": {
+      "lines": 89,
+      "max_complexity": 9,
+      "max_function_args": 2,
+      "max_function_lines": 28,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for hard-predicate replay and fail-closed production blocker projection."
+    },
+    "apps/api/src/korpus/application/release_claim_common.py": {
+      "lines": 53,
+      "max_complexity": 3,
+      "max_function_args": 2,
+      "max_function_lines": 9,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Evidence context and typed JSON/hash primitives after path admission was isolated."
+    },
+    "apps/api/src/korpus/application/release_claim_contracts.py": {
+      "lines": 74,
+      "max_complexity": 5,
+      "max_function_args": 2,
+      "max_function_lines": 22,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for canonical claim paths and source-manifest/blocker recomputation dispatch."
+    },
+    "apps/api/src/korpus/application/release_claim_git_tree.py": {
+      "lines": 97,
+      "max_complexity": 13,
+      "max_function_args": 2,
+      "max_function_lines": 25,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #54 PR-B exact initial measurement: signed-HEAD blobs and executable modes are read without trusting mutable working-tree bytes."
+    },
+    "apps/api/src/korpus/application/release_claim_hosted.py": {
+      "lines": 171,
+      "max_complexity": 9,
+      "max_function_args": 5,
+      "max_function_lines": 43,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Hosted payload construction after the local Sigstore verifier TCB was isolated."
+    },
+    "apps/api/src/korpus/application/release_claim_hosted_contract.py": {
+      "lines": 114,
+      "max_complexity": 7,
+      "max_function_args": 3,
+      "max_function_lines": 38,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for canonical hosted artifact, receipt, admission, and Sigstore consumer binding."
+    },
+    "apps/api/src/korpus/application/release_claim_inference.py": {
+      "lines": 124,
+      "max_complexity": 13,
+      "max_function_args": 3,
+      "max_function_lines": 31,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for inference profile, JUnit, producer inputs, and hosted execution admission."
+    },
+    "apps/api/src/korpus/application/release_claim_mutation.py": {
+      "lines": 156,
+      "max_complexity": 13,
+      "max_function_args": 3,
+      "max_function_lines": 44,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for AST catalogue identity, mutation result, alias, and hosted execution admission."
+    },
+    "apps/api/src/korpus/application/release_claim_sigstore.py": {
+      "lines": 147,
+      "max_complexity": 13,
+      "max_function_args": 5,
+      "max_function_lines": 45,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for pinned local gh TCB checks and offline GitHub Sigstore verification."
+    },
+    "apps/api/src/korpus/application/release_claim_sigstore_command.py": {
+      "lines": 39,
+      "max_complexity": 1,
+      "max_function_args": 5,
+      "max_function_lines": 34,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Issue #54 PR-B exact initial measurement: deterministic Sigstore verifier command construction is isolated from transport and admission."
+    },
+    "apps/api/src/korpus/application/release_claim_tree.py": {
+      "lines": 91,
+      "max_complexity": 14,
+      "max_function_args": 1,
+      "max_function_lines": 24,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for source-identical tracked-tree digests from Git archives or source manifests."
+    },
+    "apps/api/src/korpus/application/release_claim_web.py": {
+      "lines": 79,
+      "max_complexity": 9,
+      "max_function_args": 2,
+      "max_function_lines": 35,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Exact initial ceiling for web TAP, report, canonical producer inputs, and hosted execution admission."
+    },
+    "apps/api/src/korpus/application/release_claims.py": {
+      "lines": 119,
+      "max_complexity": 7,
+      "max_function_args": 4,
+      "max_function_lines": 21,
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "05.09.2026: поле `source_tree_sha256` носили ДВІ різні поверхні — `evidence_paths` (`compute_source_digest`, двадцять оголошених доказових шляхів) і `tracked_tree` (`scripts/source_digest.py`, усе відстежуване дерево). На одному чистому коміті вони дають різні числа, і докстрінги обох це кажуть: «never compare the two» та «Carry `digest_scope` beside the value and compare scopes before hashes». Припис лежав у коді й не був виконаний: із 200 артефактів із цим полем `digest_scope` ніс РІВНО ОДИН. Читач тепер звіряє ПОВЕРХНЮ перед хешем, а п'ять артефактів, які контракт справді читає, її називають. Історичні релізи не переписано: заморожений доказ не сміє змінюватись заднім числом, і UNKNOWN для них лишається UNKNOWN."
@@ -4298,7 +4481,7 @@
       "reason": "v0.5.0: deterministic risk-weighted coverage ratchet with absolute uncovered-edge ceiling"
     },
     "scripts/current_truth_admission.py": {
-      "lines": 190,
+      "lines": 208,
       "max_complexity": 11,
       "max_function_args": 4,
       "max_function_lines": 33,
@@ -4316,7 +4499,7 @@
       "reason": "v0.9.4 assurance-kernel hardening; initial exact measurement is the ratchet ceiling"
     },
     "scripts/current_truth_contract.py": {
-      "lines": 102,
+      "lines": 122,
       "max_complexity": 7,
       "max_function_args": 3,
       "max_function_lines": 32,
@@ -4501,13 +4684,13 @@
       "reason": "нова ціль 03.09.2026 (RELEASE CLOSURE §8): вхід у наявну машину станів релізу. Обчислює тотожність кандидата (коміт, дайджест джерела, дайджест профілю, дайджест замка залежностей, голова міграцій, тотожність корпусу) і відмовляє, поки бодай одна умова не ВИМІРЯНА. 6 негативних контролів; початковий точний вимір і є стелею. Доповнено того ж дня, ремонт META-P0 за незалежною верифікацією: звіт лану прив'язується ДАЙДЖЕСТОМ ДЖЕРЕЛА (коміт доказу дайджесту не зсуває) і мусить ПОКРИВАТИ обов'язковий набір цілей — інакше заморозка прийняла б артефакт `--closure-only` про дві цілі за повний лан із вісімнадцяти. +2 негативні контролі. Доповнено того ж дня: шлях конверта читається ВІДНОСНО кореня, інакше `root / <абсолютний>` ігнорує корінь і негативний контроль читає справжній конверт замість свого — випадок «замикання замість повного лану» був зелений із хибної причини. Гілка «конверт без набору» стала досяжною, +1 контроль. Доповнено того ж дня: покриття зараховує ціль лише коли її крок ПРОЙШОВ (звіт казав той самий факт двічі, і гейт вірив слабшій копії); лан відмовляється починати вимір нижче підлоги вільного місця, бо вердикт про диск приходить переодягненим у вердикт про код."
     },
     "scripts/full_ssot_packager.py": {
-      "lines": 165,
+      "lines": 176,
       "max_complexity": 6,
       "max_function_args": 3,
-      "max_function_lines": 35,
+      "max_function_lines": 24,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "03.09.2026: tracked-tree allowlist + explicit untracked web-dist boundary; ignored host `.coverage` previously entered the archive. +1 рядок: declared OUT сам створює відсутню батьківську теку."
+      "reason": "Issue #54, measured 2026-10-19: acyclic payload→manifest→receipt construction, strict restored-copy gates, Git-metadata exclusion and refusal to archive POSIX special permission bits."
     },
     "scripts/gcp/canary_metrics.py": {
       "lines": 253,
@@ -4976,13 +5159,13 @@
       "reason": "v6.8.1: new bounded helper centralizes POSIX mode/digest integrity without raising existing manifest verifier ceilings | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/manifest_paths.py": {
-      "lines": 90,
-      "max_complexity": 5,
-      "max_function_args": 2,
-      "max_function_lines": 19,
+      "lines": 310,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 22,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "v0.2.0: package-only evidence boundary expanded explicitly; 69-line canonical boundary becomes the new ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
+      "reason": "Issue #54, measured 2026-10-19: closed-schema distribution manifest, acyclic integrity-only receipt, explicit NOT_ADMITTED gitless provenance, exact immutable lineage-pair admission and NTFS/HFS Git-metadata exclusion."
     },
     "scripts/measure_audit_integrity.py": {
       "lines": 295,
@@ -5481,7 +5664,7 @@
       "reason": "2026-10-03, НОВИЙ. Fail-closed межа між source-bound пакетом власника й ефемерними load/recovery вимірами: відсутній, нечитабельний або чужий артефакт рендериться як UNKNOWN, а не успадковується під новим дайджестом."
     },
     "scripts/refresh_owner_packet.py": {
-      "lines": 150,
+      "lines": 172,
       "max_complexity": 6,
       "max_function_args": 2,
       "max_function_lines": 32,
@@ -6329,14 +6512,122 @@
       "proof_lines": 144,
       "reason": "04.09.2026, друга правка: самоперевірка піднялась 5/10 → 9/12 отрут. Додано межу (звіт, знятий у ТУ САМУ секунду, що й HEAD, не старший), випадок «убито менше, ніж мутантів» і три випадки на гейт свіжості. Нечисту дію винесено в `_run_freshness_gate`, а результат приходить ПАРАМЕТРОМ: доти переворот `mutation is None` виживав не тому, що байдужий, а тому, що самоперевірка не могла дійти сюди, не запустивши підпроцес. Три отрути, що лишились, — усі форми `git(...) or fallback`: їх фальсифікує лише справжнє git-дерево, і це роблять `test_branch_integration` та `test_canonical_state`."
     },
-    "scripts/verify_branch_integration.py": {
-      "lines": 299,
-      "max_complexity": 11,
+    "scripts/branch_integration_contract.py": {
+      "lines": 373,
+      "max_complexity": 15,
+      "max_function_args": 4,
+      "max_function_lines": 42,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "19.10.2026: точний schema/head/count/disposition contract і fail-closed provenance verdict винесено з CLI; стелі дорівнюють першому виміру."
+    },
+    "scripts/branch_integration_observation.py": {
+      "lines": 369,
+      "max_complexity": 8,
       "max_function_args": 3,
-      "max_function_lines": 64,
+      "max_function_lines": 27,
       "max_nesting": 2,
-      "proof_lines": 58,
-      "reason": "19.10.2026: інвентар читає активні remote roles із canonical-state, відсіює GitLab archive та імпортовані PR/MR namespaces, а непрочитане оголошення або git-інвентар дає UNKNOWN. Негативні контроли доводять обидві відмови."
+      "proof_lines": 0,
+      "reason": "19.10.2026: live ls-remote heads і published signed-tag object/peeled target відокремлено від чистого судження; стелі дорівнюють першому виміру."
+    },
+    "scripts/build_release_claim_evidence.py": {
+      "lines": 400,
+      "max_complexity": 9,
+      "max_function_args": 5,
+      "max_function_lines": 49,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "19.10.2026: producer звіряє фактичні hosted backend/mutation/inference/web executions із канонічними доказами й формує один exact-byte attestation/receipt; стелі дорівнюють першому виміру."
+    },
+    "scripts/import_release_claim_evidence.py": {
+      "lines": 269,
+      "max_complexity": 10,
+      "max_function_args": 6,
+      "max_function_lines": 56,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "19.10.2026: bounded GitHub API transport і offline Sigstore verifier для exact main/bootstrap run; чистий admission contract винесено окремо, стелі дорівнюють першому виміру."
+    },
+    "scripts/release_claim_import_contract.py": {
+      "lines": 237,
+      "max_complexity": 9,
+      "max_function_args": 6,
+      "max_function_lines": 28,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "19.10.2026: pure fail-closed contract звіряє attestation, canonical artifact hashes, receipt, admission і exact source_ref до запуску криптографічного verifier; стелі дорівнюють першому виміру."
+    },
+    "scripts/branch_integration_declaration.py": {
+      "lines": 57,
+      "max_complexity": 7,
+      "max_function_args": 1,
+      "max_function_lines": 22,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54 PR-B exact initial measurement: canonical candidate and remote declarations are parsed through one fail-closed boundary."
+    },
+    "scripts/clean_room_contract.py": {
+      "lines": 359,
+      "max_complexity": 12,
+      "max_function_args": 5,
+      "max_function_lines": 43,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #54 PR-B exact initial measurement: clean-room source identity, remote publication, evidence bindings, and restored execution are adjudicated together."
+    },
+    "scripts/clean_room_publication.py": {
+      "lines": 84,
+      "max_complexity": 4,
+      "max_function_args": 7,
+      "max_function_lines": 39,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #54 PR-B exact initial measurement: clean-room publication fields are projected without weakening the admission contract."
+    },
+    "scripts/current_truth_claims.py": {
+      "lines": 79,
+      "max_complexity": 13,
+      "max_function_args": 4,
+      "max_function_lines": 30,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54 PR-B exact initial measurement: current-truth claim evidence and canonical aliases are checked outside the transport reader."
+    },
+    "scripts/release_claim_projection.py": {
+      "lines": 68,
+      "max_complexity": 9,
+      "max_function_args": 1,
+      "max_function_lines": 20,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #54 PR-B exact initial measurement: hosted mutation and web results are projected from admitted evidence only."
+    },
+    "scripts/source_manifest_contract.py": {
+      "lines": 64,
+      "max_complexity": 12,
+      "max_function_args": 2,
+      "max_function_lines": 33,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #54 PR-B exact initial measurement: source manifest paths, byte counts, hashes, and aggregate digest share one pure verifier."
+    },
+    "scripts/trusted_system_tools.py": {
+      "lines": 30,
+      "max_complexity": 4,
+      "max_function_args": 1,
+      "max_function_lines": 12,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #54 PR-B exact initial measurement: system tool resolution refuses workspace shadowing and non-regular executables."
+    },
+    "scripts/verify_branch_integration.py": {
+      "lines": 203,
+      "max_complexity": 7,
+      "max_function_args": 2,
+      "max_function_lines": 45,
+      "max_nesting": 1,
+      "proof_lines": 10,
+      "reason": "19.10.2026: bounded CLI поверх окремих observation/contract модулів; selftest 12/12, live remote heads і remote-published signed archive tags fail-closed."
     },
     "scripts/verify_canonical_state.py": {
       "lines": 485,
@@ -6465,13 +6756,13 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/verify_package.py": {
-      "lines": 101,
-      "max_complexity": 6,
-      "max_function_args": 3,
+      "lines": 162,
+      "max_complexity": 9,
+      "max_function_args": 4,
       "max_function_lines": 27,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling | 2026-08-29: +7 рядків — обидва маніфестні верифікатори писали `missing=`/`extra=` у ПРОТИЛЕЖНИХ значеннях; названо за напрямком (in_manifest_not_in_archive / in_archive_not_in_manifest), бо випадок підкладеного файлу — один із них, і читач, який узяв не той, дивиться повз нього. Плюс пропуск порожнього запису: він давав `mode mismatch: None expected=None` по рядку на файл, жоден не називав шляху."
+      "reason": "Issue #54, measured 2026-10-19: strict archive-integrity verification covers exact receipt/manifest binding, all payload bytes/modes, metadata modes and path parity while reporting provenance_admitted=false."
     },
     "scripts/verify_package_build_identity.py": {
       "lines": 76,
@@ -6605,13 +6896,13 @@
       "reason": "v0.9.4 package hardening: pre-extraction ZIP resource admission; exact initial ceiling"
     },
     "scripts/zip_safety.py": {
-      "lines": 153,
-      "max_complexity": 8,
+      "lines": 188,
+      "max_complexity": 7,
       "max_function_args": 5,
-      "max_function_lines": 29,
+      "max_function_lines": 22,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+      "reason": "Issue #54, measured 2026-10-19: pre-extraction safety rejects Git metadata and NTFS/HFS aliases, Windows ADS/device/trailing aliases, and every POSIX special permission bit without masking."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -13013,6 +13304,118 @@
       "path": "scripts/audit_scanner_summary.py",
       "reason": "10.10.2026 `source:package` уперше добіг до пакування і впав на «source digest mismatch»: `audit:closure` дописував у трекований KORPUS_v5_FINDINGS_CLOSURE.json поле `produced_evidence` з комітом сканерів, тож файл розходився з маніфестом джерела в кожному конвеєрі за побудовою. Прив'язка тепер пишеться в var/audit-closure-binding.json; виробник цього файла живе поруч із самою прив'язкою.",
       "to": 130
+    },
+    {
+      "changes": [
+        {
+          "from": {
+            "lines": 165
+          },
+          "path": "scripts/full_ssot_packager.py",
+          "to": {
+            "lines": 176
+          }
+        },
+        {
+          "from": {
+            "lines": 90,
+            "max_complexity": 5,
+            "max_function_args": 2,
+            "max_function_lines": 19
+          },
+          "path": "scripts/manifest_paths.py",
+          "to": {
+            "lines": 310,
+            "max_complexity": 6,
+            "max_function_args": 3,
+            "max_function_lines": 22
+          }
+        },
+        {
+          "from": {
+            "lines": 101,
+            "max_complexity": 6,
+            "max_function_args": 3
+          },
+          "path": "scripts/verify_package.py",
+          "to": {
+            "lines": 162,
+            "max_complexity": 9,
+            "max_function_args": 4
+          }
+        },
+        {
+          "from": {
+            "lines": 153
+          },
+          "path": "scripts/zip_safety.py",
+          "to": {
+            "lines": 188
+          }
+        }
+      ],
+      "on": "2026-10-19",
+      "reason": "Issue #54 PR-B: archive verification binds every payload byte and exact mode to an acyclic receipt/manifest chain, refuses embedded Git metadata and special permission bits, and keeps gitless provenance explicitly non-admitted."
+    },
+    {
+      "changes": [
+        {
+          "from": {
+            "lines": 356
+          },
+          "path": "scripts/branch_integration_contract.py",
+          "to": {
+            "lines": 373
+          }
+        },
+        {
+          "from": {
+            "lines": 268
+          },
+          "path": "scripts/branch_integration_observation.py",
+          "to": {
+            "lines": 369
+          }
+        },
+        {
+          "from": {
+            "lines": 190
+          },
+          "path": "scripts/current_truth_admission.py",
+          "to": {
+            "lines": 208
+          }
+        },
+        {
+          "from": {
+            "lines": 102
+          },
+          "path": "scripts/current_truth_contract.py",
+          "to": {
+            "lines": 122
+          }
+        },
+        {
+          "from": {
+            "lines": 150
+          },
+          "path": "scripts/refresh_owner_packet.py",
+          "to": {
+            "lines": 172
+          }
+        },
+        {
+          "from": {
+            "lines": 199
+          },
+          "path": "scripts/release_claim_import_contract.py",
+          "to": {
+            "lines": 237
+          }
+        }
+      ],
+      "on": "2026-10-19",
+      "reason": "Issue #54 PR-B: canonical convergence adds exact owner metadata, source-scope declarations, remote archive observations, and byte-bound hosted-claim admission. Function-shape growth was decomposed; only module totals move to the measured ceilings."
     }
   ],
   "recorded_at": "2026-10-04",

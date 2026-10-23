@@ -4,7 +4,7 @@ This archive is the canonical engineering-closure/staging handoff for the curren
 
 Intentionally excluded: `.git`, credentials, production secrets, private production corpus payloads, virtual environments, `node_modules`, developer caches, and unattained external attestations. Their absence is never represented as PASS.
 
-`SOURCE_MANIFEST.json` binds the canonical repository/documentation source boundary. `DISTRIBUTION_MANIFEST.json` binds the exact staged distribution bytes. `FULL_SSOT_PACKAGE_RECEIPT.json` records package-role/completeness metadata. Behavioral evidence remains bound separately to the source digest that
+`SOURCE_MANIFEST.json` binds the canonical repository/documentation source boundary. Package outputs are never stored at the source root: the packager creates `DISTRIBUTION_MANIFEST.json` and `FULL_SSOT_PACKAGE_RECEIPT.json` only in the staged distribution. The original v0.9.7 uploaded pair is preserved byte-for-byte under `LINEAGE/v0.9.7-original-uploaded/`. Behavioral evidence remains bound separately to the source digest that
 `compute_source_digest` produces over `EVIDENCE_SOURCE_PATHS` (scope `evidence_paths`).
 
 > **ВИПРАВЛЕНО 02.09.2026.** Тут було вкарбовано значення

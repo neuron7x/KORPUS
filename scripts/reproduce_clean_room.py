@@ -24,7 +24,6 @@ import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parents[1]
 #: ОСНОВА й архів читаються з оголошення, а не вшиваються вдруге. Ролі змінились
@@ -34,6 +33,11 @@ ROOT = Path(__file__).resolve().parents[1]
 FORGES = json.loads((ROOT / "config/operations/forges.json").read_text(encoding="utf-8"))
 TRUNK = FORGES["forges"]["trunk"]["url"]
 ARCHIVE = FORGES["forges"]["archive"]["url"]
+
+from clean_room_contract import isolated_git_environment  # noqa: E402
+from clean_room_publication import git_config, publish  # noqa: E402
+from clean_room_runner import TEST_ARGS, collection_digest, run_battery  # noqa: E402
+from trusted_system_tools import git_executable  # noqa: E402
 
 
 def forge_class(remote: str) -> str:
@@ -58,7 +62,10 @@ def local_remotes_by_role(root: Path) -> dict[str, str]:
     Хто хоче звернутись до основи, не вгадує значення `origin`: інструмент читає URL
     кожного remote і зіставляє його з єдиним оголошенням ролей.
     """
-    listed = _run(["git", "-C", str(root), "remote", "-v"], root)
+    git = git_executable()
+    if git is None:
+        return {}
+    listed = _run([git, "-C", str(root), "remote", "-v"], root)
     found: dict[str, str] = {}
     for line in listed.stdout.splitlines():
         parts = line.split()
@@ -78,11 +85,15 @@ def _run(
 
 def _clone(remote: str, sha: str, tmp: Path) -> Path:
     """Дерево з ВІДДАЛЕНОГО джерела на названому коміті."""
+    git = git_executable()
+    if git is None:
+        raise SystemExit("trusted git executable is required for clean-room reproduction")
     work = tmp / "tree"
-    clone = _run(["git", "clone", "--quiet", remote, str(work)], tmp)
+    env = isolated_git_environment(tmp / "git-home")
+    clone = _run([git, "clone", "--quiet", "--", remote, str(work)], tmp, env=env)
     if clone.returncode:
         raise SystemExit(f"клон із {remote} не вдався: {clone.stderr[-500:]}")
-    checkout = _run(["git", "checkout", "--quiet", sha], work)
+    checkout = _run([git, "checkout", "--quiet", sha], work, env=env)
     if checkout.returncode:
         raise SystemExit(f"коміта {sha} немає на віддаленому: {checkout.stderr[-400:]}")
     return work
@@ -102,50 +113,6 @@ def _fresh_environment(work: Path) -> tuple[Path, str]:
     return python, hashlib.sha256(lock.read_bytes()).hexdigest()
 
 
-def _counts(junit: Path) -> dict[str, int]:
-    """Числа з JUnit XML, а не з тексту.
-
-    Підсумковий рядок pytest у цьому оточенні не друкувався взагалі, і розбір тексту
-    мовчки давав нуль тестів: «нічого не впало» і «нічого не бігало» виглядали однаково.
-    """
-    suite = ElementTree.parse(junit).getroot()
-    suite = suite if suite.tag == "testsuite" else suite[0]
-    total, skipped = int(suite.get("tests", "0")), int(suite.get("skipped", "0"))
-    return {
-        "tests": total - skipped,
-        "failures": int(suite.get("failures", "0")),
-        "errors": int(suite.get("errors", "0")),
-        "skipped": skipped,
-    }
-
-
-def _battery(work: Path, python: Path) -> tuple[int, dict[str, int]]:
-    junit = work / "clean-room-junit.xml"
-    completed = _run(
-        [
-            str(python),
-            "-m",
-            "pytest",
-            "apps/api/tests",
-            "-q",
-            "--no-cov",
-            "-p",
-            "no:cacheprovider",
-            f"--junitxml={junit}",
-        ],
-        work,
-        env={
-            **os.environ,
-            "PATH": f"{python.parent}:/usr/bin:/bin",
-            "HOME": str(work),
-            "PYTHONPATH": str(work / "apps/api/src"),
-        },
-    )
-    if completed.returncode:
-        print(completed.stdout[-4000:], file=sys.stderr)
-    return completed.returncode, _counts(junit)
-
-
 def _digest_of(work: Path, python: Path) -> str:
     """Дайджест рахує інтерпретатор КЛОНА над клоном — інакше це вимір цього дерева."""
     measured = _run(
@@ -161,14 +128,15 @@ def _digest_of(work: Path, python: Path) -> str:
     return measured.stdout.strip()
 
 
-def reproduce(remote: str, sha: str) -> dict[str, Any]:
+def reproduce(remote: str, sha: str) -> tuple[dict[str, Any], bytes]:
     with tempfile.TemporaryDirectory(prefix="korpus-clean-room-") as tmp:
         work = _clone(remote, sha, Path(tmp))
         python, freeze = _fresh_environment(work)
-        exit_code, pytest_block = _battery(work, python)
+        exit_code, pytest_block, junit, nodeids = run_battery(work, python)
         source_digest = _digest_of(work, python)
+    complete = pytest_block["tests"] + pytest_block["skipped"] == len(nodeids)
     return {
-        "schema": "korpus.clean-room-remote.v1",
+        "schema": "korpus.clean-room-remote.v2",
         "class": "REMOTE_SOURCE_FRESH_DEPENDENCIES",
         "distinguishes_from": (
             "verify-clean-clone (клонує з локального ROOT, симлінкує батьківський .venv)"
@@ -178,7 +146,11 @@ def reproduce(remote: str, sha: str) -> dict[str, Any]:
         "dependency_freeze_sha256": freeze,
         "pytest_exit_code": exit_code,
         "pytest": pytest_block,
-        "status": "PASS" if exit_code == 0 and pytest_block["tests"] else "FAIL",
+        "pytest_args": list(TEST_ARGS),
+        "collection_nodeids": nodeids,
+        "collection_count": len(nodeids),
+        "collection_digest": collection_digest(nodeids),
+        "status": "PASS" if exit_code == 0 and complete and pytest_block["tests"] else "FAIL",
         "generated_at": datetime.now(UTC).isoformat(),
         "source_tree_sha256": source_digest,
         "digest_scope": "evidence_paths",
@@ -191,7 +163,7 @@ def reproduce(remote: str, sha: str) -> dict[str, Any]:
             "деревом, цим venv і цією машиною. НЕ є незалежною валідацією (L9): виконавець той "
             "самий, незалежні лише вхід і інтерпретатор."
         ),
-    }
+    }, junit
 
 
 def main() -> int:
@@ -204,24 +176,24 @@ def main() -> int:
     )
     parser.add_argument("--sha", required=True)
     parser.add_argument("--out", default=OUT)
+    parser.add_argument("--signer", default=None)
+    parser.add_argument("--signing-key", default=None)
     args = parser.parse_args()
-    payload = reproduce(args.remote, args.sha)
+    payload, junit = reproduce(args.remote, args.sha)
     payload["remote_class"] = forge_class(args.remote)
+    mirror: tuple[dict[str, Any], bytes] | None = None
     if args.also:
-        # Незалежність ВХОДУ, а не інтерпретатора: два форжі, дві мережеві дороги, один
-        # дайджест. Якщо вони розійшлися — дзеркала несуть різні дерева під одним іменем.
-        mirror = reproduce(args.also, args.sha)
-        payload["mirror"] = {
-            "remote": args.also,
-            "source_tree_sha256": mirror["source_tree_sha256"],
-            "status": mirror["status"],
-            "digests_agree": mirror["source_tree_sha256"] == payload["source_tree_sha256"],
-        }
-        if not payload["mirror"]["digests_agree"]:
-            payload["status"] = "FAIL"
-    path = ROOT / args.out
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        mirror_payload, mirror_junit = reproduce(args.also, args.sha)
+        mirror = (mirror_payload, mirror_junit)
+    publish(
+        ROOT,
+        args.out,
+        payload,
+        junit,
+        args.signer or git_config(ROOT, "user.email"),
+        args.signing_key or git_config(ROOT, "user.signingkey"),
+        mirror,
+    )
     print(json.dumps(payload, ensure_ascii=False, indent=2))
     return 0 if payload["status"] == "PASS" else 1
 

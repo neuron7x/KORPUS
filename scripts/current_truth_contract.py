@@ -1,14 +1,27 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-CURRENT_REPORTS = (
-    "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json",
-    "reports/STANDARDS_CONTROL_MAP_VERIFICATION.json",
-    "reports/EXECUTABLE_EVIDENCE_INDEX_CURRENT.json",
-)
+OWNER_METADATA_SCHEMA = "korpus.owner-packet-metadata.v1"
+OWNER_METADATA_STATUS = "CURRENT"
+OWNER_METADATA_PREFIX = "KORPUS_OWNER_PACKET_METADATA"
+
+
+def owner_metadata_line(release: str, digest: str) -> str:
+    """Канонічний машиночитний конверт пакета."""
+    payload = {
+        "schema": OWNER_METADATA_SCHEMA,
+        "status": OWNER_METADATA_STATUS,
+        "release": release,
+        "source_tree_sha256": digest,
+        "digest_scope": "evidence_paths",
+    }
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return f"<!-- {OWNER_METADATA_PREFIX} {encoded} -->"
+
 
 #: Поверхня, яку міряє `compute_source_digest`. Друга поверхня — `tracked_tree` зі
 #: `scripts/source_digest.py` — інша, і її автор написав це першим абзацом докстрінга:
@@ -37,20 +50,61 @@ def load_object(path: Path) -> dict[str, Any]:
     return value
 
 
+def _passing_report(payload: dict[str, Any]) -> bool:
+    return payload.get("status") == "PASS" and payload.get("failures") == []
+
+
+def _executable_index(payload: dict[str, Any]) -> bool:
+    counts = (
+        payload.get("source_python_modules"),
+        payload.get("test_python_modules"),
+        payload.get("test_functions_static"),
+        payload.get("test_file_prefix_modules"),
+    )
+    return (
+        all(type(value) is int and value >= 0 for value in counts)
+        and payload.get("method") == "AST enumeration over current source/test tree"
+        and "status" not in payload
+    )
+
+
+CURRENT_REPORT_CONTRACTS: dict[str, tuple[str, Callable[[dict[str, Any]], bool]]] = {
+    "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json": (
+        "korpus.dependency-lock-verification.v2",
+        _passing_report,
+    ),
+    "reports/STANDARDS_CONTROL_MAP_VERIFICATION.json": (
+        "korpus.standards-control-map-verification.v2",
+        _passing_report,
+    ),
+    "reports/EXECUTABLE_EVIDENCE_INDEX_CURRENT.json": (
+        "korpus.executable-evidence-index.v2",
+        _executable_index,
+    ),
+}
+CURRENT_REPORTS = tuple(CURRENT_REPORT_CONTRACTS)
+
+
 def report_binding_checks(root: Path, release: str, digest: str) -> dict[str, bool]:
     checks: dict[str, bool] = {}
-    for relative in CURRENT_REPORTS:
+    for relative, (schema, semantic_check) in CURRENT_REPORT_CONTRACTS.items():
         path = root / relative
         checks[f"{relative}.present"] = path.is_file()
         if not path.is_file():
             continue
-        payload = load_object(path)
+        try:
+            payload = load_object(path)
+        except (OSError, json.JSONDecodeError, ValueError):
+            checks[f"{relative}.object_valid"] = False
+            continue
+        checks[f"{relative}.object_valid"] = True
+        checks[f"{relative}.schema_exact"] = payload.get("schema") == schema
+        checks[f"{relative}.contract_valid"] = semantic_check(payload)
         bound_digest = payload.get("source_tree_sha256", payload.get("source_digest"))
         agrees = scope_agrees(payload)
         checks[f"{relative}.scope_named"] = agrees
         checks[f"{relative}.source_bound"] = agrees and bound_digest == digest
-        if "release" in payload:
-            checks[f"{relative}.release_bound"] = payload.get("release") == release
+        checks[f"{relative}.release_bound"] = payload.get("release") == release
     return checks
 
 
@@ -65,38 +119,4 @@ def final_truth_checks(root: Path, release: str, digest: str) -> dict[str, bool]
             checks[f"{name}.scope_named"] = agrees
             checks[f"{name}.source_bound"] = agrees and payload.get("source_tree_sha256") == digest
             checks[f"{name}.release_bound"] = payload.get("release") == release
-    return checks
-
-
-def alias_checks(root: Path, release: str) -> dict[str, bool]:
-    envelope = root / "RELEASE_ENVELOPE.json"
-    root_report = root / "CANONICAL_RELEASE_REPORT.json"
-    report_alias = root / "reports/CANONICAL_RELEASE_REPORT.json"
-    receipt = root / "FULL_SSOT_PACKAGE_RECEIPT.json"
-    checks = {
-        "RELEASE_ENVELOPE.present": envelope.is_file(),
-        "CANONICAL_RELEASE_REPORT.root_present": root_report.is_file(),
-        "CANONICAL_RELEASE_REPORT.alias_present": report_alias.is_file(),
-        "FULL_SSOT_PACKAGE_RECEIPT.present": receipt.is_file(),
-    }
-    if envelope.is_file():
-        checks["RELEASE_ENVELOPE.release_bound"] = load_object(envelope).get("release") == release
-    if root_report.is_file():
-        checks["CANONICAL_RELEASE_REPORT.root_release_bound"] = (
-            load_object(root_report).get("release") == release
-        )
-    if report_alias.is_file():
-        checks["CANONICAL_RELEASE_REPORT.alias_release_bound"] = (
-            load_object(report_alias).get("release") == release
-        )
-    if root_report.is_file() and report_alias.is_file():
-        checks["CANONICAL_RELEASE_REPORT.alias_exact"] = (
-            root_report.read_bytes() == report_alias.read_bytes()
-        )
-    if receipt.is_file():
-        payload = load_object(receipt)
-        checks["FULL_SSOT_PACKAGE_RECEIPT.release_bound"] = payload.get("release") == release
-        checks["FULL_SSOT_PACKAGE_RECEIPT.role"] = (
-            payload.get("package_role") == "FULL_SSOT_CANONICAL"
-        )
     return checks

@@ -6,12 +6,26 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from korpus.application.release_truth import evidence_digest
+from korpus.application.release_truth import blocker_registry, evidence_digest
 
 try:
-    from .current_truth_contract import load_object
+    from .clean_room_contract import clean_room_contract
+    from .current_truth_claims import claim_admission_checks as claim_admission_checks
+    from .current_truth_contract import (
+        OWNER_METADATA_PREFIX,
+        OWNER_METADATA_SCHEMA,
+        OWNER_METADATA_STATUS,
+        load_object,
+    )
 except ImportError:  # direct script execution with scripts/ on sys.path
-    from current_truth_contract import load_object
+    from clean_room_contract import clean_room_contract
+    from current_truth_claims import claim_admission_checks as claim_admission_checks
+    from current_truth_contract import (
+        OWNER_METADATA_PREFIX,
+        OWNER_METADATA_SCHEMA,
+        OWNER_METADATA_STATUS,
+        load_object,
+    )
 
 
 def _current_json(path: Path, release: str, digest: str) -> bool:
@@ -42,43 +56,15 @@ def _current_json(path: Path, release: str, digest: str) -> bool:
     return bound is not None and bound == digest
 
 
-def _evidence_resolves(root: Path, claim: dict[str, object], release: str, digest: str) -> bool:
-    """Чи веде претензія до доказу, який описує САМЕ це дерево."""
-    evidence = claim.get("evidence")
-    if not isinstance(evidence, str) or not evidence:
-        return False
-    target = root / evidence
-    if not target.is_file():
-        return False
-    return target.suffix != ".json" or _current_json(target, release, digest)
-
-
-def claim_admission_checks(root: Path, release: str, digest: str) -> dict[str, bool]:
-    ledger = root / f"reports/release/{release}/final/CLAIM_LEDGER.json"
-    if not ledger.is_file():
-        return {"CLAIM_LEDGER.supported_evidence_resolves": False}
-    # Журнал читається ОДИН раз. Перша редакція викликала `load_object` двічі — і це не
-    # лише подвійна робота: два читання одного файла можуть дати різний вміст, якщо між
-    # ними хтось пише, і тоді два числа описують два різні журнали.
-    entries = [c for c in load_object(ledger).get("claims", ()) if isinstance(c, dict)]
-    claims = [c for c in entries if str(c.get("status", "")).startswith("SUPPORTED")]
-    unresolved = sum(1 for claim in claims if not _evidence_resolves(root, claim, release, digest))
-    # `all([])` істинне: нуль підтриманих претензій задовольняв би обидві перевірки
-    # тривіально. Порожній перелік — це UNKNOWN, а не досконалість.
-    resolved = bool(claims) and unresolved == 0
-    return {
-        "CLAIM_LEDGER.supported_evidence_resolves": resolved,
-        "CLAIM_LEDGER.supported_unresolved_zero": resolved,
-        "CLAIM_LEDGER.has_supported_claims": bool(claims),
-        # Решта онтології означає «не знаємо», не «ні»: вічне PENDING є дефектом.
-        "CLAIM_LEDGER.every_claim_decided_by_evidence": bool(entries)
-        and all(c.get("status") in ("SUPPORTED", "REFUTED_BY_EVIDENCE") for c in entries),
-    }
-
-
 #: Документ, на якому власник ухвалює рішення. Доти єдиний доказ релізу, якого не
 #: звіряло НІЩО, і він двічі розійшовся з деревом мовчки. Повний облік — §16 пакета.
 OWNER_PACKET = "reports/OWNER_PILOT_RELEASE_PACKET.md"
+_OWNER_METADATA_FIELDS = frozenset(
+    {"schema", "status", "release", "source_tree_sha256", "digest_scope"}
+)
+_OWNER_METADATA = re.compile(
+    rf"^<!-- {OWNER_METADATA_PREFIX} (?P<payload>{{[^\n]*}}) -->$", re.MULTILINE
+)
 
 #: Рядок, якого в пакеті бути не сміє: він оголошує КОМІТ, а документ усередині дерева
 #: назвати свій коміт не здатен — власна правка створює новий, і число застаріває тієї
@@ -86,6 +72,26 @@ OWNER_PACKET = "reports/OWNER_PILOT_RELEASE_PACKET.md"
 #: `source_bound` цього не бачить за побудовою: `reports/` поза `EVIDENCE_SOURCE_PATHS`,
 #: тож два коміти несуть один дайджест — критерій слабший за властивість, яку називає.
 _CANDIDATE_CLAIM = re.compile(r"^\*\*КАНДИДАТ:\*\*\s*`?[0-9a-fA-F]{7,40}`?", re.MULTILINE)
+
+
+def _without_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    payload: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in payload:
+            raise ValueError(f"duplicate owner metadata key: {key}")
+        payload[key] = value
+    return payload
+
+
+def _owner_metadata(text: str) -> tuple[dict[str, Any] | None, bool]:
+    matches = list(_OWNER_METADATA.finditer(text))
+    if len(matches) != 1:
+        return None, False
+    try:
+        payload = json.loads(matches[0].group("payload"), object_pairs_hook=_without_duplicate_keys)
+    except (json.JSONDecodeError, ValueError):
+        return None, True
+    return (payload if isinstance(payload, dict) else None), True
 
 
 def owner_packet_checks(root: Path, release: str, digest: str) -> dict[str, bool]:
@@ -99,10 +105,22 @@ def owner_packet_checks(root: Path, release: str, digest: str) -> dict[str, bool
         # Відсутній пакет — «власнику нема на чому вирішувати», не «скарг немає».
         return {f"{OWNER_PACKET}.present": False}
     text = path.read_text(encoding="utf-8", errors="ignore")
+    metadata, unique = _owner_metadata(text)
+    values = metadata or {}
+    exact = metadata is not None and set(values) == _OWNER_METADATA_FIELDS
     return {
         f"{OWNER_PACKET}.present": True,
-        f"{OWNER_PACKET}.release_bound": bool(release) and release in text,
-        f"{OWNER_PACKET}.source_bound": bool(digest) and digest in text,
+        f"{OWNER_PACKET}.metadata_unique": unique,
+        f"{OWNER_PACKET}.metadata_exact": exact,
+        f"{OWNER_PACKET}.schema_exact": exact and values.get("schema") == OWNER_METADATA_SCHEMA,
+        f"{OWNER_PACKET}.status_current": exact and values.get("status") == OWNER_METADATA_STATUS,
+        f"{OWNER_PACKET}.scope_named": exact and values.get("digest_scope") == "evidence_paths",
+        f"{OWNER_PACKET}.release_bound": exact
+        and bool(release)
+        and values.get("release") == release,
+        f"{OWNER_PACKET}.source_bound": exact
+        and bool(digest)
+        and values.get("source_tree_sha256") == digest,
         f"{OWNER_PACKET}.no_unverifiable_candidate": not _CANDIDATE_CLAIM.search(text),
     }
 
@@ -124,28 +142,18 @@ def clean_room_checks(root: Path, digest: str) -> dict[str, bool]:
     path = root / CLEAN_ROOM
     if not path.is_file():
         return {f"{CLEAN_ROOM}.present": False}
-    payload = load_object(path)
-    pytest_block = payload.get("pytest")
-    counted = isinstance(pytest_block, dict) and isinstance(pytest_block.get("tests"), int)
+    checks = clean_room_contract(root, load_object(path), digest)
     return {
         f"{CLEAN_ROOM}.present": True,
-        f"{CLEAN_ROOM}.status_pass": payload.get("status") == "PASS",
-        f"{CLEAN_ROOM}.class_is_remote": payload.get("class") == "REMOTE_SOURCE_FRESH_DEPENDENCIES",
-        f"{CLEAN_ROOM}.source_bound": bool(digest) and payload.get("source_tree_sha256") == digest,
-        # Три перевірки вище стережуть САМООГОЛОШЕНІ скаляри: тризначний JSON
-        # {status, class, source_tree_sha256} без жодного сліду відтворення проходив їх
-        # усі. Довів незалежний верифікатор 06.09.2026 — гейт був живий (усі чотири
-        # негативні контролі червоніли), але стеріг не той предмет.
-        # Нижче — сліди самого ПРОГОНУ: скільки тестів виконано, скільки впало, який
-        # коміт відтворювався і чи названо походження залежностей. Артефакт, що каже
-        # PASS без жодного з них, більше не є доказом репродукції.
-        f"{CLEAN_ROOM}.run_counted": counted and pytest_block["tests"] > 0,
-        f"{CLEAN_ROOM}.run_clean": counted
-        and pytest_block.get("failures") == 0
-        and pytest_block.get("errors") == 0,
-        f"{CLEAN_ROOM}.names_candidate": bool(payload.get("candidate_sha")),
-        f"{CLEAN_ROOM}.names_dependency_origin": bool(payload.get("dependency_freeze_sha256")),
+        **{f"{CLEAN_ROOM}.{key}": value for key, value in checks.items()},
     }
+
+
+def _expected_registry(root: Path, release: str, digest: str) -> dict[str, Any] | None:
+    try:
+        return blocker_registry(root, digest, release)
+    except (OSError, ValueError, KeyError, json.JSONDecodeError):
+        return None
 
 
 def blocker_state_checks(root: Path, release: str, digest: str) -> dict[str, bool]:
@@ -153,6 +161,8 @@ def blocker_state_checks(root: Path, release: str, digest: str) -> dict[str, boo
     if not path.is_file():
         return {"BLOCKER_REGISTRY.current_state_present": False}
     payload = load_object(path)
+    expected = _expected_registry(root, release, digest)
+    exact_fields = set(expected or {}) - {"generated_at"}
     return {
         "BLOCKER_REGISTRY.current_state_present": True,
         "BLOCKER_REGISTRY.hard_predicate_report_current": payload.get(
@@ -170,6 +180,14 @@ def blocker_state_checks(root: Path, release: str, digest: str) -> dict[str, boo
         # зеленою. `reports/` навмисно поза `source_tree_sha256`, тому прив'язка до
         # дерева змісту реєстру не визначає.
         "BLOCKER_REGISTRY.evidence_inputs_current": _evidence_inputs_current(root, payload),
+        "BLOCKER_REGISTRY.recomputed_exact": all(
+            payload.get(field) == expected[field] for field in exact_fields
+        )
+        if expected is not None
+        else False,
+        "BLOCKER_REGISTRY.production_status_coherent": payload.get("status") == expected["status"]
+        if expected is not None
+        else False,
     }
 
 

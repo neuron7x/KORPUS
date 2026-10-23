@@ -78,6 +78,8 @@ PREDICATES = {
 
 PACKET_TEMPLATE = """# Пакет власника
 
+{metadata}
+
 **ДАЙДЖЕСТ ДЖЕРЕЛА:** `{digest}`
 
 | фаза | конкурентність | запити | p50 | p95 | коди |
@@ -95,7 +97,11 @@ RTO **12,000 с** (відновлення 8,000 + перевірка 4,000) · R
 
 `blocks_candidate` **1** · зовнішніх вимог **1 із 2**. Блокують: `live_scanners`.
 """
-IN_SYNC = PACKET_TEMPLATE.format(digest=DIGEST, cold="200 за **1,500 с** (стеля 5,0)")
+IN_SYNC = PACKET_TEMPLATE.format(
+    metadata=REFRESH.owner_metadata_line("v0.9.7", DIGEST),
+    digest=DIGEST,
+    cold="200 за **1,500 с** (стеля 5,0)",
+)
 
 
 @pytest.fixture
@@ -135,6 +141,18 @@ def test_a_packet_that_agrees_with_its_artefacts_passes(
     code, report = _check(tree, IN_SYNC, monkeypatch)
     assert code == 0
     assert report["status"] == "PASS"
+
+
+def test_refresh_inserts_exact_machine_metadata(
+    tree: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    del tree, monkeypatch
+    without_metadata = IN_SYNC.replace(
+        f"{REFRESH.owner_metadata_line('v0.9.7', DIGEST)}\n\n", "", 1
+    )
+    rendered = REFRESH.render(without_metadata)
+    assert rendered.count(REFRESH.OWNER_METADATA_PREFIX) == 1
+    assert REFRESH.owner_metadata_line("v0.9.7", DIGEST) in rendered
 
 
 def test_a_packet_whose_digest_drifted_is_refused(

@@ -160,14 +160,9 @@ def _admission(
     return {str(key): value for key, value in admission.items()}
 
 
-def validate_downloaded(
-    root: Path,
-    identity: Mapping[str, Any],
-    artifact_id: int,
-    files: Mapping[str, bytes],
-    source_ref: str,
-    verifier: Verifier,
-) -> dict[str, Any]:
+def _canonical_commit(
+    identity: Mapping[str, Any], artifact_id: int, files: Mapping[str, bytes], source_ref: str
+) -> str:
     if not canonical_identity(identity) or set(files) != EXPECTED_FILES or artifact_id < 1:
         raise ValueError("run identity or release-claim artifact set is non-canonical")
     commit = identity.get("commit_sha")
@@ -175,18 +170,26 @@ def validate_downloaded(
         raise ValueError("canonical run has no exact commit")
     if not allowed_source_ref(source_ref):
         raise ValueError("canonical run has no allowed source ref")
-    release, source, tracked = (
-        release_tag(root),
-        compute_source_digest(root),
-        tracked_tree_digest(root),
-    )
+    return commit
+
+
+def _source_identity(root: Path) -> tuple[str, str, str]:
+    release = release_tag(root)
+    source = compute_source_digest(root)
+    tracked = tracked_tree_digest(root)
     if tracked is None:
         raise ValueError("canonical tracked source tree cannot be measured")
-    attestation = object_from_bytes(files[ATTESTATION_NAME], ATTESTATION_NAME)
-    receipt = object_from_bytes(files[RECEIPT_NAME], RECEIPT_NAME)
-    if not _identity_bound(attestation, release, source, tracked, source_ref):
-        raise ValueError("release-claim attestation identity is stale or malformed")
-    _claims_bound(root, attestation.get("claims"), _expected_artifacts(root, release))
+    return release, source, tracked
+
+
+def _receipt_bound(
+    receipt: Mapping[str, Any],
+    identity: Mapping[str, Any],
+    attestation: bytes,
+    source_identity: tuple[str, str, str],
+    source_ref: str,
+) -> bool:
+    release, source, tracked = source_identity
     subject = {
         "release-claims": {
             "release": release,
@@ -197,15 +200,33 @@ def validate_downloaded(
             "claims": sorted(CLAIM_EXECUTORS),
         }
     }
-    bound = receipt.get("subjects") == subject and receipt_bound(
+    return receipt.get("subjects") == subject and receipt_bound(
         receipt,
         identity=identity,
         kind="release-claims",
         job="release-claims",
         source_tree_sha256=tracked,
-        artifacts={ATTESTATION_NAME: files[ATTESTATION_NAME]},
+        artifacts={ATTESTATION_NAME: attestation},
     )
-    if not bound:
+
+
+def validate_downloaded(
+    root: Path,
+    identity: Mapping[str, Any],
+    artifact_id: int,
+    files: Mapping[str, bytes],
+    source_ref: str,
+    verifier: Verifier,
+) -> dict[str, Any]:
+    commit = _canonical_commit(identity, artifact_id, files, source_ref)
+    source_identity = _source_identity(root)
+    release, source, tracked = source_identity
+    attestation = object_from_bytes(files[ATTESTATION_NAME], ATTESTATION_NAME)
+    receipt = object_from_bytes(files[RECEIPT_NAME], RECEIPT_NAME)
+    if not _identity_bound(attestation, release, source, tracked, source_ref):
+        raise ValueError("release-claim attestation identity is stale or malformed")
+    _claims_bound(root, attestation.get("claims"), _expected_artifacts(root, release))
+    if not _receipt_bound(receipt, identity, files[ATTESTATION_NAME], source_identity, source_ref):
         raise ValueError("release-claim receipt is not bound to the exact attestation")
     admission = _admission(identity, artifact_id, files)
     with tempfile.TemporaryDirectory(prefix="korpus-release-claim-") as temp:

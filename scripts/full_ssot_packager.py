@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import shutil
 import stat
 import subprocess
 import sys
@@ -15,6 +14,16 @@ from pathlib import Path
 extract_safe_archive = import_module(
     f"{__package__ + chr(46) if __package__ else chr(39) * 0}safe_archive_extract"
 ).extract_safe_archive
+_manifest_paths = import_module(
+    f"{__package__ + chr(46) if __package__ else chr(39) * 0}manifest_paths"
+)
+expected_full_ssot_receipt = _manifest_paths.expected_full_ssot_receipt
+git_metadata_path = _manifest_paths.git_metadata_path
+_regular_files = import_module(
+    f"{__package__ + chr(46) if __package__ else chr(39) * 0}regular_file_boundary"
+)
+copy_regular_files = _regular_files.copy_regular_files
+regular_paths = _regular_files.regular_paths
 
 RUNTIME_PARTS = {
     ".git",
@@ -25,14 +34,19 @@ RUNTIME_PARTS = {
     ".mypy_cache",
     ".ruff_cache",
 }
-TOP_LEVEL_EXCLUDED = {".coverage", ".DS_Store", ".env", "dist", "var"}
+TOP_LEVEL_EXCLUDED = {".coverage", ".DS_Store", ".env", ".korpus-source-root", "dist", "var"}
 REGENERATED = {"DISTRIBUTION_MANIFEST.json", "FULL_SSOT_PACKAGE_RECEIPT.json"}
 WEB_DISTRIBUTION = ("apps", "web", "dist")
 
 
 def included(relative: Path) -> bool:
     parts = relative.parts
-    if not parts or parts[0] in TOP_LEVEL_EXCLUDED or any(part in RUNTIME_PARTS for part in parts):
+    if (
+        not parts
+        or git_metadata_path(relative)
+        or parts[0] in TOP_LEVEL_EXCLUDED
+        or any(part in RUNTIME_PARTS for part in parts)
+    ):
         return False
     if relative.as_posix() in REGENERATED:
         return False
@@ -48,27 +62,28 @@ def project_files(root: Path) -> list[Path]:
         if tracked.returncode == 0
         else None
     )
-    return sorted(
-        (
-            path.relative_to(root)
-            for path in root.rglob("*")
-            if path.is_file()
-            and included(path.relative_to(root))
-            and (
-                tracked_paths is None
-                or path.relative_to(root) in tracked_paths
-                or path.relative_to(root).parts[:3] == WEB_DISTRIBUTION
-            )
-        ),
-        key=Path.as_posix,
-    )
+    candidates = {
+        path.relative_to(root)
+        for path in root.rglob("*")
+        if included(path.relative_to(root))
+        and (
+            tracked_paths is None
+            or path.relative_to(root) in tracked_paths
+            or path.relative_to(root).parts[:3] == WEB_DISTRIBUTION
+        )
+    }
+    return regular_paths(root, candidates, "package path")
 
 
 def _copy(root: Path, stage: Path, paths: Iterable[Path]) -> None:
-    for relative in paths:
-        target = stage / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(root / relative, target)
+    copy_regular_files(root, stage, paths)
+
+
+def _archive_mode(path: Path) -> int:
+    mode = stat.S_IMODE(path.stat().st_mode)
+    if mode & 0o7000:
+        raise RuntimeError(f"special permission bits rejected: {path}")
+    return mode
 
 
 def _zip_tree(stage: Path, archive: Path) -> None:
@@ -80,7 +95,7 @@ def _zip_tree(stage: Path, archive: Path) -> None:
         for path in files:
             relative = Path(stage.name) / path.relative_to(stage)
             info = zipfile.ZipInfo(relative.as_posix(), (1980, 1, 1, 0, 0, 0))
-            mode = stat.S_IMODE(path.stat().st_mode)
+            mode = _archive_mode(path)
             info.external_attr = (stat.S_IFREG | mode) << 16
             info.compress_type = zipfile.ZIP_DEFLATED
             zf.writestr(info, path.read_bytes())
@@ -97,53 +112,22 @@ def stage_full_ssot(root: Path, stage: Path) -> dict[str, object]:
     sys.path.insert(0, str(root / "scripts"))
     from generate_manifest import write_manifest
 
-    release = json.loads((stage / "apps/api/src/korpus/release.json").read_text(encoding="utf-8"))[
-        "tag"
-    ]
-    source = json.loads((stage / "SOURCE_MANIFEST.json").read_text(encoding="utf-8"))
-    receipt = {
-        "schema": "korpus.full-ssot-package-receipt.v2",
-        "package_role": "FULL_SSOT_CANONICAL",
-        "release": release,
-        "source_manifest_root_sha256": source.get("root_sha256"),
-        "source_manifest_files": source.get("file_count"),
-        "web_dist_files": len([p for p in (stage / "apps/web/dist").rglob("*") if p.is_file()])
-        if (stage / "apps/web/dist").is_dir()
-        else 0,
-        "lineage_files": len([p for p in (stage / "LINEAGE").rglob("*") if p.is_file()])
-        if (stage / "LINEAGE").is_dir()
-        else 0,
-        "history_included": False,
-        "distribution_manifest_policy": "regenerated_from_exact_staged_bytes",
-    }
-    (stage / "FULL_SSOT_PACKAGE_RECEIPT.json").write_text(
+    manifest_path = stage / "DISTRIBUTION_MANIFEST.json"
+    manifest = write_manifest(stage, manifest_path, kind="distribution")
+    manifest_path.chmod(0o644)
+    receipt_value = expected_full_ssot_receipt(stage, manifest)
+    if not isinstance(receipt_value, dict):
+        raise RuntimeError("staged source/release identity cannot produce a package receipt")
+    receipt: dict[str, object] = receipt_value
+    receipt_path = stage / "FULL_SSOT_PACKAGE_RECEIPT.json"
+    receipt_path.write_text(
         json.dumps(receipt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-    manifest = write_manifest(stage, stage / "DISTRIBUTION_MANIFEST.json", kind="distribution")
-    receipt["distribution_records"] = manifest["file_count"]
-    (stage / "FULL_SSOT_PACKAGE_RECEIPT.json").write_text(
-        json.dumps(receipt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
-    write_manifest(stage, stage / "DISTRIBUTION_MANIFEST.json", kind="distribution")
+    receipt_path.chmod(0o644)
     return receipt
 
 
-def build(root: Path, archive: Path) -> dict[str, object]:
-    root, archive = root.resolve(), archive.resolve()
-    with tempfile.TemporaryDirectory(prefix="korpus-full-ssot-") as tmp_name:
-        stage = Path(tmp_name) / archive.stem
-        stage.mkdir(parents=True)
-        receipt = stage_full_ssot(root, stage)
-        _zip_tree(stage, archive)
-        rebuild = archive.with_suffix(".rebuild.zip")
-        _zip_tree(stage, rebuild)
-        digest, rebuild_digest = (
-            hashlib.sha256(path.read_bytes()).hexdigest() for path in (archive, rebuild)
-        )
-        if digest != rebuild_digest:
-            raise RuntimeError("deterministic rebuild SHA-256 mismatch")
-        rebuild.unlink()
-    _run(root, sys.executable, "scripts/verify_package.py", str(archive))
+def _verify_restored(root: Path, archive: Path) -> None:
     with tempfile.TemporaryDirectory(prefix="korpus-full-ssot-post-") as tmp_name:
         unpacked = extract_safe_archive(archive, Path(tmp_name))
         _run(root, sys.executable, "scripts/verify_source_manifest.py", "--root", str(unpacked))
@@ -162,4 +146,29 @@ def build(root: Path, archive: Path) -> dict[str, object]:
             "--root",
             str(unpacked),
         )
+
+
+def build(root: Path, archive: Path) -> dict[str, object]:
+    root, archive = root.resolve(), archive.resolve()
+    with tempfile.TemporaryDirectory(prefix="korpus-full-ssot-") as tmp_name:
+        stage = Path(tmp_name) / archive.stem
+        stage.mkdir(parents=True)
+        receipt = stage_full_ssot(root, stage)
+        _zip_tree(stage, archive)
+        rebuild = archive.with_suffix(".rebuild.zip")
+        _zip_tree(stage, rebuild)
+        digest, rebuild_digest = (
+            hashlib.sha256(path.read_bytes()).hexdigest() for path in (archive, rebuild)
+        )
+        if digest != rebuild_digest:
+            raise RuntimeError("deterministic rebuild SHA-256 mismatch")
+        rebuild.unlink()
+    _run(
+        root,
+        sys.executable,
+        "scripts/verify_package.py",
+        "--require-full-ssot",
+        str(archive),
+    )
+    _verify_restored(root, archive)
     return {**receipt, "archive": archive.name, "sha256": digest, "deterministic_rebuild": True}

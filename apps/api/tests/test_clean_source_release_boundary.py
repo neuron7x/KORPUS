@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
 from scripts.manifest_paths import source_included
@@ -33,6 +34,20 @@ def test_package_only_metadata_cannot_expand_source_authority() -> None:
     ):
         assert source_included(Path(path)) is False
     assert source_included(Path("docs/PACKAGE_BUILD.json")) is True
+
+
+def test_legacy_package_pair_is_preserved_only_at_its_exact_lineage_paths() -> None:
+    preserved = {
+        "DISTRIBUTION_MANIFEST.json": "caa5eb17a870bd173d9ade80b516070afb58de8f94d776f1e6db5d9b28d9ca2b",
+        "FULL_SSOT_PACKAGE_RECEIPT.json": "3f2252f5b3b401f6cc357fd2a5e8aa8f4b5cc07acd898e12cc61e2fc1ca5ab10",
+    }
+    for name, expected_digest in preserved.items():
+        assert not (ROOT / name).exists()
+        relative = Path("LINEAGE/v0.9.7-original-uploaded") / name
+        assert source_included(relative) is True
+        assert hashlib.sha256((ROOT / relative).read_bytes()).hexdigest() == expected_digest
+        assert source_included(Path("LINEAGE/other-upload") / name) is False
+        assert source_included(Path("docs") / name) is False
 
 
 def test_release_evidence_verification_cannot_be_skipped_by_an_environment_variable() -> None:

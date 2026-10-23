@@ -17,13 +17,31 @@ from korpus.application.production_hard_predicates import (
     external_predicate_state,
     load_hard_predicate_profile,
 )
-from korpus.application.release_claims import _claim_status
+from korpus.application.release_claim_common import EvidenceContext
+from korpus.application.release_claims import _binding_status, _read_payload
 from korpus.domain.models import Identity
 from korpus.infrastructure.gcp_identity import MetadataIdentityError, MetadataIdentityProvider
 
 from apps.api.tests.helpers import StubSnapshotReader
 
 SHA = "a" * 64
+CLAIM = "CLM-SOURCE-INTEGRITY"
+EVIDENCE = "reports/SOURCE_MANIFEST_VERIFICATION_CURRENT.json"
+
+
+def _precontract_status(root: Path, evidence: str = EVIDENCE) -> str:
+    """Measure syntax and source binding before the claim-specific contract."""
+    context = EvidenceContext(root, CLAIM, evidence, SHA, "v0.9.7")
+    payload, refusal = _read_payload(context)
+    if payload is None:
+        return refusal or "INVALID_EVIDENCE"
+    refusal = _binding_status(payload, context)
+    if refusal is not None:
+        return refusal
+    semantic = payload.get("status", payload.get("verdict"))
+    if semantic is None:
+        return "UNDECLARED_EVIDENCE"
+    return "BOUND_PASS" if semantic in ("PASS", "PASS_WITH_EXTERNAL_BLOCKERS") else "BOUND_FAIL"
 
 
 def binding_payload() -> dict[str, object]:
@@ -204,7 +222,7 @@ def test_metamorphic_eval_binding_and_issue_failures(monkeypatch: pytest.MonkeyP
         #
         # 1. Файл, якого ця функція не вміє прочитати. Раніше -> SUPPORTED без
         #    прочитаного байта.
-        ("text", ".md", "UNDECLARED_EVIDENCE"),
+        ("text", ".md", "INVALID_EVIDENCE"),
         ("{", ".json", "INVALID_EVIDENCE"),
         ("[]", ".json", "INVALID_EVIDENCE"),
         (json.dumps({"release": "old"}), ".json", "STALE_EVIDENCE"),
@@ -214,29 +232,53 @@ def test_metamorphic_eval_binding_and_issue_failures(monkeypatch: pytest.MonkeyP
         (json.dumps({"release": "v0.9.7", "source_digest": "b" * 64}), ".json", "STALE_EVIDENCE"),
         # 3. JSON без поля вироку. Раніше `None` лежав у тому самому кортежі, що й "PASS".
         (
-            json.dumps({"release": "v0.9.7", "source_digest": SHA}),
+            json.dumps(
+                {
+                    "schema": "test.evidence.v1",
+                    "release": "v0.9.7",
+                    "source_digest": SHA,
+                    "digest_scope": "evidence_paths",
+                }
+            ),
             ".json",
             "UNDECLARED_EVIDENCE",
         ),
         (
-            json.dumps({"release": "v0.9.7", "source_digest": SHA, "status": "PASS"}),
+            json.dumps(
+                {
+                    "schema": "test.evidence.v1",
+                    "release": "v0.9.7",
+                    "source_digest": SHA,
+                    "digest_scope": "evidence_paths",
+                    "status": "PASS",
+                }
+            ),
             ".json",
-            "SUPPORTED",
+            "BOUND_PASS",
         ),
         (
-            json.dumps({"release": "v0.9.7", "source_digest": SHA, "status": "FAIL"}),
+            json.dumps(
+                {
+                    "schema": "test.evidence.v1",
+                    "release": "v0.9.7",
+                    "source_digest": SHA,
+                    "digest_scope": "evidence_paths",
+                    "status": "FAIL",
+                }
+            ),
             ".json",
-            "REFUTED_BY_EVIDENCE",
+            "BOUND_FAIL",
         ),
     ],
 )
 def test_release_claim_status_branches(
     tmp_path: Path, content: str | None, suffix: str, expected: str
 ) -> None:
-    relative = f"evidence{suffix}"
+    relative = EVIDENCE if suffix == ".json" else EVIDENCE.removesuffix(".json") + suffix
     if content is not None:
+        (tmp_path / relative).parent.mkdir(parents=True, exist_ok=True)
         (tmp_path / relative).write_text(content, encoding="utf-8")
-    assert _claim_status(tmp_path, relative, SHA, "v0.9.7") == expected
+    assert _precontract_status(tmp_path, relative) == expected
 
 
 def test_binding_is_read_from_the_canonical_provenance_envelope(tmp_path: Path) -> None:
@@ -248,17 +290,37 @@ def test_binding_is_read_from_the_canonical_provenance_envelope(tmp_path: Path) 
     `korpus.application.provenance.stamp`. Хибна ВІДМОВА коштує стільки ж, скільки хибне
     підтвердження, і помічається гірше, бо виглядає обережно.
     """
-    relative = "evidence.json"
+    relative = EVIDENCE
+    (tmp_path / relative).parent.mkdir(parents=True, exist_ok=True)
     (tmp_path / relative).write_text(
-        json.dumps({"provenance": {"source_digest": SHA}, "status": "PASS"}), encoding="utf-8"
+        json.dumps(
+            {
+                "schema": "test.evidence.v1",
+                "release": "v0.9.7",
+                "provenance": {"source_digest": SHA, "digest_scope": "evidence_paths"},
+                "status": "PASS",
+            }
+        ),
+        encoding="utf-8",
     )
-    assert _claim_status(tmp_path, relative, SHA, "v0.9.7") == "SUPPORTED"
+    assert _precontract_status(tmp_path, relative) == "BOUND_PASS"
 
-    stale = "stale.json"
+    stale = EVIDENCE
     (tmp_path / stale).write_text(
-        json.dumps({"provenance": {"source_digest": "c" * 64}, "status": "PASS"}), encoding="utf-8"
+        json.dumps(
+            {
+                "schema": "test.evidence.v1",
+                "release": "v0.9.7",
+                "provenance": {
+                    "source_digest": "c" * 64,
+                    "digest_scope": "evidence_paths",
+                },
+                "status": "PASS",
+            }
+        ),
+        encoding="utf-8",
     )
-    assert _claim_status(tmp_path, stale, SHA, "v0.9.7") == "STALE_EVIDENCE"
+    assert _precontract_status(tmp_path, stale) == "STALE_EVIDENCE"
 
 
 def test_two_bindings_that_disagree_are_neither_current_nor_stale(tmp_path: Path) -> None:
@@ -268,14 +330,42 @@ def test_two_bindings_that_disagree_are_neither_current_nor_stale(tmp_path: Path
     сам собі суперечить, не є ні поточним, ні застарілим: він не дає прив'язки взагалі,
     і це треба сказати, а не залагодити.
     """
-    relative = "divergent.json"
+    relative = EVIDENCE
+    (tmp_path / relative).parent.mkdir(parents=True, exist_ok=True)
     (tmp_path / relative).write_text(
         json.dumps(
-            {"source_tree_sha256": SHA, "provenance": {"source_digest": "d" * 64}, "status": "PASS"}
+            {
+                "schema": "test.evidence.v1",
+                "release": "v0.9.7",
+                "source_tree_sha256": SHA,
+                "digest_scope": "evidence_paths",
+                "provenance": {
+                    "source_digest": "d" * 64,
+                    "digest_scope": "evidence_paths",
+                },
+                "status": "PASS",
+            }
         ),
         encoding="utf-8",
     )
-    assert _claim_status(tmp_path, relative, SHA, "v0.9.7") == "DIVERGENT_BINDING"
+    assert _precontract_status(tmp_path, relative) == "DIVERGENT_BINDING"
+
+
+@pytest.mark.parametrize("scope", [None, "tracked_tree"])
+def test_claim_evidence_must_name_the_expected_digest_scope(
+    tmp_path: Path, scope: str | None
+) -> None:
+    payload = {
+        "schema": "test.evidence.v1",
+        "release": "v0.9.7",
+        "source_tree_sha256": SHA,
+        "status": "PASS",
+    }
+    if scope is not None:
+        payload["digest_scope"] = scope
+    (tmp_path / EVIDENCE).parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / EVIDENCE).write_text(json.dumps(payload), encoding="utf-8")
+    assert _precontract_status(tmp_path, EVIDENCE) == "UNSCOPED_EVIDENCE"
 
 
 def test_absence_never_supports_a_claim() -> None:
@@ -289,16 +379,17 @@ def test_absence_never_supports_a_claim() -> None:
     import tempfile
 
     absences = {
-        "нечитаний суфікс": ("evidence.md", "text"),
-        "без прив'язки": ("evidence.json", json.dumps({"release": "v0.9.7", "status": "PASS"})),
-        "без вироку": ("evidence.json", json.dumps({"release": "v0.9.7", "source_digest": SHA})),
+        "нечитаний суфікс": (EVIDENCE.removesuffix(".json") + ".md", "text"),
+        "без прив'язки": (EVIDENCE, json.dumps({"release": "v0.9.7", "status": "PASS"})),
+        "без вироку": (EVIDENCE, json.dumps({"release": "v0.9.7", "source_digest": SHA})),
     }
     for label, (relative, content) in absences.items():
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)
+            (root / relative).parent.mkdir(parents=True, exist_ok=True)
             (root / relative).write_text(content, encoding="utf-8")
-            status = _claim_status(root, relative, SHA, "v0.9.7")
-            assert status != "SUPPORTED", f"{label}: відсутність прочиталась як підтримка"
+            status = _precontract_status(root, relative)
+            assert status != "BOUND_PASS", f"{label}: відсутність прочиталась як підтримка"
 
 
 class _Repo:
