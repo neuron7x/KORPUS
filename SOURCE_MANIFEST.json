@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2146,
-  "root_sha256": "67b758b543af370b7b51b93351f5df5a5d851f6ca0fbda50d8c7d7a3efb0b8b4",
+  "root_sha256": "d4fe40f59c1d444c121bfd270c7abc13371534f540e7d067788eca9cc54fd321",
   "files": [
     {
       "path": ".dockerignore",
@@ -9049,8 +9049,8 @@
     },
     {
       "path": "docs/operations/CANONICAL_BRANCH_DISPOSITION.json",
-      "bytes": 8489,
-      "sha256": "c49d1383c1a7c234941a5d2ca5975b1822e7d454f4700de0a56eee5a16929224",
+      "bytes": 24950,
+      "sha256": "a364bb5a3c1767ca10dc24ecfb1397b6b3f5f72a1890552840e02379a60c3c39",
       "mode": "0644"
     },
     {
@@ -9061,8 +9061,8 @@
     },
     {
       "path": "docs/operations/CANONICAL_CONVERGENCE.md",
-      "bytes": 8364,
-      "sha256": "d282fedf204a0d55103ba83469abcbac7945d23ca6ba8ce51125ab5f48a0576f",
+      "bytes": 9693,
+      "sha256": "dd263e43fdfca05b7650e6089f027d15672bc8c45c544f2818f28131caee3dee",
       "mode": "0644"
     },
     {
