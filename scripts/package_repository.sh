@@ -18,6 +18,7 @@ default_version="$(python3 -c 'import sys; sys.path.insert(0, "scripts"); from r
 version="${KORPUS_RELEASE_VERSION:-$default_version}"
 default_name="$(python3 -c 'import sys; sys.path.insert(0, "scripts"); from release_identity import load_release_identity; print(load_release_identity()["artifact_stem"])')"
 name="${KORPUS_PACKAGE_NAME:-$default_name}"
+python3 -c 'import sys; sys.path.insert(0, "scripts"); from package_identity_contract import safe_artifact_stem; raise SystemExit(not safe_artifact_stem(sys.argv[1]))' "$name" || { echo "invalid package name" >&2; exit 1; }
 current_head="$(git rev-parse HEAD)"
 source_commit="${KORPUS_PACKAGE_SOURCE_COMMIT:-$current_head}"
 [[ "$source_commit" =~ ^[0-9a-f]{40}$ ]] || { echo "invalid package source commit" >&2; exit 1; }

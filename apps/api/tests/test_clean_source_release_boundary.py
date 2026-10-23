@@ -89,3 +89,8 @@ def test_packaging_git_is_isolated_from_environment_and_replace_objects() -> Non
     assert "from scripts.trusted_system_tools import git_executable" in source
     assert 'git() { "$git_bin" --no-replace-objects "$@"; }' in source
     assert boundary < source.index("current_head=") < source.index("git archive --format=tar")
+
+
+def test_package_name_override_is_validated_before_any_output_removal() -> None:
+    source = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8")
+    assert source.index("safe_artifact_stem") < source.index('rm -f "dist/${name}.zip"')

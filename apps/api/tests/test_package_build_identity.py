@@ -179,3 +179,17 @@ def test_release_identity_fields_are_exact(tmp_path: Path) -> None:
     release["unexpected"] = None
     release_path.write_text(json.dumps(release), encoding="utf-8")
     assert "release identity contract mismatch" in module.verify(root)
+
+
+@pytest.mark.parametrize(
+    "stem", ("../../escaped", "/tmp/escaped", r"..\escaped", ".hidden", "with space")
+)
+def test_release_identity_rejects_unsafe_artifact_stem(tmp_path: Path, stem: str) -> None:
+    module = _module()
+    root = _fixture(tmp_path)
+    release_path = root / "apps/api/src/korpus/release.json"
+    release = json.loads(release_path.read_text(encoding="utf-8"))
+    release["artifact_stem"] = stem
+    release["distribution_artifact"] = f"{stem}.zip"
+    release_path.write_text(json.dumps(release), encoding="utf-8")
+    assert "release identity contract mismatch" in module.verify(root)
