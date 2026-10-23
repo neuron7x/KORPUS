@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import date
 from typing import cast
@@ -18,6 +19,11 @@ from korpus.application.answer_analysis import (
     unsourced_quotes,
 )
 from korpus.application.answer_audit import append_answer_audit
+from korpus.application.answer_request_snapshot import (
+    RequestBoundRetriever,
+    retrieval_failure_reason,
+    token_is_stale,
+)
 from korpus.application.answer_retrieval_gate import apply_retrieval_gate
 from korpus.application.composition import AnswerComposer, Composition, compose_answer
 from korpus.application.corpus_snapshot import (
@@ -146,29 +152,18 @@ class ExtractiveAnswerService:
         #: supplies it.
         self.egress_policy = egress_policy
         self.predictive_controller = predictive_controller
-        #: Знімок, зафіксований для ОСТАННЬОЇ відповіді цього примірника. `None`
-        #: означає «стан не зафіксовано», і тоді відповіді немає — не «реліз старий».
-        self._snapshot_token: CorpusReadToken | None = None
+        self._snapshot_token: ContextVar[CorpusReadToken | None] = ContextVar(
+            "korpus_answer_service_snapshot", default=None
+        )
 
     def _capture_snapshot(
         self, identity: Identity, corpora: frozenset[str], as_of: date
     ) -> CorpusReadToken:
-        """Знімок стану корпусу на цю відповідь. Без нього відповіді немає.
-
-        Знімок каже, який СТАН читали, і несе монотонну епоху. Два записи журналу про
-        той самий реліз розрізняються, якщо між ними корпус рухався — а `as_of` це
-        датою не бачить.
-
-        Коли це поле лише ДОДАВАЛОСЬ до журналу, його поломку правильно було ковтати:
-        ціна — відсутнє поле, а не відсутня відповідь. Відколи `release_id` знімка став
-        ЄДИНОЮ релізною тотожністю, ковтання означало б назвати реліз, якого ніхто не
-        зчитав. Тому виняток іде нагору, і `execute` відмовляє з названою причиною.
-        """
         return release_token(self.repository, identity, corpora, as_of)
 
     def execute(self, identity: Identity, query: QueryRequest) -> Answer:
         corpora = self.policy_engine.resolve_corpora(identity, query.corpus_ids)
-        self._snapshot_token = None
+        self._snapshot_token.set(None)
         try:
             token = self._capture_snapshot(identity, corpora, query.as_of)
         except (CorpusConsistencyError, ReleaseIdentityUnavailable) as error:
@@ -181,7 +176,7 @@ class ExtractiveAnswerService:
             )
             self._audit(identity, query, answer, [], [], classify_query_risk(query.text))
             return answer
-        self._snapshot_token = token
+        self._snapshot_token.set(token)
         release_id = token.release_id
         injection = assess_control_injection(query.text)
         if injection.blocked:
@@ -211,7 +206,7 @@ class ExtractiveAnswerService:
                 as_of=query.as_of,
                 risk=risk,
                 admission_thresholds=retrieval_thresholds,
-                retriever=self.retriever,
+                retriever=RequestBoundRetriever(self.repository, self.retriever, token),
                 planner=self.query_planner,
                 controller=self.predictive_controller,
                 answer_calibration_id=self.answer_policy.calibration_id,
@@ -229,10 +224,10 @@ class ExtractiveAnswerService:
             )
             self._audit(identity, query, answer, [], [], risk, plan=plan, pec_trace=pec_trace)
             return answer
-        except RetrievalUnavailable:
+        except (RetrievalUnavailable, CorpusConsistencyError) as error:
             answer = self._abstain(
                 release_id,
-                "retrieval_dependency_unavailable",
+                retrieval_failure_reason(error),
                 "Обов’язковий пошуковий контур недоступний;"
                 " відповідь зупинено без слабшого fallback.",
             )
@@ -309,16 +304,7 @@ class ExtractiveAnswerService:
             if blocked is not None:
                 answer = blocked
             else:
-                # The model may arrange what was found and open with one line. It may
-                # not add a fact: `compose_answer` refuses an opening that states a
-                # number, introduces a negation, or uses a content word the cited spans
-                # do not contain, and a refusal leaves the extract untouched.
-                #
-                # GOV-006: before that, whether the material may leave at all. If the
-                # sentences outrank the egress ceiling, the composer is not called with
-                # them — sending them to a model outside the deployment would exfiltrate
-                # restricted spans, whatever the composer returned. The extract stands and
-                # the reason travels into the audit chain.
+                # Composition is source-bound and egress-gated by _compose().
                 composition, composition_reason = self._compose(query, claims, eligible)
                 body = (
                     "\n\n".join(composition.sentences)
@@ -352,7 +338,7 @@ class ExtractiveAnswerService:
                     ],
                     corpus_release=release_id,
                 )
-        self._audit(
+        return self._audit(
             identity,
             query,
             answer,
@@ -363,7 +349,6 @@ class ExtractiveAnswerService:
             composition=composition_reason,
             pec_trace=pec_trace,
         )
-        return answer
 
     def _compose(
         self, query: QueryRequest, claims: list[Claim], eligible: list[RetrievedEvidence]
@@ -821,7 +806,18 @@ class ExtractiveAnswerService:
         plan: QueryPlan | None = None,
         composition: str | None = None,
         pec_trace: ControllerTrace | None = None,
-    ) -> None:
+    ) -> Answer:
+        token = self._snapshot_token.get()
+        if answer.status is AnswerStatus.ANSWERED and token_is_stale(
+            self.repository, identity, query.as_of, token
+        ):
+            answer = self._abstain(
+                token.release_id if token is not None else UNNAMED_RELEASE,
+                "corpus_snapshot_changed",
+                "Стан корпусу змінився до завершення відповіді; цитати відкинуто.",
+            )
+            retrieved, eligible, breaches, support = [], [], None, None
+            composition = "discarded: corpus snapshot changed"
         append_answer_audit(
             self.repository,
             identity,
@@ -838,5 +834,6 @@ class ExtractiveAnswerService:
             plan=plan,
             composition=composition,
             pec_trace=pec_trace.as_audit_record() if pec_trace is not None else None,
-            token=self._snapshot_token,
+            token=token,
         )
+        return answer

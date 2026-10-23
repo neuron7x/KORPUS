@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2149,
-  "root_sha256": "6c06f7385347cdb407ff0efbf9b78b465df1f1804b728ba2f4928807465a2edf",
+  "file_count": 2152,
+  "root_sha256": "9453cecd823a8eeba77f37f2723bd92ee5c998bfe73e68fc7f55e6bb420ede91",
   "files": [
     {
       "path": ".dockerignore",
@@ -937,8 +937,14 @@
     },
     {
       "path": "apps/api/src/korpus/application/answer_query.py",
-      "bytes": 42487,
-      "sha256": "d33bf8eb9d98d6a781359fce869927f125eaf7644dda2b2e0b210d44684a79f8",
+      "bytes": 41428,
+      "sha256": "05b53dd5eb2993ee40331ced0f8032a494791c1f47f49ca6ed11c5ee796562e4",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/answer_request_snapshot.py",
+      "bytes": 4517,
+      "sha256": "a041c498b115ca3061aeb04cedca65f37f0af014ac453d9f3b3d508c0b1cca95",
       "mode": "0644"
     },
     {
@@ -1009,8 +1015,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/cache.py",
-      "bytes": 5187,
-      "sha256": "6c01f094bfc3735938d57d818c4f90767d12cdcc69a36ea94f638551ba87e60b",
+      "bytes": 5269,
+      "sha256": "86f7ca55cc8478bd80aa06092849d15b42070bdc78b65a9b4ec3ea0bca95b9ea",
       "mode": "0644"
     },
     {
@@ -2970,6 +2976,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_answer_request_snapshot_gate.py",
+      "bytes": 6708,
+      "sha256": "7938283938497ee3a4e5268bdaad18d03f22e7b2a7130a255ff4e6d0381f0a4d",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_answer_snapshot_audit.py",
       "bytes": 2362,
       "sha256": "786d3e6c6f2c68b9ca1de5a23587c3982883ff247025db55054f670aa030ccb0",
@@ -2979,6 +2991,12 @@
       "path": "apps/api/tests/test_answer_snapshot_authority.py",
       "bytes": 5488,
       "sha256": "b947434727542a9110433dd8779dbd14eca800777226cdd38f8aed24f18e0caf",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_answer_snapshot_race_api.py",
+      "bytes": 3965,
+      "sha256": "3362488192d1d7c3f6f9ff1d1b955852ae01591a5b14bf2fd09878f08ba402ba",
       "mode": "0644"
     },
     {
@@ -8335,8 +8353,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 762512,
-      "sha256": "e2bde18ffc5ca0d949dba0f9a95ba2af3c63e97686670b1d1a089866860a8e6f",
+      "bytes": 762877,
+      "sha256": "4eaf5cb5d701f2779b6e676d7617d8d1757b478d8479acc0831707f6e106b133",
       "mode": "0644"
     },
     {
