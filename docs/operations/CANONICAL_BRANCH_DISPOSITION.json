@@ -185,5 +185,92 @@
     "Classification is not branch deletion, source-integration completion or merge authorization."
   ],
   "merge_authorized": false,
-  "production_authorized": false
+  "production_authorized": false,
+  "final_convergence": {
+    "observed_date": "2026-10-23",
+    "canonical_main": "d886c48fd1a2d60385fe47c8866255132c0e1378",
+    "merged_pr": 90,
+    "integration_defects_found_before_merge": [
+      {
+        "commit": "3bad6edd",
+        "defect": "scripts/manifest_lib/integrity.py imported path_admission without binding scripts/; isolated mutants M223/M271/M272/M674 died at collection (ERROR)"
+      },
+      {
+        "commit": "0216e7c7",
+        "defect": "merge d2a59545 kept the first parent and dropped PR #86 commits a6ee7f21/f52353e3/84bdac47/9f846f22 (sole-root wrapper evidence relabelling, Win32 reserved device names); restored from recomputed three-way merge"
+      }
+    ],
+    "closed_as_contained": [
+      82,
+      84,
+      85,
+      86,
+      87
+    ],
+    "github_heads_after": [
+      "main"
+    ],
+    "archive_tag_prefix": "archive/2026-10-23/",
+    "archive_tags": 51,
+    "residual_dispositions": [
+      {
+        "ref": "archive/2026-10-23/local-work-issue-54-ci-authority",
+        "head": "d7fb9a90",
+        "status": "SUPERSEDED",
+        "reason": "same historical #54 line as closed PR #55; architectural scope integrated via #57/#59/#61/#68-#71; its seven new paths are a subset of the canonical-convergence WIP snapshot"
+      },
+      {
+        "ref": "archive/2026-10-23/local-work-issue-54-evidence-authority",
+        "head": "7b6c98e0",
+        "status": "SUPERSEDED",
+        "reason": "ancestor of origin work/issue-54-hosted-bootstrap (PR #55 head aa8fb964)"
+      },
+      {
+        "ref": "archive/2026-10-23/local-work-issue-54-release-authority",
+        "head": "eabf77b4",
+        "status": "SUPERSEDED",
+        "reason": "ancestor of origin work/issue-54-hosted-bootstrap (PR #55 head aa8fb964)"
+      },
+      {
+        "ref": "archive/2026-10-23/local-integration-canonical-convergence-20261019-v2",
+        "head": "41e11ae7",
+        "status": "SUPERSEDED",
+        "reason": "ancestor of PR #55 head aa8fb964"
+      },
+      {
+        "ref": "archive/2026-10-23/wip-issue-54-hosted-bootstrap",
+        "status": "NO_NET_SOURCE_IMPORT",
+        "reason": "WIP snapshot over aa8fb964 changes generated reports/ only"
+      },
+      {
+        "ref": "archive/2026-10-23/wip-canonical-convergence-20261019",
+        "status": "RETAINED_REFERENCE_FOR_66_67",
+        "reason": "uncommitted, never CI-verified snapshot of the PR #55 line (58 new paths: hosted/Sigstore release-claim admission, GitHub run/artifact receipts); not reapplied wholesale per PR #55 disposition; implementation obligation stays in issues #66 and #67"
+      },
+      {
+        "ref": "archive/2026-10-23/wip-pr90-finalize",
+        "status": "SUPERSEDED",
+        "reason": "pre-merge WIP of PR #90 on d9d78e7a; merged result is canonical main"
+      },
+      {
+        "ref": "archive/2026-10-23/gitlab-korpus-web-main",
+        "status": "DERIVED_ARTIFACT",
+        "reason": "GitLab neuron7x-group/korpus-web is a built copy of apps/web/public; unique paths are only deployment config (.gitlab-ci.yml, README.md, public/config.js without secrets)"
+      }
+    ],
+    "gitlab": {
+      "korpus_platform_refs_reachable_from_github": "122/122",
+      "issues_and_merge_requests": "exported off-repo with notes (6 issues, 13 MRs) before archival; private discussion is not republished in this public repository"
+    },
+    "secret_scan": {
+      "tool": "gitleaks",
+      "scope": "three WIP snapshot commits",
+      "findings": 0,
+      "positive_control": "planted credential detected (rc=1)"
+    },
+    "limits": [
+      "Tag preservation is history retention, not semantic integration.",
+      "Issues #66 and #67 remain OPEN feature work; this record does not claim them closed."
+    ]
+  }
 }

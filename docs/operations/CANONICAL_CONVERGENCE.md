@@ -115,3 +115,21 @@ Sixteen additional inert Make-recipe cases cover both override channels, empty a
 populated caller directories, normal/spaced workspaces, and two/three workers.
 They check the exact merge input paths, fresh worker records, unchanged caller
 files and temporary cleanup. Existing worker-failure tests remain active.
+
+## Final convergence (2026-10-23)
+
+PR #90 merged as canonical main `d886c48fd1a2d60385fe47c8866255132c0e1378` after 12/12 required checks.
+Two integration defects were found and fixed before merge: `3bad6edd` (order-dependent
+`path_admission` import made four mutants unrunnable) and `0216e7c7` (merge `d2a59545` had
+dropped PR #86's wrapper-relabelling and Win32 device-name refusals while keeping their commits).
+Component PRs #82/#84/#85/#86/#87 were closed as contained after a three-way merge-tree check showed
+no residual source diff.
+
+Every other branch, local branch, stash and local WIP snapshot was preserved as an annotated tag under
+`archive/2026-10-23/` (51 tags, SHA read back from GitHub) and then removed as a branch; GitHub now
+has a single head, `main`. All 122 GitLab `korpus-platform` refs are reachable from GitHub; the built
+`korpus-web` frontend is tagged. Per-ref dispositions are in `CANONICAL_BRANCH_DISPOSITION.json`
+under `final_convergence`.
+
+Not closed by this record: issues #66 and #67 (hosted run/artifact receipts and Sigstore-bound
+release claims). Their historical implementation is retained by tag as reference, not merged.
