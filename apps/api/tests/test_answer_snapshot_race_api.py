@@ -62,6 +62,7 @@ def test_final_answer_and_audit_refuse_composition_time_approval(
     assert event["corpus_release"] == answer.corpus_release
     assert event["corpus_snapshot"]["release_id"] == answer.corpus_release
 
+
 def test_final_answer_refuses_rescission_during_composition(
     client, admin_identity, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -95,4 +96,3 @@ def test_final_answer_refuses_rescission_during_composition(
     assert answer.decision_reason == "corpus_snapshot_changed"
     assert answer.citations == []
     assert answer.claims == []
-
