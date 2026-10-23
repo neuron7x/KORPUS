@@ -1,8 +1,9 @@
 import zipfile
+from collections.abc import Callable
 from importlib import import_module
 from itertools import pairwise
 
-bundle_zip_failures = import_module(
+bundle_zip_failures: Callable[[zipfile.ZipFile], list[str]] = import_module(
     f"{__package__}.git_bundle_policy" if __package__ else "git_bundle_policy"
 ).bundle_zip_failures
 

@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2127,
-  "root_sha256": "ebc54bf6c39565b085c233ff97e568b120df1701731c9e3c2d213c113302ec97",
+  "file_count": 2128,
+  "root_sha256": "2337411224895e36094ad47917173f2a5d724442f106ae64d2e6b8fc7ece285a",
   "files": [
     {
       "path": ".dockerignore",
@@ -5814,6 +5814,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_tevv_assessor_admission.py",
+      "bytes": 789,
+      "sha256": "ffa351c37bc03678dd9790c6d7ee775e969aff0f89c5b2afe781b13d28c691ab",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_tevv_attestation_boundary.py",
       "bytes": 11335,
       "sha256": "7798219b9b442e8a7b4679e1d701bb5d877281431f5fa499d5116168d322b8d1",
@@ -8263,8 +8269,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 759038,
-      "sha256": "fa29370e8a831e907b5e06f772228317ee06cd6a8756d5e9201722a1130a2b01",
+      "bytes": 759366,
+      "sha256": "1c240994205ffce69d89cdf845b15caf133105386719065c61ba1a38b0ef1c13",
       "mode": "0644"
     },
     {
@@ -11053,8 +11059,8 @@
     },
     {
       "path": "scripts/distribution_runtime_policy.py",
-      "bytes": 1326,
-      "sha256": "f319198d56f4d42c824005f0d8e605a3adb0f5053b3a35383ffff2532543cd38",
+      "bytes": 1403,
+      "sha256": "60dc0808a29fb4cd835223240daed132e95a85124ef9d4f75e3c2c4f3c92eb7f",
       "mode": "0644"
     },
     {

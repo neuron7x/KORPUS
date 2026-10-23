@@ -4293,13 +4293,13 @@
       "reason": "Точна виміряна початкова стеля. Діагностика розведення запиту й розмірного зсуву — інструмент виміру гіпотез про пошук, не гейт."
     },
     "scripts/distribution_runtime_policy.py": {
-      "lines": 31,
+      "lines": 32,
       "max_complexity": 5,
       "max_function_args": 1,
       "max_function_lines": 14,
       "max_nesting": 0,
       "proof_lines": 0,
-      "reason": "Issue #20 P2: isolated scripts.* import fixed; exact 31-line source ceiling, no function-shape or security-policy relaxation."
+      "reason": "P2 isolated import boundary typed explicitly to prevent Any escape in mypy-scripts; exact 32 source lines, security logic unchanged."
     },
     "scripts/embedding_candidate_metrics.py": {
       "lines": 32,
@@ -13013,6 +13013,17 @@
         "lines": 31
       },
       "reason": "Independent P2 fresh-process package import defect: dual-context importlib resolution; isolated package import regression."
+    },
+    {
+      "on": "2026-10-23",
+      "path": "scripts/distribution_runtime_policy.py",
+      "from": {
+        "lines": 31
+      },
+      "to": {
+        "lines": 32
+      },
+      "reason": "Exact-head CI mypy no-any-return correction; Callable type binding for isolated import without relaxing security gates."
     }
   ],
   "recorded_at": "2026-10-04",
