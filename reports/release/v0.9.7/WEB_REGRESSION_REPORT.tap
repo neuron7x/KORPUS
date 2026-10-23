@@ -1,0 +1,962 @@
+
+> @korpus/web@0.9.7 test
+> node --test "tests/*.test.mjs"
+
+TAP version 13
+# Subtest: typed throttling remains actionable without exposing a generic status code
+ok 1 - typed throttling remains actionable without exposing a generic status code
+  ---
+  duration_ms: 1.822101
+  type: 'test'
+  ...
+# Subtest: a lost link is distinguished from a server refusal
+ok 2 - a lost link is distinguished from a server refusal
+  ---
+  duration_ms: 0.264408
+  type: 'test'
+  ...
+# Subtest: approved truth surface is integrated into the real consumer shell
+ok 3 - approved truth surface is integrated into the real consumer shell
+  ---
+  duration_ms: 4.655742
+  type: 'test'
+  ...
+# Subtest: approved palette and reduced motion are delivery contracts
+ok 4 - approved palette and reduced motion are delivery contracts
+  ---
+  duration_ms: 1.740207
+  type: 'test'
+  ...
+# Subtest: quick actions only prefill the canonical query composer
+ok 5 - quick actions only prefill the canonical query composer
+  ---
+  duration_ms: 0.983131
+  type: 'test'
+  ...
+# Subtest: conversation navigation starts collapsed
+ok 6 - conversation navigation starts collapsed
+  ---
+  duration_ms: 0.945901
+  type: 'test'
+  ...
+# Subtest: visual noise is progressively disclosed without removing function
+ok 7 - visual noise is progressively disclosed without removing function
+  ---
+  duration_ms: 2.394225
+  type: 'test'
+  ...
+# Subtest: canonical and combat themes share one functional surface
+ok 8 - canonical and combat themes share one functional surface
+  ---
+  duration_ms: 2.0324
+  type: 'test'
+  ...
+# Subtest: dynamic language surfaces support Ukrainian and Hebrew directionality
+ok 9 - dynamic language surfaces support Ukrainian and Hebrew directionality
+  ---
+  duration_ms: 1.480265
+  type: 'test'
+  ...
+# Subtest: KORPUS TRACE projects the canonical chat state machine
+ok 10 - KORPUS TRACE projects the canonical chat state machine
+  ---
+  duration_ms: 1.793099
+  type: 'test'
+  ...
+# Subtest: Decision Field is lazy, source-bound, and counterfactual
+ok 11 - Decision Field is lazy, source-bound, and counterfactual
+  ---
+  duration_ms: 2.122591
+  type: 'test'
+  ...
+# Subtest: delivery CSS is generated from the readable approved source
+ok 12 - delivery CSS is generated from the readable approved source
+  ---
+  duration_ms: 4.790349
+  type: 'test'
+  ...
+# Subtest: CSS minification preserves required calc addition whitespace
+ok 13 - CSS minification preserves required calc addition whitespace
+  ---
+  duration_ms: 0.323821
+  type: 'test'
+  ...
+# Subtest: the reader is shown a verdict that can go red, not a tautological number
+ok 14 - the reader is shown a verdict that can go red, not a tautological number
+  ---
+  duration_ms: 1.891095
+  type: 'test'
+  ...
+# Subtest: the decision dial shows something that can be less than full
+ok 15 - the decision dial shows something that can be less than full
+  ---
+  duration_ms: 0.605921
+  type: 'test'
+  ...
+# Subtest: money is formatted from integer minor units
+ok 16 - money is formatted from integer minor units
+  ---
+  duration_ms: 27.601795
+  type: 'test'
+  ...
+# Subtest: commercial status does not call incomplete active
+ok 17 - commercial status does not call incomplete active
+  ---
+  duration_ms: 0.233716
+  type: 'test'
+  ...
+# Subtest: a plan price and corpus label are escaped
+ok 18 - a plan price and corpus label are escaped
+  ---
+  duration_ms: 0.687337
+  type: 'test'
+  ...
+# Subtest: checkout is allow-listed to the exact LiqPay endpoint
+ok 19 - checkout is allow-listed to the exact LiqPay endpoint
+  ---
+  duration_ms: 0.644596
+  type: 'test'
+  ...
+# Subtest: happy evidence path reaches COMPLETE through explicit audit commit
+ok 20 - happy evidence path reaches COMPLETE through explicit audit commit
+  ---
+  duration_ms: 1.807668
+  type: 'test'
+  ...
+# Subtest: no evidence and conflict cannot become ANSWER_READY
+ok 21 - no evidence and conflict cannot become ANSWER_READY
+  ---
+  duration_ms: 0.321947
+  type: 'test'
+  ...
+# Subtest: malformed answered response fails closed instead of treating text as evidence
+ok 22 - malformed answered response fails closed instead of treating text as evidence
+  ---
+  duration_ms: 0.26453
+  type: 'test'
+  ...
+# Subtest: invalid transitions are rejected, not ignored
+ok 23 - invalid transitions are rejected, not ignored
+  ---
+  duration_ms: 0.523811
+  type: 'test'
+  ...
+# Subtest: a curator sees ingestion and the corpus, not review or audit
+ok 24 - a curator sees ingestion and the corpus, not review or audit
+  ---
+  duration_ms: 2.468848
+  type: 'test'
+  ...
+# Subtest: a reviewer sees review and the corpus, not ingestion
+ok 25 - a reviewer sees review and the corpus, not ingestion
+  ---
+  duration_ms: 0.298077
+  type: 'test'
+  ...
+# Subtest: an auditor sees audit and the corpus, and cannot write anything
+ok 26 - an auditor sees audit and the corpus, and cannot write anything
+  ---
+  duration_ms: 0.257464
+  type: 'test'
+  ...
+# Subtest: an ordinary user sees only the corpus
+ok 27 - an ordinary user sees only the corpus
+  ---
+  duration_ms: 0.213613
+  type: 'test'
+  ...
+# Subtest: an admin sees every console through the wildcard
+ok 28 - an admin sees every console through the wildcard
+  ---
+  duration_ms: 0.284541
+  type: 'test'
+  ...
+# Subtest: roles compose rather than override
+ok 29 - roles compose rather than override
+  ---
+  duration_ms: 0.19328
+  type: 'test'
+  ...
+# Subtest: an unknown role grants nothing
+ok 30 - an unknown role grants nothing
+  ---
+  duration_ms: 1.229192
+  type: 'test'
+  ...
+# Subtest: no identity means no console, not every console
+ok 31 - no identity means no console, not every console
+  ---
+  duration_ms: 0.101363
+  type: 'test'
+  ...
+# Subtest: the console consumes server-projected permissions, not roles
+ok 32 - the console consumes server-projected permissions, not roles
+  ---
+  duration_ms: 0.333405
+  type: 'test'
+  ...
+# Subtest: a note shorter than the contract's minimum never leaves the browser
+ok 33 - a note shorter than the contract's minimum never leaves the browser
+  ---
+  duration_ms: 0.547491
+  type: 'test'
+  ...
+# Subtest: a note at exactly the minimum passes
+ok 34 - a note at exactly the minimum passes
+  ---
+  duration_ms: 0.163837
+  type: 'test'
+  ...
+# Subtest: a missing version id is refused with the field named
+ok 35 - a missing version id is refused with the field named
+  ---
+  duration_ms: 0.116031
+  type: 'test'
+  ...
+# Subtest: a target outside the contract's enum is refused
+ok 36 - a target outside the contract's enum is refused
+  ---
+  duration_ms: 0.06133
+  type: 'test'
+  ...
+# Subtest: setting a tier on a non-approval is refused before the round trip
+ok 37 - setting a tier on a non-approval is refused before the round trip
+  ---
+  duration_ms: 0.05117
+  type: 'test'
+  ...
+# Subtest: a tier on an approval is accepted
+ok 38 - a tier on an approval is accepted
+  ---
+  duration_ms: 0.038287
+  type: 'test'
+  ...
+# Subtest: an ingestion without a file is refused
+ok 39 - an ingestion without a file is refused
+  ---
+  duration_ms: 0.115747
+  type: 'test'
+  ...
+# Subtest: a complete ingestion passes
+ok 40 - a complete ingestion passes
+  ---
+  duration_ms: 0.072322
+  type: 'test'
+  ...
+# Subtest: a corpus id that breaks the pattern is refused with the pattern shown
+ok 41 - a corpus id that breaks the pattern is refused with the pattern shown
+  ---
+  duration_ms: 0.108822
+  type: 'test'
+  ...
+# Subtest: a title below the minimum length is refused
+ok 42 - a title below the minimum length is refused
+  ---
+  duration_ms: 0.077387
+  type: 'test'
+  ...
+# Subtest: a title above the maximum length is refused
+ok 43 - a title above the maximum length is refused
+  ---
+  duration_ms: 0.06293
+  type: 'test'
+  ...
+# Subtest: every problem is reported, not just the first
+ok 44 - every problem is reported, not just the first
+  ---
+  duration_ms: 0.082489
+  type: 'test'
+  ...
+# Subtest: an optional field left empty is not a problem
+ok 45 - an optional field left empty is not a problem
+  ---
+  duration_ms: 0.086898
+  type: 'test'
+  ...
+# Subtest: an optional field that is present is still checked
+ok 46 - an optional field that is present is still checked
+  ---
+  duration_ms: 0.064713
+  type: 'test'
+  ...
+# Subtest: a model with no generated constraints raises rather than passing everything
+ok 47 - a model with no generated constraints raises rather than passing everything
+  ---
+  duration_ms: 0.341952
+  type: 'test'
+  ...
+# Subtest: an unpreviewed submission does not match
+ok 48 - an unpreviewed submission does not match
+  ---
+  duration_ms: 0.076726
+  type: 'test'
+  ...
+# Subtest: a previewed submission matches itself
+ok 49 - a previewed submission matches itself
+  ---
+  duration_ms: 0.083755
+  type: 'test'
+  ...
+# Subtest: editing after the preview breaks the match
+ok 50 - editing after the preview breaks the match
+  ---
+  duration_ms: 0.053045
+  type: 'test'
+  ...
+# Subtest: a version id swapped after the preview breaks the match
+ok 51 - a version id swapped after the preview breaks the match
+  ---
+  duration_ms: 0.088489
+  type: 'test'
+  ...
+# Subtest: approval is described as making the version citable, not as a state change
+ok 52 - approval is described as making the version citable, not as a state change
+  ---
+  duration_ms: 0.0724
+  type: 'test'
+  ...
+# Subtest: rejection and approval do not read the same
+ok 53 - rejection and approval do not read the same
+  ---
+  duration_ms: 0.056639
+  type: 'test'
+  ...
+# Subtest: a tier change is named in the consequence when one is set
+ok 54 - a tier change is named in the consequence when one is set
+  ---
+  duration_ms: 0.052403
+  type: 'test'
+  ...
+# Subtest: every reviewable target has its own sentence
+ok 55 - every reviewable target has its own sentence
+  ---
+  duration_ms: 0.16675
+  type: 'test'
+  ...
+# Subtest: ingestion says the version lands in quarantine, not that it is published
+ok 56 - ingestion says the version lands in quarantine, not that it is published
+  ---
+  duration_ms: 0.109668
+  type: 'test'
+  ...
+# Subtest: rescission distinguishes an immediate withdrawal from a dated one
+ok 57 - rescission distinguishes an immediate withdrawal from a dated one
+  ---
+  duration_ms: 0.097115
+  type: 'test'
+  ...
+# Subtest: only an administrator sees the accounts console
+ok 58 - only an administrator sees the accounts console
+  ---
+  duration_ms: 0.267238
+  type: 'test'
+  ...
+# Subtest: a status change is refused before it leaves without an account, a state and a reason
+ok 59 - a status change is refused before it leaves without an account, a state and a reason
+  ---
+  duration_ms: 0.235192
+  type: 'test'
+  ...
+# Subtest: a reason too short to mean anything is refused in the browser too
+ok 60 - a reason too short to mean anything is refused in the browser too
+  ---
+  duration_ms: 0.146065
+  type: 'test'
+  ...
+# Subtest: an unknown state is refused rather than sent
+ok 61 - an unknown state is refused rather than sent
+  ---
+  duration_ms: 0.092863
+  type: 'test'
+  ...
+# Subtest: the consequence says what a person loses, without softening it
+ok 62 - the consequence says what a person loses, without softening it
+  ---
+  duration_ms: 0.135276
+  type: 'test'
+  ...
+# Subtest: enabling says it restores and widens nothing
+ok 63 - enabling says it restores and widens nothing
+  ---
+  duration_ms: 0.670051
+  type: 'test'
+  ...
+# Subtest: choosing your own account is named before the server refuses it
+ok 64 - choosing your own account is named before the server refuses it
+  ---
+  duration_ms: 0.119783
+  type: 'test'
+  ...
+# Subtest: a permission the system does not name cannot be held
+ok 65 - a permission the system does not name cannot be held
+  ---
+  duration_ms: 0.313701
+  type: 'test'
+  ...
+# Subtest: the contract carries every permission, not only the granted ones
+ok 66 - the contract carries every permission, not only the granted ones
+  ---
+  duration_ms: 0.15969
+  type: 'test'
+  ...
+# Subtest: a title is the first question, shortened where it has to be
+ok 67 - a title is the first question, shortened where it has to be
+  ---
+  duration_ms: 1.598611
+  type: 'test'
+  ...
+# Subtest: how long ago, in words a reader can act on
+ok 68 - how long ago, in words a reader can act on
+  ---
+  duration_ms: 0.461024
+  type: 'test'
+  ...
+# Subtest: an unparseable timestamp renders as nothing, not as now
+ok 69 - an unparseable timestamp renders as nothing, not as now
+  ---
+  duration_ms: 0.177309
+  type: 'test'
+  ...
+# Subtest: a clock ahead of the stored time does not produce a negative age
+ok 70 - a clock ahead of the stored time does not produce a negative age
+  ---
+  duration_ms: 0.17174
+  type: 'test'
+  ...
+# Subtest: an empty list says so rather than rendering nothing
+ok 71 - an empty list says so rather than rendering nothing
+  ---
+  duration_ms: 0.365792
+  type: 'test'
+  ...
+# Subtest: each row carries its title, its age and both actions
+ok 72 - each row carries its title, its age and both actions
+  ---
+  duration_ms: 0.400311
+  type: 'test'
+  ...
+# Subtest: the open conversation is marked for assistive technology, not only in colour
+ok 73 - the open conversation is marked for assistive technology, not only in colour
+  ---
+  duration_ms: 0.41005
+  type: 'test'
+  ...
+# Subtest: a conversation with no title reads as untitled rather than as empty
+ok 74 - a conversation with no title reads as untitled rather than as empty
+  ---
+  duration_ms: 0.190724
+  type: 'test'
+  ...
+# Subtest: a title is escaped everywhere it appears
+ok 75 - a title is escaped everywhere it appears
+  ---
+  duration_ms: 0.487821
+  type: 'test'
+  ...
+# Subtest: an identifier is escaped before it becomes an attribute
+ok 76 - an identifier is escaped before it becomes an attribute
+  ---
+  duration_ms: 0.475929
+  type: 'test'
+  ...
+# Subtest: the list module names no account
+ok 77 - the list module names no account
+  ---
+  duration_ms: 8.349581
+  type: 'test'
+  ...
+# Subtest: a truncated list names the cut and offers the next page
+ok 78 - a truncated list names the cut and offers the next page
+  ---
+  duration_ms: 0.238161
+  type: 'test'
+  ...
+# Subtest: a complete list says nothing about truncation
+ok 79 - a complete list says nothing about truncation
+  ---
+  duration_ms: 0.082909
+  type: 'test'
+  ...
+# Subtest: a typed refusal renders its sentence, not its status code
+ok 80 - a typed refusal renders its sentence, not its status code
+  ---
+  duration_ms: 1.957242
+  type: 'test'
+  ...
+# Subtest: fresh export is persisted only after pinned-key validation
+ok 81 - fresh export is persisted only after pinned-key validation
+  ---
+  duration_ms: 9.20907
+  type: 'test'
+  ...
+# Subtest: missing trust root refuses persistence
+ok 82 - missing trust root refuses persistence
+  ---
+  duration_ms: 0.582902
+  type: 'test'
+  ...
+# Subtest: only cryptographically accepted, current, scoped pack may answer
+ok 83 - only cryptographically accepted, current, scoped pack may answer
+  ---
+  duration_ms: 8.439502
+  type: 'test'
+  ...
+# Subtest: digest or signature tamper fails closed as CORRUPT
+ok 84 - digest or signature tamper fails closed as CORRUPT
+  ---
+  duration_ms: 2.582292
+  type: 'test'
+  ...
+# Subtest: a verifier is mandatory and never taken from the pack itself
+ok 85 - a verifier is mandatory and never taken from the pack itself
+  ---
+  duration_ms: 1.336386
+  type: 'test'
+  ...
+# Subtest: the production Ed25519 verifier accepts only the pinned key and exact payload
+ok 86 - the production Ed25519 verifier accepts only the pinned key and exact payload
+  ---
+  duration_ms: 5.361348
+  type: 'test'
+  ...
+# Subtest: MUDR functional routes are canonical and unique
+ok 87 - MUDR functional routes are canonical and unique
+  ---
+  duration_ms: 1.624571
+  type: 'test'
+  ...
+# Subtest: deep links and conversation links round trip
+ok 88 - deep links and conversation links round trip
+  ---
+  duration_ms: 0.597993
+  type: 'test'
+  ...
+# Subtest: hostile or malformed conversation identifiers do not become routes
+ok 89 - hostile or malformed conversation identifiers do not become routes
+  ---
+  duration_ms: 0.301587
+  type: 'test'
+  ...
+# Subtest: authenticated routes require server-projected permissions and capabilities
+ok 90 - authenticated routes require server-projected permissions and capabilities
+  ---
+  duration_ms: 1.174666
+  type: 'test'
+  ...
+# Subtest: every route view state is explicit and errors require a reason
+ok 91 - every route view state is explicit and errors require a reason
+  ---
+  duration_ms: 0.487118
+  type: 'test'
+  ...
+# Subtest: generated transport contract admits the server bootstrap and dynamic API routes
+ok 92 - generated transport contract admits the server bootstrap and dynamic API routes
+  ---
+  duration_ms: 1.12588
+  type: 'test'
+  ...
+# Subtest: stale endpoints and wrong methods fail before a network request
+ok 93 - stale endpoints and wrong methods fail before a network request
+  ---
+  duration_ms: 1.901946
+  type: 'test'
+  ...
+# Subtest: client release header comes from the generated release contract
+ok 94 - client release header comes from the generated release contract
+  ---
+  duration_ms: 0.18531
+  type: 'test'
+  ...
+# Subtest: the unmutated tree passes, so a failure below means the mutation
+ok 95 - the unmutated tree passes, so a failure below means the mutation
+  ---
+  duration_ms: 101.470354
+  type: 'test'
+  ...
+# Subtest: a syntax error in a module is caught
+ok 96 - a syntax error in a module is caught
+  ---
+  duration_ms: 74.762973
+  type: 'test'
+  ...
+# Subtest: a token written to persistent storage is caught
+ok 97 - a token written to persistent storage is caught
+  ---
+  duration_ms: 77.253384
+  type: 'test'
+  ...
+# Subtest: a bare localStorage reference is caught (sessionStorage is now allowed)
+ok 98 - a bare localStorage reference is caught (sessionStorage is now allowed)
+  ---
+  duration_ms: 174.85114
+  type: 'test'
+  ...
+# Subtest: a console calling fetch behind api.js is caught
+ok 99 - a console calling fetch behind api.js is caught
+  ---
+  duration_ms: 71.725618
+  type: 'test'
+  ...
+# Subtest: a console reading cookies directly is caught
+ok 100 - a console reading cookies directly is caught
+  ---
+  duration_ms: 67.034999
+  type: 'test'
+  ...
+# Subtest: dropping the CSRF header from state-changing requests is caught
+ok 101 - dropping the CSRF header from state-changing requests is caught
+  ---
+  duration_ms: 79.986462
+  type: 'test'
+  ...
+# Subtest: a submit button that ships enabled is caught
+ok 102 - a submit button that ships enabled is caught
+  ---
+  duration_ms: 85.084863
+  type: 'test'
+  ...
+# Subtest: removing a preview button is caught
+ok 103 - removing a preview button is caught
+  ---
+  duration_ms: 78.016565
+  type: 'test'
+  ...
+# Subtest: weakening the preview gate to a boolean is caught
+ok 104 - weakening the preview gate to a boolean is caught
+  ---
+  duration_ms: 74.939041
+  type: 'test'
+  ...
+# Subtest: swallowing the refusal reason is caught
+ok 105 - swallowing the refusal reason is caught
+  ---
+  duration_ms: 85.939041
+  type: 'test'
+  ...
+# Subtest: a hand-written length constraint in the console is caught
+ok 106 - a hand-written length constraint in the console is caught
+  ---
+  duration_ms: 75.971938
+  type: 'test'
+  ...
+# Subtest: a hand-copied role table is caught
+ok 107 - a hand-copied role table is caught
+  ---
+  duration_ms: 71.560231
+  type: 'test'
+  ...
+# Subtest: a hand-edited contract.js is caught
+ok 108 - a hand-edited contract.js is caught
+  ---
+  duration_ms: 72.362063
+  type: 'test'
+  ...
+# Subtest: a form control losing its label is caught
+ok 109 - a form control losing its label is caught
+  ---
+  duration_ms: 82.373307
+  type: 'test'
+  ...
+# Subtest: a second h1 on the console page is caught
+ok 110 - a second h1 on the console page is caught
+  ---
+  duration_ms: 75.687648
+  type: 'test'
+  ...
+# Subtest: a result panel that cannot announce itself is caught
+ok 111 - a result panel that cannot announce itself is caught
+  ---
+  duration_ms: 86.129521
+  type: 'test'
+  ...
+# Subtest: removing the statement that hiding is not access control is caught
+ok 112 - removing the statement that hiding is not access control is caught
+  ---
+  duration_ms: 69.41264
+  type: 'test'
+  ...
+# Subtest: removing the uncalibrated-score disclaimer is caught
+ok 113 - removing the uncalibrated-score disclaimer is caught
+  ---
+  duration_ms: 78.857558
+  type: 'test'
+  ...
+# Subtest: an empty asset is caught
+ok 114 - an empty asset is caught
+  ---
+  duration_ms: 41.757926
+  type: 'test'
+  ...
+# Subtest: a dev proxy that stops stripping the prefix nginx strips is caught
+ok 115 - a dev proxy that stops stripping the prefix nginx strips is caught
+  ---
+  duration_ms: 71.325287
+  type: 'test'
+  ...
+# Subtest: a dev proxy whose prefix drifts from nginx is caught
+ok 116 - a dev proxy whose prefix drifts from nginx is caught
+  ---
+  duration_ms: 73.968156
+  type: 'test'
+  ...
+# Subtest: dropping nginx's prefix strip is caught
+ok 117 - dropping nginx's prefix strip is caught
+  ---
+  duration_ms: 70.663304
+  type: 'test'
+  ...
+# Subtest: a dev server that stops saying it is not the production edge is caught
+ok 118 - a dev server that stops saying it is not the production edge is caught
+  ---
+  duration_ms: 78.76636
+  type: 'test'
+  ...
+# Subtest: a syntax error in the dev server is caught
+ok 119 - a syntax error in the dev server is caught
+  ---
+  duration_ms: 71.105447
+  type: 'test'
+  ...
+# Subtest: a tab without its panel is caught
+ok 120 - a tab without its panel is caught
+  ---
+  duration_ms: 74.776333
+  type: 'test'
+  ...
+# Subtest: a dev proxy that stops stripping hop-by-hop headers is caught
+ok 121 - a dev proxy that stops stripping hop-by-hop headers is caught
+  ---
+  duration_ms: 71.616432
+  type: 'test'
+  ...
+# Subtest: a dev proxy that stops binding loopback is caught
+ok 122 - a dev proxy that stops binding loopback is caught
+  ---
+  duration_ms: 69.271701
+  type: 'test'
+  ...
+# Subtest: merging the verified and declared identities is caught
+ok 123 - merging the verified and declared identities is caught
+  ---
+  duration_ms: 70.294956
+  type: 'test'
+  ...
+# Subtest: styling a declared attribute like a verified one is caught
+ok 124 - styling a declared attribute like a verified one is caught
+  ---
+  duration_ms: 83.340709
+  type: 'test'
+  ...
+# Subtest: dropping the declaration from the query is caught
+ok 125 - dropping the declaration from the query is caught
+  ---
+  duration_ms: 82.204079
+  type: 'test'
+  ...
+# Subtest: the negative control above still edits something
+ok 126 - the negative control above still edits something
+  ---
+  duration_ms: 0.984756
+  type: 'test'
+  ...
+# Subtest: renaming the question variable is not caught
+ok 127 - renaming the question variable is not caught
+  ---
+  duration_ms: 98.663172
+  type: 'test'
+  ...
+# Subtest: a consumer shell that blows the transfer budget is caught
+ok 128 - a consumer shell that blows the transfer budget is caught
+  ---
+  duration_ms: 63.545653
+  type: 'test'
+  ...
+# Subtest: turning plain Enter into a newline-only composer is caught
+ok 129 - turning plain Enter into a newline-only composer is caught
+  ---
+  duration_ms: 72.041527
+  type: 'test'
+  ...
+# Subtest: an error summary that does not take focus is caught
+ok 130 - an error summary that does not take focus is caught
+  ---
+  duration_ms: 74.77858
+  type: 'test'
+  ...
+# Subtest: a hidden section that a display rule can override is caught
+ok 131 - a hidden section that a display rule can override is caught
+  ---
+  duration_ms: 78.345885
+  type: 'test'
+  ...
+# Subtest: a location that sets a header without repeating the CSP is caught
+ok 132 - a location that sets a header without repeating the CSP is caught
+  ---
+  duration_ms: 80.542656
+  type: 'test'
+  ...
+# Subtest: a colour token below AA contrast is caught
+ok 133 - a colour token below AA contrast is caught
+  ---
+  duration_ms: 75.109805
+  type: 'test'
+  ...
+# Subtest: introducing a second palette root is caught
+ok 134 - introducing a second palette root is caught
+  ---
+  duration_ms: 72.305256
+  type: 'test'
+  ...
+# Subtest: design token drift is caught before CSS can silently diverge
+ok 135 - design token drift is caught before CSS can silently diverge
+  ---
+  duration_ms: 62.613817
+  type: 'test'
+  ...
+# Subtest: mobile conversation history no longer ships forced open
+ok 136 - mobile conversation history no longer ships forced open
+  ---
+  duration_ms: 65.274738
+  type: 'test'
+  ...
+# Subtest: removing the sentence that history is not evidence is caught
+ok 137 - removing the sentence that history is not evidence is caught
+  ---
+  duration_ms: 70.997773
+  type: 'test'
+  ...
+# Subtest: rendering a stored turn like a live one is caught
+ok 138 - rendering a stored turn like a live one is caught
+  ---
+  duration_ms: 70.484638
+  type: 'test'
+  ...
+# Subtest: dropping the stored-turn styling is caught even when the class stays
+ok 139 - dropping the stored-turn styling is caught even when the class stays
+  ---
+  duration_ms: 76.353
+  type: 'test'
+  ...
+# Subtest: rendering a payment refusal as an evidence refusal is caught
+ok 140 - rendering a payment refusal as an evidence refusal is caught
+  ---
+  duration_ms: 88.804973
+  type: 'test'
+  ...
+# Subtest: a browser that names an account is caught
+ok 141 - a browser that names an account is caught
+  ---
+  duration_ms: 93.637767
+  type: 'test'
+  ...
+# Subtest: a fetch call added to the conversation module is caught
+ok 142 - a fetch call added to the conversation module is caught
+  ---
+  duration_ms: 79.431091
+  type: 'test'
+  ...
+# Subtest: a stored refusal rendered without its verdict is caught
+ok 143 - a stored refusal rendered without its verdict is caught
+  ---
+  duration_ms: 80.147873
+  type: 'test'
+  ...
+# Subtest: a conversation list truncated in silence is caught
+ok 144 - a conversation list truncated in silence is caught
+  ---
+  duration_ms: 71.758762
+  type: 'test'
+  ...
+# Subtest: a transcript that hides its newest turns in silence is caught
+ok 145 - a transcript that hides its newest turns in silence is caught
+  ---
+  duration_ms: 73.755396
+  type: 'test'
+  ...
+# Subtest: removing the show-more control is caught
+ok 146 - removing the show-more control is caught
+  ---
+  duration_ms: 75.858866
+  type: 'test'
+  ...
+# Subtest: an accounts console without its preview gate is caught
+ok 147 - an accounts console without its preview gate is caught
+  ---
+  duration_ms: 74.348949
+  type: 'test'
+  ...
+# Subtest: removing the accounts console surface is caught
+ok 148 - removing the accounts console surface is caught
+  ---
+  duration_ms: 69.713627
+  type: 'test'
+  ...
+# Subtest: a module imported by app but missing from the SW cache is caught
+ok 149 - a module imported by app but missing from the SW cache is caught
+  ---
+  duration_ms: 70.747765
+  type: 'test'
+  ...
+# Subtest: removing the request timeout is caught
+ok 150 - removing the request timeout is caught
+  ---
+  duration_ms: 74.718421
+  type: 'test'
+  ...
+# Subtest: rendering a lost link as a generic error is caught
+ok 151 - rendering a lost link as a generic error is caught
+  ---
+  duration_ms: 81.739009
+  type: 'test'
+  ...
+# Subtest: localStorage is still forbidden even though sessionStorage is now allowed
+ok 152 - localStorage is still forbidden even though sessionStorage is now allowed
+  ---
+  duration_ms: 73.564677
+  type: 'test'
+  ...
+# Subtest: a restored declaration trusted without re-validation is caught
+ok 153 - a restored declaration trusted without re-validation is caught
+  ---
+  duration_ms: 73.671336
+  type: 'test'
+  ...
+# Subtest: removing the LiqPay checkout form origin from CSP is caught
+ok 154 - removing the LiqPay checkout form origin from CSP is caught
+  ---
+  duration_ms: 78.388415
+  type: 'test'
+  ...
+# Subtest: removing server-derived inference status is caught
+ok 155 - removing server-derived inference status is caught
+  ---
+  duration_ms: 83.453589
+  type: 'test'
+  ...
+# Subtest: dropping HSTS from a header-carrying location is caught
+ok 156 - dropping HSTS from a header-carrying location is caught
+  ---
+  duration_ms: 81.737888
+  type: 'test'
+  ...
+# Subtest: a substrate that is not the sRGB zero is caught
+ok 157 - a substrate that is not the sRGB zero is caught
+  ---
+  duration_ms: 70.303938
+  type: 'test'
+  ...
+# Subtest: lighting the substrate by accident is caught
+ok 158 - lighting the substrate by accident is caught
+  ---
+  duration_ms: 83.508713
+  type: 'test'
+  ...
+1..158
+# tests 158
+# suites 0
+# pass 158
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4965.078589
