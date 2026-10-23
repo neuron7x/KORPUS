@@ -9,14 +9,13 @@ import re
 import stat
 import unicodedata
 import zipfile
+from importlib import import_module
 from pathlib import Path, PurePosixPath
 
 _DRIVE = re.compile(r"^[A-Za-z]:")
 _WINDOWS_DEVICES = {"CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"} | {
     f"{prefix}{suffix}" for prefix in ("COM", "LPT") for suffix in "123456789¹²³"
 }
-from importlib import import_module
-
 _prefix = f"{__package__}." if __package__ else ""
 resource_failures = import_module(_prefix + "zip_resource_policy").resource_failures
 name_length_failure = import_module(_prefix + "archive_name_limits").name_length_failure
