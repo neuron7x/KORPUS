@@ -19,12 +19,12 @@ from korpus.application.answer_analysis import (
     unsourced_quotes,
 )
 from korpus.application.answer_audit import append_answer_audit
-from korpus.application.answer_retrieval_gate import apply_retrieval_gate
 from korpus.application.answer_request_snapshot import (
     RequestBoundRetriever,
     retrieval_failure_reason,
     token_is_stale,
 )
+from korpus.application.answer_retrieval_gate import apply_retrieval_gate
 from korpus.application.composition import AnswerComposer, Composition, compose_answer
 from korpus.application.corpus_snapshot import (
     CorpusConsistencyError,
