@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2149,
-  "root_sha256": "566b5e32596f65871d2819a46479bc567566e9829896d74d5689d4a7a0fbf5f1",
+  "root_sha256": "6c06f7385347cdb407ff0efbf9b78b465df1f1804b728ba2f4928807465a2edf",
   "files": [
     {
       "path": ".dockerignore",
@@ -8335,8 +8335,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 761895,
-      "sha256": "e4931a4f75975598b3db33972d93e4337b7121d11ae956fea343b3325f087f70",
+      "bytes": 762512,
+      "sha256": "e2bde18ffc5ca0d949dba0f9a95ba2af3c63e97686670b1d1a089866860a8e6f",
       "mode": "0644"
     },
     {
@@ -12891,7 +12891,7 @@
       "path": "scripts/zip_safety.py",
       "bytes": 5635,
       "sha256": "43b3087bad93d7211b360fb7dbe4ee761207d8a46e5e016c88176acabbbf6d50",
-      "mode": "0644"
+      "mode": "0755"
     },
     {
       "path": "source-sbom.cdx.json",
