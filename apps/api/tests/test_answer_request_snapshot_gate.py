@@ -153,6 +153,7 @@ def test_context_token_is_removed_after_delegate_exception() -> None:
     assert reader.captures == 2
     assert token_after.state_epoch == 8
 
+
 def test_aborted_cache_write_cannot_poison_aba_reversion() -> None:
     reader, repo, identity, corpora, as_of, token_a = _fixture()
 
@@ -183,4 +184,3 @@ def test_aborted_cache_write_cannot_poison_aba_reversion() -> None:
     bound_again = RequestBoundRetriever(repo, cached, token_a_again)  # type: ignore[arg-type]
     assert bound_again.search(identity, "same question", corpora, as_of) == ["evidence-from-A"]
     assert delegate.calls == 2
-
