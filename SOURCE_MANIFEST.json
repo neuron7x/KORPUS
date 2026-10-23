@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2149,
-  "root_sha256": "c63a0f6e5c11438fc3427cf73eebde5ce0d3d7f035176544a76cf23b0d0e2f15",
+  "root_sha256": "566b5e32596f65871d2819a46479bc567566e9829896d74d5689d4a7a0fbf5f1",
   "files": [
     {
       "path": ".dockerignore",
@@ -5593,8 +5593,8 @@
     },
     {
       "path": "apps/api/tests/test_safe_archive_extract_atomicity.py",
-      "bytes": 3734,
-      "sha256": "c216be95ba223d880db04c40496bae4d11d9e33147079ab9519d06a7c1b33902",
+      "bytes": 3730,
+      "sha256": "57add3ea775973d1e77a247f803bda23e8e4545d9000623a2c52f7c45e79c90d",
       "mode": "0644"
     },
     {
@@ -10675,8 +10675,8 @@
     },
     {
       "path": "scripts/archive_atomic_publish.py",
-      "bytes": 1580,
-      "sha256": "5275db5546d24f6bb4731ab2c67d296ef7796e49370f983fda683c391a48de1c",
+      "bytes": 1526,
+      "sha256": "33e92c0c443fe137cd434541ab5ab9a01e94c23f041962d5ad1e1954cb667638",
       "mode": "0644"
     },
     {
@@ -12439,8 +12439,8 @@
     },
     {
       "path": "scripts/safe_archive_extract.py",
-      "bytes": 692,
-      "sha256": "53376fc88064f81c148d1ea32d7e536e1fc21a173379d9d3a35db73154b48ac4",
+      "bytes": 728,
+      "sha256": "433622a10bfde73e9906109f2530c3d8b72d7654f3a7fa5e760e2e5d3a2cd248",
       "mode": "0644"
     },
     {
