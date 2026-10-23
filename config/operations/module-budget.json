@@ -6536,6 +6536,24 @@
       "proof_lines": 0,
       "reason": "v0.9.4 package hardening: pre-extraction ZIP resource admission; exact initial ceiling"
     },
+    "scripts/archive_atomic_publish.py": {
+      "lines": 42,
+      "max_complexity": 5,
+      "max_function_args": 2,
+      "max_function_lines": 14,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "2026-10-23 issue #91: measured initial ratchet for failure-atomic staged ZIP publication"
+    },
+    "scripts/archive_name_limits.py": {
+      "lines": 19,
+      "max_complexity": 6,
+      "max_function_args": 1,
+      "max_function_lines": 11,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "2026-10-23 issue #91: measured initial ratchet for UTF-8 ZIP path-length admission"
+    },
     "scripts/zip_safety.py": {
       "lines": 153,
       "max_complexity": 8,
