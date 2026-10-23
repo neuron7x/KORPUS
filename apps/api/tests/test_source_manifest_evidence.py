@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -64,6 +65,48 @@ def _fixture(tmp_path: Path) -> dict[str, object]:
 def test_canonical_gitless_source_manifest_passes(tmp_path: Path) -> None:
     _fixture(tmp_path)
     assert VERIFY.verify(tmp_path)["valid"] is True
+
+
+def test_source_manifest_file_symlink_is_refused(tmp_path: Path) -> None:
+    root = tmp_path / "snapshot"
+    root.mkdir()
+    _fixture(root)
+    manifest, outside = root / "SOURCE_MANIFEST.json", tmp_path / "outside-manifest.json"
+    manifest.replace(outside)
+    manifest.symlink_to(outside)
+
+    assert VERIFY.verify(root)["valid"] is False
+
+
+def test_tracked_source_symlink_with_matching_target_is_refused(tmp_path: Path) -> None:
+    root = tmp_path / "repository"
+    root.mkdir()
+    outside = tmp_path / "outside.py"
+    outside.write_text("x", encoding="utf-8")
+    (root / "source.py").symlink_to(outside)
+    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    subprocess.run(["git", "-C", str(root), "add", "source.py"], check=True)
+    _write_manifest(root, [file_record(outside, Path("source.py"), source=True)])
+
+    assert VERIFY.verify(root)["valid"] is False
+
+
+def test_tracked_source_beneath_symlinked_parent_is_refused(tmp_path: Path) -> None:
+    root = tmp_path / "repository"
+    source = root / "src/source.py"
+    source.parent.mkdir(parents=True)
+    source.write_text("x", encoding="utf-8")
+    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    subprocess.run(["git", "-C", str(root), "add", "src/source.py"], check=True)
+    _write_manifest(root, [file_record(source, Path("src/source.py"), source=True)])
+    outside = tmp_path / "outside-src"
+    outside.mkdir()
+    (outside / "source.py").write_text("x", encoding="utf-8")
+    source.unlink()
+    source.parent.rmdir()
+    source.parent.symlink_to(outside, target_is_directory=True)
+
+    assert VERIFY.verify(root)["valid"] is False
 
 
 def test_duplicate_records_with_recalculated_valid_root_are_refused(tmp_path: Path) -> None:

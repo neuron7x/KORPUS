@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
-"""Promote successful assurance outputs into content-hashed release evidence."""
-
 from __future__ import annotations
 
 import hashlib
 import json
 import os
-import shutil
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from evidence_source_binding import evidence_source_binding_failure
-from release_identity import release_tag
-from source_digest import source_tree_digest
-
 ROOT = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "apps/api/src")]
+from assurance_publication import publish  # noqa: E402
+from evidence_source_binding import evidence_source_binding_failure  # noqa: E402
+from korpus.application.final_release_evidence import strict_signed_json_object  # noqa: E402
+from path_admission import regular_file, symlink_free  # noqa: E402
+from release_identity import release_tag  # noqa: E402
+from source_digest import source_tree_digest  # noqa: E402
+
 VAR = ROOT / "var"
 REPORTS = ROOT / "reports"
 SOURCES = {
@@ -39,12 +39,48 @@ def sha256(path: Path) -> str:
 
 
 def load_json(path: Path) -> dict[str, object]:
-    if not path.is_file():
-        raise SystemExit(f"missing assurance output: {path}")
-    value = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict):
-        raise SystemExit(f"assurance output is not an object: {path}")
-    return value
+    if not regular_file(path):
+        raise SystemExit(f"missing or symlinked assurance output: {path}")
+    return dict(strict_signed_json_object(path.read_bytes(), f"assurance output {path}"))
+
+
+def limitations_valid(value: object) -> bool:
+    return isinstance(value, list) and all(isinstance(item, str) for item in value)
+
+
+def snapshot_contract_valid(snapshot: object) -> bool:
+    if not isinstance(snapshot, dict):
+        return False
+    records = snapshot.get("records")
+    return (
+        set(snapshot) == {"schema", "release", "status", "records", "limitations"}
+        and snapshot.get("schema") == "korpus.assurance-snapshot.v1"
+        and limitations_valid(snapshot.get("limitations"))
+        and isinstance(records, list)
+        and all(
+            isinstance(record, dict)
+            and set(record) == {"path", "bytes", "sha256"}
+            and isinstance(record.get("path"), str)
+            and type(record.get("bytes")) is int
+            and isinstance(record.get("sha256"), str)
+            for record in records
+        )
+    )
+
+
+def complete_snapshot_records(value: object) -> list[dict[str, object]]:
+    records = value if isinstance(value, list) else []
+    expected = {f"reports/{name}" for name in (*SOURCES, "RESEARCH_ASSURANCE_REPORT.json")}
+    paths = {str(item.get("path", "")) for item in records if isinstance(item, dict)}
+    if len(paths) != len(records) or paths != expected:
+        return []
+    valid = all(
+        regular_file(path := ROOT / str(item["path"]))
+        and path.stat().st_size == item.get("bytes")
+        and hashlib.sha256(path.read_bytes()).hexdigest() == item.get("sha256")
+        for item in records
+    )
+    return records if valid else []
 
 
 def assemble_ci_report() -> dict[str, object]:
@@ -67,8 +103,6 @@ def assemble_ci_report() -> dict[str, object]:
         and suite.attrib.get("errors", "0") == "0"
         and eval_report.get("status_accuracy") == 1.0
         and eval_report.get("leakage_failures") == 0
-        # Over the whole catalogue: an INVALID mutant leaves mutation_score's
-        # denominator and would otherwise keep the figure at 1.000 (ADR-0008).
         and mutation_report.get("mutation_score_over_catalogue") == 1.0
         and migration_report.get("table_set_match") is True
         and migration_report.get("sqlite_fts5_present") is True
@@ -97,22 +131,10 @@ def assemble_ci_report() -> dict[str, object]:
         "migration": migration_report,
         "scale": scale_report,
         "operational": operational_report,
-        "limitations": [
-            (
-                "The package job runs only after required CI gates succeed; "
-                "their logs remain CI artifacts."
-            ),
-            "Synthetic evaluation does not authorize real restricted corpus deployment.",
-        ],
+        "limitations": ["Package gate logs stay in CI.", "Restricted deployment is unauthorized."],
     }
 
 
-#: The var artifacts the operational gate hashed, keyed by the name it stored the digest
-#: under in `evidence_sha256`. Promotion re-hashes each and refuses on any mismatch: the
-#: gate can only have passed over the bytes it hashed, and promoting a different file
-#: beside that PASS is the exact "green next to a stale artifact" this project exists to
-#: refuse. Not a paranoia check — it caught a FAIL operational-gate.json sitting in var
-#: while a PASS assurance was assembled from CI artifacts (2026-08-08).
 _GATE_HASHED_EVIDENCE = {
     "eval": "eval-report.json",
     "mutation": "mutation-report.json",
@@ -124,8 +146,6 @@ _GATE_HASHED_EVIDENCE = {
 def _verify_evidence_matches_the_gate() -> None:
     gate = VAR / "operational-gate.json"
     if not gate.is_file():
-        # No gate ran — assemble_ci_report already refuses a non-PASS assurance, and a
-        # missing gate is a non-PASS. Nothing to cross-check here.
         return
     recorded = load_json(gate).get("evidence_sha256")
     if not isinstance(recorded, dict):
@@ -148,22 +168,6 @@ def _verify_evidence_matches_the_gate() -> None:
 
 
 def _verify_evidence_source_is_committed(assurance: dict[str, object]) -> None:
-    """Просування доказу, чиє джерело не закомічене, — це доказ про недосяжний стан.
-
-    Перша версія цієї перевірки читала `provenance.source_digest` і мовчки
-    поверталась, коли поля немає. Звіт про забезпечення НЕ МАЄ такого поля: у нього
-    `evidence_source_sha256` і `provenance` як РЯДОК. Тобто перевірка була досяжна,
-    зелена й не міряла нічого — вада, яку показав лише негативний контроль на
-    справжньому гейті, а не юніт-тест.
-
-    Другий урок був у ТІМ, ЩО порівнювати. У дереві два різні дайджести джерела:
-    `evidence_paths` (двадцять оголошених доказових шляхів) і `tracked_tree` (усе
-    відстежене мінус згенероване). Порівняти один з другим — рівно та помилка, про
-    яку попереджають обидва модулі: вирок «дерево змінилось» там, де порівняли дві
-    різні міри. Тому спершу звіряється ОБЛАСТЬ, і лише потім число.
-
-    Невідома область і відсутній дайджест — ВІДМОВА, не пропуск.
-    """
     scope = assurance.get("digest_scope")
     claimed = assurance.get("evidence_source_sha256")
     if claimed is None:
@@ -186,11 +190,7 @@ def _verify_evidence_source_is_committed(assurance: dict[str, object]) -> None:
     elif scope == "evidence_paths":
         failure = evidence_source_binding_failure(claimed, root=ROOT)
     else:
-        raise SystemExit(
-            f"assurance report declares an unknown digest scope {scope!r}: "
-            "two different source digests exist in this tree and comparing them "
-            "reports a changed tree when the tree did not change"
-        )
+        raise SystemExit(f"assurance report declares an unknown digest scope {scope!r}")
     if failure is not None:
         raise SystemExit(
             f"{failure}: доказ описує стан, якого немає в жодному коміті, "
@@ -203,14 +203,17 @@ def main() -> int:
     assurance = load_json(assurance_path) if assurance_path.is_file() else assemble_ci_report()
     if assurance.get("status") != "PASS":
         raise SystemExit("refusing to snapshot a failing assurance run")
+    limitations = assurance.get("limitations", [])
+    if not limitations_valid(limitations):
+        raise SystemExit("assurance limitations must be a list of strings")
     _verify_evidence_matches_the_gate()
     _verify_evidence_source_is_committed(assurance)
 
+    if not symlink_free(REPORTS):
+        raise SystemExit("assurance reports directory must not be a symlink")
     REPORTS.mkdir(exist_ok=True)
     assurance_path = REPORTS / "RESEARCH_ASSURANCE_REPORT.json"
-    assurance_path.write_text(
-        json.dumps(assurance, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
+    publish(assurance_path, (json.dumps(assurance, ensure_ascii=False, indent=2) + "\n").encode())
     records: list[dict[str, object]] = [
         {
             "path": assurance_path.relative_to(ROOT).as_posix(),
@@ -220,10 +223,10 @@ def main() -> int:
     ]
     for destination_name, source_name in SOURCES.items():
         source = VAR / source_name
-        if not source.is_file():
+        if not regular_file(source):
             raise SystemExit(f"missing assurance output: {source}")
         destination = REPORTS / destination_name
-        shutil.copyfile(source, destination)
+        publish(destination, source.read_bytes())
         records.append(
             {
                 "path": destination.relative_to(ROOT).as_posix(),
@@ -237,10 +240,10 @@ def main() -> int:
         "release": os.getenv("KORPUS_RELEASE_VERSION", release_tag()),
         "status": "PASS",
         "records": records,
-        "limitations": assurance.get("limitations", []),
+        "limitations": limitations,
     }
     index_path = REPORTS / "ASSURANCE_SNAPSHOT.json"
-    index_path.write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    publish(index_path, (json.dumps(index, ensure_ascii=False, indent=2) + "\n").encode())
     print(json.dumps(index, ensure_ascii=False, indent=2))
     return 0
 

@@ -1807,13 +1807,14 @@ pec-contextual-benchmark:
 .PHONY: regression-shard regression-shard-merge backend-report release-evidence
 REGRESSION_SHARDS ?= 24
 REGRESSION_TIMEOUT ?= 240
+REGRESSION_SHARD_DIR ?= reports/regression/shards
 regression-shard:
 	test -n "$(SHARD_INDEX)"
-	mkdir -p reports/regression/shards
-	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/run_regression_shards.py run --shard-index "$(SHARD_INDEX)" --shard-count "$(REGRESSION_SHARDS)" --timeout-seconds "$(REGRESSION_TIMEOUT)" --out "reports/regression/shards/shard-$(SHARD_INDEX).json"
+	mkdir -p "$(REGRESSION_SHARD_DIR)"
+	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/run_regression_shards.py run --shard-index "$(SHARD_INDEX)" --shard-count "$(REGRESSION_SHARDS)" --timeout-seconds "$(REGRESSION_TIMEOUT)" --out "$(REGRESSION_SHARD_DIR)/shard-$(SHARD_INDEX).json"
 
 regression-shard-merge:
-	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/run_regression_shards.py merge --out reports/regression/FULL_REGRESSION_CURRENT.json reports/regression/shards/shard-*.json
+	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/run_regression_shards.py merge --out reports/regression/FULL_REGRESSION_CURRENT.json "$(REGRESSION_SHARD_DIR)"/shard-*.json
 
 # The whole sharded regression, merged, and projected into the report the preflight reads.
 # `FULL_BACKEND_REPORT.json` had no producer: the copy in the tree cites a path from an
@@ -1851,12 +1852,19 @@ release-evidence:
 	$(MAKE) local-production-preflight PY=$(PY)
 
 backend-report:
-	# Receipts are tracked evidence and therefore part of repository self-inspection.
-	# Overwrite them in place: deleting the directory before pytest makes the
-	# repository-completeness requirement fail inside every shard.
-	mkdir -p reports/regression/shards
-	for index in $$(seq 0 $$(( $(REGRESSION_SHARDS) - 1 ))); do \
-	  $(MAKE) regression-shard SHARD_INDEX=$$index PY=$(PY) || exit 1; \
-	done
-	$(MAKE) regression-shard-merge PY=$(PY)
+	# Keep tracked receipts unchanged while shards inspect the source checkout.
+	# A failed worker leaves prior evidence intact; each invocation owns its staging directory.
+	mkdir -p var
+	@set -eu; \
+	  test "$(REGRESSION_SHARDS)" -ge 1; \
+	  stage=$$(mktemp -d var/regression-shards.XXXXXX); \
+	  trap 'rm -rf "$$stage"' EXIT; \
+	  trap 'exit 1' HUP INT TERM; \
+	  for index in $$(seq 0 $$(( $(REGRESSION_SHARDS) - 1 ))); do \
+	    $(MAKE) regression-shard SHARD_INDEX=$$index REGRESSION_SHARD_DIR="$$stage" PY=$(PY); \
+	  done; \
+	  rm -rf reports/regression/shards; \
+	  mkdir -p reports/regression/shards; \
+	  mv "$$stage"/* reports/regression/shards/
+	$(MAKE) regression-shard-merge REGRESSION_SHARD_DIR=reports/regression/shards PY=$(PY)
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/publish_backend_report.py

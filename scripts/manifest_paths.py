@@ -4,15 +4,11 @@ import subprocess
 from collections.abc import Callable
 from pathlib import Path
 
+from trusted_system_tools import git_environment, git_executable
+
 EXCLUDED_PARTS = {".git", "dist", "var", "node_modules", ".venv", "__pycache__", ".pytest_cache"}
 SOURCE_GENERATED_PREFIXES = {
     ("reports",),
-    # Журнал вироків — запис ПРО дерево, у тому самому класі, що reports/. Поки він був
-    # у складі digest'а, кожен дописаний вирок зсував source_tree_sha256 і робив
-    # `handoff --require-bound` STALE: звіт описував дерево, яке щойно перестало бути цим.
-    # Дві сесії за добу по черзі втрачали 15-хвилинні прогони на цьому, і вигравав той,
-    # хто писав останнім, а не той, хто правий. Твердження про систему не сміє мінятися
-    # разом із самою системою — інакше воно не може її описувати.
     (".verdict-ledger.jsonl",),
     ("handoff", "evidence"),
     ("evidence",),
@@ -35,27 +31,25 @@ def source_included(relative: Path) -> bool:
         relative.name not in LOCAL_EXCLUDED_FILES,
         not relative.name.startswith(".coverage."),
         relative.name not in MANIFEST_NAMES,
-        relative.suffix != ".bundle",
         not (relative.parts[:2] == ("infra", "secrets") and relative.suffix == ".txt"),
     )
     return all(checks)
 
 
+def _git(root: Path, *args: str) -> bytes:
+    executable = git_executable()
+    if executable is None:
+        raise FileNotFoundError("trusted Git executable unavailable")
+    command = [executable, "--no-replace-objects", *args]
+    environment = git_environment()
+    return subprocess.check_output(command, cwd=root, env=environment, stderr=subprocess.PIPE)
+
+
 def _git_tracked_paths(root: Path) -> list[Path] | None:
     try:
-        probe = subprocess.run(
-            ["git", "-C", str(root), "rev-parse", "--is-inside-work-tree"],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        if probe.stdout.strip() != "true":
+        if _git(root, "rev-parse", "--show-toplevel").decode().strip() != str(root.resolve()):
             return None
-        output = subprocess.run(
-            ["git", "-C", str(root), "ls-files", "-z"],
-            check=True,
-            capture_output=True,
-        ).stdout
+        output = _git(root, "ls-files", "-z")
     except (FileNotFoundError, subprocess.CalledProcessError):
         return None
     paths = [Path(item.decode("utf-8")) for item in output.split(b"\0") if item]
@@ -74,12 +68,16 @@ def _walk_files(root: Path, predicate: Callable[[Path], bool]) -> list[Path]:
 
 
 def source_paths(root: Path) -> list[Path]:
-    """Committed/staged source paths in a worktree; source paths in a gitless snapshot."""
-    return _git_tracked_paths(root) or _walk_files(root, source_included)
+    tracked = _git_tracked_paths(root)
+    if tracked is not None:
+        return tracked
+    marker = root / ".git"
+    if marker.exists() or marker.is_symlink():
+        raise RuntimeError("git metadata is present but the Git tree cannot be verified")
+    return _walk_files(root, source_included)
 
 
 def distribution_paths(root: Path) -> list[Path]:
-    """Exact deliverable paths, excluding local/runtime debris and the manifest itself."""
     excluded = {".git", "node_modules", ".venv", "__pycache__", ".pytest_cache"}
     return _walk_files(
         root,

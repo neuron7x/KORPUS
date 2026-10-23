@@ -17,6 +17,9 @@
 
 from __future__ import annotations
 
+import hashlib
+import importlib.util
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -30,6 +33,7 @@ from evidence_source_binding import (  # noqa: E402
     committed_evidence_source_digest,
     evidence_source_binding_failure,
 )
+from snapshot_assurance import SOURCES  # noqa: E402
 
 
 def _evidence_surface_is_clean() -> bool:
@@ -93,3 +97,254 @@ def test_an_unreadable_ref_is_a_refusal_not_a_pass() -> None:
         evidence_source_binding_failure("a" * 64, ref="refs/heads/гілка-якої-немає", root=ROOT)
         == "assurance evidence source digest cannot be verified against committed HEAD"
     )
+
+
+def test_path_git_substitution_cannot_forge_committed_source(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    marker = tmp_path / "fake-git-invoked"
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    fake_git = fake_bin / "git"
+    fake_git.write_text(
+        f"#!/bin/sh\nprintf '%s' invoked > {marker}\nexit 0\n",
+        encoding="utf-8",
+    )
+    fake_git.chmod(0o755)
+    expected = committed_evidence_source_digest(root=ROOT)
+
+    monkeypatch.setenv("PATH", str(fake_bin))
+
+    assert committed_evidence_source_digest(root=ROOT) == expected
+    assert not marker.exists()
+
+
+def _release_verifier():
+    script = ROOT / "scripts" / "verify_release_evidence.py"
+    spec = importlib.util.spec_from_file_location("verify_release_evidence_binding_test", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _release_fixture(tmp_path: Path, evidence_digest: str) -> Path:
+    reports = tmp_path / "reports"
+    reports.mkdir()
+    assurance_path = reports / "RESEARCH_ASSURANCE_REPORT.json"
+    assurance_path.write_text(
+        json.dumps(
+            {
+                "status": "PASS",
+                "source_tree_sha256": "tracked-head",
+                "evidence_source_sha256": evidence_digest,
+            }
+        ),
+        encoding="utf-8",
+    )
+    records = []
+    for name in (*SOURCES, "RESEARCH_ASSURANCE_REPORT.json"):
+        path = reports / name
+        if not path.is_file():
+            path.write_bytes(f"fixture:{name}\n".encode())
+        content = path.read_bytes()
+        records.append(
+            {
+                "path": path.relative_to(tmp_path).as_posix(),
+                "bytes": len(content),
+                "sha256": hashlib.sha256(content).hexdigest(),
+            }
+        )
+    (reports / "ASSURANCE_SNAPSHOT.json").write_text(
+        json.dumps(
+            {
+                "schema": "korpus.assurance-snapshot.v1",
+                "status": "PASS",
+                "release": "v-test",
+                "records": records,
+                "limitations": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return reports
+
+
+def test_release_verifier_rejects_evidence_source_mismatch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    monkeypatch.setattr(module, "REPORTS", _release_fixture(tmp_path, "a" * 64))
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setitem(module.complete_snapshot_records.__globals__, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "release_tag", lambda: "v-test")
+    monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
+    monkeypatch.setattr(
+        module,
+        "evidence_source_binding_failure",
+        lambda _claimed: "assurance evidence source digest does not match committed HEAD",
+    )
+    assert module.main() == 1
+
+
+def test_release_verifier_accepts_matching_evidence_source_binding(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    monkeypatch.setattr(module, "REPORTS", _release_fixture(tmp_path, "b" * 64))
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setitem(module.complete_snapshot_records.__globals__, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "release_tag", lambda: "v-test")
+    monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
+    monkeypatch.setattr(module, "evidence_source_binding_failure", lambda _claimed: None)
+    assert module.main() == 0
+
+
+def test_release_verifier_rejects_an_empty_snapshot_record_set(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    snapshot = reports / "ASSURANCE_SNAPSHOT.json"
+    payload = json.loads(snapshot.read_text(encoding="utf-8"))
+    payload["records"] = []
+    snapshot.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(module, "REPORTS", reports)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setitem(module.complete_snapshot_records.__globals__, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "release_tag", lambda: "v-test")
+    monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
+    monkeypatch.setattr(module, "evidence_source_binding_failure", lambda _claimed: None)
+    assert module.main() == 1
+
+
+@pytest.mark.parametrize(
+    ("mutation", "value"),
+    [
+        ("schema", "wrong.schema"),
+        ("bytes", True),
+        ("unexpected", "field"),
+        ("limitations", True),
+        ("limitations", "not-a-list"),
+        ("limitations", {}),
+        ("limitations", [1]),
+    ],
+)
+def test_release_verifier_rejects_malformed_snapshot_contract(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mutation: str, value: object
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    snapshot = reports / "ASSURANCE_SNAPSHOT.json"
+    payload = json.loads(snapshot.read_text(encoding="utf-8"))
+    target = payload if mutation in {"schema", "limitations"} else payload["records"][0]
+    target[mutation] = value
+    snapshot.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(module, "REPORTS", reports)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setitem(module.complete_snapshot_records.__globals__, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "release_tag", lambda: "v-test")
+    monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
+    monkeypatch.setattr(module, "evidence_source_binding_failure", lambda _claimed: None)
+    assert module.main() == 1
+
+
+def test_release_verifier_rejects_duplicate_snapshot_keys(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    snapshot = reports / "ASSURANCE_SNAPSHOT.json"
+    text = snapshot.read_text(encoding="utf-8")
+    snapshot.write_text(
+        text.replace('"schema":', '"schema": "wrong.schema", "schema":', 1),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(module, "REPORTS", reports)
+    with pytest.raises(ValueError, match="duplicate key"):
+        module.main()
+
+
+def test_release_verifier_rejects_snapshot_limitation_omission(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    assurance = reports / "RESEARCH_ASSURANCE_REPORT.json"
+    payload = json.loads(assurance.read_text(encoding="utf-8"))
+    payload["limitations"] = ["DO NOT DEPLOY"]
+    assurance.write_text(json.dumps(payload), encoding="utf-8")
+    snapshot = reports / "ASSURANCE_SNAPSHOT.json"
+    snapshot_payload = json.loads(snapshot.read_text(encoding="utf-8"))
+    for record in snapshot_payload["records"]:
+        if record["path"] == "reports/RESEARCH_ASSURANCE_REPORT.json":
+            content = assurance.read_bytes()
+            record.update(bytes=len(content), sha256=hashlib.sha256(content).hexdigest())
+    snapshot.write_text(json.dumps(snapshot_payload), encoding="utf-8")
+    monkeypatch.setattr(module, "REPORTS", reports)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setitem(module.complete_snapshot_records.__globals__, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "release_tag", lambda: "v-test")
+    monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
+    monkeypatch.setattr(module, "evidence_source_binding_failure", lambda _claimed: None)
+    assert module.main() == 1
+
+
+def test_release_verifier_rejects_symlinked_snapshot_record(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    report = reports / "EVAL_REPORT.json"
+    outside = tmp_path / "outside-eval.json"
+    outside.write_bytes(report.read_bytes())
+    report.unlink()
+    report.symlink_to(outside)
+    monkeypatch.setattr(module, "REPORTS", reports)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setitem(module.complete_snapshot_records.__globals__, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "release_tag", lambda: "v-test")
+    monkeypatch.setattr(module, "source_tree_digest", lambda _ref="HEAD": "tracked-head")
+    monkeypatch.setattr(module, "evidence_source_binding_failure", lambda _claimed: None)
+    assert module.main() == 1
+
+
+def test_release_verifier_rejects_symlinked_snapshot_document(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    snapshot = reports / "ASSURANCE_SNAPSHOT.json"
+    outside = tmp_path / "outside-snapshot.json"
+    snapshot.rename(outside)
+    snapshot.symlink_to(outside)
+    monkeypatch.setattr(module, "REPORTS", reports)
+    with pytest.raises(SystemExit, match="symlinked assurance output"):
+        module.main()
+
+
+def test_release_verifier_rejects_symlinked_reports_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    outside = tmp_path / "outside-reports"
+    reports.rename(outside)
+    reports.symlink_to(outside, target_is_directory=True)
+    monkeypatch.setattr(module, "REPORTS", reports)
+    with pytest.raises(SystemExit, match="symlinked assurance output"):
+        module.main()
+
+
+@pytest.mark.parametrize("nonfinite", ("NaN", "1e9999", "-1e9999"))
+def test_release_verifier_rejects_nonfinite_json(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, nonfinite: str
+) -> None:
+    module = _release_verifier()
+    reports = _release_fixture(tmp_path, "b" * 64)
+    assurance = reports / "RESEARCH_ASSURANCE_REPORT.json"
+    text = assurance.read_text(encoding="utf-8")
+    assurance.write_text(text.replace('"status":', f'"metric": {nonfinite}, "status":', 1))
+    monkeypatch.setattr(module, "REPORTS", reports)
+    with pytest.raises(ValueError, match="non-finite"):
+        module.main()

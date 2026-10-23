@@ -8,6 +8,10 @@ import sys
 import zipfile
 from pathlib import Path
 
+import pytest
+
+from scripts.manifest_lib.integrity import manifest_root
+
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -31,20 +35,32 @@ def _safety_module():
     return module
 
 
+def _complete(manifest: dict[str, object]) -> dict[str, object]:
+    records = manifest["files"]
+    assert isinstance(records, list)
+    return {
+        **manifest,
+        "manifest_self_excluded": True,
+        "file_count": len(records),
+        "root_sha256": manifest_root(records),
+    }
+
+
 def _manifest(payload: bytes) -> bytes:
+    record = {
+        "path": "payload.txt",
+        "bytes": len(payload),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "mode": "0644",
+    }
     return json.dumps(
-        {
-            "schema": "korpus.distribution-manifest.v2",
-            "kind": "distribution",
-            "files": [
-                {
-                    "path": "payload.txt",
-                    "bytes": len(payload),
-                    "sha256": hashlib.sha256(payload).hexdigest(),
-                    "mode": "0644",
-                }
-            ],
-        }
+        _complete(
+            {
+                "schema": "korpus.distribution-manifest.v2",
+                "kind": "distribution",
+                "files": [record],
+            }
+        )
     ).encode()
 
 
@@ -70,6 +86,56 @@ def test_valid_archive_remains_accepted(tmp_path: Path) -> None:
     assert count == 2
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("kind", "wrong-kind"),
+        ("manifest_self_excluded", False),
+        ("file_count", 999),
+        ("file_count", True),
+        ("root_sha256", "0" * 64),
+    ],
+)
+def test_invalid_manifest_header_is_rejected(tmp_path: Path, field: str, value: object) -> None:
+    payload = b"safe\n"
+    manifest = json.loads(_manifest(payload))
+    manifest[field] = value
+    archive = tmp_path / f"invalid-{field}.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(_info("payload.txt"), payload)
+        zf.writestr(_info("DISTRIBUTION_MANIFEST.json"), json.dumps(manifest))
+    failures, count = _module().verify(archive)
+    assert count == 2
+    assert failures
+
+
+def test_duplicate_json_record_key_is_rejected(tmp_path: Path) -> None:
+    payload = b"safe\n"
+    manifest = _manifest(payload).replace(
+        b'"path": "payload.txt"', b'"path": "other.txt", "path": "payload.txt"', 1
+    )
+    archive = tmp_path / "duplicate-json-key.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(_info("payload.txt"), payload)
+        zf.writestr(_info("DISTRIBUTION_MANIFEST.json"), manifest)
+    with pytest.raises(ValueError, match="duplicate key"):
+        _module().verify(archive)
+
+
+@pytest.mark.parametrize(("field", "value"), [("bytes", True), ("unexpected", "field")])
+def test_invalid_record_shape_is_rejected(tmp_path: Path, field: str, value: object) -> None:
+    payload = b"x"
+    manifest = json.loads(_manifest(payload))
+    manifest["files"][0][field] = value
+    archive = tmp_path / f"invalid-record-{field}.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(_info("payload.txt"), payload)
+        zf.writestr(_info("DISTRIBUTION_MANIFEST.json"), json.dumps(manifest))
+    failures, count = _module().verify(archive)
+    assert count == 1
+    assert failures
+
+
 def test_parent_traversal_is_rejected_before_extraction(tmp_path: Path) -> None:
     archive = tmp_path / "traversal.zip"
     with zipfile.ZipFile(archive, "w") as zf:
@@ -77,6 +143,34 @@ def test_parent_traversal_is_rejected_before_extraction(tmp_path: Path) -> None:
     failures, count = _module().verify(archive)
     assert count == 0
     assert any("non-canonical archive path rejected" in item for item in failures)
+
+
+def test_duplicate_distribution_manifest_path_is_rejected(tmp_path: Path) -> None:
+    payload = b"safe\\n"
+    record = {
+        "path": "payload.txt",
+        "bytes": len(payload),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "mode": "0644",
+    }
+    manifest = json.dumps(
+        _complete(
+            {
+                "schema": "korpus.distribution-manifest.v2",
+                "kind": "distribution",
+                "files": [{**record, "sha256": "0" * 64}, record],
+            }
+        )
+    ).encode()
+    archive = tmp_path / "duplicate-manifest-path.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(_info("payload.txt"), payload)
+        zf.writestr(_info("DISTRIBUTION_MANIFEST.json"), manifest)
+
+    failures, count = _module().verify(archive)
+
+    assert count == 2
+    assert any("duplicate distribution manifest path" in item for item in failures)
 
 
 def test_duplicate_name_is_rejected(tmp_path: Path) -> None:
@@ -95,6 +189,142 @@ def test_casefold_alias_is_rejected(tmp_path: Path) -> None:
         zf.writestr(_info("a.txt"), b"b")
     failures, _ = _module().verify(archive)
     assert any("casefold/alias collision rejected" in item for item in failures)
+
+
+def test_windows_normalized_alias_collision_refused_before_extraction(
+    tmp_path: Path,
+) -> None:
+    for number, alternative in enumerate(
+        (
+            "reports./release/v0.8.0/evidence/report.json",
+            "reports /release/v0.8.0/evidence/report.json",
+        )
+    ):
+        archive = tmp_path / f"alias-{number}.zip"
+        with zipfile.ZipFile(archive, "w") as zf:
+            zf.writestr(_info("reports/release/v0.8.0/evidence/report.json"), b"a")
+            zf.writestr(_info(alternative), b"b")
+        failures, count = _module().verify(archive)
+        assert count == 0
+        assert any("casefold/alias collision rejected" in item for item in failures)
+
+
+@pytest.mark.parametrize(
+    ("left", "right"),
+    [
+        ("proof?.txt", "proof*.txt"),
+        ("proof:.txt", "proof?.txt"),
+        ("a<.txt", "a>.txt"),
+        ("file|.txt", "file*.txt"),
+    ],
+)
+def test_windows_illegal_character_collision_is_rejected(
+    tmp_path: Path, left: str, right: str
+) -> None:
+    archive = tmp_path / "windows-illegal-alias.zip"
+    with zipfile.ZipFile(archive, "w") as target:
+        target.writestr(_info(left), b"first")
+        target.writestr(_info(right), b"second")
+    failures, count = _module().verify(archive)
+    assert count == 0
+    assert any("casefold/alias collision rejected" in item for item in failures)
+
+
+@pytest.mark.parametrize(
+    "member",
+    [". /proof.txt", "... /proof.txt", " /proof.txt", "KORPUS/. /proof.txt"],
+)
+def test_windows_dropped_components_are_rejected_before_extraction(
+    tmp_path: Path, member: str
+) -> None:
+    archive = tmp_path / "empty-component.zip"
+    with zipfile.ZipFile(archive, "w") as target:
+        target.writestr(_info(member), b"first")
+        target.writestr(_info("proof.txt"), b"second")
+    with zipfile.ZipFile(archive) as source:
+        safety = _safety_module().safety_failures(source)
+    assert any("non-canonical archive path rejected" in item for item in safety)
+    failures, count = _module().verify(archive)
+    assert count == 0
+    assert any("non-canonical archive path rejected" in item for item in failures)
+
+
+@pytest.mark.parametrize(
+    "member",
+    [
+        "CON",
+        "root/CON/",
+        "root/con.txt/",
+        "root/PrN.log/evidence.json",
+        "root/AUX  .txt/",
+        "root/NUL./leaf.txt",
+        "root/COM1/",
+        "root/com9.txt/",
+        "root/COM².txt/",
+        "root/LPT1/leaf.txt",
+        "root/lpt9.log/",
+        "root/COM¹.txt/",
+        "root/lpt³/",
+        "root/CONIN$/",
+        "root/conout$.txt/",
+    ],
+)
+def test_windows_reserved_device_component_is_rejected_before_extraction(
+    tmp_path: Path, member: str
+) -> None:
+    archive = tmp_path / "windows-device.zip"
+    mode = stat.S_IFDIR | 0o755 if member.endswith("/") else stat.S_IFREG | 0o644
+    with zipfile.ZipFile(archive, "w") as target:
+        target.writestr(_info(member, mode), b"" if member.endswith("/") else b"payload")
+    failures, count = _module().verify(archive)
+    assert count == 0
+    assert any("Win32 reserved device component rejected" in item for item in failures)
+
+
+def test_windows_device_near_misses_remain_accepted(tmp_path: Path) -> None:
+    archive = tmp_path / "windows-device-near-misses.zip"
+    members = (
+        "root/CONSOLE/",
+        "root/COM0.txt",
+        "root/COM10/",
+        "root/LPT0.txt",
+        "root/LPT10/",
+        "root/AUXILIARY.txt",
+        "root/NULL/",
+        "root/PRNTER.txt",
+        "root/CLOCK$/",
+        "root/CONİN$/",
+        "root/con_name/",
+        "root/com¹x.txt",
+    )
+    with zipfile.ZipFile(archive, "w") as target:
+        for member in members:
+            mode = stat.S_IFDIR | 0o755 if member.endswith("/") else stat.S_IFREG | 0o644
+            target.writestr(_info(member, mode), b"" if member.endswith("/") else b"payload")
+    with zipfile.ZipFile(archive) as source:
+        assert _safety_module().safety_failures(source) == []
+
+
+@pytest.mark.parametrize(
+    ("parent", "child"),
+    [
+        ("foo.", "foo/bar.txt"),
+        ("foo ", "foo/bar/"),
+        ("foo?", "foo_/bar.txt"),
+        ("A", "a/bar/"),
+    ],
+)
+def test_windows_normalized_file_parent_collision_is_rejected(
+    tmp_path: Path, parent: str, child: str
+) -> None:
+    archive = tmp_path / "windows-parent-collision.zip"
+    with zipfile.ZipFile(archive, "w") as target:
+        target.writestr(_info(parent), b"file")
+        mode = stat.S_IFDIR | 0o755 if child.endswith("/") else stat.S_IFREG | 0o644
+        target.writestr(_info(child, mode), b"" if child.endswith("/") else b"child")
+    failures, count = _module().verify(archive)
+    assert count == 0
+    assert any("file/directory prefix collision rejected" in item for item in failures)
 
 
 def test_symlink_entry_is_rejected(tmp_path: Path) -> None:
@@ -123,11 +353,13 @@ def test_nested_distribution_manifest_is_not_an_unbound_blind_spot(tmp_path: Pat
         "mode": "0644",
     }
     outer = json.dumps(
-        {
-            "schema": "korpus.distribution-manifest.v2",
-            "kind": "distribution",
-            "files": [record],
-        }
+        _complete(
+            {
+                "schema": "korpus.distribution-manifest.v2",
+                "kind": "distribution",
+                "files": [record],
+            }
+        )
     ).encode()
     with zipfile.ZipFile(archive, "w") as zf:
         zf.writestr(_info("KORPUS_SOURCE/DISTRIBUTION_MANIFEST.json"), nested)

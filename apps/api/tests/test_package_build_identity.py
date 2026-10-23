@@ -6,6 +6,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/verify_package_build_identity.py"
 
@@ -27,9 +29,11 @@ def _fixture(tmp_path: Path) -> Path:
         json.dumps(
             {
                 "schema": "korpus.release-identity.v1",
+                "product": "KORPUS",
                 "version": "0.4.0",
                 "tag": "v0.4.0",
                 "artifact_stem": "KORPUS_SYSTEM_v0.4.0",
+                "distribution_artifact": "KORPUS_SYSTEM_v0.4.0.zip",
             }
         ),
         encoding="utf-8",
@@ -77,3 +81,101 @@ def test_gitless_package_cannot_claim_an_invented_commit(tmp_path: Path) -> None
     build["source_commit"] = "c" * 40
     (root / "PACKAGE_BUILD.json").write_text(json.dumps(build), encoding="utf-8")
     assert "gitless canonical package must not invent a source commit" in module.verify(root)
+
+
+IDENTITY_PATHS = (
+    "PACKAGE_BUILD.json",
+    "SOURCE_MANIFEST.json",
+    "apps/api/src/korpus/release.json",
+)
+
+
+@pytest.mark.parametrize("relative", IDENTITY_PATHS)
+def test_identity_file_symlink_is_rejected(tmp_path: Path, relative: str) -> None:
+    module = _module()
+    root = _fixture(tmp_path)
+    path = root / relative
+    target = path.with_name(f"{path.name}.target")
+    path.rename(target)
+    path.symlink_to(target.name)
+    assert "missing or symlinked" in module.verify(root)[0]
+
+
+def test_identity_parent_symlink_is_rejected(tmp_path: Path) -> None:
+    module = _module()
+    root = _fixture(tmp_path)
+    alias = tmp_path / "pkg-alias"
+    alias.symlink_to(root, target_is_directory=True)
+    assert "missing or symlinked" in module.verify(alias)[0]
+
+
+def _append_raw(root: Path, relative: str, field: str) -> None:
+    path = root / relative
+    payload = path.read_text(encoding="utf-8")
+    path.write_text(f"{payload[:-1]}, {field}}}", encoding="utf-8")
+
+
+@pytest.mark.parametrize("relative", IDENTITY_PATHS)
+def test_duplicate_identity_key_is_rejected(tmp_path: Path, relative: str) -> None:
+    module = _module()
+    root = _fixture(tmp_path)
+    _append_raw(root, relative, '"schema": "duplicate"')
+    assert "duplicate key" in module.verify(root)[0]
+
+
+@pytest.mark.parametrize("relative", IDENTITY_PATHS)
+def test_nonfinite_identity_value_is_rejected(tmp_path: Path, relative: str) -> None:
+    module = _module()
+    root = _fixture(tmp_path)
+    _append_raw(root, relative, '"nonfinite": NaN')
+    assert "non-finite constant" in module.verify(root)[0]
+
+
+@pytest.mark.parametrize("field", ("source_commit", "derived_from_source_commit"))
+def test_nullable_package_build_fields_must_be_explicit(tmp_path: Path, field: str) -> None:
+    module = _module()
+    root = _fixture(tmp_path)
+    build_path = root / "PACKAGE_BUILD.json"
+    build = json.loads(build_path.read_text(encoding="utf-8"))
+    del build[field]
+    build_path.write_text(json.dumps(build), encoding="utf-8")
+    assert "package build fields mismatch" in module.verify(root)
+
+
+def test_unexpected_package_build_field_is_rejected(tmp_path: Path) -> None:
+    module = _module()
+    root = _fixture(tmp_path)
+    build_path = root / "PACKAGE_BUILD.json"
+    build = json.loads(build_path.read_text(encoding="utf-8"))
+    build["unexpected"] = None
+    build_path.write_text(json.dumps(build), encoding="utf-8")
+    assert "package build fields mismatch" in module.verify(root)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    (
+        ("schema", "wrong.schema"),
+        ("product", "OTHER"),
+        ("artifact_stem", 1),
+        ("distribution_artifact", "wrong.zip"),
+    ),
+)
+def test_release_identity_contract_is_exact(tmp_path: Path, field: str, value: object) -> None:
+    module = _module()
+    root = _fixture(tmp_path)
+    release_path = root / "apps/api/src/korpus/release.json"
+    release = json.loads(release_path.read_text(encoding="utf-8"))
+    release[field] = value
+    release_path.write_text(json.dumps(release), encoding="utf-8")
+    assert "release identity contract mismatch" in module.verify(root)
+
+
+def test_release_identity_fields_are_exact(tmp_path: Path) -> None:
+    module = _module()
+    root = _fixture(tmp_path)
+    release_path = root / "apps/api/src/korpus/release.json"
+    release = json.loads(release_path.read_text(encoding="utf-8"))
+    release["unexpected"] = None
+    release_path.write_text(json.dumps(release), encoding="utf-8")
+    assert "release identity contract mismatch" in module.verify(root)

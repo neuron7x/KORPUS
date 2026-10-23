@@ -10,13 +10,14 @@ from korpus.application.provenance import compute_source_digest
 from manifest_lib.integrity import manifest_failures, mode_string, record_failures
 from manifest_lib.source_contract import load_source_manifest
 from manifest_paths import source_paths
+from path_admission import regular_file
 from release_identity import release_tag
 
 
 def verify(root: Path) -> dict[str, object]:
     path = root / "SOURCE_MANIFEST.json"
-    if not path.is_file():
-        return {"valid": False, "failures": ["SOURCE_MANIFEST.json is missing"]}
+    if not regular_file(path):
+        return {"valid": False, "failures": ["SOURCE_MANIFEST.json is missing or symlinked"]}
     try:
         manifest, records = load_source_manifest(path)
     except (OSError, ValueError) as error:
@@ -32,8 +33,8 @@ def verify(root: Path) -> dict[str, object]:
         )
     for relative in authoritative:
         file, record = root / relative, by_path.get(relative)
-        if not file.is_file():
-            failures.append(f"missing source file: {relative}")
+        if not regular_file(file):
+            failures.append(f"missing or symlinked source file: {relative}")
         elif record is None:
             continue
         else:

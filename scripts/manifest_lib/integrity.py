@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import hashlib
+import sys
 import zipfile
 from pathlib import Path
 
-
-def file_sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+sys.path[:0] = [str(Path(__file__).resolve().parents[1])]
+from path_admission import regular_file  # noqa: E402
 
 
 def archive_root(tmp: Path) -> Path:
@@ -21,6 +21,8 @@ def mode_string(path: Path, *, source: bool = False) -> str:
 
 
 def file_record(path: Path, relative: Path, *, source: bool = False) -> dict[str, object]:
+    if not regular_file(path):
+        raise ValueError(f"manifest entry is a symlink: {relative.as_posix()}")
     content = path.read_bytes()
     return {
         "path": relative.as_posix(),
@@ -38,11 +40,17 @@ def manifest_root(records: list[dict[str, object]]) -> str:
 
 
 def manifest_failures(manifest: dict[str, object], records: list[dict[str, object]]) -> list[str]:
+    count, expected = manifest.get("file_count"), (len(records), manifest_root(records))
+    valid = type(count) is int and (count, manifest.get("root_sha256")) == expected
+    return [] if valid else ["manifest aggregate integrity mismatch"]
+
+
+def valid_record(record: object) -> bool:
     return (
-        []
-        if manifest.get("file_count") == len(records)
-        and manifest.get("root_sha256") == manifest_root(records)
-        else ["manifest aggregate integrity mismatch"]
+        isinstance(record, dict)
+        and set(record) == {"path", "bytes", "sha256", "mode"}
+        and isinstance(record.get("path"), str)
+        and type(record.get("bytes")) is int
     )
 
 
@@ -52,28 +60,22 @@ def archive_modes(zf: zipfile.ZipFile, root_name: str) -> dict[str, str]:
     for info in zf.infolist():
         if info.is_dir():
             continue
-        name = (
-            info.filename[len(prefix) :]
-            if prefix and info.filename.startswith(prefix)
-            else info.filename
-        )
+        name = info.filename.removeprefix(prefix)
         if name != "DISTRIBUTION_MANIFEST.json":
             result[name] = f"{(info.external_attr >> 16) & 0o777:04o}"
     return result
 
 
-def record_failures(
-    path: Path, record: dict[str, object], archive_mode: str | None = None
-) -> list[str]:
-    content = path.read_bytes()
+def record_failures(path: Path, record: dict[str, object], mode: str | None = None) -> list[str]:
     relative = str(record.get("path"))
+    content = path.read_bytes()
     failures: list[str] = []
     if (
         record.get("bytes") != len(content)
         or record.get("sha256") != hashlib.sha256(content).hexdigest()
     ):
         failures.append(f"digest mismatch: {relative}")
-    actual_mode = archive_mode if archive_mode is not None else mode_string(path)
+    actual_mode = mode if mode is not None else mode_string(path)
     if record.get("mode") != actual_mode:
         failures.append(
             f"mode mismatch: {relative} expected={record.get('mode')} actual={actual_mode}"

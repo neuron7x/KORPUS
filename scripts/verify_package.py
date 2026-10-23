@@ -7,34 +7,39 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
+from typing import BinaryIO
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-if str(SCRIPT_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPT_DIR))
+sys.path[:0] = [str(SCRIPT_DIR), str(SCRIPT_DIR.parent / "apps/api/src")]
 
-from manifest_lib.integrity import archive_modes, archive_root, file_sha256, record_failures
+from artifact_snapshot import verify_snapshot
+from distribution_runtime_policy import opaque_runtime_failures
+from korpus.application.final_release_evidence import strict_signed_json_object
+from manifest_lib import integrity
 from zip_safety import safety_failures
 
+Record = dict[str, object]
 
-def _load_records(root: Path, failures: list[str]) -> dict[str, dict[str, object]]:
+
+def _load_records(root: Path, failures: list[str]) -> dict[str, Record]:
     path = root / "DISTRIBUTION_MANIFEST.json"
     if not path.is_file():
         raise RuntimeError("DISTRIBUTION_MANIFEST.json missing from archive")
-    manifest = json.loads(path.read_text(encoding="utf-8"))
-    if manifest.get("schema") != "korpus.distribution-manifest.v2":
-        failures.append("invalid distribution manifest schema")
+    manifest = dict(strict_signed_json_object(path.read_bytes(), "distribution manifest"))
+    header = manifest.get("schema"), manifest.get("kind"), manifest.get("manifest_self_excluded")
+    if header != ("korpus.distribution-manifest.v2", "distribution", True):
+        failures.append("invalid distribution manifest header")
     records = manifest.get("files")
     if not isinstance(records, list):
         failures.append("invalid distribution manifest records")
         return {}
-    return {str(record.get("path")): record for record in records if isinstance(record, dict)}
+    result = {str(record["path"]): record for record in records if integrity.valid_record(record)}
+    failures += ["invalid/duplicate distribution manifest path"] * (len(result) != len(records))
+    failures += integrity.manifest_failures(manifest, list(result.values()))
+    return result
 
 
-def _verify_tree(
-    root: Path,
-    records: dict[str, dict[str, object]],
-    archive_modes: dict[str, str],
-) -> list[str]:
+def _verify_tree(root: Path, records: dict[str, Record], modes: dict[str, str]) -> list[str]:
     failures = []
     actual = sorted(
         p.relative_to(root).as_posix()
@@ -42,10 +47,6 @@ def _verify_tree(
         if p.is_file() and p.relative_to(root).as_posix() != "DISTRIBUTION_MANIFEST.json"
     )
     if sorted(records) != actual:
-        # The same two words meant the opposite thing in verify_source_manifest.py — there
-        # `missing` was tree-minus-manifest, here it is manifest-minus-tree. Both are now
-        # named by direction, because the injected-file case is one of them and a reader
-        # picking the wrong one looks away from it.
         failures.append(
             "path parity mismatch "
             f"in_manifest_not_in_archive={sorted(set(records) - set(actual))} "
@@ -55,21 +56,21 @@ def _verify_tree(
         record = records.get(relative)
         if record is None:
             continue  # named by the parity line above; an empty record reports path=None
-        failures.extend(record_failures(root / relative, record, archive_modes.get(relative)))
+        failures.extend(integrity.record_failures(root / relative, record, modes.get(relative)))
     return failures
 
 
-def verify(archive: Path) -> tuple[list[str], int]:
+def verify(archive: Path | BinaryIO) -> tuple[list[str], int]:
     failures: list[str] = []
     with tempfile.TemporaryDirectory(prefix="korpus-package-verify-") as tmp_name:
         tmp = Path(tmp_name)
         with zipfile.ZipFile(archive) as zf:
-            safety = safety_failures(zf)
+            safety = safety_failures(zf) or opaque_runtime_failures(zf)
             if safety:
                 return safety, 0
             zf.extractall(tmp)
-            root = archive_root(tmp)
-            modes = archive_modes(zf, root.name if root != tmp else "")
+            root = integrity.archive_root(tmp)
+            modes = integrity.archive_modes(zf, root.name if root != tmp else "")
         records = _load_records(root, failures)
         failures.extend(_verify_tree(root, records, modes))
         return failures, len(records) + 1
@@ -82,15 +83,10 @@ def main() -> int:
     if not archive.is_file():
         raise SystemExit(f"archive missing: {archive}")
     try:
-        failures, files = verify(archive)
-    except (RuntimeError, OSError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
-        failures, files = [str(exc)], 0
-    payload = {
-        "valid": not failures,
-        "archive": str(archive),
-        "sha256": file_sha256(archive),
-        "files": files,
-    }
+        failures, files, digest = verify_snapshot(archive, verify)
+    except (RuntimeError, OSError, ValueError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
+        failures, files, digest = [str(exc)], 0, None
+    payload = {"valid": not failures, "archive": str(archive), "sha256": digest, "files": files}
     if failures:
         payload["failures"] = failures
     print(json.dumps(payload, indent=2))

@@ -100,3 +100,96 @@ def test_a_missing_hashed_artifact_is_refused(tmp_path: Path, monkeypatch) -> No
     monkeypatch.setattr(module, "VAR", var)
     with pytest.raises(SystemExit, match=r"did not hash|refusing to promote"):
         module._verify_evidence_matches_the_gate()
+
+
+@pytest.mark.parametrize("limitations", [True, "not-a-list", {}, [1]])
+def test_snapshot_refuses_malformed_assurance_limitations(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, limitations: object
+) -> None:
+    module = _load_module()
+    var = tmp_path / "var"
+    var.mkdir()
+    (var / "research-assurance-report.json").write_text(
+        json.dumps({"status": "PASS", "limitations": limitations}), encoding="utf-8"
+    )
+    monkeypatch.setattr(module, "VAR", var)
+    with pytest.raises(SystemExit, match="limitations must be a list of strings"):
+        module.main()
+
+
+def test_snapshot_refuses_symlinked_source_artifact(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _load_module()
+    var, reports = tmp_path / "var", tmp_path / "reports"
+    var.mkdir()
+    (var / "research-assurance-report.json").write_text(
+        json.dumps({"status": "PASS", "limitations": []}), encoding="utf-8"
+    )
+    for source_name in module.SOURCES.values():
+        (var / source_name).write_text("{}", encoding="utf-8")
+    outside = tmp_path / "outside-pytest.xml"
+    outside.write_text("<testsuite/>", encoding="utf-8")
+    (var / "pytest.xml").unlink()
+    (var / "pytest.xml").symlink_to(outside)
+    monkeypatch.setattr(module, "VAR", var)
+    monkeypatch.setattr(module, "REPORTS", reports)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "_verify_evidence_matches_the_gate", lambda: None)
+    monkeypatch.setattr(module, "_verify_evidence_source_is_committed", lambda _report: None)
+
+    with pytest.raises(SystemExit, match="missing assurance output"):
+        module.main()
+
+
+@pytest.mark.parametrize(
+    "destination_name",
+    ("RESEARCH_ASSURANCE_REPORT.json", "ASSURANCE_SNAPSHOT.json", *_load_module().SOURCES),
+)
+def test_snapshot_refuses_symlinked_destination_without_overwriting_target(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, destination_name: str
+) -> None:
+    module = _load_module()
+    var, reports = tmp_path / "var", tmp_path / "reports"
+    var.mkdir()
+    reports.mkdir()
+    (var / "research-assurance-report.json").write_text(
+        json.dumps({"status": "PASS", "limitations": []}), encoding="utf-8"
+    )
+    for source_name in module.SOURCES.values():
+        (var / source_name).write_text("{}", encoding="utf-8")
+    outside = tmp_path / "outside"
+    outside.write_text("SENTINEL", encoding="utf-8")
+    (reports / destination_name).symlink_to(outside)
+    monkeypatch.setattr(module, "VAR", var)
+    monkeypatch.setattr(module, "REPORTS", reports)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "_verify_evidence_matches_the_gate", lambda: None)
+    monkeypatch.setattr(module, "_verify_evidence_source_is_committed", lambda _report: None)
+
+    with pytest.raises(SystemExit, match="unsafe assurance destination"):
+        module.main()
+    assert outside.read_text(encoding="utf-8") == "SENTINEL"
+
+
+def test_snapshot_refuses_symlinked_reports_parent_before_creating_output(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _load_module()
+    var, outside = tmp_path / "var", tmp_path / "outside"
+    var.mkdir()
+    outside.mkdir()
+    (tmp_path / "alias").symlink_to(outside, target_is_directory=True)
+    reports = tmp_path / "alias/reports"
+    (var / "research-assurance-report.json").write_text(
+        json.dumps({"status": "PASS", "limitations": []}), encoding="utf-8"
+    )
+    monkeypatch.setattr(module, "VAR", var)
+    monkeypatch.setattr(module, "REPORTS", reports)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "_verify_evidence_matches_the_gate", lambda: None)
+    monkeypatch.setattr(module, "_verify_evidence_source_is_committed", lambda _report: None)
+
+    with pytest.raises(SystemExit, match="reports directory must not be a symlink"):
+        module.main()
+    assert not (outside / "reports").exists()

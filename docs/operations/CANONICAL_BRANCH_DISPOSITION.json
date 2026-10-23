@@ -1,0 +1,189 @@
+{
+  "schema": "korpus.canonical-branch-disposition.v1",
+  "observed_date": "2026-10-21",
+  "compared_source": "c2abdb69edd273c53e3a7bb2344f1ffb3be2a158",
+  "main_baseline": "345c0f7daf1da2152d0e554cc8733381ca5a1e9e",
+  "static_audit": {
+    "run_id": 39629417088,
+    "artifact_id": 12357074758,
+    "archive_sha256": "363e3d95c1ad36dfa8020655acfef0e7f463cb8d62b01df8a14a0e5d8c57b305",
+    "method": "Pinned common-ancestor deltas, Git blob/mode equality, parsed AST and manual source review; no legacy code execution."
+  },
+  "classification_complete": true,
+  "all_source_integrated": false,
+  "records": [
+    {
+      "branch": "agent/ci-local-ref-isolation-20261018",
+      "head": "df008029c6d630bdbe825cacd214715a95337772",
+      "merge_base": "cda9db4ae2e44ab5c089fe28c06722e1ce49ac93",
+      "status": "SUPERSEDED",
+      "reason": "All four changed Python definitions are retained with identical AST; the three named regressions pass in original candidate CI. Formatting and obsolete generated identity are not imported.",
+      "net_delta_paths": 2,
+      "non_generated_paths": 1,
+      "exact_current_blob_and_mode": 0,
+      "absent_current_paths": [],
+      "original_candidate_test_match": {
+        "scope": "c2abdb69edd273c53e3a7bb2344f1ffb3be2a158",
+        "run_id": 39610691741,
+        "introduced_test_functions": 3,
+        "matched_cases": 3,
+        "passed": 3,
+        "skipped": 0
+      },
+      "history_retained": true,
+      "original_commits_claimed_merged": false
+    },
+    {
+      "branch": "codex/issue-46-architecture",
+      "head": "4cfd7a26945617fbe2c14fcadcf335e3d6def48e",
+      "merge_base": "4353ea3c45c68461e179ca5fefe157c2771b11b0",
+      "status": "SUPERSEDED",
+      "reason": "Architecture separation, return-decision attestation and HTTP deadline admission are represented by current source and tests. The old ISSUE_46_BOUNDARY_FIXES local checkpoint is historical, not current admission evidence.",
+      "net_delta_paths": 16,
+      "non_generated_paths": 16,
+      "exact_current_blob_and_mode": 11,
+      "absent_current_paths": [
+        "docs/architecture/ISSUE_46_BOUNDARY_FIXES.md"
+      ],
+      "original_candidate_test_match": {
+        "scope": "c2abdb69edd273c53e3a7bb2344f1ffb3be2a158",
+        "run_id": 39610691741,
+        "introduced_test_functions": 17,
+        "matched_cases": 50,
+        "passed": 50,
+        "skipped": 0
+      },
+      "history_retained": true,
+      "original_commits_claimed_merged": false
+    },
+    {
+      "branch": "codex/issue-6-release-evidence",
+      "head": "7469e4a080e4a4b0a98825d91c3d695594317e16",
+      "merge_base": "cda9db4ae2e44ab5c089fe28c06722e1ce49ac93",
+      "status": "ADAPTED_PENDING_FULL_CI",
+      "reason": "Restore isolated staging for backend-report with 16 new real-Make/inert-producer cases. Retain current dependency graph, PostgreSQL-before-union order and audit-reader regression. Do not import 86 historic generated paths.",
+      "net_delta_paths": 95,
+      "non_generated_paths": 9,
+      "exact_current_blob_and_mode": 3,
+      "absent_current_paths": [],
+      "original_candidate_test_match": {
+        "scope": "c2abdb69edd273c53e3a7bb2344f1ffb3be2a158",
+        "run_id": 39610691741,
+        "introduced_test_functions": 5,
+        "matched_cases": 4,
+        "passed": 4,
+        "skipped": 0
+      },
+      "history_retained": true,
+      "original_commits_claimed_merged": false
+    },
+    {
+      "branch": "proposal/korpus-capability-gateway-v1-20260904",
+      "head": "f90a409bb8e2ab13aa90a15ed979885e2f43b413",
+      "merge_base": "0494b02ab8237cfc4145d5f24825174e691179cc",
+      "status": "SUPERSEDED",
+      "reason": "Gateway implementation and all 247 changed named tests are represented by the hardened candidate. Later source changes retain stricter boundary normalization, decision attestation and deadlines. The unused historical registry.versions convenience accessor is not reintroduced as a supported API; its source remains in the legacy ref.",
+      "net_delta_paths": 177,
+      "non_generated_paths": 162,
+      "exact_current_blob_and_mode": 109,
+      "absent_current_paths": [],
+      "original_candidate_test_match": {
+        "scope": "c2abdb69edd273c53e3a7bb2344f1ffb3be2a158",
+        "run_id": 39610691741,
+        "introduced_test_functions": 247,
+        "matched_cases": 277,
+        "passed": 277,
+        "skipped": 0
+      },
+      "history_retained": true,
+      "original_commits_claimed_merged": false
+    },
+    {
+      "branch": "work/issue-54-hosted-bootstrap",
+      "head": "aa8fb96463f967ad7e7e4b0a83633f283c9511b1",
+      "merge_base": "9b3fecfabac11c9b4bb1929b54a390000ec389d7",
+      "status": "RETAIN_EXCLUDED_PENDING_SCOPED_ADAPTATION",
+      "reason": "33 absent source paths include a distinct, unadmitted hosted-release/attestation pipeline. Issues #66 and #67 require scoped adaptation to the current artifact DAG and explicitly reject wholesale restoration of this legacy workflow. Retain this ref; do not assert its remaining implementation or production obligations are complete.",
+      "net_delta_paths": 138,
+      "non_generated_paths": 134,
+      "exact_current_blob_and_mode": 24,
+      "absent_current_paths": [
+        "apps/api/src/korpus/application/assurance_trust_policy.py",
+        "apps/api/src/korpus/application/coverage_evidence.py",
+        "apps/api/src/korpus/application/github_assurance_receipts.py",
+        "apps/api/src/korpus/application/release_claim_hosted.py",
+        "apps/api/src/korpus/application/release_claim_sigstore.py",
+        "apps/api/src/korpus/application/release_claim_sigstore_command.py",
+        "apps/api/src/korpus/application/release_coverage_projection.py",
+        "apps/api/src/korpus/application/sbom_evidence.py",
+        "apps/api/src/korpus/gitlab_readonly_authority.py",
+        "apps/api/src/korpus/gitlab_tombstone_contract.py",
+        "apps/api/tests/test_coverage_debt_issue54.py",
+        "apps/api/tests/test_fetch_ci_scanner_markers.py",
+        "apps/api/tests/test_github_assurance_authority.py",
+        "apps/api/tests/test_github_assurance_receipts.py",
+        "apps/api/tests/test_release_claim_coverage.py",
+        "apps/api/tests/test_release_claim_hosted_pipeline.py",
+        "config/assurance/github-attestation-trusted-root.jsonl",
+        "config/assurance/sigstore-verifier.json",
+        "config/ci/gitlab-readonly-authority-v1.json",
+        "config/operations/pip-audit-toolchain.in",
+        "config/operations/pip-audit-toolchain.lock",
+        "docs/architecture/ISSUE_46_BOUNDARY_FIXES.md",
+        "scripts/build_ci_evidence_receipt.py",
+        "scripts/build_release_claim_evidence.py",
+        "scripts/ci_mirror_evidence.py",
+        "scripts/fetch_ci_assurance_evidence.py",
+        "scripts/gcp/production_contract_authority.py",
+        "scripts/github_actions_evidence.py",
+        "scripts/import_release_claim_evidence.py",
+        "scripts/release_claim_import_contract.py",
+        "scripts/release_claim_projection.py",
+        "scripts/slsa_source.py",
+        "scripts/stamp_coverage_report.py"
+      ],
+      "original_candidate_test_match": {
+        "scope": "c2abdb69edd273c53e3a7bb2344f1ffb3be2a158",
+        "run_id": 39610691741,
+        "introduced_test_functions": 199,
+        "matched_cases": 98,
+        "passed": 96,
+        "skipped": 2
+      },
+      "history_retained": true,
+      "original_commits_claimed_merged": false
+    }
+  ],
+  "previous_dispositions": [
+    {
+      "branch": "governance/issue-54-forge-contract",
+      "head": "398c3ac524e20d9d986cfb7df4c07cd54f1073be",
+      "status": "NO_NET_SOURCE_IMPORT",
+      "review_id": 5601034069
+    },
+    {
+      "branch": "audit/pr85-empty-component-fix-20261021",
+      "head": "974dfc77b30e0dfc4beb703e6e29d269132c28ae",
+      "status": "NO_NET_SOURCE_IMPORT",
+      "review_id": 5601034069
+    },
+    {
+      "branch": "codex/finalize-canonical-20261018",
+      "head": "54db6bdbf2091a3bf7a66cf1124aa0c1a364931e",
+      "status": "SUPERSEDED",
+      "review_id": 5602153926
+    }
+  ],
+  "retained_dependencies": [
+    66,
+    67,
+    72
+  ],
+  "limits": [
+    "AST equality and passing finite tests are not universal semantic/security proof.",
+    "Original-candidate test matches do not replace fresh final-head CI or independent review.",
+    "Classification is not branch deletion, source-integration completion or merge authorization."
+  ],
+  "merge_authorized": false,
+  "production_authorized": false
+}
