@@ -11,8 +11,7 @@ from pathlib import Path
 
 def _require_replaceable(target: Path) -> None:
     # Overwriting populated destinations cannot be made portable and failure-atomic.
-    if target.is_symlink() or (target.exists() and
-                               (not target.is_dir() or any(target.iterdir()))):
+    if target.is_symlink() or (target.exists() and (not target.is_dir() or any(target.iterdir()))):
         raise FileExistsError(f"archive destination must be absent or empty: {target}")
 
 
@@ -31,8 +30,9 @@ def publish_safe_zip(zf: zipfile.ZipFile, destination: Path) -> Path:
     target = Path(destination)
     _require_replaceable(target)
     # A sibling stage forces the final rename to remain on one filesystem.
-    with tempfile.TemporaryDirectory(prefix=f".{target.name}.staging-",
-                                     dir=target.parent) as staging_name:
+    with tempfile.TemporaryDirectory(
+        prefix=f".{target.name}.staging-", dir=target.parent
+    ) as staging_name:
         staged = Path(staging_name)
         _extract_staged(zf, staged)
         _require_replaceable(target)
