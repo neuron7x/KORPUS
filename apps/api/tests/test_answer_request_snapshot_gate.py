@@ -150,3 +150,35 @@ def test_context_token_is_removed_after_delegate_exception() -> None:
     token_after = cache_release_token(repo, identity, corpora, as_of)  # type: ignore[arg-type]
     assert reader.captures == 2
     assert token_after.state_epoch == 8
+
+def test_aborted_cache_write_cannot_poison_aba_reversion() -> None:
+    reader, repo, identity, corpora, as_of, token_a = _fixture()
+
+    class ChangingDelegate:
+        def __init__(self):
+            self.calls = 0
+
+        def search(self, identity, text, corpus_ids, as_of, limit=8):
+            self.calls += 1
+            if self.calls == 1:
+                reader.epoch += 1
+                reader.release = "b" * 64
+                return ["evidence-from-B"]
+            return ["evidence-from-A"]
+
+    delegate = ChangingDelegate()
+    cached = CachedRetriever(repo, delegate, EvidenceQueryCache(), "ABA")  # type: ignore[arg-type]
+    bound_a = RequestBoundRetriever(repo, cached, token_a)  # type: ignore[arg-type]
+    with pytest.raises(CorpusConsistencyError):
+        bound_a.search(identity, "same question", corpora, as_of)
+    assert delegate.calls == 1
+
+    reader.epoch += 1
+    reader.release = token_a.release_id
+    token_a_again = reader.capture(identity, corpora, as_of)
+    assert token_a_again.release_id == token_a.release_id
+    assert token_a_again.state_epoch != token_a.state_epoch
+    bound_again = RequestBoundRetriever(repo, cached, token_a_again)  # type: ignore[arg-type]
+    assert bound_again.search(identity, "same question", corpora, as_of) == ["evidence-from-A"]
+    assert delegate.calls == 2
+
