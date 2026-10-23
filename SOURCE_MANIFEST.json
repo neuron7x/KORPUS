@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2152,
-  "root_sha256": "0b9048b55773653aeb71f73e73711bc9333f392e02d42e79f7d7d0d8d89c6656",
+  "root_sha256": "6c0acc9815a89303364a672da9509a7acf16c7ccb0c76faf925640a75223405a",
   "files": [
     {
       "path": ".dockerignore",
@@ -943,8 +943,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/answer_request_snapshot.py",
-      "bytes": 4514,
-      "sha256": "3b57723ee7f7397822ff0c248c9a5d2a594893a4255bbb93d6837924f2f911d2",
+      "bytes": 4517,
+      "sha256": "a041c498b115ca3061aeb04cedca65f37f0af014ac453d9f3b3d508c0b1cca95",
       "mode": "0644"
     },
     {
