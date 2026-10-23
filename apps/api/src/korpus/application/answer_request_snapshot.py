@@ -133,9 +133,8 @@ class RequestBoundRetriever(Retriever):
         *,
         semantic_enabled: bool,
     ) -> list[RetrievedEvidence]:
-        delegate = self.delegate
-
         def action() -> list[RetrievedEvidence]:
+            delegate = self.delegate
             if isinstance(delegate, SemanticControllableRetriever):
                 return delegate.search_with_semantic(
                     identity, text, corpus_ids, as_of, limit, semantic_enabled=semantic_enabled
