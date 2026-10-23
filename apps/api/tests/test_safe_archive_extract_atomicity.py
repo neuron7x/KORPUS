@@ -40,9 +40,7 @@ def test_valid_archive_publishes_to_absent_or_empty_destination(
     "bad_name",
     ["x" * 256, "é" * 128, "/".join(["p" * 220] * 20)],
 )
-def test_length_admission_rejects_before_destination_write(
-    tmp_path: Path, bad_name: str
-) -> None:
+def test_length_admission_rejects_before_destination_write(tmp_path: Path, bad_name: str) -> None:
     archive, dest = tmp_path / "bad.zip", tmp_path / "target"
     _archive(archive, ("ok.txt", b"first"), (bad_name, b"second"))
     with zipfile.ZipFile(archive) as zf:
@@ -91,8 +89,10 @@ def test_failed_atomic_publish_preserves_existing_empty_destination(
     archive, dest = tmp_path / "valid.zip", tmp_path / "target"
     _archive(archive, ("payload.txt", b"safe"))
     dest.mkdir()
+
     def refuse_rename(*_args):
         raise OSError("simulated rename failure")
+
     monkeypatch.setattr(archive_atomic_publish.os, "replace", refuse_rename)
     with pytest.raises(OSError, match="simulated rename failure"):
         extract_safe_archive(archive, dest)
