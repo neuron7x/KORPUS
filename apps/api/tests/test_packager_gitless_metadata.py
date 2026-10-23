@@ -22,7 +22,18 @@ def test_packager_preserves_archived_v2_and_requires_identity_gate(tmp_path: Pat
     source = tmp_path / "source"
     identity = source / "apps/api/src/korpus/release.json"
     identity.parent.mkdir(parents=True)
-    identity.write_text(json.dumps({"version": "0.1.0", "tag": "v0.1.0"}))
+    identity.write_text(
+        json.dumps(
+            {
+                "schema": "korpus.release-identity.v1",
+                "product": "KORPUS",
+                "version": "0.1.0",
+                "tag": "v0.1.0",
+                "artifact_stem": "KORPUS_TEST_v0.1.0",
+                "distribution_artifact": "KORPUS_TEST_v0.1.0.zip",
+            }
+        )
+    )
     manifest = {"schema": "korpus.source-manifest.v2", "root_sha256": "a" * 64}
     (source / "SOURCE_MANIFEST.json").write_text(json.dumps(manifest))
     metadata = {

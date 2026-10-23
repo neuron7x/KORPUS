@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2145,
-  "root_sha256": "d21530bb93191235fd5ad5a848a3f9015f577635ddfeda013fcbb5c2e96c709a",
+  "root_sha256": "3530bdf017d471035da74e3aafcc389b5a9ea53137f2754c3a270046bdc8d1a3",
   "files": [
     {
       "path": ".dockerignore",
@@ -4879,8 +4879,8 @@
     },
     {
       "path": "apps/api/tests/test_packager_gitless_metadata.py",
-      "bytes": 2821,
-      "sha256": "4fbcc9cca4e9a49fd27a67916a9faf980aea240359f611448003ebd36e4790d8",
+      "bytes": 3119,
+      "sha256": "2ecdf40c8bef21f67aa77ac4726abbc8979bf2d60d1046adcdfc773df347b379",
       "mode": "0644"
     },
     {
