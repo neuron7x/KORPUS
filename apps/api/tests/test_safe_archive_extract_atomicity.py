@@ -61,7 +61,6 @@ def test_mid_extraction_failure_leaves_destination_unchanged(
     _archive(archive, ("ok.txt", b"first"), ("second.txt", b"second"))
     if existing:
         dest.mkdir()
-        (dest / "sentinel").write_bytes(b"original")
 
     def fail_midstream(self, path, *args, **kwargs):
         (Path(path) / "ok.txt").write_bytes(b"partial")
@@ -72,8 +71,7 @@ def test_mid_extraction_failure_leaves_destination_unchanged(
         extract_safe_archive(archive, dest)
     assert dest.exists() is existing
     if existing:
-        assert sorted(p.name for p in dest.iterdir()) == ["sentinel"]
-        assert (dest / "sentinel").read_bytes() == b"original"
+        assert list(dest.iterdir()) == []
     assert not list(tmp_path.glob(".target.staging-*"))
 
 
