@@ -49,6 +49,28 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M734_MIXED_ROOT_ALIASES_BYPASS_WRAPPER_POLICY",
+        "scripts/distribution_runtime_policy.py",
+        '    return ["archive root aliases forbidden"] if len(keys) != len(set(keys)) else []',
+        "    return []",
+        (
+            "apps/api/tests/test_distribution_runtime_boundary.py::"
+            "test_alias_equivalent_mixed_roots_fail_before_extraction",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M733_REMOVABLE_WRAPPER_RENAMES_OPAQUE_EVIDENCE",
+        "scripts/distribution_runtime_policy.py",
+        "        if _opaque_path(info.filename.removeprefix(prefix) or info.filename)",
+        "        if _opaque_path(info.filename)",
+        (
+            "apps/api/tests/test_distribution_runtime_boundary.py::"
+            "test_sole_trusted_wrapper_cannot_relabel_opaque_evidence",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M728_ARCHIVE_POLICY_ACCEPTS_TRUTHY_DISABLE",
         "scripts/verify_canonical_state.py",
         'entry.get("push_disabled") is True and isinstance(reason, str) and bool(reason.strip())',

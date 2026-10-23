@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed ZIP name/type validation before extraction.
-Security property: an archive is extraction-eligible only when every entry has one
-canonical relative POSIX name, no aliases/collisions, and is a regular file or directory.
-The validator is intentionally independent of ``ZipFile.extractall`` path handling.
-"""
+"""Fail-closed ZIP admission: canonical, alias-free POSIX regular files/directories only."""
 
 from __future__ import annotations
 
@@ -16,6 +12,9 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 _DRIVE = re.compile(r"^[A-Za-z]:")
+_WINDOWS_DEVICES = {"CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"} | {
+    f"{prefix}{suffix}" for prefix in ("COM", "LPT") for suffix in "123456789¹²³"
+}
 from importlib import import_module
 
 resource_failures = import_module(
@@ -24,16 +23,18 @@ resource_failures = import_module(
 
 
 def _basic_name_failure(name: str) -> str | None:
+    windows_device = any(
+        part.partition(".")[0].rstrip(" ").upper() in _WINDOWS_DEVICES
+        for part in name.removesuffix("/").split("/")
+    )
     checks = (
         (not name, "empty archive entry name"),
         (name.casefold().rstrip(" .").endswith(".bundle"), f"bundle forbidden: {name}"),
         ("\x00" in name, f"NUL byte in archive entry: {name!r}"),
         ("\\" in name, f"backslash path separator rejected: {name!r}"),
         (unicodedata.normalize("NFC", name) != name, f"non-NFC archive entry rejected: {name!r}"),
-        (
-            name.startswith("/") or bool(_DRIVE.match(name)),
-            f"absolute archive path rejected: {name!r}",
-        ),
+        (name.startswith("/") or bool(_DRIVE.match(name)), f"absolute path rejected: {name!r}"),
+        (windows_device, f"Win32 reserved device component rejected: {name!r}"),
     )
     return next((message for failed, message in checks if failed), None)
 
@@ -143,9 +144,8 @@ def main() -> int:
     parser.add_argument("archive", type=Path)
     archive = parser.parse_args().archive.resolve()
     failures = verify_zip_safety(archive)
-    print(
-        json.dumps({"safe": not failures, "archive": str(archive), "failures": failures}, indent=2)
-    )
+    result = {"safe": not failures, "archive": str(archive), "failures": failures}
+    print(json.dumps(result, indent=2))
     return 1 if failures else 0
 
 
