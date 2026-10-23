@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2152,
-  "root_sha256": "1a3203f84122dab9aa5ebffdd8001bd64357ec71f64794c8b1b9ef65ebd61e92",
+  "root_sha256": "0b9048b55773653aeb71f73e73711bc9333f392e02d42e79f7d7d0d8d89c6656",
   "files": [
     {
       "path": ".dockerignore",
@@ -943,8 +943,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/answer_request_snapshot.py",
-      "bytes": 4535,
-      "sha256": "6f7e6e241f56823aa57878674acbe3453ede1926f4f9796783e9adb4affe4da1",
+      "bytes": 4514,
+      "sha256": "3b57723ee7f7397822ff0c248c9a5d2a594893a4255bbb93d6837924f2f911d2",
       "mode": "0644"
     },
     {
@@ -2978,7 +2978,7 @@
     {
       "path": "apps/api/tests/test_answer_request_snapshot_gate.py",
       "bytes": 6708,
-      "sha256": "06368ee25d7bdc8e189be50b13dd04f97a55d6281bcae61f01ff81af4bf0fc21",
+      "sha256": "7938283938497ee3a4e5268bdaad18d03f22e7b2a7130a255ff4e6d0381f0a4d",
       "mode": "0644"
     },
     {
@@ -2995,8 +2995,8 @@
     },
     {
       "path": "apps/api/tests/test_answer_snapshot_race_api.py",
-      "bytes": 2535,
-      "sha256": "333a1f449ec92fe97d32605e01d10b0a15a5c355968b33b85dcc6c3782afba9b",
+      "bytes": 3965,
+      "sha256": "9e7694bb9e444018694f32110e3817ba7f177f6cb8afe00a7aaeb41fe22ed993",
       "mode": "0644"
     },
     {
