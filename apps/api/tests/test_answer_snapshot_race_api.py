@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 
 import pytest
-
 from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.domain.models import AnswerStatus, QueryRequest
