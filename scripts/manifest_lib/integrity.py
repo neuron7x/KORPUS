@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import hashlib
+import sys
 import zipfile
 from pathlib import Path
 
-from path_admission import regular_file
+sys.path[:0] = [str(Path(__file__).resolve().parents[1])]
+from path_admission import regular_file  # noqa: E402
 
 
 def archive_root(tmp: Path) -> Path:
