@@ -129,7 +129,8 @@ Every other branch, local branch, stash and local WIP snapshot was preserved as 
 `archive/2026-10-23/` (51 tags, SHA read back from GitHub) and then removed as a branch; GitHub now
 has a single head, `main`. All 122 GitLab `korpus-platform` refs are reachable from GitHub; the built
 `korpus-web` frontend is tagged. Per-ref dispositions are in `CANONICAL_BRANCH_DISPOSITION.json`
-under `final_convergence`.
+under `final_convergence`; `archive_tag_pins` records the full annotated-tag object ID and peeled
+commit ID of all 51 tags, read back from GitHub, so provenance survives a moved or deleted tag.
 
 Not closed by this record: issues #66 and #67 (hosted run/artifact receipts and Sigstore-bound
 release claims). Their historical implementation is retained by tag as reference, not merged.

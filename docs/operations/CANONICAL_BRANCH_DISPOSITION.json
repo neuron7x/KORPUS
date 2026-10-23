@@ -192,12 +192,12 @@
     "merged_pr": 90,
     "integration_defects_found_before_merge": [
       {
-        "commit": "3bad6edd",
+        "commit": "3bad6edd0d3575e08e8b4c851c3dd25ed3f2eab6",
         "defect": "scripts/manifest_lib/integrity.py imported path_admission without binding scripts/; isolated mutants M223/M271/M272/M674 died at collection (ERROR)"
       },
       {
-        "commit": "0216e7c7",
-        "defect": "merge d2a59545 kept the first parent and dropped PR #86 commits a6ee7f21/f52353e3/84bdac47/9f846f22 (sole-root wrapper evidence relabelling, Win32 reserved device names); restored from recomputed three-way merge"
+        "commit": "0216e7c70d1f3a7b6a19682b61fd52b6433dec7f",
+        "defect": "merge d2a59545417bb49597c729d5f549483f7b3e3827 kept the first parent and dropped PR #86 commits a6ee7f21845b95b20316a021828bf27068b4336f/f52353e3cfb6de8d4b0c25c3bb5407681e2e0d2b/84bdac47e0dffc3ba2757f4b74e8aa5020e76958/9f846f2247017e65e1230f0b8e25083fbe0dcc72 (sole-root wrapper evidence relabelling, Win32 reserved device names); restored from recomputed three-way merge"
       }
     ],
     "closed_as_contained": [
@@ -215,45 +215,57 @@
     "residual_dispositions": [
       {
         "ref": "archive/2026-10-23/local-work-issue-54-ci-authority",
-        "head": "d7fb9a90",
+        "tag_object": "0dbc8014f9664354a346c46ed6035c340d12c890",
+        "commit": "d7fb9a90c6d54387b9ef539d9befba970f8e6a64",
         "status": "SUPERSEDED",
         "reason": "same historical #54 line as closed PR #55; architectural scope integrated via #57/#59/#61/#68-#71; its seven new paths are a subset of the canonical-convergence WIP snapshot"
       },
       {
         "ref": "archive/2026-10-23/local-work-issue-54-evidence-authority",
-        "head": "7b6c98e0",
+        "tag_object": "e1195915666d4f591716be7a3d9edb726b06608d",
+        "commit": "7b6c98e00f0cba421dac725f52eaea4f892f853d",
         "status": "SUPERSEDED",
-        "reason": "ancestor of origin work/issue-54-hosted-bootstrap (PR #55 head aa8fb964)"
+        "reason": "ancestor of origin work/issue-54-hosted-bootstrap (PR #55 head aa8fb96463f967ad7e7e4b0a83633f283c9511b1)"
       },
       {
         "ref": "archive/2026-10-23/local-work-issue-54-release-authority",
-        "head": "eabf77b4",
+        "tag_object": "836921045357d6ef25c4ea0a06743ba33ce4e36a",
+        "commit": "eabf77b442a803395635c237a6ea6128391072e6",
         "status": "SUPERSEDED",
-        "reason": "ancestor of origin work/issue-54-hosted-bootstrap (PR #55 head aa8fb964)"
+        "reason": "ancestor of origin work/issue-54-hosted-bootstrap (PR #55 head aa8fb96463f967ad7e7e4b0a83633f283c9511b1)"
       },
       {
         "ref": "archive/2026-10-23/local-integration-canonical-convergence-20261019-v2",
-        "head": "41e11ae7",
+        "tag_object": "74f7df4ee276ea766efe60959edce623cef2a55f",
+        "commit": "41e11ae790983cc4489e598156a2f8973c74709f",
         "status": "SUPERSEDED",
-        "reason": "ancestor of PR #55 head aa8fb964"
+        "reason": "ancestor of PR #55 head aa8fb96463f967ad7e7e4b0a83633f283c9511b1"
       },
       {
         "ref": "archive/2026-10-23/wip-issue-54-hosted-bootstrap",
+        "tag_object": "b686cd5644613b8128237132d8c23db629cf6bfd",
+        "commit": "8a870913bca79fb9896479a2c4cdc97a0f817826",
         "status": "NO_NET_SOURCE_IMPORT",
-        "reason": "WIP snapshot over aa8fb964 changes generated reports/ only"
+        "reason": "WIP snapshot over aa8fb96463f967ad7e7e4b0a83633f283c9511b1 changes generated reports/ only"
       },
       {
         "ref": "archive/2026-10-23/wip-canonical-convergence-20261019",
+        "tag_object": "78ef47c7579402a8de77926f022467c2752c5bca",
+        "commit": "81f680e77f1a5a05d6f0a24a52587d0c7ddb7676",
         "status": "RETAINED_REFERENCE_FOR_66_67",
         "reason": "uncommitted, never CI-verified snapshot of the PR #55 line (58 new paths: hosted/Sigstore release-claim admission, GitHub run/artifact receipts); not reapplied wholesale per PR #55 disposition; implementation obligation stays in issues #66 and #67"
       },
       {
         "ref": "archive/2026-10-23/wip-pr90-finalize",
+        "tag_object": "22adc63424e087f4243fddfb3d3df603f69b6663",
+        "commit": "ee400b12c2268a315b87fdb95aa7de06b4dccbe0",
         "status": "SUPERSEDED",
-        "reason": "pre-merge WIP of PR #90 on d9d78e7a; merged result is canonical main"
+        "reason": "pre-merge WIP of PR #90 on d9d78e7a80dfa4623fd3ad20d17cf67492a7c9ec; merged result is canonical main"
       },
       {
         "ref": "archive/2026-10-23/gitlab-korpus-web-main",
+        "tag_object": "fed5637a3b2ebd3ee640014a19db10b60d1e49ca",
+        "commit": "22294c814c9556f2558975c509ed4090d5fad7db",
         "status": "DERIVED_ARTIFACT",
         "reason": "GitLab neuron7x-group/korpus-web is a built copy of apps/web/public; unique paths are only deployment config (.gitlab-ci.yml, README.md, public/config.js without secrets)"
       }
@@ -271,6 +283,264 @@
     "limits": [
       "Tag preservation is history retention, not semantic integration.",
       "Issues #66 and #67 remain OPEN feature work; this record does not claim them closed."
-    ]
+    ],
+    "archive_tag_pins": [
+      {
+        "tag": "archive/2026-10-23/gitlab-korpus-web-main",
+        "tag_object": "fed5637a3b2ebd3ee640014a19db10b60d1e49ca",
+        "commit": "22294c814c9556f2558975c509ed4090d5fad7db"
+      },
+      {
+        "tag": "archive/2026-10-23/local-integration-canonical-convergence-20261019-v2",
+        "tag_object": "74f7df4ee276ea766efe60959edce623cef2a55f",
+        "commit": "41e11ae790983cc4489e598156a2f8973c74709f"
+      },
+      {
+        "tag": "archive/2026-10-23/local-integration-canonical-main-20261021",
+        "tag_object": "3a1e1749605a82f28f750abe205b31b3cad5c857",
+        "commit": "d9d78e7a80dfa4623fd3ad20d17cf67492a7c9ec"
+      },
+      {
+        "tag": "archive/2026-10-23/local-work-issue-54-ci-authority",
+        "tag_object": "0dbc8014f9664354a346c46ed6035c340d12c890",
+        "commit": "d7fb9a90c6d54387b9ef539d9befba970f8e6a64"
+      },
+      {
+        "tag": "archive/2026-10-23/local-work-issue-54-evidence-authority",
+        "tag_object": "e1195915666d4f591716be7a3d9edb726b06608d",
+        "commit": "7b6c98e00f0cba421dac725f52eaea4f892f853d"
+      },
+      {
+        "tag": "archive/2026-10-23/local-work-issue-54-release-authority",
+        "tag_object": "836921045357d6ef25c4ea0a06743ba33ce4e36a",
+        "commit": "eabf77b442a803395635c237a6ea6128391072e6"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-agent-ci-local-ref-isolation-20261018",
+        "tag_object": "f84d8909a5e80a06b909941af2296d9d8a7beeae",
+        "commit": "df008029c6d630bdbe825cacd214715a95337772"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-audit-pr85-empty-component-fix-20261021",
+        "tag_object": "0adb3bb38e3e4e6a52b4ffb6c93e8a36f3fb2306",
+        "commit": "974dfc77b30e0dfc4beb703e6e29d269132c28ae"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-ci-issue-56-evidence-dag",
+        "tag_object": "931fd5b6f5d1576178fde78eb97331f4c3cf3e61",
+        "commit": "cc12e7aaddaa54252db23d874a1654a148966ab9"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-ci-issue-58-terraform-validation",
+        "tag_object": "03908813e3850c4c30db309137ec72aca3993e24",
+        "commit": "2b705cc7a5bdf86a138700876cf6d8f033bab0e1"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-ci-postgres-coverage-artifact",
+        "tag_object": "c313e0ea642626e48bffccde44e634c797b7e497",
+        "commit": "9b3fecfabac11c9b4bb1929b54a390000ec389d7"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-closure-all-eight",
+        "tag_object": "f4096733c74b6b69d72b483e551f3da63bf890d6",
+        "commit": "0b141ea9aeb7f234b9f4eb034b0fffabba8ad446"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-closure-all-nine",
+        "tag_object": "c2d914da79bffa64acbcefb2e721cafd9df3aa98",
+        "commit": "86071ba79bdb785c14cbdfca748fdde81afade9e"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-closure-falsifiability-wider",
+        "tag_object": "9ad42c588db6fb1a3229e1b6eb2702ed3d11b2bc",
+        "commit": "44d34f24a7c182e170879e3d027ceb0bb84475f7"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-closure-mutation-probe-rc",
+        "tag_object": "dd1e3591e38a0752b35006556c5182aa704a6988",
+        "commit": "311d1039eb58a515f62f1336ba6fd0659c3cf08e"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-closure-selftests-that-cannot-fail",
+        "tag_object": "d258d79926ca15d71bd207d02e2722712da208a7",
+        "commit": "ed81a28e307897a1931e134b5fb12a87f9c12931"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-codex-finalize-canonical-20261018",
+        "tag_object": "86c9755cd7a1023d611eb4e1f057a770d39be94e",
+        "commit": "54db6bdbf2091a3bf7a66cf1124aa0c1a364931e"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-codex-issue-46-architecture",
+        "tag_object": "7bd5888e6f30c9713a6c1b26ecb394d83b990be3",
+        "commit": "4cfd7a26945617fbe2c14fcadcf335e3d6def48e"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-codex-issue-6-release-evidence",
+        "tag_object": "876a08585ae51646384c76168d2984e23e5f5dd0",
+        "commit": "7469e4a080e4a4b0a98825d91c3d695594317e16"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-codex-pilot-readiness-20261003",
+        "tag_object": "828504c7ebb28976c34ca8edd53902d991ebcd85",
+        "commit": "cb35708669119c9eca7aa92c7a55ca0eac946995"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-fix-issue-83-pilot-installer",
+        "tag_object": "39a59791e069fc2caa79f43a62186805e5e5cfe6",
+        "commit": "c8afde7a93f773d0b83d869dce421966d931870c"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-governance-issue-54-forge-contract",
+        "tag_object": "d2c9fac24bf227c41774191b399e099a4d14326f",
+        "commit": "398c3ac524e20d9d986cfb7df4c07cd54f1073be"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-integration-canonical-main-20261021",
+        "tag_object": "75db0041c216e8a15a3e64274561a1d2dd32ead2",
+        "commit": "0216e7c70d1f3a7b6a19682b61fd52b6433dec7f"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-integration-capability-gateway-v1",
+        "tag_object": "d6c3c083b76e14f173eefb2a1158f0046db3ecaa",
+        "commit": "45d303cab96a6ee0650b37f4cf7156a0ffef308c"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-integration-issue-60-merge-parent-evidence",
+        "tag_object": "9b883ae9aaa3eb2dced252d2569e001249c422a5",
+        "commit": "749fbd49457dbcfd4068d4f9451cd3f75d20b579"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-integration-issue-62-architecture-boundaries",
+        "tag_object": "f877a149551c147698d4494a1da5d42616427979",
+        "commit": "cc6cb15f1e11c1d6178865461ff6370323f03a8d"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-integration-issue-63-action-pins",
+        "tag_object": "5881a14de0b38ed43172c764cd431bc12f59567d",
+        "commit": "cde0df763dc95a81db520c421aa4e76b7d5cf7eb"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-integration-issue-64-forge-authority-contract",
+        "tag_object": "031b8f3a99c06c1c50594039e6f612892858ef8f",
+        "commit": "785c42fbdea23a9edfb428fa907cc73c0f154b74"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-integration-issue-64-retire-gitlab-authority",
+        "tag_object": "97eda293c3e27d8721d3ed431fd62845467cc0d7",
+        "commit": "788d326e85e58c7cc396413b3a45e1519cfeb4fe"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-integration-issue-65-release-candidate-boundary",
+        "tag_object": "8126e0d4538fa497899ca3d967ca0a4badc8652b",
+        "commit": "5222ab803fb9babeeb490456950c810ab538f9f8"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-integration-issue-66-reject-unadmitted-coverage",
+        "tag_object": "122e87ded71723b915670357f7af11a130d0ab64",
+        "commit": "0b49a4e5d3e2cf25286979433046d5fdecdf719d"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-integration-pr44-on-main",
+        "tag_object": "a3f6fb5ca6bf4e8c9fe5bb25f85130eee174bc84",
+        "commit": "bd055dc6f673a6e5161229e65be977a029454794"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-proposal-korpus-capability-gateway-v1-20260904",
+        "tag_object": "d90fa70fdc32ec792b744d8bd42592654b415784",
+        "commit": "f90a409bb8e2ab13aa90a15ed979885e2f43b413"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-security-issue-18-20-distribution-boundary",
+        "tag_object": "fe3a62bd62a63a35ca7bcf597e85f12bf8d37bb6",
+        "commit": "f5f86aebeb615324d3eefd64caeb19d699440659"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-security-issue-20-report-evidence-boundary",
+        "tag_object": "77aab6d234bcdb148d01c149e59ca549054ef8a9",
+        "commit": "6a4534f3b34c076493cbcc39eaada1e1f4cd4d08"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-security-issue-22-frozen-artifact-snapshot",
+        "tag_object": "6268b4ce31bf08baf42d1d69854c86c9b75ae4bf",
+        "commit": "0037326b7dabe542f8794f00352991a7d0047e5e"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-security-issue-66-publisher-admitted-bytes",
+        "tag_object": "4e4d18bedd523636a5d32114d304d6f1e094f818",
+        "commit": "d3b96a5c266e9957dbb3194088543b9943f74d1f"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-security-issue-67-clean-tree-boundary",
+        "tag_object": "16b60ffe4f25c46b2afe0c7b74d7bc7ae4009fc6",
+        "commit": "e5ece90a42b045e9e9a6677fa7e7cdcf52178738"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-security-issue-67-git-source-digest-environment",
+        "tag_object": "ff184c64e8b70e5806df6902b1951c3cdc3ca4c2",
+        "commit": "0de9e055c9438f6a51511648ac59cb9c9cc5f602"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-security-issue-67-gitless-source-digest-parity",
+        "tag_object": "8182a8e404b3d6b418d345241a01535ffea552e4",
+        "commit": "7643b1797055bae6ea6c4ce5c78536f7c2bf4cc5"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-security-issue-67-source-manifest-verifier",
+        "tag_object": "95657572018e1316eac889dabf12e55e88e6805a",
+        "commit": "5609014fe4f8fc348c196f2e5c79f2ee44688e08"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-security-issue-67-strict-source-manifest",
+        "tag_object": "aec1aad82b2a74d9fa000aaa13cb835ca1b4f880",
+        "commit": "3ceff6ad6075c019850174d0cc6250b0ce5aa655"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-verification-issue54-clean-restore",
+        "tag_object": "7437de4a3f8692441a23833edff41f08802abf8c",
+        "commit": "538598a92445e6c9a87d1c082da982a8977a0061"
+      },
+      {
+        "tag": "archive/2026-10-23/origin-work-issue-54-hosted-bootstrap",
+        "tag_object": "550550fd3a3ff8be86c8907f17a34f909382af8c",
+        "commit": "aa8fb96463f967ad7e7e4b0a83633f283c9511b1"
+      },
+      {
+        "tag": "archive/2026-10-23/stash-0",
+        "tag_object": "0a05597c51c5367404868676827e36aa483222ef",
+        "commit": "cd758ee15d69c87bbdffcc3e0fdd9cc8fb0f0c23"
+      },
+      {
+        "tag": "archive/2026-10-23/stash-1",
+        "tag_object": "8e568385a331ac920e91216ce13a62c114985c8f",
+        "commit": "9627e790f14993a5427e9d7274e5db6920fc54d0"
+      },
+      {
+        "tag": "archive/2026-10-23/stash-2",
+        "tag_object": "d1d13f2f670fd05d43c1d602c3e6fd1424cc0095",
+        "commit": "e91f66ae0be3404a1d9394cee78f8b744469f33d"
+      },
+      {
+        "tag": "archive/2026-10-23/stash-3",
+        "tag_object": "2e485958f214cf26f12c5d297e5e45a063d7c3bb",
+        "commit": "f6f82807020b4069c005ab7dde840ce5ec30d46d"
+      },
+      {
+        "tag": "archive/2026-10-23/wip-canonical-convergence-20261019",
+        "tag_object": "78ef47c7579402a8de77926f022467c2752c5bca",
+        "commit": "81f680e77f1a5a05d6f0a24a52587d0c7ddb7676"
+      },
+      {
+        "tag": "archive/2026-10-23/wip-issue-54-hosted-bootstrap",
+        "tag_object": "b686cd5644613b8128237132d8c23db629cf6bfd",
+        "commit": "8a870913bca79fb9896479a2c4cdc97a0f817826"
+      },
+      {
+        "tag": "archive/2026-10-23/wip-pr90-finalize",
+        "tag_object": "22adc63424e087f4243fddfb3d3df603f69b6663",
+        "commit": "ee400b12c2268a315b87fdb95aa7de06b4dccbe0"
+      }
+    ],
+    "pin_method": "tag_object and commit are full 40-hex IDs read back from GitHub with git ls-remote (annotated tag and peeled ^{}) and matched to the local tag before recording"
   }
 }
