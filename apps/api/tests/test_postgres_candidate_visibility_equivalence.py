@@ -65,9 +65,7 @@ def _document(connection, *, compartments: tuple[str, ...] = ()) -> str:
     )
     for compartment in compartments:
         connection.execute(
-            insert(document_compartments).values(
-                document_id=document_id, compartment=compartment
-            )
+            insert(document_compartments).values(document_id=document_id, compartment=compartment)
         )
     return document_id
 
@@ -122,8 +120,7 @@ def _observe(
             ).mappings()
         }
         candidates = [
-            str(row["span_id"])
-            for row in connection.execute(statement, parameters).mappings()
+            str(row["span_id"]) for row in connection.execute(statement, parameters).mappings()
         ]
     assert set(candidates) <= canonical, "candidate query escaped canonical visibility"
     return canonical, candidates
@@ -131,9 +128,7 @@ def _observe(
 
 def _repository():
     assert APP_URL and AUTHZ_URL
-    return RlsBoundSqlRepository(
-        APP_URL, "candidate-pg-test-key", authz_database_url=AUTHZ_URL
-    )
+    return RlsBoundSqlRepository(APP_URL, "candidate-pg-test-key", authz_database_url=AUTHZ_URL)
 
 
 def test_postgres_foreign_supersession_cannot_suppress_visible_candidate() -> None:
@@ -194,7 +189,8 @@ def test_postgres_partial_compartment_assignment_is_not_admission() -> None:
                 connection, _document(connection, compartments=("alpha",)), "beacon"
             )[1]
             both_span = _version(
-                connection, _document(connection, compartments=("alpha", "bravo")),
+                connection,
+                _document(connection, compartments=("alpha", "bravo")),
                 "beacon beacon beacon",
             )[1]
     finally:
