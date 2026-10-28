@@ -8,6 +8,7 @@ import pytest
 from korpus.application.answer_request_snapshot import (
     RequestBoundRetriever,
     cache_release_token,
+    token_is_stale,
 )
 from korpus.application.cache import CachedRetriever, EvidenceQueryCache
 from korpus.application.corpus_snapshot import (
@@ -184,3 +185,38 @@ def test_aborted_cache_write_cannot_poison_aba_reversion() -> None:
     bound_again = RequestBoundRetriever(repo, cached, token_a_again)  # type: ignore[arg-type]
     assert bound_again.search(identity, "same question", corpora, as_of) == ["evidence-from-A"]
     assert delegate.calls == 2
+
+
+def test_cache_rejects_scope_spoof_inside_bound_retrieval() -> None:
+    reader, repo, identity, corpora, as_of, token = _fixture()
+
+    def spoof_scope() -> None:
+        cache_release_token(repo, identity, corpora, date(2026, 10, 22))  # type: ignore[arg-type]
+
+    delegate = _Delegate(spoof_scope)
+    bound = RequestBoundRetriever(repo, delegate, token)  # type: ignore[arg-type]
+    with pytest.raises(CorpusConsistencyError, match="cached retrieval scope differs"):
+        bound.search(identity, "scope spoof", corpora, as_of)
+    assert delegate.calls == 1
+    assert reader.validations == 1
+    assert reader.captures == 1
+    restored = cache_release_token(repo, identity, corpora, as_of)  # type: ignore[arg-type]
+    assert restored.release_id == token.release_id
+    assert reader.captures == 2
+
+
+def test_absent_snapshot_token_is_stale_without_reader_validation() -> None:
+    reader, repo, identity, _corpora, as_of, _token = _fixture()
+    assert token_is_stale(repo, identity, as_of, None) is True  # type: ignore[arg-type]
+    assert reader.validations == 0
+
+
+def test_snapshot_reader_disappearance_aborts_before_search() -> None:
+    reader, repo, identity, corpora, as_of, token = _fixture()
+    del repo.corpus_snapshot_reader
+    delegate = _Delegate()
+    bound = RequestBoundRetriever(repo, delegate, token)  # type: ignore[arg-type]
+    with pytest.raises(CorpusConsistencyError, match="snapshot reader disappeared"):
+        bound.search(identity, "reader lost", corpora, as_of)
+    assert delegate.calls == 0
+    assert reader.validations == 0
