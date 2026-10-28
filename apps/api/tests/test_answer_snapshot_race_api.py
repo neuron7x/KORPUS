@@ -109,9 +109,7 @@ def test_reentrant_answer_restores_outer_audit_snapshot(
         client.app.state.policy,
         AnswerPolicy(0.1, 0.1, 0.1, "reentrant-snapshot-control"),
     )
-    outer_query = QueryRequest(
-        text="Що має містити кожен запис?", corpus_ids=["public"]
-    )
+    outer_query = QueryRequest(text="Що має містити кожен запис?", corpus_ids=["public"])
     nested_query = QueryRequest(
         text="Що містить тренувальний корпус?",
         corpus_ids=["training"],

@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2152,
-  "root_sha256": "6d38fdfefe161b02b5961ae004d6dbdc14da2516b7ea9277d5e60c25995c1cea",
+  "root_sha256": "b0a8cc0ac6d937e455193b5d96b90e8a21fb7027d903dbee3efa0bf8ff1217b8",
   "files": [
     {
       "path": ".dockerignore",
@@ -2995,8 +2995,8 @@
     },
     {
       "path": "apps/api/tests/test_answer_snapshot_race_api.py",
-      "bytes": 6117,
-      "sha256": "a915972d83216eded6366955cca1f69e9332debda90010e0681642631784e26e",
+      "bytes": 6103,
+      "sha256": "561705665680ec60454c9f52674324b4b6740737b817f53cae823764afd1f6e0",
       "mode": "0644"
     },
     {
