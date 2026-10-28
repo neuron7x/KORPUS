@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2152,
-  "root_sha256": "ef37144f0dab9c0036a1d0ed895e88bb935f0a1d20bd2d81b4d66613cd292464",
+  "file_count": 2153,
+  "root_sha256": "b5d050cae7075bbc2ea94ed30fd79650d58591496460ffc2ee012667087cfdf8",
   "files": [
     {
       "path": ".dockerignore",
@@ -5085,6 +5085,12 @@
       "path": "apps/api/tests/test_postgres_approval_provenance.py",
       "bytes": 9796,
       "sha256": "07a22419c7c19576f21c5ec6bbba40d78114cf8979ae6409c996ea62c750701c",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_postgres_candidate_visibility_equivalence.py",
+      "bytes": 7242,
+      "sha256": "19ab2ea08d536ac82cf51c97dd97a4b3404aa4de4d895fcd73c8105aa3d5be93",
       "mode": "0644"
     },
     {
