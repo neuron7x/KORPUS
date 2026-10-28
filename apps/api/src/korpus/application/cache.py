@@ -101,7 +101,6 @@ class CachedRetriever(Retriever):
         # Поки їх було дві, кеш умів віддати відповідь, засвідчену іншим релізом, ніж
         # той, за яким її поклали, — і жодне поле не розрізняло ці два випадки.
         token = cache_release_token(self.repository, identity, corpus_ids, as_of)
-        release_id = token.release_id
         material = "\x1f".join(
             [
                 identity.subject,
@@ -121,7 +120,7 @@ class CachedRetriever(Retriever):
                 str(limit),
                 self.configuration_id,
                 str(token.state_epoch),
-                release_id,
+                token.release_id,
                 normalize_text(text),
             ]
         )
