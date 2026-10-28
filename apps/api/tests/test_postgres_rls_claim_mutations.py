@@ -167,21 +167,20 @@ def test_forged_claims_cannot_insert_a_restricted_document() -> None:
     attempt = str(uuid4())
     repository = _repository()
     try:
-        with pytest.raises(DBAPIError):
-            with repository.engine.begin() as connection:
-                repository._apply_postgres_identity(connection, _subject())
-                assert _visible(connection, public_id)
-                _forge_all(connection)
-                connection.execute(
-                    text(
-                        "INSERT INTO documents("
-                        "id, canonical_title, corpus_id, issuer, jurisdiction, "
-                        "document_type, access_tier, classification, created_at, compartments_json"
-                        ") VALUES (:id, 'forged-insert', 'restricted-demo', 'Verifier', "
-                        "'UA', 'order', 3, 'restricted', :now, '[]')"
-                    ),
-                    {"id": attempt, "now": datetime.now(UTC)},
-                )
+        with pytest.raises(DBAPIError), repository.engine.begin() as connection:
+            repository._apply_postgres_identity(connection, _subject())
+            assert _visible(connection, public_id)
+            _forge_all(connection)
+            connection.execute(
+                text(
+                    "INSERT INTO documents("
+                    "id, canonical_title, corpus_id, issuer, jurisdiction, "
+                    "document_type, access_tier, classification, created_at, compartments_json"
+                    ") VALUES (:id, 'forged-insert', 'restricted-demo', 'Verifier', "
+                    "'UA', 'order', 3, 'restricted', :now, '[]')"
+                ),
+                {"id": attempt, "now": datetime.now(UTC)},
+            )
         assert ADMIN_URL is not None
         admin = create_engine(ADMIN_URL, future=True)
         try:
