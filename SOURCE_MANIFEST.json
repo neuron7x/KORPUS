@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2149,
-  "root_sha256": "6c06f7385347cdb407ff0efbf9b78b465df1f1804b728ba2f4928807465a2edf",
+  "file_count": 2150,
+  "root_sha256": "902049aa05053c032bb49967cbefc9c8669daac358affc10729d8554a2a72e18",
   "files": [
     {
       "path": ".dockerignore",
@@ -5079,6 +5079,12 @@
       "path": "apps/api/tests/test_postgres_rls_claim_forgery.py",
       "bytes": 7530,
       "sha256": "8c005033b58c6691988b2089a6d861dd9f720b327a7d01f7232e478d56c8a3ab",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_postgres_rls_claim_mutations.py",
+      "bytes": 7697,
+      "sha256": "2154d79fef0ff8ec3a6fc2997a921533a7eedc1779f96c4aa378c035df82791f",
       "mode": "0644"
     },
     {
