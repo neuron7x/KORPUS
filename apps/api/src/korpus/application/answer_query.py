@@ -162,8 +162,14 @@ class ExtractiveAnswerService:
         return release_token(self.repository, identity, corpora, as_of)
 
     def execute(self, identity: Identity, query: QueryRequest) -> Answer:
+        scope = self._snapshot_token.set(None)
+        try:
+            return self._execute_scoped(identity, query)
+        finally:
+            self._snapshot_token.reset(scope)
+
+    def _execute_scoped(self, identity: Identity, query: QueryRequest) -> Answer:
         corpora = self.policy_engine.resolve_corpora(identity, query.corpus_ids)
-        self._snapshot_token.set(None)
         try:
             token = self._capture_snapshot(identity, corpora, query.as_of)
         except (CorpusConsistencyError, ReleaseIdentityUnavailable) as error:
@@ -285,9 +291,7 @@ class ExtractiveAnswerService:
                 pec_trace=pec_trace,
             )
             return answer
-        # Before every branch, not inside one: three of them reach the same audit call,
-        # and initialising it in the branch that uses it surfaced as an UnboundLocalError
-        # on the other two rather than as a missing field.
+        # Initialize before branches: otherwise audit raises UnboundLocalError.
         composition_reason = "not attempted"
         if not claims or not coverage_admits(query_coverage, thresholds.minimum_query_coverage):
             answer = self._abstain(
