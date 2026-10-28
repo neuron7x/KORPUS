@@ -6,10 +6,11 @@ import json
 import os
 from datetime import UTC, date, datetime
 from hashlib import sha256
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from korpus.domain.models import AccessTier, Identity
+from korpus.infrastructure.evidence_sealing import seal_evidence_digest
 from korpus.infrastructure.retrieval_queries import (
     candidate_span_query,
     retrievable_projection,
@@ -21,7 +22,7 @@ from korpus.infrastructure.schema import (
     spans,
     versions,
 )
-from sqlalchemy import create_engine, insert
+from sqlalchemy import create_engine, insert, update
 
 from apps.api.tests.conftest import reset_database
 
@@ -80,15 +81,15 @@ def _version(
             document_id=document_id,
             revision="1",
             source_hash=sha256(body.encode()).hexdigest(),
-            evidence_digest=sha256(body.encode()).hexdigest(),
+            evidence_digest=None,
             object_key=f"tests/{version_id}",
             mime_type="text/plain",
             authority="official_ua",
-            review_state="approved",
+            review_state="content_reviewed",
             publication_date=date(2020, 1, 1),
             effective_from=date(2020, 1, 1),
             supersedes_version_id=supersedes,
-            is_current=True,
+            is_current=False,
             created_at=CREATED,
         )
     )
@@ -100,6 +101,15 @@ def _version(
             text=body,
             text_hash=sha256(body.encode()).hexdigest(),
             created_at=CREATED,
+        )
+    )
+    connection.execute(
+        update(versions)
+        .where(versions.c.id == version_id)
+        .values(
+            review_state="approved",
+            is_current=True,
+            evidence_digest=seal_evidence_digest(connection, UUID(version_id)),
         )
     )
     return version_id, span_id
