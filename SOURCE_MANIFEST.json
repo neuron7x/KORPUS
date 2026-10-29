@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2153,
-  "root_sha256": "e294a9c831ad3460bb004d287fba82e59f53a32e423cc3a32a5aee2a8e37f48c",
+  "root_sha256": "7bfbdbc9d0a4cef2b583a890fd55030f9bb4dc77e748a8cbf208fa345da1b6af",
   "files": [
     {
       "path": ".dockerignore",
@@ -1195,8 +1195,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/corpus_snapshot.py",
-      "bytes": 9651,
-      "sha256": "21183a82924643bdfd0dd2cad14abc4e223185fcb3ffc456741ef339ecc6b952",
+      "bytes": 9661,
+      "sha256": "35e27f0267e7fee4b6183edc490f5ae88024af68ced09a5d7a35820cba1d74f1",
       "mode": "0644"
     },
     {
@@ -2563,8 +2563,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/semantic_release.py",
-      "bytes": 5652,
-      "sha256": "cbcc68f3b8793194901130692c55928bf32d1e5983c61bc116769b994f110d72",
+      "bytes": 5916,
+      "sha256": "fd1d8c867048269ca410f0573a6d3e133a025a7176ac9c52638739f701acdc67",
       "mode": "0644"
     },
     {
@@ -3751,8 +3751,8 @@
     },
     {
       "path": "apps/api/tests/test_corpus_release_identity.py",
-      "bytes": 9554,
-      "sha256": "a01bef7779ff11eb6d4c0d41b18b7206bc4644c8e17d0eadeedb96278202901a",
+      "bytes": 10620,
+      "sha256": "f8c4ba11491e7490a7721fb9205de5a0037df3d9a2e43ac412a73165c2779215",
       "mode": "0644"
     },
     {
@@ -3769,8 +3769,8 @@
     },
     {
       "path": "apps/api/tests/test_corpus_snapshot_contract.py",
-      "bytes": 23194,
-      "sha256": "7b1df7cf56d73b0b3a839ebb372b80ae3ab20435aa221144b7a8abb3320a10a0",
+      "bytes": 23406,
+      "sha256": "6d0eab3bcea684c50850001fe25ddc775196f596f57ba562da6c89de22c9b17d",
       "mode": "0644"
     },
     {

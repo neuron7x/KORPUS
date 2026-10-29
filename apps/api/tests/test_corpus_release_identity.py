@@ -22,10 +22,15 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
+import pytest
+from sqlalchemy import update
+
 from fastapi.testclient import TestClient
 from korpus.application.corpus_snapshot import release_identity_digest
 from korpus.domain.models import AccessTier, Identity
+from korpus.infrastructure.schema import documents
 
+from apps.api.tests.conftest import privileged_connection
 from apps.api.tests.helpers import approve, ingest_text
 
 READER = Identity(
@@ -98,6 +103,31 @@ def test_a_version_that_changes_changes_the_release_id(client: TestClient) -> No
     approve(client, result["version"]["id"])
 
     assert _release(client, as_of) != before
+
+
+@pytest.mark.parametrize(
+    ("field", "replacement"),
+    [
+        ("issuer", "Changed Authority"),
+        ("jurisdiction", "PL"),
+        ("document_type", "directive"),
+    ],
+)
+def test_contextual_document_metadata_mutation_changes_release(
+    client: TestClient, field: str, replacement: str
+) -> None:
+    """An approved document's search-context changes must change release identity."""
+    result = ingest_text(client, text="Evidence remains byte-identical after metadata edits.")
+    approve(client, result["version"]["id"])
+    before = _release(client, date.today())
+    with privileged_connection(client) as connection:
+        response = connection.execute(
+            update(documents)
+            .where(documents.c.id == result["document"]["id"])
+            .values({field: replacement})
+        )
+        assert response.rowcount == 1
+    assert _release(client, date.today()) != before
 
 
 def test_a_quarantined_version_is_not_in_the_release(client: TestClient) -> None:
