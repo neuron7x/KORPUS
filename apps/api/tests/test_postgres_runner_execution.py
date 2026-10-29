@@ -161,7 +161,7 @@ def test_security_runtime_selects_its_actual_complete_target_list(monkeypatch) -
     monkeypatch.setattr(process, "run", record)
     assert process.runtime(ROOT, gate.TARGETS, True)[1] == 0
     assert calls[0][0] == ["bash", "scripts/run_postgres_suite.sh", "--targeted", *gate.TARGETS]
-    assert len(gate.TARGETS) == 9
+    assert len(gate.TARGETS) == 10
     assert calls[0][1] == 600
 
 
