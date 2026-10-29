@@ -53,6 +53,7 @@ def main() -> int:
                 " skipped" not in runtime_tail,
                 " xfailed" not in runtime_tail,
                 " xpassed" not in runtime_tail,
+                " deselected" not in runtime_tail,
             )
         ),
     }

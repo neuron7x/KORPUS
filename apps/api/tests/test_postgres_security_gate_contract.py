@@ -72,6 +72,8 @@ def test_every_named_target_exists_on_disk() -> None:
         ("1 xpassed in 0.01s", "FAIL"),
         ("1 passed, 1 xfailed in 0.01s", "FAIL"),
         ("1 passed, 1 xpassed in 0.01s", "FAIL"),
+        ("1 passed, 1 deselected in 0.01s", "FAIL"),
+        ("2 deselected in 0.01s", "FAIL"),
         ("1 passed, 1 skipped, 1 xfailed in 0.01s", "FAIL"),
         ("1 xfailed, 1 xpassed in 0.01s", "FAIL"),
         ("no tests ran in 0.01s", "FAIL"),
