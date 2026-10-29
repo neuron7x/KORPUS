@@ -61,33 +61,27 @@ def skips(targets_present: bool, available: bool) -> bool:
     return not targets_present or not available
 
 
+def _missing_external_roles(database_url: str | None) -> list[str]:
+    required = (
+        "KORPUS_TEST_DATABASE_ADMIN_URL",
+        "KORPUS_POSTGRES_TEST_URL",
+        "KORPUS_AUTHZ_DATABASE_URL",
+        "KORPUS_REVIEW_DATABASE_URL",
+    )
+    return [name for name in required if database_url and not os.getenv(name)]
+
+
 def runtime(root: Path, targets: list[str], targets_present: bool) -> tuple[bool, int | None, str]:
     database_url = os.getenv("KORPUS_TEST_DATABASE_URL")
     available = postgres_available(database_url, shutil.which("docker"))
     if skips(targets_present, available):
         return available, None, ""
-    if database_url:
-        required = (
-            "KORPUS_TEST_DATABASE_ADMIN_URL",
-            "KORPUS_POSTGRES_TEST_URL",
-            "KORPUS_AUTHZ_DATABASE_URL",
-            "KORPUS_REVIEW_DATABASE_URL",
-        )
-        missing = [name for name in required if not os.getenv(name)]
-        if missing:
-            return (
-                available,
-                2,
-                "external PostgreSQL missing split role URLs: " + ", ".join(missing),
-            )
-    completed = run(
-        root,
-        ["bash", "scripts/run_postgres_suite.sh", "--targeted", *targets],
-        600,
-        environment={"PYTHON": sys.executable},
-    )
+    if missing := _missing_external_roles(database_url):
+        reason = "external PostgreSQL missing split role URLs: " + ", ".join(missing)
+        return available, 2, reason
+    command = ["bash", "scripts/run_postgres_suite.sh", "--targeted", *targets]
+    completed = run(root, command, 600, environment={"PYTHON": sys.executable})
     return available, completed.returncode, labelled_tail(completed.stdout, completed.stderr)
-
 
 def selftest() -> int:
     """Негативний контроль: причина живе у КОРОТШІЙ трубі, шум — у довшій."""
