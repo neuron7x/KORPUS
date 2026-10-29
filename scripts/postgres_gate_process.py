@@ -62,9 +62,20 @@ def skips(targets_present: bool, available: bool) -> bool:
 
 
 def runtime(root: Path, targets: list[str], targets_present: bool) -> tuple[bool, int | None, str]:
-    available = postgres_available(os.getenv("KORPUS_TEST_DATABASE_URL"), shutil.which("docker"))
+    database_url = os.getenv("KORPUS_TEST_DATABASE_URL")
+    available = postgres_available(database_url, shutil.which("docker"))
     if skips(targets_present, available):
         return available, None, ""
+    if database_url:
+        required = (
+            "KORPUS_TEST_DATABASE_ADMIN_URL",
+            "KORPUS_POSTGRES_TEST_URL",
+            "KORPUS_AUTHZ_DATABASE_URL",
+            "KORPUS_REVIEW_DATABASE_URL",
+        )
+        missing = [name for name in required if not os.getenv(name)]
+        if missing:
+            return available, 2, "external PostgreSQL missing split role URLs: " + ", ".join(missing)
     completed = run(
         root,
         ["bash", "scripts/run_postgres_suite.sh", "--targeted", *targets],
