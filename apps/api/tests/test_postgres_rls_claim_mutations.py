@@ -22,6 +22,7 @@ from apps.api.tests.conftest import reset_database
 APP_URL = os.getenv("KORPUS_POSTGRES_TEST_URL")
 ADMIN_URL = os.getenv("KORPUS_TEST_DATABASE_ADMIN_URL")
 AUTHZ_URL = os.getenv("KORPUS_AUTHZ_DATABASE_URL")
+REVIEW_URL = os.getenv("KORPUS_REVIEW_DATABASE_URL")
 pytestmark = [
     pytest.mark.postgres,
     pytest.mark.skipif(
@@ -77,9 +78,16 @@ def _seed(corpus: str, tier: int, classification: str) -> str:
     return document_id
 
 
-def _repository() -> RlsBoundSqlRepository:
+def _repository(*, review: bool = False) -> RlsBoundSqlRepository:
     assert APP_URL is not None and AUTHZ_URL is not None
-    return RlsBoundSqlRepository(APP_URL, "test-only-audit-key", authz_database_url=AUTHZ_URL)
+    if review:
+        assert REVIEW_URL is not None
+    return RlsBoundSqlRepository(
+        APP_URL,
+        "test-only-audit-key",
+        authz_database_url=AUTHZ_URL,
+        review_database_url=REVIEW_URL if review else None,
+    )
 
 
 def _visible(connection, document_id: str) -> bool:
@@ -190,3 +198,109 @@ def test_forged_claims_cannot_insert_a_restricted_document() -> None:
             admin.dispose()
     finally:
         repository.close()
+
+
+@pytest.mark.skipif(not REVIEW_URL, reason="real review PostgreSQL role required")
+@pytest.mark.parametrize(("axis", "forged"), GUC_ATTACKS)
+def test_review_login_cannot_forge_broker_bound_claims(axis: str, forged: str) -> None:
+    reset_database()
+    public_id = _seed("public", 0, "public")
+    restricted_id = _seed("restricted-demo", 3, "restricted")
+    repository = _repository(review=True)
+    try:
+        assert repository.review_engine is not None
+        with repository.review_engine.begin() as connection:
+            repository._apply_postgres_identity(connection, _subject())
+            assert connection.execute(text("SELECT current_user")).scalar_one() == "korpus_review"
+            assert _visible(connection, public_id)
+            assert not _visible(connection, restricted_id)
+            accessor = f"public.korpus_rls_{axis}()"
+            before = connection.execute(text(f"SELECT {accessor}")).scalar_one()
+            connection.execute(
+                text("SELECT set_config(:setting, :value, true)"),
+                {"setting": f"korpus.{axis}", "value": forged},
+            )
+            assert connection.execute(text(f"SELECT {accessor}")).scalar_one() == before
+            assert _visible(connection, public_id)
+            assert not _visible(connection, restricted_id)
+        with repository.review_engine.begin() as connection:
+            repository._apply_postgres_identity(connection, _subject(privileged=True))
+            assert _visible(connection, restricted_id), "always-deny is not a review security proof"
+    finally:
+        repository.close()
+
+
+@pytest.mark.skipif(not REVIEW_URL, reason="real review PostgreSQL role required")
+@pytest.mark.parametrize("operation", ("UPDATE", "DELETE", "INSERT"))
+def test_review_login_cannot_mutate_non_review_document_columns(operation: str) -> None:
+    reset_database()
+    document_id = _seed("public", 0, "public")
+    attempted_id = str(uuid4())
+    statements = {
+        "UPDATE": "UPDATE documents SET canonical_title = 'forged-review' WHERE id = :id",
+        "DELETE": "DELETE FROM documents WHERE id = :id",
+        "INSERT": (
+            "INSERT INTO documents(id, canonical_title, corpus_id, issuer, jurisdiction, "
+            "document_type, access_tier, classification, created_at, compartments_json) "
+            "VALUES (:id, 'forged-review', 'public', 'Verifier', 'UA', 'order', "
+            "0, 'public', :now, '[]')"
+        ),
+    }
+    repository = _repository(review=True)
+    try:
+        assert repository.review_engine is not None
+        with repository.review_engine.connect() as connection:
+            transaction = connection.begin()
+            try:
+                repository._apply_postgres_identity(connection, _subject(privileged=True))
+                assert _visible(connection, document_id), "review identity must retain allowed reads"
+                _forge_all(connection)
+                target = attempted_id if operation == "INSERT" else document_id
+                with pytest.raises(DBAPIError):
+                    connection.execute(
+                        text(statements[operation]),
+                        {"id": target, "now": datetime.now(UTC)},
+                    )
+            finally:
+                transaction.rollback()
+        assert ADMIN_URL is not None
+        admin = create_engine(ADMIN_URL, future=True)
+        try:
+            with admin.connect() as connection:
+                original = connection.execute(
+                    text("SELECT canonical_title FROM documents WHERE id = :id"),
+                    {"id": document_id},
+                ).scalar_one()
+                assert original == "Original authoritative title"
+                assert not _visible(connection, attempted_id)
+        finally:
+            admin.dispose()
+    finally:
+        repository.close()
+
+
+@pytest.mark.skipif(not REVIEW_URL, reason="real review PostgreSQL role required")
+def test_review_login_cannot_call_the_authorization_broker() -> None:
+    assert REVIEW_URL is not None
+    review = create_engine(REVIEW_URL, future=True)
+    try:
+        with review.connect() as connection:
+            allowed = connection.execute(
+                text("SELECT has_function_privilege(current_user, :fn, 'EXECUTE')"),
+                {
+                    "fn": "public.korpus_bind_rls_context"
+                    "(integer,bigint,name,text,integer,jsonb,jsonb,jsonb,jsonb)"
+                },
+            ).scalar_one()
+            assert allowed is False, "review role has broker EXECUTE privilege"
+        with pytest.raises(DBAPIError), review.begin() as connection:
+            connection.execute(
+                text(
+                    "SELECT public.korpus_bind_rls_context(pg_backend_pid(), "
+                    "txid_current(), session_user, 'forged-review', 3, "
+                    "'[\"public\"]'::jsonb, '[\"public\"]'::jsonb, "
+                    "'[]'::jsonb, '[\"admin\"]'::jsonb)"
+                )
+            )
+    finally:
+        review.dispose()
