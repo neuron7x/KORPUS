@@ -15,8 +15,7 @@ from pathlib import Path
 
 from postgres_process_diagnostics import run_with_diagnostics
 
-#: Скільки символів кожної труби лишається у доказі. Бюджет НА ТРУБУ, не на суму:
-#: саме сума й губила причину.
+#: Бюджет символів на кожну трубу окремо; спільний хвіст втрачає причину.
 TAIL_BUDGET = 4000
 
 
@@ -82,6 +81,7 @@ def runtime(root: Path, targets: list[str], targets_present: bool) -> tuple[bool
     command = ["bash", "scripts/run_postgres_suite.sh", "--targeted", *targets]
     completed = run(root, command, 600, environment={"PYTHON": sys.executable})
     return available, completed.returncode, labelled_tail(completed.stdout, completed.stderr)
+
 
 def selftest() -> int:
     """Негативний контроль: причина живе у КОРОТШІЙ трубі, шум — у довшій."""
