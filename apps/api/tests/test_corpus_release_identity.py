@@ -23,12 +23,11 @@ from __future__ import annotations
 from datetime import date, timedelta
 
 import pytest
-from sqlalchemy import update
-
 from fastapi.testclient import TestClient
 from korpus.application.corpus_snapshot import release_identity_digest
 from korpus.domain.models import AccessTier, Identity
 from korpus.infrastructure.schema import documents
+from sqlalchemy import update
 
 from apps.api.tests.conftest import privileged_connection
 from apps.api.tests.helpers import approve, ingest_text

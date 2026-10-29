@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2153,
-  "root_sha256": "7bfbdbc9d0a4cef2b583a890fd55030f9bb4dc77e748a8cbf208fa345da1b6af",
+  "root_sha256": "5000cfe4a8b34d61942b9d64f83229514ccb42274e4447c869c8a851836536e6",
   "files": [
     {
       "path": ".dockerignore",
@@ -3751,8 +3751,8 @@
     },
     {
       "path": "apps/api/tests/test_corpus_release_identity.py",
-      "bytes": 10620,
-      "sha256": "f8c4ba11491e7490a7721fb9205de5a0037df3d9a2e43ac412a73165c2779215",
+      "bytes": 10619,
+      "sha256": "a60627a42adc9fd5090919121b9d382c907f240d4265e57da80c7cadaa399eea",
       "mode": "0644"
     },
     {
