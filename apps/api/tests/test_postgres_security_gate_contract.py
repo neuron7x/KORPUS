@@ -68,6 +68,14 @@ def test_every_named_target_exists_on_disk() -> None:
         ("111 passed in 7.12s", "PASS"),
         ("1 passed, 1 skipped in 0.01s", "FAIL"),
         ("2 skipped in 0.01s", "FAIL"),
+        ("1 xfailed in 0.01s", "FAIL"),
+        ("1 xpassed in 0.01s", "FAIL"),
+        ("1 passed, 1 xfailed in 0.01s", "FAIL"),
+        ("1 passed, 1 xpassed in 0.01s", "FAIL"),
+        ("1 passed, 1 skipped, 1 xfailed in 0.01s", "FAIL"),
+        ("1 xfailed, 1 xpassed in 0.01s", "FAIL"),
+        ("no tests ran in 0.01s", "FAIL"),
+        ("1 passed, 2 warnings in 0.01s", "PASS"),
     ],
 )
 def test_skipped_postgres_destruction_tests_never_satisfy_security_gate(

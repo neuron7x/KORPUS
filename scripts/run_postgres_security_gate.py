@@ -35,28 +35,26 @@ TARGETS = [
 ]
 
 
+_STATIC_PYTEST = ("-m", "pytest", "-p", "no:cacheprovider", "-q", "--disable-warnings")
+
+
 def main() -> int:
     targets_present = all((ROOT / target).is_file() for target in TARGETS)
-    static = process_run(
-        ROOT,
-        [
-            sys.executable,
-            "-m",
-            "pytest",
-            "-p",
-            "no:cacheprovider",
-            "-q",
-            "--disable-warnings",
-            TARGETS[0],
-        ],
-        120,
-    )
+    static = process_run(ROOT, [sys.executable, *_STATIC_PYTEST, TARGETS[0]], 120)
     available, runtime_exit, runtime_tail = process_runtime(ROOT, TARGETS, targets_present)
     checks = {
         "target_files_present": targets_present,
         "grant_contract_static": static.returncode == 0,
         "postgres_runtime_available": available,
-        "postgres_adversarial_suite": runtime_exit == 0 and " skipped" not in runtime_tail,
+        "postgres_adversarial_suite": all(
+            (
+                runtime_exit == 0,
+                " passed" in runtime_tail,
+                " skipped" not in runtime_tail,
+                " xfailed" not in runtime_tail,
+                " xpassed" not in runtime_tail,
+            )
+        ),
     }
     failures = [name for name, ok in checks.items() if not ok]
     result = gate_payload(
