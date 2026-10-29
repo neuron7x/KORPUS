@@ -61,6 +61,7 @@ def test_every_named_target_exists_on_disk() -> None:
     missing = [target for target in gate.TARGETS if not (ROOT / target).is_file()]
     assert missing == [], missing
 
+
 @pytest.mark.parametrize(
     ("summary", "status"),
     [
