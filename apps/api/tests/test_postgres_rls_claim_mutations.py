@@ -253,7 +253,9 @@ def test_review_login_cannot_mutate_non_review_document_columns(operation: str) 
             transaction = connection.begin()
             try:
                 repository._apply_postgres_identity(connection, _subject(privileged=True))
-                assert _visible(connection, document_id), "review identity must retain allowed reads"
+                assert _visible(connection, document_id), (
+                    "review identity must retain allowed reads"
+                )
                 _forge_all(connection)
                 target = attempted_id if operation == "INSERT" else document_id
                 with pytest.raises(DBAPIError):
