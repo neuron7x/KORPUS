@@ -13,8 +13,12 @@
 
 from __future__ import annotations
 
+import json
+import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -56,3 +60,32 @@ def test_every_named_target_exists_on_disk() -> None:
     """
     missing = [target for target in gate.TARGETS if not (ROOT / target).is_file()]
     assert missing == [], missing
+
+@pytest.mark.parametrize(
+    ("summary", "status"),
+    [
+        ("111 passed in 7.12s", "PASS"),
+        ("1 passed, 1 skipped in 0.01s", "FAIL"),
+        ("2 skipped in 0.01s", "FAIL"),
+    ],
+)
+def test_skipped_postgres_destruction_tests_never_satisfy_security_gate(
+    monkeypatch, tmp_path: Path, summary: str, status: str
+) -> None:
+    """A zero pytest exit is not proof that mandatory poison tests executed."""
+    for target in gate.TARGETS:
+        fixture = tmp_path / target
+        fixture.parent.mkdir(parents=True, exist_ok=True)
+        fixture.write_text("# isolated gate target\n", encoding="utf-8")
+    monkeypatch.setattr(gate, "ROOT", tmp_path)
+    monkeypatch.setattr(
+        gate, "process_run", lambda *_args: subprocess.CompletedProcess([], 0, "static", "")
+    )
+    monkeypatch.setattr(
+        gate, "process_runtime", lambda *_args: (True, 0, f"--- stdout ---\n{summary}")
+    )
+    monkeypatch.setattr(gate, "compute_source_digest", lambda _: "f" * 64)
+    monkeypatch.setattr(gate, "release_tag", lambda: "v0.9.7")
+    assert (gate.main() == 0) is (status == "PASS")
+    report = json.loads((tmp_path / "var/production/postgres_security-gate.json").read_text())
+    assert report["status"] == status

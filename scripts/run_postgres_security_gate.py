@@ -56,7 +56,7 @@ def main() -> int:
         "target_files_present": targets_present,
         "grant_contract_static": static.returncode == 0,
         "postgres_runtime_available": available,
-        "postgres_adversarial_suite": runtime_exit == 0,
+        "postgres_adversarial_suite": runtime_exit == 0 and " skipped" not in runtime_tail,
     }
     failures = [name for name, ok in checks.items() if not ok]
     result = gate_payload(
