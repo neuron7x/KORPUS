@@ -23,6 +23,7 @@ import run_postgres_security_gate as gate  # noqa: E402
 #: Кожна з них питає, що ПРОХОДИТЬ, не маючи права.
 REQUIRED_DESTRUCTION_CONTROLS = {
     "apps/api/tests/test_postgres_rls_claim_forgery.py",
+    "apps/api/tests/test_postgres_rls_claim_mutations.py",
     "apps/api/tests/test_postgres_rls_policy_state.py",
     "apps/api/tests/test_postgres_role_reprovision_boundary.py",
     "apps/api/tests/test_postgres_approval_provenance.py",
