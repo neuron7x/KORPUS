@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2150,
-  "root_sha256": "64e74fe683984759c57caa20622f231d66cd16ae8b816dd133977e9b8bce142d",
+  "root_sha256": "2b05a6ab092442b1ec179c868a32076120e36c57287f2ddfebf97a33c967a2e6",
   "files": [
     {
       "path": ".dockerignore",
@@ -5083,8 +5083,8 @@
     },
     {
       "path": "apps/api/tests/test_postgres_rls_claim_mutations.py",
-      "bytes": 12915,
-      "sha256": "c9e46568a2fe17e3d3bb8698baa3b7d2c3df927bf45ff33cc6c61c084934b502",
+      "bytes": 15145,
+      "sha256": "b09cbd7c4ede0683a1e11bd38b18d8e3201647e81d9eca7602541824e1d18a8c",
       "mode": "0644"
     },
     {
