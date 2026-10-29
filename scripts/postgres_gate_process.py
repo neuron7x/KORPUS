@@ -75,7 +75,11 @@ def runtime(root: Path, targets: list[str], targets_present: bool) -> tuple[bool
         )
         missing = [name for name in required if not os.getenv(name)]
         if missing:
-            return available, 2, "external PostgreSQL missing split role URLs: " + ", ".join(missing)
+            return (
+                available,
+                2,
+                "external PostgreSQL missing split role URLs: " + ", ".join(missing),
+            )
     completed = run(
         root,
         ["bash", "scripts/run_postgres_suite.sh", "--targeted", *targets],
