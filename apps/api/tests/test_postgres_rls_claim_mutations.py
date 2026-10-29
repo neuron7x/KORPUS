@@ -307,6 +307,7 @@ def test_review_login_cannot_call_the_authorization_broker() -> None:
     finally:
         review.dispose()
 
+
 @pytest.mark.parametrize("review", (False, True), ids=("app", "review"))
 def test_pooled_session_cannot_reuse_a_privileged_binding_or_session_forgery(review: bool) -> None:
     if review and not REVIEW_URL:
@@ -324,8 +325,12 @@ def test_pooled_session_cannot_reuse_a_privileged_binding_or_session_forgery(rev
                 repository._apply_postgres_identity(connection, _subject(privileged=True))
                 assert _visible(connection, restricted_id), "positive broker binding failed"
             with connection.begin():
-                assert connection.execute(text("SELECT pg_backend_pid()")).scalar_one() == backend_pid
-                assert not _visible(connection, restricted_id), "previous transaction's broker identity leaked"
+                assert (
+                    connection.execute(text("SELECT pg_backend_pid()")).scalar_one() == backend_pid
+                )
+                assert not _visible(connection, restricted_id), (
+                    "previous transaction's broker identity leaked"
+                )
             with connection.begin():
                 repository._apply_postgres_identity(connection, _subject())
                 assert _visible(connection, public_id)
@@ -335,12 +340,18 @@ def test_pooled_session_cannot_reuse_a_privileged_binding_or_session_forgery(rev
                         text("SELECT set_config(:setting, :value, false)"),
                         {"setting": f"korpus.{axis}", "value": forged},
                     )
-                assert not _visible(connection, restricted_id), "persistent GUC replaced broker identity"
+                assert not _visible(connection, restricted_id), (
+                    "persistent GUC replaced broker identity"
+                )
             with connection.begin():
-                assert not _visible(connection, restricted_id), "unbound transaction trusted forged session GUC"
+                assert not _visible(connection, restricted_id), (
+                    "unbound transaction trusted forged session GUC"
+                )
             with connection.begin():
                 repository._apply_postgres_identity(connection, _subject())
                 assert _visible(connection, public_id)
-                assert not _visible(connection, restricted_id), "forged GUC survived trusted rebinding"
+                assert not _visible(connection, restricted_id), (
+                    "forged GUC survived trusted rebinding"
+                )
     finally:
         repository.close()
