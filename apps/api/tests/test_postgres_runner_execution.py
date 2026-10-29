@@ -238,6 +238,13 @@ def test_timed_out_runtime_still_writes_the_security_failure_json(
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("# gate timeout fixture; never a PostgreSQL measurement\n")
     monkeypatch.setenv("KORPUS_TEST_DATABASE_URL", "postgresql://timeout-fixture/never-connected")
+    for name in (
+        "KORPUS_TEST_DATABASE_ADMIN_URL",
+        "KORPUS_POSTGRES_TEST_URL",
+        "KORPUS_AUTHZ_DATABASE_URL",
+        "KORPUS_REVIEW_DATABASE_URL",
+    ):
+        monkeypatch.setenv(name, "postgresql://role-fixture/never-connected")
     monkeypatch.setattr(gate, "ROOT", tmp_path)
     monkeypatch.setattr(gate, "compute_source_digest", lambda _: "a" * 64)
     monkeypatch.setattr(
