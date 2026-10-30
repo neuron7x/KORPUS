@@ -314,6 +314,24 @@ def test_guard_verification_rejects_correctly_named_noop_trigger(client) -> None
             transaction.rollback()
 
 
+@pytest.mark.parametrize("activation", ("DISABLE", "ENABLE REPLICA"))
+def test_postgres_guard_verifier_rejects_inactive_epoch_trigger(
+    client, activation: str
+) -> None:
+    if client.app.state.repository.engine.dialect.name != "postgresql":
+        pytest.skip("requires actual PostgreSQL trigger catalog")
+    reader = client.app.state.corpus_snapshot_reader
+    with privileged_connection(client) as connection:
+        transaction = connection.begin_nested()
+        try:
+            connection.execute(
+                text(f"ALTER TABLE documents {activation} TRIGGER trg_documents_epoch")
+            )
+            with pytest.raises(RuntimeError, match="corpus snapshot guards are missing"):
+                reader._require_guards(connection)
+        finally:
+            transaction.rollback()
+
 class _Rows:
     def __init__(self, rows: list[tuple[object, ...]]) -> None:
         self.rows = rows
