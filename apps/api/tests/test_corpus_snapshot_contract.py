@@ -344,6 +344,27 @@ def test_guard_verification_rejects_conditional_epoch_trigger(client, comment_pr
             transaction.rollback()
 
 
+def test_sqlite_epoch_guard_rejects_dead_body_predicate(client) -> None:
+    """Reject an inert epoch UPDATE even when the required SQL is a substring."""
+    if client.app.state.repository.engine.dialect.name != "sqlite":
+        pytest.skip("SQLite-only epoch trigger definition")
+    reader = client.app.state.corpus_snapshot_reader
+    with privileged_connection(client) as connection:
+        transaction = connection.begin_nested()
+        try:
+            connection.execute(text("DROP TRIGGER trg_documents_epoch_insert"))
+            connection.execute(
+                text(
+                    "CREATE TRIGGER trg_documents_epoch_insert AFTER INSERT ON documents "
+                    "BEGIN UPDATE corpus_state_epoch SET epoch = epoch + 1 "
+                    "WHERE singleton_id = 1 AND 0; END"
+                )
+            )
+            with pytest.raises(RuntimeError, match="invalid definition"):
+                reader._require_guards(connection)
+        finally:
+            transaction.rollback()
+
 def test_snapshot_guard_allows_conditional_non_epoch_evidence_trigger() -> None:
     corpus_snapshot_guards._assert_definition(
         "trg_evidence_spans_immutable_insert",

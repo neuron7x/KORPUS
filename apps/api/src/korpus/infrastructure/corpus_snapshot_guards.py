@@ -118,14 +118,13 @@ def _sqlite_guards(connection: Connection) -> None:
     for table in EPOCH_TABLES:
         for operation in ("insert", "update", "delete"):
             key = (table, f"trg_{table}_epoch_{operation}")
-            _assert_definition(
-                key[1],
-                actual[key],
-                (
-                    f"after {operation} on {table}",
-                    "update corpus_state_epoch set epoch = epoch + 1 where singleton_id = 1",
-                ),
+            expected_sql = (
+                f"create trigger {key[1]} after {operation} on {table} begin "
+                "update corpus_state_epoch set epoch = epoch + 1 where singleton_id = 1; end"
             )
+            if actual[key] != expected_sql:
+                reason = "conditional trigger" if " when " in actual[key] else "invalid definition"
+                raise RuntimeError(f"corpus snapshot guard {key[1]} has {reason}")
     for operation in ("insert", "update", "delete"):
         key = ("evidence_spans", f"trg_evidence_spans_immutable_{operation}")
         _assert_definition(
