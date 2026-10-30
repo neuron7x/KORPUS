@@ -78,8 +78,17 @@ def runtime(root: Path, targets: list[str], targets_present: bool) -> tuple[bool
     if missing := _missing_external_roles(database_url):
         reason = "external PostgreSQL missing split role URLs: " + ", ".join(missing)
         return available, 2, reason
+    # A prior receipt must never stand in for the current runtime's executed nodes.
+    report = root / "var/postgres-security/pytest-junit.xml"
+    report.parent.mkdir(parents=True, exist_ok=True)
+    report.unlink(missing_ok=True)
+    options = os.environ.get("PYTEST_ADDOPTS", "")
+    environment = {
+        "PYTHON": sys.executable,
+        "PYTEST_ADDOPTS": f"{options} --junitxml=var/postgres-security/pytest-junit.xml",
+    }
     command = ["bash", "scripts/run_postgres_suite.sh", "--targeted", *targets]
-    completed = run(root, command, 600, environment={"PYTHON": sys.executable})
+    completed = run(root, command, 600, environment=environment)
     return available, completed.returncode, labelled_tail(completed.stdout, completed.stderr)
 
 

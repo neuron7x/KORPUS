@@ -32,6 +32,7 @@ def test_runtime_binds_shell_suite_to_the_current_interpreter(monkeypatch) -> No
     ):
         monkeypatch.setenv(name, "postgresql://role-fixture/never-connected")
     monkeypatch.setitem(PROCESS_GLOBALS, "run", fake_run)
+    monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
 
     available, exit_code, tail = MODULE.process_runtime(ROOT, MODULE.TARGETS, True)
 
@@ -43,7 +44,10 @@ def test_runtime_binds_shell_suite_to_the_current_interpreter(monkeypatch) -> No
     assert "passed" in tail
     assert "alembic noise" in tail
     assert tail.index("passed") < tail.index("alembic noise")
-    assert captured["environment"] == {"PYTHON": sys.executable}
+    assert captured["environment"] == {
+        "PYTHON": sys.executable,
+        "PYTEST_ADDOPTS": " --junitxml=var/postgres-security/pytest-junit.xml",
+    }
 
 
 def test_run_helper_merges_overrides_without_losing_process_environment(

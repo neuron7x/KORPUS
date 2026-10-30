@@ -17,11 +17,13 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from xml.etree import ElementTree
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "scripts"))
+import postgres_gate_nodes as nodes  # noqa: E402
 import run_postgres_security_gate as gate  # noqa: E402
 
 #: Кожна з них питає, що ПРОХОДИТЬ, не маючи права.
@@ -96,7 +98,49 @@ def test_skipped_postgres_destruction_tests_never_satisfy_security_gate(
         gate, "process_runtime", lambda *_args: (True, 0, f"--- stdout ---\n{summary}")
     )
     monkeypatch.setattr(gate, "compute_source_digest", lambda _: "f" * 64)
+    monkeypatch.setattr(gate, "inspect_pytest_junit", lambda _: (True, 111, []))
     monkeypatch.setattr(gate, "release_tag", lambda: "v0.9.7")
     assert (gate.main() == 0) is (status == "PASS")
     report = json.loads((tmp_path / "var/production/postgres_security-gate.json").read_text())
     assert report["status"] == status
+
+@pytest.mark.parametrize(
+    "mutation",
+    ("clean", "deleted", "short", "duplicate", "skipped", "failed", "invalid"),
+)
+def test_postgres_gate_requires_exact_named_executed_nodes(
+    tmp_path: Path, mutation: str
+) -> None:
+    """A green pytest exit and a present file cannot hide a missing poison node."""
+    report = tmp_path / nodes.REPORT
+    report.parent.mkdir(parents=True)
+    if mutation == "invalid":
+        report.write_text("<incomplete", encoding="utf-8")
+    else:
+        suite = ElementTree.Element("testsuite")
+        cases = [
+            (module, name)
+            for module, names in nodes.EXPECTED_TESTS.items()
+            for name in names
+        ]
+        cases.extend(
+            ("synthetic", f"test_padding_{index}")
+            for index in range(nodes.EXPECTED_CASES - len(cases))
+        )
+        if mutation == "deleted":
+            cases[0] = ("synthetic", "test_replacement")
+        elif mutation == "short":
+            cases.pop()
+        elif mutation == "duplicate":
+            cases[0] = cases[1]
+        for index, (module, name) in enumerate(cases):
+            testcase = ElementTree.SubElement(
+                suite, "testcase", classname=f"apps.api.tests.{module}", name=name
+            )
+            if index == 0 and mutation in {"skipped", "failed"}:
+                ElementTree.SubElement(
+                    testcase, "skipped" if mutation == "skipped" else "failure"
+                )
+        ElementTree.ElementTree(suite).write(report, encoding="utf-8")
+    accepted, observed, missing = nodes.inspect_pytest_junit(tmp_path)
+    assert accepted is (mutation == "clean"), (mutation, observed, missing)

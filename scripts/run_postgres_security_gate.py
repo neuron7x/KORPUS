@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 from korpus.application.production_assurance import gate_payload  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
+from postgres_gate_nodes import EXPECTED_CASES, inspect_pytest_junit  # noqa: E402
 from postgres_gate_process import run as process_run  # noqa: E402
 from postgres_gate_process import runtime as process_runtime  # noqa: E402
 from release_identity import release_tag  # noqa: E402
@@ -42,10 +43,12 @@ def main() -> int:
     targets_present = all((ROOT / target).is_file() for target in TARGETS)
     static = process_run(ROOT, [sys.executable, *_STATIC_PYTEST, TARGETS[0]], 120)
     available, runtime_exit, runtime_tail = process_runtime(ROOT, TARGETS, targets_present)
+    nodes_ok, node_count, missing_nodes = inspect_pytest_junit(ROOT)
     checks = {
         "target_files_present": targets_present,
         "grant_contract_static": static.returncode == 0,
         "postgres_runtime_available": available,
+        "postgres_required_test_nodes": nodes_ok,
         "postgres_adversarial_suite": all(
             (
                 runtime_exit == 0,
@@ -68,6 +71,9 @@ def main() -> int:
         backend="postgresql" if runtime_exit == 0 else "UNEXECUTED",
         evidence_class="REAL_POSTGRESQL_REQUIRED",
         pytest_targets=TARGETS,
+        pytest_expected_case_count=EXPECTED_CASES,
+        pytest_observed_case_count=node_count,
+        pytest_missing_required_nodes=missing_nodes,
         runtime_exit_code=runtime_exit,
         runtime_tail=runtime_tail,
         static_tail=(static.stdout + static.stderr)[-4000:],
