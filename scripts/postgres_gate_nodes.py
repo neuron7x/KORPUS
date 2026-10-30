@@ -44,11 +44,12 @@ def inspect_pytest_junit(root: Path) -> tuple[bool, int, list[str]]:
     seen: set[tuple[str, str]] = set()
     invalid = False
     for case in cases:
-        module = case.attrib.get("classname", "").rsplit(".", 1)[-1]
+        module = case.attrib.get("classname", "").removeprefix("tests.")
         name = case.attrib.get("name", "")
         node = (module, name)
         if (
             node in seen
+            or case.attrib.get("classname", "") != f"tests.{module}"
             or not name.startswith("test_")
             or any(case.find(tag) is not None for tag in ("skipped", "failure", "error"))
         ):

@@ -117,6 +117,8 @@ def test_skipped_postgres_destruction_tests_never_satisfy_security_gate(
         "invalid",
         "missing_parameter",
         "relabelled_parameter",
+        "foreign_classname",
+        "bare_classname",
     ),
 )
 def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutation: str) -> None:
@@ -148,8 +150,13 @@ def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutat
                 )
             )
         for index, (module, name) in enumerate(cases):
+            classname = f"tests.{module}"
+            if index == 0 and mutation == "foreign_classname":
+                classname = f"forged.namespace.{module}"
+            elif index == 0 and mutation == "bare_classname":
+                classname = module
             testcase = ElementTree.SubElement(
-                suite, "testcase", classname=f"apps.api.tests.{module}", name=name
+                suite, "testcase", classname=classname, name=name
             )
             if index == 0 and mutation in {"skipped", "failed"}:
                 ElementTree.SubElement(testcase, "skipped" if mutation == "skipped" else "failure")
