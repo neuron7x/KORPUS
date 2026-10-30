@@ -104,6 +104,7 @@ def test_skipped_postgres_destruction_tests_never_satisfy_security_gate(
     report = json.loads((tmp_path / "var/production/postgres_security-gate.json").read_text())
     assert report["status"] == status
 
+
 @pytest.mark.parametrize(
     "mutation",
     ("clean", "deleted", "short", "duplicate", "skipped", "failed", "invalid"),
@@ -116,11 +117,7 @@ def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutat
         report.write_text("<incomplete", encoding="utf-8")
     else:
         suite = ElementTree.Element("testsuite")
-        cases = [
-            (module, name)
-            for module, names in nodes.EXPECTED_TESTS.items()
-            for name in names
-        ]
+        cases = [(module, name) for module, names in nodes.EXPECTED_TESTS.items() for name in names]
         cases.extend(
             ("synthetic", f"test_padding_{index}")
             for index in range(nodes.EXPECTED_CASES - len(cases))
