@@ -315,9 +315,7 @@ def test_guard_verification_rejects_correctly_named_noop_trigger(client) -> None
 
 
 @pytest.mark.parametrize("activation", ("DISABLE", "ENABLE REPLICA"))
-def test_postgres_guard_verifier_rejects_inactive_epoch_trigger(
-    client, activation: str
-) -> None:
+def test_postgres_guard_verifier_rejects_inactive_epoch_trigger(client, activation: str) -> None:
     if client.app.state.repository.engine.dialect.name != "postgresql":
         pytest.skip("requires actual PostgreSQL trigger catalog")
     reader = client.app.state.corpus_snapshot_reader
@@ -331,6 +329,7 @@ def test_postgres_guard_verifier_rejects_inactive_epoch_trigger(
                 reader._require_guards(connection)
         finally:
             transaction.rollback()
+
 
 class _Rows:
     def __init__(self, rows: list[tuple[object, ...]]) -> None:
