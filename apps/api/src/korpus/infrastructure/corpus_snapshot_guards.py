@@ -83,8 +83,8 @@ def _canonical_function_body(definition: object) -> str:
 
 
 def _assert_definition(label: str, definition: str, required: tuple[str, ...]) -> None:
-    # Epoch guards must fire unconditionally; evidence seals may legitimately use WHEN.
-    if "_epoch" in label and re.search(r"\bwhen\b", definition.split(" begin ", 1)[0]):
+    header = definition.split(" begin ", 1)[0]
+    if "_epoch" in label and re.search(r"/\*|--|\bwhen\b", header):
         raise RuntimeError(f"corpus snapshot guard {label} has conditional trigger definition")
     missing = [token for token in required if token not in definition]
     if missing:
