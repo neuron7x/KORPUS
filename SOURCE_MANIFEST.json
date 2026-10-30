@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2152,
-  "root_sha256": "ea890e7dc24d16ecafa1aefedcf37bd4646d48bc79cf80d8efdbf8c468ad3e17",
+  "root_sha256": "6a0309f7c9a58218b76e79da4077eb8d205a1b1445aa7833a63339838e0a7c3a",
   "files": [
     {
       "path": ".dockerignore",
@@ -11911,8 +11911,8 @@
     },
     {
       "path": "scripts/postgres_gate_nodes.py",
-      "bytes": 2510,
-      "sha256": "9e3d506ea4290a1691daf56a47d8ad4d69ff20aa0d9312d2496a8285e77115bb",
+      "bytes": 2480,
+      "sha256": "5fa667992982f18719aaab93d98d3cf430eafc4d6ee67cac21c5617a4fc68174",
       "mode": "0644"
     },
     {

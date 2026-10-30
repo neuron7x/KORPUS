@@ -22,11 +22,7 @@ def required_node_ids() -> set[tuple[str, str]]:
         or not isinstance(modules, dict)
     ):
         raise ValueError("invalid PostgreSQL node contract")
-    pairs = [
-        (module, name)
-        for module, names in modules.items()
-        for name in names
-    ]
+    pairs = [(module, name) for module, names in modules.items() for name in names]
     bases = {(module, name.split("[", 1)[0]) for module, name in pairs}
     if (
         len(pairs) != EXPECTED_CASES
