@@ -155,9 +155,7 @@ def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutat
                 classname = f"forged.namespace.{module}"
             elif index == 0 and mutation == "bare_classname":
                 classname = module
-            testcase = ElementTree.SubElement(
-                suite, "testcase", classname=classname, name=name
-            )
+            testcase = ElementTree.SubElement(suite, "testcase", classname=classname, name=name)
             if index == 0 and mutation in {"skipped", "failed"}:
                 ElementTree.SubElement(testcase, "skipped" if mutation == "skipped" else "failure")
         ElementTree.ElementTree(suite).write(report, encoding="utf-8")
