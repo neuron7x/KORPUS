@@ -343,6 +343,20 @@ def test_guard_verification_rejects_conditional_epoch_trigger(client) -> None:
             transaction.rollback()
 
 
+def test_snapshot_guard_allows_conditional_non_epoch_evidence_trigger() -> None:
+    corpus_snapshot_guards._assert_definition(
+        "trg_evidence_spans_immutable_insert",
+        "create trigger trg_evidence_spans_immutable_insert before insert "
+        "on evidence_spans when (new.evidence_digest is not null) begin "
+        "select raise(abort, 'sealed evidence is immutable'); end",
+        (
+            "before insert on evidence_spans",
+            "evidence_digest is not null",
+            "raise(abort, 'sealed evidence is immutable')",
+        ),
+    )
+
+
 @pytest.mark.parametrize("activation", ("DISABLE", "ENABLE REPLICA"))
 def test_postgres_guard_verifier_rejects_inactive_epoch_trigger(client, activation: str) -> None:
     if client.app.state.repository.engine.dialect.name != "postgresql":
