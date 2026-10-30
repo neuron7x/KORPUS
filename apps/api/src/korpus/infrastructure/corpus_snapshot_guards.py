@@ -84,9 +84,8 @@ def _canonical_function_body(definition: object) -> str:
 
 def _assert_definition(label: str, definition: str, required: tuple[str, ...]) -> None:
     # Epoch guards must fire unconditionally; evidence seals may legitimately use WHEN.
-    if re.search(r"_epoch(?:_(?:insert|update|delete))?$", label):
-        if re.search(r"\bwhen\b", definition.split(" begin ", 1)[0]):
-            raise RuntimeError(f"corpus snapshot guard {label} has conditional trigger definition")
+    if "_epoch" in label and re.search(r"\bwhen\b", definition.split(" begin ", 1)[0]):
+        raise RuntimeError(f"corpus snapshot guard {label} has conditional trigger definition")
     missing = [token for token in required if token not in definition]
     if missing:
         raise RuntimeError(f"corpus snapshot guard {label} has invalid definition: {missing}")
@@ -116,7 +115,6 @@ def _sqlite_guards(connection: Connection) -> None:
     missing = expected.difference(actual)
     if missing:
         raise RuntimeError(f"corpus snapshot guards are missing: {sorted(missing)}")
-
     for table in EPOCH_TABLES:
         for operation in ("insert", "update", "delete"):
             key = (table, f"trg_{table}_epoch_{operation}")
@@ -170,7 +168,6 @@ def _postgres_guards(connection: Connection) -> None:
     missing = expected.difference(actual)
     if missing:
         raise RuntimeError(f"corpus snapshot guards are missing: {sorted(missing)}")
-
     for table in EPOCH_TABLES:
         key = (table, f"trg_{table}_epoch")
         _assert_definition(
