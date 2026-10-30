@@ -107,7 +107,17 @@ def test_skipped_postgres_destruction_tests_never_satisfy_security_gate(
 
 @pytest.mark.parametrize(
     "mutation",
-    ("clean", "deleted", "short", "duplicate", "skipped", "failed", "invalid"),
+    (
+        "clean",
+        "deleted",
+        "short",
+        "duplicate",
+        "skipped",
+        "failed",
+        "invalid",
+        "missing_parameter",
+        "relabelled_parameter",
+    ),
 )
 def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutation: str) -> None:
     """A green pytest exit and a present file cannot hide a missing poison node."""
@@ -117,17 +127,26 @@ def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutat
         report.write_text("<incomplete", encoding="utf-8")
     else:
         suite = ElementTree.Element("testsuite")
-        cases = [(module, name) for module, names in nodes.EXPECTED_TESTS.items() for name in names]
-        cases.extend(
-            ("synthetic", f"test_padding_{index}")
-            for index in range(nodes.EXPECTED_CASES - len(cases))
-        )
+        cases = sorted(nodes.required_node_ids())
         if mutation == "deleted":
             cases[0] = ("synthetic", "test_replacement")
         elif mutation == "short":
             cases.pop()
         elif mutation == "duplicate":
             cases[0] = cases[1]
+        elif mutation in {"missing_parameter", "relabelled_parameter"}:
+            victim = (
+                "test_postgres_rls_claim_mutations",
+                "test_each_app_owned_session_claim_is_ignored_by_broker[clearance-3]",
+            )
+            cases[cases.index(victim)] = (
+                ("synthetic", "test_replacement_parameter")
+                if mutation == "missing_parameter"
+                else (
+                    victim[0],
+                    "test_each_app_owned_session_claim_is_ignored_by_broker[clearance-4]",
+                )
+            )
         for index, (module, name) in enumerate(cases):
             testcase = ElementTree.SubElement(
                 suite, "testcase", classname=f"apps.api.tests.{module}", name=name
