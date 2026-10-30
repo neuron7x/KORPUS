@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from itertools import product
 
 from sqlalchemy import text as sql_text
 from sqlalchemy.engine import Connection
@@ -115,16 +116,15 @@ def _sqlite_guards(connection: Connection) -> None:
     missing = expected.difference(actual)
     if missing:
         raise RuntimeError(f"corpus snapshot guards are missing: {sorted(missing)}")
-    for table in EPOCH_TABLES:
-        for operation in ("insert", "update", "delete"):
-            key = (table, f"trg_{table}_epoch_{operation}")
-            expected_sql = (
-                f"create trigger {key[1]} after {operation} on {table} begin "
-                "update corpus_state_epoch set epoch = epoch + 1 where singleton_id = 1; end"
-            )
-            if actual[key] != expected_sql:
-                reason = "conditional trigger" if " when " in actual[key] else "invalid definition"
-                raise RuntimeError(f"corpus snapshot guard {key[1]} has {reason}")
+    for table, operation in product(EPOCH_TABLES, ("insert", "update", "delete")):
+        key = (table, f"trg_{table}_epoch_{operation}")
+        expected_sql = (
+            f"create trigger {key[1]} after {operation} on {table} begin "
+            "update corpus_state_epoch set epoch = epoch + 1 where singleton_id = 1; end"
+        )
+        if actual[key] != expected_sql:
+            reason = "conditional trigger" if " when " in actual[key] else "invalid definition"
+            raise RuntimeError(f"corpus snapshot guard {key[1]} has {reason}")
     for operation in ("insert", "update", "delete"):
         key = ("evidence_spans", f"trg_evidence_spans_immutable_{operation}")
         _assert_definition(

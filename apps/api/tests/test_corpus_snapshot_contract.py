@@ -365,6 +365,7 @@ def test_sqlite_epoch_guard_rejects_dead_body_predicate(client) -> None:
         finally:
             transaction.rollback()
 
+
 def test_snapshot_guard_allows_conditional_non_epoch_evidence_trigger() -> None:
     corpus_snapshot_guards._assert_definition(
         "trg_evidence_spans_immutable_insert",
