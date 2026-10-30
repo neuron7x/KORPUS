@@ -315,9 +315,7 @@ def test_guard_verification_rejects_correctly_named_noop_trigger(client) -> None
 
 
 @pytest.mark.parametrize("comment_prefix", ("", "/* begin */ "))
-def test_guard_verification_rejects_conditional_epoch_trigger(
-    client, comment_prefix: str
-) -> None:
+def test_guard_verification_rejects_conditional_epoch_trigger(client, comment_prefix: str) -> None:
     """A trigger with the correct name/function but WHEN false never increments the epoch."""
     reader = client.app.state.corpus_snapshot_reader
     dialect = client.app.state.repository.engine.dialect.name
