@@ -93,9 +93,7 @@ EXPECTED_TESTS: dict[str, tuple[str, ...]] = {
         "test_the_schema_owner_is_not_blocked_by_the_runtime_guard",
         "test_the_marker_group_grants_nothing_by_itself",
     ),
-    "test_postgres_integration": (
-        "test_postgres_migrated_search_rls_access_and_audit",
-    ),
+    "test_postgres_integration": ("test_postgres_migrated_search_rls_access_and_audit",),
 }
 EXPECTED_CASES = 111
 REPORT = Path("var/postgres-security/pytest-junit.xml")
@@ -114,8 +112,10 @@ def inspect_pytest_junit(root: Path) -> tuple[bool, int, list[str]]:
         module = case.attrib.get("classname", "").rsplit(".", 1)[-1]
         name = case.attrib.get("name", "")
         node = (module, name)
-        if node in seen or not name.startswith("test_") or any(
-            case.find(tag) is not None for tag in ("skipped", "failure", "error")
+        if (
+            node in seen
+            or not name.startswith("test_")
+            or any(case.find(tag) is not None for tag in ("skipped", "failure", "error"))
         ):
             invalid = True
         seen.add(node)

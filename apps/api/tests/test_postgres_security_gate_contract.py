@@ -108,9 +108,7 @@ def test_skipped_postgres_destruction_tests_never_satisfy_security_gate(
     "mutation",
     ("clean", "deleted", "short", "duplicate", "skipped", "failed", "invalid"),
 )
-def test_postgres_gate_requires_exact_named_executed_nodes(
-    tmp_path: Path, mutation: str
-) -> None:
+def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutation: str) -> None:
     """A green pytest exit and a present file cannot hide a missing poison node."""
     report = tmp_path / nodes.REPORT
     report.parent.mkdir(parents=True)
@@ -138,9 +136,7 @@ def test_postgres_gate_requires_exact_named_executed_nodes(
                 suite, "testcase", classname=f"apps.api.tests.{module}", name=name
             )
             if index == 0 and mutation in {"skipped", "failed"}:
-                ElementTree.SubElement(
-                    testcase, "skipped" if mutation == "skipped" else "failure"
-                )
+                ElementTree.SubElement(testcase, "skipped" if mutation == "skipped" else "failure")
         ElementTree.ElementTree(suite).write(report, encoding="utf-8")
     accepted, observed, missing = nodes.inspect_pytest_junit(tmp_path)
     assert accepted is (mutation == "clean"), (mutation, observed, missing)

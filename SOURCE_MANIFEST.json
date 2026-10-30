@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2151,
-  "root_sha256": "c7607c66eccf831c32f87ac012437acf4b848b97ff692434935bf5f310e41d50",
+  "root_sha256": "88bf9076d2c3dea421860a49471daeefed10db443c6347b542d944f2a49bd869",
   "files": [
     {
       "path": ".dockerignore",
@@ -5113,8 +5113,8 @@
     },
     {
       "path": "apps/api/tests/test_postgres_security_gate_contract.py",
-      "bytes": 6513,
-      "sha256": "bf4263cb718e5c89921548c6ca28d9362f7a4eaa60704df2a43e739dd575c202",
+      "bytes": 6469,
+      "sha256": "ab72ff4831e0aaf8eff5617490c95f8d742453b1b0a1f00a6e54c4d99bebb484",
       "mode": "0644"
     },
     {
@@ -8341,8 +8341,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 762512,
-      "sha256": "e2bde18ffc5ca0d949dba0f9a95ba2af3c63e97686670b1d1a089866860a8e6f",
+      "bytes": 762882,
+      "sha256": "b14eae9afcc6ce2fd8423ad34f0f658224d323800707de126bef2b3f7b60963a",
       "mode": "0644"
     },
     {
@@ -11905,8 +11905,8 @@
     },
     {
       "path": "scripts/postgres_gate_nodes.py",
-      "bytes": 6744,
-      "sha256": "e29f4e686d8d75ace5edd11b8b56b0c7c84303934f4cbb0c7764a1a47b0d391c",
+      "bytes": 6756,
+      "sha256": "75d2d135ad7190b37f1ff6d5dfde450ba44381a5fcc71dc19b51fe13f8ae536d",
       "mode": "0644"
     },
     {
