@@ -9,24 +9,14 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 
-from postgres_process_diagnostics import run_with_diagnostics
+from postgres_gate_nodes import REPORT
+from postgres_process_diagnostics import run_with_diagnostics as run
 
 #: Бюджет символів на кожну трубу окремо; спільний хвіст втрачає причину.
 TAIL_BUDGET = 4000
-
-
-def run(
-    root: Path,
-    command: list[str],
-    timeout: int,
-    *,
-    environment: dict[str, str] | None = None,
-) -> subprocess.CompletedProcess[str]:
-    return run_with_diagnostics(root, command, timeout, environment=environment)
 
 
 def labelled_tail(stdout: str, stderr: str, budget: int = TAIL_BUDGET) -> str:
@@ -79,13 +69,12 @@ def runtime(root: Path, targets: list[str], targets_present: bool) -> tuple[bool
         reason = "external PostgreSQL missing split role URLs: " + ", ".join(missing)
         return available, 2, reason
     # A prior receipt must never stand in for the current runtime's executed nodes.
-    report = root / "var/postgres-security/pytest-junit.xml"
+    report = root / REPORT
     report.parent.mkdir(parents=True, exist_ok=True)
     report.unlink(missing_ok=True)
-    options = os.environ.get("PYTEST_ADDOPTS", "")
     environment = {
         "PYTHON": sys.executable,
-        "PYTEST_ADDOPTS": f"{options} --junitxml=var/postgres-security/pytest-junit.xml",
+        "PYTEST_ADDOPTS": f"{os.getenv('PYTEST_ADDOPTS', '')} --junitxml={REPORT}",
     }
     command = ["bash", "scripts/run_postgres_suite.sh", "--targeted", *targets]
     completed = run(root, command, 600, environment=environment)

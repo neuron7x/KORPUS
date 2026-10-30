@@ -60,14 +60,13 @@ def main() -> int:
             )
         ),
     }
-    failures = [name for name, ok in checks.items() if not ok]
     result = gate_payload(
         "postgres_security",
-        status="PASS" if not failures else "FAIL",
+        status="PASS" if all(checks.values()) else "FAIL",
         source_digest=compute_source_digest(ROOT),
         release=release_tag(),
         checks=checks,
-        failures=failures,
+        failures=[name for name, ok in checks.items() if not ok],
         backend="postgresql" if runtime_exit == 0 else "UNEXECUTED",
         evidence_class="REAL_POSTGRESQL_REQUIRED",
         pytest_targets=TARGETS,
