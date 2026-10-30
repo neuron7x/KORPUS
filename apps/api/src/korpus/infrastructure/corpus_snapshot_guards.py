@@ -83,6 +83,9 @@ def _canonical_function_body(definition: object) -> str:
 
 
 def _assert_definition(label: str, definition: str, required: tuple[str, ...]) -> None:
+    # Schema-owned guards have no WHEN predicate: it can make a valid-looking trigger inert.
+    if re.search(r"\bwhen\b", definition.split(" begin ", 1)[0]):
+        raise RuntimeError(f"corpus snapshot guard {label} has conditional trigger definition")
     missing = [token for token in required if token not in definition]
     if missing:
         raise RuntimeError(f"corpus snapshot guard {label} has invalid definition: {missing}")

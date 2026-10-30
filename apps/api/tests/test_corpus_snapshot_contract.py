@@ -314,6 +314,35 @@ def test_guard_verification_rejects_correctly_named_noop_trigger(client) -> None
             transaction.rollback()
 
 
+def test_guard_verification_rejects_conditional_epoch_trigger(client) -> None:
+    """A trigger with the correct name/function but WHEN false never increments the epoch."""
+    reader = client.app.state.corpus_snapshot_reader
+    dialect = client.app.state.repository.engine.dialect.name
+    if dialect == "sqlite":
+        statements = (
+            "DROP TRIGGER trg_documents_epoch_insert",
+            "CREATE TRIGGER trg_documents_epoch_insert AFTER INSERT ON documents "
+            "WHEN 0 BEGIN UPDATE corpus_state_epoch SET epoch = epoch + 1 "
+            "WHERE singleton_id = 1; END",
+        )
+    else:
+        assert dialect == "postgresql"
+        statements = (
+            "DROP TRIGGER trg_documents_epoch ON documents",
+            "CREATE TRIGGER trg_documents_epoch AFTER INSERT OR UPDATE OR DELETE "
+            "ON documents FOR EACH STATEMENT WHEN (false) "
+            "EXECUTE FUNCTION korpus_bump_corpus_state_epoch()",
+        )
+    with privileged_connection(client) as connection:
+        transaction = connection.begin_nested()
+        try:
+            _rewrite_guard(connection, statements)
+            with pytest.raises(RuntimeError, match="conditional trigger"):
+                reader._require_guards(connection)
+        finally:
+            transaction.rollback()
+
+
 @pytest.mark.parametrize("activation", ("DISABLE", "ENABLE REPLICA"))
 def test_postgres_guard_verifier_rejects_inactive_epoch_trigger(client, activation: str) -> None:
     if client.app.state.repository.engine.dialect.name != "postgresql":

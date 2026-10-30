@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2153,
-  "root_sha256": "af67c84831ef031f1606b353d3c7b925934dbbb846edfd4ceb96ccd65e55e50e",
+  "root_sha256": "6235de14c17358c6bc9a53edcfe0151a5d0487853027650713d476b6fdbe003f",
   "files": [
     {
       "path": ".dockerignore",
@@ -2245,8 +2245,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/corpus_snapshot_guards.py",
-      "bytes": 8916,
-      "sha256": "44f1162d668e2feb89a9561eae3f640266daa6dd9a388839d3a7ba842dad9fee",
+      "bytes": 9171,
+      "sha256": "207ab206d8fc981b963c836a2464c53aa875fd5599b27ef164ac5cc827f6b26a",
       "mode": "0644"
     },
     {
@@ -3769,8 +3769,8 @@
     },
     {
       "path": "apps/api/tests/test_corpus_snapshot_contract.py",
-      "bytes": 24209,
-      "sha256": "bf30d284283fe627059f8b38910173d2f41d03dff895e5bf4ec53ae2b3af6e27",
+      "bytes": 25512,
+      "sha256": "d3d78cca566c9915263cd45a21aaba6446d99b2c1fb2d161b310f09ee0bebef1",
       "mode": "0644"
     },
     {
