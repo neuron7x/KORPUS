@@ -90,6 +90,8 @@ def _assert_definition(label: str, definition: object, required: tuple[str, ...]
     header = definition.split(" begin ", 1)[0]
     if ("_epoch" in label or " on public." in header) and re.search(r"/\*|--|\bwhen\b", header):
         raise RuntimeError(f"corpus snapshot guard {label} has conditional trigger definition")
+    if "_epoch" in label and re.search(r"\bupdate\s+of\b", header, flags=re.IGNORECASE):
+        raise RuntimeError(f"corpus snapshot guard {label} has column-specific UPDATE trigger")
     missing = [token for token in required if token not in definition]
     if missing:
         raise RuntimeError(f"corpus snapshot guard {label} has invalid definition: {missing}")

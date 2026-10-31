@@ -550,6 +550,17 @@ def test_postgres_immutable_guard_rejects_drifted_trigger_shape(
         corpus_snapshot_guards._postgres_guards(connection)  # type: ignore[arg-type]
 
 
+@pytest.mark.parametrize("table", corpus_snapshot_guards.EPOCH_TABLES)
+def test_postgres_epoch_guard_rejects_column_specific_update(table: str) -> None:
+    connection = _ValidPostgresGuardCatalogueConnection(
+        target=f"trg_{table}_epoch",
+        needle="AFTER INSERT OR DELETE OR UPDATE",
+        poison="AFTER INSERT OR DELETE OR UPDATE OF id",
+    )
+    with pytest.raises(RuntimeError, match="column-specific UPDATE trigger"):
+        corpus_snapshot_guards._postgres_guards(connection)  # type: ignore[arg-type]
+
+
 @pytest.mark.parametrize(
     ("target", "schema", "function"),
     (
@@ -598,6 +609,30 @@ def test_postgres_guard_verifier_rejects_real_catalogue_function_substitution(cl
                 )
             )
             with pytest.raises(RuntimeError, match="invalid function binding"):
+                reader._require_guards(connection)
+        finally:
+            transaction.rollback()
+
+
+
+def test_postgres_epoch_guard_rejects_column_specific_update_in_real_catalogue(client) -> None:
+    if client.app.state.repository.engine.dialect.name != "postgresql":
+        pytest.skip("requires actual PostgreSQL trigger catalog")
+    reader = client.app.state.corpus_snapshot_reader
+    with privileged_connection(client) as connection:
+        transaction = connection.begin_nested()
+        try:
+            connection.execute(
+                text("DROP TRIGGER trg_document_versions_epoch ON public.document_versions")
+            )
+            connection.execute(
+                text(
+                    "CREATE TRIGGER trg_document_versions_epoch AFTER INSERT OR DELETE OR "
+                    "UPDATE OF id ON public.document_versions FOR EACH STATEMENT EXECUTE "
+                    "FUNCTION public.korpus_bump_corpus_state_epoch()"
+                )
+            )
+            with pytest.raises(RuntimeError, match="column-specific UPDATE trigger"):
                 reader._require_guards(connection)
         finally:
             transaction.rollback()
