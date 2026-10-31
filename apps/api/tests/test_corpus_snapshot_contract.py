@@ -492,9 +492,7 @@ def test_postgres_guard_verifier_rejects_dead_code_decoy_body_without_database()
 class _ValidPostgresGuardCatalogueConnection(_PostgresGuardCatalogueConnection):
     """Exact-function catalogue with optional trigger-shape mutation."""
 
-    def __init__(
-        self, target: str | None = None, needle: str = "", poison: str = ""
-    ) -> None:
+    def __init__(self, target: str | None = None, needle: str = "", poison: str = "") -> None:
         super().__init__()
         self.target = target
         self.needle = needle
@@ -505,10 +503,11 @@ class _ValidPostgresGuardCatalogueConnection(_PostgresGuardCatalogueConnection):
         if self.calls == 1:
             triggers = []
             for relation, name, definition in rows:
+                current_definition = str(definition)
                 if name == self.target:
-                    assert self.needle in str(definition)
-                    definition = str(definition).replace(self.needle, self.poison, 1)
-                triggers.append((relation, name, definition))
+                    assert self.needle in current_definition
+                    current_definition = current_definition.replace(self.needle, self.poison, 1)
+                triggers.append((relation, name, current_definition))
             return _Rows(triggers)
         functions = []
         for name, security_definer, config, _body in rows:
