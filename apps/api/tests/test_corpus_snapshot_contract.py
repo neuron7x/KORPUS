@@ -634,3 +634,41 @@ def test_postgres_immutable_guard_rejects_conditional_when_false() -> None:
             corpus_snapshot_guards._assert_definition(
                 label, definition, ("before", f"on public.{table}", function)
             )
+
+@pytest.mark.parametrize(
+    "trigger_name",
+    (
+        "trg_evidence_spans_immutable_insert",
+        "trg_evidence_spans_immutable_update",
+        "trg_evidence_spans_immutable_delete",
+        "trg_approved_version_digest_immutable",
+    ),
+)
+def test_sqlite_immutable_guard_rejects_inert_when(trigger_name: str) -> None:
+    from korpus.infrastructure.corpus_snapshot import SqlCorpusSnapshotReader
+    from sqlalchemy import create_engine
+
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                text("CREATE TABLE corpus_state_epoch (singleton_id INTEGER, epoch INTEGER)")
+            )
+            for table in corpus_snapshot_guards.EPOCH_TABLES:
+                connection.execute(
+                    text(f"CREATE TABLE {table} (id TEXT, version_id TEXT, evidence_digest TEXT)")
+                )
+            SqlCorpusSnapshotReader._install_sqlite_guards(connection)
+            corpus_snapshot_guards.require_guards(connection)
+            original = connection.execute(
+                text("SELECT sql FROM sqlite_master WHERE name = :name"),
+                {"name": trigger_name},
+            ).scalar_one()
+            poisoned = original.replace(" WHEN ", " WHEN 0 AND ", 1)
+            assert poisoned != original
+            connection.execute(text(f"DROP TRIGGER {trigger_name}"))
+            connection.execute(text(poisoned))
+            with pytest.raises(RuntimeError, match="invalid definition"):
+                corpus_snapshot_guards.require_guards(connection)
+    finally:
+        engine.dispose()

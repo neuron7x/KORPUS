@@ -127,25 +127,26 @@ def _sqlite_guards(connection: Connection) -> None:
             raise RuntimeError(f"corpus snapshot guard {key[1]} has {reason}")
     for operation in ("insert", "update", "delete"):
         key = ("evidence_spans", f"trg_evidence_spans_immutable_{operation}")
-        _assert_definition(
-            key[1],
-            actual[key],
-            (
-                f"before {operation} on evidence_spans",
-                "evidence_digest is not null",
-                "raise(abort, 'sealed evidence is immutable')",
-            ),
+        predicate = f"id = {'new' if operation == 'insert' else 'old'}.version_id"
+        if operation == "update":
+            predicate = "id in (old.version_id, new.version_id)"
+        expected = (
+            f"create trigger {key[1]} before {operation} on evidence_spans "
+            "when exists (select 1 from document_versions "
+            f"where {predicate} and evidence_digest is not null) "
+            "begin select raise(abort, 'sealed evidence is immutable'); end"
         )
+        if actual[key] != expected:
+            raise RuntimeError(f"corpus snapshot guard {key[1]} has invalid definition")
     key = ("document_versions", "trg_approved_version_digest_immutable")
-    _assert_definition(
-        key[1],
-        actual[key],
-        (
-            "before update of evidence_digest on document_versions",
-            "old.evidence_digest is not null",
-            "raise(abort, 'sealed evidence digest is immutable')",
-        ),
+    expected = (
+        "create trigger trg_approved_version_digest_immutable before update of evidence_digest "
+        "on document_versions when old.evidence_digest is not null and "
+        "new.evidence_digest is not old.evidence_digest begin "
+        "select raise(abort, 'sealed evidence digest is immutable'); end"
     )
+    if actual[key] != expected:
+        raise RuntimeError(f"corpus snapshot guard {key[1]} has invalid definition")
 
 
 def _postgres_guards(connection: Connection) -> None:
