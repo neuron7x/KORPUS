@@ -1,4 +1,4 @@
-"""Canonical semantic projection used by temporal release identity v2."""
+"""Canonical semantic projection used by temporal release identity v3."""
 
 from __future__ import annotations
 
@@ -63,6 +63,9 @@ def semantic_release_members(
             documents.c.id.label("document_id"),
             documents.c.canonical_title,
             documents.c.corpus_id,
+            documents.c.issuer,
+            documents.c.jurisdiction,
+            documents.c.document_type,
             documents.c.access_tier,
             documents.c.classification,
             documents.c.compartments_json,
@@ -125,6 +128,9 @@ def semantic_release_members(
                 evidence_digest=evidence_digest,
                 canonical_title=str(row["canonical_title"]),
                 corpus_id=str(row["corpus_id"]),
+                issuer=str(row["issuer"]),
+                jurisdiction=str(row["jurisdiction"]),
+                document_type=str(row["document_type"]),
                 access_tier=str(int(row["access_tier"])),
                 classification=str(row["classification"]),
                 document_compartments=_stored_compartments(row["compartments_json"]),

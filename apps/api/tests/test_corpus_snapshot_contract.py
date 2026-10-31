@@ -49,6 +49,9 @@ def _release_member(**changes: str) -> SemanticReleaseMember:
         evidence_digest="b" * 64,
         canonical_title="Canonical title",
         corpus_id="public",
+        issuer="Authorized Test Authority",
+        jurisdiction="UA",
+        document_type="order",
         access_tier="0",
         classification="public",
         document_compartments=canonical_set({"alpha"}),
@@ -139,6 +142,9 @@ def test_corpus_read_token_rejects_truncated_or_noncanonical_release_identity(
         ("evidence_digest", "d" * 64),
         ("canonical_title", "Changed title"),
         ("corpus_id", "training"),
+        ("issuer", "Changed issuer"),
+        ("jurisdiction", "PL"),
+        ("document_type", "directive"),
         ("access_tier", "1"),
         ("classification", "internal"),
         ("document_compartments", canonical_set({"bravo"})),
@@ -308,6 +314,89 @@ def test_guard_verification_rejects_correctly_named_noop_trigger(client) -> None
             transaction.rollback()
 
 
+@pytest.mark.parametrize("comment_prefix", ("", "/* begin */ "))
+def test_guard_verification_rejects_conditional_epoch_trigger(client, comment_prefix: str) -> None:
+    """A trigger with the correct name/function but WHEN false never increments the epoch."""
+    reader = client.app.state.corpus_snapshot_reader
+    dialect = client.app.state.repository.engine.dialect.name
+    if dialect == "sqlite":
+        statements = (
+            "DROP TRIGGER trg_documents_epoch_insert",
+            "CREATE TRIGGER trg_documents_epoch_insert AFTER INSERT ON documents "
+            f"{comment_prefix}WHEN 0 BEGIN UPDATE corpus_state_epoch SET epoch = epoch + 1 "
+            "WHERE singleton_id = 1; END",
+        )
+    else:
+        assert dialect == "postgresql"
+        statements = (
+            "DROP TRIGGER trg_documents_epoch ON documents",
+            "CREATE TRIGGER trg_documents_epoch AFTER INSERT OR UPDATE OR DELETE "
+            f"ON documents FOR EACH STATEMENT {comment_prefix}WHEN (false) "
+            "EXECUTE FUNCTION korpus_bump_corpus_state_epoch()",
+        )
+    with privileged_connection(client) as connection:
+        transaction = connection.begin_nested()
+        try:
+            _rewrite_guard(connection, statements)
+            with pytest.raises(RuntimeError, match="conditional trigger"):
+                reader._require_guards(connection)
+        finally:
+            transaction.rollback()
+
+
+def test_sqlite_epoch_guard_rejects_dead_body_predicate(client) -> None:
+    """Reject an inert epoch UPDATE even when the required SQL is a substring."""
+    if client.app.state.repository.engine.dialect.name != "sqlite":
+        pytest.skip("SQLite-only epoch trigger definition")
+    reader = client.app.state.corpus_snapshot_reader
+    with privileged_connection(client) as connection:
+        transaction = connection.begin_nested()
+        try:
+            connection.execute(text("DROP TRIGGER trg_documents_epoch_insert"))
+            connection.execute(
+                text(
+                    "CREATE TRIGGER trg_documents_epoch_insert AFTER INSERT ON documents "
+                    "BEGIN UPDATE corpus_state_epoch SET epoch = epoch + 1 "
+                    "WHERE singleton_id = 1 AND 0; END"
+                )
+            )
+            with pytest.raises(RuntimeError, match="invalid definition"):
+                reader._require_guards(connection)
+        finally:
+            transaction.rollback()
+
+
+def test_snapshot_guard_allows_conditional_non_epoch_evidence_trigger() -> None:
+    corpus_snapshot_guards._assert_definition(
+        "trg_evidence_spans_immutable_insert",
+        "create trigger trg_evidence_spans_immutable_insert before insert "
+        "on evidence_spans when (new.evidence_digest is not null) begin "
+        "select raise(abort, 'sealed evidence is immutable'); end",
+        (
+            "before insert on evidence_spans",
+            "evidence_digest is not null",
+            "raise(abort, 'sealed evidence is immutable')",
+        ),
+    )
+
+
+@pytest.mark.parametrize("activation", ("DISABLE", "ENABLE REPLICA"))
+def test_postgres_guard_verifier_rejects_inactive_epoch_trigger(client, activation: str) -> None:
+    if client.app.state.repository.engine.dialect.name != "postgresql":
+        pytest.skip("requires actual PostgreSQL trigger catalog")
+    reader = client.app.state.corpus_snapshot_reader
+    with privileged_connection(client) as connection:
+        transaction = connection.begin_nested()
+        try:
+            connection.execute(
+                text(f"ALTER TABLE documents {activation} TRIGGER trg_documents_epoch")
+            )
+            with pytest.raises(RuntimeError, match="corpus snapshot guards are missing"):
+                reader._require_guards(connection)
+        finally:
+            transaction.rollback()
+
+
 class _Rows:
     def __init__(self, rows: list[tuple[object, ...]]) -> None:
         self.rows = rows
@@ -397,6 +486,59 @@ def test_postgres_guard_verifier_rejects_dead_code_decoy_body_without_database()
     with pytest.raises(
         RuntimeError, match=r"korpus_bump_corpus_state_epoch.*invalid function body"
     ):
+        corpus_snapshot_guards._postgres_guards(connection)  # type: ignore[arg-type]
+
+
+class _ValidPostgresGuardCatalogueConnection(_PostgresGuardCatalogueConnection):
+    """Exact-function catalogue with optional trigger-shape mutation."""
+
+    def __init__(self, target: str | None = None, needle: str = "", poison: str = "") -> None:
+        super().__init__()
+        self.target = target
+        self.needle = needle
+        self.poison = poison
+
+    def execute(self, statement: object) -> _Rows:
+        rows = super().execute(statement).all()
+        if self.calls == 1:
+            triggers = []
+            for relation, name, definition in rows:
+                current_definition = str(definition)
+                if name == self.target:
+                    assert self.needle in current_definition
+                    current_definition = current_definition.replace(self.needle, self.poison, 1)
+                triggers.append((relation, name, current_definition))
+            return _Rows(triggers)
+        functions = []
+        for name, security_definer, config, _body in rows:
+            body = corpus_snapshot_guards._POSTGRES_FUNCTION_BODIES[str(name)]
+            functions.append((name, security_definer, config, body))
+        return _Rows(functions)
+
+
+def test_postgres_immutable_guard_verifier_accepts_exact_catalogue() -> None:
+    corpus_snapshot_guards._postgres_guards(
+        _ValidPostgresGuardCatalogueConnection()  # type: ignore[arg-type]
+    )
+
+
+@pytest.mark.parametrize(
+    ("target", "needle", "poison"),
+    (
+        ("trg_evidence_spans_immutable", "FOR EACH ROW", "FOR EACH STATEMENT"),
+        ("trg_approved_version_digest_immutable", "FOR EACH ROW", "FOR EACH STATEMENT"),
+        (
+            "trg_approved_version_digest_immutable",
+            "UPDATE OF evidence_digest",
+            "UPDATE OF review_state",
+        ),
+    ),
+)
+def test_postgres_immutable_guard_rejects_drifted_trigger_shape(
+    target: str, needle: str, poison: str
+) -> None:
+    connection = _ValidPostgresGuardCatalogueConnection(target, needle, poison)
+    with pytest.raises(RuntimeError, match="invalid definition"):
         corpus_snapshot_guards._postgres_guards(connection)  # type: ignore[arg-type]
 
 
@@ -519,3 +661,68 @@ def test_version_evidence_digest_refuses_text_hash_that_does_not_match_text() ->
     wrong = hashlib.sha256(b"other bytes").hexdigest()
     with pytest.raises(CorpusConsistencyError, match="text_hash does not match"):
         version_evidence_digest([("span-1", 0, None, None, content, wrong)])
+
+
+def test_postgres_immutable_guard_rejects_conditional_when_false() -> None:
+    cases = (
+        (
+            "trg_evidence_spans_immutable",
+            "insert or delete or update",
+            "evidence_spans",
+            "korpus_refuse_approved_evidence_mutation",
+        ),
+        (
+            "trg_approved_version_digest_immutable",
+            "update of evidence_digest",
+            "document_versions",
+            "korpus_refuse_approved_digest_mutation",
+        ),
+    )
+    for label, events, table, function in cases:
+        definition = (
+            f"create trigger {label} before {events} on public.{table} "
+            f"for each row when (false) execute function {function}()"
+        )
+        with pytest.raises(RuntimeError, match="conditional trigger"):
+            corpus_snapshot_guards._assert_definition(
+                label, definition, ("before", f"on public.{table}", function)
+            )
+
+
+@pytest.mark.parametrize(
+    "trigger_name",
+    (
+        "trg_evidence_spans_immutable_insert",
+        "trg_evidence_spans_immutable_update",
+        "trg_evidence_spans_immutable_delete",
+        "trg_approved_version_digest_immutable",
+    ),
+)
+def test_sqlite_immutable_guard_rejects_inert_when(trigger_name: str) -> None:
+    from korpus.infrastructure.corpus_snapshot import SqlCorpusSnapshotReader
+    from sqlalchemy import create_engine
+
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                text("CREATE TABLE corpus_state_epoch (singleton_id INTEGER, epoch INTEGER)")
+            )
+            for table in corpus_snapshot_guards.EPOCH_TABLES:
+                connection.execute(
+                    text(f"CREATE TABLE {table} (id TEXT, version_id TEXT, evidence_digest TEXT)")
+                )
+            SqlCorpusSnapshotReader._install_sqlite_guards(connection)
+            corpus_snapshot_guards.require_guards(connection)
+            original = connection.execute(
+                text("SELECT sql FROM sqlite_master WHERE name = :name"),
+                {"name": trigger_name},
+            ).scalar_one()
+            poisoned = original.replace(" WHEN ", " WHEN 0 AND ", 1)
+            assert poisoned != original
+            connection.execute(text(f"DROP TRIGGER {trigger_name}"))
+            connection.execute(text(poisoned))
+            with pytest.raises(RuntimeError, match="invalid definition"):
+                corpus_snapshot_guards.require_guards(connection)
+    finally:
+        engine.dispose()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from itertools import product
 
 from sqlalchemy import text as sql_text
 from sqlalchemy.engine import Connection
@@ -83,6 +84,9 @@ def _canonical_function_body(definition: object) -> str:
 
 
 def _assert_definition(label: str, definition: str, required: tuple[str, ...]) -> None:
+    header = definition.split(" begin ", 1)[0]
+    if ("_epoch" in label or " on public." in header) and re.search(r"/\*|--|\bwhen\b", header):
+        raise RuntimeError(f"corpus snapshot guard {label} has conditional trigger definition")
     missing = [token for token in required if token not in definition]
     if missing:
         raise RuntimeError(f"corpus snapshot guard {label} has invalid definition: {missing}")
@@ -98,7 +102,7 @@ def _sqlite_guards(connection: Connection) -> None:
         sql_text("SELECT tbl_name, name, sql FROM sqlite_master WHERE type = 'trigger'")
     ).all()
     actual = {(str(row[0]), str(row[1])): _normalize(row[2]) for row in rows}
-    expected = {
+    expected_guards = {
         *(
             (table, f"trg_{table}_epoch_{operation}")
             for table in EPOCH_TABLES
@@ -109,42 +113,40 @@ def _sqlite_guards(connection: Connection) -> None:
         ("evidence_spans", "trg_evidence_spans_immutable_delete"),
         ("document_versions", "trg_approved_version_digest_immutable"),
     }
-    missing = expected.difference(actual)
+    missing = expected_guards.difference(actual)
     if missing:
         raise RuntimeError(f"corpus snapshot guards are missing: {sorted(missing)}")
-
-    for table in EPOCH_TABLES:
-        for operation in ("insert", "update", "delete"):
-            key = (table, f"trg_{table}_epoch_{operation}")
-            _assert_definition(
-                key[1],
-                actual[key],
-                (
-                    f"after {operation} on {table}",
-                    "update corpus_state_epoch set epoch = epoch + 1 where singleton_id = 1",
-                ),
-            )
+    for table, operation in product(EPOCH_TABLES, ("insert", "update", "delete")):
+        key = (table, f"trg_{table}_epoch_{operation}")
+        expected_sql = (
+            f"create trigger {key[1]} after {operation} on {table} begin "
+            "update corpus_state_epoch set epoch = epoch + 1 where singleton_id = 1; end"
+        )
+        if actual[key] != expected_sql:
+            reason = "conditional trigger" if " when " in actual[key] else "invalid definition"
+            raise RuntimeError(f"corpus snapshot guard {key[1]} has {reason}")
     for operation in ("insert", "update", "delete"):
         key = ("evidence_spans", f"trg_evidence_spans_immutable_{operation}")
-        _assert_definition(
-            key[1],
-            actual[key],
-            (
-                f"before {operation} on evidence_spans",
-                "evidence_digest is not null",
-                "raise(abort, 'sealed evidence is immutable')",
-            ),
+        predicate = f"id = {'new' if operation == 'insert' else 'old'}.version_id"
+        if operation == "update":
+            predicate = "id in (old.version_id, new.version_id)"
+        expected = (
+            f"create trigger {key[1]} before {operation} on evidence_spans "
+            "when exists (select 1 from document_versions "
+            f"where {predicate} and evidence_digest is not null) "
+            "begin select raise(abort, 'sealed evidence is immutable'); end"
         )
+        if actual[key] != expected:
+            raise RuntimeError(f"corpus snapshot guard {key[1]} has invalid definition")
     key = ("document_versions", "trg_approved_version_digest_immutable")
-    _assert_definition(
-        key[1],
-        actual[key],
-        (
-            "before update of evidence_digest on document_versions",
-            "old.evidence_digest is not null",
-            "raise(abort, 'sealed evidence digest is immutable')",
-        ),
+    expected = (
+        "create trigger trg_approved_version_digest_immutable before update of evidence_digest "
+        "on document_versions when old.evidence_digest is not null and "
+        "new.evidence_digest is not old.evidence_digest begin "
+        "select raise(abort, 'sealed evidence digest is immutable'); end"
     )
+    if actual[key] != expected:
+        raise RuntimeError(f"corpus snapshot guard {key[1]} has invalid definition")
 
 
 def _postgres_guards(connection: Connection) -> None:
@@ -154,7 +156,7 @@ def _postgres_guards(connection: Connection) -> None:
             "FROM pg_trigger t "
             "JOIN pg_class c ON c.oid = t.tgrelid "
             "JOIN pg_namespace n ON n.oid = c.relnamespace "
-            "WHERE NOT t.tgisinternal AND n.nspname = 'public'"
+            "WHERE NOT t.tgisinternal AND t.tgenabled IN ('O', 'A') AND n.nspname = 'public'"
         )
     ).all()
     actual = {(str(row[0]), str(row[1])): _normalize(row[2]) for row in rows}
@@ -166,7 +168,6 @@ def _postgres_guards(connection: Connection) -> None:
     missing = expected.difference(actual)
     if missing:
         raise RuntimeError(f"corpus snapshot guards are missing: {sorted(missing)}")
-
     for table in EPOCH_TABLES:
         key = (table, f"trg_{table}_epoch")
         _assert_definition(
@@ -189,7 +190,7 @@ def _postgres_guards(connection: Connection) -> None:
             "insert",
             "update",
             "delete",
-            "on public.evidence_spans",
+            "on public.evidence_spans for each row",
             "korpus_refuse_approved_evidence_mutation",
         ),
     )
@@ -197,8 +198,8 @@ def _postgres_guards(connection: Connection) -> None:
         "trg_approved_version_digest_immutable",
         actual[("document_versions", "trg_approved_version_digest_immutable")],
         (
-            "before update",
-            "on public.document_versions",
+            "before update of evidence_digest",
+            "on public.document_versions for each row",
             "korpus_refuse_approved_digest_mutation",
         ),
     )
