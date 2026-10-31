@@ -34,11 +34,29 @@ def required_node_ids() -> set[tuple[str, str]]:
     return set(pairs)
 
 
+def _validated_report_cases(path: Path) -> list[ElementTree.Element]:
+    """Reject contradictory pytest suite totals before accepting individual nodes."""
+    document = ElementTree.parse(path).getroot()
+    suites = [document] if document.tag == "testsuite" else document.findall("testsuite")
+    if document.tag not in {"testsuite", "testsuites"} or len(suites) != 1:
+        raise ValueError("unexpected pytest suite structure")
+    cases = suites[0].findall("testcase")
+    if len(cases) != len(document.findall(".//testcase")):
+        raise ValueError("unexpected pytest testcase nesting")
+    try:
+        totals = [int(suites[0].attrib[key]) for key in ("tests", "skipped", "failures", "errors")]
+    except (KeyError, ValueError) as error:
+        raise ValueError("invalid pytest suite totals") from error
+    if totals != [len(cases), 0, 0, 0]:
+        raise ValueError("contradictory pytest suite totals")
+    return cases
+
+
 def inspect_pytest_junit(root: Path) -> tuple[bool, int, list[str]]:
     """Require exact test identities and outcomes, never only total count."""
     try:
         required = required_node_ids()
-        cases = ElementTree.parse(root / REPORT).findall(".//testcase")
+        cases = _validated_report_cases(root / REPORT)
     except (OSError, ValueError, TypeError, ElementTree.ParseError):
         return False, 0, ["missing_or_invalid_junit_or_node_contract"]
     seen: set[tuple[str, str]] = set()

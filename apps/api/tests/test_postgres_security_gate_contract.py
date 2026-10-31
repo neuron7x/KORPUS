@@ -119,6 +119,12 @@ def test_skipped_postgres_destruction_tests_never_satisfy_security_gate(
         "relabelled_parameter",
         "foreign_classname",
         "bare_classname",
+        "counter_tests",
+        "counter_skipped",
+        "counter_failures",
+        "counter_errors",
+        "missing_tests",
+        "second_suite",
     ),
 )
 def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutation: str) -> None:
@@ -128,8 +134,10 @@ def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutat
     if mutation == "invalid":
         report.write_text("<incomplete", encoding="utf-8")
     else:
-        suite = ElementTree.Element("testsuite")
         cases = sorted(nodes.required_node_ids())
+        suite = ElementTree.Element(
+            "testsuite", tests=str(len(cases)), skipped="0", failures="0", errors="0"
+        )
         if mutation == "deleted":
             cases[0] = ("synthetic", "test_replacement")
         elif mutation == "short":
@@ -158,6 +166,18 @@ def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutat
             testcase = ElementTree.SubElement(suite, "testcase", classname=classname, name=name)
             if index == 0 and mutation in {"skipped", "failed"}:
                 ElementTree.SubElement(testcase, "skipped" if mutation == "skipped" else "failure")
+        if mutation.startswith("counter_"):
+            field = mutation.removeprefix("counter_")
+            suite.set(field, str(len(cases) + 1) if field == "tests" else "1")
+        elif mutation == "missing_tests":
+            del suite.attrib["tests"]
+        elif mutation == "second_suite":
+            wrapper = ElementTree.Element("testsuites")
+            wrapper.append(suite)
+            wrapper.append(
+                ElementTree.Element("testsuite", tests="0", skipped="0", failures="0", errors="0")
+            )
+            suite = wrapper
         ElementTree.ElementTree(suite).write(report, encoding="utf-8")
     accepted, observed, missing = nodes.inspect_pytest_junit(tmp_path)
     assert accepted is (mutation == "clean"), (mutation, observed, missing)
