@@ -152,39 +152,41 @@ def _sqlite_guards(connection: Connection) -> None:
 def _postgres_guards(connection: Connection) -> None:
     rows = connection.execute(
         sql_text(
-            "SELECT c.relname, t.tgname, pg_get_triggerdef(t.oid) "
+            "SELECT c.relname, t.tgname, pg_get_triggerdef(t.oid), fn.nspname, p.proname "
             "FROM pg_trigger t "
+            "JOIN pg_proc p ON p.oid = t.tgfoid JOIN pg_namespace fn ON fn.oid = p.pronamespace "
             "JOIN pg_class c ON c.oid = t.tgrelid "
             "JOIN pg_namespace n ON n.oid = c.relnamespace "
             "WHERE NOT t.tgisinternal AND t.tgenabled IN ('O', 'A') AND n.nspname = 'public'"
         )
     ).all()
-    actual = {(str(row[0]), str(row[1])): _normalize(row[2]) for row in rows}
+    actual = {(str(r[0]), str(r[1])): (_normalize(r[2]), str(r[3]), str(r[4])) for r in rows}
     expected = {
-        *((table, f"trg_{table}_epoch") for table in EPOCH_TABLES),
-        ("evidence_spans", "trg_evidence_spans_immutable"),
-        ("document_versions", "trg_approved_version_digest_immutable"),
+        **{(t, f"trg_{t}_epoch"): "korpus_bump_corpus_state_epoch" for t in EPOCH_TABLES},
+        ("evidence_spans", "trg_evidence_spans_immutable"): (
+            "korpus_refuse_approved_evidence_mutation"
+        ),
+        ("document_versions", "trg_approved_version_digest_immutable"): (
+            "korpus_refuse_approved_digest_mutation"
+        ),
     }
-    missing = expected.difference(actual)
+    missing = expected.keys() - actual.keys()
     if missing:
         raise RuntimeError(f"corpus snapshot guards are missing: {sorted(missing)}")
+    for key, function_name in expected.items():
+        if actual[key][1:] != ("public", function_name):
+            raise RuntimeError(f"corpus snapshot guard {key[1]} has invalid function binding")
+    epoch_events = ("after", "insert", "update", "delete")
     for table in EPOCH_TABLES:
         key = (table, f"trg_{table}_epoch")
         _assert_definition(
             key[1],
-            actual[key],
-            (
-                "after",
-                "insert",
-                "update",
-                "delete",
-                f"on public.{table}",
-                "korpus_bump_corpus_state_epoch",
-            ),
+            actual[key][0],
+            (*epoch_events, f"on public.{table}", "korpus_bump_corpus_state_epoch"),
         )
     _assert_definition(
         "trg_evidence_spans_immutable",
-        actual[("evidence_spans", "trg_evidence_spans_immutable")],
+        actual[("evidence_spans", "trg_evidence_spans_immutable")][0]
         (
             "before",
             "insert",
@@ -196,14 +198,13 @@ def _postgres_guards(connection: Connection) -> None:
     )
     _assert_definition(
         "trg_approved_version_digest_immutable",
-        actual[("document_versions", "trg_approved_version_digest_immutable")],
+        actual[("document_versions", "trg_approved_version_digest_immutable")][0]
         (
             "before update of evidence_digest",
             "on public.document_versions for each row",
             "korpus_refuse_approved_digest_mutation",
         ),
     )
-
     functions = {
         str(row[0]): (bool(row[1]), tuple(row[2] or ()), row[3])
         for row in connection.execute(
@@ -229,7 +230,6 @@ def _postgres_guards(connection: Connection) -> None:
         normalized_config = {item.replace(" ", "").lower() for item in configuration}
         if not security_definer or "search_path=pg_catalog" not in normalized_config:
             raise RuntimeError(f"corpus snapshot guard function is not hardened: {name}")
-
     for name, expected_body in _POSTGRES_FUNCTION_BODIES.items():
         metadata = functions.get(name)
         if metadata is None:

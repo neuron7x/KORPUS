@@ -421,6 +421,8 @@ class _PostgresGuardCatalogueConnection:
                     f"CREATE TRIGGER trg_{table}_epoch AFTER INSERT OR DELETE OR UPDATE "
                     f"ON public.{table} FOR EACH STATEMENT EXECUTE FUNCTION "
                     "korpus_bump_corpus_state_epoch()",
+                    "public",
+                    "korpus_bump_corpus_state_epoch",
                 )
                 for table in corpus_snapshot_guards.EPOCH_TABLES
             ]
@@ -432,6 +434,8 @@ class _PostgresGuardCatalogueConnection:
                         "CREATE TRIGGER trg_evidence_spans_immutable BEFORE INSERT OR DELETE OR "
                         "UPDATE ON public.evidence_spans FOR EACH ROW EXECUTE FUNCTION "
                         "korpus_refuse_approved_evidence_mutation()",
+                        "public",
+                        "korpus_refuse_approved_evidence_mutation",
                     ),
                     (
                         "document_versions",
@@ -439,6 +443,8 @@ class _PostgresGuardCatalogueConnection:
                         "CREATE TRIGGER trg_approved_version_digest_immutable BEFORE UPDATE OF "
                         "evidence_digest ON public.document_versions FOR EACH ROW EXECUTE FUNCTION "
                         "korpus_refuse_approved_digest_mutation()",
+                        "public",
+                        "korpus_refuse_approved_digest_mutation",
                     ),
                 ]
             )
@@ -497,17 +503,21 @@ class _ValidPostgresGuardCatalogueConnection(_PostgresGuardCatalogueConnection):
         self.target = target
         self.needle = needle
         self.poison = poison
+        self.binding_override: dict[str, tuple[str, str]] = {}
 
     def execute(self, statement: object) -> _Rows:
         rows = super().execute(statement).all()
         if self.calls == 1:
             triggers = []
-            for relation, name, definition in rows:
+            for relation, name, definition, namespace, function_name in rows:
                 current_definition = str(definition)
                 if name == self.target:
                     assert self.needle in current_definition
                     current_definition = current_definition.replace(self.needle, self.poison, 1)
-                triggers.append((relation, name, current_definition))
+                binding = self.binding_override.get(
+                    str(name), (str(namespace), str(function_name))
+                )
+                triggers.append((relation, name, current_definition, *binding))
             return _Rows(triggers)
         functions = []
         for name, security_definer, config, _body in rows:
@@ -540,6 +550,59 @@ def test_postgres_immutable_guard_rejects_drifted_trigger_shape(
     connection = _ValidPostgresGuardCatalogueConnection(target, needle, poison)
     with pytest.raises(RuntimeError, match="invalid definition"):
         corpus_snapshot_guards._postgres_guards(connection)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    ("target", "schema", "function"),
+    (
+        ("trg_documents_epoch", "attacker", "korpus_bump_corpus_state_epoch"),
+        ("trg_documents_epoch", "public", "korpus_bump_corpus_state_epoch_noop"),
+        (
+            "trg_evidence_spans_immutable",
+            "attacker",
+            "korpus_refuse_approved_evidence_mutation",
+        ),
+        (
+            "trg_approved_version_digest_immutable",
+            "attacker",
+            "korpus_refuse_approved_digest_mutation",
+        ),
+    ),
+)
+def test_postgres_guard_verifier_rejects_wrong_trigger_function_binding(
+    target: str, schema: str, function: str
+) -> None:
+    connection = _ValidPostgresGuardCatalogueConnection()
+    connection.binding_override[target] = (schema, function)
+    with pytest.raises(RuntimeError, match="invalid function binding"):
+        corpus_snapshot_guards._postgres_guards(connection)  # type: ignore[arg-type]
+
+
+def test_postgres_guard_verifier_rejects_real_catalogue_function_substitution(client) -> None:
+    if client.app.state.repository.engine.dialect.name != "postgresql":
+        pytest.skip("requires actual PostgreSQL trigger catalog")
+    reader = client.app.state.corpus_snapshot_reader
+    with privileged_connection(client) as connection:
+        transaction = connection.begin_nested()
+        try:
+            connection.execute(
+                text(
+                    "CREATE FUNCTION public.korpus_bump_corpus_state_epoch_noop() RETURNS trigger "
+                    "LANGUAGE plpgsql AS $$ BEGIN RETURN NULL; END $$"
+                )
+            )
+            connection.execute(text("DROP TRIGGER trg_documents_epoch ON public.documents"))
+            connection.execute(
+                text(
+                    "CREATE TRIGGER trg_documents_epoch AFTER INSERT OR UPDATE OR DELETE "
+                    "ON public.documents FOR EACH STATEMENT EXECUTE FUNCTION "
+                    "public.korpus_bump_corpus_state_epoch_noop()"
+                )
+            )
+            with pytest.raises(RuntimeError, match="invalid function binding"):
+                reader._require_guards(connection)
+        finally:
+            transaction.rollback()
 
 
 # Дев'ять fail-closed сторожів цього модуля не мали жодного тесту, здатного їх
