@@ -308,9 +308,7 @@ def test_guard_verification_rejects_correctly_named_noop_trigger(client) -> None
         transaction = connection.begin_nested()
         try:
             _rewrite_guard(connection, _INERT_TRIGGER[connection.dialect.name])
-            with pytest.raises(
-                RuntimeError, match=r"invalid (definition|function binding)"
-            ):
+            with pytest.raises(RuntimeError, match=r"invalid (definition|function binding)"):
                 reader._require_guards(connection)
         finally:
             transaction.rollback()

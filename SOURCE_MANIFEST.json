@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2153,
-  "root_sha256": "2efbf1b234dc6e6369779cfac8af0e75f7c599d36ffe261b0a188dd4b8fe1131",
+  "root_sha256": "6fa4e39883fd00ded846235118b130ef22fba4178c5deff8f7d404de24f39cfc",
   "files": [
     {
       "path": ".dockerignore",
@@ -3769,8 +3769,8 @@
     },
     {
       "path": "apps/api/tests/test_corpus_snapshot_contract.py",
-      "bytes": 34684,
-      "sha256": "be4c8a9e5c60c5594d6c87a74204890f217a6f6d4a6e285eb73a263bc2c9b158",
+      "bytes": 34654,
+      "sha256": "1ec26521428e21d9ae716ab4b6eea7c981c1537e0e66f15165664838d38f1991",
       "mode": "0644"
     },
     {
