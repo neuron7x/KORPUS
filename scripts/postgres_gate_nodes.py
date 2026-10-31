@@ -34,8 +34,9 @@ def required_node_ids() -> set[tuple[str, str]]:
     return set(pairs)
 
 
-def _check_wrapper_totals(wrapper: ElementTree.Element, totals: list[int]) -> None:
+def _check_wrapper_totals(wrapper: ElementTree.Element) -> None:
     """Reject inconsistent optional aggregate totals on a pytest testsuites root."""
+    totals = [len(wrapper.findall("testsuite/testcase")), 0, 0, 0]
     for key, expected in zip(("tests", "skipped", "failures", "errors"), totals, strict=True):
         declared = wrapper.get(key)
         if declared is not None and declared != str(expected):
@@ -58,7 +59,7 @@ def _validated_report_cases(path: Path) -> list[ElementTree.Element]:
     if totals != [len(cases), 0, 0, 0]:
         raise ValueError("contradictory pytest suite totals")
     if document.tag == "testsuites":
-        _check_wrapper_totals(document, totals)
+        _check_wrapper_totals(document)
     return cases
 
 
