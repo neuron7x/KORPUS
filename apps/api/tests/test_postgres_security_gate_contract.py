@@ -125,6 +125,11 @@ def test_skipped_postgres_destruction_tests_never_satisfy_security_gate(
         "counter_errors",
         "missing_tests",
         "second_suite",
+        "wrapper_clean",
+        "wrapper_counter_tests",
+        "wrapper_counter_skipped",
+        "wrapper_counter_failures",
+        "wrapper_counter_errors",
     ),
 )
 def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutation: str) -> None:
@@ -178,6 +183,13 @@ def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutat
                 ElementTree.Element("testsuite", tests="0", skipped="0", failures="0", errors="0")
             )
             suite = wrapper
+        elif mutation.startswith("wrapper_"):
+            wrapper = ElementTree.Element("testsuites")
+            wrapper.append(suite)
+            if mutation.startswith("wrapper_counter_"):
+                field = mutation.removeprefix("wrapper_counter_")
+                wrapper.set(field, str(len(cases) + 1) if field == "tests" else "1")
+            suite = wrapper
         ElementTree.ElementTree(suite).write(report, encoding="utf-8")
     accepted, observed, missing = nodes.inspect_pytest_junit(tmp_path)
-    assert accepted is (mutation == "clean"), (mutation, observed, missing)
+    assert accepted is (mutation in {"clean", "wrapper_clean"}), (mutation, observed, missing)
