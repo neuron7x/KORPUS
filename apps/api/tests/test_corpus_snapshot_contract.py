@@ -514,9 +514,7 @@ class _ValidPostgresGuardCatalogueConnection(_PostgresGuardCatalogueConnection):
                 if name == self.target:
                     assert self.needle in current_definition
                     current_definition = current_definition.replace(self.needle, self.poison, 1)
-                binding = self.binding_override.get(
-                    str(name), (str(namespace), str(function_name))
-                )
+                binding = self.binding_override.get(str(name), (str(namespace), str(function_name)))
                 triggers.append((relation, name, current_definition, *binding))
             return _Rows(triggers)
         functions = []

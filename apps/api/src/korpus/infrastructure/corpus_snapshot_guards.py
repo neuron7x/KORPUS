@@ -186,7 +186,7 @@ def _postgres_guards(connection: Connection) -> None:
         )
     _assert_definition(
         "trg_evidence_spans_immutable",
-        actual[("evidence_spans", "trg_evidence_spans_immutable")][0]
+        actual[("evidence_spans", "trg_evidence_spans_immutable")][0],
         (
             "before",
             "insert",
@@ -198,7 +198,7 @@ def _postgres_guards(connection: Connection) -> None:
     )
     _assert_definition(
         "trg_approved_version_digest_immutable",
-        actual[("document_versions", "trg_approved_version_digest_immutable")][0]
+        actual[("document_versions", "trg_approved_version_digest_immutable")][0],
         (
             "before update of evidence_digest",
             "on public.document_versions for each row",
