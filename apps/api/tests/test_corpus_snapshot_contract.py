@@ -489,6 +489,60 @@ def test_postgres_guard_verifier_rejects_dead_code_decoy_body_without_database()
         corpus_snapshot_guards._postgres_guards(connection)  # type: ignore[arg-type]
 
 
+class _ValidPostgresGuardCatalogueConnection(_PostgresGuardCatalogueConnection):
+    """Exact-function catalogue with optional trigger-shape mutation."""
+
+    def __init__(
+        self, target: str | None = None, needle: str = "", poison: str = ""
+    ) -> None:
+        super().__init__()
+        self.target = target
+        self.needle = needle
+        self.poison = poison
+
+    def execute(self, statement: object) -> _Rows:
+        rows = super().execute(statement).all()
+        if self.calls == 1:
+            triggers = []
+            for relation, name, definition in rows:
+                if name == self.target:
+                    assert self.needle in str(definition)
+                    definition = str(definition).replace(self.needle, self.poison, 1)
+                triggers.append((relation, name, definition))
+            return _Rows(triggers)
+        functions = []
+        for name, security_definer, config, _body in rows:
+            body = corpus_snapshot_guards._POSTGRES_FUNCTION_BODIES[str(name)]
+            functions.append((name, security_definer, config, body))
+        return _Rows(functions)
+
+
+def test_postgres_immutable_guard_verifier_accepts_exact_catalogue() -> None:
+    corpus_snapshot_guards._postgres_guards(
+        _ValidPostgresGuardCatalogueConnection()  # type: ignore[arg-type]
+    )
+
+
+@pytest.mark.parametrize(
+    ("target", "needle", "poison"),
+    (
+        ("trg_evidence_spans_immutable", "FOR EACH ROW", "FOR EACH STATEMENT"),
+        ("trg_approved_version_digest_immutable", "FOR EACH ROW", "FOR EACH STATEMENT"),
+        (
+            "trg_approved_version_digest_immutable",
+            "UPDATE OF evidence_digest",
+            "UPDATE OF review_state",
+        ),
+    ),
+)
+def test_postgres_immutable_guard_rejects_drifted_trigger_shape(
+    target: str, needle: str, poison: str
+) -> None:
+    connection = _ValidPostgresGuardCatalogueConnection(target, needle, poison)
+    with pytest.raises(RuntimeError, match="invalid definition"):
+        corpus_snapshot_guards._postgres_guards(connection)  # type: ignore[arg-type]
+
+
 # Дев'ять fail-closed сторожів цього модуля не мали жодного тесту, здатного їх
 # запустити: вимір покриття гілок на 04.09.2026 показав ці дуги невзятими ЖОДНИМ
 # прогоном — ані SQLite, ані PostgreSQL. Сторож, який ніколи не відмовляв, не

@@ -190,7 +190,7 @@ def _postgres_guards(connection: Connection) -> None:
             "insert",
             "update",
             "delete",
-            "on public.evidence_spans",
+            "on public.evidence_spans for each row",
             "korpus_refuse_approved_evidence_mutation",
         ),
     )
@@ -198,8 +198,8 @@ def _postgres_guards(connection: Connection) -> None:
         "trg_approved_version_digest_immutable",
         actual[("document_versions", "trg_approved_version_digest_immutable")],
         (
-            "before update",
-            "on public.document_versions",
+            "before update of evidence_digest",
+            "on public.document_versions for each row",
             "korpus_refuse_approved_digest_mutation",
         ),
     )
