@@ -34,7 +34,6 @@ def required_node_ids() -> set[tuple[str, str]]:
     return set(pairs)
 
 
-
 def _check_wrapper_totals(wrapper: ElementTree.Element, totals: list[int]) -> None:
     """Reject inconsistent optional aggregate totals on a pytest testsuites root."""
     for key, expected in zip(("tests", "skipped", "failures", "errors"), totals, strict=True):
