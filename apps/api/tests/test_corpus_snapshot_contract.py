@@ -635,6 +635,7 @@ def test_postgres_immutable_guard_rejects_conditional_when_false() -> None:
                 label, definition, ("before", f"on public.{table}", function)
             )
 
+
 @pytest.mark.parametrize(
     "trigger_name",
     (

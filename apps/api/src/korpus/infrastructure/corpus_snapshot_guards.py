@@ -102,7 +102,7 @@ def _sqlite_guards(connection: Connection) -> None:
         sql_text("SELECT tbl_name, name, sql FROM sqlite_master WHERE type = 'trigger'")
     ).all()
     actual = {(str(row[0]), str(row[1])): _normalize(row[2]) for row in rows}
-    expected = {
+    expected_guards = {
         *(
             (table, f"trg_{table}_epoch_{operation}")
             for table in EPOCH_TABLES
@@ -113,7 +113,7 @@ def _sqlite_guards(connection: Connection) -> None:
         ("evidence_spans", "trg_evidence_spans_immutable_delete"),
         ("document_versions", "trg_approved_version_digest_immutable"),
     }
-    missing = expected.difference(actual)
+    missing = expected_guards.difference(actual)
     if missing:
         raise RuntimeError(f"corpus snapshot guards are missing: {sorted(missing)}")
     for table, operation in product(EPOCH_TABLES, ("insert", "update", "delete")):
