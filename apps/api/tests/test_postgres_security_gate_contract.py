@@ -13,16 +13,23 @@
 
 from __future__ import annotations
 
+import json
+import subprocess
 import sys
 from pathlib import Path
+from xml.etree import ElementTree
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "scripts"))
+import postgres_gate_nodes as nodes  # noqa: E402
 import run_postgres_security_gate as gate  # noqa: E402
 
 #: Кожна з них питає, що ПРОХОДИТЬ, не маючи права.
 REQUIRED_DESTRUCTION_CONTROLS = {
     "apps/api/tests/test_postgres_rls_claim_forgery.py",
+    "apps/api/tests/test_postgres_rls_claim_mutations.py",
     "apps/api/tests/test_postgres_rls_policy_state.py",
     "apps/api/tests/test_postgres_role_reprovision_boundary.py",
     "apps/api/tests/test_postgres_approval_provenance.py",
@@ -55,3 +62,134 @@ def test_every_named_target_exists_on_disk() -> None:
     """
     missing = [target for target in gate.TARGETS if not (ROOT / target).is_file()]
     assert missing == [], missing
+
+
+@pytest.mark.parametrize(
+    ("summary", "status"),
+    [
+        ("111 passed in 7.12s", "PASS"),
+        ("1 passed, 1 skipped in 0.01s", "FAIL"),
+        ("2 skipped in 0.01s", "FAIL"),
+        ("1 xfailed in 0.01s", "FAIL"),
+        ("1 xpassed in 0.01s", "FAIL"),
+        ("1 passed, 1 xfailed in 0.01s", "FAIL"),
+        ("1 passed, 1 xpassed in 0.01s", "FAIL"),
+        ("1 passed, 1 deselected in 0.01s", "FAIL"),
+        ("2 deselected in 0.01s", "FAIL"),
+        ("1 passed, 1 skipped, 1 xfailed in 0.01s", "FAIL"),
+        ("1 xfailed, 1 xpassed in 0.01s", "FAIL"),
+        ("no tests ran in 0.01s", "FAIL"),
+        ("1 passed, 2 warnings in 0.01s", "PASS"),
+    ],
+)
+def test_skipped_postgres_destruction_tests_never_satisfy_security_gate(
+    monkeypatch, tmp_path: Path, summary: str, status: str
+) -> None:
+    """A zero pytest exit is not proof that mandatory poison tests executed."""
+    for target in gate.TARGETS:
+        fixture = tmp_path / target
+        fixture.parent.mkdir(parents=True, exist_ok=True)
+        fixture.write_text("# isolated gate target\n", encoding="utf-8")
+    monkeypatch.setattr(gate, "ROOT", tmp_path)
+    monkeypatch.setattr(
+        gate, "process_run", lambda *_args: subprocess.CompletedProcess([], 0, "static", "")
+    )
+    monkeypatch.setattr(
+        gate, "process_runtime", lambda *_args: (True, 0, f"--- stdout ---\n{summary}")
+    )
+    monkeypatch.setattr(gate, "compute_source_digest", lambda _: "f" * 64)
+    monkeypatch.setattr(gate, "inspect_pytest_junit", lambda _: (True, 111, []))
+    monkeypatch.setattr(gate, "release_tag", lambda: "v0.9.7")
+    assert (gate.main() == 0) is (status == "PASS")
+    report = json.loads((tmp_path / "var/production/postgres_security-gate.json").read_text())
+    assert report["status"] == status
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    (
+        "clean",
+        "deleted",
+        "short",
+        "duplicate",
+        "skipped",
+        "failed",
+        "invalid",
+        "missing_parameter",
+        "relabelled_parameter",
+        "foreign_classname",
+        "bare_classname",
+        "counter_tests",
+        "counter_skipped",
+        "counter_failures",
+        "counter_errors",
+        "missing_tests",
+        "second_suite",
+        "wrapper_clean",
+        "wrapper_counter_tests",
+        "wrapper_counter_skipped",
+        "wrapper_counter_failures",
+        "wrapper_counter_errors",
+    ),
+)
+def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutation: str) -> None:
+    """A green pytest exit and a present file cannot hide a missing poison node."""
+    report = tmp_path / nodes.REPORT
+    report.parent.mkdir(parents=True)
+    if mutation == "invalid":
+        report.write_text("<incomplete", encoding="utf-8")
+    else:
+        cases = sorted(nodes.required_node_ids())
+        suite = ElementTree.Element(
+            "testsuite", tests=str(len(cases)), skipped="0", failures="0", errors="0"
+        )
+        if mutation == "deleted":
+            cases[0] = ("synthetic", "test_replacement")
+        elif mutation == "short":
+            cases.pop()
+        elif mutation == "duplicate":
+            cases[0] = cases[1]
+        elif mutation in {"missing_parameter", "relabelled_parameter"}:
+            victim = (
+                "test_postgres_rls_claim_mutations",
+                "test_each_app_owned_session_claim_is_ignored_by_broker[clearance-3]",
+            )
+            cases[cases.index(victim)] = (
+                ("synthetic", "test_replacement_parameter")
+                if mutation == "missing_parameter"
+                else (
+                    victim[0],
+                    "test_each_app_owned_session_claim_is_ignored_by_broker[clearance-4]",
+                )
+            )
+        for index, (module, name) in enumerate(cases):
+            classname = f"tests.{module}"
+            if index == 0 and mutation == "foreign_classname":
+                classname = f"forged.namespace.{module}"
+            elif index == 0 and mutation == "bare_classname":
+                classname = module
+            testcase = ElementTree.SubElement(suite, "testcase", classname=classname, name=name)
+            if index == 0 and mutation in {"skipped", "failed"}:
+                ElementTree.SubElement(testcase, "skipped" if mutation == "skipped" else "failure")
+        if mutation.startswith("counter_"):
+            field = mutation.removeprefix("counter_")
+            suite.set(field, str(len(cases) + 1) if field == "tests" else "1")
+        elif mutation == "missing_tests":
+            del suite.attrib["tests"]
+        elif mutation == "second_suite":
+            wrapper = ElementTree.Element("testsuites")
+            wrapper.append(suite)
+            wrapper.append(
+                ElementTree.Element("testsuite", tests="0", skipped="0", failures="0", errors="0")
+            )
+            suite = wrapper
+        elif mutation.startswith("wrapper_"):
+            wrapper = ElementTree.Element("testsuites")
+            wrapper.append(suite)
+            if mutation.startswith("wrapper_counter_"):
+                field = mutation.removeprefix("wrapper_counter_")
+                wrapper.set(field, str(len(cases) + 1) if field == "tests" else "1")
+            suite = wrapper
+        ElementTree.ElementTree(suite).write(report, encoding="utf-8")
+    accepted, observed, missing = nodes.inspect_pytest_junit(tmp_path)
+    assert accepted is (mutation in {"clean", "wrapper_clean"}), (mutation, observed, missing)

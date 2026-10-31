@@ -9,25 +9,14 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 
-from postgres_process_diagnostics import run_with_diagnostics
+from postgres_gate_nodes import REPORT
+from postgres_process_diagnostics import run_with_diagnostics as run
 
-#: Скільки символів кожної труби лишається у доказі. Бюджет НА ТРУБУ, не на суму:
-#: саме сума й губила причину.
+#: Бюджет символів на кожну трубу окремо; спільний хвіст втрачає причину.
 TAIL_BUDGET = 4000
-
-
-def run(
-    root: Path,
-    command: list[str],
-    timeout: int,
-    *,
-    environment: dict[str, str] | None = None,
-) -> subprocess.CompletedProcess[str]:
-    return run_with_diagnostics(root, command, timeout, environment=environment)
 
 
 def labelled_tail(stdout: str, stderr: str, budget: int = TAIL_BUDGET) -> str:
@@ -61,16 +50,34 @@ def skips(targets_present: bool, available: bool) -> bool:
     return not targets_present or not available
 
 
+def _missing_external_roles(database_url: str | None) -> list[str]:
+    required = (
+        "KORPUS_TEST_DATABASE_ADMIN_URL",
+        "KORPUS_POSTGRES_TEST_URL",
+        "KORPUS_AUTHZ_DATABASE_URL",
+        "KORPUS_REVIEW_DATABASE_URL",
+    )
+    return [name for name in required if database_url and not os.getenv(name)]
+
+
 def runtime(root: Path, targets: list[str], targets_present: bool) -> tuple[bool, int | None, str]:
-    available = postgres_available(os.getenv("KORPUS_TEST_DATABASE_URL"), shutil.which("docker"))
+    database_url = os.getenv("KORPUS_TEST_DATABASE_URL")
+    available = postgres_available(database_url, shutil.which("docker"))
     if skips(targets_present, available):
         return available, None, ""
-    completed = run(
-        root,
-        ["bash", "scripts/run_postgres_suite.sh", "--targeted", *targets],
-        600,
-        environment={"PYTHON": sys.executable},
-    )
+    if missing := _missing_external_roles(database_url):
+        reason = "external PostgreSQL missing split role URLs: " + ", ".join(missing)
+        return available, 2, reason
+    # A prior receipt must never stand in for the current runtime's executed nodes.
+    report = root / REPORT
+    report.parent.mkdir(parents=True, exist_ok=True)
+    report.unlink(missing_ok=True)
+    environment = {
+        "PYTHON": sys.executable,
+        "PYTEST_ADDOPTS": f"{os.getenv('PYTEST_ADDOPTS', '')} --junitxml={REPORT}",
+    }
+    command = ["bash", "scripts/run_postgres_suite.sh", "--targeted", *targets]
+    completed = run(root, command, 600, environment=environment)
     return available, completed.returncode, labelled_tail(completed.stdout, completed.stderr)
 
 

@@ -153,6 +153,13 @@ def test_unstable_database_fails_and_keeps_initialization_diagnostics(
 def test_security_runtime_selects_its_actual_complete_target_list(monkeypatch) -> None:
     calls = []
     monkeypatch.setenv("KORPUS_TEST_DATABASE_URL", "postgresql://command-fixture/never-connected")
+    for name in (
+        "KORPUS_TEST_DATABASE_ADMIN_URL",
+        "KORPUS_POSTGRES_TEST_URL",
+        "KORPUS_AUTHZ_DATABASE_URL",
+        "KORPUS_REVIEW_DATABASE_URL",
+    ):
+        monkeypatch.setenv(name, "postgresql://role-fixture/never-connected")
 
     def record(root, command, timeout, *, environment=None):
         calls.append((command, timeout, environment))
@@ -161,8 +168,40 @@ def test_security_runtime_selects_its_actual_complete_target_list(monkeypatch) -
     monkeypatch.setattr(process, "run", record)
     assert process.runtime(ROOT, gate.TARGETS, True)[1] == 0
     assert calls[0][0] == ["bash", "scripts/run_postgres_suite.sh", "--targeted", *gate.TARGETS]
-    assert len(gate.TARGETS) == 9
+    assert len(gate.TARGETS) == 10
     assert calls[0][1] == 600
+
+
+@pytest.mark.parametrize(
+    "missing_url",
+    (
+        "KORPUS_TEST_DATABASE_ADMIN_URL",
+        "KORPUS_POSTGRES_TEST_URL",
+        "KORPUS_AUTHZ_DATABASE_URL",
+        "KORPUS_REVIEW_DATABASE_URL",
+    ),
+)
+def test_security_runtime_refuses_partial_external_role_configuration(
+    monkeypatch, missing_url: str
+) -> None:
+    monkeypatch.setenv("KORPUS_TEST_DATABASE_URL", "postgresql://external-fixture/unopened")
+    for name in (
+        "KORPUS_TEST_DATABASE_ADMIN_URL",
+        "KORPUS_POSTGRES_TEST_URL",
+        "KORPUS_AUTHZ_DATABASE_URL",
+        "KORPUS_REVIEW_DATABASE_URL",
+    ):
+        monkeypatch.setenv(name, "postgresql://role-fixture/unopened")
+    monkeypatch.delenv(missing_url)
+
+    def must_not_run(*_args, **_kwargs):
+        pytest.fail("incomplete PostgreSQL role environment must not start pytest")
+
+    monkeypatch.setattr(process, "run", must_not_run)
+    available, exit_code, reason = process.runtime(ROOT, gate.TARGETS, True)
+    assert available
+    assert exit_code == 2
+    assert missing_url in reason
 
 
 def test_real_timeout_kills_descendants_and_preserves_both_streams(tmp_path: Path) -> None:
@@ -199,6 +238,13 @@ def test_timed_out_runtime_still_writes_the_security_failure_json(
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("# gate timeout fixture; never a PostgreSQL measurement\n")
     monkeypatch.setenv("KORPUS_TEST_DATABASE_URL", "postgresql://timeout-fixture/never-connected")
+    for name in (
+        "KORPUS_TEST_DATABASE_ADMIN_URL",
+        "KORPUS_POSTGRES_TEST_URL",
+        "KORPUS_AUTHZ_DATABASE_URL",
+        "KORPUS_REVIEW_DATABASE_URL",
+    ):
+        monkeypatch.setenv(name, "postgresql://role-fixture/never-connected")
     monkeypatch.setattr(gate, "ROOT", tmp_path)
     monkeypatch.setattr(gate, "compute_source_digest", lambda _: "a" * 64)
     monkeypatch.setattr(

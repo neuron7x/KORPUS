@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2149,
-  "root_sha256": "6c06f7385347cdb407ff0efbf9b78b465df1f1804b728ba2f4928807465a2edf",
+  "file_count": 2152,
+  "root_sha256": "ecec08b5109bd6544e3ef681daecab1f0555d7e956ea7e0590a496cc4b39dc28",
   "files": [
     {
       "path": ".dockerignore",
@@ -5082,6 +5082,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_postgres_rls_claim_mutations.py",
+      "bytes": 15346,
+      "sha256": "f843aa6705b82c1449d2ed78f4076a504d1db08142f24d5d6f8ea97afc12e9f3",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_postgres_rls_policy_state.py",
       "bytes": 9525,
       "sha256": "3b393ecb912f23f53e129af516751f63920e041b123f719322caca4cb3e13556",
@@ -5101,20 +5107,20 @@
     },
     {
       "path": "apps/api/tests/test_postgres_runner_execution.py",
-      "bytes": 9085,
-      "sha256": "303ce16ce7bba67ff9908900e26d2f6f722940519dc80a07827835b2f9f850df",
+      "bytes": 10645,
+      "sha256": "866f6288640c95a7ae4b049dfd2fc0736b08951022cd2c3c491d5526902c251b",
       "mode": "0644"
     },
     {
       "path": "apps/api/tests/test_postgres_security_gate_contract.py",
-      "bytes": 2853,
-      "sha256": "3253167de254aded4a078bfa6ac3869394b6e930c1434f41e0dee96ab613680c",
+      "bytes": 8544,
+      "sha256": "09aaa301a3daac698219f2fb47707c12f8c4c7817561867bb05ec2c4a4bee876",
       "mode": "0644"
     },
     {
       "path": "apps/api/tests/test_postgres_security_gate_runtime.py",
-      "bytes": 2421,
-      "sha256": "3352c35ab6c8496a2a3d78d2d158417fb5999ad22da25d41d9fea786180f6c5e",
+      "bytes": 2828,
+      "sha256": "114537c3d1201d184d097dc42eddfad2484ff2cb270cab44831729c309955767",
       "mode": "0644"
     },
     {
@@ -8335,8 +8341,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 762512,
-      "sha256": "e2bde18ffc5ca0d949dba0f9a95ba2af3c63e97686670b1d1a089866860a8e6f",
+      "bytes": 762882,
+      "sha256": "b14eae9afcc6ce2fd8423ad34f0f658224d323800707de126bef2b3f7b60963a",
       "mode": "0644"
     },
     {
@@ -11898,9 +11904,21 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/postgres_gate_case_contract.json",
+      "bytes": 8783,
+      "sha256": "82a1cd03ecc1147fa1b0024d33085e7956c616d92873087d16519447ae1626b6",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/postgres_gate_nodes.py",
+      "bytes": 4032,
+      "sha256": "3f351a20abdf6f69cbf7111204cb7257cefb01438fd4301a9381d6ca5c2a454a",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/postgres_gate_process.py",
-      "bytes": 5846,
-      "sha256": "ade95e51a327ed303e62334255cd14cc67b4d640185c69a48a49f2aa996f22c7",
+      "bytes": 6413,
+      "sha256": "67b4c49b36655e4e355202eb844704b95fb084035b948e6e4dd5e9f82ece21ac",
       "mode": "0755"
     },
     {
@@ -12343,8 +12361,8 @@
     },
     {
       "path": "scripts/run_postgres_security_gate.py",
-      "bytes": 3726,
-      "sha256": "91cc97219b870c24f4bfd305d3cfc132dc09951f2d32bcbd62ad9ee1de1847f8",
+      "bytes": 4319,
+      "sha256": "73ecb65853b446f80e0fcc3c11df1483b7e69ff41980847bda2253a8646ad408",
       "mode": "0755"
     },
     {
