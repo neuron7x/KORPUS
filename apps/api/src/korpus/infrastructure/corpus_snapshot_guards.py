@@ -83,7 +83,10 @@ def _canonical_function_body(definition: object) -> str:
     return _normalize(source)
 
 
-def _assert_definition(label: str, definition: str, required: tuple[str, ...]) -> None:
+def _assert_definition(label: str, definition: object, required: tuple[str, ...]) -> None:
+    if isinstance(definition, tuple) and definition[1:] != ("public", required[-1]):
+        raise RuntimeError(f"corpus snapshot guard {label} has invalid function binding")
+    definition = str(definition[0] if isinstance(definition, tuple) else definition)
     header = definition.split(" begin ", 1)[0]
     if ("_epoch" in label or " on public." in header) and re.search(r"/\*|--|\bwhen\b", header):
         raise RuntimeError(f"corpus snapshot guard {label} has conditional trigger definition")
@@ -173,20 +176,17 @@ def _postgres_guards(connection: Connection) -> None:
     missing = expected.keys() - actual.keys()
     if missing:
         raise RuntimeError(f"corpus snapshot guards are missing: {sorted(missing)}")
-    for key, function_name in expected.items():
-        if actual[key][1:] != ("public", function_name):
-            raise RuntimeError(f"corpus snapshot guard {key[1]} has invalid function binding")
     epoch_events = ("after", "insert", "update", "delete")
     for table in EPOCH_TABLES:
         key = (table, f"trg_{table}_epoch")
         _assert_definition(
             key[1],
-            actual[key][0],
+            actual[key],
             (*epoch_events, f"on public.{table}", "korpus_bump_corpus_state_epoch"),
         )
     _assert_definition(
         "trg_evidence_spans_immutable",
-        actual[("evidence_spans", "trg_evidence_spans_immutable")][0],
+        actual[("evidence_spans", "trg_evidence_spans_immutable")],
         (
             "before",
             "insert",
@@ -198,7 +198,7 @@ def _postgres_guards(connection: Connection) -> None:
     )
     _assert_definition(
         "trg_approved_version_digest_immutable",
-        actual[("document_versions", "trg_approved_version_digest_immutable")][0],
+        actual[("document_versions", "trg_approved_version_digest_immutable")],
         (
             "before update of evidence_digest",
             "on public.document_versions for each row",
