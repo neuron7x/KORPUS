@@ -85,7 +85,7 @@ def _canonical_function_body(definition: object) -> str:
 
 def _assert_definition(label: str, definition: str, required: tuple[str, ...]) -> None:
     header = definition.split(" begin ", 1)[0]
-    if "_epoch" in label and re.search(r"/\*|--|\bwhen\b", header):
+    if ("_epoch" in label or " on public." in header) and re.search(r"/\*|--|\bwhen\b", header):
         raise RuntimeError(f"corpus snapshot guard {label} has conditional trigger definition")
     missing = [token for token in required if token not in definition]
     if missing:

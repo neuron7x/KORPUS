@@ -608,3 +608,29 @@ def test_version_evidence_digest_refuses_text_hash_that_does_not_match_text() ->
     wrong = hashlib.sha256(b"other bytes").hexdigest()
     with pytest.raises(CorpusConsistencyError, match="text_hash does not match"):
         version_evidence_digest([("span-1", 0, None, None, content, wrong)])
+
+
+def test_postgres_immutable_guard_rejects_conditional_when_false() -> None:
+    cases = (
+        (
+            "trg_evidence_spans_immutable",
+            "insert or delete or update",
+            "evidence_spans",
+            "korpus_refuse_approved_evidence_mutation",
+        ),
+        (
+            "trg_approved_version_digest_immutable",
+            "update of evidence_digest",
+            "document_versions",
+            "korpus_refuse_approved_digest_mutation",
+        ),
+    )
+    for label, events, table, function in cases:
+        definition = (
+            f"create trigger {label} before {events} on public.{table} "
+            f"for each row when (false) execute function {function}()"
+        )
+        with pytest.raises(RuntimeError, match="conditional trigger"):
+            corpus_snapshot_guards._assert_definition(
+                label, definition, ("before", f"on public.{table}", function)
+            )
