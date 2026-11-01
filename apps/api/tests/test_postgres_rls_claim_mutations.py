@@ -154,6 +154,10 @@ def test_forged_claims_cannot_change_hidden_document(operation: str) -> None:
             )
             result = connection.execute(text(sql), {"id": restricted_id})
             assert result.rowcount == 0, f"forged {operation} changed a hidden document"
+            visible_result = connection.execute(text(sql), {"id": public_id})
+            assert visible_result.rowcount == 0, (
+                f"forged {operation} gained writer authority on a visible document"
+            )
         assert ADMIN_URL is not None
         admin = create_engine(ADMIN_URL, future=True)
         try:
@@ -165,6 +169,10 @@ def test_forged_claims_cannot_change_hidden_document(operation: str) -> None:
             assert title == "Original authoritative title"
         finally:
             admin.dispose()
+        with repository.engine.begin() as connection:
+            repository._apply_postgres_identity(connection, _subject(privileged=True))
+            authorized = connection.execute(text(sql), {"id": public_id})
+            assert authorized.rowcount == 1, f"authorized {operation} was blocked"
     finally:
         repository.close()
 
