@@ -22,12 +22,11 @@ import ast
 import os
 from pathlib import Path
 
+import korpus.infrastructure.ingestion_jobs  # noqa: F401  (registers its table)
 import pytest
+from korpus.infrastructure.repository import metadata
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import DBAPIError
-
-import korpus.infrastructure.ingestion_jobs  # noqa: F401  (registers its table)
-from korpus.infrastructure.repository import metadata
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/prepare_postgres_role.py"
@@ -114,13 +113,14 @@ def test_app_and_review_cannot_rewind_corpus_epoch() -> None:
         engine = create_engine(url)
         try:
             with engine.connect() as connection:
-                assert connection.execute(
-                    privilege_check, {"action": "SELECT"}
-                ).scalar_one() is True
+                assert (
+                    connection.execute(privilege_check, {"action": "SELECT"}).scalar_one() is True
+                )
                 for action in ("INSERT", "UPDATE", "DELETE"):
-                    assert connection.execute(
-                        privilege_check, {"action": action}
-                    ).scalar_one() is False, action
+                    assert (
+                        connection.execute(privilege_check, {"action": action}).scalar_one()
+                        is False
+                    ), action
                 with pytest.raises(DBAPIError):
                     connection.execute(
                         text(
