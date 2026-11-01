@@ -614,7 +614,6 @@ def test_postgres_guard_verifier_rejects_real_catalogue_function_substitution(cl
             transaction.rollback()
 
 
-
 def test_postgres_epoch_guard_rejects_column_specific_update_in_real_catalogue(client) -> None:
     if client.app.state.repository.engine.dialect.name != "postgresql":
         pytest.skip("requires actual PostgreSQL trigger catalog")

@@ -241,11 +241,9 @@ def _postgres_guards(connection: Connection) -> None:
 
 
 def require_guards(connection: Connection) -> None:
-    dialect = connection.dialect.name
-    if dialect == "sqlite":
+    if connection.dialect.name == "sqlite":
         _sqlite_guards(connection)
-        return
-    if dialect == "postgresql":
+    elif connection.dialect.name == "postgresql":
         _postgres_guards(connection)
-        return
-    raise RuntimeError(f"unsupported corpus snapshot dialect: {dialect}")
+    else:
+        raise RuntimeError(f"unsupported corpus snapshot dialect: {connection.dialect.name}")
