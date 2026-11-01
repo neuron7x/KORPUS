@@ -79,7 +79,7 @@ def inspect_pytest_junit(root: Path) -> tuple[bool, int, list[str]]:
         if (
             node in seen
             or case.attrib.get("classname", "") != f"tests.{module}"
-            or not name.startswith("test_")
+            or not name.startswith("test_") or case.get("status", "run") not in {"run", "passed"}
             or any(case.find(tag) is not None for tag in ("skipped", "failure", "error"))
         ):
             invalid = True

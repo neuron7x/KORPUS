@@ -114,6 +114,12 @@ def test_skipped_postgres_destruction_tests_never_satisfy_security_gate(
         "duplicate",
         "skipped",
         "failed",
+        "status_run",
+        "status_passed",
+        "status_failed",
+        "status_skipped",
+        "status_notrun",
+        "status_error",
         "invalid",
         "missing_parameter",
         "relabelled_parameter",
@@ -171,6 +177,8 @@ def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutat
             testcase = ElementTree.SubElement(suite, "testcase", classname=classname, name=name)
             if index == 0 and mutation in {"skipped", "failed"}:
                 ElementTree.SubElement(testcase, "skipped" if mutation == "skipped" else "failure")
+            if index == 0 and mutation.startswith("status_"):
+                testcase.set("status", mutation.removeprefix("status_"))
         if mutation.startswith("counter_"):
             field = mutation.removeprefix("counter_")
             suite.set(field, str(len(cases) + 1) if field == "tests" else "1")
@@ -192,4 +200,5 @@ def test_postgres_gate_requires_exact_named_executed_nodes(tmp_path: Path, mutat
             suite = wrapper
         ElementTree.ElementTree(suite).write(report, encoding="utf-8")
     accepted, observed, missing = nodes.inspect_pytest_junit(tmp_path)
-    assert accepted is (mutation in {"clean", "wrapper_clean"}), (mutation, observed, missing)
+    accepted_variants = {"clean", "wrapper_clean", "status_run", "status_passed"}
+    assert accepted is (mutation in accepted_variants), (mutation, observed, missing)
