@@ -66,6 +66,7 @@ def _grant_contract() -> dict[str, set[str]]:
         "AUDIT_APPEND_TABLES",
         "AUDIT_MUTABLE_TABLES",
         "EFFECT_TRANSITION_TABLES",
+        "READ_ONLY_TABLES",
     }
     if set(out) != required:
         raise RuntimeError(f"PostgreSQL grant contract is unreadable or drifted: {sorted(out)}")
@@ -92,6 +93,8 @@ def _expected_grants(contract: dict[str, set[str]]) -> dict[str, set[str]]:
     # яка може бути операційно незворотною.
     for table in contract["EFFECT_TRANSITION_TABLES"]:
         expected[table] = {"SELECT", "INSERT", "UPDATE"}
+    for table in contract["READ_ONLY_TABLES"]:
+        expected[table] = {"SELECT"}
     expected["alembic_version"] = {"SELECT"}
     return expected
 
