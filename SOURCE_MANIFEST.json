@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2153,
-  "root_sha256": "07e052a975296c9ff33f18f70e81eecfbe50c421d787be3bc322b7a44d2070e7",
+  "root_sha256": "08110032ab8707b130f1a635814a6d834cd23902fcfb1b3b08734175e6c3663b",
   "files": [
     {
       "path": ".dockerignore",
@@ -11509,8 +11509,8 @@
     },
     {
       "path": "scripts/gcp/verify_live_postgres.py",
-      "bytes": 16024,
-      "sha256": "fcb9fc1e9b4f566521552f6971b5ac09302789d615ee73ad39b82fb1b02034fe",
+      "bytes": 15670,
+      "sha256": "6e3e3763e9a56a066cb3642306b7495933c92223e785d1ade8193f071358f235",
       "mode": "0755"
     },
     {

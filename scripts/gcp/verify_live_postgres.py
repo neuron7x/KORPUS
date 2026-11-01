@@ -86,12 +86,9 @@ def _expected_grants(contract: dict[str, set[str]]) -> dict[str, set[str]]:
         expected[table] = {"SELECT", "INSERT", "UPDATE", "DELETE"}
     for table in contract["AUDIT_APPEND_TABLES"]:
         expected[table] = {"SELECT", "INSERT"}
-    for table in contract["AUDIT_MUTABLE_TABLES"]:
-        expected[table] = {"SELECT", "INSERT", "UPDATE"}
-    # Ті самі права, інший предмет: стан побічної дії ПЕРЕХОДИТЬ, але не стирається —
-    # DELETE не видається, бо стерта резервація ідемпотентності дозволяє повторити дію,
-    # яка може бути операційно незворотною.
-    for table in contract["EFFECT_TRANSITION_TABLES"]:
+    # Audit state and effect reservations can change, but never be deleted.
+    mutable = contract["AUDIT_MUTABLE_TABLES"] | contract["EFFECT_TRANSITION_TABLES"]
+    for table in mutable:
         expected[table] = {"SELECT", "INSERT", "UPDATE"}
     for table in contract["READ_ONLY_TABLES"]:
         expected[table] = {"SELECT"}
