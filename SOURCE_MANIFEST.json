@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2153,
-  "root_sha256": "18c3d5887be081041b71e4590d109cb1e82573750622ccd549f1efcee1c116de",
+  "root_sha256": "a08cd09547379c40b147b53d7040e16794d3cd663f09f1b0c505837f91babb8f",
   "files": [
     {
       "path": ".dockerignore",
@@ -5113,8 +5113,8 @@
     },
     {
       "path": "apps/api/tests/test_postgres_role_grants.py",
-      "bytes": 3682,
-      "sha256": "083da67617d6558016c9a68fb07dd34f3ed5f1523ced57c2accdfa3e7f12ae03",
+      "bytes": 5408,
+      "sha256": "fdb7c27aff203bf9d8a349711007ee5b3a0475af14042994c58aba71ec9450f5",
       "mode": "0644"
     },
     {
@@ -11941,8 +11941,8 @@
     },
     {
       "path": "scripts/prepare_postgres_role.py",
-      "bytes": 24028,
-      "sha256": "5280513c4d774f1b2787510ddd649c25858d4fd0aa4ff6fd065693913833e8e5",
+      "bytes": 23881,
+      "sha256": "4ff1d635a3757a41234f0c427ad51d774014b12168d4ba58c69831a1bec12a7a",
       "mode": "0755"
     },
     {
