@@ -66,8 +66,7 @@ def _validated_report_cases(path: Path) -> list[ElementTree.Element]:
 def inspect_pytest_junit(root: Path) -> tuple[bool, int, list[str]]:
     """Require exact test identities and outcomes, never only total count."""
     try:
-        required = required_node_ids()
-        cases = _validated_report_cases(root / REPORT)
+        required, cases = required_node_ids(), _validated_report_cases(root / REPORT)
     except (OSError, ValueError, TypeError, ElementTree.ParseError):
         return False, 0, ["missing_or_invalid_junit_or_node_contract"]
     seen: set[tuple[str, str]] = set()
@@ -79,7 +78,8 @@ def inspect_pytest_junit(root: Path) -> tuple[bool, int, list[str]]:
         if (
             node in seen
             or case.attrib.get("classname", "") != f"tests.{module}"
-            or not name.startswith("test_") or case.get("status", "run") not in {"run", "passed"}
+            or not name.startswith("test_")
+            or case.get("status", "run") not in {"run", "passed"}
             or any(case.find(tag) is not None for tag in ("skipped", "failure", "error"))
         ):
             invalid = True
