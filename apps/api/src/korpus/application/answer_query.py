@@ -812,7 +812,7 @@ class ExtractiveAnswerService:
         pec_trace: ControllerTrace | None = None,
     ) -> Answer:
         token = self._snapshot_token.get()
-        if answer.status is AnswerStatus.ANSWERED and token_is_stale(
+        if (answer.status is AnswerStatus.ANSWERED or answer.citations) and token_is_stale(
             self.repository, identity, query.as_of, token
         ):
             answer = self._abstain(

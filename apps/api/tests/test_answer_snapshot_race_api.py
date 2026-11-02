@@ -144,3 +144,46 @@ def test_reentrant_answer_restores_outer_audit_snapshot(
     assert event["corpus_snapshot"]["release_id"] == answer.corpus_release
     assert event["corpus_snapshot"]["corpus_ids"] == ["public"]
     assert service._snapshot_token.get() is None
+
+
+def test_human_review_citations_fail_closed_after_rescission_before_audit(
+    client, admin_identity, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = ingest_text(client)
+    version_id = source["version"]["id"]
+    approve(client, version_id)
+    service = ExtractiveAnswerService(
+        client.app.state.repository,
+        HybridLexicalRetriever(client.app.state.repository, candidate_budget=8),
+        client.app.state.policy,
+        AnswerPolicy(0.1, 0.1, 0.1, "human-review-snapshot-race"),
+    )
+    query = QueryRequest(text="Що має містити кожен запис?")
+    baseline = service.execute(admin_identity, query)
+    assert baseline.status is AnswerStatus.ANSWERED
+    assert baseline.citations
+
+    monkeypatch.setattr(service, "_find_contradiction", lambda *_: "controlled contradiction")
+    original_block = service._blocked_answer
+    mutation_count = []
+
+    def review_then_rescind(*args, **kwargs):
+        blocked = original_block(*args, **kwargs)
+        assert blocked is not None
+        assert blocked.status is AnswerStatus.REQUIRES_HUMAN_REVIEW
+        assert blocked.citations
+        response = client.post(
+            f"/v1/document-versions/{version_id}/rescission",
+            json={"note": "source rescinded before human review evidence emission"},
+        )
+        assert response.status_code == 200, response.text
+        mutation_count.append(True)
+        return blocked
+
+    monkeypatch.setattr(service, "_blocked_answer", review_then_rescind)
+    result = service.execute(admin_identity, query)
+    assert mutation_count == [True]
+    assert result.status is AnswerStatus.INSUFFICIENT_EVIDENCE
+    assert result.decision_reason == "corpus_snapshot_changed"
+    assert result.citations == []
+    assert result.claims == []
