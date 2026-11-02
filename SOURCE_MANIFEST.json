@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2153,
-  "root_sha256": "f0462788b469b87ad7e57566521bff74fdd72a5c822e3f45bff5db83fa9b7c2c",
+  "root_sha256": "2d410ef3ef32200dd7c29f8d1db66b9c1167a24f3ce5747d131e8271dfddd92a",
   "files": [
     {
       "path": ".dockerignore",
@@ -5089,8 +5089,8 @@
     },
     {
       "path": "apps/api/tests/test_postgres_candidate_visibility_equivalence.py",
-      "bytes": 10265,
-      "sha256": "92096288c1a3e2ef1579c49b2548acb36edaa468f9fdca4aca01b6644afb16cc",
+      "bytes": 10686,
+      "sha256": "22df4ccb5313b33d5e73e1a392cbc4d84662dcb6d83cc86534304d429b0d5219",
       "mode": "0644"
     },
     {

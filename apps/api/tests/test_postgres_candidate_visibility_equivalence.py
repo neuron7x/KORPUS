@@ -81,6 +81,8 @@ def _version(
     supersedes: str | None = None,
     revision: str = "1",
     is_current: bool = True,
+    publication_date: date = date(2020, 1, 1),
+    effective_from: date | None = date(2020, 1, 1),
 ) -> tuple[str, str]:
     version_id, span_id = str(uuid4()), str(uuid4())
     connection.execute(
@@ -94,8 +96,8 @@ def _version(
             mime_type="text/plain",
             authority="official_ua",
             review_state="content_reviewed",
-            publication_date=date(2020, 1, 1),
-            effective_from=date(2020, 1, 1),
+            publication_date=publication_date,
+            effective_from=effective_from,
             supersedes_version_id=supersedes,
             is_current=False,
             created_at=CREATED,
@@ -228,8 +230,8 @@ def test_postgres_partial_compartment_assignment_is_not_admission() -> None:
         repository.close()
 
 
-def test_pgvector_superseded_rows_cannot_starve_current_evidence() -> None:
-    """Native pgvector must discard superseded versions before top-k truncation."""
+def test_pgvector_superseded_and_future_rows_cannot_starve_current_evidence() -> None:
+    """Superseded and future-publication rows cannot consume pgvector top-k."""
     reset_database()
     assert ADMIN_URL
     admin = create_engine(ADMIN_URL, future=True)
@@ -246,8 +248,16 @@ def test_pgvector_superseded_rows_cannot_starve_current_evidence() -> None:
                 supersedes=stale_version,
                 revision="2",
             )
+            _, future_span = _version(
+                connection,
+                _document(connection),
+                "future candidate",
+                publication_date=date(2027, 1, 1),
+                effective_from=None,
+            )
             for span_id, vector in (
                 (stale_span, [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+                (future_span, [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
                 (current_span, [0.8, 0.6, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
             ):
                 connection.execute(
