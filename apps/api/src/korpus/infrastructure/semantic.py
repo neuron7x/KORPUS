@@ -74,6 +74,16 @@ CAST(:vector AS vector)))) AS score
               AND (v.effective_from IS NULL OR v.effective_from <= :as_of)
               AND (v.effective_until IS NULL OR v.effective_until >= :as_of)
               AND (v.rescinded_at IS NULL OR CAST(v.rescinded_at AS date) > :as_of)
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM document_versions successor
+                  WHERE successor.supersedes_version_id = v.id
+                    AND successor.document_id = v.document_id
+                    AND successor.review_state = 'approved'
+                    AND COALESCE(successor.effective_from, successor.publication_date) <= :as_of
+                    AND (successor.effective_until IS NULL OR successor.effective_until >= :as_of)
+                    AND (successor.rescinded_at IS NULL OR CAST(successor.rescinded_at AS date) > :as_of)
+              )
             ORDER BY e.embedding_vector <=> CAST(:vector AS vector), s.id
             LIMIT :limit
             """
