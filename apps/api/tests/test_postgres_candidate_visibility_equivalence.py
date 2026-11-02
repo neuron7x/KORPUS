@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from datetime import UTC, date, datetime
+from types import SimpleNamespace
 from hashlib import sha256
 from uuid import UUID, uuid4
 
@@ -22,7 +23,8 @@ from korpus.infrastructure.schema import (
     spans,
     versions,
 )
-from sqlalchemy import create_engine, insert, update
+from korpus.infrastructure.semantic import PgVectorSemanticIndex
+from sqlalchemy import create_engine, insert, text, update
 
 from apps.api.tests.conftest import reset_database
 
@@ -72,14 +74,20 @@ def _document(connection, *, compartments: tuple[str, ...] = ()) -> str:
 
 
 def _version(
-    connection, document_id: str, body: str, *, supersedes: str | None = None
+    connection,
+    document_id: str,
+    body: str,
+    *,
+    supersedes: str | None = None,
+    revision: str = "1",
+    is_current: bool = True,
 ) -> tuple[str, str]:
     version_id, span_id = str(uuid4()), str(uuid4())
     connection.execute(
         insert(versions).values(
             id=version_id,
             document_id=document_id,
-            revision="1",
+            revision=revision,
             source_hash=sha256(body.encode()).hexdigest(),
             evidence_digest=None,
             object_key=f"tests/{version_id}",
@@ -108,7 +116,7 @@ def _version(
         .where(versions.c.id == version_id)
         .values(
             review_state="approved",
-            is_current=True,
+            is_current=is_current,
             evidence_digest=seal_evidence_digest(connection, UUID(version_id)),
         )
     )
@@ -216,5 +224,64 @@ def test_postgres_partial_compartment_assignment_is_not_admission() -> None:
         allowed, selected = _observe(repository, both, "beacon", limit=1)
         assert {alpha_span, both_span} <= allowed
         assert selected == [both_span]
+    finally:
+        repository.close()
+
+def test_pgvector_superseded_rows_cannot_starve_current_evidence() -> None:
+    """Native pgvector must discard superseded versions before top-k truncation."""
+    reset_database()
+    assert ADMIN_URL
+    admin = create_engine(ADMIN_URL, future=True)
+    try:
+        with admin.begin() as connection:
+            document_id = _document(connection)
+            stale_version, stale_span = _version(
+                connection, document_id, "old candidate", revision="1", is_current=False
+            )
+            _, current_span = _version(
+                connection,
+                document_id,
+                "current candidate",
+                supersedes=stale_version,
+                revision="2",
+            )
+            for span_id, vector in (
+                (stale_span, [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+                (current_span, [0.8, 0.6, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+            ):
+                connection.execute(
+                    text(
+                        "INSERT INTO span_embeddings (span_id, model_id, dimensions, "
+                        "embedding_json, embedding_vector, text_hash, created_at) "
+                        "SELECT :span_id, :model_id, 8, :embedding_json, "
+                        "CAST(:embedding_vector AS vector), s.text_hash, :created_at "
+                        "FROM evidence_spans s WHERE s.id = :span_id"
+                    ),
+                    {
+                        "span_id": span_id,
+                        "model_id": "prefilter-probe",
+                        "embedding_json": json.dumps(vector),
+                        "embedding_vector": "[" + ",".join(map(str, vector)) + "]",
+                        "created_at": CREATED,
+                    },
+                )
+    finally:
+        admin.dispose()
+
+    repository = _repository()
+    try:
+        canonical, _ = _observe(repository, READER, "candidate", limit=2)
+        assert current_span in canonical
+        assert stale_span not in canonical
+        provider = SimpleNamespace(
+            model_id="prefilter-probe",
+            dimensions=8,
+            embed=lambda _question: [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        )
+        semantic = PgVectorSemanticIndex(
+            repository.engine, provider, bind_identity=repository._apply_postgres_identity
+        )
+        candidates = semantic.search(READER, "candidate", CORPORA, AS_OF, limit=1)
+        assert [span_id for span_id, _score in candidates] == [UUID(current_span)]
     finally:
         repository.close()
