@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 import os
 from datetime import UTC, date, datetime
-from types import SimpleNamespace
 from hashlib import sha256
+from types import SimpleNamespace
 from uuid import UUID, uuid4
 
 import pytest
@@ -227,6 +227,7 @@ def test_postgres_partial_compartment_assignment_is_not_admission() -> None:
     finally:
         repository.close()
 
+
 def test_pgvector_superseded_rows_cannot_starve_current_evidence() -> None:
     """Native pgvector must discard superseded versions before top-k truncation."""
     reset_database()
@@ -253,7 +254,7 @@ def test_pgvector_superseded_rows_cannot_starve_current_evidence() -> None:
                     text(
                         "INSERT INTO span_embeddings (span_id, model_id, dimensions, "
                         "embedding_json, embedding_vector, text_hash, created_at) "
-                        "SELECT :span_id, :model_id, 8, :embedding_json, "
+                        "SELECT s.id, :model_id, 8, :embedding_json, "
                         "CAST(:embedding_vector AS vector), s.text_hash, :created_at "
                         "FROM evidence_spans s WHERE s.id = :span_id"
                     ),
