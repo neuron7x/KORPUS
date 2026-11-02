@@ -77,7 +77,7 @@ CAST(:vector AS vector)))) AS score
               AND d.corpus_id = ANY(CAST(:corpora AS text[]))
               AND d.access_tier <= :clearance
               AND d.classification = ANY(CAST(:classifications AS text[]))
-              AND (v.effective_from IS NULL OR v.effective_from <= :as_of)
+              AND COALESCE(v.effective_from, v.publication_date) <= :as_of
               AND (v.effective_until IS NULL OR v.effective_until >= :as_of)
               AND (v.rescinded_at IS NULL OR CAST(v.rescinded_at AS date) > :as_of)
               AND NOT EXISTS (

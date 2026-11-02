@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2153,
-  "root_sha256": "2d410ef3ef32200dd7c29f8d1db66b9c1167a24f3ce5747d131e8271dfddd92a",
+  "root_sha256": "13bb45e97e089825033768333a5b0993cc47ec7a7780892597e00e1553ba6f2c",
   "files": [
     {
       "path": ".dockerignore",
@@ -2546,7 +2546,7 @@
     {
       "path": "apps/api/src/korpus/infrastructure/semantic.py",
       "bytes": 8533,
-      "sha256": "2fdbdae86c829a490b5a20f70eb66dd79b293e408e20fdfeb6ff11cabf0f9543",
+      "sha256": "fc371a74eaae44fbfffbf3f4b230cb33f76d61d4a45d42f922d65aa82ba2ea99",
       "mode": "0644"
     },
     {
