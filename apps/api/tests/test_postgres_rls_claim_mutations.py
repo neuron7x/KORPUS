@@ -50,7 +50,7 @@ def _subject(*, privileged: bool = False) -> Identity:
     )
 
 
-def _seed(corpus: str, tier: int, classification: str) -> str:
+def _seed(corpus: str, tier: int, classification: str, *, compartments: str = "[]") -> str:
     assert ADMIN_URL is not None
     document_id = str(uuid4())
     admin = create_engine(ADMIN_URL, future=True)
@@ -62,7 +62,7 @@ def _seed(corpus: str, tier: int, classification: str) -> str:
                     "id, canonical_title, corpus_id, issuer, jurisdiction, "
                     "document_type, access_tier, classification, created_at, compartments_json"
                     ") VALUES (:id, :title, :corpus, 'Verifier', 'UA', 'order', "
-                    ":tier, :classification, :now, '[]')"
+                    ":tier, :classification, :now, :compartments)"
                 ),
                 {
                     "id": document_id,
@@ -71,6 +71,7 @@ def _seed(corpus: str, tier: int, classification: str) -> str:
                     "tier": tier,
                     "classification": classification,
                     "now": datetime.now(UTC),
+                    "compartments": compartments,
                 },
             )
     finally:
@@ -361,5 +362,53 @@ def test_pooled_session_cannot_reuse_a_privileged_binding_or_session_forgery(rev
                 assert not _visible(connection, restricted_id), (
                     "forged GUC survived trusted rebinding"
                 )
+    finally:
+        repository.close()
+
+
+@pytest.mark.parametrize(
+    ("axis", "tier", "corpus", "classification", "compartments"),
+    [
+        ("clearance", 3, "public", "public", "[]"),
+        ("corpora", 0, "restricted-demo", "public", "[]"),
+        ("classifications", 0, "public", "restricted", "[]"),
+        ("compartments", 0, "public", "public", '["need-to-know"]'),
+    ],
+)
+@pytest.mark.parametrize("review", (False, True), ids=("app", "review"))
+def test_claim_axis_isolation_rejects_forged_settings(
+    axis: str,
+    tier: int,
+    corpus: str,
+    classification: str,
+    compartments: str,
+    review: bool,
+) -> None:
+    if review and not REVIEW_URL:
+        pytest.skip("real review PostgreSQL role required")
+    reset_database()
+    public_id = _seed("public", 0, "public")
+    restricted_id = _seed(corpus, tier, classification, compartments=compartments)
+    repository = _repository(review=review)
+    try:
+        engine = repository.review_engine if review else repository.engine
+        assert engine is not None
+        with engine.begin() as connection:
+            repository._apply_postgres_identity(connection, _subject())
+            assert _visible(connection, public_id), "unrestricted positive control failed"
+            assert not _visible(connection, restricted_id), "axis isolation baseline failed"
+            connection.execute(
+                text("SELECT set_config(:setting, :value, true)"),
+                {"setting": f"korpus.{axis}", "value": dict(GUC_ATTACKS)[axis]},
+            )
+            assert _visible(connection, public_id)
+            assert not _visible(connection, restricted_id), (
+                f"forged {axis} bypassed isolated document restriction"
+            )
+        with engine.begin() as connection:
+            repository._apply_postgres_identity(connection, _subject(privileged=True))
+            assert _visible(connection, restricted_id), (
+                f"the legitimate {axis} grant does not enable visibility"
+            )
     finally:
         repository.close()
