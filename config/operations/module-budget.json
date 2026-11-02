@@ -5224,6 +5224,15 @@
       "max_nesting": 1,
       "proof_lines": 0
     },
+    "scripts/postgres_gate_nodes.py": {
+      "lines": 129,
+      "max_complexity": 9,
+      "max_function_args": 1,
+      "max_function_lines": 28,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "New isolated JUnit security-node collection gate; ceilings reflect the measured AST function shape, rather than an exemption or threshold increase."
+    },
     "scripts/postgres_gate_process.py": {
       "lines": 98,
       "max_complexity": 5,

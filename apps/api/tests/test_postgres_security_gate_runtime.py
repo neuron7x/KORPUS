@@ -24,7 +24,15 @@ def test_runtime_binds_shell_suite_to_the_current_interpreter(monkeypatch) -> No
         return subprocess.CompletedProcess(command, 0, "passed", "alembic noise")
 
     monkeypatch.setenv("KORPUS_TEST_DATABASE_URL", "postgresql://available")
+    for name in (
+        "KORPUS_TEST_DATABASE_ADMIN_URL",
+        "KORPUS_POSTGRES_TEST_URL",
+        "KORPUS_AUTHZ_DATABASE_URL",
+        "KORPUS_REVIEW_DATABASE_URL",
+    ):
+        monkeypatch.setenv(name, "postgresql://role-fixture/never-connected")
     monkeypatch.setitem(PROCESS_GLOBALS, "run", fake_run)
+    monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
 
     available, exit_code, tail = MODULE.process_runtime(ROOT, MODULE.TARGETS, True)
 
@@ -36,7 +44,10 @@ def test_runtime_binds_shell_suite_to_the_current_interpreter(monkeypatch) -> No
     assert "passed" in tail
     assert "alembic noise" in tail
     assert tail.index("passed") < tail.index("alembic noise")
-    assert captured["environment"] == {"PYTHON": sys.executable}
+    assert captured["environment"] == {
+        "PYTHON": sys.executable,
+        "PYTEST_ADDOPTS": " --junitxml=var/postgres-security/pytest-junit.xml",
+    }
 
 
 def test_run_helper_merges_overrides_without_losing_process_environment(
