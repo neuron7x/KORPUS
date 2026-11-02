@@ -1,6 +1,6 @@
 {
   "schema": "korpus.postgres-security-node-contract.v1",
-  "case_count": 111,
+  "case_count": 119,
   "modules": {
     "test_audit": [
       "test_audit_anchor_detects_file_tampering",
@@ -53,6 +53,14 @@
       "test_the_authorized_flow_still_sees_what_it_may"
     ],
     "test_postgres_rls_claim_mutations": [
+      "test_claim_axis_isolation_rejects_forged_settings[app-classifications-0-public-restricted-[]]",
+      "test_claim_axis_isolation_rejects_forged_settings[app-clearance-3-public-public-[]]",
+      "test_claim_axis_isolation_rejects_forged_settings[app-compartments-0-public-public-[\"need-to-know\"]]",
+      "test_claim_axis_isolation_rejects_forged_settings[app-corpora-0-restricted-demo-public-[]]",
+      "test_claim_axis_isolation_rejects_forged_settings[review-classifications-0-public-restricted-[]]",
+      "test_claim_axis_isolation_rejects_forged_settings[review-clearance-3-public-public-[]]",
+      "test_claim_axis_isolation_rejects_forged_settings[review-compartments-0-public-public-[\"need-to-know\"]]",
+      "test_claim_axis_isolation_rejects_forged_settings[review-corpora-0-restricted-demo-public-[]]",
       "test_each_app_owned_session_claim_is_ignored_by_broker[classifications-public,internal,restricted]",
       "test_each_app_owned_session_claim_is_ignored_by_broker[clearance-3]",
       "test_each_app_owned_session_claim_is_ignored_by_broker[compartments-need-to-know]",

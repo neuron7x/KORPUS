@@ -67,7 +67,7 @@ def test_every_named_target_exists_on_disk() -> None:
 @pytest.mark.parametrize(
     ("summary", "status"),
     [
-        ("111 passed in 7.12s", "PASS"),
+        ("119 passed in 7.12s", "PASS"),
         ("1 passed, 1 skipped in 0.01s", "FAIL"),
         ("2 skipped in 0.01s", "FAIL"),
         ("1 xfailed in 0.01s", "FAIL"),
@@ -98,7 +98,7 @@ def test_skipped_postgres_destruction_tests_never_satisfy_security_gate(
         gate, "process_runtime", lambda *_args: (True, 0, f"--- stdout ---\n{summary}")
     )
     monkeypatch.setattr(gate, "compute_source_digest", lambda _: "f" * 64)
-    monkeypatch.setattr(gate, "inspect_pytest_junit", lambda _: (True, 111, []))
+    monkeypatch.setattr(gate, "inspect_pytest_junit", lambda _: (True, nodes.EXPECTED_CASES, []))
     monkeypatch.setattr(gate, "release_tag", lambda: "v0.9.7")
     assert (gate.main() == 0) is (status == "PASS")
     report = json.loads((tmp_path / "var/production/postgres_security-gate.json").read_text())

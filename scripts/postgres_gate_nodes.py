@@ -6,8 +6,8 @@ import json
 from pathlib import Path
 from xml.etree import ElementTree
 
-EXPECTED_CASES = 111
-EXPECTED_FUNCTIONS = 69
+EXPECTED_CASES = 119
+EXPECTED_FUNCTIONS = 70
 CONTRACT = Path(__file__).with_name("postgres_gate_case_contract.json")
 REPORT = Path("var/postgres-security/pytest-junit.xml")
 
