@@ -38,6 +38,14 @@ class PgVectorSemanticIndex(SemanticCoverageReader):
         #: пошук повертав би НУЛЬ кандидатів і не сказав би, чому.
         self.bind_identity = bind_identity
 
+    def _bind_claims(self, connection: Connection, identity: Identity) -> None:
+        from korpus.infrastructure.repository import apply_session_claims
+
+        if self.bind_identity is not None:
+            self.bind_identity(connection, identity)
+        else:
+            apply_session_claims(connection, identity)
+
     def search(
         self,
         identity: Identity,
@@ -46,15 +54,13 @@ class PgVectorSemanticIndex(SemanticCoverageReader):
         as_of: date,
         limit: int,
     ) -> list[tuple[UUID, float]]:
-        from korpus.infrastructure.repository import SqlRepository, apply_session_claims
+        from korpus.infrastructure.repository import SqlRepository
 
-        authorized = corpus_ids.intersection(identity.corpora)
-        if not authorized or limit < 1:
+        if not (authorized := corpus_ids.intersection(identity.corpora)) or limit < 1:
             return []
         if self.corpus_governance is not None:
             self.corpus_governance.require_external_embedding(frozenset(authorized))
-        vector = self.provider.embed(query)
-        vector_literal = "[" + ",".join(f"{value:.9g}" for value in vector) + "]"
+        vector_literal = "[" + ",".join(f"{v:.9g}" for v in self.provider.embed(query)) + "]"
         statement = sql_text(
             """
             SELECT s.id AS span_id,
@@ -88,12 +94,8 @@ CAST(:vector AS vector)))) AS score
             LIMIT :limit
             """
         )
-        classifications = SqlRepository._allowed_classifications(identity.clearance)
         with self.engine.begin() as connection:
-            if self.bind_identity is not None:
-                self.bind_identity(connection, identity)
-            else:
-                apply_session_claims(connection, identity)
+            self._bind_claims(connection, identity)
             rows = connection.execute(
                 statement,
                 {
@@ -102,7 +104,7 @@ CAST(:vector AS vector)))) AS score
                     "dimensions": self.provider.dimensions,
                     "corpora": list(sorted(authorized)),
                     "clearance": int(identity.clearance),
-                    "classifications": classifications,
+                    "classifications": SqlRepository._allowed_classifications(identity.clearance),
                     "as_of": as_of,
                     "limit": limit,
                 },
@@ -110,13 +112,8 @@ CAST(:vector AS vector)))) AS score
         return [(UUID(row.span_id), float(row.score)) for row in rows]
 
     def upsert(self, identity: Identity, span_id: UUID, text: str, text_hash: str) -> None:
-        from korpus.infrastructure.repository import apply_session_claims
-
         with self.engine.begin() as connection:
-            if self.bind_identity is not None:
-                self.bind_identity(connection, identity)
-            else:
-                apply_session_claims(connection, identity)
+            self._bind_claims(connection, identity)
             corpus_row = connection.execute(
                 sql_text(
                     """
@@ -138,10 +135,7 @@ CAST(:vector AS vector)))) AS score
         vector = self.provider.embed(text)
         vector_literal = "[" + ",".join(f"{value:.9g}" for value in vector) + "]"
         with self.engine.begin() as connection:
-            if self.bind_identity is not None:
-                self.bind_identity(connection, identity)
-            else:
-                apply_session_claims(connection, identity)
+            self._bind_claims(connection, identity)
             connection.execute(
                 sql_text(
                     """
