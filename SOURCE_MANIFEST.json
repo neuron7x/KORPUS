@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2153,
-  "root_sha256": "6f6b0256cf92289ba167cb6d3e7bd16f17105e04ebc949728f153901b3b9c7e7",
+  "root_sha256": "f96cdc263666b11b9a95c2226ffc8590d4f26910fd82806e0a074d46c50cee13",
   "files": [
     {
       "path": ".dockerignore",
@@ -1015,8 +1015,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/cache.py",
-      "bytes": 5315,
-      "sha256": "364f02c3dae4b1650f4fa70465411d402d7d3768a5756c82104f5434aa51cf41",
+      "bytes": 4911,
+      "sha256": "e11c55f8d12a22edd37b56c9d0bd246c3dcbc4aa97f03aa2f52b7964c7e3ff70",
       "mode": "0644"
     },
     {
