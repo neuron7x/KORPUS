@@ -106,3 +106,50 @@ def test_two_compartment_sets_do_not_share_a_cached_result() -> None:
     # The dual: identical compartments must still hit, or the cache is disabled rather
     # than corrected.
     assert entitled == retriever._key(identity({"bravo", "alpha"}), *arguments)
+
+
+def test_semantic_cache_does_not_alias_distinct_raw_queries() -> None:
+    from korpus.application.pec_cache import PECCachedRetriever
+
+    class RawSemanticDelegate:
+        def __init__(self) -> None:
+            self.calls: list[tuple[str, str]] = []
+
+        def search(self, identity, text, corpus_ids, as_of, limit=8):
+            self.calls.append(("default", text))
+            return []
+
+        def search_with_semantic(
+            self, identity, text, corpus_ids, as_of, limit=8, *, semantic_enabled
+        ):
+            self.calls.append(("semantic" if semantic_enabled else "lexical", text))
+            return []
+
+    aliases = (
+        ("US policy", "us policy"),
+        ("Права СУБ'ЄКТА", "Права суб'єкта"),
+        ("court’s holding", "court's holding"),
+    )
+    for first, second in aliases:
+        for mode in ("default", "semantic"):
+            delegate = RawSemanticDelegate()
+            retriever = PECCachedRetriever(
+                Repo(),
+                delegate,
+                EvidenceQueryCache(maximum_entries=8, ttl_seconds=60),
+                "semantic-config",
+            )
+            for query in (first, second, first):
+                if mode == "default":
+                    assert retriever.search(
+                        identity(), query, frozenset({"public"}), date(2026, 11, 6)
+                    ) == []
+                else:
+                    assert retriever.search_with_semantic(
+                        identity(),
+                        query,
+                        frozenset({"public"}),
+                        date(2026, 11, 6),
+                        semantic_enabled=True,
+                    ) == []
+            assert delegate.calls == [(mode, first), (mode, second)]

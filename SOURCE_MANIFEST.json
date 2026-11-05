@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2153,
-  "root_sha256": "b4ab0d4bd4fca9c5f4e6e56b394f660f04b0be5c9976dde92e2667cfab1875a8",
+  "root_sha256": "173bbc38c496ad692fb56ed731ddc4c5ffeafe8e5d4accda75b07690fee7d7c7",
   "files": [
     {
       "path": ".dockerignore",
@@ -1015,8 +1015,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/cache.py",
-      "bytes": 5237,
-      "sha256": "d999254854ebb9fdd7fb1b104ed05932ccedf7ef0c23cc7cc13e5e6e7ed215af",
+      "bytes": 5315,
+      "sha256": "364f02c3dae4b1650f4fa70465411d402d7d3768a5756c82104f5434aa51cf41",
       "mode": "0644"
     },
     {
@@ -5245,8 +5245,8 @@
     },
     {
       "path": "apps/api/tests/test_query_cache.py",
-      "bytes": 3857,
-      "sha256": "274e885a1ca1f898a5becb8891a44d36b1ce027dcd0ff76bb1f89c375f543401",
+      "bytes": 5633,
+      "sha256": "e89eed47291e0f114612a83c5b901b381a6543f9899335775b1bc415c5696ae4",
       "mode": "0644"
     },
     {

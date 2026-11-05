@@ -9,7 +9,6 @@ from datetime import date
 
 from korpus.application.answer_request_snapshot import cache_release_token
 from korpus.application.ports import Repository, Retriever
-from korpus.application.retrieval import normalize_text
 from korpus.domain.models import Identity, RetrievedEvidence
 
 
@@ -121,7 +120,9 @@ class CachedRetriever(Retriever):
                 self.configuration_id,
                 str(token.state_epoch),
                 token.release_id,
-                normalize_text(text),
+                # The semantic provider embeds the raw query; casefolding aliases
+                # queries that an allowed provider can distinguish.
+                text,
             ]
         )
         return hashlib.sha256(material.encode("utf-8")).hexdigest()
