@@ -141,15 +141,21 @@ def test_semantic_cache_does_not_alias_distinct_raw_queries() -> None:
             )
             for query in (first, second, first):
                 if mode == "default":
-                    assert retriever.search(
-                        identity(), query, frozenset({"public"}), date(2026, 11, 6)
-                    ) == []
+                    assert (
+                        retriever.search(
+                            identity(), query, frozenset({"public"}), date(2026, 11, 6)
+                        )
+                        == []
+                    )
                 else:
-                    assert retriever.search_with_semantic(
-                        identity(),
-                        query,
-                        frozenset({"public"}),
-                        date(2026, 11, 6),
-                        semantic_enabled=True,
-                    ) == []
+                    assert (
+                        retriever.search_with_semantic(
+                            identity(),
+                            query,
+                            frozenset({"public"}),
+                            date(2026, 11, 6),
+                            semantic_enabled=True,
+                        )
+                        == []
+                    )
             assert delegate.calls == [(mode, first), (mode, second)]
