@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2153,
-  "root_sha256": "f96cdc263666b11b9a95c2226ffc8590d4f26910fd82806e0a074d46c50cee13",
+  "root_sha256": "9f685bac196ebb033a8b83ba7def9120c18c40f2420ccd6a78478aba667c281d",
   "files": [
     {
       "path": ".dockerignore",
@@ -8161,8 +8161,8 @@
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.json",
-      "bytes": 1164124,
-      "sha256": "2751b33d5cfa08f04b6598c9793fd1ed63522a5edd96b0ced2ff6970e04db8bc",
+      "bytes": 1164203,
+      "sha256": "96fd32028b1ff2b748eab94c3563d2a7cb633acfc6236929525ab11a458cee85",
       "mode": "0644"
     },
     {
