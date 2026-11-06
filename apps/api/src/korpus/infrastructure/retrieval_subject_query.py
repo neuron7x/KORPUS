@@ -52,25 +52,17 @@ def subject_span_query(
     statement = sql_text(
         f"""
         SELECT s.id AS span_id
-        FROM evidence_spans s
-        JOIN document_versions v ON v.id = s.version_id
+        FROM evidence_spans s JOIN document_versions v ON v.id = s.version_id
         JOIN documents d ON d.id = v.document_id
         WHERE d.canonical_title IN ({title_placeholders})
-          AND v.review_state = 'approved'
-          AND d.corpus_id IN ({corpus_placeholders})
-          AND d.access_tier <= :clearance
-          AND d.classification IN ({class_placeholders})
+          AND v.review_state = 'approved' AND d.corpus_id IN ({corpus_placeholders})
+          AND d.access_tier <= :clearance AND d.classification IN ({class_placeholders})
           {compartment_clause}
-          AND COALESCE(v.effective_from, v.publication_date) <= :as_of
-          AND (v.effective_until IS NULL OR v.effective_until >= :as_of)
-          AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)
-          AND (v.id, v.document_id) NOT IN (
-            SELECT DISTINCT sv.supersedes_version_id, sv.document_id
-            FROM document_versions sv
-            WHERE sv.supersedes_version_id IS NOT NULL AND sv.review_state = 'approved'
-              AND COALESCE(sv.effective_from, sv.publication_date) <= :as_of
-              AND (sv.effective_until IS NULL OR sv.effective_until >= :as_of)
-              AND (sv.rescinded_at IS NULL OR date(sv.rescinded_at) > :as_of)
+          AND COALESCE(v.effective_from, v.publication_date) <= :as_of AND (v.effective_until IS NULL OR v.effective_until >= :as_of)
+          AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of) AND (v.id, v.document_id) NOT IN (
+            SELECT DISTINCT sv.supersedes_version_id, sv.document_id FROM document_versions sv
+            WHERE sv.supersedes_version_id IS NOT NULL AND sv.review_state = 'approved' AND COALESCE(sv.effective_from, sv.publication_date) <= :as_of
+              AND (sv.effective_until IS NULL OR sv.effective_until >= :as_of) AND (sv.rescinded_at IS NULL OR date(sv.rescinded_at) > :as_of)
           )
         ORDER BY s.ordinal, s.id
         LIMIT :limit

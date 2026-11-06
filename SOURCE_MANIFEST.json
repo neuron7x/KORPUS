@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2154,
-  "root_sha256": "41c3889d082c0b1a85facbb1131fe7a4bfa4db05319724eebabff59657a480d8",
+  "root_sha256": "abba0e16ac303e16f49d15470b30abe35c318193c897cca67eb4c02363795e94",
   "files": [
     {
       "path": ".dockerignore",
@@ -2503,8 +2503,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/retrieval_subject_query.py",
-      "bytes": 3897,
-      "sha256": "a86ec55496bc3eafbaf02664702aa78911b46118271bc55cb2a5d67e537690ed",
+      "bytes": 3809,
+      "sha256": "3f94d68f72a669908203dac904bb2ae0066bd69dca0e869d076f78628c24dfd6",
       "mode": "0644"
     },
     {
