@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2153,
-  "root_sha256": "9f685bac196ebb033a8b83ba7def9120c18c40f2420ccd6a78478aba667c281d",
+  "file_count": 2154,
+  "root_sha256": "41c3889d082c0b1a85facbb1131fe7a4bfa4db05319724eebabff59657a480d8",
   "files": [
     {
       "path": ".dockerignore",
@@ -2503,8 +2503,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/retrieval_subject_query.py",
-      "bytes": 3353,
-      "sha256": "db8a4a68d8415c7ee17d40eff22e8119d668069728539d6d8c79bf9749bd3653",
+      "bytes": 3897,
+      "sha256": "a86ec55496bc3eafbaf02664702aa78911b46118271bc55cb2a5d67e537690ed",
       "mode": "0644"
     },
     {
@@ -5799,6 +5799,12 @@
       "path": "apps/api/tests/test_subject_admission_floor.py",
       "bytes": 2603,
       "sha256": "3b534abd4809fb50dde8f68e5924cf7fdc77e62f9b0c6e4f1fac2baabb2cebef",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_subject_candidate_visibility_equivalence.py",
+      "bytes": 3969,
+      "sha256": "5f8b9e59eeec9fe86f7c895f802cf8fddafb0d307f69b391bf5de407c666b476",
       "mode": "0644"
     },
     {

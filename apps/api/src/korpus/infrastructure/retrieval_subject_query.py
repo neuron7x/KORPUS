@@ -18,6 +18,7 @@ from sqlalchemy import text as sql_text
 from korpus.application.declared_subject import subjects_in_question
 from korpus.domain.models import Identity
 from korpus.infrastructure import row_mapping
+from korpus.infrastructure.retrieval_candidate_query import _candidate_compartment_filter
 
 __all__ = ["subject_span_query", "subjects_in_question"]
 
@@ -46,6 +47,8 @@ def subject_span_query(
     parameters.update({f"corpus_{index}": value for index, value in enumerate(sorted_corpora)})
     parameters.update({f"class_{index}": value for index, value in enumerate(classifications)})
     parameters.update({f"title_{index}": value for index, value in enumerate(titles)})
+    compartment_clause, compartment_parameters = _candidate_compartment_filter(identity)
+    parameters.update(compartment_parameters)
     statement = sql_text(
         f"""
         SELECT s.id AS span_id
@@ -57,12 +60,17 @@ def subject_span_query(
           AND d.corpus_id IN ({corpus_placeholders})
           AND d.access_tier <= :clearance
           AND d.classification IN ({class_placeholders})
+          {compartment_clause}
           AND COALESCE(v.effective_from, v.publication_date) <= :as_of
           AND (v.effective_until IS NULL OR v.effective_until >= :as_of)
           AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)
-          AND v.id NOT IN (
-            SELECT sv.supersedes_version_id FROM document_versions sv
+          AND (v.id, v.document_id) NOT IN (
+            SELECT DISTINCT sv.supersedes_version_id, sv.document_id
+            FROM document_versions sv
             WHERE sv.supersedes_version_id IS NOT NULL AND sv.review_state = 'approved'
+              AND COALESCE(sv.effective_from, sv.publication_date) <= :as_of
+              AND (sv.effective_until IS NULL OR sv.effective_until >= :as_of)
+              AND (sv.rescinded_at IS NULL OR date(sv.rescinded_at) > :as_of)
           )
         ORDER BY s.ordinal, s.id
         LIMIT :limit
