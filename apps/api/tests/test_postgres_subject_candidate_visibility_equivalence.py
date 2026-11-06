@@ -6,6 +6,11 @@ import json
 from datetime import date
 
 import pytest
+from korpus.infrastructure.retrieval_queries import retrievable_projection
+from korpus.infrastructure.retrieval_subject_query import subject_span_query
+from korpus.infrastructure.schema import document_compartments, documents
+from sqlalchemy import create_engine, insert, update
+
 from apps.api.tests.conftest import reset_database
 from apps.api.tests.test_postgres_candidate_visibility_equivalence import (
     ADMIN_URL,
@@ -18,10 +23,6 @@ from apps.api.tests.test_postgres_candidate_visibility_equivalence import (
     _repository,
     _version,
 )
-from korpus.infrastructure.retrieval_queries import retrievable_projection
-from korpus.infrastructure.retrieval_subject_query import subject_span_query
-from korpus.infrastructure.schema import document_compartments, documents
-from sqlalchemy import create_engine, insert, update
 
 pytestmark = [
     pytest.mark.postgres,
@@ -48,8 +49,7 @@ def _subject_candidates(identity=READER, *, limit: int = 1) -> tuple[set[str], l
                 ).mappings()
             }
             candidates = [
-                str(row["span_id"])
-                for row in connection.execute(statement, parameters).mappings()
+                str(row["span_id"]) for row in connection.execute(statement, parameters).mappings()
             ]
         assert set(candidates) <= canonical
         return canonical, candidates
