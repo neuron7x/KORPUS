@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2154,
-  "root_sha256": "abba0e16ac303e16f49d15470b30abe35c318193c897cca67eb4c02363795e94",
+  "file_count": 2155,
+  "root_sha256": "a2a8e75f8fe730625a24168171fb3409e20df9bf69a8981d5e4c26143fbd1793",
   "files": [
     {
       "path": ".dockerignore",
@@ -5139,6 +5139,12 @@
       "path": "apps/api/tests/test_postgres_security_gate_runtime.py",
       "bytes": 2421,
       "sha256": "3352c35ab6c8496a2a3d78d2d158417fb5999ad22da25d41d9fea786180f6c5e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_postgres_subject_candidate_visibility_equivalence.py",
+      "bytes": 4938,
+      "sha256": "ddd3d91250af73a79076ad5a80e2ed854fc4fba6a554d3507dcd9bb28c79ec94",
       "mode": "0644"
     },
     {
