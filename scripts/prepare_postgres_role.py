@@ -70,10 +70,8 @@ READ_WRITE_TABLES = (
 #: збігається випадково, а предмет інший — це продуктовий стан, не слід аудиту.
 EFFECT_TRANSITION_TABLES = ("capability_effects",)
 AUDIT_APPEND_TABLES = ("audit_events",)
-AUDIT_MUTABLE_TABLES = ("audit_anchor_outbox", "audit_heads", "corpus_state_epoch")
-#: Епоха стану корпусу мутабельна за призначенням: тригер піднімає її на КОЖНІЙ
-#: зміні складу доказів, і без права оновлювати її застосунок не міг би зафіксувати,
-#: що корпус зрушив між двома читаннями однієї відповіді.
+AUDIT_MUTABLE_TABLES = ("audit_anchor_outbox", "audit_heads")
+READ_ONLY_TABLES = ("corpus_state_epoch",)  # Only trigger owner may advance the epoch.
 
 
 def read_secret(name: str, file_name: str) -> str:
@@ -224,6 +222,7 @@ with engine.connect() as connection:
                 f"{quoted_identifier(table_name)} TO {role_sql}"
             )
         )
+    connection.execute(text(f"GRANT SELECT ON TABLE {READ_ONLY_TABLES[0]} TO {role_sql}"))
     for table_name in EFFECT_TRANSITION_TABLES:
         connection.execute(
             text(
@@ -349,6 +348,7 @@ if review_password:
                     f"{quoted_identifier(table_name)} TO {review_sql}"
                 )
             )
+        connection.execute(text(f"GRANT SELECT ON TABLE {READ_ONLY_TABLES[0]} TO {review_sql}"))
         connection.execute(text(f"GRANT SELECT ON TABLE alembic_version TO {review_sql}"))
         for claim in (
             "subject",
