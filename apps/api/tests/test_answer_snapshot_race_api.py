@@ -6,6 +6,10 @@ import json
 
 import pytest
 from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
+from korpus.application.corpus_snapshot import (
+    CorpusConsistencyError,
+    ReleaseIdentityUnavailable,
+)
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.domain.models import AnswerStatus, QueryRequest
 from korpus.infrastructure.schema import audits
@@ -187,3 +191,55 @@ def test_human_review_citations_fail_closed_after_rescission_before_audit(
     assert result.decision_reason == "corpus_snapshot_changed"
     assert result.citations == []
     assert result.claims == []
+
+@pytest.mark.parametrize(
+    "capture_error",
+    [
+        CorpusConsistencyError("forced epoch mismatch at capture"),
+        ReleaseIdentityUnavailable("forced missing snapshot reader"),
+    ],
+    ids=("consistency-error", "release-reader-missing"),
+)
+def test_initial_snapshot_capture_failure_abstains_without_retrieval(
+    client, admin_identity, monkeypatch: pytest.MonkeyPatch, capture_error: RuntimeError
+) -> None:
+    repository = client.app.state.repository
+    retriever = HybridLexicalRetriever(repository, candidate_budget=8)
+    service = ExtractiveAnswerService(
+        repository,
+        retriever,
+        client.app.state.policy,
+        AnswerPolicy(0.1, 0.1, 0.1, "initial-snapshot-failure-control"),
+    )
+    retrieval_calls: list[bool] = []
+
+    def reject_retrieval(*_args, **_kwargs):
+        retrieval_calls.append(True)
+        raise AssertionError("retrieval ran without a captured corpus snapshot")
+
+    def fail_capture(*_args):
+        raise capture_error
+
+    monkeypatch.setattr(retriever, "search", reject_retrieval)
+    monkeypatch.setattr(service, "_capture_snapshot", fail_capture)
+    answer = service.execute(admin_identity, QueryRequest(text="Що має містити кожен запис?"))
+
+    assert answer.status is AnswerStatus.INSUFFICIENT_EVIDENCE
+    assert answer.decision_reason == "corpus_snapshot_unavailable"
+    assert answer.corpus_release == "unnamed"
+    assert answer.citations == []
+    assert answer.claims == []
+    assert retrieval_calls == []
+    assert service._snapshot_token.get() is None
+
+    with privileged_connection(client) as connection:
+        payload = connection.execute(
+            select(audits.c.payload_json)
+            .where(audits.c.action == "answer.completed")
+            .order_by(audits.c.sequence.desc())
+            .limit(1)
+        ).scalar_one()
+    event = json.loads(payload)
+    assert event["decision_reason"] == "corpus_snapshot_unavailable"
+    assert event["corpus_release"] == "unnamed"
+    assert event["corpus_snapshot"] is None
