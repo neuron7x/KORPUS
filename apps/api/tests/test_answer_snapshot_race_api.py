@@ -192,6 +192,7 @@ def test_human_review_citations_fail_closed_after_rescission_before_audit(
     assert result.citations == []
     assert result.claims == []
 
+
 @pytest.mark.parametrize(
     "capture_error",
     [
