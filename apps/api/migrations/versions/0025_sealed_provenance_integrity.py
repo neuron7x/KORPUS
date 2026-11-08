@@ -49,10 +49,11 @@ def _install_sqlite() -> None:
     op.execute(
         """
         CREATE TRIGGER trg_sealed_version_provenance_update
-        BEFORE UPDATE OF document_id, revision, source_hash, object_key, authority, source_uri
+        BEFORE UPDATE OF id, document_id, revision, source_hash, object_key, authority, source_uri
         ON document_versions
         WHEN (OLD.evidence_digest IS NOT NULL OR NEW.evidence_digest IS NOT NULL)
-         AND (NEW.document_id IS NOT OLD.document_id
+         AND (NEW.id IS NOT OLD.id
+           OR NEW.document_id IS NOT OLD.document_id
            OR NEW.revision IS NOT OLD.revision
            OR NEW.source_hash IS NOT OLD.source_hash
            OR NEW.object_key IS NOT OLD.object_key
@@ -75,11 +76,12 @@ def _install_sqlite() -> None:
     op.execute(
         """
         CREATE TRIGGER trg_sealed_version_update_replace
-        BEFORE UPDATE OF document_id, revision, is_current ON document_versions
+        BEFORE UPDATE OF id, document_id, revision, is_current ON document_versions
         WHEN EXISTS (
           SELECT 1 FROM document_versions
           WHERE id != OLD.id AND evidence_digest IS NOT NULL
-            AND ((document_id = NEW.document_id AND revision = NEW.revision)
+            AND (id = NEW.id
+              OR (document_id = NEW.document_id AND revision = NEW.revision)
               OR (document_id = NEW.document_id AND is_current = 1 AND NEW.is_current = 1))
         )
         BEGIN SELECT RAISE(ABORT, 'sealed version cannot be replaced'); END
@@ -122,10 +124,10 @@ def _install_postgres() -> None:
         CREATE FUNCTION public.korpus_guard_sealed_provenance_update() RETURNS trigger AS $$
         BEGIN
           IF (OLD.evidence_digest IS NOT NULL OR NEW.evidence_digest IS NOT NULL)
-            AND ROW(OLD.document_id, OLD.revision, OLD.source_hash,
+            AND ROW(OLD.id, OLD.document_id, OLD.revision, OLD.source_hash,
                     OLD.object_key, OLD.authority, OLD.source_uri)
                 IS DISTINCT FROM
-                ROW(NEW.document_id, NEW.revision, NEW.source_hash,
+                ROW(NEW.id, NEW.document_id, NEW.revision, NEW.source_hash,
                     NEW.object_key, NEW.authority, NEW.source_uri)
           THEN
             RAISE EXCEPTION 'sealed version provenance is immutable'
@@ -148,7 +150,8 @@ def _install_postgres() -> None:
     )
     op.execute(
         "CREATE TRIGGER trg_sealed_version_provenance_update "
-        "BEFORE UPDATE OF document_id, revision, source_hash, object_key, authority, source_uri "
+        "BEFORE UPDATE OF id, document_id, revision, source_hash, "
+        "object_key, authority, source_uri "
         "ON document_versions FOR EACH ROW "
         "EXECUTE FUNCTION public.korpus_guard_sealed_provenance_update()"
     )
