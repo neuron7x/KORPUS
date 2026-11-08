@@ -6,6 +6,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -15,7 +16,6 @@ SCRIPTS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS_DIR))
 from gcp.migration_reachability import created_tables as _created_tables  # noqa: E402
 from gcp.migration_reachability import reachable_calls as _reachable_calls  # noqa: E402
-
 
 ROOT = Path(__file__).resolve().parents[2]
 POLICY = ROOT / "config/production/migration-policy.json"
@@ -94,12 +94,8 @@ def _verify_baseline(current: dict[str, Path], baseline: dict[str, str]) -> list
     return findings
 
 
-#: Дієслова, які лише ДОДАЮТЬ. `op.execute` — це інструмент, а не операція: єдиний
-#: спосіб створити тригер в alembic, і водночас спосіб знести таблицю. Заборона на
-#: сам виклик не розрізняє розширення від руйнування, тобто перевірка з іменем
-#: «expand-only» міряє механізм, а не властивість, яку охороняє.
-_EXPANDING_VERBS = ("create ",)
-
+# Only a literal CREATE TABLE statement is admitted without a full SQL parser.
+_RAW_CREATE_TABLE = re.compile(r"create\s+table\s+[a-z_][a-z_0-9]*\s*\([^;]*\)", re.S)
 
 def _altered_table(statement: str) -> str | None:
     """Ім'я таблиці в `ALTER TABLE <ім'я> …`, якщо його видно дослівно."""
@@ -127,28 +123,20 @@ def _execute_is_expanding(node: ast.Call, created: frozenset[str] = frozenset())
     if not node.args:
         return "op.execute without a statement"
     first = node.args[0]
-    parts: list[str] = []
-    if isinstance(first, ast.Constant) and isinstance(first.value, str):
-        parts = [first.value]
-    elif isinstance(first, ast.JoinedStr):
-        parts = [
-            v.value
-            for v in first.values
-            if isinstance(v, ast.Constant) and isinstance(v.value, str)
-        ]
-    if not parts:
-        return "op.execute with a statement this gate cannot read"
-    statement = " ".join(parts).lstrip().lower()
-    if statement.startswith(_EXPANDING_VERBS):
+    if not isinstance(first, ast.Constant) or not isinstance(first.value, str):
+        return "op.execute requires a literal SQL statement"
+    statement = first.value.strip().lower()
+    if any(marker in statement for marker in (";", "--", "/*", "*/", "\x00")):
+        return "op.execute with stacked or commented SQL is not expand-safe"
+    if _RAW_CREATE_TABLE.fullmatch(statement):
         return None
     table = _altered_table(statement)
     if table is not None:
         if table in created:
             return None
         return f"op.execute(ALTER TABLE {table} …) над таблицею, якої ця міграція не створює"
-    verb = statement.split(" ", 1)[0] or "?"
+    verb = statement.split(maxsplit=1)[0] if statement else "?"
     return f"op.execute({verb.upper()} …)"
-
 
 def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[str]) -> list[str]:
     upgrade = _upgrade_function(tree)
@@ -156,8 +144,7 @@ def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[
         return [f"future migration has no upgrade(): {relative}"]
     calls, dispatch_failures = _reachable_calls(tree, upgrade)
     findings = [
-        f"future migration is not expand-only: {relative}: {reason}"
-        for reason in dispatch_failures
+        f"future migration is not expand-only: {relative}: {reason}" for reason in dispatch_failures
     ]
     created = _created_tables(calls)
     for node in calls:

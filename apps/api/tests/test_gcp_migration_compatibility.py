@@ -223,3 +223,27 @@ def test_rebinding_safe_builtin_cannot_hide_dynamic_sql(tmp_path: Path) -> None:
     result = evaluate(root)
     assert result["status"] == "FAIL"
     assert any("trusted callable rebound" in reason for reason in result["findings"])
+
+def test_raw_sql_unproven_create_dynamic_and_stacked_are_rejected(tmp_path: Path) -> None:
+    poison = (
+        "op.execute('CREATE OR REPLACE VIEW v AS SELECT 1')",
+        "op.execute('CREATE TRIGGER tr ON accounts')",
+        "op.execute('CREATE UNIQUE INDEX ux ON accounts(email)')",
+        "op.execute('CREATE TABLE widgets(id bigint); DROP TABLE accounts')",
+        "op.execute('CREATE TABLE widgets(id bigint) -- unsafe')",
+        "op.execute('CREATE TABLE widgets(id bigint) /* unsafe */')",
+        "op.execute(f'CREATE TABLE widgets(id bigint){tail}')",
+        "op.execute(sql)",
+    )
+    for index, snippet in enumerate(poison):
+        root = _copy_surface(tmp_path / f"sql-poison-{index}")
+        _future(root, snippet)
+        report = evaluate(root)
+        assert report["status"] == "FAIL", (index, report)
+
+
+def test_raw_sql_literal_create_table_remains_admissible(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    _future(root, "op.execute('CREATE TABLE widgets(id bigint)')")
+    report = evaluate(root)
+    assert report["status"] == "PASS", report

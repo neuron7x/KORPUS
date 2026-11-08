@@ -107,9 +107,7 @@ def _dispatch(
     return None, "dynamic call target"
 
 
-def reachable_calls(
-    tree: ast.Module, upgrade: ast.FunctionDef
-) -> tuple[list[ast.Call], list[str]]:
+def reachable_calls(tree: ast.Module, upgrade: ast.FunctionDef) -> tuple[list[ast.Call], list[str]]:
     """Traverse a finite, exact local call graph and reject unknowable execution."""
     definitions = _functions(tree)
     pending = [upgrade]
