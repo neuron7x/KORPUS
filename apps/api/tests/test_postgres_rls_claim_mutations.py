@@ -414,6 +414,7 @@ def test_claim_axis_isolation_rejects_forged_settings(
     finally:
         repository.close()
 
+
 @pytest.mark.parametrize("table", ("documents", "document_versions"))
 def test_broker_admin_cannot_cascade_delete_sealed_evidence(tmp_path: Path, table: str) -> None:
     """An app-admin DELETE must not erase reviewer-sealed evidence via an FK cascade."""
@@ -512,6 +513,113 @@ def test_broker_admin_cannot_cascade_delete_sealed_evidence(tmp_path: Path, tabl
                 except DBAPIError:
                     # Rejected by a database authorization/immutability guard.
                     pass
+            finally:
+                transaction.rollback()
+    finally:
+        repository.close()
+
+
+@pytest.mark.parametrize(
+    "field",
+    ("document_id", "revision", "source_hash", "object_key", "authority", "source_uri"),
+)
+def test_broker_admin_cannot_rewrite_approved_version_provenance(
+    tmp_path: Path, field: str
+) -> None:
+    """Reviewer-sealed source identity must survive direct app SQL, not only API calls."""
+    from korpus.domain.models import (
+        AuthorityClass,
+        Classification,
+        DocumentRecord,
+        DocumentVersionRecord,
+        EvidenceSpanRecord,
+        ReviewState,
+    )
+    from korpus.infrastructure.repository import SqlRepository
+
+    reset_database()
+    assert ADMIN_URL is not None
+    carrier_id = _seed("public", 0, "public")
+    owner = SqlRepository(
+        ADMIN_URL, "test-only-audit-key", audit_anchor_path=tmp_path / "provenance-anchor.json"
+    )
+    versions: dict[str, str] = {}
+    try:
+        for label, state in (
+            ("approved", ReviewState.APPROVED),
+            ("draft", ReviewState.QUARANTINED),
+        ):
+            doc = DocumentRecord(
+                canonical_title=f"{label} provenance DML control",
+                corpus_id="public",
+                issuer="Verifier",
+                jurisdiction="UA",
+                document_type="order",
+                access_tier=AccessTier.PUBLIC,
+                classification=Classification.PUBLIC,
+            )
+            version = DocumentVersionRecord(
+                document_id=doc.id,
+                revision="1",
+                source_hash=("a" if label == "approved" else "b") * 64,
+                object_key=f"provenance/{label}",
+                mime_type="text/plain",
+                authority=AuthorityClass.OFFICIAL_UA,
+                review_state=state,
+                publication_date=date(2020, 1, 1),
+                is_current=label == "approved",
+            )
+            span = EvidenceSpanRecord(version_id=version.id, ordinal=0, text=f"{label} span")
+            owner.create_document_bundle(
+                _subject(privileged=True), doc, version, [span], {"fixture": label}
+            )
+            versions[label] = str(version.id)
+    finally:
+        owner.close()
+
+    new_values = {
+        "document_id": carrier_id,
+        "revision": "unreviewed-revision",
+        "source_hash": "c" * 64,
+        "object_key": "unreviewed/object",
+        "authority": "adversary",
+        "source_uri": "https://unreviewed.invalid/source",
+    }
+    repository = _repository()
+    try:
+        with repository.engine.connect() as connection:
+            transaction = connection.begin()
+            try:
+                repository._apply_postgres_identity(connection, _subject(privileged=True))
+                assert connection.execute(text("SELECT current_user")).scalar_one() == "korpus_app"
+                for label in ("approved", "draft"):
+                    version_id = versions[label]
+                    original = connection.execute(
+                        text(f"SELECT {field} FROM document_versions WHERE id = :id"),
+                        {"id": version_id},
+                    ).scalar_one()
+                    assert original != new_values[field], "mutation fixture must differ"
+                    changed = False
+                    try:
+                        with connection.begin_nested() as savepoint:
+                            result = connection.execute(
+                                text(
+                                    f"UPDATE document_versions SET {field} = :value WHERE id = :id"
+                                ),
+                                {"value": new_values[field], "id": version_id},
+                            )
+                            observed = connection.execute(
+                                text(f"SELECT {field} FROM document_versions WHERE id = :id"),
+                                {"id": version_id},
+                            ).scalar_one()
+                            changed = result.rowcount == 1 and observed == new_values[field]
+                            savepoint.rollback()
+                    except DBAPIError:
+                        if label == "draft":
+                            raise
+                    assert changed is (label == "draft"), (
+                        f"{label} {field}: approved provenance was writable or draft was blocked"
+                    )
             finally:
                 transaction.rollback()
     finally:
