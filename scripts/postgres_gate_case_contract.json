@@ -1,6 +1,6 @@
 {
   "schema": "korpus.postgres-security-node-contract.v1",
-  "case_count": 119,
+  "case_count": 127,
   "modules": {
     "test_audit": [
       "test_audit_anchor_detects_file_tampering",
@@ -53,6 +53,14 @@
       "test_the_authorized_flow_still_sees_what_it_may"
     ],
     "test_postgres_rls_claim_mutations": [
+      "test_broker_admin_cannot_cascade_delete_sealed_evidence[document_versions]",
+      "test_broker_admin_cannot_cascade_delete_sealed_evidence[documents]",
+      "test_broker_admin_cannot_rewrite_approved_version_provenance[authority]",
+      "test_broker_admin_cannot_rewrite_approved_version_provenance[document_id]",
+      "test_broker_admin_cannot_rewrite_approved_version_provenance[object_key]",
+      "test_broker_admin_cannot_rewrite_approved_version_provenance[revision]",
+      "test_broker_admin_cannot_rewrite_approved_version_provenance[source_hash]",
+      "test_broker_admin_cannot_rewrite_approved_version_provenance[source_uri]",
       "test_claim_axis_isolation_rejects_forged_settings[app-classifications-0-public-restricted-[]]",
       "test_claim_axis_isolation_rejects_forged_settings[app-clearance-3-public-public-[]]",
       "test_claim_axis_isolation_rejects_forged_settings[app-compartments-0-public-public-[\"need-to-know\"]]",
