@@ -472,20 +472,46 @@ def test_broker_admin_cannot_cascade_delete_sealed_evidence(tmp_path: Path, tabl
             transaction = connection.begin()
             try:
                 repository._apply_postgres_identity(connection, _subject(privileged=True))
-                assert connection.execute(
-                    text("SELECT count(*) FROM evidence_spans WHERE id = :id"),
-                    {"id": ids["sealed"][2]},
-                ).scalar_one() == 1
+                assert (
+                    connection.execute(
+                        text("SELECT count(*) FROM evidence_spans WHERE id = :id"),
+                        {"id": ids["sealed"][2]},
+                    ).scalar_one()
+                    == 1
+                )
+                sealed = connection.execute(
+                    text(
+                        "SELECT review_state, evidence_digest FROM document_versions WHERE id = :id"
+                    ),
+                    {"id": ids["sealed"][1]},
+                ).one()
+                assert sealed[0] == "approved" and sealed[1], "fixture has no approved seal"
                 control = connection.execute(
                     text(f"DELETE FROM {table} WHERE id = :id"),
                     {"id": ids["draft"][target]},
                 )
                 assert control.rowcount == 1, "admin DELETE positive control failed"
-                with pytest.raises(DBAPIError):
-                    connection.execute(
-                        text(f"DELETE FROM {table} WHERE id = :id"),
-                        {"id": ids["sealed"][target]},
-                    )
+                try:
+                    with connection.begin_nested():
+                        attempt = connection.execute(
+                            text(f"DELETE FROM {table} WHERE id = :id"),
+                            {"id": ids["sealed"][target]},
+                        )
+                        parent_count = connection.execute(
+                            text(f"SELECT count(*) FROM {table} WHERE id = :id"),
+                            {"id": ids["sealed"][target]},
+                        ).scalar_one()
+                        evidence_count = connection.execute(
+                            text("SELECT count(*) FROM evidence_spans WHERE id = :id"),
+                            {"id": ids["sealed"][2]},
+                        ).scalar_one()
+                        assert (attempt.rowcount, parent_count, evidence_count) == (0, 1, 1), (
+                            f"sealed {table} deletion accepted: deleted={attempt.rowcount}, "
+                            f"parent_survivors={parent_count}, evidence_survivors={evidence_count}"
+                        )
+                except DBAPIError:
+                    # Rejected by a database authorization/immutability guard.
+                    pass
             finally:
                 transaction.rollback()
     finally:
