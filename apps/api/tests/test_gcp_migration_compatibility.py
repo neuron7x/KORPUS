@@ -224,6 +224,7 @@ def test_rebinding_safe_builtin_cannot_hide_dynamic_sql(tmp_path: Path) -> None:
     assert result["status"] == "FAIL"
     assert any("trusted callable rebound" in reason for reason in result["findings"])
 
+
 def test_raw_sql_unproven_create_dynamic_and_stacked_are_rejected(tmp_path: Path) -> None:
     poison = (
         "op.execute('CREATE OR REPLACE VIEW v AS SELECT 1')",

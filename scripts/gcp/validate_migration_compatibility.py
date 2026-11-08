@@ -97,6 +97,7 @@ def _verify_baseline(current: dict[str, Path], baseline: dict[str, str]) -> list
 # Only a literal CREATE TABLE statement is admitted without a full SQL parser.
 _RAW_CREATE_TABLE = re.compile(r"create\s+table\s+[a-z_][a-z_0-9]*\s*\([^;]*\)", re.S)
 
+
 def _altered_table(statement: str) -> str | None:
     """Ім'я таблиці в `ALTER TABLE <ім'я> …`, якщо його видно дослівно."""
     words = statement.split()
@@ -137,6 +138,7 @@ def _execute_is_expanding(node: ast.Call, created: frozenset[str] = frozenset())
         return f"op.execute(ALTER TABLE {table} …) над таблицею, якої ця міграція не створює"
     verb = statement.split(maxsplit=1)[0] if statement else "?"
     return f"op.execute({verb.upper()} …)"
+
 
 def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[str]) -> list[str]:
     upgrade = _upgrade_function(tree)
