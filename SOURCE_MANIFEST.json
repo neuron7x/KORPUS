@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2152,
-  "root_sha256": "72fc4a79b27d556b8f70eda463a4ad18df8583d82639a0ff068b10cd57644d96",
+  "file_count": 2153,
+  "root_sha256": "a641e075950584c51f1702911036f52e80de2e726a43420476da933e67e1525b",
   "files": [
     {
       "path": ".dockerignore",
@@ -711,6 +711,12 @@
       "path": "apps/api/migrations/versions/0024_capability_effect_ledger.py",
       "bytes": 3900,
       "sha256": "2f16151740595d600fc4bbbc1e0578c0c0397bf5064f0ab2c55598cc089e3354",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/migrations/versions/0025_sealed_provenance_integrity.py",
+      "bytes": 7727,
+      "sha256": "ade76a2cea027149900e4be778e35faf1b28d0cd69f1af45ef1f65adf2d2bbb1",
       "mode": "0644"
     },
     {
