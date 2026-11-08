@@ -6,8 +6,16 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import sys
 from pathlib import Path
 from typing import Any
+
+# Anchor imports to this checkout for both the CLI and package import paths.
+SCRIPTS_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(SCRIPTS_DIR))
+from gcp.migration_reachability import created_tables as _created_tables  # noqa: E402
+from gcp.migration_reachability import reachable_calls as _reachable_calls  # noqa: E402
+
 
 ROOT = Path(__file__).resolve().parents[2]
 POLICY = ROOT / "config/production/migration-policy.json"
@@ -91,90 +99,6 @@ def _verify_baseline(current: dict[str, Path], baseline: dict[str, str]) -> list
 #: сам виклик не розрізняє розширення від руйнування, тобто перевірка з іменем
 #: «expand-only» міряє механізм, а не властивість, яку охороняє.
 _EXPANDING_VERBS = ("create ",)
-
-
-_SAFE_CALL_NAMES = frozenset(
-    {
-        "RuntimeError", "ValueError", "TypeError", "AssertionError", "str", "int",
-        "bool", "len", "range", "enumerate", "zip", "tuple", "list", "dict",
-        "set", "frozenset", "sorted", "min", "max", "all", "any",
-    }
-)
-_SAFE_OP_METHODS = frozenset(
-    {
-        "add_column", "create_table", "create_index", "create_unique_constraint",
-        "create_check_constraint", "create_foreign_key", "bulk_insert",
-        "get_bind", "execute",
-    }
-)
-
-
-def _reachable_calls(tree: ast.Module, root: ast.FunctionDef) -> tuple[list[ast.Call], list[str]]:
-    """Follow local helper calls; treat opaque execution as unsafe."""
-    functions: dict[str, list[ast.FunctionDef]] = {}
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef):
-            functions.setdefault(node.name, []).append(node)
-    pending = [root]
-    seen: set[int] = set()
-    calls: list[ast.Call] = []
-    failures: list[str] = []
-
-    class Scanner(ast.NodeVisitor):
-        def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-            return
-
-        def visit_Call(self, node: ast.Call) -> None:
-            calls.append(node)
-            self.generic_visit(node)
-
-    while pending:
-        function = pending.pop()
-        if id(function) in seen:
-            continue
-        seen.add(id(function))
-        scanner = Scanner()
-        start = len(calls)
-        for statement in function.body:
-            for node in ast.walk(statement):
-                if isinstance(node, (ast.Assign, ast.NamedExpr, ast.AnnAssign, ast.For)):
-                    targets = node.targets if isinstance(node, ast.Assign) else [node.target]
-                    for target in targets:
-                        for name in ast.walk(target):
-                            if isinstance(name, ast.Name) and name.id in (
-                                _SAFE_CALL_NAMES | {"op", "sa"}
-                            ):
-                                failures.append(f"trusted callable rebound: {name.id}")
-            scanner.visit(statement)
-        for call in calls[start:]:
-            target = call.func
-            if isinstance(target, ast.Name):
-                matched = functions.get(target.id, [])
-                if len(matched) == 1:
-                    pending.append(matched[0])
-                elif len(matched) > 1:
-                    failures.append(f"ambiguous helper: {target.id}")
-                elif target.id not in _SAFE_CALL_NAMES:
-                    failures.append(f"unresolved callable: {target.id}")
-            elif isinstance(target, ast.Attribute) and isinstance(target.value, ast.Name):
-                if target.value.id == "op":
-                    if target.attr not in _SAFE_OP_METHODS:
-                        failures.append(f"unclassified op.{target.attr}")
-                elif target.value.id != "sa":
-                    failures.append(f"unresolved method: {target.value.id}.{target.attr}")
-            else:
-                failures.append("dynamic call target")
-    return calls, failures
-
-
-def _created_tables(calls: list[ast.Call]) -> frozenset[str]:
-    """Only a reachable literal CREATE TABLE can authorize a same-migration ALTER."""
-    names: set[str] = set()
-    for node in calls:
-        if _op_call_name(node) == "create_table" and node.args:
-            if isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
-                names.add(node.args[0].value.lower())
-    return frozenset(names)
 
 
 def _altered_table(statement: str) -> str | None:

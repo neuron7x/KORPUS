@@ -4657,6 +4657,15 @@
       "proof_lines": 0,
       "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
     },
+    "scripts/gcp/migration_reachability.py": {
+      "lines": 152,
+      "max_complexity": 10,
+      "max_function_args": 2,
+      "max_function_lines": 27,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #109: the previously unbounded transitive Alembic call-graph walk is isolated from the existing migration admission controller. This records measured non-relaxed per-module limits and keeps fail-closed static dispatch inspection independently bounded."
+    },
     "scripts/gcp/validate_migration_compatibility.py": {
       "lines": 255,
       "max_complexity": 13,
