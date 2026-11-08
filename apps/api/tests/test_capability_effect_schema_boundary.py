@@ -42,7 +42,7 @@ def test_postgres_effect_ledger_refuses_composition_without_identity_binder() ->
 def test_effect_migration_is_head_pinned_and_uses_nonforgeable_subject_rls() -> None:
     text = MIGRATION.read_text(encoding="utf-8")
 
-    assert SCHEMA_REVISION == "0024_capability_effect_ledger"
+    assert SCHEMA_REVISION == "0025_sealed_provenance_integrity"
     assert 'down_revision: str | None = "0023_evidence_search_vector"' in text
     assert "ALTER TABLE capability_effects FORCE ROW LEVEL SECURITY" in text
     assert "subject_id = public.korpus_rls_subject()" in text
