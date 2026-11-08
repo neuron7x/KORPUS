@@ -144,3 +144,78 @@ def test_raw_sql_future_migration_is_rejected_by_default(tmp_path: Path) -> None
     report = evaluate(root)
     assert report["status"] == "FAIL"
     assert any("op.execute" in item for item in report["findings"])
+
+
+def _with_helper(root: Path, upgrade_body: str, helper_source: str) -> dict[str, object]:
+    path = _future(root, upgrade_body)
+    path.write_text(path.read_text(encoding="utf-8") + "\n" + helper_source, encoding="utf-8")
+    return evaluate(root)
+
+
+def test_direct_helper_cannot_hide_destructive_sql(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    result = _with_helper(root, "danger()", "def danger():\n    op.execute('DROP TABLE accounts')\n")
+    assert result["status"] == "FAIL"
+    assert any("op.execute" in reason for reason in result["findings"])
+
+
+def test_transitive_helper_cannot_hide_destructive_alembic_call(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    result = _with_helper(
+        root, "entry()",
+        "def entry():\n    leaf()\n"
+        "def leaf():\n    op.drop_table('accounts')\n",
+    )
+    assert result["status"] == "FAIL"
+    assert any("op.drop_table" in reason for reason in result["findings"])
+
+
+def test_local_nested_helper_is_included_when_invoked(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    _future(root, "def erase():\n    op.execute('DROP TABLE accounts')\nerase()")
+    result = evaluate(root)
+    assert result["status"] == "FAIL"
+    assert any("op.execute" in reason for reason in result["findings"])
+
+
+def test_unused_helper_does_not_create_a_false_positive(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    result = _with_helper(
+        root, "op.add_column('accounts', sa.Column('label', sa.Text(), nullable=True))",
+        "def dormant():\n    op.execute('DROP TABLE accounts')\n",
+    )
+    assert result["status"] == "PASS", result
+
+
+def test_created_table_from_reachable_helper_allows_safe_alter(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    result = _with_helper(
+        root, "create_new()\nop.execute('ALTER TABLE widgets ENABLE ROW LEVEL SECURITY')",
+        "def create_new():\n"
+        "    op.create_table('widgets', sa.Column('id', sa.String(), primary_key=True))\n",
+    )
+    assert result["status"] == "PASS", result
+
+
+def test_unknown_helper_dispatch_fails_closed(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    _future(root, "maybe_run_sql()")
+    result = evaluate(root)
+    assert result["status"] == "FAIL"
+    assert any("unresolved callable" in reason for reason in result["findings"])
+
+
+def test_dynamic_or_chained_execution_fails_closed(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    _future(root, "op.get_bind().execute('DROP TABLE accounts')")
+    result = evaluate(root)
+    assert result["status"] == "FAIL"
+    assert any("dynamic call target" in reason for reason in result["findings"])
+
+
+def test_rebinding_safe_builtin_cannot_hide_dynamic_sql(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    _future(root, "str = op.execute\nstr('DROP TABLE accounts')")
+    result = evaluate(root)
+    assert result["status"] == "FAIL"
+    assert any("trusted callable rebound" in reason for reason in result["findings"])

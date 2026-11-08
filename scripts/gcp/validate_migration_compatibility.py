@@ -93,19 +93,87 @@ def _verify_baseline(current: dict[str, Path], baseline: dict[str, str]) -> list
 _EXPANDING_VERBS = ("create ",)
 
 
-def _created_tables(upgrade: ast.FunctionDef) -> frozenset[str]:
-    """Таблиці, які ця сама міграція й створює, за літеральним першим аргументом.
+_SAFE_CALL_NAMES = frozenset(
+    {
+        "RuntimeError", "ValueError", "TypeError", "AssertionError", "str", "int",
+        "bool", "len", "range", "enumerate", "zip", "tuple", "list", "dict",
+        "set", "frozenset", "sorted", "min", "max", "all", "any",
+    }
+)
+_SAFE_OP_METHODS = frozenset(
+    {
+        "add_column", "create_table", "create_index", "create_unique_constraint",
+        "create_check_constraint", "create_foreign_key", "bulk_insert",
+        "get_bind", "execute",
+    }
+)
 
-    Нелітеральне ім'я сюди не потрапляє: невідоме ім'я не дає дозволу нічому.
-    """
-    names: set[str] = set()
-    for node in ast.walk(upgrade):
-        if not isinstance(node, ast.Call) or _op_call_name(node) != "create_table":
+
+def _reachable_calls(tree: ast.Module, root: ast.FunctionDef) -> tuple[list[ast.Call], list[str]]:
+    """Follow local helper calls; treat opaque execution as unsafe."""
+    functions: dict[str, list[ast.FunctionDef]] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            functions.setdefault(node.name, []).append(node)
+    pending = [root]
+    seen: set[int] = set()
+    calls: list[ast.Call] = []
+    failures: list[str] = []
+
+    class Scanner(ast.NodeVisitor):
+        def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+            return
+
+        def visit_Call(self, node: ast.Call) -> None:
+            calls.append(node)
+            self.generic_visit(node)
+
+    while pending:
+        function = pending.pop()
+        if id(function) in seen:
             continue
-        if node.args and isinstance(node.args[0], ast.Constant):
-            value = node.args[0].value
-            if isinstance(value, str):
-                names.add(value.lower())
+        seen.add(id(function))
+        scanner = Scanner()
+        start = len(calls)
+        for statement in function.body:
+            for node in ast.walk(statement):
+                if isinstance(node, (ast.Assign, ast.NamedExpr, ast.AnnAssign, ast.For)):
+                    targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+                    for target in targets:
+                        for name in ast.walk(target):
+                            if isinstance(name, ast.Name) and name.id in (
+                                _SAFE_CALL_NAMES | {"op", "sa"}
+                            ):
+                                failures.append(f"trusted callable rebound: {name.id}")
+            scanner.visit(statement)
+        for call in calls[start:]:
+            target = call.func
+            if isinstance(target, ast.Name):
+                matched = functions.get(target.id, [])
+                if len(matched) == 1:
+                    pending.append(matched[0])
+                elif len(matched) > 1:
+                    failures.append(f"ambiguous helper: {target.id}")
+                elif target.id not in _SAFE_CALL_NAMES:
+                    failures.append(f"unresolved callable: {target.id}")
+            elif isinstance(target, ast.Attribute) and isinstance(target.value, ast.Name):
+                if target.value.id == "op":
+                    if target.attr not in _SAFE_OP_METHODS:
+                        failures.append(f"unclassified op.{target.attr}")
+                elif target.value.id != "sa":
+                    failures.append(f"unresolved method: {target.value.id}.{target.attr}")
+            else:
+                failures.append("dynamic call target")
+    return calls, failures
+
+
+def _created_tables(calls: list[ast.Call]) -> frozenset[str]:
+    """Only a reachable literal CREATE TABLE can authorize a same-migration ALTER."""
+    names: set[str] = set()
+    for node in calls:
+        if _op_call_name(node) == "create_table" and node.args:
+            if isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
+                names.add(node.args[0].value.lower())
     return frozenset(names)
 
 
@@ -162,11 +230,13 @@ def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[
     upgrade = _upgrade_function(tree)
     if upgrade is None:
         return [f"future migration has no upgrade(): {relative}"]
-    findings: list[str] = []
-    created = _created_tables(upgrade)
-    for node in ast.walk(upgrade):
-        if not isinstance(node, ast.Call):
-            continue
+    calls, dispatch_failures = _reachable_calls(tree, upgrade)
+    findings = [
+        f"future migration is not expand-only: {relative}: {reason}"
+        for reason in dispatch_failures
+    ]
+    created = _created_tables(calls)
+    for node in calls:
         opname = _op_call_name(node)
         if opname in forbidden:
             reason = _execute_is_expanding(node, created) if opname == "execute" else "op." + opname
