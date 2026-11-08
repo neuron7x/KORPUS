@@ -8,7 +8,8 @@ korpus_authz broker. A successful unauthorized query or write is a hard failure.
 from __future__ import annotations
 
 import os
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -410,5 +411,82 @@ def test_claim_axis_isolation_rejects_forged_settings(
             assert _visible(connection, restricted_id), (
                 f"the legitimate {axis} grant does not enable visibility"
             )
+    finally:
+        repository.close()
+
+@pytest.mark.parametrize("table", ("documents", "document_versions"))
+def test_broker_admin_cannot_cascade_delete_sealed_evidence(tmp_path: Path, table: str) -> None:
+    """An app-admin DELETE must not erase reviewer-sealed evidence via an FK cascade."""
+    from korpus.domain.models import (
+        AuthorityClass,
+        Classification,
+        DocumentRecord,
+        DocumentVersionRecord,
+        EvidenceSpanRecord,
+        ReviewState,
+    )
+    from korpus.infrastructure.repository import SqlRepository
+
+    reset_database()
+    assert ADMIN_URL is not None
+    ids: dict[str, tuple[str, str, str]] = {}
+    owner = SqlRepository(
+        ADMIN_URL, "test-only-audit-key", audit_anchor_path=tmp_path / "owner-anchor.json"
+    )
+    try:
+        for label, sealed in (("sealed", True), ("draft", False)):
+            document = DocumentRecord(
+                canonical_title=f"{label} parent deletion control",
+                corpus_id="public",
+                issuer="Verifier",
+                jurisdiction="UA",
+                document_type="order",
+                access_tier=AccessTier.PUBLIC,
+                classification=Classification.PUBLIC,
+            )
+            version = DocumentVersionRecord(
+                document_id=document.id,
+                revision="1",
+                source_hash=("a" if sealed else "b") * 64,
+                object_key=f"deletion-control/{label}",
+                mime_type="text/plain",
+                authority=AuthorityClass.OFFICIAL_UA,
+                review_state=ReviewState.APPROVED if sealed else ReviewState.QUARANTINED,
+                publication_date=date(2020, 1, 1),
+                is_current=sealed,
+            )
+            span = EvidenceSpanRecord(
+                version_id=version.id, ordinal=0, text=f"{label} evidence for FK integrity"
+            )
+            owner.create_document_bundle(
+                _subject(privileged=True), document, version, [span], {"fixture": label}
+            )
+            ids[label] = (str(document.id), str(version.id), str(span.id))
+    finally:
+        owner.close()
+
+    target = 0 if table == "documents" else 1
+    repository = _repository()
+    try:
+        with repository.engine.connect() as connection:
+            transaction = connection.begin()
+            try:
+                repository._apply_postgres_identity(connection, _subject(privileged=True))
+                assert connection.execute(
+                    text("SELECT count(*) FROM evidence_spans WHERE id = :id"),
+                    {"id": ids["sealed"][2]},
+                ).scalar_one() == 1
+                control = connection.execute(
+                    text(f"DELETE FROM {table} WHERE id = :id"),
+                    {"id": ids["draft"][target]},
+                )
+                assert control.rowcount == 1, "admin DELETE positive control failed"
+                with pytest.raises(DBAPIError):
+                    connection.execute(
+                        text(f"DELETE FROM {table} WHERE id = :id"),
+                        {"id": ids["sealed"][target]},
+                    )
+            finally:
+                transaction.rollback()
     finally:
         repository.close()
