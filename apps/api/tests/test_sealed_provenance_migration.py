@@ -16,8 +16,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.exc import DBAPIError
 
 _MIGRATION_PATH = (
-    Path(__file__).resolve().parents[1]
-    / "migrations/versions/0025_sealed_provenance_integrity.py"
+    Path(__file__).resolve().parents[1] / "migrations/versions/0025_sealed_provenance_integrity.py"
 )
 _MUTANTS = (
     ("sealed-document-delete", "DELETE FROM documents WHERE id='a'", False),
@@ -35,20 +34,17 @@ _MUTANTS = (
     ("document-replace", "INSERT OR REPLACE INTO documents VALUES ('a','replacement')", False),
     (
         "version-id-replace",
-        "INSERT OR REPLACE INTO document_versions "
-        "VALUES ('a1','a','1',NULL,'x','y','z','zz',1)",
+        "INSERT OR REPLACE INTO document_versions VALUES ('a1','a','1',NULL,'x','y','z','zz',1)",
         False,
     ),
     (
         "version-unique-replace",
-        "INSERT OR REPLACE INTO document_versions "
-        "VALUES ('new','a','1',NULL,'x','y','z','zz',0)",
+        "INSERT OR REPLACE INTO document_versions VALUES ('new','a','1',NULL,'x','y','z','zz',0)",
         False,
     ),
     (
         "update-replace-revision",
-        "UPDATE OR REPLACE document_versions SET document_id='a',revision='1' "
-        "WHERE id='b1'",
+        "UPDATE OR REPLACE document_versions SET document_id='a',revision='1' WHERE id='b1'",
         False,
     ),
     (
@@ -116,14 +112,19 @@ def test_sqlite_seal_guards_reject_destruction_but_allow_drafts(
                     connection.exec_driver_sql(statement)
                     savepoint.rollback()
             else:
-                with pytest.raises(DBAPIError, match="sealed"):
-                    with connection.begin_nested():
-                        connection.exec_driver_sql(statement)
-            assert connection.exec_driver_sql(
-                "SELECT count(*) FROM document_versions WHERE id='a1'"
-            ).scalar_one() == 1, case
-            assert connection.exec_driver_sql(
-                "SELECT count(*) FROM evidence_spans WHERE id='span-a'"
-            ).scalar_one() == 1, case
+                with pytest.raises(DBAPIError, match="sealed"), connection.begin_nested():
+                    connection.exec_driver_sql(statement)
+            assert (
+                connection.exec_driver_sql(
+                    "SELECT count(*) FROM document_versions WHERE id='a1'"
+                ).scalar_one()
+                == 1
+            ), case
+            assert (
+                connection.exec_driver_sql(
+                    "SELECT count(*) FROM evidence_spans WHERE id='span-a'"
+                ).scalar_one()
+                == 1
+            ), case
     finally:
         engine.dispose()

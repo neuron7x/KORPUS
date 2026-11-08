@@ -21,7 +21,7 @@ def _copy_surface(tmp_path: Path) -> Path:
 def test_current_migration_history_is_compatible() -> None:
     report = evaluate(ROOT)
     assert report["status"] == "PASS", report
-    assert report["future_migrations"] == 0
+    assert report["future_migrations"] == 1
 
 
 def test_mutated_baseline_history_is_rejected(tmp_path: Path) -> None:
@@ -79,7 +79,7 @@ def test_additive_future_migration_is_allowed(tmp_path: Path) -> None:
     _future(root, "op.add_column('accounts', sa.Column('nickname', sa.Text(), nullable=True))")
     report = evaluate(root)
     assert report["status"] == "PASS", report
-    assert report["future_migrations"] == 1
+    assert report["future_migrations"] == 2
 
 
 def test_destructive_future_migration_is_rejected(tmp_path: Path) -> None:
