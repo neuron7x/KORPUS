@@ -14,6 +14,7 @@ from typing import Any
 # Anchor imports to this checkout for both the CLI and package import paths.
 SCRIPTS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS_DIR))
+from gcp.migration_check_constraint_scan import inline_check_failure  # noqa: E402
 from gcp.migration_column_keyword_scan import (  # noqa: E402
     literal_column_keywords as _column_keywords,
 )
@@ -79,6 +80,8 @@ def _unsafe_add_column(call: ast.Call) -> str | None:
     keywords = _column_keywords(column)
     if keywords is None:
         return "unverified Column keyword expansion or duplicated keys"
+    if (check_reason := inline_check_failure(column, keywords)) is not None:
+        return check_reason
     if _nonnullable_add_without_default(keywords):
         return "non-null column without server_default is not expand-safe for existing rows"
     return None

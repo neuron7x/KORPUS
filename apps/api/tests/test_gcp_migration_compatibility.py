@@ -693,3 +693,38 @@ def test_nonliteral_server_default_cannot_authorize_unsafe_add_column(tmp_path: 
         assert report["status"] == expected, (column_kwargs, report)
         if expected == "FAIL":
             assert any("server_default" in reason for reason in report["findings"]), report
+
+
+def test_inline_check_requires_null_compatibility_proof(tmp_path: Path) -> None:
+    scenarios = (
+        ("sa.CheckConstraint('fresh IS NOT NULL')", "FAIL"),
+        ("sa.CheckConstraint('COALESCE(fresh,0)>0')", "FAIL"),
+        ("sa.CheckConstraint('NOT (fresh IS NULL)')", "FAIL"),
+        ("sa.CheckConstraint('other > 0')", "FAIL"),
+        ("sa.CheckConstraint(str('fresh>0'))", "FAIL"),
+        ("sa.CheckConstraint('fresh > 0')", "PASS"),
+        ("sa.CheckConstraint('fresh IS NULL OR fresh > 0')", "PASS"),
+        ("sa.CheckConstraint('1=1')", "PASS"),
+    )
+    for index, (constraint, expected) in enumerate(scenarios):
+        root = _copy_surface(tmp_path / f"inline-check-{index}")
+        body = f"op.add_column('accounts', sa.Column('fresh', sa.Integer(), {constraint}))"
+        _future(root, body)
+        assert evaluate(root)["status"] == expected, constraint
+
+
+def test_inline_check_default_and_starred_bypass_are_refused(tmp_path: Path) -> None:
+    scenarios = (
+        ("sa.CheckConstraint('fresh > 0'), server_default='0'", "FAIL"),
+        ("sa.CheckConstraint('fresh IS NULL OR fresh > 0'), server_default='-1'", "FAIL"),
+        ("sa.CheckConstraint('1=1'), server_default='0'", "PASS"),
+        ("*[sa.CheckConstraint('fresh IS NOT NULL')]", "FAIL"),
+        ("nullable=True", "PASS"),
+        ("nullable=False", "FAIL"),
+        ("nullable=False, server_default='0'", "PASS"),
+    )
+    for index, (args, expected) in enumerate(scenarios):
+        root = _copy_surface(tmp_path / f"inline-check-guard-{index}")
+        body = f"op.add_column('accounts', sa.Column('fresh', sa.Integer(), {args}))"
+        _future(root, body)
+        assert evaluate(root)["status"] == expected, args
