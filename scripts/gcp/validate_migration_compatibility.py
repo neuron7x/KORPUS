@@ -14,6 +14,9 @@ from typing import Any
 # Anchor imports to this checkout for both the CLI and package import paths.
 SCRIPTS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS_DIR))
+from gcp.migration_column_keyword_scan import (  # noqa: E402
+    literal_column_keywords as _column_keywords,
+)
 from gcp.migration_order_proof import proven_created_before as _created_before  # noqa: E402
 from gcp.migration_reachability import reachable_calls as _reachable_calls  # noqa: E402
 from gcp.migration_revision_identity import _literal_assignment  # noqa: E402
@@ -44,6 +47,23 @@ def _op_call_name(call: ast.Call) -> str | None:
     )
 
 
+def _nonnullable_add_without_default(keywords: dict[str, ast.expr]) -> bool:
+    nullable, default = keywords.get("nullable"), keywords.get("server_default")
+    primary_key = keywords.get("primary_key")
+    no_server_default = not (
+        isinstance(default, ast.Constant) and isinstance(default.value, str)
+    )
+    if nullable is None and primary_key is not None:
+        nullable = ast.Constant(
+            value=isinstance(primary_key, ast.Constant) and primary_key.value is False
+        )
+    return (
+        nullable is not None
+        and not (isinstance(nullable, ast.Constant) and nullable.value is True)
+        and no_server_default
+    )
+
+
 def _unsafe_add_column(call: ast.Call) -> str | None:
     if _op_call_name(call) != "add_column" or len(call.args) < 2:
         return None
@@ -56,16 +76,10 @@ def _unsafe_add_column(call: ast.Call) -> str | None:
     )
     if not is_column:
         return "add_column second argument is not a Column constructor"
-    keywords = {kw.arg: kw.value for kw in column.keywords if kw.arg}
-    nullable, default = keywords.get("nullable"), keywords.get("server_default")
-    no_server_default = default is None
-    if isinstance(default, ast.Constant):
-        no_server_default = default.value is None
-    if (
-        nullable is not None
-        and not (isinstance(nullable, ast.Constant) and nullable.value is True)
-        and no_server_default
-    ):
+    keywords = _column_keywords(column)
+    if keywords is None:
+        return "unverified Column keyword expansion or duplicated keys"
+    if _nonnullable_add_without_default(keywords):
         return "non-null column without server_default is not expand-safe for existing rows"
     return None
 

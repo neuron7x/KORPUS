@@ -110,6 +110,27 @@ def test_false_or_unproven_nullable_without_default_fails_closed(tmp_path: Path)
         assert any("server_default" in reason for reason in report["findings"]), report
 
 
+def test_implicit_primary_key_nullability_is_fail_closed(tmp_path: Path) -> None:
+    scenarios = (
+        ("primary_key=True", "FAIL"),
+        ("primary_key=bool(1)", "FAIL"),
+        ("primary_key=1", "FAIL"),
+        ("primary_key=False", "PASS"),
+        ("primary_key=True, nullable=True", "PASS"),
+        ("primary_key=True, server_default='x'", "PASS"),
+    )
+    for index, (column_kwargs, expected) in enumerate(scenarios):
+        root = _copy_surface(tmp_path / f"pk-nullability-{index}")
+        _future(
+            root,
+            f"op.add_column('accounts', sa.Column('fresh', sa.String(8), {column_kwargs}))",
+        )
+        report = evaluate(root)
+        assert report["status"] == expected, (column_kwargs, report)
+        if expected == "FAIL":
+            assert any("server_default" in reason for reason in report["findings"]), report
+
+
 def test_alter_on_a_table_this_migration_creates_is_allowed(tmp_path: Path) -> None:
     """Ревізія N-1 не знає про таблицю, народжену в цьому ж `upgrade()`.
 
@@ -624,3 +645,51 @@ def test_unused_local_revision_name_preserves_valid_migration(tmp_path: Path) ->
         "def unrelated():\n    revision = 'only_local'\n",
     )
     assert result["status"] == "PASS", result
+
+def test_literal_column_kwargs_unpacks_without_silent_false_allow(tmp_path: Path) -> None:
+    scenarios = (
+        ("**{'nullable': False}", "FAIL"),
+        ("**{'primary_key': True}", "FAIL"),
+        ("**{'nullable': True}", "PASS"),
+        ("**{'primary_key': True, 'nullable': True}", "PASS"),
+        ("**{'primary_key': True, 'server_default': 'x'}", "PASS"),
+        ("**options", "FAIL"),
+        ("**{'nullable': True, **options}", "FAIL"),
+        ("nullable=True, **{'nullable': False}", "FAIL"),
+        ("**{'nullable': False}, nullable=True", "FAIL"),
+        ("**{'nullable': True, 'nullable': False}", "FAIL"),
+    )
+    for index, (kwargs, expected) in enumerate(scenarios):
+        root = _copy_surface(tmp_path / f"kw-expansion-{index}")
+        body = f"op.add_column('accounts', sa.Column('fresh', sa.String(8), {kwargs}))"
+        _future(root, body)
+        report = evaluate(root)
+        assert report["status"] == expected, (kwargs, report)
+        if expected == "FAIL":
+            assert any(
+                "Column keyword" in reason or "server_default" in reason
+                for reason in report["findings"]
+            ), report
+
+def test_nonliteral_server_default_cannot_authorize_unsafe_add_column(tmp_path: Path) -> None:
+    scenarios = (
+        ("nullable=False, server_default=(None or None)", "FAIL"),
+        ("nullable=False, server_default=(None if True else 'x')", "FAIL"),
+        ("primary_key=True, server_default=(None or None)", "FAIL"),
+        ("**{'nullable': False, 'server_default': None or None}", "FAIL"),
+        ("**{'primary_key': True, 'server_default': (None or None)}", "FAIL"),
+        ("nullable=False, server_default='x'", "PASS"),
+        ("**{'nullable': False, 'server_default': 'x'}", "PASS"),
+        ("nullable=True, server_default=(None or None)", "PASS"),
+    )
+    for index, (column_kwargs, expected) in enumerate(scenarios):
+        root = _copy_surface(tmp_path / f"default-proof-{index}")
+        _future(
+            root,
+            "op.add_column('accounts', sa.Column('fresh', sa.String(8), "
+            f"{column_kwargs}))",
+        )
+        report = evaluate(root)
+        assert report["status"] == expected, (column_kwargs, report)
+        if expected == "FAIL":
+            assert any("server_default" in reason for reason in report["findings"]), report

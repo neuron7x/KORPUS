@@ -12,7 +12,7 @@ from korpus.domain.models import Identity, RetrievedEvidence
 
 _SCOPE_DOMAIN = b"korpus-corpus-read-scope-v1\0"
 _EVIDENCE_DOMAIN = b"korpus-version-evidence-v1\0"
-_RELEASE_DOMAIN = b"korpus-temporal-semantic-release-v2\0"
+_RELEASE_DOMAIN = b"korpus-temporal-semantic-release-v3\0"
 
 
 class CorpusConsistencyError(RuntimeError):
@@ -51,6 +51,9 @@ class SemanticReleaseMember:
     evidence_digest: str
     canonical_title: str
     corpus_id: str
+    issuer: str
+    jurisdiction: str
+    document_type: str
     access_tier: str
     classification: str
     document_compartments: str
@@ -199,18 +202,16 @@ def release_identity_digest(rows: Iterable[SemanticReleaseMember]) -> str:
     digest = hashlib.sha256()
     digest.update(_RELEASE_DOMAIN)
     for member in sorted(set(rows)):
-        document_id = member.document_id
-        version_id = member.version_id
-        source_hash = member.source_hash
-        review_state = member.review_state
-        evidence_digest = member.evidence_digest
-        _frame(digest, document_id)
-        _frame(digest, version_id)
-        _frame(digest, source_hash)
-        _frame(digest, review_state)
-        _frame(digest, evidence_digest)
+        _frame(digest, member.document_id)
+        _frame(digest, member.version_id)
+        _frame(digest, member.source_hash)
+        _frame(digest, member.review_state)
+        _frame(digest, member.evidence_digest)
         _frame(digest, member.canonical_title)
         _frame(digest, member.corpus_id)
+        _frame(digest, member.issuer)
+        _frame(digest, member.jurisdiction)
+        _frame(digest, member.document_type)
         _frame(digest, member.access_tier)
         _frame(digest, member.classification)
         _frame(digest, member.document_compartments)

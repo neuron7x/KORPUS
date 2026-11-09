@@ -912,6 +912,15 @@
       "proof_lines": 0,
       "reason": "+28 рядків: захоплення знімка на початку відповіді й запис про те, ЧОМУ його відсутність законна. Розгортання без читача знімка працює як раніше, лише без поля в журналі — знімок ОПИСУЄ відповідь, а не виробляє її, тож його поломка не сміє відібрати в читача знайдену підставу."
     },
+    "apps/api/src/korpus/application/answer_request_snapshot.py": {
+      "lines": 146,
+      "max_complexity": 4,
+      "max_function_args": 7,
+      "max_function_lines": 19,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "2026-10-23 issue #23: initial measured ratchet for per-request token, guarded retrieval, and cache-release binding"
+    },
     "apps/api/src/korpus/application/answer_retrieval_gate.py": {
       "lines": 57,
       "max_complexity": 6,
@@ -4549,15 +4558,6 @@
       "proof_lines": 0,
       "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
-    "scripts/gcp/migration_symbol_bindings.py": {
-      "lines": 61,
-      "max_complexity": 10,
-      "max_function_args": 2,
-      "max_function_lines": 22,
-      "max_nesting": 3,
-      "proof_lines": 0,
-      "reason": "Issue #109: strict measured first-version ceiling for import-binding and rebinding helpers; existing module budgets remain unchanged."
-    },
     "scripts/gcp/production_contract_migration.py": {
       "lines": 22,
       "max_complexity": 2,
@@ -4665,33 +4665,6 @@
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
-    },
-    "scripts/gcp/migration_definition_scan.py": {
-      "lines": 58,
-      "max_complexity": 8,
-      "max_function_args": 2,
-      "max_function_lines": 18,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "Issue #109: extract definition-time AST inspection without weakening migration admission or increasing any existing module, function, complexity or nesting ceiling. New module has measured strict limits."
-    },
-    "scripts/gcp/migration_order_proof.py": {
-      "lines": 80,
-      "max_complexity": 13,
-      "max_function_args": 3,
-      "max_function_lines": 36,
-      "max_nesting": 5,
-      "proof_lines": 0,
-      "reason": "Issue #109: exact measured shape of new unconditional CREATE-before-ALTER proof; no existing budget ceilings relaxed."
-    },
-    "scripts/gcp/migration_reachability.py": {
-      "lines": 152,
-      "max_complexity": 10,
-      "max_function_args": 2,
-      "max_function_lines": 27,
-      "max_nesting": 3,
-      "proof_lines": 0,
-      "reason": "Issue #109: the previously unbounded transitive Alembic call-graph walk is isolated from the existing migration admission controller. This records measured non-relaxed per-module limits and keeps fail-closed static dispatch inspection independently bounded."
     },
     "scripts/gcp/validate_migration_compatibility.py": {
       "lines": 255,
@@ -6741,6 +6714,51 @@
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "PR #88 Codex P2 4334124081: add a single-descriptor, nofollow/nonblocking, byte-bounded reader and observable-change refusal. Only this not-yet-merged module grows; input limits, function ceilings, other module budgets and existing tests are unchanged. Twenty-four new file-boundary controls and six isolated guard mutations verify the added behavior."
+    },
+    "scripts/gcp/migration_symbol_bindings.py": {
+      "lines": 61,
+      "max_complexity": 10,
+      "max_function_args": 2,
+      "max_function_lines": 22,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #109: strict measured first-version ceiling for import-binding and rebinding helpers; existing module budgets remain unchanged."
+    },
+    "scripts/gcp/migration_column_keyword_scan.py": {
+      "lines": 24,
+      "max_complexity": 9,
+      "max_function_args": 1,
+      "max_function_lines": 19,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "Issue #109: strict measured first-version budget for literal Column keyword expansion; deny ambiguous expansion and duplicates without weakening existing ceilings."
+    },
+    "scripts/gcp/migration_definition_scan.py": {
+      "lines": 58,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 18,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #109: extract definition-time AST inspection without weakening migration admission or increasing any existing module, function, complexity or nesting ceiling. New module has measured strict limits."
+    },
+    "scripts/gcp/migration_order_proof.py": {
+      "lines": 80,
+      "max_complexity": 13,
+      "max_function_args": 3,
+      "max_function_lines": 36,
+      "max_nesting": 5,
+      "proof_lines": 0,
+      "reason": "Issue #109: exact measured shape of new unconditional CREATE-before-ALTER proof; no existing budget ceilings relaxed."
+    },
+    "scripts/gcp/migration_reachability.py": {
+      "lines": 152,
+      "max_complexity": 10,
+      "max_function_args": 2,
+      "max_function_lines": 27,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #109: the previously unbounded transitive Alembic call-graph walk is isolated from the existing migration admission controller. This records measured non-relaxed per-module limits and keeps fail-closed static dispatch inspection independently bounded."
     },
     "scripts/gcp/migration_trusted_objects.py": {
       "lines": 65,
