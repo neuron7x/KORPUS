@@ -435,9 +435,9 @@ def test_unsafe_future_import_bindings_are_rejected(tmp_path: Path) -> None:
         _future(root, body)
         result = evaluate(root)
         assert result["status"] == "FAIL", (index, result)
-        assert any(
-            "unverified import shadows callable" in item for item in result["findings"]
-        ), result
+        assert any("unverified import shadows callable" in item for item in result["findings"]), (
+            result
+        )
 
 
 def test_future_wildcard_import_is_rejected(tmp_path: Path) -> None:
@@ -489,3 +489,64 @@ def test_unmodified_alembic_create_and_alter_stay_admitted(tmp_path: Path) -> No
     )
     report = evaluate(root)
     assert report["status"] == "PASS", report
+
+
+def test_trusted_namespace_alias_escape_and_callback_are_denied(tmp_path: Path) -> None:
+    creation = (
+        "op.create_table('accounts')\n"
+        "op.execute('ALTER TABLE accounts DISABLE ROW LEVEL SECURITY')"
+    )
+    poison = (
+        ("alias = op\nalias.create_table = op.drop_table\n" + creation, ""),
+        ("holder = (op,)\nholder[0].create_table = op.drop_table\n" + creation, ""),
+        ("op.__dict__['create_table'] = op.drop_table\n" + creation, ""),
+        (
+            "sa.__dict__['Column'] = sa.Text\n"
+            "op.create_table('accounts', sa.Column('x', sa.Text()))\n"
+            "op.execute('ALTER TABLE accounts ENABLE ROW LEVEL SECURITY')",
+            "",
+        ),
+        (
+            "rewrite(op)\n" + creation,
+            "def rewrite(target):\n    target.create_table = target.drop_table\n",
+        ),
+        (
+            "sorted([1], key=rewrite)\n" + creation,
+            "def rewrite(_):\n    op.create_table = op.drop_table\n",
+        ),
+    )
+    for index, (body, helpers) in enumerate(poison):
+        root = _copy_surface(tmp_path / f"trusted-escape-{index}")
+        report = _with_helper(root, body, helpers)
+        assert report["status"] == "FAIL", (index, report)
+        assert any(
+            "trusted namespace" in finding
+            or "unverified named callback" in finding
+            for finding in report["findings"]
+        ), (index, report)
+
+
+def test_trusted_namespace_escape_guard_preserves_valid_calls(tmp_path: Path) -> None:
+    accepted = (
+        "op.create_table('widgets', sa.Column('id', sa.Integer()))\n"
+        "op.execute('ALTER TABLE widgets ENABLE ROW LEVEL SECURITY')",
+        "sorted([2, 1], key=lambda x: x)",
+    )
+    for index, body in enumerate(accepted):
+        root = _copy_surface(tmp_path / f"trusted-escape-positive-{index}")
+        _future(root, body)
+        report = evaluate(root)
+        assert report["status"] == "PASS", (index, report)
+
+
+def test_shadowed_builtin_callback_cannot_imitate_trusted_key(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    report = _with_helper(
+        root,
+        "sorted([1], key=str)\n"
+        "op.create_table('accounts')\n"
+        "op.execute('ALTER TABLE accounts DISABLE ROW LEVEL SECURITY')",
+        "def str(_):\n    op.create_table = op.drop_table\n",
+    )
+    assert report["status"] == "FAIL", report
+    assert any("unverified named callback" in finding for finding in report["findings"]), report

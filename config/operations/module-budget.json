@@ -6741,6 +6741,15 @@
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "PR #88 Codex P2 4334124081: add a single-descriptor, nofollow/nonblocking, byte-bounded reader and observable-change refusal. Only this not-yet-merged module grows; input limits, function ceilings, other module budgets and existing tests are unchanged. Twenty-four new file-boundary controls and six isolated guard mutations verify the added behavior."
+    },
+    "scripts/gcp/migration_trusted_objects.py": {
+      "lines": 65,
+      "max_complexity": 14,
+      "max_function_args": 2,
+      "max_function_lines": 22,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #109: source-measured first-version strict ceiling for fail-closed trusted Alembic/SQLAlchemy namespace, alias and callback analysis; existing budgets are not raised."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
