@@ -55,4 +55,3 @@ class _DirectCalls(ast.NodeVisitor):
     def visit_Name(self, node: ast.Name) -> None:
         if isinstance(node.ctx, ast.Store):
             self.bindings.add(node.id)
-
