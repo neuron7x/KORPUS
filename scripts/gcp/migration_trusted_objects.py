@@ -42,11 +42,9 @@ def _unsafe_binding(node: ast.AST, parent: ast.AST | None) -> str | None:
         if isinstance(node, ast.Attribute) and owner:
             if node.attr in _MUTATORS:
                 return f"trusted namespace introspection/mutation: {owner}.{node.attr}"
-            if owner == "op" and isinstance(node.ctx, ast.Load) and not (
-                isinstance(parent, ast.Call)
-                and parent.func is node
-                or isinstance(parent, (ast.Attribute, ast.Subscript))
-            ):
+            called = isinstance(parent, ast.Call) and parent.func is node
+            chained = isinstance(parent, (ast.Attribute, ast.Subscript))
+            if owner == "op" and isinstance(node.ctx, ast.Load) and not (called or chained):
                 return "trusted operation callable escaped"
     return _unsafe_callback(node)
 

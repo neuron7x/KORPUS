@@ -493,8 +493,7 @@ def test_unmodified_alembic_create_and_alter_stay_admitted(tmp_path: Path) -> No
 
 def test_trusted_namespace_alias_escape_and_callback_are_denied(tmp_path: Path) -> None:
     creation = (
-        "op.create_table('accounts')\n"
-        "op.execute('ALTER TABLE accounts DISABLE ROW LEVEL SECURITY')"
+        "op.create_table('accounts')\nop.execute('ALTER TABLE accounts DISABLE ROW LEVEL SECURITY')"
     )
     poison = (
         ("alias = op\nalias.create_table = op.drop_table\n" + creation, ""),
@@ -520,8 +519,7 @@ def test_trusted_namespace_alias_escape_and_callback_are_denied(tmp_path: Path) 
         report = _with_helper(root, body, helpers)
         assert report["status"] == "FAIL", (index, report)
         assert any(
-            "trusted namespace" in finding
-            or "unverified named callback" in finding
+            "trusted namespace" in finding or "unverified named callback" in finding
             for finding in report["findings"]
         ), (index, report)
 
