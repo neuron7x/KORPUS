@@ -1,5 +1,3 @@
-"""Definition-time AST safety checks for future migration admission."""
-
 from __future__ import annotations
 
 import ast
@@ -14,18 +12,12 @@ class _DirectCalls(ast.NodeVisitor):
         self.definition_failures: list[str] = []
 
     def _check_signature(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
-        arguments = node.args
-        annotations = [
-            arg.annotation
-            for arg in (*arguments.posonlyargs, *arguments.args, *arguments.kwonlyargs)
-        ]
-        annotations.extend(
-            arg.annotation for arg in (arguments.vararg, arguments.kwarg) if arg is not None
-        )
-        evaluated = [*arguments.defaults, *arguments.kw_defaults, node.returns, *annotations]
+        a = node.args
+        args = (*a.posonlyargs, *a.args, *a.kwonlyargs, a.vararg, a.kwarg)
+        vals = (*a.defaults, *a.kw_defaults, node.returns)
+        vals += tuple(x.annotation for x in args if x)
         if node.decorator_list or any(
-            expr is not None and not isinstance(expr, (ast.Constant, ast.Name))
-            for expr in evaluated
+            x is not None and not isinstance(x, (ast.Constant, ast.Name)) for x in vals
         ):
             self.definition_failures.append(
                 f"function {node.name} has unverified definition-time expressions"
@@ -54,5 +46,13 @@ class _DirectCalls(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Name(self, node: ast.Name) -> None:
-        if isinstance(node.ctx, ast.Store):
+        if isinstance(node.ctx, (ast.Store, ast.Del)):
             self.bindings.add(node.id)
+
+    def visit_Attribute(self, node: ast.Attribute) -> None:
+        root = node.value
+        while isinstance(root, (ast.Attribute, ast.Subscript)):
+            root = root.value
+        if isinstance(node.ctx, (ast.Store, ast.Del)) and isinstance(root, ast.Name):
+            self.bindings.add(root.id)
+        self.generic_visit(node)

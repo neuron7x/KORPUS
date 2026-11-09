@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2153,
-  "root_sha256": "54db3e66bcc8a6896eb8af10c1eaa56255ee31c1d6360c5995cdc3f35bcadaf2",
+  "root_sha256": "a3a2d3c604f8d91643df60a6089babe207a6e7efecd3c9ddfa3a6f17a9a41b08",
   "files": [
     {
       "path": ".dockerignore",
@@ -4285,8 +4285,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_migration_compatibility.py",
-      "bytes": 18808,
-      "sha256": "c9f0492b06054ac9f48d2c4d75be01c16ad3757ee124ee672388482a946bcd63",
+      "bytes": 20290,
+      "sha256": "64ab385ec03deb3e405bbb78f65c202985761225dfb2ebd4217ec00a740c64d6",
       "mode": "0644"
     },
     {
@@ -11329,8 +11329,8 @@
     },
     {
       "path": "scripts/gcp/migration_definition_scan.py",
-      "bytes": 2273,
-      "sha256": "4900214f9b4e81e900e5a0eebb2fb6c19055664443887287cbf6fb69f0f04566",
+      "bytes": 2331,
+      "sha256": "3b53dc57670714a168cf60cbff52d2b0dd41535809322636ff5fcf06cb9928d3",
       "mode": "0644"
     },
     {
@@ -11347,8 +11347,8 @@
     },
     {
       "path": "scripts/gcp/migration_symbol_bindings.py",
-      "bytes": 2174,
-      "sha256": "f2c2fb333de5f232bd72a03a61271832ddc6d211b1dde2da66188c69ddd04a99",
+      "bytes": 2094,
+      "sha256": "a2fc9b849b985e88f176d3731219434769246416fade5ba73cb802dc1463de8f",
       "mode": "0644"
     },
     {

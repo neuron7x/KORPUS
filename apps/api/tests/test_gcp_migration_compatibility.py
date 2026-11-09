@@ -421,6 +421,7 @@ def test_helper_rebinding_cannot_hide_destructive_sql(tmp_path: Path) -> None:
             report,
         )
 
+
 def test_unsafe_future_import_bindings_are_rejected(tmp_path: Path) -> None:
     poison = (
         "from fake import drop_table as sorted\nsorted('accounts')",
@@ -455,3 +456,36 @@ def test_canonical_future_imports_remain_allowed(tmp_path: Path) -> None:
     )
     result = evaluate(root)
     assert result["status"] == "PASS", result
+
+
+def test_protected_operation_attribute_rebinding_fails_closed(tmp_path: Path) -> None:
+    poison = (
+        "op.create_table = op.drop_table\nop.create_table('accounts')",
+        "op.create_table: object = op.drop_table\nop.create_table('accounts')",
+        "op.create_table += op.drop_table\nop.create_table('accounts')",
+        "op.create_table, unused = op.drop_table, None\nop.create_table('accounts')",
+        "del op.create_table\nop.create_table('accounts')",
+        "op.create_table.__call__ = op.drop_table\nop.create_table('accounts')",
+        "sa.Column = op.drop_table\nop.add_column('accounts', sa.Column('id'))",
+        "def helper():\n    op.create_table = op.drop_table\nhelper()\nop.create_table('accounts')",
+    )
+    for index, body in enumerate(poison):
+        root = _copy_surface(tmp_path / f"attribute-rebind-{index}")
+        _future(root, body)
+        report = evaluate(root)
+        assert report["status"] == "FAIL", (index, report)
+        assert any("trusted callable rebound" in item for item in report["findings"]), (
+            index,
+            report,
+        )
+
+
+def test_unmodified_alembic_create_and_alter_stay_admitted(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    _future(
+        root,
+        "op.create_table('widgets', sa.Column('id', sa.Integer()))\n"
+        "op.execute('ALTER TABLE widgets ENABLE ROW LEVEL SECURITY')",
+    )
+    report = evaluate(root)
+    assert report["status"] == "PASS", report
