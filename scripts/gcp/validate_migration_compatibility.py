@@ -204,6 +204,16 @@ def _verify_graph(
         findings.append(f"exactly one migration head required, got {heads}")
     if baseline_revision not in revisions:
         findings.append(f"baseline revision absent: {baseline_revision}")
+    if len(heads) == 1:
+        seen: set[str] = set()
+        current: str | None = heads[0]
+        while current is not None and current in revisions and current not in seen:
+            seen.add(current)
+            current = revisions[current][0]
+        if current is not None:
+            findings.append(f"migration lineage cycle or missing parent: {current}")
+        if len(seen) != len(revisions):
+            findings.append(f"disconnected migration revisions: {sorted(set(revisions) - seen)}")
     return heads, findings
 
 

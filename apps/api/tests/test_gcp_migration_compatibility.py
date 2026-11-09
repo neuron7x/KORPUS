@@ -548,3 +548,36 @@ def test_shadowed_builtin_callback_cannot_imitate_trusted_key(tmp_path: Path) ->
     )
     assert report["status"] == "FAIL", report
     assert any("unverified named callback" in finding for finding in report["findings"]), report
+
+
+def test_disconnected_future_migration_cycles_are_rejected(tmp_path: Path) -> None:
+    cases = (
+        (("0025_cycle_a", "0025_cycle_b"), ("0025_cycle_b", "0025_cycle_a")),
+        (("0025_self_cycle", "0025_self_cycle"),),
+    )
+    for index, edges in enumerate(cases):
+        root = _copy_surface(tmp_path / f"cycle-{index}")
+        versions = root / "apps/api/migrations/versions"
+        for revision, down in edges:
+            (versions / f"{revision}.py").write_text(
+                "from alembic import op\n"
+                f"revision = {revision!r}\n"
+                f"down_revision = {down!r}\n"
+                "def upgrade():\n    pass\n"
+                "def downgrade():\n    pass\n",
+                encoding="utf-8",
+            )
+        report = evaluate(root)
+        assert report["status"] == "FAIL", (index, report)
+        assert any(
+            "disconnected migration revisions" in finding for finding in report["findings"]
+        ), (index, report)
+
+
+def test_ordered_future_migration_extensions_remain_admitted(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    _future(root, "op.create_table('widgets_a', sa.Column('id', sa.Integer()))", revision="0025_a")
+    _future(root, "op.create_table('widgets_b', sa.Column('id', sa.Integer()))", revision="0026_b")
+    report = evaluate(root)
+    assert report["status"] == "PASS", report
+    assert report["future_migrations"] == 2
