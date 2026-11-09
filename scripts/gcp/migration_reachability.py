@@ -56,6 +56,18 @@ def _functions(tree: ast.Module) -> dict[str, list[ast.FunctionDef]]:
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
             definitions.setdefault(node.name, []).append(node)
+    # Ambiguous runtime bindings cannot retain a statically trusted helper target.
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name) and isinstance(node.ctx, (ast.Store, ast.Del)):
+            shadow = node.id
+        elif isinstance(node, ast.arg):
+            shadow = node.arg
+        elif isinstance(node, ast.alias):
+            shadow = node.asname or node.name.partition(".")[0]
+        else:
+            continue
+        if shadow in definitions:
+            definitions[shadow].append(definitions[shadow][0])
     return definitions
 
 

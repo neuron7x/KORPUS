@@ -382,3 +382,41 @@ def test_repeated_alter_helper_requires_prior_creation_each_time(tmp_path: Path)
     )
     assert result["status"] == "FAIL", result
     assert any("ALTER TABLE widgets" in item for item in result["findings"]), result
+
+
+def test_helper_rebinding_cannot_hide_destructive_sql(tmp_path: Path) -> None:
+    poison = (
+        ("helper = op.drop_table\nhelper('accounts')", "def helper():\n    pass"),
+        (
+            "helper = op.execute\nhelper('DROP TABLE accounts')",
+            "def helper():\n    pass",
+        ),
+        (
+            "for helper in (op.drop_table,):\n    helper('accounts')",
+            "def helper():\n    pass",
+        ),
+        (
+            "[helper('accounts') for helper in [op.drop_table]]",
+            "def helper():\n    pass",
+        ),
+        (
+            "from mock_op import drop_table as helper\nhelper('accounts')",
+            "def helper():\n    pass",
+        ),
+        (
+            "helper('accounts')",
+            "def helper():\n    pass\nfrom mock_op import drop_table as helper",
+        ),
+        (
+            "caller(op.drop_table)",
+            "def helper():\n    pass\ndef caller(helper):\n    helper('accounts')",
+        ),
+    )
+    for index, (body, helpers) in enumerate(poison):
+        root = _copy_surface(tmp_path / f"helper-rebinding-{index}")
+        report = _with_helper(root, body, helpers)
+        assert report["status"] == "FAIL", (index, report)
+        assert any("ambiguous helper: helper" in item for item in report["findings"]), (
+            index,
+            report,
+        )
