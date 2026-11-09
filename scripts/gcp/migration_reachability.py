@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import ast
 
+from gcp.migration_definition_scan import _DirectCalls
+
 _SAFE_BUILTINS = frozenset(
     {
         "RuntimeError",
@@ -49,58 +51,6 @@ _SAFE_ALEMBIC = frozenset(
 )
 
 
-class _DirectCalls(ast.NodeVisitor):
-    """Skip nested function bodies until the target itself is reached."""
-
-    def __init__(self) -> None:
-        self.calls: list[ast.Call] = []
-        self.bindings: set[str] = set()
-        self.definition_failures: list[str] = []
-
-    def _check_signature(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
-        arguments = node.args
-        annotations = [
-            arg.annotation
-            for arg in (*arguments.posonlyargs, *arguments.args, *arguments.kwonlyargs)
-        ]
-        if arguments.vararg is not None:
-            annotations.append(arguments.vararg.annotation)
-        if arguments.kwarg is not None:
-            annotations.append(arguments.kwarg.annotation)
-        evaluated = [*arguments.defaults, *arguments.kw_defaults, node.returns, *annotations]
-        if node.decorator_list or any(
-            expr is not None and not isinstance(expr, (ast.Constant, ast.Name))
-            for expr in evaluated
-        ):
-            self.definition_failures.append(
-                f"function {node.name} has unverified definition-time expressions"
-            )
-
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-        self._check_signature(node)
-
-    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
-        self._check_signature(node)
-
-    def visit_Lambda(self, node: ast.Lambda) -> None:
-        if any(
-            expr is not None and not isinstance(expr, ast.Constant)
-            for expr in (*node.args.defaults, *node.args.kw_defaults)
-        ):
-            self.definition_failures.append("lambda has unverified definition-time expressions")
-
-    def visit_ClassDef(self, node: ast.ClassDef) -> None:
-        self.definition_failures.append("class definition has unverified execution")
-
-    def visit_Call(self, node: ast.Call) -> None:
-        self.calls.append(node)
-        self.generic_visit(node)
-
-    def visit_Name(self, node: ast.Name) -> None:
-        if isinstance(node.ctx, ast.Store):
-            self.bindings.add(node.id)
-
-
 def _functions(tree: ast.Module) -> dict[str, list[ast.FunctionDef]]:
     definitions: dict[str, list[ast.FunctionDef]] = {}
     for node in ast.walk(tree):
@@ -131,23 +81,23 @@ def _dispatch(
     return None, "dynamic call target"
 
 
+def _scan_statements(statements: list[ast.stmt]) -> tuple[list[ast.Call], list[str]]:
+    scanner = _DirectCalls()
+    for statement in statements:
+        scanner.visit(statement)
+    failures = list(scanner.definition_failures)
+    for name in sorted(scanner.bindings & (_SAFE_BUILTINS | {"op", "sa"})):
+        failures.append(f"trusted callable rebound: {name}")
+    return scanner.calls, failures
+
+
 def reachable_calls(tree: ast.Module, upgrade: ast.FunctionDef) -> tuple[list[ast.Call], list[str]]:
     """Traverse a finite, exact local call graph and reject unknowable execution."""
     definitions = _functions(tree)
     pending = [upgrade]
     visited: set[int] = set()
-    calls: list[ast.Call] = []
-    failures: list[str] = []
-    # Migration modules execute their top-level statements when Alembic imports them.
-    # A dormant function body is inert, but its decorator/defaults are not.
-    module_scanner = _DirectCalls()
-    for statement in tree.body:
-        module_scanner.visit(statement)
-    calls.extend(module_scanner.calls)
-    failures.extend(module_scanner.definition_failures)
-    for name in sorted(module_scanner.bindings & (_SAFE_BUILTINS | {"op", "sa"})):
-        failures.append(f"trusted callable rebound: {name}")
-    for call in module_scanner.calls:
+    calls, failures = _scan_statements(tree.body)
+    for call in calls:
         helper, problem = _dispatch(call, definitions)
         if helper is not None:
             pending.append(helper)
@@ -158,13 +108,9 @@ def reachable_calls(tree: ast.Module, upgrade: ast.FunctionDef) -> tuple[list[as
         if id(function) in visited:
             continue
         visited.add(id(function))
-        scanner = _DirectCalls()
-        for statement in function.body:
-            scanner.visit(statement)
-        failures.extend(scanner.definition_failures)
-        for name in sorted(scanner.bindings & (_SAFE_BUILTINS | {"op", "sa"})):
-            failures.append(f"trusted callable rebound: {name}")
-        for call in scanner.calls:
+        batch, problems = _scan_statements(function.body)
+        failures.extend(problems)
+        for call in batch:
             calls.append(call)
             helper, problem = _dispatch(call, definitions)
             if helper is not None:

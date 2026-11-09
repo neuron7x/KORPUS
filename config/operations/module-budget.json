@@ -4657,6 +4657,15 @@
       "proof_lines": 0,
       "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
     },
+    "scripts/gcp/migration_definition_scan.py": {
+      "lines": 58,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 18,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #109: extract definition-time AST inspection without weakening migration admission or increasing any existing module, function, complexity or nesting ceiling. New module has measured strict limits."
+    },
     "scripts/gcp/migration_reachability.py": {
       "lines": 152,
       "max_complexity": 10,
