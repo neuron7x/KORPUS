@@ -152,7 +152,9 @@ def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[
         opname = _op_call_name(node)
         if opname in forbidden:
             eligible = created.get(id(node), frozenset())
-            reason = _execute_is_expanding(node, eligible) if opname == "execute" else "op." + opname
+            reason = (
+                _execute_is_expanding(node, eligible) if opname == "execute" else "op." + opname
+            )
             if reason is not None:
                 findings.append(f"future migration is not expand-only: {relative}: {reason}")
         reason = _unsafe_add_column(node)

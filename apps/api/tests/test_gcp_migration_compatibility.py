@@ -322,6 +322,7 @@ def test_simple_pure_lambda_callback_remains_admitted(tmp_path: Path) -> None:
     report = evaluate(root)
     assert report["status"] == "PASS", report
 
+
 def test_conditional_or_late_creation_cannot_license_existing_alter(tmp_path: Path) -> None:
     poison = (
         (

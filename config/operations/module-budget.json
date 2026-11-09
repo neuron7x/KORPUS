@@ -4666,6 +4666,15 @@
       "proof_lines": 0,
       "reason": "Issue #109: extract definition-time AST inspection without weakening migration admission or increasing any existing module, function, complexity or nesting ceiling. New module has measured strict limits."
     },
+    "scripts/gcp/migration_order_proof.py": {
+      "lines": 80,
+      "max_complexity": 13,
+      "max_function_args": 3,
+      "max_function_lines": 36,
+      "max_nesting": 5,
+      "proof_lines": 0,
+      "reason": "Issue #109: exact measured shape of new unconditional CREATE-before-ALTER proof; no existing budget ceilings relaxed."
+    },
     "scripts/gcp/migration_reachability.py": {
       "lines": 152,
       "max_complexity": 10,

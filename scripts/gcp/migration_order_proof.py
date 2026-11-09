@@ -42,9 +42,7 @@ def _shadowed_names(tree: ast.Module) -> set[str]:
     return names
 
 
-def proven_created_before(
-    tree: ast.Module, upgrade: ast.FunctionDef
-) -> dict[int, frozenset[str]]:
+def proven_created_before(tree: ast.Module, upgrade: ast.FunctionDef) -> dict[int, frozenset[str]]:
     """Grant each literal ALTER only creations ordered before its direct call.
 
     Branches and dynamic/indirect expressions never grant creation credit.
