@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2155,
-  "root_sha256": "4b7ea617766fe4073a624a5c2e0533f8a043e901fae75de30c741a8d0f2f7503",
+  "root_sha256": "181b339c5bfdfd6268637f5e816248dc000161df63aa94cd9378fb7c13495f05",
   "files": [
     {
       "path": ".dockerignore",
@@ -11347,8 +11347,8 @@
     },
     {
       "path": "scripts/gcp/migration_revision_identity.py",
-      "bytes": 1936,
-      "sha256": "9ea6cff56d7da3447cd3ffe3a055ad78ccdc1f711e48c5e0bf6f0ad62881a6ac",
+      "bytes": 1889,
+      "sha256": "5d0c3c79f2f26e1a9f5bbe36f46e51a467038429e3eefc6098b5e09cba4f224e",
       "mode": "0644"
     },
     {

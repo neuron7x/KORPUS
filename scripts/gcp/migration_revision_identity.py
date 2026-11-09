@@ -36,10 +36,10 @@ def _module_binding_count(tree: ast.Module, name: str) -> int:
 
 
 def _literal_assignment(tree: ast.Module, name: str) -> str | None:
-    """Refuse dynamic, repeated, indirect or conditional revision identity."""
     if _module_binding_count(tree, name) != 1:
         return None
     for node in tree.body:
+        targets: list[ast.expr]
         if isinstance(node, ast.AnnAssign):
             targets, value = [node.target], node.value
         elif isinstance(node, ast.Assign):
