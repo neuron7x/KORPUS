@@ -312,8 +312,7 @@ def test_module_lambda_callbacks_fail_closed(tmp_path: Path) -> None:
     )
     assert report["status"] == "FAIL", report
     assert any(
-        "lambda has unverified executable callback body" in reason
-        for reason in report["findings"]
+        "lambda has unverified executable callback body" in reason for reason in report["findings"]
     ), report
 
 

@@ -19,10 +19,9 @@ class _DirectCalls(ast.NodeVisitor):
             arg.annotation
             for arg in (*arguments.posonlyargs, *arguments.args, *arguments.kwonlyargs)
         ]
-        if arguments.vararg is not None:
-            annotations.append(arguments.vararg.annotation)
-        if arguments.kwarg is not None:
-            annotations.append(arguments.kwarg.annotation)
+        annotations.extend(
+            arg.annotation for arg in (arguments.vararg, arguments.kwarg) if arg is not None
+        )
         evaluated = [*arguments.defaults, *arguments.kw_defaults, node.returns, *annotations]
         if node.decorator_list or any(
             expr is not None and not isinstance(expr, (ast.Constant, ast.Name))
