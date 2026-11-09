@@ -6733,6 +6733,15 @@
       "proof_lines": 0,
       "reason": "Issue #109: strict measured first-version budget for literal Column keyword expansion; deny ambiguous expansion and duplicates without weakening existing ceilings."
     },
+    "scripts/gcp/migration_check_constraint_scan.py": {
+      "lines": 58,
+      "max_complexity": 12,
+      "max_function_args": 2,
+      "max_function_lines": 25,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #109: exact measured baseline for inline CHECK migration proof module: 58 non-proof lines, complexity 12, function 25 lines, parameters 2, nesting 2. Existing module ceilings unchanged."
+    },
     "scripts/gcp/migration_definition_scan.py": {
       "lines": 58,
       "max_complexity": 8,

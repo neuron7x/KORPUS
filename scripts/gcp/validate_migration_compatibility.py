@@ -51,9 +51,7 @@ def _op_call_name(call: ast.Call) -> str | None:
 def _nonnullable_add_without_default(keywords: dict[str, ast.expr]) -> bool:
     nullable, default = keywords.get("nullable"), keywords.get("server_default")
     primary_key = keywords.get("primary_key")
-    no_server_default = not (
-        isinstance(default, ast.Constant) and isinstance(default.value, str)
-    )
+    no_server_default = not (isinstance(default, ast.Constant) and isinstance(default.value, str))
     if nullable is None and primary_key is not None:
         nullable = ast.Constant(
             value=isinstance(primary_key, ast.Constant) and primary_key.value is False

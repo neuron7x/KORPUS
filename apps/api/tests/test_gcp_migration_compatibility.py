@@ -646,6 +646,7 @@ def test_unused_local_revision_name_preserves_valid_migration(tmp_path: Path) ->
     )
     assert result["status"] == "PASS", result
 
+
 def test_literal_column_kwargs_unpacks_without_silent_false_allow(tmp_path: Path) -> None:
     scenarios = (
         ("**{'nullable': False}", "FAIL"),
@@ -671,6 +672,7 @@ def test_literal_column_kwargs_unpacks_without_silent_false_allow(tmp_path: Path
                 for reason in report["findings"]
             ), report
 
+
 def test_nonliteral_server_default_cannot_authorize_unsafe_add_column(tmp_path: Path) -> None:
     scenarios = (
         ("nullable=False, server_default=(None or None)", "FAIL"),
@@ -686,8 +688,7 @@ def test_nonliteral_server_default_cannot_authorize_unsafe_add_column(tmp_path: 
         root = _copy_surface(tmp_path / f"default-proof-{index}")
         _future(
             root,
-            "op.add_column('accounts', sa.Column('fresh', sa.String(8), "
-            f"{column_kwargs}))",
+            f"op.add_column('accounts', sa.Column('fresh', sa.String(8), {column_kwargs}))",
         )
         report = evaluate(root)
         assert report["status"] == expected, (column_kwargs, report)

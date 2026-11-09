@@ -34,9 +34,7 @@ def _null_compatible(sql: str, name: object) -> bool:
 def inline_check_failure(column: ast.Call, keywords: dict[str, ast.expr]) -> str | None:
     """Prove literal CHECK true/unknown for existing NULL rows; deny unknown SQL."""
     name = (
-        column.args[0].value
-        if column.args and isinstance(column.args[0], ast.Constant)
-        else None
+        column.args[0].value if column.args and isinstance(column.args[0], ast.Constant) else None
     )
     for item in column.args[1:]:
         if isinstance(item, ast.Starred):
