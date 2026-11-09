@@ -321,3 +321,63 @@ def test_simple_pure_lambda_callback_remains_admitted(tmp_path: Path) -> None:
     _future(root, "sorted([2, 1], key=lambda x: x)")
     report = evaluate(root)
     assert report["status"] == "PASS", report
+
+def test_conditional_or_late_creation_cannot_license_existing_alter(tmp_path: Path) -> None:
+    poison = (
+        (
+            "if False:\n    op.create_table('accounts')\n"
+            "op.execute('ALTER TABLE accounts DISABLE ROW LEVEL SECURITY')",
+            "",
+        ),
+        (
+            "if 0:\n    op.create_table('accounts')\n"
+            "op.execute('ALTER TABLE accounts DISABLE ROW LEVEL SECURITY')",
+            "",
+        ),
+        (
+            "make_new()\nop.execute('ALTER TABLE accounts DISABLE ROW LEVEL SECURITY')",
+            "def make_new():\n    if False:\n        op.create_table('accounts')\n",
+        ),
+        (
+            "if False:\n    make_new()\n"
+            "op.execute('ALTER TABLE accounts DISABLE ROW LEVEL SECURITY')",
+            "def make_new():\n    op.create_table('accounts')\n",
+        ),
+        (
+            "op.execute('ALTER TABLE accounts DISABLE ROW LEVEL SECURITY')\n"
+            "op.create_table('accounts')",
+            "",
+        ),
+        (
+            "make_new()\nop.execute('ALTER TABLE accounts DISABLE ROW LEVEL SECURITY')",
+            "def make_new():\n    return\n    op.create_table('accounts')\n",
+        ),
+    )
+    for index, (body, helper) in enumerate(poison):
+        root = _copy_surface(tmp_path / f"create-order-{index}")
+        result = _with_helper(root, body, helper)
+        assert result["status"] == "FAIL", (index, result)
+        assert any("ALTER TABLE accounts" in item for item in result["findings"]), result
+
+
+def test_transitively_ordered_create_remains_admissible(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    result = _with_helper(
+        root,
+        "make_outer()\nop.execute('ALTER TABLE widgets ENABLE ROW LEVEL SECURITY')",
+        "def make_outer():\n    make_inner()\n"
+        "def make_inner():\n"
+        "    op.create_table('widgets', sa.Column('id', sa.Integer()))\n",
+    )
+    assert result["status"] == "PASS", result
+
+
+def test_repeated_alter_helper_requires_prior_creation_each_time(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    result = _with_helper(
+        root,
+        "alter()\nop.create_table('widgets', sa.Column('id', sa.Integer()))\nalter()",
+        "def alter():\n    op.execute('ALTER TABLE widgets ENABLE ROW LEVEL SECURITY')\n",
+    )
+    assert result["status"] == "FAIL", result
+    assert any("ALTER TABLE widgets" in item for item in result["findings"]), result

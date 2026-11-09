@@ -14,7 +14,7 @@ from typing import Any
 # Anchor imports to this checkout for both the CLI and package import paths.
 SCRIPTS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS_DIR))
-from gcp.migration_reachability import created_tables as _created_tables  # noqa: E402
+from gcp.migration_order_proof import proven_created_before as _created_before  # noqa: E402
 from gcp.migration_reachability import reachable_calls as _reachable_calls  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -94,7 +94,6 @@ def _verify_baseline(current: dict[str, Path], baseline: dict[str, str]) -> list
     return findings
 
 
-# Only a literal CREATE TABLE statement is admitted without a full SQL parser.
 _RAW_CREATE_TABLE = re.compile(r"create\s+table\s+[a-z_][a-z_0-9]*\s*\([^;]*\)", re.S)
 
 
@@ -148,11 +147,12 @@ def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[
     findings = [
         f"future migration is not expand-only: {relative}: {reason}" for reason in dispatch_failures
     ]
-    created = _created_tables(calls)
+    created = _created_before(tree, upgrade)
     for node in calls:
         opname = _op_call_name(node)
         if opname in forbidden:
-            reason = _execute_is_expanding(node, created) if opname == "execute" else "op." + opname
+            eligible = created.get(id(node), frozenset())
+            reason = _execute_is_expanding(node, eligible) if opname == "execute" else "op." + opname
             if reason is not None:
                 findings.append(f"future migration is not expand-only: {relative}: {reason}")
         reason = _unsafe_add_column(node)

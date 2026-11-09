@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2151,
-  "root_sha256": "9561651e5a1306327af62b0b63d93a8e9ab839cb170ecc7fa61ad11bf60a3928",
+  "file_count": 2152,
+  "root_sha256": "35b59551d26c593dd018a83cf8f9ce1688babb4226781a42fe9c165c89841c04",
   "files": [
     {
       "path": ".dockerignore",
@@ -4285,8 +4285,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_migration_compatibility.py",
-      "bytes": 13591,
-      "sha256": "aa30814257cb82e69bcca15bf64b952235be48fb04a272ed234ff166ac4a0ff0",
+      "bytes": 16043,
+      "sha256": "f0cc30565b68efc1472983a289afef7ea5a29cecc559adcd66f212fa2b6b1c00",
       "mode": "0644"
     },
     {
@@ -11334,6 +11334,12 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/gcp/migration_order_proof.py",
+      "bytes": 3118,
+      "sha256": "fca8ef6bb9bf28cbcb67d20ff17ee0f8459673bb14b372555fefe16820201597",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/gcp/migration_reachability.py",
       "bytes": 4372,
       "sha256": "ffefa9a7425a7c60608a1a6e7e24d6773f2a5ea967c13f2e0418b148fda1e13e",
@@ -11473,8 +11479,8 @@
     },
     {
       "path": "scripts/gcp/validate_migration_compatibility.py",
-      "bytes": 10138,
-      "sha256": "1c429cba11e2130d5572023c4887f77d5cb22e25558465ea422a211ccc84be6e",
+      "bytes": 10132,
+      "sha256": "6f40836619ffd9f3a4be996a8a6d6dc5b98b42f1aac8aee61807ea05da8e9074",
       "mode": "0755"
     },
     {
