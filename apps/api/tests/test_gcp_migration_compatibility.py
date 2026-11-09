@@ -283,3 +283,42 @@ def test_safe_literal_defaults_and_annotations_remain_allowed(tmp_path: Path) ->
     _future(root, "def helper(value=1) -> None:\n    pass\nhelper()")
     report = evaluate(root)
     assert report["status"] == "PASS", report
+
+
+def test_lambda_callbacks_cannot_hide_unsafe_sql(tmp_path: Path) -> None:
+    poison = (
+        "sorted([2, 1], key=lambda x: op.execute('DROP TABLE accounts'))",
+        "min([1], key=lambda x: op.execute('DROP TABLE accounts'))",
+        "max([1], key=lambda x: op.drop_table('accounts'))",
+        "sorted([2, 1], key=lambda x: (op.execute('DROP TABLE accounts'), x)[-1])",
+    )
+    for index, body in enumerate(poison):
+        root = _copy_surface(tmp_path / f"callback-poison-{index}")
+        _future(root, body)
+        report = evaluate(root)
+        assert report["status"] == "FAIL", (index, report)
+        assert any(
+            "lambda has unverified executable callback body" in reason
+            for reason in report["findings"]
+        ), (index, report)
+
+
+def test_module_lambda_callbacks_fail_closed(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    report = _with_helper(
+        root,
+        "sorted([2, 1], key=payload)",
+        "payload = lambda x: op.execute('DROP TABLE accounts')",
+    )
+    assert report["status"] == "FAIL", report
+    assert any(
+        "lambda has unverified executable callback body" in reason
+        for reason in report["findings"]
+    ), report
+
+
+def test_simple_pure_lambda_callback_remains_admitted(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    _future(root, "sorted([2, 1], key=lambda x: x)")
+    report = evaluate(root)
+    assert report["status"] == "PASS", report

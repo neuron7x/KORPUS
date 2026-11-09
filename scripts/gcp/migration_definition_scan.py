@@ -44,6 +44,8 @@ class _DirectCalls(ast.NodeVisitor):
             for expr in (*node.args.defaults, *node.args.kw_defaults)
         ):
             self.definition_failures.append("lambda has unverified definition-time expressions")
+        if not isinstance(node.body, (ast.Constant, ast.Name)):
+            self.definition_failures.append("lambda has unverified executable callback body")
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         self.definition_failures.append("class definition has unverified execution")
