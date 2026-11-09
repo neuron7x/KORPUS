@@ -648,9 +648,9 @@
         "pages": 5,
         "document_title": "Ukrainian Unmanned Aerial System Tactics (US Army TRADOC G2 OE Enterprise)",
         "issuer": "US Army TRADOC G2 Operational Environment Enterprise",
-        "observed_on": "2026-10-04",
-        "access_vantage": "external web fetch distinct from the deployment host",
-        "limitation": "This observation proves a second network vantage retrieved the five-page official PDF; it does not prove that the deployment host can retrieve or ingest it. The original host_unreachable_from_here refusal remains authoritative for that host."
+        "observed_on": "2026-11-06",
+        "access_vantage": "OpenAI web PDF viewer/index; external crawl reported two days old on 2026-11-06, not KORPUS deployment host",
+        "limitation": "Web viewer rendered five-page official PDF with matching title and issuer on 2026-11-06; index says crawled two days earlier. This does not prove live origin retrieval or deployment-host access. The original host_unreachable_from_here refusal remains authoritative."
       },
       "ingest_block_reason": ""
     },
