@@ -4549,6 +4549,15 @@
       "proof_lines": 0,
       "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
+    "scripts/gcp/migration_symbol_bindings.py": {
+      "lines": 61,
+      "max_complexity": 10,
+      "max_function_args": 2,
+      "max_function_lines": 22,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #109: strict measured first-version ceiling for import-binding and rebinding helpers; existing module budgets remain unchanged."
+    },
     "scripts/gcp/production_contract_migration.py": {
       "lines": 22,
       "max_complexity": 2,

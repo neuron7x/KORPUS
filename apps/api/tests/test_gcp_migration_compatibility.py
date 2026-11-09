@@ -420,3 +420,38 @@ def test_helper_rebinding_cannot_hide_destructive_sql(tmp_path: Path) -> None:
             index,
             report,
         )
+
+def test_unsafe_future_import_bindings_are_rejected(tmp_path: Path) -> None:
+    poison = (
+        "from fake import drop_table as sorted\nsorted('accounts')",
+        "from fake import drop_table as min\nmin('accounts')",
+        "from fake import drop_table as max\nmax('accounts')",
+        "from fake import op\nop.create_table('widgets')",
+        "import fake as sa\nsa.Column('widgets')",
+    )
+    for index, body in enumerate(poison):
+        root = _copy_surface(tmp_path / f"import-shadow-{index}")
+        _future(root, body)
+        result = evaluate(root)
+        assert result["status"] == "FAIL", (index, result)
+        assert any(
+            "unverified import shadows callable" in item for item in result["findings"]
+        ), result
+
+
+def test_future_wildcard_import_is_rejected(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    result = _with_helper(root, "sorted([1, 2])", "from fake import *")
+    assert result["status"] == "FAIL", result
+    assert any("unresolved wildcard import" in item for item in result["findings"])
+
+
+def test_canonical_future_imports_remain_allowed(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    _future(
+        root,
+        "from alembic import op\nimport sqlalchemy as sa\n"
+        "op.create_table('widgets', sa.Column('id', sa.Integer()))",
+    )
+    result = evaluate(root)
+    assert result["status"] == "PASS", result

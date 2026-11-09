@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2152,
-  "root_sha256": "25ba2ccf8c485b50db7d8172145ebad6ba947559627def087c58d23ba6374e58",
+  "file_count": 2153,
+  "root_sha256": "54db3e66bcc8a6896eb8af10c1eaa56255ee31c1d6360c5995cdc3f35bcadaf2",
   "files": [
     {
       "path": ".dockerignore",
@@ -4285,8 +4285,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_migration_compatibility.py",
-      "bytes": 17396,
-      "sha256": "fdc0908c3ddd8200fd17a1378b9e6a03ed567a71ee7a46a3621d5fb4a79e7de9",
+      "bytes": 18808,
+      "sha256": "c9f0492b06054ac9f48d2c4d75be01c16ad3757ee124ee672388482a946bcd63",
       "mode": "0644"
     },
     {
@@ -8335,8 +8335,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 763781,
-      "sha256": "70759362ed26a58cd2dfed49bf5b9ba70ec9f3640d2fd4f1eca337a03535f9be",
+      "bytes": 764147,
+      "sha256": "279cb552dc4503d133759439ef199a74a1c68b2ac921c03ed818d4e373b2af19",
       "mode": "0644"
     },
     {
@@ -11341,8 +11341,14 @@
     },
     {
       "path": "scripts/gcp/migration_reachability.py",
-      "bytes": 4910,
-      "sha256": "abdb4c03eb61eddbaf8482e0dabb82d27c953535c74d597de96d130c03452334",
+      "bytes": 4804,
+      "sha256": "3ad3771fdd2cdb198ebe9016bf12c266f55240c2c179d56f44b4466cdc3acc54",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/gcp/migration_symbol_bindings.py",
+      "bytes": 2174,
+      "sha256": "f2c2fb333de5f232bd72a03a61271832ddc6d211b1dde2da66188c69ddd04a99",
       "mode": "0644"
     },
     {

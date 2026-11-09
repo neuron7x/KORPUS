@@ -10,6 +10,7 @@ from __future__ import annotations
 import ast
 
 from gcp.migration_definition_scan import _DirectCalls
+from gcp.migration_symbol_bindings import import_rebinding_failures, rebound_symbol
 
 _SAFE_BUILTINS = frozenset(
     {
@@ -58,15 +59,8 @@ def _functions(tree: ast.Module) -> dict[str, list[ast.FunctionDef]]:
             definitions.setdefault(node.name, []).append(node)
     # Ambiguous runtime bindings cannot retain a statically trusted helper target.
     for node in ast.walk(tree):
-        if isinstance(node, ast.Name) and isinstance(node.ctx, (ast.Store, ast.Del)):
-            shadow = node.id
-        elif isinstance(node, ast.arg):
-            shadow = node.arg
-        elif isinstance(node, ast.alias):
-            shadow = node.asname or node.name.partition(".")[0]
-        else:
-            continue
-        if shadow in definitions:
+        shadow = rebound_symbol(node)
+        if shadow is not None and shadow in definitions:
             definitions[shadow].append(definitions[shadow][0])
     return definitions
 
@@ -98,6 +92,7 @@ def _scan_statements(statements: list[ast.stmt]) -> tuple[list[ast.Call], list[s
     for statement in statements:
         scanner.visit(statement)
     failures = list(scanner.definition_failures)
+    failures.extend(import_rebinding_failures(statements, _SAFE_BUILTINS))
     for name in sorted(scanner.bindings & (_SAFE_BUILTINS | {"op", "sa"})):
         failures.append(f"trusted callable rebound: {name}")
     return scanner.calls, failures
