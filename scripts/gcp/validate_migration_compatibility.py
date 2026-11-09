@@ -16,6 +16,7 @@ SCRIPTS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS_DIR))
 from gcp.migration_order_proof import proven_created_before as _created_before  # noqa: E402
 from gcp.migration_reachability import reachable_calls as _reachable_calls  # noqa: E402
+from gcp.migration_revision_identity import _literal_assignment  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 POLICY = ROOT / "config/production/migration-policy.json"
@@ -24,23 +25,6 @@ VERSIONS = ROOT / "apps/api/migrations/versions"
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def _literal_assignment(tree: ast.Module, name: str) -> str | None:
-    for node in tree.body:
-        value: ast.expr | None = None
-        if (
-            isinstance(node, ast.AnnAssign)
-            and isinstance(node.target, ast.Name)
-            and node.target.id == name
-        ) or (
-            isinstance(node, ast.Assign)
-            and any(isinstance(t, ast.Name) and t.id == name for t in node.targets)
-        ):
-            value = node.value
-        if isinstance(value, ast.Constant) and isinstance(value.value, str):
-            return value.value
-    return None
 
 
 def _upgrade_function(tree: ast.Module) -> ast.FunctionDef | None:

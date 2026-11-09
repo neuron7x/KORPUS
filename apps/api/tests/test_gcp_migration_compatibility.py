@@ -593,3 +593,34 @@ def test_ordered_future_migration_extensions_remain_admitted(tmp_path: Path) -> 
     report = evaluate(root)
     assert report["status"] == "PASS", report
     assert report["future_migrations"] == 2
+
+
+def test_future_revision_metadata_rebinding_is_rejected(tmp_path: Path) -> None:
+    poison = (
+        "revision = '0025_different'",
+        "down_revision = 'missing_parent'",
+        "down_revision = 'wrong_' + 'parent'",
+        "if True:\n    revision = '0025_conditional'",
+        "from unknown_module import revision",
+        "def rewrite():\n    global revision\n    revision = '0025_other'\nrewrite()",
+        "def rewrite():\n    global down_revision\n    down_revision = 'missing_parent'\nrewrite()",
+    )
+    for index, trailer in enumerate(poison):
+        root = _copy_surface(tmp_path / f"revision-binding-{index}")
+        path = _future(root, "op.create_table('widgets', sa.Column('id', sa.Integer()))")
+        path.write_text(
+            path.read_text(encoding="utf-8") + "\n" + trailer + "\n",
+            encoding="utf-8",
+        )
+        report = evaluate(root)
+        assert report["status"] == "FAIL", (index, report)
+
+
+def test_unused_local_revision_name_preserves_valid_migration(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    result = _with_helper(
+        root,
+        "op.create_table('widgets', sa.Column('id', sa.Integer()))",
+        "def unrelated():\n    revision = 'only_local'\n",
+    )
+    assert result["status"] == "PASS", result
