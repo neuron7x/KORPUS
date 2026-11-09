@@ -248,3 +248,38 @@ def test_raw_sql_literal_create_table_remains_admissible(tmp_path: Path) -> None
     _future(root, "op.execute('CREATE TABLE widgets(id bigint)')")
     report = evaluate(root)
     assert report["status"] == "PASS", report
+
+
+def test_unsafe_nested_definition_time_effects_fail_closed(tmp_path: Path) -> None:
+    poison = (
+        "class Hidden:\n    op.drop_table('accounts')",
+        "def dormant(default=op.drop_table('accounts')):\n    pass",
+        "@identity(op.drop_table('accounts'))\ndef dormant():\n    pass",
+        "async def dormant(default=op.execute('DROP TABLE accounts')):\n    pass",
+        "func = lambda default=op.execute('DROP TABLE accounts'): default",
+    )
+    for index, body in enumerate(poison):
+        root = _copy_surface(tmp_path / f"definition-time-{index}")
+        _future(root, body)
+        report = evaluate(root)
+        assert report["status"] == "FAIL", (index, report)
+        assert any(
+            "definition-time" in reason or "class definition" in reason
+            for reason in report["findings"]
+        ), (index, report)
+
+
+def test_unsafe_import_time_definition_is_rejected(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    report = _with_helper(
+        root, "pass", "def dormant(default=op.drop_table('accounts')):\n    pass\n"
+    )
+    assert report["status"] == "FAIL", report
+    assert any("definition-time" in reason for reason in report["findings"])
+
+
+def test_safe_literal_defaults_and_annotations_remain_allowed(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    _future(root, "def helper(value=1) -> None:\n    pass\nhelper()")
+    report = evaluate(root)
+    assert report["status"] == "PASS", report

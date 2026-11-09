@@ -55,18 +55,42 @@ class _DirectCalls(ast.NodeVisitor):
     def __init__(self) -> None:
         self.calls: list[ast.Call] = []
         self.bindings: set[str] = set()
+        self.definition_failures: list[str] = []
+
+    def _check_signature(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
+        arguments = node.args
+        annotations = [
+            arg.annotation
+            for arg in (*arguments.posonlyargs, *arguments.args, *arguments.kwonlyargs)
+        ]
+        if arguments.vararg is not None:
+            annotations.append(arguments.vararg.annotation)
+        if arguments.kwarg is not None:
+            annotations.append(arguments.kwarg.annotation)
+        evaluated = [*arguments.defaults, *arguments.kw_defaults, node.returns, *annotations]
+        if node.decorator_list or any(
+            expr is not None and not isinstance(expr, (ast.Constant, ast.Name))
+            for expr in evaluated
+        ):
+            self.definition_failures.append(
+                f"function {node.name} has unverified definition-time expressions"
+            )
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-        return
+        self._check_signature(node)
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
-        return
+        self._check_signature(node)
 
     def visit_Lambda(self, node: ast.Lambda) -> None:
-        return
+        if any(
+            expr is not None and not isinstance(expr, ast.Constant)
+            for expr in (*node.args.defaults, *node.args.kw_defaults)
+        ):
+            self.definition_failures.append("lambda has unverified definition-time expressions")
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
-        return
+        self.definition_failures.append("class definition has unverified execution")
 
     def visit_Call(self, node: ast.Call) -> None:
         self.calls.append(node)
@@ -114,6 +138,21 @@ def reachable_calls(tree: ast.Module, upgrade: ast.FunctionDef) -> tuple[list[as
     visited: set[int] = set()
     calls: list[ast.Call] = []
     failures: list[str] = []
+    # Migration modules execute their top-level statements when Alembic imports them.
+    # A dormant function body is inert, but its decorator/defaults are not.
+    module_scanner = _DirectCalls()
+    for statement in tree.body:
+        module_scanner.visit(statement)
+    calls.extend(module_scanner.calls)
+    failures.extend(module_scanner.definition_failures)
+    for name in sorted(module_scanner.bindings & (_SAFE_BUILTINS | {"op", "sa"})):
+        failures.append(f"trusted callable rebound: {name}")
+    for call in module_scanner.calls:
+        helper, problem = _dispatch(call, definitions)
+        if helper is not None:
+            pending.append(helper)
+        if problem is not None:
+            failures.append(problem)
     while pending:
         function = pending.pop()
         if id(function) in visited:
@@ -122,6 +161,7 @@ def reachable_calls(tree: ast.Module, upgrade: ast.FunctionDef) -> tuple[list[as
         scanner = _DirectCalls()
         for statement in function.body:
             scanner.visit(statement)
+        failures.extend(scanner.definition_failures)
         for name in sorted(scanner.bindings & (_SAFE_BUILTINS | {"op", "sa"})):
             failures.append(f"trusted callable rebound: {name}")
         for call in scanner.calls:
