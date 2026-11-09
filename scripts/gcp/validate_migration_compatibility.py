@@ -75,8 +75,8 @@ def _unsafe_add_column(call: ast.Call) -> str | None:
     keywords = {kw.arg: kw.value for kw in column.keywords if kw.arg}
     nullable, default = keywords.get("nullable"), keywords.get("server_default")
     if (
-        isinstance(nullable, ast.Constant)
-        and nullable.value is False
+        nullable is not None
+        and not (isinstance(nullable, ast.Constant) and nullable.value is True)
         and (default is None or (isinstance(default, ast.Constant) and default.value is None))
     ):
         return "non-null column without server_default is not expand-safe for existing rows"

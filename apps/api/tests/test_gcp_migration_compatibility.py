@@ -98,6 +98,19 @@ def test_non_null_add_without_server_default_is_rejected(tmp_path: Path) -> None
     assert any("server_default" in item for item in report["findings"])
 
 
+def test_false_or_unproven_nullable_without_default_fails_closed(tmp_path: Path) -> None:
+    for index, nullable in enumerate(("0", "bool(0)", "not True")):
+        root = _copy_surface(tmp_path / f"nullable-poison-{index}")
+        _future(
+            root,
+            "op.add_column('accounts', sa.Column('nickname', sa.Text(), "
+            f"nullable={nullable}))",
+        )
+        report = evaluate(root)
+        assert report["status"] == "FAIL", (nullable, report)
+        assert any("server_default" in reason for reason in report["findings"]), report
+
+
 def test_alter_on_a_table_this_migration_creates_is_allowed(tmp_path: Path) -> None:
     """Ревізія N-1 не знає про таблицю, народжену в цьому ж `upgrade()`.
 
