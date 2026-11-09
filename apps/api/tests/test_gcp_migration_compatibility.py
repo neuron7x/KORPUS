@@ -103,8 +103,7 @@ def test_false_or_unproven_nullable_without_default_fails_closed(tmp_path: Path)
         root = _copy_surface(tmp_path / f"nullable-poison-{index}")
         _future(
             root,
-            "op.add_column('accounts', sa.Column('nickname', sa.Text(), "
-            f"nullable={nullable}))",
+            f"op.add_column('accounts', sa.Column('nickname', sa.Text(), nullable={nullable}))",
         )
         report = evaluate(root)
         assert report["status"] == "FAIL", (nullable, report)
