@@ -55,6 +55,11 @@ def _op_call_name(call: ast.Call) -> str | None:
     )
 
 
+def _literal_nul_default(keywords: dict[str, ast.expr]) -> bool:
+    value = keywords.get("server_default")
+    return isinstance(value, ast.Constant) and "\0" in str(value.value)
+
+
 def _unsafe_add_column(call: ast.Call) -> str | None:
     if _op_call_name(call) != "add_column":
         return None
@@ -72,6 +77,8 @@ def _unsafe_add_column(call: ast.Call) -> str | None:
     keywords = _column_keywords(column)
     if keywords is None:
         return "unverified Column keyword expansion or duplicated keys"
+    if _literal_nul_default(keywords):
+        return "literal server_default contains NUL character"
     if (check_reason := inline_check_failure(column, keywords)) is not None:
         return check_reason
     if (default_problem := unproven_numeric_server_default(column, keywords)) is not None:

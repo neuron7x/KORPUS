@@ -77,6 +77,11 @@ from scripts.gcp.validate_migration_compatibility import evaluate
             "sa.Column('score', type_=sa.Integer(), nullable=False, server_default='2147483648')",
             "FAIL",
         ),
+        ("sa.Column('note', sa.Text(), server_default='\\x00')", "FAIL"),
+        ("sa.Column('note', sa.Text(), server_default='a\\x00b')", "FAIL"),
+        ("sa.Column('note', sa.Text(), server_default='end\\x00')", "FAIL"),
+        ("sa.Column('note', sa.Text(), server_default='plain')", "PASS"),
+        ("sa.Column('note', sa.Text(), server_default='first\\nsecond')", "PASS"),
     ],
 )
 def test_literal_numeric_type_proof_includes_type_keyword(
