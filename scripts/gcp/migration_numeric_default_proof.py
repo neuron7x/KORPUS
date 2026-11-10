@@ -8,9 +8,7 @@ import re
 _INTEGERS = frozenset(
     {"Integer", "BigInteger", "SmallInteger", "INTEGER", "BIGINT", "SMALLINT", "INT"}
 )
-_FLOATS = frozenset(
-    {"Float", "REAL", "Numeric", "DECIMAL", "NUMERIC", "FLOAT", "DOUBLE_PRECISION"}
-)
+_FLOATS = frozenset({"Float", "REAL", "Numeric", "DECIMAL", "NUMERIC", "FLOAT", "DOUBLE_PRECISION"})
 _INT_LITERAL = re.compile(r"[+-]?[0-9]+\Z")
 _FLOAT_LITERAL = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[Ee][+-]?[0-9]+)?\Z")
 
@@ -30,9 +28,7 @@ def nonnullable_add_without_default(keywords: dict[str, ast.expr]) -> bool:
     )
 
 
-def unproven_numeric_server_default(
-    column: ast.Call, keywords: dict[str, ast.expr]
-) -> str | None:
+def unproven_numeric_server_default(column: ast.Call, keywords: dict[str, ast.expr]) -> str | None:
     """Fail closed for uncastable numeric defaults; absence of default stays valid."""
     if len(column.args) < 2 or "server_default" not in keywords:
         return None
