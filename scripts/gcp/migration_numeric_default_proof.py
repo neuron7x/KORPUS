@@ -5,8 +5,12 @@ from __future__ import annotations
 import ast
 import re
 
-_INTEGERS = frozenset("Integer BigInteger SmallInteger INTEGER BIGINT SMALLINT INT".split())
-_FLOATS = frozenset("Float REAL Numeric DECIMAL NUMERIC FLOAT DOUBLE_PRECISION".split())
+_INTEGERS = frozenset(
+    ["Integer", "BigInteger", "SmallInteger", "INTEGER", "BIGINT", "SMALLINT", "INT"]
+)
+_FLOATS = frozenset(
+    ["Float", "REAL", "Numeric", "DECIMAL", "NUMERIC", "FLOAT", "DOUBLE_PRECISION"]
+)
 _INT_LITERAL = re.compile(r"[+-]?[0-9]{1,19}\Z")
 _FLOAT_LITERAL = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[Ee][+-]?[0-9]+)?\Z")
 _INTEGER_BITS = {"SmallInteger": 16, "SMALLINT": 16, "BigInteger": 64, "BIGINT": 64}
