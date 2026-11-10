@@ -57,7 +57,12 @@ def _op_call_name(call: ast.Call) -> str | None:
 
 def _literal_nul_default(keywords: dict[str, ast.expr]) -> bool:
     value = keywords.get("server_default")
-    return isinstance(value, ast.Constant) and "\0" in str(value.value)
+    return value is not None and any(
+        isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and "\0" in node.value
+        for node in ast.walk(value)
+    )
 
 
 def _unsafe_add_column(call: ast.Call) -> str | None:

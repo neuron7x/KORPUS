@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2167,
-  "root_sha256": "56d180f27f4eff28ec03d1e23fd135bc92da28299f182a17c77778424f9feddc",
+  "file_count": 2168,
+  "root_sha256": "24d672aa9d42111c00e7be9de8d93e9527b154f744eb6ed0ed301eece7afe555",
   "files": [
     {
       "path": ".dockerignore",
@@ -4317,6 +4317,12 @@
       "path": "apps/api/tests/test_gcp_migration_numeric_type_keyword.py",
       "bytes": 4514,
       "sha256": "cadd6970728bfd2ea5dcee2d67c22a7004a3840d65f26d2a737662b7260ba0ea",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_gcp_migration_sqltext_nul.py",
+      "bytes": 1995,
+      "sha256": "64f2571d5f7a44e94ee66009d04c923dd39545c53b607d97e5acb4b7fe9f5340",
       "mode": "0644"
     },
     {
@@ -11570,8 +11576,8 @@
     {
       "path": "scripts/gcp/validate_migration_compatibility.py",
       "mode": "0755",
-      "bytes": 11095,
-      "sha256": "8bf4f46de464955d7c892287beb8f82de969d1043f7891c908b7b3867d0b8f27"
+      "bytes": 11213,
+      "sha256": "06a05f9966ed8543e4f61921104bb90f0ea917aeb1ceb044826e01af842c8cef"
     },
     {
       "path": "scripts/gcp/validate_terraform_structure.py",
