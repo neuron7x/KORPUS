@@ -8,9 +8,7 @@ import re
 _INTEGERS = frozenset(
     ["Integer", "BigInteger", "SmallInteger", "INTEGER", "BIGINT", "SMALLINT", "INT"]
 )
-_FLOATS = frozenset(
-    ["Float", "REAL", "Numeric", "DECIMAL", "NUMERIC", "FLOAT", "DOUBLE_PRECISION"]
-)
+_FLOATS = frozenset(["Float", "REAL", "Numeric", "DECIMAL", "NUMERIC", "FLOAT", "DOUBLE_PRECISION"])
 _INT_LITERAL = re.compile(r"[+-]?[0-9]{1,19}\Z")
 _FLOAT_LITERAL = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[Ee][+-]?[0-9]+)?\Z")
 _INTEGER_BITS = {"SmallInteger": 16, "SMALLINT": 16, "BigInteger": 64, "BIGINT": 64}
@@ -21,11 +19,8 @@ def nonnullable_add_without_default(keywords: dict[str, ast.expr]) -> bool:
     no_server_default = not (isinstance(default, ast.Constant) and isinstance(default.value, str))
     if nullable is None and (primary_key := keywords.get("primary_key")) is not None:
         nullable = ast.Constant(value=getattr(primary_key, "value", None) is False)
-    return (
-        nullable is not None
-        and not (isinstance(nullable, ast.Constant) and nullable.value is True)
-        and no_server_default
-    )
+    is_nullable = isinstance(nullable, ast.Constant) and nullable.value is True
+    return nullable is not None and not is_nullable and no_server_default
 
 
 def _numeric_literal_valid(name: str, literal: str) -> bool:
