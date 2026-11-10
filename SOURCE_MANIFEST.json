@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2167,
-  "root_sha256": "b33f7d8235f82226731e025c936ffbbbae252b9c137b9a844e4281eb1b587a53",
+  "root_sha256": "c38c6dd05e3a34976a95213139ae17d77ca57822dc3132509b3d6ad270f611a4",
   "files": [
     {
       "path": ".dockerignore",
@@ -11402,8 +11402,8 @@
     {
       "path": "scripts/gcp/migration_numeric_default_proof.py",
       "mode": "0644",
-      "bytes": 2441,
-      "sha256": "40ed32c796855bce238e3f78d87733444d90bdcccd052ddb5c137e5c6ab3a14e"
+      "bytes": 2432,
+      "sha256": "ff0d4c793d2325bf4b7524c8371edd4474e0b872d05087668f5a6579a9259195"
     },
     {
       "path": "scripts/gcp/migration_order_proof.py",

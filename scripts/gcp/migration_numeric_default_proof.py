@@ -36,9 +36,8 @@ def unproven_numeric_server_default(column: ast.Call, keywords: dict[str, ast.ex
     if type_node is None or (len(column.args) > 1) == ("type_" in keywords):
         return "unverified or ambiguous Column type binding"
     constructor = type_node.func if isinstance(type_node, ast.Call) else type_node
-    name: str | None
     if isinstance(constructor, ast.Attribute) and getattr(constructor.value, "id", None) == "sa":
-        name = constructor.attr
+        name: str | None = constructor.attr
     else:
         name = getattr(constructor, "id", None)
     if name not in _INTEGERS | _FLOATS:
