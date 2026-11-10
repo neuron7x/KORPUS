@@ -58,9 +58,7 @@ def _op_call_name(call: ast.Call) -> str | None:
 def _literal_nul_default(keywords: dict[str, ast.expr]) -> bool:
     value = keywords.get("server_default")
     return value is not None and any(
-        isinstance(node, ast.Constant)
-        and isinstance(node.value, str)
-        and "\0" in node.value
+        isinstance(node, ast.Constant) and isinstance(node.value, str) and "\0" in node.value
         for node in ast.walk(value)
     )
 
@@ -122,13 +120,9 @@ def _execute_is_expanding(node: ast.Call, created: frozenset[str] = frozenset())
     невідоме не є дозволом.
 
     `ALTER TABLE` пропускається РІВНО тоді, коли таблицю створює ця сама міграція.
-    Різниця не формальна. `ALTER TABLE documents ENABLE ROW LEVEL SECURITY` звужує те,
-    що бачить ревізія N-1, — саме так 0020 і був визнаний нерозширювальним, із жорсткою
-    послідовністю «мігрувати, потім підняти новий код». `ALTER TABLE capability_effects
-    …` над таблицею, народженою в цьому ж `upgrade()`, не може зачепити нікого: ревізія
-    N-1 про цю таблицю не знає й жодного запиту до неї не робить. Заборона на дієслово
-    не розрізняла цих випадків, тобто перевірка з іменем «expand-only» міряла механізм,
-    а не властивість, яку охороняє.
+    `ALTER TABLE` on an existing table can narrow the N-1 read contract.
+    Same-migration tables cannot affect N-1; their literal ALTER is admissible.
+    Preserve this distinction instead of banning every ALTER by verb.
     """
     if not node.args:
         return "op.execute without a statement"

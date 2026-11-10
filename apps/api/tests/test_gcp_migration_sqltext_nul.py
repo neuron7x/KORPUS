@@ -28,9 +28,7 @@ def test_nested_nul_server_default_fails_closed(
     versions = tmp_path / "apps/api/migrations/versions"
     versions.mkdir(parents=True)
     baseline = versions / "0000_base.py"
-    baseline.write_text(
-        'revision = "r0"\ndown_revision = None\ndef upgrade():\n    pass\n'
-    )
+    baseline.write_text('revision = "r0"\ndown_revision = None\ndef upgrade():\n    pass\n')
     policy = tmp_path / "config/production/migration-policy.json"
     policy.parent.mkdir(parents=True)
     policy.write_text(
@@ -42,9 +40,7 @@ def test_nested_nul_server_default_fails_closed(
                         baseline.read_bytes()
                     ).hexdigest()
                 },
-                "future_upgrade_forbidden_calls": [
-                    "execute", "drop_column", "drop_table"
-                ],
+                "future_upgrade_forbidden_calls": ["execute", "drop_column", "drop_table"],
             }
         )
     )
