@@ -6715,6 +6715,15 @@
       "proof_lines": 0,
       "reason": "PR #88 Codex P2 4334124081: add a single-descriptor, nofollow/nonblocking, byte-bounded reader and observable-change refusal. Only this not-yet-merged module grows; input limits, function ceilings, other module budgets and existing tests are unchanged. Twenty-four new file-boundary controls and six isolated guard mutations verify the added behavior."
     },
+    "scripts/gcp/migration_add_column_bind.py": {
+      "lines": 25,
+      "max_complexity": 12,
+      "max_function_args": 1,
+      "max_function_lines": 16,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #109: exact AST-measured initial ceiling for strict Alembic add_column argument binding; no existing ceiling increased."
+    },
     "scripts/gcp/migration_symbol_bindings.py": {
       "lines": 61,
       "max_complexity": 10,

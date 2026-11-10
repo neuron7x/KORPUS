@@ -20,8 +20,7 @@ from scripts.gcp.validate_migration_compatibility import evaluate
             "FAIL",
         ),
         (
-            "op.add_column('accounts', column=sa.Column('x', sa.Integer(), "
-            "nullable=False))",
+            "op.add_column('accounts', column=sa.Column('x', sa.Integer(), nullable=False))",
             "FAIL",
         ),
         (
@@ -30,8 +29,7 @@ from scripts.gcp.validate_migration_compatibility import evaluate
             "FAIL",
         ),
         (
-            "op.add_column('accounts', *[sa.Column('x', sa.Integer(), "
-            "nullable=False)])",
+            "op.add_column('accounts', *[sa.Column('x', sa.Integer(), nullable=False)])",
             "FAIL",
         ),
         ("op.add_column(**kwargs)", "FAIL"),
@@ -42,8 +40,7 @@ from scripts.gcp.validate_migration_compatibility import evaluate
             "FAIL",
         ),
         (
-            "op.add_column('accounts', table_name='accounts', column=sa.Column('x',"
-            " sa.Integer()))",
+            "op.add_column('accounts', table_name='accounts', column=sa.Column('x', sa.Integer()))",
             "FAIL",
         ),
         (
@@ -60,8 +57,7 @@ from scripts.gcp.validate_migration_compatibility import evaluate
             "PASS",
         ),
         (
-            "op.add_column('accounts', column=sa.Column('x', sa.Integer(), "
-            "nullable=True))",
+            "op.add_column('accounts', column=sa.Column('x', sa.Integer(), nullable=True))",
             "PASS",
         ),
         (
@@ -87,9 +83,7 @@ def test_admission_binds_literal_column_or_refuses_unknown(
     versions = tmp_path / "apps/api/migrations/versions"
     versions.mkdir(parents=True)
     baseline = versions / "0001_baseline.py"
-    baseline.write_text(
-        "revision='base'\ndown_revision=None\ndef upgrade():\n    pass\n"
-    )
+    baseline.write_text("revision='base'\ndown_revision=None\ndef upgrade():\n    pass\n")
     policy = tmp_path / "config/production/migration-policy.json"
     policy.parent.mkdir(parents=True)
     policy.write_text(
