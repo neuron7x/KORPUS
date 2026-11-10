@@ -33,6 +33,50 @@ from scripts.gcp.validate_migration_compatibility import evaluate
             "FAIL",
         ),
         ("sa.Column('score', server_default='123')", "FAIL"),
+        (
+            "sa.Column('score', sa.Integer(), nullable=False, server_default='2147483647')",
+            "PASS",
+        ),
+        (
+            "sa.Column('score', sa.Integer(), nullable=False, server_default='2147483648')",
+            "FAIL",
+        ),
+        (
+            "sa.Column('score', sa.Integer(), nullable=False, server_default='-2147483648')",
+            "PASS",
+        ),
+        (
+            "sa.Column('score', sa.Integer(), nullable=False, server_default='-2147483649')",
+            "FAIL",
+        ),
+        (
+            "sa.Column('score', sa.BigInteger(), nullable=False, server_default='9223372036854775807')",
+            "PASS",
+        ),
+        (
+            "sa.Column('score', sa.BigInteger(), nullable=False, server_default='9223372036854775808')",
+            "FAIL",
+        ),
+        (
+            "sa.Column('score', sa.BigInteger(), nullable=False, server_default='-9223372036854775808')",
+            "PASS",
+        ),
+        (
+            "sa.Column('score', sa.BigInteger(), nullable=False, server_default='-9223372036854775809')",
+            "FAIL",
+        ),
+        (
+            "sa.Column('score', sa.SmallInteger(), nullable=False, server_default='32767')",
+            "PASS",
+        ),
+        (
+            "sa.Column('score', sa.SmallInteger(), nullable=False, server_default='32768')",
+            "FAIL",
+        ),
+        (
+            "sa.Column('score', type_=sa.Integer(), nullable=False, server_default='2147483648')",
+            "FAIL",
+        ),
     ],
 )
 def test_literal_numeric_type_proof_includes_type_keyword(
