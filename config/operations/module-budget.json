@@ -6769,6 +6769,15 @@
       "proof_lines": 0,
       "reason": "Issue #109: exact measured shape of new unconditional CREATE-before-ALTER proof; no existing budget ceilings relaxed."
     },
+    "scripts/gcp/migration_numeric_default_proof.py": {
+      "lines": 55,
+      "max_complexity": 15,
+      "max_function_args": 2,
+      "max_function_lines": 23,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #109: measured first-version conservative SQL numeric server-default proof; replaces inherited non-nullability helper without increasing existing ratchet ceilings."
+    },
     "scripts/gcp/migration_reachability.py": {
       "lines": 152,
       "max_complexity": 10,

@@ -729,3 +729,24 @@ def test_inline_check_default_and_starred_bypass_are_refused(tmp_path: Path) -> 
         body = f"op.add_column('accounts', sa.Column('fresh', sa.Integer(), {args}))"
         _future(root, body)
         assert evaluate(root)["status"] == expected, args
+
+
+def test_numeric_server_defaults_require_compatible_literals(tmp_path: Path) -> None:
+    cases = (
+        ("sa.Integer()", "abc", "FAIL"),
+        ("sa.Integer()", "1.2", "FAIL"),
+        ("sa.REAL()", "invalid", "FAIL"),
+        ("sa.Integer()", "7", "PASS"),
+        ("sa.Integer()", "-2", "PASS"),
+        ("sa.REAL()", "1.25", "PASS"),
+        ("sa.Text()", "hello", "PASS"),
+    )
+    for index, (column_type, literal, expected) in enumerate(cases):
+        root = _copy_surface(tmp_path / f"numeric-default-{index}")
+        _future(
+            root,
+            f"op.add_column('accounts', sa.Column('fresh', {column_type}, "
+            f"nullable=True, server_default={literal!r}))",
+        )
+        report = evaluate(root)
+        assert report["status"] == expected, (column_type, literal, report)

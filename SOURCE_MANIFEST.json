@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2165,
-  "root_sha256": "a49781c34765588c3121c0196b9106f5c184ed510e7def37fd41ea8c69435820",
+  "file_count": 2166,
+  "root_sha256": "00cb53dda266f9b91e936c747f169d17ba3376cac09e997f75daf39b79174edc",
   "files": [
     {
       "path": ".dockerignore",
@@ -4303,9 +4303,9 @@
     },
     {
       "path": "apps/api/tests/test_gcp_migration_compatibility.py",
-      "bytes": 30956,
-      "sha256": "78d8fe8e40070d7a13e24031ee6c67a81a47cd23d90ce711d19aa00edc5bd48f",
-      "mode": "0644"
+      "mode": "0644",
+      "bytes": 31772,
+      "sha256": "d8103c13c83625902c0a53648bfa768421fc50ee0ab8c3ce5b47468b9b820d90"
     },
     {
       "path": "apps/api/tests/test_gcp_migration_named_add_column.py",
@@ -8377,9 +8377,9 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 766491,
-      "sha256": "aca455b4015c4f966eb584ea3d254cbcf8476df414802ca60ab8ed6a17b27524",
-      "mode": "0644"
+      "mode": "0644",
+      "bytes": 766899,
+      "sha256": "8dcbb1b9593e2193bd3f1b91e73fb85ba8369a2ce1eea6c31f818eee45a9a982"
     },
     {
       "path": "config/operations/mutation-delta-exceptions.json",
@@ -11394,6 +11394,12 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/gcp/migration_numeric_default_proof.py",
+      "mode": "0644",
+      "bytes": 2331,
+      "sha256": "ba8b504647ed366a1941808a2d75984be41a5e3a4b6b30f70d7b889b5dc01019"
+    },
+    {
       "path": "scripts/gcp/migration_order_proof.py",
       "bytes": 3112,
       "sha256": "2f8072bd5ac17661c4d5bbd1eb40784eba5575982681cb06149f9b84a82d9466",
@@ -11557,9 +11563,9 @@
     },
     {
       "path": "scripts/gcp/validate_migration_compatibility.py",
-      "bytes": 11093,
-      "sha256": "8f9bafb88bbcf61f92bf23fcb71d078033267ee6a3fbf82f432330642185288b",
-      "mode": "0755"
+      "mode": "0755",
+      "bytes": 10745,
+      "sha256": "696facc28fea332dccebe02d346ef2d7fda18ebe81fea59ef7a974380670cb5b"
     },
     {
       "path": "scripts/gcp/validate_terraform_structure.py",
