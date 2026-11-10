@@ -30,9 +30,11 @@ def nonnullable_add_without_default(keywords: dict[str, ast.expr]) -> bool:
 
 def unproven_numeric_server_default(column: ast.Call, keywords: dict[str, ast.expr]) -> str | None:
     """Fail closed for uncastable numeric defaults; absence of default stays valid."""
-    if len(column.args) < 2 or "server_default" not in keywords:
+    if "server_default" not in keywords:
         return None
-    type_node = column.args[1]
+    type_node = column.args[1] if len(column.args) > 1 else keywords.get("type_")
+    if type_node is None or (len(column.args) > 1 and "type_" in keywords):
+        return "unverified or ambiguous Column type binding"
     constructor = type_node.func if isinstance(type_node, ast.Call) else type_node
     if isinstance(constructor, ast.Attribute) and isinstance(constructor.value, ast.Name):
         name = constructor.attr if constructor.value.id == "sa" else None

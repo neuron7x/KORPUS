@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2166,
-  "root_sha256": "38e2a7d7758fd26e69107e3685947a179abb65498ec00d09c4609361e1fb9e48",
+  "file_count": 2167,
+  "root_sha256": "e7a19bd4f1d5dc4509ea7c5abe25da0ae25794f63d9f5cda9009656b63b00500",
   "files": [
     {
       "path": ".dockerignore",
@@ -4311,6 +4311,12 @@
       "path": "apps/api/tests/test_gcp_migration_named_add_column.py",
       "bytes": 3927,
       "sha256": "26e4cc47ef8d42a059c52e6ac6c0595c6767865840cbfa785a3810406a2e0a56",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_gcp_migration_numeric_type_keyword.py",
+      "bytes": 2598,
+      "sha256": "a57b4cc63024080e3a8dc20ddefa60bb29fd4a703fb216a358ee61fce43af633",
       "mode": "0644"
     },
     {
@@ -11396,8 +11402,8 @@
     {
       "path": "scripts/gcp/migration_numeric_default_proof.py",
       "mode": "0644",
-      "bytes": 2319,
-      "sha256": "1f28a504d4dc20e7386d05776863745debba869ed0c22d2403d78851be2cefb1"
+      "bytes": 2483,
+      "sha256": "048ca6af3d40191d11158f8e467dbfe4709b228a6e840a785e481695de88487a"
     },
     {
       "path": "scripts/gcp/migration_order_proof.py",
