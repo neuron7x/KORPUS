@@ -22,7 +22,7 @@ from gcp.migration_column_keyword_scan import (  # noqa: E402
 from gcp.migration_numeric_default_proof import (  # noqa: E402
     nonnullable_add_without_default as _nonnullable_add_without_default,
 )
-from gcp.migration_numeric_default_proof import (
+from gcp.migration_numeric_default_proof import (  # noqa: E402
     unproven_numeric_server_default,
 )
 from gcp.migration_order_proof import proven_created_before as _created_before  # noqa: E402

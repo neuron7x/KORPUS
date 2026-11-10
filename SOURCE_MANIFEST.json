@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2166,
-  "root_sha256": "0cb7c0f72ae5d58a2d2982204af03366d5363ffb38c5dff377aa5101ac57b92e",
+  "root_sha256": "38e2a7d7758fd26e69107e3685947a179abb65498ec00d09c4609361e1fb9e48",
   "files": [
     {
       "path": ".dockerignore",
@@ -11564,8 +11564,8 @@
     {
       "path": "scripts/gcp/validate_migration_compatibility.py",
       "mode": "0755",
-      "bytes": 10797,
-      "sha256": "93fa5a47c458fc31282eee989109cca791b4c383b8194b5ffa5de87570339685"
+      "bytes": 10811,
+      "sha256": "7b5748ce17cf8e4ad3dfc7a705346fcf789d04776bcdee81fa87e8032c5e002e"
     },
     {
       "path": "scripts/gcp/validate_terraform_structure.py",
