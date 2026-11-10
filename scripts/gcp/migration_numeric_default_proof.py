@@ -33,13 +33,13 @@ def unproven_numeric_server_default(column: ast.Call, keywords: dict[str, ast.ex
     if "server_default" not in keywords:
         return None
     type_node = column.args[1] if len(column.args) > 1 else keywords.get("type_")
-    if type_node is None or (len(column.args) > 1 and "type_" in keywords):
+    if type_node is None or (len(column.args) > 1) == ("type_" in keywords):
         return "unverified or ambiguous Column type binding"
     constructor = type_node.func if isinstance(type_node, ast.Call) else type_node
-    if isinstance(constructor, ast.Attribute) and isinstance(constructor.value, ast.Name):
-        name = constructor.attr if constructor.value.id == "sa" else None
+    if isinstance(constructor, ast.Attribute) and getattr(constructor.value, "id", None) == "sa":
+        name = constructor.attr
     else:
-        name = constructor.id if isinstance(constructor, ast.Name) else None
+        name = getattr(constructor, "id", None)
     if name not in _INTEGERS | _FLOATS:
         return None
     default = keywords["server_default"]
