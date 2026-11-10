@@ -45,7 +45,7 @@ def test_nested_nul_server_default_fails_closed(
         )
     )
     (versions / "0001_future.py").write_text(
-        'from alembic import op\nimport sqlalchemy as sa\n'
+        "from alembic import op\nimport sqlalchemy as sa\n"
         'revision = "r1"\ndown_revision = "r0"\n'
         "def upgrade():\n"
         "    op.add_column('accounts', sa.Column('notes', sa.Text(), "
