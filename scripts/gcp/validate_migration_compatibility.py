@@ -14,6 +14,7 @@ from typing import Any
 # Anchor imports to this checkout for both the CLI and package import paths.
 SCRIPTS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS_DIR))
+from gcp.migration_add_column_bind import bind_add_column_argument  # noqa: E402
 from gcp.migration_check_constraint_scan import inline_check_failure  # noqa: E402
 from gcp.migration_column_keyword_scan import (  # noqa: E402
     literal_column_keywords as _column_keywords,
@@ -64,9 +65,11 @@ def _nonnullable_add_without_default(keywords: dict[str, ast.expr]) -> bool:
 
 
 def _unsafe_add_column(call: ast.Call) -> str | None:
-    if _op_call_name(call) != "add_column" or len(call.args) < 2:
+    if _op_call_name(call) != "add_column":
         return None
-    column = call.args[1]
+    column, problem = bind_add_column_argument(call)
+    if problem is not None:
+        return problem
     if not isinstance(column, ast.Call):
         return "add_column uses a non-literal Column expression"
     func = column.func
