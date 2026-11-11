@@ -31,8 +31,7 @@ def constraint_failure(call: ast.Call, created: frozenset[str]) -> str | None:
     name = _operation(call)
     if name not in _RESTRICTIVE | {"create_index"}:
         return None
-    keys = _keywords(call)
-    if keys is None:
+    if (keys := _keywords(call)) is None:
         return f"unverified op.{name} keyword binding"
     if name == "create_index":
         if len(call.args) > 3:
