@@ -44,17 +44,15 @@ def _shadowed_names(tree: ast.Module) -> set[str]:
 
 
 def proven_created_before(tree: ast.Module, upgrade: ast.FunctionDef) -> dict[int, frozenset[str]]:
-    """Grant DDL calls only unconditional creation credits preceding execution.
-
-    Repeated helper invocations intersect evidence; neither a later nor a
-    conditional CREATE can justify earlier/unconditional ALTER.
-    """
+    """Credit ordered unconditional creates; intersect repeated helper proofs."""
     definitions, shadowed = _definitions(tree), _shadowed_names(tree)
     proven: dict[int, frozenset[str]] = {}
 
     def walk(stmts: list[ast.stmt], created: set[str], active: frozenset[int]) -> None:
         for stmt in stmts:
-            if isinstance(stmt, (ast.Return, ast.Raise)):
+            if not isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)) and any(
+                isinstance(n, (ast.Return, ast.Raise)) for n in ast.walk(stmt)
+            ):
                 return
             if not isinstance(stmt, ast.Expr) or not isinstance(stmt.value, ast.Call):
                 continue
