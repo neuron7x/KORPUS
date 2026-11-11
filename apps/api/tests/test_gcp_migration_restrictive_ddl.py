@@ -74,8 +74,13 @@ def test_future_constraint_admission(tmp_path: Path, body: str, expected: str) -
                     "apps/api/migrations/versions/0001_base.py": hashlib.sha256(base).hexdigest()
                 },
                 "future_upgrade_forbidden_calls": [
-                    "drop_table", "drop_column", "drop_constraint", "drop_index",
-                    "rename_table", "alter_column", "execute",
+                    "drop_table",
+                    "drop_column",
+                    "drop_constraint",
+                    "drop_index",
+                    "rename_table",
+                    "alter_column",
+                    "execute",
                 ],
             }
         ),

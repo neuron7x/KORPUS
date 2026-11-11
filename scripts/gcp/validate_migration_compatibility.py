@@ -15,11 +15,11 @@ from typing import Any
 SCRIPTS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS_DIR))
 from gcp.migration_add_column_bind import bind_add_column_argument  # noqa: E402
-from gcp.migration_constraint_proof import constraint_failure as _constraint_failure  # noqa: E402
 from gcp.migration_check_constraint_scan import inline_check_failure  # noqa: E402
 from gcp.migration_column_keyword_scan import (  # noqa: E402
     literal_column_keywords as _column_keywords,
 )
+from gcp.migration_constraint_proof import constraint_failure as _constraint_failure  # noqa: E402
 from gcp.migration_numeric_default_proof import (  # noqa: E402
     nonnullable_add_without_default as _nonnullable_add_without_default,
 )
