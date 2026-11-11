@@ -21,10 +21,10 @@ def _literal_create(call: ast.Call) -> str | None:
     return call.args[0].value
 
 
-def _definitions(tree: ast.Module) -> dict[str, list[ast.FunctionDef]]:
+def _definitions(tree: ast.Module, shadowed: set[str]) -> dict[str, list[ast.FunctionDef]]:
     found: dict[str, list[ast.FunctionDef]] = {}
     for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef):
+        if isinstance(node, ast.FunctionDef) and node.name not in shadowed:
             found.setdefault(node.name, []).append(node)
     return found
 
@@ -45,13 +45,15 @@ def _shadowed_names(tree: ast.Module) -> set[str]:
 
 def proven_created_before(tree: ast.Module, upgrade: ast.FunctionDef) -> dict[int, frozenset[str]]:
     """Credit ordered unconditional creates; intersect repeated helper proofs."""
-    definitions, shadowed = _definitions(tree), _shadowed_names(tree)
+    definitions = _definitions(tree, _shadowed_names(tree))
     proven: dict[int, frozenset[str]] = {}
 
     def walk(stmts: list[ast.stmt], created: set[str], active: frozenset[int]) -> None:
         for stmt in stmts:
-            if not isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)) and any(
-                isinstance(n, (ast.Return, ast.Raise)) for n in ast.walk(stmt)
+            if any(
+                isinstance(n, (ast.Return, ast.Raise))
+                for n in ast.walk(stmt)
+                if not isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef))
             ):
                 return
             if not isinstance(stmt, ast.Expr) or not isinstance(stmt.value, ast.Call):
@@ -69,7 +71,7 @@ def proven_created_before(tree: ast.Module, upgrade: ast.FunctionDef) -> dict[in
                 current = frozenset(created)
                 prior = proven.get(id(call))
                 proven[id(call)] = current if prior is None else prior & current
-            elif isinstance(call.func, ast.Name) and call.func.id not in shadowed:
+            elif isinstance(call.func, ast.Name):
                 matches = definitions.get(call.func.id, [])
                 if len(matches) == 1 and id(matches[0]) not in active:
                     walk(matches[0].body, created, active | {id(matches[0])})
