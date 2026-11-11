@@ -43,7 +43,7 @@ def _shadowed_names(tree: ast.Module) -> set[str]:
 
 
 def proven_created_before(tree: ast.Module, upgrade: ast.FunctionDef) -> dict[int, frozenset[str]]:
-    """Grant each literal ALTER only creations ordered before its direct call.
+    """Grant DDL calls only unconditional creation credits preceding execution.
 
     Branches and dynamic/indirect expressions never grant creation credit.
     Repeated helper invocations intersect evidence; neither a later nor a
@@ -66,7 +66,7 @@ def proven_created_before(tree: ast.Module, upgrade: ast.FunctionDef) -> dict[in
                 isinstance(call.func, ast.Attribute)
                 and isinstance(call.func.value, ast.Name)
                 and call.func.value.id == "op"
-                and call.func.attr == "execute"
+                and call.func.attr.startswith(("execute", "create_"))
             ):
                 current = frozenset(created)
                 prior = proven.get(id(call))

@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2168,
-  "root_sha256": "ff77d5286763db2376f7d142f18d76c6c64279ac742305f165bfd4cc64508762",
+  "file_count": 2170,
+  "root_sha256": "83154a7ecf61730b60c415306ebac4f9d71a095110ba828d62403d8f506d0d01",
   "files": [
     {
       "path": ".dockerignore",
@@ -4320,6 +4320,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_gcp_migration_restrictive_ddl.py",
+      "bytes": 4051,
+      "sha256": "4d7c1d8b9a267b44be6c79e694da2bdd5a7795cb2018f29beceafa6d5aeae915",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_gcp_migration_sqltext_nul.py",
       "bytes": 1943,
       "sha256": "bfea50ae07f00e1bbe00ba269abd4367051310f9aec44cc4f0919f934296291a",
@@ -8389,9 +8395,9 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "mode": "0644",
-      "bytes": 766899,
-      "sha256": "8dcbb1b9593e2193bd3f1b91e73fb85ba8369a2ce1eea6c31f818eee45a9a982"
+      "bytes": 767256,
+      "sha256": "49f665fe67c499769ef975291ee5bbd28f30083bdc6a7210018037991839a51f",
+      "mode": "0644"
     },
     {
       "path": "config/operations/mutation-delta-exceptions.json",
@@ -11400,6 +11406,12 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/gcp/migration_constraint_proof.py",
+      "bytes": 1971,
+      "sha256": "8dd63c277267c1e53e7fdbb7e054ffa73e6650c9dea0e4fb7af6505bece51cbd",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/gcp/migration_definition_scan.py",
       "bytes": 2331,
       "sha256": "3b53dc57670714a168cf60cbff52d2b0dd41535809322636ff5fcf06cb9928d3",
@@ -11413,8 +11425,8 @@
     },
     {
       "path": "scripts/gcp/migration_order_proof.py",
-      "bytes": 3112,
-      "sha256": "2f8072bd5ac17661c4d5bbd1eb40784eba5575982681cb06149f9b84a82d9466",
+      "bytes": 3135,
+      "sha256": "acb7c7e25a0dd22cf4da38e92c8ae54cfc2ce098adb9919619fc8feb6d140261",
       "mode": "0644"
     },
     {
@@ -11575,9 +11587,9 @@
     },
     {
       "path": "scripts/gcp/validate_migration_compatibility.py",
-      "mode": "0755",
-      "bytes": 10521,
-      "sha256": "8c6bd6100058457672bfd86ecadcf18144dd754ceea131ffe0dc42e66cb396bc"
+      "bytes": 10655,
+      "sha256": "0518550c397405e20e20eb8799107d0268cbae720007410f2ac883e24b42e751",
+      "mode": "0755"
     },
     {
       "path": "scripts/gcp/validate_terraform_structure.py",

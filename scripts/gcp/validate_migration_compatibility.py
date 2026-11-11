@@ -15,6 +15,7 @@ from typing import Any
 SCRIPTS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS_DIR))
 from gcp.migration_add_column_bind import bind_add_column_argument  # noqa: E402
+from gcp.migration_constraint_proof import constraint_failure as _constraint_failure  # noqa: E402
 from gcp.migration_check_constraint_scan import inline_check_failure  # noqa: E402
 from gcp.migration_column_keyword_scan import (  # noqa: E402
     literal_column_keywords as _column_keywords,
@@ -153,15 +154,15 @@ def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[
     ]
     created = _created_before(tree, upgrade)
     for node in calls:
+        eligible = created.get(id(node), frozenset())
         opname = _op_call_name(node)
         if opname in forbidden:
-            eligible = created.get(id(node), frozenset())
             reason = (
                 _execute_is_expanding(node, eligible) if opname == "execute" else "op." + opname
             )
             if reason is not None:
                 findings.append(f"future migration is not expand-only: {relative}: {reason}")
-        reason = _unsafe_add_column(node)
+        reason = _unsafe_add_column(node) or _constraint_failure(node, eligible)
         if reason:
             findings.append(f"future migration is not expand-only: {relative}: {reason}")
     return findings
