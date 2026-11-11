@@ -750,3 +750,49 @@ def test_numeric_server_defaults_require_compatible_literals(tmp_path: Path) -> 
         )
         report = evaluate(root)
         assert report["status"] == expected, (column_type, literal, report)
+
+def test_schema_namespaces_never_credit_restrictive_ddl_on_another_table(
+    tmp_path: Path,
+) -> None:
+    poison = (
+        "op.create_table('accounts', sa.Column('id', sa.Integer()), schema='shadow')\n"
+        "op.execute('ALTER TABLE accounts ENABLE ROW LEVEL SECURITY')",
+        "op.create_table('accounts', sa.Column('id', sa.Integer()), schema='shadow')\n"
+        "op.create_unique_constraint('uq', 'accounts', ['id'])",
+        "op.create_table('accounts', sa.Column('id', sa.Integer()), "
+        "**{'schema': 'shadow'})\n"
+        "op.execute('ALTER TABLE accounts ENABLE ROW LEVEL SECURITY')",
+        "op.create_table('accounts', sa.Column('id', sa.Integer()))\n"
+        "op.create_unique_constraint('uq', 'accounts', ['id'], schema='shadow')",
+        "op.create_table('accounts', sa.Column('id', sa.Integer()))\n"
+        "op.create_foreign_key('fk', 'accounts', 'other', "
+        "['id'], ['id'], source_schema='shadow')",
+        "op.create_table('accounts', sa.Column('id', sa.Integer()))\n"
+        "op.create_index('ix', 'accounts', ['id'], unique=True, schema='shadow')",
+    )
+    for index, body in enumerate(poison):
+        root = _copy_surface(tmp_path / f"schema-poison-{index}")
+        _future(root, body)
+        report = evaluate(root)
+        assert report["status"] == "FAIL", (index, report)
+        assert any(
+            "accounts" in finding or "keyword binding" in finding
+            for finding in report["findings"]
+        ), (index, report)
+
+
+def test_schema_guard_preserves_proven_safe_migration_controls(
+    tmp_path: Path,
+) -> None:
+    accepted = (
+        "op.create_table('accounts', sa.Column('id', sa.Integer()))\n"
+        "op.execute('ALTER TABLE accounts ENABLE ROW LEVEL SECURITY')",
+        "op.create_table('accounts', sa.Column('id', sa.Integer()))\n"
+        "op.create_unique_constraint('uq', 'accounts', ['id'])",
+        "op.create_table('accounts', sa.Column('id', sa.Integer()), schema='shadow')",
+    )
+    for index, body in enumerate(accepted):
+        root = _copy_surface(tmp_path / f"schema-positive-{index}")
+        _future(root, body)
+        report = evaluate(root)
+        assert report["status"] == "PASS", (index, report)

@@ -15,6 +15,7 @@ def _literal_create(call: ast.Call) -> str | None:
         and call.args
         and isinstance(call.args[0], ast.Constant)
         and isinstance(call.args[0].value, str)
+        and all(k.arg not in (None, "schema") for k in call.keywords)
     ):
         return None
     return call.args[0].value
@@ -45,7 +46,6 @@ def _shadowed_names(tree: ast.Module) -> set[str]:
 def proven_created_before(tree: ast.Module, upgrade: ast.FunctionDef) -> dict[int, frozenset[str]]:
     """Grant DDL calls only unconditional creation credits preceding execution.
 
-    Branches and dynamic/indirect expressions never grant creation credit.
     Repeated helper invocations intersect evidence; neither a later nor a
     conditional CREATE can justify earlier/unconditional ALTER.
     """

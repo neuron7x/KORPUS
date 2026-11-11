@@ -19,7 +19,7 @@ def _operation(call: ast.Call) -> str | None:
 def _keywords(call: ast.Call) -> dict[str, ast.expr] | None:
     found: dict[str, ast.expr] = {}
     for item in call.keywords:
-        if item.arg is None or item.arg in found:
+        if item.arg in {None, *found, "schema", "source_schema"}:
             return None
         found[item.arg] = item.value
     return found
