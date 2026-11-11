@@ -100,3 +100,33 @@ def test_real_alembic_unique_index_narrows_existing_writes() -> None:
             op.create_index("ux_existing_email", "accounts", ["email"], unique=True)
         op.create_index("ix_existing_email", "accounts", ["email"], unique=False)
         assert conn.exec_driver_sql("SELECT count(*) FROM accounts").scalar_one() == 2
+
+@pytest.mark.parametrize(
+    ("table", "operation", "expected"),
+    [
+        ("Accounts", "op.execute('ALTER TABLE accounts DROP COLUMN existing')", "FAIL"),
+        (
+            "Accounts",
+            "op.create_unique_constraint('uq', 'accounts', ['existing'])",
+            "FAIL",
+        ),
+        ("accounts", "op.execute('ALTER TABLE accounts DROP COLUMN existing')", "PASS"),
+        ("accounts", "op.create_unique_constraint('uq', 'accounts', ['id'])", "PASS"),
+        (
+            "Accounts",
+            "op.execute('ALTER TABLE \"Accounts\" DROP COLUMN existing')",
+            "PASS",
+        ),
+        ("Accounts", "op.create_unique_constraint('uq', 'Accounts', ['id'])", "PASS"),
+    ],
+)
+def test_future_pg_case_sensitive_table_identity(
+    tmp_path: Path, table: str, operation: str, expected: str
+) -> None:
+    """A quoted PG identifier must not justify DDL against a different table."""
+    body = (
+        f"op.create_table({table!r}, sa.Column('id', sa.Integer()), "
+        "sa.Column('existing', sa.Integer()))\n"
+        f"{operation}"
+    )
+    test_future_constraint_admission(tmp_path, body, expected)
