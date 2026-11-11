@@ -751,6 +751,7 @@ def test_numeric_server_defaults_require_compatible_literals(tmp_path: Path) -> 
         report = evaluate(root)
         assert report["status"] == expected, (column_type, literal, report)
 
+
 def test_schema_namespaces_never_credit_restrictive_ddl_on_another_table(
     tmp_path: Path,
 ) -> None:
@@ -776,8 +777,7 @@ def test_schema_namespaces_never_credit_restrictive_ddl_on_another_table(
         report = evaluate(root)
         assert report["status"] == "FAIL", (index, report)
         assert any(
-            "accounts" in finding or "keyword binding" in finding
-            for finding in report["findings"]
+            "accounts" in finding or "keyword binding" in finding for finding in report["findings"]
         ), (index, report)
 
 
