@@ -198,7 +198,9 @@ def test_inline_check_type_oracle_on_real_postgres(
                 assert 170000 <= version < 180000, version
                 connection.exec_driver_sql("CREATE TEMP TABLE check_type_probe (id INTEGER)")
                 connection.exec_driver_sql("INSERT INTO check_type_probe VALUES (1), (2)")
-                statement = f"ALTER TABLE check_type_probe ADD COLUMN fresh {pg_type} CHECK ({condition})"
+                statement = (
+                    f"ALTER TABLE check_type_probe ADD COLUMN fresh {pg_type} CHECK ({condition})"
+                )
                 if expected == "PASS":
                     connection.exec_driver_sql(statement)
                     assert (

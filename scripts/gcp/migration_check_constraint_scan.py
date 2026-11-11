@@ -21,14 +21,16 @@ def _null_compatible(sql: str, column: ast.Call) -> bool:
     if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z_][A-Za-z_0-9]*", name):
         return False
     func = getattr(column.args[1], "func", None) if len(column.args) > 1 else None
-    numeric = getattr(func, "attr", None) in _INTEGERS | _FLOATS and getattr(
-        getattr(func, "value", None), "id", None
-    ) == "sa"
+    numeric = (
+        getattr(func, "attr", None) in _INTEGERS | _FLOATS
+        and getattr(getattr(func, "value", None), "id", None) == "sa"
+    )
     identifier = re.escape(name)
     nullable = rf"{identifier}\s+IS\s+NULL"
     comparison = rf"{identifier}\s*(?:=|!=|<>|<|<=|>|>=)\s*-?\d+(?:\.\d+)?"
     return bool(re.fullmatch(nullable, sql, flags=re.I)) or (
-        numeric and bool(
+        numeric
+        and bool(
             re.fullmatch(comparison, sql, flags=re.I)
             or re.fullmatch(rf"{nullable}\s+OR\s+{comparison}", sql, flags=re.I)
         )
