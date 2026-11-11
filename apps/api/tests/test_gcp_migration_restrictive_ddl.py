@@ -198,19 +198,21 @@ def test_inline_check_type_oracle_on_real_postgres(
                 assert 170000 <= version < 180000, version
                 connection.exec_driver_sql("CREATE TEMP TABLE check_type_probe (id INTEGER)")
                 connection.exec_driver_sql("INSERT INTO check_type_probe VALUES (1), (2)")
-                statement = (
-                    f"ALTER TABLE check_type_probe ADD COLUMN fresh {pg_type} "
-                    f"CHECK ({condition})"
-                )
+                statement = f"ALTER TABLE check_type_probe ADD COLUMN fresh {pg_type} CHECK ({condition})"
                 if expected == "PASS":
                     connection.exec_driver_sql(statement)
-                    assert connection.exec_driver_sql(
-                        "SELECT count(*) FROM check_type_probe WHERE fresh IS NULL"
-                    ).scalar_one() == 2
+                    assert (
+                        connection.exec_driver_sql(
+                            "SELECT count(*) FROM check_type_probe WHERE fresh IS NULL"
+                        ).scalar_one()
+                        == 2
+                    )
                 else:
-                    with pytest.raises(sa.exc.DBAPIError) as captured:
-                        with connection.begin_nested():
-                            connection.exec_driver_sql(statement)
+                    with (
+                        pytest.raises(sa.exc.DBAPIError) as captured,
+                        connection.begin_nested(),
+                    ):
+                        connection.exec_driver_sql(statement)
                     sqlstate = getattr(captured.value.orig, "sqlstate", None)
                     assert sqlstate == "42883", sqlstate
                     print(f"PG17 CHECK type refusal: {pg_type}, SQLSTATE={sqlstate}")
