@@ -15,7 +15,7 @@ def _literal_create(call: ast.Call) -> str | None:
         and call.args
         and isinstance(call.args[0], ast.Constant)
         and isinstance(call.args[0].value, str)
-        and all(k.arg not in (None, "schema") for k in call.keywords)
+        and all(k.arg not in (None, "schema", "if_not_exists") for k in call.keywords)
     ):
         return None
     return call.args[0].value
