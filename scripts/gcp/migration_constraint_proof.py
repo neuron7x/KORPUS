@@ -47,6 +47,6 @@ def constraint_failure(call: ast.Call, created: frozenset[str]) -> str | None:
     table = call.args[1] if len(call.args) > 1 else keys.get(key)
     if not isinstance(table, ast.Constant) or not isinstance(table.value, str):
         return f"unverified op.{name} table name"
-    if table.value.lower() not in created:
+    if table.value not in created:
         return f"op.{name} restricts existing or unproven table: {table.value}"
     return None

@@ -17,7 +17,7 @@ def _literal_create(call: ast.Call) -> str | None:
         and isinstance(call.args[0].value, str)
     ):
         return None
-    return call.args[0].value.lower()
+    return call.args[0].value
 
 
 def _definitions(tree: ast.Module) -> dict[str, list[ast.FunctionDef]]:

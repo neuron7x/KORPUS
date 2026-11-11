@@ -101,6 +101,7 @@ def test_real_alembic_unique_index_narrows_existing_writes() -> None:
         op.create_index("ix_existing_email", "accounts", ["email"], unique=False)
         assert conn.exec_driver_sql("SELECT count(*) FROM accounts").scalar_one() == 2
 
+
 @pytest.mark.parametrize(
     ("table", "operation", "expected"),
     [

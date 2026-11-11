@@ -103,14 +103,14 @@ def _verify_baseline(current: dict[str, Path], baseline: dict[str, str]) -> list
     return findings
 
 
-_RAW_CREATE_TABLE = re.compile(r"create\s+table\s+[a-z_][a-z_0-9]*\s*\([^;]*\)", re.S)
+_RAW_CREATE_TABLE = re.compile(r"create\s+table\s+[a-z_][a-z_0-9]*\s*\([^;]*\)", re.S | re.I)
 
 
 def _altered_table(statement: str) -> str | None:
     """Ім'я таблиці в `ALTER TABLE <ім'я> …`, якщо його видно дослівно."""
-    words = statement.split()
-    if len(words) >= 3 and words[0] == "alter" and words[1] == "table":
-        return words[2].strip('"').lower()
+    if match := re.match(r'(?i)^alter\s+table\s+("[^"]+"|[a-z_]\w*)\s', statement):
+        name = match.group(1)
+        return name[1:-1] if name.startswith('"') else name.lower()
     return None
 
 
@@ -130,7 +130,7 @@ def _execute_is_expanding(node: ast.Call, created: frozenset[str] = frozenset())
     first = node.args[0]
     if not isinstance(first, ast.Constant) or not isinstance(first.value, str):
         return "op.execute requires a literal SQL statement"
-    statement = first.value.strip().lower()
+    statement = first.value.strip()
     if any(marker in statement for marker in (";", "--", "/*", "*/", "\x00")):
         return "op.execute with stacked or commented SQL is not expand-safe"
     if _RAW_CREATE_TABLE.fullmatch(statement):
