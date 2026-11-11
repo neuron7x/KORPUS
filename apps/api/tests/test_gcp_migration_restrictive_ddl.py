@@ -143,3 +143,34 @@ def test_future_pg_case_sensitive_table_identity(
         f"{operation}"
     )
     test_future_constraint_admission(tmp_path, body, expected)
+
+
+@pytest.mark.parametrize(
+    "operation",
+    [
+        "op.execute('ALTER TABLE accounts DROP COLUMN legacy')",
+        "op.create_unique_constraint('uq', 'accounts', ['legacy'])",
+    ],
+)
+def test_early_return_in_helper_does_not_prove_table_creation(
+    tmp_path: Path, operation: str
+) -> None:
+    body = (
+        "def install():\n"
+        "    if True:\n"
+        "        return\n"
+        "    op.create_table('accounts', sa.Column('id', sa.Integer()))\n"
+        "install()\n"
+        f"{operation}"
+    )
+    test_future_constraint_admission(tmp_path, body, "FAIL")
+
+
+def test_unconditional_helper_creation_remains_admitted(tmp_path: Path) -> None:
+    body = (
+        "def install():\n"
+        "    op.create_table('accounts', sa.Column('id', sa.Integer()))\n"
+        "install()\n"
+        "op.execute('ALTER TABLE accounts DROP COLUMN legacy')"
+    )
+    test_future_constraint_admission(tmp_path, body, "PASS")
