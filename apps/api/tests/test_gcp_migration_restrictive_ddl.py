@@ -26,6 +26,18 @@ from scripts.gcp.validate_migration_compatibility import evaluate
         ("op.execute('DROP TABLE accounts')", "FAIL"),
         ("op.drop_table('accounts')", "FAIL"),
         (
+            "op.create_table('accounts', sa.Column('id', sa.Integer()), "
+            "if_not_exists=True)\n"
+            "op.execute('ALTER TABLE accounts DROP COLUMN legacy')",
+            "FAIL",
+        ),
+        (
+            "op.create_table('accounts', sa.Column('id', sa.Integer()), "
+            "if_not_exists=True)\n"
+            "op.create_unique_constraint('uq', 'accounts', ['legacy'])",
+            "FAIL",
+        ),
+        (
             "op.create_table('fresh', sa.Column('id', sa.Integer, primary_key=True))\n"
             "op.create_index('ux', 'fresh', ['id'], unique=True)",
             "PASS",
