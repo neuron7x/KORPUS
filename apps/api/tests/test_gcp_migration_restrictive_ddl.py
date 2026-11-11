@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -174,3 +175,49 @@ def test_unconditional_helper_creation_remains_admitted(tmp_path: Path) -> None:
         "op.execute('ALTER TABLE accounts DROP COLUMN legacy')"
     )
     test_future_constraint_admission(tmp_path, body, "PASS")
+
+
+@pytest.mark.parametrize(
+    ("column_type", "pg_type", "condition", "expected"),
+    [
+        ("sa.String(8)", "VARCHAR(8)", "fresh > 0", "FAIL"),
+        ("sa.Boolean()", "BOOLEAN", "fresh > 0", "FAIL"),
+        ("sa.Integer()", "INTEGER", "fresh > 0", "PASS"),
+        ("sa.String(8)", "VARCHAR(8)", "fresh IS NULL", "PASS"),
+    ],
+)
+def test_inline_check_type_oracle_on_real_postgres(
+    tmp_path: Path, column_type: str, pg_type: str, condition: str, expected: str
+) -> None:
+    """Source admission and real PostgreSQL CHECK semantics must agree."""
+    if admin_url := os.getenv("KORPUS_TEST_DATABASE_ADMIN_URL"):
+        engine = sa.create_engine(admin_url, future=True)
+        try:
+            with engine.begin() as connection:
+                version = int(connection.exec_driver_sql("SHOW server_version_num").scalar_one())
+                assert 170000 <= version < 180000, version
+                connection.exec_driver_sql("CREATE TEMP TABLE check_type_probe (id INTEGER)")
+                connection.exec_driver_sql("INSERT INTO check_type_probe VALUES (1), (2)")
+                statement = (
+                    f"ALTER TABLE check_type_probe ADD COLUMN fresh {pg_type} "
+                    f"CHECK ({condition})"
+                )
+                if expected == "PASS":
+                    connection.exec_driver_sql(statement)
+                    assert connection.exec_driver_sql(
+                        "SELECT count(*) FROM check_type_probe WHERE fresh IS NULL"
+                    ).scalar_one() == 2
+                else:
+                    with pytest.raises(sa.exc.DBAPIError) as captured:
+                        with connection.begin_nested():
+                            connection.exec_driver_sql(statement)
+                    sqlstate = getattr(captured.value.orig, "sqlstate", None)
+                    assert sqlstate == "42883", sqlstate
+                    print(f"PG17 CHECK type refusal: {pg_type}, SQLSTATE={sqlstate}")
+        finally:
+            engine.dispose()
+    body = (
+        "op.add_column('accounts', sa.Column('fresh', "
+        f"{column_type}, sa.CheckConstraint({condition!r})))"
+    )
+    test_future_constraint_admission(tmp_path, body, expected)
