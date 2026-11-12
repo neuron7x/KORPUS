@@ -852,3 +852,22 @@ def test_duplicate_module_upgrade_entrypoint_is_rejected(tmp_path: Path) -> None
     report = evaluate(root)
     assert report["status"] == "FAIL", report
     assert any("upgrade" in reason for reason in report["findings"]), report
+
+def test_unknown_module_import_side_effect_is_denied(tmp_path: Path) -> None:
+    # Import-time execution happens before Alembic calls upgrade().
+    scenarios = (
+        "import opaque_import_probe",
+        "from opaque_import_probe import inert",
+    )
+    for index, import_source in enumerate(scenarios):
+        root = _copy_surface(tmp_path / f"import-side-effect-{index}")
+        report = _with_helper(root, "pass", import_source)
+        assert report["status"] == "FAIL", (import_source, report)
+        assert any("import" in reason for reason in report["findings"]), report
+
+
+def test_canonical_migration_imports_remain_admitted(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    _future(root, "op.create_table('safe_new_table', sa.Column('id', sa.Integer()))")
+    report = evaluate(root)
+    assert report["status"] == "PASS", report
