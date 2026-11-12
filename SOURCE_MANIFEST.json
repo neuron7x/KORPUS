@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2170,
-  "root_sha256": "8c002feda9aea72eeb616043dcd2b2fa40d9ce6253dcee4b49d9471296519ba8",
+  "root_sha256": "e8478798e67232596be778b680d2d56a483640eaf9923f2430ca1ce1a5f84145",
   "files": [
     {
       "path": ".dockerignore",
@@ -11443,8 +11443,8 @@
     },
     {
       "path": "scripts/gcp/migration_symbol_bindings.py",
-      "bytes": 2828,
-      "sha256": "14b60f83db7d7b45a34478003af414d29b6beed44da560c3b858c402cad62a74",
+      "bytes": 2385,
+      "sha256": "cec4eac2fe95a3b9263c86e965f650bbab9bf0754d1346305d6f7aa1c8b52516",
       "mode": "0644"
     },
     {
