@@ -812,3 +812,33 @@ def test_deferred_generator_helpers_do_not_license_existing_table_alter(tmp_path
         assert any("deferred generator execution" in reason for reason in report["findings"]), (
             report
         )
+
+
+def test_module_upgrade_assignment_cannot_hide_destructive_sql(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    report = _with_helper(
+        root,
+        "pass",
+        "def destructive():\n"
+        "    op.drop_table('accounts')\n"
+        "upgrade = destructive\n",
+    )
+    assert report["status"] == "FAIL", report
+    assert any("upgrade" in reason for reason in report["findings"]), report
+
+
+def test_module_upgrade_import_alias_is_not_trusted(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    report = _with_helper(root, "pass", "from mock_op import destructive as upgrade\n")
+    assert report["status"] == "FAIL", report
+    assert any("upgrade" in reason for reason in report["findings"]), report
+
+
+def test_local_upgrade_name_does_not_shadow_entrypoint(tmp_path: Path) -> None:
+    root = _copy_surface(tmp_path)
+    report = _with_helper(
+        root,
+        "op.create_table('widgets', sa.Column('id', sa.Integer()))",
+        "def dormant():\n    upgrade = op.drop_table\n",
+    )
+    assert report["status"] == "PASS", report
