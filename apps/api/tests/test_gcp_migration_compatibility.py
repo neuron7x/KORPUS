@@ -846,8 +846,7 @@ def test_duplicate_module_upgrade_entrypoint_is_rejected(tmp_path: Path) -> None
     root = _copy_surface(tmp_path)
     path = _future(root, "pass")
     path.write_text(
-        path.read_text(encoding="utf-8")
-        + "\ndef upgrade():\n    op.drop_table('accounts')\n",
+        path.read_text(encoding="utf-8") + "\ndef upgrade():\n    op.drop_table('accounts')\n",
         encoding="utf-8",
     )
     report = evaluate(root)

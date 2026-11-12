@@ -40,9 +40,9 @@ def _sha256(path: Path) -> str:
 
 
 def _upgrade_function(tree: ast.Module) -> ast.FunctionDef | None:
-    return next(
-        (n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "upgrade"), None
-    )
+    upgrades = [node for node in tree.body if isinstance(node, ast.FunctionDef)]
+    upgrades = [node for node in upgrades if node.name == "upgrade"]
+    return upgrades[0] if len(upgrades) == 1 else None
 
 
 def _op_call_name(call: ast.Call) -> str | None:
@@ -147,7 +147,7 @@ def _execute_is_expanding(node: ast.Call, created: frozenset[str] = frozenset())
 def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[str]) -> list[str]:
     upgrade = _upgrade_function(tree)
     if upgrade is None:
-        return [f"future migration has no upgrade(): {relative}"]
+        return [f"future migration has no unique upgrade(): {relative}"]
     calls, dispatch_failures = _reachable_calls(tree, upgrade)
     findings = [
         f"future migration is not expand-only: {relative}: {reason}" for reason in dispatch_failures
