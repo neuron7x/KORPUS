@@ -803,12 +803,12 @@ def test_deferred_generator_helpers_do_not_license_existing_table_alter(tmp_path
         root = _copy_surface(tmp_path / f"generator-poison-{index}")
         report = _with_helper(
             root,
-            "lazy_setup()\\nop.execute('ALTER TABLE accounts DROP COLUMN risk')",
-            "def lazy_setup():\\n"
-            "    op.create_table('accounts', sa.Column('id', sa.Integer()))\\n"
-            f"    {keyword}\\n",
+            "lazy_setup()\nop.execute('ALTER TABLE accounts DROP COLUMN risk')",
+            "def lazy_setup():\n"
+            "    op.create_table('accounts', sa.Column('id', sa.Integer()))\n"
+            f"    {keyword}\n",
         )
         assert report["status"] == "FAIL", (index, report)
-        assert any(
-            "deferred generator execution" in reason for reason in report["findings"]
-        ), report
+        assert any("deferred generator execution" in reason for reason in report["findings"]), (
+            report
+        )
