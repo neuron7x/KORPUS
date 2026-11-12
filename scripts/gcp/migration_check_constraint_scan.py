@@ -28,13 +28,10 @@ def _null_compatible(sql: str, column: ast.Call) -> bool:
     identifier = re.escape(name)
     nullable = rf"{identifier}\s+IS\s+NULL"
     comparison = rf"{identifier}\s*(?:=|!=|<>|<|<=|>|>=)\s*-?\d+(?:\.\d+)?"
-    return bool(re.fullmatch(nullable, sql, flags=re.I)) or (
-        numeric
-        and bool(
-            re.fullmatch(comparison, sql, flags=re.I)
-            or re.fullmatch(rf"{nullable}\s+OR\s+{comparison}", sql, flags=re.I)
-        )
-    )
+    patterns = [nullable]
+    if numeric:
+        patterns.extend((comparison, rf"{nullable}\s+OR\s+{comparison}"))
+    return any(re.fullmatch(pattern, sql, flags=re.I) for pattern in patterns)
 
 
 def inline_check_failure(column: ast.Call, keywords: dict[str, ast.expr]) -> str | None:
