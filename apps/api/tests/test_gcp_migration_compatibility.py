@@ -819,9 +819,7 @@ def test_module_upgrade_assignment_cannot_hide_destructive_sql(tmp_path: Path) -
     report = _with_helper(
         root,
         "pass",
-        "def destructive():\n"
-        "    op.drop_table('accounts')\n"
-        "upgrade = destructive\n",
+        "def destructive():\n    op.drop_table('accounts')\nupgrade = destructive\n",
     )
     assert report["status"] == "FAIL", report
     assert any("upgrade" in reason for reason in report["findings"]), report

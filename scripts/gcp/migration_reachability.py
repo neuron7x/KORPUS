@@ -93,7 +93,7 @@ def _scan_statements(statements: list[ast.stmt]) -> tuple[list[ast.Call], list[s
     for statement in statements:
         scanner.visit(statement)
     failures = list(scanner.definition_failures)
-    failures.extend(import_rebinding_failures(statements, _SAFE_BUILTINS))
+    failures.extend(import_rebinding_failures(statements, _SAFE_BUILTINS | {"upgrade"}))
     failures.extend(trusted_object_failures(statements))
     if any(
         isinstance(node, (ast.Yield, ast.YieldFrom))
@@ -102,7 +102,7 @@ def _scan_statements(statements: list[ast.stmt]) -> tuple[list[ast.Call], list[s
         for node in ast.walk(statement)
     ):
         failures.append("unverified deferred generator execution")
-    for name in sorted(scanner.bindings & (_SAFE_BUILTINS | {"op", "sa"})):
+    for name in sorted(scanner.bindings & (_SAFE_BUILTINS | {"op", "sa", "upgrade"})):
         failures.append(f"trusted callable rebound: {name}")
     return scanner.calls, failures
 
