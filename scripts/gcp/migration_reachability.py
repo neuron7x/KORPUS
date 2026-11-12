@@ -95,6 +95,13 @@ def _scan_statements(statements: list[ast.stmt]) -> tuple[list[ast.Call], list[s
     failures = list(scanner.definition_failures)
     failures.extend(import_rebinding_failures(statements, _SAFE_BUILTINS))
     failures.extend(trusted_object_failures(statements))
+    if any(
+        isinstance(node, (ast.Yield, ast.YieldFrom))
+        for statement in statements
+        if not isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef))
+        for node in ast.walk(statement)
+    ):
+        failures.append("unverified deferred generator execution")
     for name in sorted(scanner.bindings & (_SAFE_BUILTINS | {"op", "sa"})):
         failures.append(f"trusted callable rebound: {name}")
     return scanner.calls, failures

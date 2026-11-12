@@ -796,3 +796,19 @@ def test_schema_guard_preserves_proven_safe_migration_controls(
         _future(root, body)
         report = evaluate(root)
         assert report["status"] == "PASS", (index, report)
+
+
+def test_deferred_generator_helpers_do_not_license_existing_table_alter(tmp_path: Path) -> None:
+    for index, keyword in enumerate(("yield 1", "yield from [1]")):
+        root = _copy_surface(tmp_path / f"generator-poison-{index}")
+        report = _with_helper(
+            root,
+            "lazy_setup()\\nop.execute('ALTER TABLE accounts DROP COLUMN risk')",
+            "def lazy_setup():\\n"
+            "    op.create_table('accounts', sa.Column('id', sa.Integer()))\\n"
+            f"    {keyword}\\n",
+        )
+        assert report["status"] == "FAIL", (index, report)
+        assert any(
+            "deferred generator execution" in reason for reason in report["findings"]
+        ), report
