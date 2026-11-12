@@ -5,8 +5,28 @@ from __future__ import annotations
 import ast
 
 
+def _is_canonical_import(node: ast.Import | ast.ImportFrom) -> bool:
+    """Only explicitly pinned migration imports can cross the source trust boundary."""
+    if len(node.names) != 1:
+        return False
+    alias = node.names[0]
+    if isinstance(node, ast.Import):
+        return alias.name == "sqlalchemy" and alias.asname == "sa"
+    if node.level:
+        return False
+    if node.module == "alembic":
+        return alias.name == "op" and alias.asname in (None, "op")
+    return (
+        node.module == "__future__"
+        and alias.name == "annotations"
+        and alias.asname is None
+    )
+
+
 def _alias_failures(node: ast.Import | ast.ImportFrom, protected: frozenset[str]) -> list[str]:
     failures: list[str] = []
+    if not _is_canonical_import(node):
+        failures.append("unverified migration import may execute module-level effects")
     for alias in node.names:
         name = alias.asname or alias.name.split(".")[0]
         canonical_op = (

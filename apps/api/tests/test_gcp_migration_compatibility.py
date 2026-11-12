@@ -853,6 +853,7 @@ def test_duplicate_module_upgrade_entrypoint_is_rejected(tmp_path: Path) -> None
     assert report["status"] == "FAIL", report
     assert any("upgrade" in reason for reason in report["findings"]), report
 
+
 def test_unknown_module_import_side_effect_is_denied(tmp_path: Path) -> None:
     # Import-time execution happens before Alembic calls upgrade().
     scenarios = (
