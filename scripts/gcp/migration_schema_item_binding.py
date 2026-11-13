@@ -9,15 +9,16 @@ from gcp.migration_foreign_key_proof import sa_constructor
 from gcp.migration_literal_bindings import (
     bound_arguments,
     literal_name,
-    literal_names,
     literal_options,
 )
+from gcp.migration_paired_column_proof import named_signature_values
 
 _SIGNATURES = {
     "ForeignKey": ("column",),
     "ForeignKeyConstraint": ("columns", "refcolumns"),
     "CheckConstraint": ("sqltext",),
 }
+_COLLECTIONS = frozenset({"columns", "refcolumns"})
 
 
 def schema_item_binding_failure(call: ast.Call) -> str | None:
@@ -34,10 +35,8 @@ def schema_item_binding_failure(call: ast.Call) -> str | None:
             return None
     elif name in _SIGNATURES:
         keys = bound_arguments(call, _SIGNATURES[name], frozenset({"name"}))
-        if keys is not None and literal_options(keys, strings=frozenset({"name"})):
-            valid = literal_names if name == "ForeignKeyConstraint" else literal_name
-            if all(valid(keys[key]) for key in _SIGNATURES[name]):
-                return None
+        if named_signature_values(keys, _SIGNATURES[name], _COLLECTIONS):
+            return None
     return "unverified constraint constructor argument or keyword effects"
 
 
