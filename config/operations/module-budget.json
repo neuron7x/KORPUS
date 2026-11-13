@@ -6993,6 +6993,132 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Issue #109: extract finite Column option value domains without raising existing module or function ceilings."
+    },
+    "apps/api/src/korpus/infrastructure/corpus_snapshot_guard_bodies.py": {
+      "lines": 56,
+      "max_complexity": 0,
+      "max_function_args": 0,
+      "max_function_lines": 0,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
+    },
+    "apps/api/src/korpus/infrastructure/corpus_snapshot_postgres_install.py": {
+      "lines": 131,
+      "max_complexity": 2,
+      "max_function_args": 1,
+      "max_function_lines": 58,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
+    },
+    "apps/api/src/korpus/infrastructure/corpus_snapshot_sealed_guards.py": {
+      "lines": 116,
+      "max_complexity": 9,
+      "max_function_args": 1,
+      "max_function_lines": 25,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
+    },
+    "apps/api/src/korpus/infrastructure/corpus_snapshot_sealed_sql.py": {
+      "lines": 114,
+      "max_complexity": 0,
+      "max_function_args": 0,
+      "max_function_lines": 0,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
+    },
+    "apps/api/src/korpus/infrastructure/migration_admission.py": {
+      "lines": 151,
+      "max_complexity": 12,
+      "max_function_args": 5,
+      "max_function_lines": 33,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
+    },
+    "apps/api/src/korpus/infrastructure/migration_baseline_proof.py": {
+      "lines": 236,
+      "max_complexity": 13,
+      "max_function_args": 3,
+      "max_function_lines": 46,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
+    },
+    "apps/api/src/korpus/infrastructure/migration_readonly.py": {
+      "lines": 45,
+      "max_complexity": 6,
+      "max_function_args": 2,
+      "max_function_lines": 12,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
+    },
+    "scripts/mutation_probe_execution.py": {
+      "lines": 161,
+      "max_complexity": 12,
+      "max_function_args": 5,
+      "max_function_lines": 51,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
+    },
+    "scripts/process_supervisor_capture.py": {
+      "lines": 41,
+      "max_complexity": 3,
+      "max_function_args": 3,
+      "max_function_lines": 10,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
+    },
+    "scripts/process_supervisor_client.py": {
+      "lines": 94,
+      "max_complexity": 12,
+      "max_function_args": 4,
+      "max_function_lines": 31,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
+    },
+    "scripts/process_supervisor_ownership.py": {
+      "lines": 86,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 25,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
+    },
+    "scripts/process_tree_supervisor.py": {
+      "lines": 145,
+      "max_complexity": 11,
+      "max_function_args": 5,
+      "max_function_lines": 44,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
+    },
+    "scripts/regression_shard_execution.py": {
+      "lines": 23,
+      "max_complexity": 5,
+      "max_function_args": 4,
+      "max_function_lines": 16,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
+    },
+    "scripts/release_mutation_summary.py": {
+      "lines": 20,
+      "max_complexity": 6,
+      "max_function_args": 1,
+      "max_function_lines": 13,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
