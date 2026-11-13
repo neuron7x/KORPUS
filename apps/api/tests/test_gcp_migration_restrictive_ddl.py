@@ -103,6 +103,23 @@ def test_future_constraint_admission(tmp_path: Path, body: str, expected: str) -
     assert report["status"] == expected, report
 
 
+@pytest.mark.parametrize(
+    ("column_kwargs", "expected"),
+    [
+        ("nullable=True, unique=True", "FAIL"),
+        ("nullable=True, index=True, unique=True", "FAIL"),
+        ("nullable=True, index=True, unique=True, server_default='x'", "FAIL"),
+        ("nullable=True, index=True, unique=False", "PASS"),
+        ("nullable=True, index=True, unique=False, server_default='x'", "PASS"),
+    ],
+)
+def test_inline_unique_add_column_requires_n_minus_one_write_proof(
+    tmp_path: Path, column_kwargs: str, expected: str
+) -> None:
+    body = f"op.add_column('accounts', sa.Column('fresh', sa.String(20), {column_kwargs}))"
+    test_future_constraint_admission(tmp_path, body, expected)
+
+
 def test_real_alembic_unique_index_narrows_existing_writes() -> None:
     engine = sa.create_engine("sqlite+pysqlite:///:memory:")
     with engine.begin() as conn:
