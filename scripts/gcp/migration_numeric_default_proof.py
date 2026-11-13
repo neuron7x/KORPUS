@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 import ast
-import re
 
-_INTEGERS = frozenset(
-    ["Integer", "BigInteger", "SmallInteger", "INTEGER", "BIGINT", "SMALLINT", "INT"]
+from gcp.migration_default_type_bounds import (
+    INTEGER_TYPES as _INTEGERS,
 )
-_FLOATS = frozenset(["Float", "REAL", "Numeric", "DECIMAL", "NUMERIC", "FLOAT", "DOUBLE_PRECISION"])
-_INT_LITERAL = re.compile(r"[+-]?[0-9]{1,19}\Z")
-_FLOAT_LITERAL = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[Ee][+-]?[0-9]+)?\Z")
-_INTEGER_BITS = {"SmallInteger": 16, "SMALLINT": 16, "BigInteger": 64, "BIGINT": 64}
+from gcp.migration_default_type_bounds import (
+    NUMERIC_TYPES as _FLOATS,
+)
+from gcp.migration_default_type_bounds import STRING_TYPES, bounded_default_valid, none_default
 
 
 def nonnullable_add_without_default(keywords: dict[str, ast.expr]) -> bool:
@@ -21,14 +20,6 @@ def nonnullable_add_without_default(keywords: dict[str, ast.expr]) -> bool:
         nullable = ast.Constant(value=getattr(primary_key, "value", None) is False)
     is_nullable = isinstance(nullable, ast.Constant) and nullable.value is True
     return nullable is not None and not is_nullable and no_server_default
-
-
-def _numeric_literal_valid(name: str, literal: str) -> bool:
-    pattern = _INT_LITERAL if name in _INTEGERS else _FLOAT_LITERAL
-    limit = 1 << (_INTEGER_BITS.get(name, 32) - 1)
-    return bool(pattern.fullmatch(literal)) and (
-        name not in _INTEGERS or -limit <= int(literal) < limit
-    )
 
 
 def unproven_numeric_server_default(column: ast.Call, keywords: dict[str, ast.expr]) -> str | None:
@@ -42,13 +33,13 @@ def unproven_numeric_server_default(column: ast.Call, keywords: dict[str, ast.ex
         name: str | None = constructor.attr
     else:
         name = getattr(constructor, "id", None)
-    if name is None or name not in _INTEGERS | _FLOATS:
+    if name is None or name not in _INTEGERS | _FLOATS | STRING_TYPES:
         return None
     default = keywords["server_default"]
-    if isinstance(default, ast.Constant) and default.value is None:
+    if none_default(default, allow_expression=name in STRING_TYPES):
         return None
     if not isinstance(default, ast.Constant) or not isinstance(default.value, str):
-        return "numeric server_default requires a proven literal value"
-    if not _numeric_literal_valid(name, default.value):
-        return f"numeric server_default is incompatible with {name}"
+        return "server_default requires a proven literal value"
+    if not bounded_default_valid(type_node, name, default.value):
+        return f"literal server_default is incompatible with {name}"
     return None

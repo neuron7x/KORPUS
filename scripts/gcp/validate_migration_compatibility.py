@@ -20,6 +20,7 @@ from gcp.migration_column_keyword_scan import (  # noqa: E402
     literal_column_keywords as _column_keywords,
 )
 from gcp.migration_constraint_proof import constraint_failure as _constraint_failure  # noqa: E402
+from gcp.migration_inline_foreign_key_proof import inline_foreign_key_failure  # noqa: E402
 from gcp.migration_inline_unique_proof import inline_unique_failure  # noqa: E402
 from gcp.migration_numeric_default_proof import (  # noqa: E402
     nonnullable_add_without_default as _nonnullable_add_without_default,
@@ -76,8 +77,10 @@ def _unsafe_add_column(call: ast.Call, created: frozenset[str]) -> str | None:
     keywords = _column_keywords(column)
     if keywords is None:
         return "unverified Column keyword expansion or duplicated keys"
-    if (unique_problem := inline_unique_failure(call, keywords, created)) is not None:
-        return unique_problem
+    if constraint_problem := inline_unique_failure(
+        call, keywords, created
+    ) or inline_foreign_key_failure(call, column, keywords, created):
+        return constraint_problem
     if _literal_nul_default(keywords):
         return "literal server_default contains NUL character"
     if (check_reason := inline_check_failure(column, keywords)) is not None:

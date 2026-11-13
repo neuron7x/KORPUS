@@ -11,7 +11,7 @@ import ast
 
 from gcp.migration_definition_scan import _DirectCalls
 from gcp.migration_symbol_bindings import import_rebinding_failures, rebound_symbol
-from gcp.migration_trusted_objects import trusted_object_failures
+from gcp.migration_trusted_objects import namespace_diagnostics
 
 _SAFE_BUILTINS = frozenset(
     {
@@ -94,7 +94,7 @@ def _scan_statements(statements: list[ast.stmt]) -> tuple[list[ast.Call], list[s
         scanner.visit(statement)
     failures = list(scanner.definition_failures)
     failures.extend(import_rebinding_failures(statements, _SAFE_BUILTINS | {"upgrade"}))
-    failures.extend(trusted_object_failures(statements))
+    failures.extend(namespace_diagnostics(statements))
     if any(
         isinstance(node, (ast.Yield, ast.YieldFrom))
         for statement in statements
