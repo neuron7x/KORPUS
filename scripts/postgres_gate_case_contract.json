@@ -1,6 +1,6 @@
 {
   "schema": "korpus.postgres-security-node-contract.v1",
-  "case_count": 127,
+  "case_count": 129,
   "modules": {
     "test_audit": [
       "test_audit_anchor_detects_file_tampering",
@@ -99,6 +99,8 @@
     ],
     "test_postgres_role_grants": [
       "test_a_table_is_classified_exactly_once",
+      "test_app_and_review_cannot_rewind_corpus_epoch",
+      "test_epoch_counter_grant_is_read_only_in_role_plan",
       "test_every_application_table_is_granted_to_the_application_role",
       "test_no_grant_names_a_table_that_does_not_exist"
     ],
