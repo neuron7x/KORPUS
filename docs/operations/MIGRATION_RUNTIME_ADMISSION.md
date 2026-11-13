@@ -13,6 +13,22 @@ verified before Alembic imports revision modules. Unknown future files, changed 
 missing baseline policy, redirected source, unsupported dialects and offline SQL
 have no implicit admission.
 
+Target resolution reads the raw Alembic destination option and the verified AST
+graph, without asking Alembic to import revision metadata. The unpinned `0025`
+module has a narrow passive initialization grammar: literal constants and metadata,
+ordinary zero-argument function definitions, and its three established imports
+(`__future__.annotations`, `collections.abc.Sequence`, `alembic.op`). Decorators,
+defaults, executable annotations, classes, arbitrary imports, control flow and
+other expressions are rejected before execution. This is a restricted grammar,
+not a claim that arbitrary Python can be statically proved harmless. Installed
+Python/Alembic dependencies remain part of the trusted runtime.
+
+After database admission, the Alembic revision map executes the exact captured
+source bytes that passed proof. It does not reread revision files or load `.pyc`
+files. A concurrent file replacement or forged cache therefore cannot substitute
+different code between source proof and migration execution. Inspection uses the
+same captured source only inside its read-only transaction.
+
 The execution paths are:
 
 - Empty database bootstrap: inspect the actual database catalogs on the same
@@ -46,7 +62,9 @@ Regression evidence covers real Alembic subprocesses and SQLite/PostgreSQL:
 bootstrap, canonical no-op, baseline forward migration, unchanged database after
 denial, missing/changed baseline proof, unknown future revision, forged head,
 missing/inert guards, CLI/programmatic stamping, concurrent migrators and removal
-of the runtime admission call. Historical tenancy rollback SQL is tested directly
+of the runtime admission call. Import-time DDL/commit witnesses, decorators,
+defaults, annotations, classes, import dependencies, source replacement and forged
+cached bytecode have negative controls. Historical tenancy rollback SQL is tested directly
 on an isolated fixture; it does not authorize a current deployment downgrade.
 
 An existing installation cannot advance to `0025` until a separate, independently

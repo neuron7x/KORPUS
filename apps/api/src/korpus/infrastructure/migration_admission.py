@@ -8,12 +8,18 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from contextlib import contextmanager
+from dataclasses import replace
 from pathlib import Path
 
 from sqlalchemy import Connection, text
 
 from korpus.infrastructure.corpus_snapshot_guards import require_guards
-from korpus.infrastructure.migration_baseline_proof import proven_baseline_forward, verify_baseline
+from korpus.infrastructure.migration_baseline_proof import (
+    BaselineProof,
+    proven_baseline_forward,
+    verify_baseline,
+    verify_passive_revision,
+)
 
 BOOTSTRAP_HEAD = "0025_sealed_provenance_integrity"
 _MIGRATION_LOCK = 0x4B4F525055534D47
@@ -23,7 +29,7 @@ class MigrationAdmissionError(RuntimeError):
     """No observed state proves this migration is admissible."""
 
 
-def preflight_source(source_root: Path) -> None:
+def preflight_source(source_root: Path) -> BaselineProof:
     """Reject unknown source before Alembic imports executable revision modules."""
     baseline = verify_baseline(source_root)
     files = list((source_root / "apps/api/migrations/versions").glob("*.py"))
@@ -31,6 +37,17 @@ def preflight_source(source_root: Path) -> None:
     expected = baseline.files | {f"apps/api/migrations/versions/{BOOTSTRAP_HEAD}.py"}
     if any(path.is_symlink() for path in files) or actual != expected:
         raise MigrationAdmissionError("DENIED_SOURCE_HISTORY_UNPROVEN")
+    head = verify_passive_revision(source_root, BOOTSTRAP_HEAD, baseline.chain[-1])
+    return replace(baseline, sources=(*baseline.sources, head))
+
+
+def resolve_proven_target(destination: object, baseline: BaselineProof) -> str:
+    """Resolve only raw canonical targets; Alembic resolution imports revision modules."""
+    if destination == "head":
+        return BOOTSTRAP_HEAD
+    if isinstance(destination, str) and destination in (*baseline.chain, BOOTSTRAP_HEAD):
+        return destination
+    raise MigrationAdmissionError("DENIED_MIGRATION_TARGET_UNPROVEN")
 
 
 @contextmanager
@@ -100,14 +117,13 @@ def assert_online_admission(
     destination: str | tuple[str, ...] | None,
     source_head: str | None,
     source_revisions: frozenset[str],
-    source_root: Path,
+    baseline: BaselineProof,
 ) -> None:
     """Allow empty bootstrap, pinned baseline forward paths and verified current-head no-ops."""
     if source_head != BOOTSTRAP_HEAD:
         raise MigrationAdmissionError("DENIED_SOURCE_HISTORY_UNPROVEN")
     if not isinstance(destination, str) or destination not in source_revisions:
         raise MigrationAdmissionError("DENIED_MIGRATION_TARGET_UNPROVEN")
-    baseline = verify_baseline(source_root)
     if connection.dialect.name == "postgresql":
         schema = connection.execute(text("SELECT current_schema()")).scalar_one()
         if schema != "public":

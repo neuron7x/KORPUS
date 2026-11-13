@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import uuid
 from collections.abc import Iterator
 from pathlib import Path
@@ -9,6 +10,7 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from korpus.infrastructure.migration_admission import MigrationAdmissionError
+from korpus.infrastructure.migration_baseline_proof import BaselineProofError
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import URL, make_url
 
@@ -16,6 +18,43 @@ ROOT = Path(__file__).resolve().parents[3]
 HEAD = "0025_sealed_provenance_integrity"
 BASE = "0024_capability_effect_ledger"
 pytestmark = pytest.mark.postgres
+
+
+def test_revision_initialization_cannot_commit_before_postgres_admission(
+    admission_database: tuple[URL, Config], tmp_path: Path
+) -> None:
+    url, config = admission_database
+    command.upgrade(config, BASE)
+    root = tmp_path / "source"
+    migrations = root / "apps/api/migrations"
+    shutil.copytree(ROOT / "apps/api/migrations", migrations)
+    policy = root / "config/production/migration-policy.json"
+    policy.parent.mkdir(parents=True)
+    shutil.copyfile(ROOT / "config/production/migration-policy.json", policy)
+    config.set_main_option("script_location", str(migrations))
+    path = migrations / f"versions/{HEAD}.py"
+    path.write_text(
+        path.read_text()
+        + '\nop.get_bind().exec_driver_sql("CREATE TABLE import_witness(value TEXT)")\n'
+        + "\nop.get_bind().exec_driver_sql(\"INSERT INTO import_witness VALUES ('persist')\")\n"
+        + "op.get_bind().commit()\n"
+    )
+    engine = create_engine(url)
+    try:
+        with engine.begin() as connection:
+            connection.exec_driver_sql("CREATE TABLE sentinel(value TEXT)")
+            connection.exec_driver_sql("INSERT INTO sentinel VALUES ('preserve')")
+        before = inspect(engine).get_table_names()
+        with pytest.raises(BaselineProofError, match="DENIED_REVISION_INITIALIZATION_UNPROVEN"):
+            command.upgrade(config, "head")
+        assert inspect(engine).get_table_names() == before
+        with engine.connect() as connection:
+            assert connection.exec_driver_sql("SELECT value FROM sentinel").all() == [("preserve",)]
+            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").all() == [
+                (BASE,)
+            ]
+    finally:
+        engine.dispose()
 
 
 @pytest.fixture

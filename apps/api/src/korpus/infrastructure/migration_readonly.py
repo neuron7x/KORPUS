@@ -17,6 +17,17 @@ _INSPECTION_CALLBACKS = frozenset(
     for constant in operation.__code__.co_consts
     if isinstance(constant, CodeType)
 )
+_MIGRATION_CALLBACKS = frozenset(
+    constant
+    for operation in (command.upgrade, command.downgrade)
+    for constant in operation.__code__.co_consts
+    if isinstance(constant, CodeType)
+)
+
+
+def assert_migration_callback(callback: object) -> None:
+    if not isinstance(callback, FunctionType) or callback.__code__ not in _MIGRATION_CALLBACKS:
+        raise MigrationAdmissionError("DENIED_OPERATION_UNPROVEN")
 
 
 @contextmanager

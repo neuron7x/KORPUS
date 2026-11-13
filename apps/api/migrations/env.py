@@ -5,13 +5,20 @@ from logging.config import fileConfig
 from pathlib import Path
 
 from alembic import context
+from alembic.script.revision import RevisionMap
 from korpus.infrastructure.migration_admission import (
+    BOOTSTRAP_HEAD,
     assert_online_admission,
     deny_offline_migration,
     migration_lock,
     preflight_source,
+    resolve_proven_target,
 )
-from korpus.infrastructure.migration_readonly import inspection_transaction
+from korpus.infrastructure.migration_baseline_proof import load_proven_revisions
+from korpus.infrastructure.migration_readonly import (
+    assert_migration_callback,
+    inspection_transaction,
+)
 from korpus.infrastructure.repository import metadata
 from sqlalchemy import Connection, engine_from_config, pool
 
@@ -46,21 +53,29 @@ def run_migrations_online() -> None:
     )
     with connectable.connect() as connection:
         source_root = Path(context.script.dir).resolve().parents[2]
-        preflight_source(source_root)
+        proof = preflight_source(source_root)
         _configure(connection)
         options = context.get_context().opts
         if "destination_rev" not in options:
             with inspection_transaction(connection, options.get("fn")):
+                context.script.revision_map = RevisionMap(
+                    lambda: load_proven_revisions(source_root, proof.sources)
+                )
                 _configure(connection)
                 context.run_migrations()
         else:
+            destination = resolve_proven_target(options.get("destination_rev"), proof)
+            assert_migration_callback(options.get("fn"))
             with migration_lock(connection):
                 assert_online_admission(
                     connection,
-                    context.get_revision_argument(),
-                    context.script.get_current_head(),
-                    frozenset(revision.revision for revision in context.script.walk_revisions()),
-                    source_root,
+                    destination,
+                    BOOTSTRAP_HEAD,
+                    frozenset((*proof.chain, BOOTSTRAP_HEAD)),
+                    proof,
+                )
+                context.script.revision_map = RevisionMap(
+                    lambda: load_proven_revisions(source_root, proof.sources)
                 )
                 _configure(connection)
                 context.run_migrations()
