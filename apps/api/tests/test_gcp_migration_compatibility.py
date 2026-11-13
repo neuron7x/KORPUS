@@ -872,3 +872,16 @@ def test_canonical_migration_imports_remain_admitted(tmp_path: Path) -> None:
     _future(root, "op.create_table('safe_new_table', sa.Column('id', sa.Integer()))")
     report = evaluate(root)
     assert report["status"] == "PASS", report
+
+
+def test_local_column_helper_cannot_launder_nonnullable_add(tmp_path: Path) -> None:
+    for nullable in ("False", "True"):
+        root = _copy_surface(tmp_path / f"constructor-alias-{nullable.lower()}")
+        report = _with_helper(
+            root,
+            "op.add_column('accounts', Column('extra', sa.String(), nullable=True))",
+            "def Column(name, type_, nullable=True):\n"
+            f"    return sa.Column(name, type_, nullable={nullable})\n",
+        )
+        assert report["status"] == "FAIL", report
+        assert any("Column constructor" in reason for reason in report["findings"]), report

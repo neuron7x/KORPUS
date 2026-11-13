@@ -73,9 +73,7 @@ def _unsafe_add_column(call: ast.Call) -> str | None:
     if not isinstance(column, ast.Call):
         return "add_column uses a non-literal Column expression"
     func = column.func
-    is_column = (isinstance(func, ast.Attribute) and func.attr == "Column") or (
-        isinstance(func, ast.Name) and func.id == "Column"
-    )
+    is_column = isinstance(func, ast.Attribute) and ast.unparse(func) == "sa.Column"
     if not is_column:
         return "add_column second argument is not a Column constructor"
     keywords = _column_keywords(column)
