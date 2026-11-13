@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2155,
-  "root_sha256": "90a0546ec68fe84216ba7aa5c83dcd7cca2340475d1a1816d219e91316f50b07",
+  "file_count": 2156,
+  "root_sha256": "db0beb3d263e2f67bd0d7f707f58d349e93daf5e991302f2cb6ada6713d9f909",
   "files": [
     {
       "path": ".dockerignore",
@@ -8679,6 +8679,12 @@
       "path": "docs/adr/0008-executable-gates.md",
       "bytes": 8457,
       "sha256": "aa4b238758ad30aca0930149f96c80ed5a18e671a97770445fb93e16b4e4073a",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/agent_execution/KORPUS_NINE_PR_RUNBOOK.md",
+      "bytes": 14897,
+      "sha256": "f16461ea3c522e1ca434c34e1e48dc83fd5284d8ea2243d133d129ae0c569b49",
       "mode": "0644"
     },
     {
