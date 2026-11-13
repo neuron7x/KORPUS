@@ -136,13 +136,28 @@ def test_sqltext_default_requires_a_proven_literal_value(
 @pytest.mark.parametrize(
     ("column", "expected"),
     [
-        ("sa.Column('fresh', sa.Text(), nullable=False, server_default=sa.text(\"'ready'\"))", "PASS"),
-        ("sa.Column('fresh', sa.Text(), nullable=False, server_default=sa.text(\"'O''Brien'\"))", "PASS"),
-        ("sa.Column('fresh', sa.Text(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP'))", "FAIL"),
-        ("sa.Column('fresh', sa.Text(), nullable=False, server_default=sa.text(\"'unterminated\"))", "FAIL"),
+        (
+            "sa.Column('fresh', sa.Text(), nullable=False, server_default=sa.text(\"'ready'\"))",
+            "PASS",
+        ),
+        (
+            "sa.Column('fresh', sa.Text(), nullable=False, server_default=sa.text(\"'O''Brien'\"))",
+            "PASS",
+        ),
+        (
+            "sa.Column('fresh', sa.Text(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP'))",
+            "FAIL",
+        ),
+        (
+            "sa.Column('fresh', sa.Text(), nullable=False, server_default=sa.text(\"'unterminated\"))",
+            "FAIL",
+        ),
         ("sa.Column(sa.Integer(), name='fresh', nullable=True, server_default='1')", "PASS"),
         ("sa.Column(sa.Integer(), name='fresh', nullable=True, server_default='oops')", "FAIL"),
-        ("sa.Column(sa.String(1), name='fresh', nullable=True, server_default='oversized')", "FAIL"),
+        (
+            "sa.Column(sa.String(1), name='fresh', nullable=True, server_default='oversized')",
+            "FAIL",
+        ),
         ("sa.Column(type_=sa.Integer(), name='fresh', nullable=True, server_default='1')", "PASS"),
         ("sa.Column('fresh', type_=sa.Integer(), nullable=True, server_default='1')", "PASS"),
     ],

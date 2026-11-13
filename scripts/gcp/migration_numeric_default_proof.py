@@ -28,11 +28,7 @@ def unproven_numeric_server_default(column: ast.Call, keywords: dict[str, ast.ex
     if "server_default" not in keywords:
         return None
     type_index = 0 if "name" in keywords else 1
-    type_node = (
-        column.args[type_index]
-        if len(column.args) > type_index
-        else keywords.get("type_")
-    )
+    type_node = column.args[type_index] if len(column.args) > type_index else keywords.get("type_")
     if type_node is None or (len(column.args) > type_index) == ("type_" in keywords):
         return "unverified or ambiguous Column type binding"
     constructor = type_node.func if isinstance(type_node, ast.Call) else type_node
