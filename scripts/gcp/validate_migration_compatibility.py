@@ -30,6 +30,7 @@ from gcp.migration_numeric_default_proof import (  # noqa: E402
 from gcp.migration_numeric_default_proof import (  # noqa: E402
     unproven_numeric_server_default,
 )
+from gcp.migration_operation_argument_proof import operation_argument_failure  # noqa: E402
 from gcp.migration_order_proof import proven_created_before as _created_before  # noqa: E402
 from gcp.migration_raw_ddl_proof import execute_is_expanding as _execute_is_expanding  # noqa: E402
 from gcp.migration_reachability import reachable_calls as _reachable_calls  # noqa: E402
@@ -118,14 +119,15 @@ def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[
     for node in calls:
         eligible = created.get(id(node), frozenset())
         opname = _op_call_name(node)
-        if opname in forbidden:
+        if opname in forbidden or opname == "execute":
             reason = (
                 _execute_is_expanding(node, eligible) if opname == "execute" else "op." + opname
             )
             if reason is not None:
                 findings.append(f"future migration is not expand-only: {relative}: {reason}")
         reason = (
-            _unsafe_add_column(node, eligible)
+            operation_argument_failure(node, eligible)
+            or _unsafe_add_column(node, eligible)
             or _constraint_failure(node, eligible)
             or create_table_failure(node, eligible)
         )

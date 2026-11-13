@@ -6930,6 +6930,60 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Issue #109: extract strict shared Column schema-item and compiler-parameter proofs; measured new-module ceilings with no existing ratchet increase."
+    },
+    "scripts/gcp/migration_literal_bindings.py": {
+      "lines": 61,
+      "max_complexity": 8,
+      "max_function_args": 3,
+      "max_function_lines": 17,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #109: explicit argument, keyword and data-insertion effect proofs for all admitted operation families; exact new-module ceilings, existing limits unchanged."
+    },
+    "scripts/gcp/migration_constraint_binding_proof.py": {
+      "lines": 38,
+      "max_complexity": 7,
+      "max_function_args": 2,
+      "max_function_lines": 10,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #109: explicit argument, keyword and data-insertion effect proofs for all admitted operation families; exact new-module ceilings, existing limits unchanged."
+    },
+    "scripts/gcp/migration_bulk_insert_proof.py": {
+      "lines": 65,
+      "max_complexity": 10,
+      "max_function_args": 2,
+      "max_function_lines": 26,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #109: explicit argument, keyword and data-insertion effect proofs for all admitted operation families; exact new-module ceilings, existing limits unchanged."
+    },
+    "scripts/gcp/migration_operation_argument_proof.py": {
+      "lines": 29,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 18,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #109: explicit argument, keyword and data-insertion effect proofs for all admitted operation families; exact new-module ceilings, existing limits unchanged."
+    },
+    "scripts/gcp/migration_schema_item_binding.py": {
+      "lines": 53,
+      "max_complexity": 11,
+      "max_function_args": 1,
+      "max_function_lines": 19,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "Issue #109: explicit argument, keyword and data-insertion effect proofs for all admitted operation families; exact new-module ceilings, existing limits unchanged."
+    },
+    "scripts/gcp/migration_column_keyword_effects.py": {
+      "lines": 47,
+      "max_complexity": 9,
+      "max_function_args": 2,
+      "max_function_lines": 13,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #109: extract finite Column option value domains without raising existing module or function ceilings."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

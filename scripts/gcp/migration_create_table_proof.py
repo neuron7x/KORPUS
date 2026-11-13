@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 
 from gcp.migration_column_keyword_scan import literal_column_keywords
+from gcp.migration_literal_bindings import literal_options
 from gcp.migration_local_declaration_proof import local_declaration_failure
 
 
@@ -42,9 +43,8 @@ def create_table_failure(call: ast.Call, created: frozenset[str]) -> str | None:
     name = _table_name(call, keys)
     if name is None:
         return "unverified create_table name binding"
-    for key in ("schema", "if_not_exists"):
-        if key in keys and not isinstance(keys[key], ast.Constant):
-            return "unverified create_table scope binding"
+    if not literal_options(keys, strings=frozenset({"schema"}), flags=frozenset({"if_not_exists"})):
+        return "unverified create_table scope binding"
     local = created | {name} if created_table_name(call) is not None else frozenset()
     for declaration in call.args[1:]:
         if problem := local_declaration_failure(declaration, local):

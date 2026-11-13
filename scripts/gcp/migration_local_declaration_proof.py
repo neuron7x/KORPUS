@@ -9,6 +9,7 @@ from gcp.migration_column_keyword_scan import literal_column_keywords
 from gcp.migration_column_shape_proof import column_shape_failure
 from gcp.migration_foreign_key_proof import constructor_foreign_key_failure, sa_constructor
 from gcp.migration_numeric_default_proof import unproven_numeric_server_default
+from gcp.migration_schema_item_binding import schema_item_binding_failure
 
 _LOCAL_CHECK = re.compile(
     r"(?:1\s*=\s*1|[A-Za-z_][A-Za-z_0-9]*\s*(?:IS\s+(?:NOT\s+)?NULL|(?:=|!=|<>|<=|>=|<|>)\s*-?[0-9]+(?:\.[0-9]+)?))",
@@ -48,14 +49,11 @@ def local_declaration_failure(node: ast.expr, created: frozenset[str]) -> str | 
     name = sa_constructor(node)
     if name == "Column":
         return _column_failure(node, created)
+    if problem := schema_item_binding_failure(node):
+        return problem
     if name in {"ForeignKey", "ForeignKeyConstraint"}:
         return constructor_foreign_key_failure(node, created)
     if name == "CheckConstraint":
-        keys = literal_column_keywords(node)
-        value = node.args[0] if node.args else (keys or {}).get("sqltext")
-        return check_expression_failure(value)
-    if name in {"PrimaryKeyConstraint", "UniqueConstraint"} and all(
-        isinstance(item, ast.Constant) and isinstance(item.value, str) for item in node.args
-    ):
-        return None
-    return "create_table declaration has no local-effect proof"
+        keys = literal_column_keywords(node) or {}
+        return check_expression_failure(node.args[0] if node.args else keys.get("sqltext"))
+    return None
