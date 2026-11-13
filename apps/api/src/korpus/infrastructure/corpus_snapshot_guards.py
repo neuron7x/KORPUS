@@ -3,9 +3,15 @@
 from __future__ import annotations
 
 import re
+from itertools import product
 
 from sqlalchemy import text as sql_text
 from sqlalchemy.engine import Connection
+
+from korpus.infrastructure.corpus_snapshot_guard_bodies import (
+    POSTGRES_FUNCTION_BODIES as _POSTGRES_FUNCTION_BODIES,
+)
+from korpus.infrastructure.corpus_snapshot_sealed_guards import require_sealed_guards
 
 EPOCH_TABLES = (
     "documents",
@@ -14,61 +20,6 @@ EPOCH_TABLES = (
     "evidence_spans",
     "span_embeddings",
 )
-
-_POSTGRES_FUNCTION_BODIES = {
-    "korpus_bump_corpus_state_epoch": """
-        BEGIN
-          UPDATE public.corpus_state_epoch SET epoch = epoch + 1 WHERE singleton_id = 1;
-          RETURN NULL;
-        END;
-    """,
-    "korpus_refuse_approved_evidence_mutation": """
-        DECLARE
-          locked_digest text;
-        BEGIN
-          IF TG_OP = 'INSERT' THEN
-            SELECT evidence_digest INTO locked_digest
-            FROM public.document_versions
-            WHERE id = NEW.version_id
-            FOR SHARE;
-            IF locked_digest IS NOT NULL THEN
-              RAISE EXCEPTION 'sealed evidence is immutable';
-            END IF;
-          ELSIF TG_OP = 'DELETE' THEN
-            SELECT evidence_digest INTO locked_digest
-            FROM public.document_versions
-            WHERE id = OLD.version_id
-            FOR SHARE;
-            IF locked_digest IS NOT NULL THEN
-              RAISE EXCEPTION 'sealed evidence is immutable';
-            END IF;
-          ELSE
-            FOR locked_digest IN
-              SELECT evidence_digest
-              FROM public.document_versions
-              WHERE id IN (OLD.version_id, NEW.version_id)
-              ORDER BY id
-              FOR SHARE
-            LOOP
-              IF locked_digest IS NOT NULL THEN
-                RAISE EXCEPTION 'sealed evidence is immutable';
-              END IF;
-            END LOOP;
-          END IF;
-          IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
-          RETURN NEW;
-        END;
-    """,
-    "korpus_refuse_approved_digest_mutation": """
-        BEGIN
-          IF OLD.evidence_digest IS NOT NULL
-             AND NEW.evidence_digest IS DISTINCT FROM OLD.evidence_digest THEN
-            RAISE EXCEPTION 'sealed evidence digest is immutable';
-          END IF;
-          RETURN NEW;
-        END;
-    """,
-}
 
 
 def _normalize(definition: object) -> str:
@@ -82,7 +33,15 @@ def _canonical_function_body(definition: object) -> str:
     return _normalize(source)
 
 
-def _assert_definition(label: str, definition: str, required: tuple[str, ...]) -> None:
+def _assert_definition(label: str, definition: object, required: tuple[str, ...]) -> None:
+    if isinstance(definition, tuple) and definition[1:] != ("public", required[-1]):
+        raise RuntimeError(f"corpus snapshot guard {label} has invalid function binding")
+    definition = str(definition[0] if isinstance(definition, tuple) else definition)
+    header = definition.split(" begin ", 1)[0]
+    if ("_epoch" in label or " on public." in header) and re.search(r"/\*|--|\bwhen\b", header):
+        raise RuntimeError(f"corpus snapshot guard {label} has conditional trigger definition")
+    if "_epoch" in label and re.search(r"\bupdate\s+of\b", header, flags=re.IGNORECASE):
+        raise RuntimeError(f"corpus snapshot guard {label} has column-specific UPDATE trigger")
     missing = [token for token in required if token not in definition]
     if missing:
         raise RuntimeError(f"corpus snapshot guard {label} has invalid definition: {missing}")
@@ -98,7 +57,7 @@ def _sqlite_guards(connection: Connection) -> None:
         sql_text("SELECT tbl_name, name, sql FROM sqlite_master WHERE type = 'trigger'")
     ).all()
     actual = {(str(row[0]), str(row[1])): _normalize(row[2]) for row in rows}
-    expected = {
+    expected_guards = {
         *(
             (table, f"trg_{table}_epoch_{operation}")
             for table in EPOCH_TABLES
@@ -109,77 +68,73 @@ def _sqlite_guards(connection: Connection) -> None:
         ("evidence_spans", "trg_evidence_spans_immutable_delete"),
         ("document_versions", "trg_approved_version_digest_immutable"),
     }
-    missing = expected.difference(actual)
+    missing = expected_guards.difference(actual)
     if missing:
         raise RuntimeError(f"corpus snapshot guards are missing: {sorted(missing)}")
-
-    for table in EPOCH_TABLES:
-        for operation in ("insert", "update", "delete"):
-            key = (table, f"trg_{table}_epoch_{operation}")
-            _assert_definition(
-                key[1],
-                actual[key],
-                (
-                    f"after {operation} on {table}",
-                    "update corpus_state_epoch set epoch = epoch + 1 where singleton_id = 1",
-                ),
-            )
+    for table, operation in product(EPOCH_TABLES, ("insert", "update", "delete")):
+        key = (table, f"trg_{table}_epoch_{operation}")
+        expected_sql = (
+            f"create trigger {key[1]} after {operation} on {table} begin "
+            "update corpus_state_epoch set epoch = epoch + 1 where singleton_id = 1; end"
+        )
+        if actual[key] != expected_sql:
+            reason = "conditional trigger" if " when " in actual[key] else "invalid definition"
+            raise RuntimeError(f"corpus snapshot guard {key[1]} has {reason}")
     for operation in ("insert", "update", "delete"):
         key = ("evidence_spans", f"trg_evidence_spans_immutable_{operation}")
-        _assert_definition(
-            key[1],
-            actual[key],
-            (
-                f"before {operation} on evidence_spans",
-                "evidence_digest is not null",
-                "raise(abort, 'sealed evidence is immutable')",
-            ),
+        predicate = f"id = {'new' if operation == 'insert' else 'old'}.version_id"
+        if operation == "update":
+            predicate = "id in (old.version_id, new.version_id)"
+        expected = (
+            f"create trigger {key[1]} before {operation} on evidence_spans "
+            "when exists (select 1 from document_versions "
+            f"where {predicate} and evidence_digest is not null) "
+            "begin select raise(abort, 'sealed evidence is immutable'); end"
         )
+        if actual[key] != expected:
+            raise RuntimeError(f"corpus snapshot guard {key[1]} has invalid definition")
     key = ("document_versions", "trg_approved_version_digest_immutable")
-    _assert_definition(
-        key[1],
-        actual[key],
-        (
-            "before update of evidence_digest on document_versions",
-            "old.evidence_digest is not null",
-            "raise(abort, 'sealed evidence digest is immutable')",
-        ),
+    expected = (
+        "create trigger trg_approved_version_digest_immutable before update of evidence_digest "
+        "on document_versions when old.evidence_digest is not null and "
+        "new.evidence_digest is not old.evidence_digest begin "
+        "select raise(abort, 'sealed evidence digest is immutable'); end"
     )
+    if actual[key] != expected:
+        raise RuntimeError(f"corpus snapshot guard {key[1]} has invalid definition")
 
 
 def _postgres_guards(connection: Connection) -> None:
     rows = connection.execute(
         sql_text(
-            "SELECT c.relname, t.tgname, pg_get_triggerdef(t.oid) "
+            "SELECT c.relname, t.tgname, pg_get_triggerdef(t.oid), fn.nspname, p.proname "
             "FROM pg_trigger t "
+            "JOIN pg_proc p ON p.oid = t.tgfoid JOIN pg_namespace fn ON fn.oid = p.pronamespace "
             "JOIN pg_class c ON c.oid = t.tgrelid "
             "JOIN pg_namespace n ON n.oid = c.relnamespace "
-            "WHERE NOT t.tgisinternal AND n.nspname = 'public'"
+            "WHERE NOT t.tgisinternal AND t.tgenabled IN ('O', 'A') AND n.nspname = 'public'"
         )
     ).all()
-    actual = {(str(row[0]), str(row[1])): _normalize(row[2]) for row in rows}
+    actual = {(str(r[0]), str(r[1])): (_normalize(r[2]), str(r[3]), str(r[4])) for r in rows}
     expected = {
-        *((table, f"trg_{table}_epoch") for table in EPOCH_TABLES),
-        ("evidence_spans", "trg_evidence_spans_immutable"),
-        ("document_versions", "trg_approved_version_digest_immutable"),
+        **{(t, f"trg_{t}_epoch"): "korpus_bump_corpus_state_epoch" for t in EPOCH_TABLES},
+        ("evidence_spans", "trg_evidence_spans_immutable"): (
+            "korpus_refuse_approved_evidence_mutation"
+        ),
+        ("document_versions", "trg_approved_version_digest_immutable"): (
+            "korpus_refuse_approved_digest_mutation"
+        ),
     }
-    missing = expected.difference(actual)
+    missing = expected.keys() - actual.keys()
     if missing:
         raise RuntimeError(f"corpus snapshot guards are missing: {sorted(missing)}")
-
+    epoch_events = ("after", "insert", "update", "delete")
     for table in EPOCH_TABLES:
         key = (table, f"trg_{table}_epoch")
         _assert_definition(
             key[1],
             actual[key],
-            (
-                "after",
-                "insert",
-                "update",
-                "delete",
-                f"on public.{table}",
-                "korpus_bump_corpus_state_epoch",
-            ),
+            (*epoch_events, f"on public.{table}", "korpus_bump_corpus_state_epoch"),
         )
     _assert_definition(
         "trg_evidence_spans_immutable",
@@ -189,7 +144,7 @@ def _postgres_guards(connection: Connection) -> None:
             "insert",
             "update",
             "delete",
-            "on public.evidence_spans",
+            "on public.evidence_spans for each row",
             "korpus_refuse_approved_evidence_mutation",
         ),
     )
@@ -197,12 +152,11 @@ def _postgres_guards(connection: Connection) -> None:
         "trg_approved_version_digest_immutable",
         actual[("document_versions", "trg_approved_version_digest_immutable")],
         (
-            "before update",
-            "on public.document_versions",
+            "before update of evidence_digest",
+            "on public.document_versions for each row",
             "korpus_refuse_approved_digest_mutation",
         ),
     )
-
     functions = {
         str(row[0]): (bool(row[1]), tuple(row[2] or ()), row[3])
         for row in connection.execute(
@@ -228,7 +182,6 @@ def _postgres_guards(connection: Connection) -> None:
         normalized_config = {item.replace(" ", "").lower() for item in configuration}
         if not security_definer or "search_path=pg_catalog" not in normalized_config:
             raise RuntimeError(f"corpus snapshot guard function is not hardened: {name}")
-
     for name, expected_body in _POSTGRES_FUNCTION_BODIES.items():
         metadata = functions.get(name)
         if metadata is None:
@@ -238,11 +191,10 @@ def _postgres_guards(connection: Connection) -> None:
 
 
 def require_guards(connection: Connection) -> None:
-    dialect = connection.dialect.name
-    if dialect == "sqlite":
+    if connection.dialect.name == "sqlite":
         _sqlite_guards(connection)
-        return
-    if dialect == "postgresql":
+    elif connection.dialect.name == "postgresql":
         _postgres_guards(connection)
-        return
-    raise RuntimeError(f"unsupported corpus snapshot dialect: {dialect}")
+    else:
+        raise RuntimeError(f"unsupported corpus snapshot dialect: {connection.dialect.name}")
+    require_sealed_guards(connection)
