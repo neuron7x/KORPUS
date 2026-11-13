@@ -4,27 +4,15 @@ from __future__ import annotations
 
 import ast
 
+from gcp.migration_column_keyword_effects import column_keyword_effects
 from gcp.migration_column_type_proof import column_type_failure
 from gcp.migration_foreign_key_proof import sa_constructor
-
-_COLUMN_KEYS = frozenset(
-    {
-        "name",
-        "type_",
-        "nullable",
-        "primary_key",
-        "unique",
-        "index",
-        "server_default",
-        "autoincrement",
-        "comment",
-    }
-)
+from gcp.migration_schema_item_binding import column_schema_items_failure
 
 
 def column_shape_failure(column: ast.Call, keys: dict[str, ast.expr]) -> str | None:
-    if not keys.keys() <= _COLUMN_KEYS:
-        return "unverified Column keyword effects"
+    if problem := column_keyword_effects(keys):
+        return problem
     args = list(column.args)
     name = keys.get("name")
     if args and isinstance(args[0], ast.Constant) and isinstance(args[0].value, str):
@@ -40,10 +28,4 @@ def column_shape_failure(column: ast.Call, keys: dict[str, ast.expr]) -> str | N
         kind = args.pop(0)
     if problem := column_type_failure(kind):
         return problem
-    for item in args:
-        if not isinstance(item, ast.Call) or sa_constructor(item) not in {
-            "ForeignKey",
-            "CheckConstraint",
-        }:
-            return "unverified Column schema item or positional binding"
-    return None
+    return column_schema_items_failure(args)
