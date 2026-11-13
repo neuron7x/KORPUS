@@ -33,10 +33,15 @@ def test_inline_unique_never_reuses_another_schema_creation(tmp_path: Path, oper
         "op.create_table('fresh', sa.Column('id', sa.Integer()))\n"
         "op.add_column('fresh', sa.Column('x', sa.Integer(), unique=True))",
         "op.add_column('accounts', sa.Column('x', sa.Integer(), nullable=True), schema='other')",
+        "op.create_table('parents', sa.Column('id', sa.Integer(), primary_key=True))\n"
+        "op.create_table('accounts', sa.Column('id', sa.Integer()))\n"
         "op.add_column('accounts', sa.Column('parent_id', sa.Integer(), "
         "sa.ForeignKey('parents.id'), nullable=True))",
+        "op.create_table('parents', sa.Column('id', sa.Integer(), primary_key=True))\n"
+        "op.create_table('accounts', sa.Column('id', sa.Integer()))\n"
         "op.add_column('accounts', sa.Column('parent_id', sa.Integer(), "
         "sa.ForeignKey('parents.id'), nullable=True, server_default=None))",
+        "op.create_table('parents', sa.Column('id', sa.Integer(), primary_key=True))\n"
         "op.create_table('fresh', sa.Column('id', sa.Integer()))\n"
         "op.add_column('fresh', sa.Column('parent_id', sa.Integer(), "
         "sa.ForeignKey('parents.id'), server_default='0'))",

@@ -54,6 +54,7 @@ from scripts.gcp.validate_migration_compatibility import evaluate
             "PASS",
         ),
         (
+            "op.create_table('parents', sa.Column('id', sa.Integer, primary_key=True))\n"
             "op.create_table('fresh', sa.Column('id', sa.Integer, primary_key=True))\n"
             "op.create_foreign_key('fk', 'fresh', 'parents', ['id'], ['id'])",
             "PASS",

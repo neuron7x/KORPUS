@@ -4,21 +4,13 @@ from __future__ import annotations
 
 import ast
 
+from gcp.migration_create_table_proof import created_table_name as _literal_create
 
-def _literal_create(call: ast.Call) -> str | None:
-    func = call.func
-    if not (
-        isinstance(func, ast.Attribute)
-        and isinstance(func.value, ast.Name)
-        and func.value.id == "op"
-        and func.attr == "create_table"
-        and call.args
-        and isinstance(call.args[0], ast.Constant)
-        and isinstance(call.args[0].value, str)
-        and all(k.arg not in (None, "schema", "if_not_exists") for k in call.keywords)
-    ):
-        return None
-    return call.args[0].value
+
+def _remember(proven: dict[int, frozenset[str]], call: ast.Call, created: set[str]) -> None:
+    current = frozenset(created)
+    prior = proven.get(id(call))
+    proven[id(call)] = current if prior is None else prior & current
 
 
 def _definitions(tree: ast.Module, shadowed: set[str]) -> dict[str, list[ast.FunctionDef]]:
@@ -61,6 +53,7 @@ def proven_created_before(tree: ast.Module, upgrade: ast.FunctionDef) -> dict[in
             call = stmt.value
             table = _literal_create(call)
             if table is not None:
+                _remember(proven, call, created)
                 created.add(table)
             elif (
                 isinstance(call.func, ast.Attribute)
@@ -68,9 +61,7 @@ def proven_created_before(tree: ast.Module, upgrade: ast.FunctionDef) -> dict[in
                 and call.func.value.id == "op"
                 and call.func.attr.startswith(("execute", "create_", "add_column"))
             ):
-                current = frozenset(created)
-                prior = proven.get(id(call))
-                proven[id(call)] = current if prior is None else prior & current
+                _remember(proven, call, created)
             elif isinstance(call.func, ast.Name):
                 matches = definitions.get(call.func.id, [])
                 if len(matches) == 1 and id(matches[0]) not in active:

@@ -6867,6 +6867,51 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Issue #109: extract positive-domain nonnumeric default proof and proven absence; unsupported type/default combinations fail closed without increasing existing ceilings."
+    },
+    "scripts/gcp/migration_raw_ddl_proof.py": {
+      "lines": 54,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 17,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #109: bounded local-effect DDL, declaration and referent proofs extracted without raising existing module ceilings; first-version source measurements."
+    },
+    "scripts/gcp/migration_create_table_proof.py": {
+      "lines": 52,
+      "max_complexity": 11,
+      "max_function_args": 2,
+      "max_function_lines": 17,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #109: bounded local-effect DDL, declaration and referent proofs extracted without raising existing module ceilings; first-version source measurements."
+    },
+    "scripts/gcp/migration_foreign_key_proof.py": {
+      "lines": 64,
+      "max_complexity": 7,
+      "max_function_args": 3,
+      "max_function_lines": 12,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #109: bounded local-effect DDL, declaration and referent proofs extracted without raising existing module ceilings; first-version source measurements."
+    },
+    "scripts/gcp/migration_local_declaration_proof.py": {
+      "lines": 114,
+      "max_complexity": 11,
+      "max_function_args": 2,
+      "max_function_lines": 17,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #109: bounded local-effect DDL, declaration and referent proofs extracted without raising existing module ceilings; first-version source measurements."
+    },
+    "scripts/gcp/migration_constraint_effect_proof.py": {
+      "lines": 36,
+      "max_complexity": 4,
+      "max_function_args": 4,
+      "max_function_lines": 9,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #109: bounded local-effect DDL, declaration and referent proofs extracted without raising existing module ceilings; first-version source measurements."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

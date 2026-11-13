@@ -4,26 +4,13 @@ from __future__ import annotations
 
 import ast
 
+from gcp.migration_constraint_effect_proof import constraint_effect_failure
+from gcp.migration_constraint_effect_proof import constraint_keywords as _keywords
+from gcp.migration_constraint_effect_proof import operation_name as _operation
+
 _RESTRICTIVE = frozenset(
     {"create_unique_constraint", "create_check_constraint", "create_foreign_key"}
 )
-
-
-def _operation(call: ast.Call) -> str | None:
-    func = call.func
-    if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
-        return func.attr if func.value.id == "op" else None
-    return None
-
-
-def _keywords(call: ast.Call) -> dict[str, ast.expr] | None:
-    found: dict[str, ast.expr] = {}
-    for item in call.keywords:
-        key = item.arg
-        if key is None or key in found or key in {"schema", "source_schema"}:
-            return None
-        found[key] = item.value
-    return found
 
 
 def constraint_failure(call: ast.Call, created: frozenset[str]) -> str | None:
@@ -49,4 +36,4 @@ def constraint_failure(call: ast.Call, created: frozenset[str]) -> str | None:
         return f"unverified op.{name} table name"
     if table.value not in created:
         return f"op.{name} restricts existing or unproven table: {table.value}"
-    return None
+    return constraint_effect_failure(call, name, keys, created)

@@ -6,7 +6,6 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
-import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -20,6 +19,7 @@ from gcp.migration_column_keyword_scan import (  # noqa: E402
     literal_column_keywords as _column_keywords,
 )
 from gcp.migration_constraint_proof import constraint_failure as _constraint_failure  # noqa: E402
+from gcp.migration_create_table_proof import create_table_failure  # noqa: E402
 from gcp.migration_inline_foreign_key_proof import inline_foreign_key_failure  # noqa: E402
 from gcp.migration_inline_unique_proof import inline_unique_failure  # noqa: E402
 from gcp.migration_numeric_default_proof import (  # noqa: E402
@@ -29,6 +29,7 @@ from gcp.migration_numeric_default_proof import (  # noqa: E402
     unproven_numeric_server_default,
 )
 from gcp.migration_order_proof import proven_created_before as _created_before  # noqa: E402
+from gcp.migration_raw_ddl_proof import execute_is_expanding as _execute_is_expanding  # noqa: E402
 from gcp.migration_reachability import reachable_calls as _reachable_calls  # noqa: E402
 from gcp.migration_revision_identity import _literal_assignment  # noqa: E402
 
@@ -103,47 +104,6 @@ def _verify_baseline(current: dict[str, Path], baseline: dict[str, str]) -> list
     return findings
 
 
-_RAW_CREATE_TABLE = re.compile(r"create\s+table\s+[a-z_][a-z_0-9]*\s*\([^;]*\)", re.S | re.I)
-
-
-def _altered_table(statement: str) -> str | None:
-    """Ім'я таблиці в `ALTER TABLE <ім'я> …`, якщо його видно дослівно."""
-    if match := re.match(r'(?i)^alter\s+table\s+("[^"]+"|[a-z_]\w*)\s', statement):
-        name = match.group(1)
-        return name[1:-1] if name.startswith('"') else name.lower()
-    return None
-
-
-def _execute_is_expanding(node: ast.Call, created: frozenset[str] = frozenset()) -> str | None:
-    """None означає «розширювальне і дозволене»; рядок — причину відмови.
-
-    Нелітеральний аргумент НЕ проходить: судити його зсередини неможливо, а
-    невідоме не є дозволом.
-
-    `ALTER TABLE` пропускається РІВНО тоді, коли таблицю створює ця сама міграція.
-    `ALTER TABLE` on an existing table can narrow the N-1 read contract.
-    Same-migration tables cannot affect N-1; their literal ALTER is admissible.
-    Preserve this distinction instead of banning every ALTER by verb.
-    """
-    if not node.args:
-        return "op.execute without a statement"
-    first = node.args[0]
-    if not isinstance(first, ast.Constant) or not isinstance(first.value, str):
-        return "op.execute requires a literal SQL statement"
-    statement = first.value.strip()
-    if any(marker in statement for marker in (";", "--", "/*", "*/", "\x00")):
-        return "op.execute with stacked or commented SQL is not expand-safe"
-    if _RAW_CREATE_TABLE.fullmatch(statement):
-        return None
-    table = _altered_table(statement)
-    if table is not None:
-        if table in created:
-            return None
-        return f"op.execute(ALTER TABLE {table} …) над таблицею, якої ця міграція не створює"
-    verb = statement.split(maxsplit=1)[0] if statement else "?"
-    return f"op.execute({verb.upper()} …)"
-
-
 def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[str]) -> list[str]:
     upgrade = _upgrade_function(tree)
     if upgrade is None:
@@ -162,7 +122,11 @@ def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[
             )
             if reason is not None:
                 findings.append(f"future migration is not expand-only: {relative}: {reason}")
-        reason = _unsafe_add_column(node, eligible) or _constraint_failure(node, eligible)
+        reason = (
+            _unsafe_add_column(node, eligible)
+            or _constraint_failure(node, eligible)
+            or create_table_failure(node, eligible)
+        )
         if reason:
             findings.append(f"future migration is not expand-only: {relative}: {reason}")
     return findings
