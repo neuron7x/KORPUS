@@ -7133,15 +7133,13 @@ def run_mutant(mutant: Mutant) -> dict[str, object]:
         )
         output = stdout + ("\n" + stderr if stderr else "")
         mode = "api_source_overlay" if api_overlay else "full_copy"
-        # `returncode is None` приходить рівно з таймауту (process_tree_runtime:65), але
-        # інваріант жив у голові, а не в типі. Названий тут — і тоді «убитий аварією» не
-        # може тихо стати статусом, порахованим із None.
+        # A missing measured exit is an execution error, never a mutant kill.
         if timed_out or returncode is None:
             return {
                 "id": mutant.id,
                 "file": mutant.file,
                 "status": "ERROR",
-                "reason": "pytest_timeout",
+                "reason": "pytest_timeout" if timed_out else "execution_inconclusive",
                 "termination": termination,
                 "target_occurrences": count,
                 "tests": list(mutant.tests),
@@ -7308,9 +7306,9 @@ def verify_mutation_baseline(mutants: list[Mutant]) -> None:
         timeout_seconds=300,
     )
     output = stdout + ("\n" + stderr if stderr else "")
-    if timed_out:
+    if timed_out or returncode is None:
         raise RuntimeError(
-            "mutation baseline timed out; refusing to execute mutants "
+            f"mutation baseline {'timed out' if timed_out else 'execution inconclusive'}; refusing to execute mutants "
             f"({termination})\n" + output[-6000:]
         )
     if returncode != 0:

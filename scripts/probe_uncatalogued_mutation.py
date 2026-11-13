@@ -1,37 +1,17 @@
 #!/usr/bin/env python3
-"""Measure the half of the tree the curated mutation catalogue does not reach.
+"""Sample ordinary mutations outside the curated catalogue.
 
-`run_mutation_tests.py` carries 349 hand-written mutants over 126 modules, and reports
-`mutation_score_over_catalogue: 1.0`. That number is true and it is about the catalogue.
-Measured 2026-08-29, 162 modules and 15 853 lines — 42% of the source — carry no mutant
-at all, so the score says nothing about them. A curated catalogue is the stronger
-instrument where it reaches; the question this answers is what the suite is worth where
-it does not.
-
-The probe is deliberately not a gate and deliberately not curated. It seeds ordinary
-operator mutations by AST — a comparison flipped, a boolean operator swapped, a guard
-short-circuited — samples them with a fixed seed, and runs the suite against each one.
-A mutant the suite kills is evidence for the tests over that line; a survivor is a line
-whose behaviour no test distinguishes, which is a candidate for the curated catalogue
-rather than a defect on its own.
-
-Sampling is what makes it affordable: the full suite is three minutes, so an exhaustive
-seed over 15 853 lines is not a thing anyone runs. `-x` stops at the first failure, which
-makes a killed mutant cheap and leaves the cost with survivors — the outcome worth paying
-for.
-
-It edits files in place and restores them, so nothing else may read the tree while it
-runs. That is not a theoretical hazard: a `make validate` started alongside the first run
-of this probe read a mutated module and reported two model-checker failures that did not
-reproduce in twelve subsequent runs. A lock file makes the overlap impossible instead of
-unlikely, and a dirty tree is refused because a crash mid-run would otherwise be
-indistinguishable from uncommitted work.
+A passing unmodified baseline and executed pytest failure distinguish a kill from
+an execution failure. Incomplete measurements publish no kill-rate estimate.
+The default sandbox and restoration guard prevent mutations reaching served code;
+explicit in-place execution retains the historical lock and clean-tree contract.
 """
 
 from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import json
 import math
 import os
@@ -42,30 +22,19 @@ import signal
 import subprocess
 import sys
 import tempfile
-import time
 from dataclasses import dataclass
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from mutation_probe_execution import SuiteExecution, mutation_outcome, run_suite
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOT = ROOT / "apps/api/src/korpus"
 CATALOGUE = ROOT / "scripts/run_mutation_tests.py"
 LOCK = ROOT / "var/mutation-probe.lock"
 
-#: Типове дерево. Робоче передається ПАРАМЕТРОМ: глобал тут був би прихованим
-#: передаванням стану, а стан цієї програми — саме те, що вона лишає в дереві.
-#:
-#: Дерево, яке проба РЕДАГУЄ. За замовчуванням — окрема копія, і це не обережність,
-#: а виправлення класу дефекту.
-#:
-#: 31.08.2026 прогін було вбито `timeout` (SIGTERM). Обробника сигналу не було, тож
-#: `finally` не виконався, і мутація лишилась у дереві:
-#: `adaptive_contracts.py:92` стояв із `or` замість `and` — ослаблений валідатор, що
-#: приймає нецілі значення, бо `x >= 0` істинне для float. Це те саме дерево, з якого
-#: імпортує ЖИВИЙ API: перезапуск сервера у тому вікні підняв би ослаблену перевірку.
-#: Знайдено випадково, суцільним `ruff format`, а не перевіркою.
-#:
-#: Копія прибирає клас цілком: що б не сталося з процесом, редагується не те дерево,
-#: яке обслуговує читача. `--in-place` лишається для налагодження й попереджає про себе.
+# Default isolation closes the historical SIGTERM defect: a killed probe once left
+# a mutation in the tree imported by the live service. In-place mode is explicit.
 DEFAULT_WORKSPACE = ROOT
 
 COMPARISON_FLIP = {
@@ -107,14 +76,7 @@ def catalogued_modules() -> set[str]:
 
 
 def uncatalogued_modules(only: list[str] | None = None) -> list[str]:
-    """Некаталогізовані модулі; `only` звужує предмет до названих шляхів.
-
-    Звуження потрібне гейту дельти: без нього проба або міряє все дерево (162
-    модулі, години), або не міряє нічого. Названий предмет — умова того, щоб
-    вимір був дешевим і при цьому лишався виміром, а не вибіркою навмання.
-    Шлях, якого немає серед некаталогізованих, НЕ мовчить: він або каталогізований
-    (і тоді його міряє курована кампанія), або не існує — і це різні стани.
-    """
+    """Select uncatalogued source paths; unknown and catalogued are distinct states."""
     catalogued = catalogued_modules()
     modules = {
         str(path.relative_to(ROOT))
@@ -161,41 +123,16 @@ def seed_module(relative: str, workspace: Path) -> list[Seeded]:
 
 def apply(mutant: Seeded, workspace: Path) -> str:
     path = workspace / mutant.module
-    original = path.read_text(encoding="utf-8")
+    original = path.read_bytes().decode("utf-8")
     lines = original.splitlines(keepends=True)
     lines[mutant.line - 1] = lines[mutant.line - 1].replace(mutant.old, mutant.new, 1)
     path.write_text("".join(lines), encoding="utf-8")
     return original
 
 
-def suite_kills(timeout_seconds: float, workspace: Path) -> tuple[bool, float]:
-    started = time.monotonic()
-    try:
-        completed = subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "pytest",
-                "apps/api/tests",
-                "-x",
-                "-q",
-                "--no-cov",
-                "-p",
-                "no:cacheprovider",
-            ],
-            cwd=workspace,
-            capture_output=True,
-            text=True,
-            timeout=timeout_seconds,
-            env={"PATH": "/usr/bin:/bin", "PYTHONPATH": str(workspace / "apps/api/src")},
-            check=False,
-        )
-    except subprocess.TimeoutExpired:
-        # A mutant that makes the suite hang is killed by the timeout: the behaviour
-        # changed observably. Recorded separately so the count is never mistaken for a
-        # test asserting something.
-        return True, time.monotonic() - started
-    return completed.returncode != 0, time.monotonic() - started
+def suite_kills(timeout_seconds: float, workspace: Path) -> SuiteExecution:
+    """Return a bounded execution receipt; only the baseline can authorize a kill."""
+    return run_suite(timeout_seconds, workspace)
 
 
 def _lock_pid() -> int | None:
@@ -208,12 +145,7 @@ def _lock_pid() -> int | None:
 
 
 def _lock_holder_alive() -> bool:
-    """Чи справді хтось тримає замок.
-
-    Замок без цієї перевірки блокує НАЗАВЖДИ після будь-якого аварійного виходу, і
-    саме так виглядав стан 31.08.2026: власник мертвий, замок на місці, наступний
-    прогін відмовляється стартувати без пояснення причини.
-    """
+    """An orphaned lock is observable; it cannot silently block all future probes."""
     pid = _lock_pid()
     if pid is None:
         return False
@@ -349,74 +281,120 @@ def main() -> int:
             shutil.rmtree(sandbox, ignore_errors=True)
 
 
-def probe(args: argparse.Namespace, workspace: Path) -> int:
-    modules = uncatalogued_modules(args.paths)
-    population: list[Seeded] = []
-    for module in modules:
-        population.extend(seed_module(module, workspace))
+@dataclass(frozen=True)
+class ProbePlan:
+    modules: int
+    available: int
+    sampled: int
+    seed: int
+    baseline: SuiteExecution | None
 
-    rng = random.Random(args.seed)
-    sample = rng.sample(population, min(args.sample, len(population)))
 
+def _measure(
+    sample: list[Seeded], baseline: SuiteExecution, context: tuple[Path, float]
+) -> list[dict[str, object]]:
+    workspace, timeout = context
     results: list[dict[str, object]] = []
     for index, mutant in enumerate(sample, start=1):
         original = apply(mutant, workspace)
+        mutant_digest = hashlib.sha256((workspace / mutant.module).read_bytes()).hexdigest()
         try:
-            killed, elapsed = suite_kills(args.timeout, workspace)
+            execution = suite_kills(timeout, workspace)
         finally:
             (workspace / mutant.module).write_text(original, encoding="utf-8")
+        status, reason = mutation_outcome(baseline, execution)
         results.append(
             {
                 "module": mutant.module,
                 "line": mutant.line,
                 "kind": mutant.kind,
                 "mutation": f"{mutant.old.strip()} -> {mutant.new.strip()}",
-                "killed": killed,
-                "seconds": round(elapsed, 1),
+                "killed": status == "KILLED",
+                "source_sha256": hashlib.sha256(original.encode("utf-8")).hexdigest(),
+                "mutant_sha256": mutant_digest,
+                "status": status,
+                "reason": reason,
+                "seconds": round(execution.seconds, 3),
+                "execution": execution.receipt(),
             }
         )
-        print(
-            f"[{index}/{len(sample)}] {'KILLED ' if killed else 'SURVIVED'} "
-            f"{mutant.module}:{mutant.line} {mutant.old.strip()} -> {mutant.new.strip()}",
-            flush=True,
-        )
+        print(f"[{index}/{len(sample)}] {status} {mutant.module}:{mutant.line}", flush=True)
+    return results
 
-    killed_total = sum(1 for row in results if row["killed"])
-    # A sampled rate without its interval invites reading 60/60 as "the suite kills
-    # everything". It does not: it means the rate is not below the lower bound, and with
-    # sixty draws that bound is 0.94, not 1.0.
-    lower, upper = wilson_interval(killed_total, len(sample)) if sample else (0.0, 1.0)
+
+def _measurement_status(plan: ProbePlan, results: list[dict[str, object]]) -> str:
+    if not plan.sampled:
+        return "NOT_MEASURED"
+    if plan.baseline is None or plan.baseline.status != "PASSED":
+        return "BASELINE_FAILED"
+    if len(results) != plan.sampled or any(
+        row["status"] not in {"KILLED", "SURVIVED"} for row in results
+    ):
+        return "INCONCLUSIVE"
+    return "COMPLETE"
+
+
+def _publish(args: argparse.Namespace, plan: ProbePlan, results: list[dict[str, object]]) -> int:
+    killed = sum(row["status"] == "KILLED" for row in results)
+    survivors = [row for row in results if row["status"] == "SURVIVED"]
+    incomplete = [row for row in results if row["status"] not in {"KILLED", "SURVIVED"}]
+    status = _measurement_status(plan, results)
+    measured = status == "COMPLETE"
+    interval = wilson_interval(killed, plan.sampled) if measured else None
     report = {
-        "schema": "korpus.uncatalogued-mutation-probe.v1",
-        "modules_uncatalogued": len(modules),
-        "mutations_available": len(population),
-        "sampled": len(sample),
-        "seed": args.seed,
-        "killed": killed_total,
-        "survived": len(sample) - killed_total,
-        "kill_rate": round(killed_total / len(sample), 4) if sample else None,
-        "kill_rate_interval_95": [round(lower, 4), round(upper, 4)],
-        "survivors": [row for row in results if not row["killed"]],
+        "schema": "korpus.uncatalogued-mutation-probe.v2",
+        "status": status,
+        "modules_uncatalogued": plan.modules,
+        "mutations_available": plan.available,
+        "sampled": plan.sampled,
+        "executed": len(results),
+        "seed": plan.seed,
+        "unexecuted": plan.sampled - len(results),
+        "killed": killed,
+        "survived": len(survivors),
+        "inconclusive": len(incomplete),
+        "baseline": plan.baseline.receipt() if plan.baseline is not None else None,
+        "kill_rate": round(killed / plan.sampled, 4) if measured else None,
+        "kill_rate_interval_95": [round(v, 4) for v in interval] if interval else None,
+        "survivors": survivors,
+        "inconclusive_results": incomplete,
         "results": results,
         "interpretation": (
-            "A measurement of the suite outside the curated catalogue, not a gate. "
-            "The rate is sampled, so the interval is the claim and the point estimate is "
-            "not: 60 of 60 killed bounds the true rate at 0.94 or better, never at 1.0. "
-            "Survivors are lines whose behaviour no test distinguishes; each is a "
-            "candidate for the curated catalogue, and an equivalent mutation is a "
-            "possible explanation that has to be checked one by one."
+            "A sampled measurement outside the curated catalogue, not a release gate. "
+            "Only a test failure after a passing unmodified baseline is KILLED. "
+            "Timeouts, pytest errors, skipped-away or missing tests are INCONCLUSIVE. "
+            "No rate or interval is reported for an incomplete sample; its denominator "
+            "is never reduced to hide unmeasured outcomes. Survivors require examination "
+            "for equivalence and do not alone establish a product defect."
         ),
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(
         json.dumps(
-            {k: v for k, v in report.items() if k not in {"results", "survivors"}},
-            ensure_ascii=False,
+            {
+                k: v
+                for k, v in report.items()
+                if k not in {"results", "survivors", "inconclusive_results"}
+            },
             indent=2,
         )
     )
-    return 0
+    return 0 if measured else 2
+
+
+def probe(args: argparse.Namespace, workspace: Path) -> int:
+    modules = uncatalogued_modules(args.paths)
+    population = [mutant for module in modules for mutant in seed_module(module, workspace)]
+    sample = random.Random(args.seed).sample(population, min(max(args.sample, 0), len(population)))
+    baseline = suite_kills(args.timeout, workspace) if sample else None
+    plan = ProbePlan(len(modules), len(population), len(sample), args.seed, baseline)
+    results = (
+        _measure(sample, baseline, (workspace, args.timeout))
+        if baseline and baseline.status == "PASSED"
+        else []
+    )
+    return _publish(args, plan, results)
 
 
 if __name__ == "__main__":
