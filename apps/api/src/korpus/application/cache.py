@@ -7,9 +7,8 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import date
 
-from korpus.application.corpus_snapshot import release_token
+from korpus.application.answer_request_snapshot import cache_release_token
 from korpus.application.ports import Repository, Retriever
-from korpus.application.retrieval import normalize_text
 from korpus.domain.models import Identity, RetrievedEvidence
 
 
@@ -100,27 +99,25 @@ class CachedRetriever(Retriever):
         # Ключ мусить нести ТУ САМУ релізну тотожність, яку відповідь назве читачеві.
         # Поки їх було дві, кеш умів віддати відповідь, засвідчену іншим релізом, ніж
         # той, за яким її поклали, — і жодне поле не розрізняло ці два випадки.
-        release_id = release_token(self.repository, identity, corpus_ids, as_of).release_id
+        token = cache_release_token(self.repository, identity, corpus_ids, as_of)
         material = "\x1f".join(
             [
                 identity.subject,
                 str(int(identity.clearance)),
                 ",".join(sorted(identity.roles)),
                 ",".join(sorted(identity.corpora)),
-                # Compartments decide which spans the retrieval projection returns
-                # (`retrieval_queries.compartment_predicate`) and were missing from this
-                # key until 2026-08-06. Entitlements are resolved per request from the
-                # profile, so one subject's compartments change between requests — and
-                # for the length of the TTL the cache kept serving evidence the
-                # withdrawn compartment had granted. Revocation latency in a system
-                # whose whole design is fail-closed.
+                # Compartments are request-scoped entitlements; withdrawal must
+                # invalidate cached evidence from the prior authorization scope.
                 ",".join(sorted(identity.compartments)),
                 ",".join(sorted(corpus_ids)),
                 as_of.isoformat(),
                 str(limit),
                 self.configuration_id,
-                release_id,
-                normalize_text(text),
+                str(token.state_epoch),
+                token.release_id,
+                # The semantic provider embeds the raw query; casefolding aliases
+                # queries that an allowed provider can distinguish.
+                text,
             ]
         )
         return hashlib.sha256(material.encode("utf-8")).hexdigest()

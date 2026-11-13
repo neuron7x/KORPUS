@@ -912,6 +912,15 @@
       "proof_lines": 0,
       "reason": "+28 рядків: захоплення знімка на початку відповіді й запис про те, ЧОМУ його відсутність законна. Розгортання без читача знімка працює як раніше, лише без поля в журналі — знімок ОПИСУЄ відповідь, а не виробляє її, тож його поломка не сміє відібрати в читача знайдену підставу."
     },
+    "apps/api/src/korpus/application/answer_request_snapshot.py": {
+      "lines": 146,
+      "max_complexity": 4,
+      "max_function_args": 7,
+      "max_function_lines": 19,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "2026-10-23 issue #23: initial measured ratchet for per-request token, guarded retrieval, and cache-release binding"
+    },
     "apps/api/src/korpus/application/answer_retrieval_gate.py": {
       "lines": 57,
       "max_complexity": 6,

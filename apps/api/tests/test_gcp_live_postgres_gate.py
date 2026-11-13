@@ -79,6 +79,15 @@ def test_grant_expansion_mutation_is_killed():
     assert status(x)["APP_TABLE_GRANTS_EXACT"] is False
 
 
+def test_read_only_epoch_mutations_are_killed():
+    baseline = good_snapshot()
+    assert baseline["expected_grants"]["corpus_state_epoch"] == ["SELECT"]
+    for privilege in ("INSERT", "UPDATE", "DELETE"):
+        mutated = copy.deepcopy(baseline)
+        mutated["grants"]["corpus_state_epoch"].append(privilege)
+        assert status(mutated)["APP_TABLE_GRANTS_EXACT"] is False
+
+
 def test_missing_identity_visibility_mutation_is_killed():
     x = good_snapshot()
     x["missing_identity_counts"]["documents"] = 1
