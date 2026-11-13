@@ -8,6 +8,9 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
+from alembic import command
+from alembic.config import Config
+from korpus.infrastructure.migration_admission import MigrationAdmissionError
 
 ROOT = Path(__file__).resolve().parents[3]
 API = ROOT / "apps/api"
@@ -126,4 +129,65 @@ def test_unknown_database_revision_denied_without_changes(tmp_path: Path) -> Non
     outcome = _migrate(database, "upgrade", "head")
     assert outcome.returncode != 0
     assert "DENIED_RETIREMENT_UNPROVEN" in outcome.stderr
+    assert _dump(database) == before
+
+
+@pytest.mark.parametrize("prepared", [False, True])
+def test_stamp_cannot_replace_bootstrap_or_retirement(tmp_path: Path, prepared: bool) -> None:
+    database = tmp_path / "stamp.db"
+    if prepared:
+        _baseline(database)
+    before = _dump(database)
+    outcome = _migrate(database, "stamp", "head")
+    assert outcome.returncode != 0
+    assert "DENIED_MIGRATION_TARGET_UNPROVEN" in outcome.stderr
+    assert _dump(database) == before
+
+
+@pytest.mark.parametrize("prepared", [False, True])
+def test_programmatic_stamp_has_same_denial(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, prepared: bool
+) -> None:
+    database = tmp_path / "programmatic-stamp.db"
+    if prepared:
+        _baseline(database)
+    before = _dump(database)
+    configuration = Config(str(API / "alembic.ini"))
+    configuration.set_main_option("script_location", str(API / "migrations"))
+    monkeypatch.setenv("KORPUS_DATABASE_URL", f"sqlite:///{database}")
+    with pytest.raises(MigrationAdmissionError, match="DENIED_MIGRATION_TARGET_UNPROVEN"):
+        command.stamp(configuration, "head")
+    assert _dump(database) == before
+
+
+@pytest.mark.parametrize("state", ["stamp", "missing", "inert"])
+def test_current_revision_claim_cannot_replace_real_guards(tmp_path: Path, state: str) -> None:
+    database = tmp_path / "forged-head.db"
+    if state == "stamp":
+        with sqlite3.connect(database) as connection:
+            connection.execute("CREATE TABLE alembic_version(version_num TEXT NOT NULL)")
+            connection.execute("INSERT INTO alembic_version VALUES (?)", (HEAD,))
+    else:
+        assert _migrate(database, "upgrade", "head").returncode == 0
+        with sqlite3.connect(database) as connection:
+            connection.execute("DROP TRIGGER trg_sealed_document_delete")
+            if state == "inert":
+                connection.execute(
+                    "CREATE TRIGGER trg_sealed_document_delete BEFORE DELETE ON documents "
+                    "BEGIN SELECT 1; END"
+                )
+    before = _dump(database)
+    outcome = _migrate(database, "upgrade", "head")
+    assert outcome.returncode != 0
+    assert "DENIED_CURRENT_STATE_UNPROVEN" in outcome.stderr
+    assert _dump(database) == before
+
+
+def test_current_inspection_remains_read_only_on_baseline(tmp_path: Path) -> None:
+    database = tmp_path / "inspect.db"
+    _baseline(database)
+    before = _dump(database)
+    outcome = _migrate(database, "current")
+    assert outcome.returncode == 0, outcome.stdout + outcome.stderr
+    assert BASELINE in outcome.stdout
     assert _dump(database) == before
