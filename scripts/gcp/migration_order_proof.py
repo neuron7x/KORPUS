@@ -66,7 +66,7 @@ def proven_created_before(tree: ast.Module, upgrade: ast.FunctionDef) -> dict[in
                 isinstance(call.func, ast.Attribute)
                 and isinstance(call.func.value, ast.Name)
                 and call.func.value.id == "op"
-                and call.func.attr.startswith(("execute", "create_"))
+                and call.func.attr.startswith(("execute", "create_", "add_column"))
             ):
                 current = frozenset(created)
                 prior = proven.get(id(call))
