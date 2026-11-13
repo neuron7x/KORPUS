@@ -20,6 +20,7 @@ from gcp.migration_column_keyword_scan import (  # noqa: E402
     literal_column_keywords as _column_keywords,
 )
 from gcp.migration_constraint_proof import constraint_failure as _constraint_failure  # noqa: E402
+from gcp.migration_inline_unique_proof import inline_unique_failure  # noqa: E402
 from gcp.migration_numeric_default_proof import (  # noqa: E402
     nonnullable_add_without_default as _nonnullable_add_without_default,
 )
@@ -47,13 +48,9 @@ def _upgrade_function(tree: ast.Module) -> ast.FunctionDef | None:
 
 def _op_call_name(call: ast.Call) -> str | None:
     func = call.func
-    return (
-        func.attr
-        if isinstance(func, ast.Attribute)
-        and isinstance(func.value, ast.Name)
-        and func.value.id == "op"
-        else None
-    )
+    if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
+        return func.attr if func.value.id == "op" else None
+    return None
 
 
 def _literal_nul_default(keywords: dict[str, ast.expr]) -> bool:
@@ -64,7 +61,7 @@ def _literal_nul_default(keywords: dict[str, ast.expr]) -> bool:
     )
 
 
-def _unsafe_add_column(call: ast.Call) -> str | None:
+def _unsafe_add_column(call: ast.Call, created: frozenset[str]) -> str | None:
     if _op_call_name(call) != "add_column":
         return None
     column, problem = bind_add_column_argument(call)
@@ -79,6 +76,8 @@ def _unsafe_add_column(call: ast.Call) -> str | None:
     keywords = _column_keywords(column)
     if keywords is None:
         return "unverified Column keyword expansion or duplicated keys"
+    if (unique_problem := inline_unique_failure(call, keywords, created)) is not None:
+        return unique_problem
     if _literal_nul_default(keywords):
         return "literal server_default contains NUL character"
     if (check_reason := inline_check_failure(column, keywords)) is not None:
@@ -160,7 +159,7 @@ def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[
             )
             if reason is not None:
                 findings.append(f"future migration is not expand-only: {relative}: {reason}")
-        reason = _unsafe_add_column(node) or _constraint_failure(node, eligible)
+        reason = _unsafe_add_column(node, eligible) or _constraint_failure(node, eligible)
         if reason:
             findings.append(f"future migration is not expand-only: {relative}: {reason}")
     return findings

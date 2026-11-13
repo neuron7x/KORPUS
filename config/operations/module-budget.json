@@ -6813,6 +6813,15 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Issue #109: exact source-measured restrictive DDL proof; fixed module/function ceilings with no existing budget relaxation."
+    },
+    "scripts/gcp/migration_inline_unique_proof.py": {
+      "lines": 28,
+      "max_complexity": 10,
+      "max_function_args": 3,
+      "max_function_lines": 19,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #109: bounded new-table-aware inline UNIQUE admission proof; deny unknown flags and restrictions on N-1 existing tables without altering established ceilings."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

@@ -111,6 +111,9 @@ def test_future_constraint_admission(tmp_path: Path, body: str, expected: str) -
         ("nullable=True, index=True, unique=True, server_default='x'", "FAIL"),
         ("nullable=True, index=True, unique=False", "PASS"),
         ("nullable=True, index=True, unique=False, server_default='x'", "PASS"),
+        ("nullable=True, unique=1", "FAIL"),
+        ("nullable=True, unique=bool(1)", "FAIL"),
+        ("nullable=True, unique=None", "PASS"),
     ],
 )
 def test_inline_unique_add_column_requires_n_minus_one_write_proof(
@@ -118,6 +121,14 @@ def test_inline_unique_add_column_requires_n_minus_one_write_proof(
 ) -> None:
     body = f"op.add_column('accounts', sa.Column('fresh', sa.String(20), {column_kwargs}))"
     test_future_constraint_admission(tmp_path, body, expected)
+
+
+def test_inline_unique_on_new_table_remains_expand_safe(tmp_path: Path) -> None:
+    body = (
+        "op.create_table('fresh', sa.Column('id', sa.Integer()))\n"
+        "op.add_column('fresh', sa.Column('tag', sa.String(20), unique=True))"
+    )
+    test_future_constraint_admission(tmp_path, body, "PASS")
 
 
 def test_real_alembic_unique_index_narrows_existing_writes() -> None:
