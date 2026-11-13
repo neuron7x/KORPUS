@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2195,
-  "root_sha256": "6f3c02915775a291086a7bc7d37d44b5e198cf823830de19f7a49f51678ee7fc",
+  "file_count": 2197,
+  "root_sha256": "4a773fe18cd14ec852fd7c28add0b6f112574ea31f12c82b6cf0ea10a1d096a0",
   "files": [
     {
       "path": ".dockerignore",
@@ -4326,6 +4326,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_gcp_migration_foreign_key_cardinality.py",
+      "bytes": 3799,
+      "sha256": "6b102cb1d38d3b146d491f020406effb3b8622c429aeb0cd6dc556b0a5c7fa8e",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_gcp_migration_named_add_column.py",
       "bytes": 3927,
       "sha256": "26e4cc47ef8d42a059c52e6ac6c0595c6767865840cbfa785a3810406a2e0a56",
@@ -8425,8 +8431,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 774604,
-      "sha256": "c67eb08a86e84549af3a322dad6bd1a7e7bb3900c83b80ba2c28e9ba1fe6ca8c",
+      "bytes": 774988,
+      "sha256": "5759daec0350846a05fad83e3a7531b42791f786ad7ae78974cfd509a5a8089a",
       "mode": "0644"
     },
     {
@@ -11473,8 +11479,8 @@
     },
     {
       "path": "scripts/gcp/migration_constraint_binding_proof.py",
-      "bytes": 1218,
-      "sha256": "27a720cb7fe26541b9c46f08c899467d65053b7cb9c37e2b1e5fce79c9e2670d",
+      "bytes": 1156,
+      "sha256": "c78a6df795e35e5355c651b1c371910ecacf90cbb6628d5ca8ce0924e531d95d",
       "mode": "0644"
     },
     {
@@ -11562,6 +11568,12 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/gcp/migration_paired_column_proof.py",
+      "bytes": 1348,
+      "sha256": "7cb8bfa3e2729f297b0d1e207e37ebc13f4cfd824a6870ef3d3f65552005e24b",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/gcp/migration_raw_ddl_proof.py",
       "bytes": 2252,
       "sha256": "1a9f998f5a431948b3fad7e238479c29d5237045b7de6968e2815230fa931c11",
@@ -11587,8 +11599,8 @@
     },
     {
       "path": "scripts/gcp/migration_schema_item_binding.py",
-      "bytes": 1872,
-      "sha256": "184f50527375dcf6924e501680c797b40ab7943dc8128a709b3a2dcc22f3d6d1",
+      "bytes": 1807,
+      "sha256": "421c1c5dcba643e4abdb1e16d75074e57eafd70a65f0c3f72f5fb7c32fb8e348",
       "mode": "0644"
     },
     {

@@ -6,10 +6,9 @@ import ast
 
 from gcp.migration_literal_bindings import (
     bound_arguments,
-    literal_name,
-    literal_names,
     literal_options,
 )
+from gcp.migration_paired_column_proof import literal_signature_values
 
 _SIGNATURES = {
     "create_index": ("index_name", "table_name", "columns"),
@@ -31,8 +30,4 @@ def constraint_bindings(call: ast.Call, name: str) -> dict[str, ast.expr] | None
     keys = bound_arguments(call, _SIGNATURES[name], optional)
     if keys is None or not literal_options(keys, flags=optional):
         return None
-    for key in _SIGNATURES[name]:
-        valid = literal_names(keys[key]) if key in _COLLECTIONS else literal_name(keys[key])
-        if not valid:
-            return None
-    return keys
+    return keys if literal_signature_values(keys, _SIGNATURES[name], _COLLECTIONS) else None
