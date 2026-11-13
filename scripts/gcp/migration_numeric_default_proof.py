@@ -1,16 +1,18 @@
-"""Conservative literal numeric-default check for additions to populated tables."""
+"""Prove supported populated defaults; unsupported type/default combinations deny."""
 
 from __future__ import annotations
 
 import ast
 
 from gcp.migration_default_type_bounds import (
-    INTEGER_TYPES as _INTEGERS,
+    INTEGER_TYPES,
+    NUMERIC_TYPES,
+    STRING_TYPES,
+    bounded_default_valid,
 )
-from gcp.migration_default_type_bounds import (
-    NUMERIC_TYPES as _FLOATS,
-)
-from gcp.migration_default_type_bounds import STRING_TYPES, bounded_default_valid, none_default
+from gcp.migration_scalar_default_proof import literal_default, none_default
+
+_INTEGERS, _FLOATS = INTEGER_TYPES, NUMERIC_TYPES
 
 
 def nonnullable_add_without_default(keywords: dict[str, ast.expr]) -> bool:
@@ -33,13 +35,12 @@ def unproven_numeric_server_default(column: ast.Call, keywords: dict[str, ast.ex
         name: str | None = constructor.attr
     else:
         name = getattr(constructor, "id", None)
-    if name is None or name not in _INTEGERS | _FLOATS | STRING_TYPES:
-        return None
     default = keywords["server_default"]
     if none_default(default, allow_expression=name in STRING_TYPES):
         return None
-    if not isinstance(default, ast.Constant) or not isinstance(default.value, str):
+    literal = literal_default(default)
+    if literal is None:
         return "server_default requires a proven literal value"
-    if not bounded_default_valid(type_node, name, default.value):
-        return f"literal server_default is incompatible with {name}"
+    if name is None or not bounded_default_valid(type_node, name, literal):
+        return f"literal server_default is incompatible or unproven for {name}"
     return None

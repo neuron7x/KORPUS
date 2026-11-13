@@ -7,8 +7,9 @@ import re
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation, localcontext
 
 from gcp.migration_column_keyword_scan import literal_column_keywords
+from gcp.migration_scalar_default_proof import simple_default_valid
 
-STRING_TYPES = frozenset({"String", "Unicode", "VARCHAR", "NVARCHAR", "CHAR", "NCHAR"})
+STRING_TYPES = frozenset({"String", "Unicode", "VARCHAR", "CHAR", "NCHAR"})
 INTEGER_TYPES = frozenset(
     {"Integer", "BigInteger", "SmallInteger", "INTEGER", "BIGINT", "SMALLINT", "INT"}
 )
@@ -20,19 +21,11 @@ _INT_LITERAL = re.compile(r"[+-]?[0-9]{1,19}\Z")
 _NUMERIC_LITERAL = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[Ee][+-]?[0-9]+)?\Z")
 
 
-def _integer_valid(name: str, literal: str) -> bool:
+def _integer_valid(node: ast.expr, name: str, literal: str) -> bool:
+    if isinstance(node, ast.Call) and (node.args or node.keywords):
+        return False
     limit = 1 << (_INTEGER_BITS.get(name, 32) - 1)
     return bool(_INT_LITERAL.fullmatch(literal)) and -limit <= int(literal) < limit
-
-
-def none_default(node: ast.expr, *, allow_expression: bool) -> bool:
-    if isinstance(node, ast.Constant):
-        return node.value is None
-    return (
-        allow_expression
-        and isinstance(node, ast.BoolOp)
-        and all(none_default(value, allow_expression=True) for value in node.values)
-    )
 
 
 def _bound_value(node: ast.expr | None) -> tuple[bool, int | None]:
@@ -50,7 +43,7 @@ def _parameters(node: ast.expr, names: tuple[str, ...]) -> dict[str, int | None]
     if not isinstance(node, ast.Call):
         return values
     keywords = literal_column_keywords(node)
-    if keywords is None or len(node.args) > len(names):
+    if keywords is None or len(node.args) > len(names) or not keywords.keys() <= set(names):
         return None
     for position, name in enumerate(names):
         if position < len(node.args) and name in keywords:
@@ -63,11 +56,13 @@ def _parameters(node: ast.expr, names: tuple[str, ...]) -> dict[str, int | None]
     return values
 
 
-def _string_valid(node: ast.expr, literal: str) -> bool:
+def _string_valid(node: ast.expr, name: str, literal: str) -> bool:
     values = _parameters(node, ("length",))
     if values is None:
         return False
     length = values["length"]
+    if length is None and name in {"CHAR", "NCHAR"}:
+        length = 1
     return length is None or (0 < length <= 10485760 and len(literal) <= length)
 
 
@@ -113,11 +108,11 @@ def _float_valid(node: ast.expr, name: str, value: Decimal) -> bool:
 
 def bounded_default_valid(node: ast.expr, name: str, literal: str) -> bool:
     if name in STRING_TYPES:
-        return _string_valid(node, literal)
+        return _string_valid(node, name, literal)
     if name in INTEGER_TYPES:
-        return _integer_valid(name, literal)
+        return _integer_valid(node, name, literal)
     if name not in _DECIMALS | _FLOATING:
-        return True
+        return simple_default_valid(node, name, literal)
     if not _NUMERIC_LITERAL.fullmatch(literal):
         return False
     try:

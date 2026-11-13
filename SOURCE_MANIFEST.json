@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2177,
-  "root_sha256": "04c4bdd3406166a6a6dd9edfbb373479bab0b5b6d903510073692861f2ae1a2a",
+  "file_count": 2178,
+  "root_sha256": "7ddedf715b30e95f563ddb2938f677238f70f88d9cb23135307e379e59528aa4",
   "files": [
     {
       "path": ".dockerignore",
@@ -4315,8 +4315,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_migration_default_bounds.py",
-      "bytes": 2452,
-      "sha256": "cb1b68d87cbc359463e0c695235afe7e18c878e09a2db1bc18e58aadedf69281",
+      "bytes": 5081,
+      "sha256": "45c6afdad5c7f40a02969186ef6e865234c450592d1b4eb8b60658edaba1811d",
       "mode": "0644"
     },
     {
@@ -8407,8 +8407,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 769129,
-      "sha256": "3ce7e2b137f08678d00ce290104d3a62d8020c39710989db6edb087ebd16ad80",
+      "bytes": 769534,
+      "sha256": "138d7d123f82b1446c4f3d5ef0aefae7ab0fb22b1294fd3cd1afd40782a019c3",
       "mode": "0644"
     },
     {
@@ -11431,8 +11431,8 @@
     },
     {
       "path": "scripts/gcp/migration_default_type_bounds.py",
-      "bytes": 4930,
-      "sha256": "1d464fa21984eca34d97a5c1e317ce28e8c67c4542ed203b6cab28a5e695a76d",
+      "bytes": 4946,
+      "sha256": "5b231caf886add66ddded7c5fa96ec1bde41f02ca5878da1f47c78aa56e5dac0",
       "mode": "0644"
     },
     {
@@ -11461,8 +11461,8 @@
     },
     {
       "path": "scripts/gcp/migration_numeric_default_proof.py",
-      "bytes": 2159,
-      "sha256": "c5b9791cb563929f4b19f4652ba9a91dbc2135b7c7a7b40aa7eb0e3366a32015",
+      "bytes": 2073,
+      "sha256": "807d6c9eb849ca6883b1249a01f1c91f3764996542831dc19a6a6819eb5036cb",
       "mode": "0644"
     },
     {
@@ -11481,6 +11481,12 @@
       "path": "scripts/gcp/migration_revision_identity.py",
       "bytes": 1889,
       "sha256": "5d0c3c79f2f26e1a9f5bbe36f46e51a467038429e3eefc6098b5e09cba4f224e",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/gcp/migration_scalar_default_proof.py",
+      "bytes": 1808,
+      "sha256": "d5d5f2b373f1d6b03cb362c1b1a3cb1e2f821bd2074d9151e5178aef093a66fb",
       "mode": "0644"
     },
     {
