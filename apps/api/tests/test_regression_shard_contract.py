@@ -41,7 +41,7 @@ def test_bounded_runner_kills_the_entire_process_group_on_timeout(tmp_path) -> N
     )
     assert timed_out is True
     assert exit_code is None
-    assert termination in {"sigterm_process_group", "sigkill_process_group"}
+    assert termination in {"sigterm_descendants", "sigkill_descendants"}
     child_pid = int(pid_file.read_text())
     for _ in range(20):
         try:
@@ -76,7 +76,7 @@ def test_bounded_runner_kills_descendant_after_parent_exits(tmp_path) -> None:
     )
     assert timed_out is True
     assert exit_code is None
-    assert termination in {"sigterm_process_group", "sigkill_process_group"}
+    assert termination in {"sigterm_descendants", "sigkill_descendants"}
     child_pid = int(pid_file.read_text())
     for _ in range(20):
         try:
@@ -112,7 +112,7 @@ def test_bounded_runner_sigkills_descendant_that_ignores_sigterm(tmp_path) -> No
     assert time.monotonic() - started < 7.0
     assert timed_out is True
     assert exit_code is None
-    assert termination == "sigkill_process_group"
+    assert termination == "sigkill_descendants"
     child_pid = int(pid_file.read_text())
     for _ in range(20):
         try:

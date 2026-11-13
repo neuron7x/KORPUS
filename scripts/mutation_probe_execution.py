@@ -112,7 +112,11 @@ def run_suite(timeout_seconds: float, workspace: Path) -> SuiteExecution:
         elapsed, output = time.monotonic() - started, stdout + "\n" + stderr
         if timed_out or code is None:
             return SuiteExecution(
-                "INCONCLUSIVE", f"TIMEOUT:{termination}", elapsed, code, output_tail=output[-3000:]
+                "INCONCLUSIVE",
+                f"{'TIMEOUT' if timed_out else 'EXECUTION'}:{termination}",
+                elapsed,
+                code,
+                output_tail=output[-3000:],
             )
         if code not in (0, 1):
             return SuiteExecution(
