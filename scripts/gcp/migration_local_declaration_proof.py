@@ -6,60 +6,10 @@ import ast
 import re
 
 from gcp.migration_column_keyword_scan import literal_column_keywords
+from gcp.migration_column_shape_proof import column_shape_failure
 from gcp.migration_foreign_key_proof import constructor_foreign_key_failure, sa_constructor
 from gcp.migration_numeric_default_proof import unproven_numeric_server_default
 
-_TYPES = frozenset(
-    {
-        "Integer",
-        "BigInteger",
-        "SmallInteger",
-        "INTEGER",
-        "BIGINT",
-        "SMALLINT",
-        "INT",
-        "Float",
-        "REAL",
-        "Numeric",
-        "DECIMAL",
-        "NUMERIC",
-        "FLOAT",
-        "DOUBLE_PRECISION",
-        "String",
-        "Unicode",
-        "VARCHAR",
-        "CHAR",
-        "NCHAR",
-        "Text",
-        "UnicodeText",
-        "TEXT",
-        "Boolean",
-        "BOOLEAN",
-        "JSON",
-        "Date",
-        "DATE",
-        "DateTime",
-        "TIMESTAMP",
-        "Time",
-        "TIME",
-        "LargeBinary",
-        "BINARY",
-        "VARBINARY",
-    }
-)
-_COLUMN_KEYS = frozenset(
-    {
-        "name",
-        "type_",
-        "nullable",
-        "primary_key",
-        "unique",
-        "index",
-        "server_default",
-        "autoincrement",
-        "comment",
-    }
-)
 _LOCAL_CHECK = re.compile(
     r"(?:1\s*=\s*1|[A-Za-z_][A-Za-z_0-9]*\s*(?:IS\s+(?:NOT\s+)?NULL|(?:=|!=|<>|<=|>=|<|>)\s*-?[0-9]+(?:\.[0-9]+)?))",
     re.I,
@@ -78,20 +28,17 @@ def check_expression_failure(value: ast.expr | None) -> str | None:
 
 def _column_failure(column: ast.Call, created: frozenset[str]) -> str | None:
     keys = literal_column_keywords(column)
-    if keys is None or not keys.keys() <= _COLUMN_KEYS:
+    if keys is None:
         return "unverified new-table Column keyword binding"
+    if problem := column_shape_failure(column, keys):
+        return problem
     for item in column.args:
-        if isinstance(item, ast.Constant) and isinstance(item.value, str):
-            continue
-        name = sa_constructor(item)
-        if name in _TYPES:
-            continue
-        if not isinstance(item, ast.Call):
-            return "unverified new-table Column positional binding"
-        if problem := local_declaration_failure(item, created):
+        if (
+            isinstance(item, ast.Call)
+            and sa_constructor(item) in {"ForeignKey", "CheckConstraint"}
+            and (problem := local_declaration_failure(item, created))
+        ):
             return problem
-    if "type_" in keys and sa_constructor(keys["type_"]) not in _TYPES:
-        return "unverified new-table Column type binding"
     return unproven_numeric_server_default(column, keys)
 
 

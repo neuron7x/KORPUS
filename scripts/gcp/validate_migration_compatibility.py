@@ -18,8 +18,10 @@ from gcp.migration_check_constraint_scan import inline_check_failure  # noqa: E4
 from gcp.migration_column_keyword_scan import (  # noqa: E402
     literal_column_keywords as _column_keywords,
 )
+from gcp.migration_column_shape_proof import column_shape_failure  # noqa: E402
 from gcp.migration_constraint_proof import constraint_failure as _constraint_failure  # noqa: E402
 from gcp.migration_create_table_proof import create_table_failure  # noqa: E402
+from gcp.migration_foreign_key_proof import sa_constructor  # noqa: E402
 from gcp.migration_inline_foreign_key_proof import inline_foreign_key_failure  # noqa: E402
 from gcp.migration_inline_unique_proof import inline_unique_failure  # noqa: E402
 from gcp.migration_numeric_default_proof import (  # noqa: E402
@@ -71,13 +73,13 @@ def _unsafe_add_column(call: ast.Call, created: frozenset[str]) -> str | None:
         return problem
     if not isinstance(column, ast.Call):
         return "add_column uses a non-literal Column expression"
-    func = column.func
-    is_column = isinstance(func, ast.Attribute) and ast.unparse(func) == "sa.Column"
-    if not is_column:
+    if sa_constructor(column) != "Column":
         return "add_column second argument is not a Column constructor"
     keywords = _column_keywords(column)
     if keywords is None:
         return "unverified Column keyword expansion or duplicated keys"
+    if problem := column_shape_failure(column, keywords):
+        return problem
     if constraint_problem := inline_unique_failure(
         call, keywords, created
     ) or inline_foreign_key_failure(call, column, keywords, created):
