@@ -1,0 +1,71 @@
+"""Order-sensitive, unconditional creation proof for expand-only Alembic ALTER."""
+
+from __future__ import annotations
+
+import ast
+
+from gcp.migration_create_table_proof import created_table_name as _literal_create
+
+
+def _remember(proven: dict[int, frozenset[str]], call: ast.Call, created: set[str]) -> None:
+    current = frozenset(created)
+    prior = proven.get(id(call))
+    proven[id(call)] = current if prior is None else prior & current
+
+
+def _definitions(tree: ast.Module, shadowed: set[str]) -> dict[str, list[ast.FunctionDef]]:
+    found: dict[str, list[ast.FunctionDef]] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name not in shadowed:
+            found.setdefault(node.name, []).append(node)
+    return found
+
+
+def _shadowed_names(tree: ast.Module) -> set[str]:
+    names = {
+        node.id
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Name) and isinstance(node.ctx, (ast.Store, ast.Del))
+    }
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            args = node.args
+            names.update(arg.arg for arg in (*args.posonlyargs, *args.args, *args.kwonlyargs))
+            names.update(arg.arg for arg in (args.vararg, args.kwarg) if arg)
+    return names
+
+
+def proven_created_before(tree: ast.Module, upgrade: ast.FunctionDef) -> dict[int, frozenset[str]]:
+    """Credit ordered unconditional creates; intersect repeated helper proofs."""
+    definitions = _definitions(tree, _shadowed_names(tree))
+    proven: dict[int, frozenset[str]] = {}
+
+    def walk(stmts: list[ast.stmt], created: set[str], active: frozenset[int]) -> None:
+        for stmt in stmts:
+            if any(
+                isinstance(n, (ast.Return, ast.Raise))
+                for n in ast.walk(stmt)
+                if not isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef))
+            ):
+                return
+            if not isinstance(stmt, ast.Expr) or not isinstance(stmt.value, ast.Call):
+                continue
+            call = stmt.value
+            table = _literal_create(call)
+            if table is not None:
+                _remember(proven, call, created)
+                created.add(table)
+            elif (
+                isinstance(call.func, ast.Attribute)
+                and isinstance(call.func.value, ast.Name)
+                and call.func.value.id == "op"
+                and call.func.attr.startswith(("execute", "create_", "add_column"))
+            ):
+                _remember(proven, call, created)
+            elif isinstance(call.func, ast.Name):
+                matches = definitions.get(call.func.id, [])
+                if len(matches) == 1 and id(matches[0]) not in active:
+                    walk(matches[0].body, created, active | {id(matches[0])})
+
+    walk(upgrade.body, set(), frozenset({id(upgrade)}))
+    return proven
