@@ -9,7 +9,7 @@ import sys
 import tempfile
 import time
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Literal
 
@@ -27,6 +27,8 @@ class SuiteExecution:
     failures: int = 0
     errors: int = 0
     output_tail: str = ""
+    stdout_tail: str = ""
+    stderr_tail: str = ""
 
     def receipt(self) -> dict[str, object]:
         return {
@@ -40,6 +42,8 @@ class SuiteExecution:
             "skipped": len(self.skipped_ids),
             "node_sha256": hashlib.sha256(json.dumps(self.identities).encode()).hexdigest(),
             "output_tail": self.output_tail,
+            "stdout_tail": self.stdout_tail,
+            "stderr_tail": self.stderr_tail,
         }
 
 
@@ -82,9 +86,17 @@ def _classify_receipt(
     return "INCONCLUSIVE", "EXIT_RECEIPT_MISMATCH"
 
 
-def run_suite(timeout_seconds: float, workspace: Path) -> SuiteExecution:
+def run_suite(
+    timeout_seconds: float,
+    workspace: Path,
+    *,
+    test_paths: tuple[str, ...] | None = None,
+    stop_on_failure: bool = True,
+) -> SuiteExecution:
     if not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
         return SuiteExecution("INCONCLUSIVE", "INVALID_TIMEOUT", 0.0, None)
+    if test_paths == ():
+        return SuiteExecution("INCONCLUSIVE", "NO_SELECTED_TESTS", 0.0, None)
     started = time.monotonic()
     with tempfile.TemporaryDirectory(prefix="korpus-probe-junit-") as temporary:
         report = Path(temporary) / "pytest.xml"
@@ -92,8 +104,8 @@ def run_suite(timeout_seconds: float, workspace: Path) -> SuiteExecution:
             sys.executable,
             "-m",
             "pytest",
-            "apps/api/tests",
-            "-x",
+            *(test_paths if test_paths is not None else ("apps/api/tests",)),
+            "-x" if stop_on_failure else "--maxfail=0",
             "-q",
             "--no-cov",
             "-p",
@@ -111,27 +123,35 @@ def run_suite(timeout_seconds: float, workspace: Path) -> SuiteExecution:
         )
         elapsed, output = time.monotonic() - started, stdout + "\n" + stderr
         if timed_out or code is None:
-            return SuiteExecution(
+            execution = SuiteExecution(
                 "INCONCLUSIVE",
                 f"{'TIMEOUT' if timed_out else 'EXECUTION'}:{termination}",
                 elapsed,
                 code,
                 output_tail=output[-3000:],
             )
-        if code not in (0, 1):
-            return SuiteExecution(
+        elif code not in (0, 1):
+            execution = SuiteExecution(
                 "INCONCLUSIVE", f"PYTEST_EXIT_{code}", elapsed, code, output_tail=output[-3000:]
             )
-        return _junit_receipt(report, code, elapsed, output)
+        else:
+            execution = _junit_receipt(report, code, elapsed, output)
+        return replace(execution, stdout_tail=stdout[-1500:], stderr_tail=stderr[-1000:])
 
 
-def mutation_outcome(baseline: SuiteExecution, execution: SuiteExecution) -> tuple[str, str]:
+def mutation_outcome(
+    baseline: SuiteExecution, execution: SuiteExecution, *, require_complete: bool = False
+) -> tuple[str, str]:
     if baseline.status != "PASSED" or execution.status == "INCONCLUSIVE":
         return "INCONCLUSIVE", execution.reason
     if not set(execution.identities) <= set(baseline.identities):
         return "INCONCLUSIVE", "UNEXPECTED_TEST_IDENTITIES"
     if not set(execution.skipped_ids) <= set(baseline.skipped_ids):
         return "INCONCLUSIVE", "NEW_SKIPPED_TESTS"
+    if require_complete and set(execution.identities) != set(baseline.identities):
+        return "INCONCLUSIVE", "MISSING_TEST_IDENTITIES"
+    if require_complete and set(execution.skipped_ids) != set(baseline.skipped_ids):
+        return "INCONCLUSIVE", "CHANGED_TEST_EXECUTION"
     if execution.status == "FAILED":
         return "KILLED", "TEST_FAILURE"
     if set(execution.identities) != set(baseline.identities):
