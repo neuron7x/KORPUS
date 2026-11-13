@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2214,
-  "root_sha256": "9f792f899ed3b7ca7f653279636732e3dbc8b2feb48f50a660decb1f22cc86e8",
+  "file_count": 2217,
+  "root_sha256": "02c6b743fac2e21cf70ad63fb5293d4383b1dbdbfa63a96e6f73f68453af305e",
   "files": [
     {
       "path": ".dockerignore",
@@ -44,13 +44,13 @@
     {
       "path": ".github/workflows/assurance.yml",
       "bytes": 6492,
-      "sha256": "3c06b0190c97075fc661a349bec3cbb325e0fa7e7f60af3b4db7cab2374c845c",
+      "sha256": "6b535576e89f117d44cf6187e5f08241603c614b4670a496aef31cb6c9447baf",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/ci.yml",
       "bytes": 6835,
-      "sha256": "bf866cc24647394d8dc7f0957f2baf3c363a30150cbba13745752b11f7bf0579",
+      "sha256": "77a552e3074a80ff2ee9d6757917d0c6d56d6a43f3d16aac452674165d843cb4",
       "mode": "0644"
     },
     {
@@ -62,7 +62,7 @@
     {
       "path": ".github/workflows/external-assurance-ingest.yml",
       "bytes": 2943,
-      "sha256": "2ac899305f539259238972ea04c9daedc13c02be3a566c830949a44d8c4b41a3",
+      "sha256": "dc9d56a2f1f99a7ecd94df4983c72c2cd0d8ab378d503de5000f379f6c260e4d",
       "mode": "0644"
     },
     {
@@ -74,31 +74,31 @@
     {
       "path": ".github/workflows/gcp-foundation.yml",
       "bytes": 3695,
-      "sha256": "a593b795641c9eecd8e2b8f247681659d264e4f3014615e04615a718c07bd56f",
+      "sha256": "b8d98524fd2254a7f3fbdec97e2ffa33ce33a0ad1f91ca270cd6eb14fd9591e6",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/gcp-production.yml",
       "bytes": 26468,
-      "sha256": "b16bb54c9998db57fa084419847cee35548da6f77630ceea9864fb0291f551e2",
+      "sha256": "268587e13d704bcd50c2c85dfe711ea282fad936f4a1840f3312ad121a9b1dfa",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/pec-production-evidence.yml",
       "bytes": 4383,
-      "sha256": "16600d1a969166b167385a53f5a25a7d5a13fd03642733e2444cc090a48b177a",
+      "sha256": "14fbd9c318783e96deaa71e63303afaf6927de9736a80e71bd2690eddf9f11a9",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/production-load-evidence.yml",
       "bytes": 3093,
-      "sha256": "dbbd3cd564583718d19ceb39a59a4ffcc8cca91a375dd00146ad830b3b17bca9",
+      "sha256": "09c79c4a65866b658a0fab7ff47f8128d44f11658cc72a3bb06b590a4ff2c8f2",
       "mode": "0644"
     },
     {
       "path": ".github/workflows/release.yml",
       "bytes": 3140,
-      "sha256": "01dc0bf148f63ad66936c3cd2b8f57204c5a0ffccab430122af4a84ed0afba75",
+      "sha256": "86b5ce5a1c82a18891c1ed65777bdab5cbec64f277c621b30cb6313cd6548bfe",
       "mode": "0644"
     },
     {
@@ -5538,6 +5538,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_release_mutation_measurement.py",
+      "bytes": 7998,
+      "sha256": "3093825540dac355b562f1c4f12c1aa0d26da5b3d26cf563e117000328667d1b",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_release_state_machine.py",
       "bytes": 6246,
       "sha256": "9563baa7d03b56b0dfc0d179eb935d2eb0e544c5fd92979a9bf2e61e85c3789e",
@@ -8486,7 +8492,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "db1e7efa245d8971023a7c70eed27ce11fbc710e39dbacd2bac4375959484ec2",
+      "sha256": "f94d3f921ce945be8f77da3623851139cb744dbe5566606216ca54371f9f2074",
       "mode": "0644"
     },
     {
@@ -8835,6 +8841,12 @@
       "path": "docs/adr/0008-executable-gates.md",
       "bytes": 8457,
       "sha256": "aa4b238758ad30aca0930149f96c80ed5a18e671a97770445fb93e16b4e4073a",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/agent_execution/KORPUS_NINE_PR_RUNBOOK.md",
+      "bytes": 14897,
+      "sha256": "f16461ea3c522e1ca434c34e1e48dc83fd5284d8ea2243d133d129ae0c569b49",
       "mode": "0644"
     },
     {
@@ -12073,8 +12085,8 @@
     },
     {
       "path": "scripts/mutation_probe_execution.py",
-      "bytes": 5241,
-      "sha256": "64aeb13c1f71b6141e2d74380e08a9448d8afdbcae4ba59857f25a05cbaad6e9",
+      "bytes": 6127,
+      "sha256": "edd6c78411f5a75e32335064534e27ff1465308f0c7f25ddcb9d1c6818d4ec37",
       "mode": "0644"
     },
     {
@@ -12462,6 +12474,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/release_mutation_summary.py",
+      "bytes": 740,
+      "sha256": "8badaa29541708724dd9aceb92aa8c53c41d4dfce2af0a50e4719b8246af5155",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/relink_derived_articles.py",
       "bytes": 17497,
       "sha256": "8575369c53ee4ccdc58a1392628693bc224e12f92be664d495f0dfbbe48fb590",
@@ -12775,8 +12793,8 @@
     },
     {
       "path": "scripts/run_release_mutation_microcampaign.py",
-      "bytes": 8044,
-      "sha256": "7101d305b7eac271242cc2610764bcb3583d9e7eac9375b5d4aa37575e29eece",
+      "bytes": 8141,
+      "sha256": "a1fbf9bd44fe3b21e5670098aaa37907ad8ef1ae21f64a24a565329c99af533e",
       "mode": "0755"
     },
     {
