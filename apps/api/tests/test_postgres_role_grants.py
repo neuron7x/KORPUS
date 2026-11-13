@@ -19,10 +19,14 @@ can ship.
 from __future__ import annotations
 
 import ast
+import os
 from pathlib import Path
 
 import korpus.infrastructure.ingestion_jobs  # noqa: F401  (registers its table)
+import pytest
 from korpus.infrastructure.repository import metadata
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import DBAPIError
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/prepare_postgres_role.py"
@@ -84,3 +88,45 @@ def test_a_table_is_classified_exactly_once() -> None:
                 duplicates.append((table, seen[table], name))
             seen[table] = name
     assert not duplicates, f"these tables appear in more than one grant list: {duplicates}"
+
+
+def test_epoch_counter_grant_is_read_only_in_role_plan() -> None:
+    lists = _grant_lists()
+    assert lists.get("READ_ONLY_TABLES") == {"corpus_state_epoch"}
+    assert all(
+        "corpus_state_epoch" not in tables
+        for name, tables in lists.items()
+        if name != "READ_ONLY_TABLES"
+    )
+
+
+@pytest.mark.postgres
+def test_app_and_review_cannot_rewind_corpus_epoch() -> None:
+    app_url = os.getenv("KORPUS_POSTGRES_TEST_URL") or os.getenv("KORPUS_TEST_DATABASE_URL")
+    review_url = os.getenv("KORPUS_REVIEW_DATABASE_URL")
+    if not app_url or not review_url:
+        pytest.skip("PostgreSQL app/review credentials not configured")
+    privilege_check = text(
+        "SELECT has_table_privilege(current_user, 'public.corpus_state_epoch', :action)"
+    )
+    for url in (app_url, review_url):
+        engine = create_engine(url)
+        try:
+            with engine.connect() as connection:
+                assert (
+                    connection.execute(privilege_check, {"action": "SELECT"}).scalar_one() is True
+                )
+                for action in ("INSERT", "UPDATE", "DELETE"):
+                    assert (
+                        connection.execute(privilege_check, {"action": action}).scalar_one()
+                        is False
+                    ), action
+                with pytest.raises(DBAPIError):
+                    connection.execute(
+                        text(
+                            "UPDATE public.corpus_state_epoch "
+                            "SET epoch = epoch WHERE singleton_id = 1"
+                        )
+                    )
+        finally:
+            engine.dispose()

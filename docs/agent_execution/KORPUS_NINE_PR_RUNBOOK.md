@@ -1,6 +1,6 @@
 # KORPUS — Nine-PR Agent Execution Runbook
 
-Status: PROPOSED / NOT IMPLEMENTED. Published through GitHub connector on 2026-10-28.
+Status: EXECUTION IN PROGRESS / PROGRAM NOT COMPLETE. Initial proposal published on 2026-10-28; integration snapshot refreshed on 2026-11-13.
 Controller: https://github.com/neuron7x/KORPUS/issues/97
 Canonical code: https://github.com/neuron7x/KORPUS
 Baseline inspected: main 16d768830067e1644118bb089c7878aab177d54b
@@ -26,7 +26,13 @@ This file is the index, role contract, sequencing protocol and bootstrap prompt.
 
 24 original acceptance Issues map to exactly one primary agent issue. Each primary issue owns ONE isolated worktree/branch/implementation PR in accordance with AGENTS.md. A PR can reference multiple original acceptance Issues; that does not create extra placeholder PRs.
 
-Current implementation: existing draft https://github.com/neuron7x/KORPUS/pull/95 is PR-01. Unrelated Dependabot https://github.com/neuron7x/KORPUS/pull/96 stays outside the nine implementation units. This documentation-only runbook PR, if opened, is PR-00 and is NOT one of nine engineering implementations.
+Integration snapshot (2026-11-13; refresh before acting):
+
+- PR-01 https://github.com/neuron7x/KORPUS/pull/95 is merged in `ce52c7823e2256e51df20fa9e2c3f3b2a7cf70d9`. Merge alone does not close all original acceptance obligations in #98.
+- PR-02 https://github.com/neuron7x/KORPUS/pull/108 remains an implementation candidate, including sealed-provenance guards and PostgreSQL destruction controls.
+- https://github.com/neuron7x/KORPUS/pull/110 repairs migration admission (#109) and is an integration dependency of #108. Evaluate the combined tree: an expand-only gate must not admit the restrictive 0025 migration through uninspected helpers. Resolve the compatibility obligation without rebaselining or weakening the gate.
+- Dependabot https://github.com/neuron7x/KORPUS/pull/96 stays outside the nine implementation units.
+- This documentation-only https://github.com/neuron7x/KORPUS/pull/107 is PR-00, not an implementation phase. Its integration cannot certify completion of the nine-phase program.
 
 ## First-principles dependency and trust graph
 
@@ -73,7 +79,7 @@ The actual PR merge base is always the latest verified canonical main SHA, never
 
 **Independent Auditor** fetches source, exact candidate SHA, real hosted run/attempt/job logs, test counts and skipped cases, artifact byte hashes, mutations, module/coverage ratchets and unresolved review threads. It does not accept the Builder's self-attested PASS.
 
-**Owner / merge controller** retains final approval of merge, secrets, deployment, external data access, publication and production authorization. Green tests do not grant any of these rights.
+**Owner / merge controller** retains authority over merge, secrets, deployment, external data access, publication and production authorization. An explicit standing owner instruction may delegate merging after all acceptance predicates pass; record that authorization and do not request it again for each already-authorized PR. It does not delegate production deployment or waive a failed or unknown predicate. Green tests alone grant no authority.
 
 ## Per-phase execution algorithm
 
@@ -85,7 +91,7 @@ The actual PR merge base is always the latest verified canonical main SHA, never
 6. REBIND: After code and tests are frozen, regenerate the impacted source and desired-state identities and PACKAGE_BUILD in producer-before-consumer order; never hand-edit reported hashes to green a gate.
 7. EXECUTE: Run focused positive/negative tests, real PostgreSQL under actual unprivileged roles when required, strict lint/module budget, migrations, deterministic replay, coverage/critical mutation and hosted exact-candidate CI.
 8. AUDIT: Independently read check names, run/attempt, skipped/failed jobs, artifact source SHA and bytes, review threads and open blockers. Green status from another SHA is not evidence.
-9. HANDOFF: Write phase-specific output including machine-readable provenance and issue-by-issue verdict, request human merge approval, and do not advance based on a draft merge assumption.
+9. HANDOFF: Write phase-specific output including machine-readable provenance and issue-by-issue verdict; verify existing owner merge authorization or obtain it if absent. Merge only the independently verified exact candidate after every required check succeeds; do not advance based on a draft merge assumption.
 10. CLOSE: Re-evaluate each original Issue's acceptance items against actual execution. Only owner-approved merged code plus complete acceptance allows closing an original Issue.
 
 Do not repeatedly rerun the same failure hoping for luck; investigate the root cause. No global ignore, reduced coverage/mutation budgets, skip/xfail, fake benchmark, degraded authorization or broad file exclusion to force PASS.
@@ -143,7 +149,7 @@ ROLE: Principal KORPUS Safety-Engineering Orchestrator / Independent Audit Contr
 Repository: https://github.com/neuron7x/KORPUS
 Controller: https://github.com/neuron7x/KORPUS/issues/97
 Active start: https://github.com/neuron7x/KORPUS/issues/98
-Current implementation candidate: https://github.com/neuron7x/KORPUS/pull/95
+Current implementation candidate at the 2026-11-13 snapshot: https://github.com/neuron7x/KORPUS/pull/108; migration-gate dependency: https://github.com/neuron7x/KORPUS/pull/110. PR #95 is merged; refresh the state before selecting work.
 
 OBJECTIVE: Carry out the nine-phase acceptance program with evidence-first, fail-closed, minimal-diff engineering and separate Builder / Falsifier / Independent Auditor passes.
 
@@ -157,7 +163,7 @@ D. Preserve strict type/lint/module/coverage/security/critical mutation ratchets
 E. Regenerate exact desired/source/package identity only after freezing source.
 F. Run focused tests, relevant real PostgreSQL/hosted checks and full exact-candidate required CI. Preserve actual exit codes and source/worker/log identity.
 G. Have a distinct auditor review raw negative/positive evidence and every required check.
-H. Update one implementation PR, link primary+original Issues, attach machine-readable handoff, request owner merge approval and STOP at merge gate.
+H. Update one implementation PR, link primary+original Issues, attach machine-readable handoff and verify owner authorization. If all exact-candidate predicates pass and merging is already authorized, merge without bypass; otherwise STOP with the precise unsatisfied predicate.
 I. Use actual merged canonical main before advancing; do not infer a merge from a green draft.
 
 NEVER:
