@@ -6,18 +6,18 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import shutil
-import subprocess
 import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT)]
+sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT), str(ROOT / "scripts")]
 
 from korpus.application.provenance import compute_source_digest  # noqa: E402
+from mutation_probe_execution import SuiteExecution, mutation_outcome, run_suite  # noqa: E402
+from release_mutation_summary import campaign_summary  # noqa: E402
 
 from scripts.release_identity import release_tag  # noqa: E402
 
@@ -133,61 +133,65 @@ def _sandbox() -> tuple[tempfile.TemporaryDirectory[str], Path]:
     return temporary, root
 
 
-def _execute(sandbox: Path, tests: tuple[str, ...]) -> subprocess.CompletedProcess[str]:
-    env = os.environ.copy()
-    env["PYTHONPATH"] = f"{sandbox / 'apps/api/src'}:{sandbox}"
-    return subprocess.run(
-        [sys.executable, "-m", "pytest", "-p", "no:cacheprovider", "-q", *tests],
-        cwd=sandbox,
-        env=env,
-        capture_output=True,
-        text=True,
-        timeout=120,
-        check=False,
-    )
+def _execute(sandbox: Path, tests: tuple[str, ...]) -> SuiteExecution:
+    return run_suite(120, sandbox, test_paths=tests, stop_on_failure=False)
+
+
+def _measure(sandbox: Path, mutant: Mutant) -> dict[str, object]:
+    path = sandbox / mutant.path
+    original = path.read_bytes()
+    mutated = original.decode("utf-8").replace(mutant.old, mutant.new, 1).encode("utf-8")
+    baseline = _execute(sandbox, mutant.tests)
+    result: dict[str, object] = {
+        "baseline": baseline.receipt(),
+        "execution": None,
+        "test_exit_code": None,
+        "source_sha256": sha256(original),
+        "mutant_sha256": sha256(mutated),
+    }
+    if baseline.status != "PASSED":
+        return {**result, "status": "INVALID", "reason": f"BASELINE_{baseline.reason}"}
+    if path.read_bytes() != original:
+        return {**result, "status": "INVALID", "reason": "BASELINE_CHANGED_SOURCE"}
+    path.write_bytes(mutated)
+    execution = _execute(sandbox, mutant.tests)
+    status, reason = mutation_outcome(baseline, execution, require_complete=True)
+    return {
+        **result,
+        "status": "INVALID" if status == "INCONCLUSIVE" else status,
+        "reason": reason,
+        "execution": execution.receipt(),
+        "test_exit_code": execution.returncode,
+        "stdout_tail": execution.stdout_tail,
+        "stderr_tail": execution.stderr_tail,
+    }
 
 
 def run_mutant(mutant: Mutant) -> dict[str, object]:
     source_path = ROOT / mutant.path
     original = source_path.read_bytes()
-    text = original.decode("utf-8")
-    occurrences = text.count(mutant.old)
+    occurrences = original.decode("utf-8").count(mutant.old)
+    identity: dict[str, object] = {
+        "id": mutant.mutant_id,
+        "path": mutant.path,
+        "invariant": mutant.invariant,
+        "tests": list(mutant.tests),
+    }
     if occurrences != 1:
         return {
-            "id": mutant.mutant_id,
+            **identity,
             "status": "INVALID",
             "reason": f"replacement occurrence count={occurrences}",
-            "path": mutant.path,
         }
     temporary, sandbox = _sandbox()
     try:
-        path = sandbox / mutant.path
-        mutated = text.replace(mutant.old, mutant.new, 1).encode("utf-8")
-        path.write_bytes(mutated)
-        try:
-            completed = _execute(sandbox, mutant.tests)
-        except subprocess.TimeoutExpired:
-            return {
-                "id": mutant.mutant_id,
-                "status": "INVALID",
-                "reason": "test timeout",
-                "path": mutant.path,
-                "invariant": mutant.invariant,
-                "source_unchanged": source_path.read_bytes() == original,
-            }
-        return {
-            "id": mutant.mutant_id,
-            "status": "KILLED" if completed.returncode else "SURVIVED",
-            "path": mutant.path,
-            "invariant": mutant.invariant,
-            "tests": list(mutant.tests),
-            "test_exit_code": completed.returncode,
-            "source_sha256": sha256(original),
-            "mutant_sha256": sha256(mutated),
-            "source_unchanged": source_path.read_bytes() == original,
-            "stdout_tail": completed.stdout[-1500:],
-            "stderr_tail": completed.stderr[-1000:],
-        }
+        if (sandbox / mutant.path).read_bytes() != original:
+            return {**identity, "status": "INVALID", "reason": "SANDBOX_SOURCE_DRIFT"}
+        result = _measure(sandbox, mutant)
+        unchanged = source_path.read_bytes() == original
+        if not unchanged:
+            result.update(status="INVALID", reason="ORIGINAL_SOURCE_CHANGED")
+        return {**identity, **result, "source_unchanged": unchanged}
     finally:
         temporary.cleanup()
 
@@ -197,19 +201,12 @@ def main() -> int:
     parser.add_argument("--out", type=Path, default=ROOT / "reports/MUTATION_DELTA_REPORT.json")
     args = parser.parse_args()
     results = [run_mutant(mutant) for mutant in MUTANTS]
-    killed = sum(item.get("status") == "KILLED" for item in results)
-    survived = [str(item.get("id")) for item in results if item.get("status") == "SURVIVED"]
-    invalid = [str(item.get("id")) for item in results if item.get("status") == "INVALID"]
     payload = {
         "schema": "korpus.release-mutation-delta.v1",
         "release": release_tag(),
         "source_tree_sha256": compute_source_digest(ROOT),
         "scope": "release-critical changed invariants",
-        "mutants": len(results),
-        "killed": killed,
-        "survived": survived,
-        "invalid": invalid,
-        "status": "PASS" if killed == len(results) else "FAIL",
+        **campaign_summary(results),
         "results": results,
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
