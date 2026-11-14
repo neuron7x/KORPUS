@@ -13,10 +13,9 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from sqlalchemy import create_engine
-
 from korpus.infrastructure import migration_admission as admission
 from korpus.infrastructure import migration_baseline_proof as proof
+from sqlalchemy import create_engine
 
 VERSIONS = "apps/api/migrations/versions"
 POLICY = "config/production/migration-policy.json"
@@ -225,9 +224,7 @@ def _admit(connection, target: object = "0002_next", source_head: str = admissio
 def test_unsupported_migration_lock_fails_before_execution() -> None:
     db = _FakeDB()
     with (
-        pytest.raises(
-            admission.MigrationAdmissionError, match="DENIED_DATABASE_DIALECT_UNPROVEN"
-        ),
+        pytest.raises(admission.MigrationAdmissionError, match="DENIED_DATABASE_DIALECT_UNPROVEN"),
         admission.migration_lock(db),
     ):
         pytest.fail("unsupported database must never pass lock gate")
