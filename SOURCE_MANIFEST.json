@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2226,
-  "root_sha256": "c5992c79285dca70e039b9e0031b8820880349a12d4a985af0bb703d53806401",
+  "file_count": 2227,
+  "root_sha256": "529219404dc7f8dcc31a1f9eb3834f7dc3d0d49ff809f74f45bea7f00e9ab9cb",
   "files": [
     {
       "path": ".dockerignore",
@@ -4761,6 +4761,12 @@
       "path": "apps/api/tests/test_migration_admission_policy.py",
       "bytes": 14395,
       "sha256": "1f48eb4d3ac536416d1a6674c0cfd9e58b8747861fef3f0718b0ff7d2ea39b7d",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_migration_baseline_adversarial_branches.py",
+      "bytes": 9452,
+      "sha256": "502c07f91b68f99bae050d44e61cce5f7b38a0951453f2b76614a2760e80bf86",
       "mode": "0644"
     },
     {
