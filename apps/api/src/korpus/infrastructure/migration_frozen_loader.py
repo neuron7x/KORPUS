@@ -7,12 +7,25 @@ import importlib.util
 from collections.abc import Buffer, Iterator
 from pathlib import Path
 from types import CodeType
-from typing import TYPE_CHECKING
+from typing import Protocol
 
 from alembic.script.base import Script
 
-if TYPE_CHECKING:
-    from korpus.infrastructure.migration_baseline_proof import RevisionSource
+
+class _RevisionSourceView(Protocol):
+    """Required immutable data shape without a reverse import of baseline proof."""
+
+    @property
+    def path(self) -> str:
+        ...
+
+    @property
+    def revision(self) -> str:
+        ...
+
+    @property
+    def source(self) -> bytes:
+        ...
 
 
 class _FrozenRevisionLoader(importlib.machinery.SourceFileLoader):
@@ -34,7 +47,7 @@ class _FrozenRevisionLoader(importlib.machinery.SourceFileLoader):
 
 
 def frozen_revision_scripts(
-    root: Path, sources: tuple[RevisionSource, ...], *, error_type: type[RuntimeError]
+    root: Path, sources: tuple[_RevisionSourceView, ...], *, error_type: type[RuntimeError]
 ) -> Iterator[Script]:
     """Yield Script wrappers after executing only the already-verified captured source."""
     for item in sources:

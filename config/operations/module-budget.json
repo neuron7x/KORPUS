@@ -7048,6 +7048,15 @@
       "proof_lines": 0,
       "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
     },
+    "apps/api/src/korpus/infrastructure/migration_frozen_loader.py": {
+      "lines": 61,
+      "max_complexity": 3,
+      "max_function_args": 5,
+      "max_function_lines": 13,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "PR #108: strict first-source measurement of captured-byte migration loader; the extracted module closes the unbudgeted gate without relaxing any existing ceiling."
+    },
     "apps/api/src/korpus/infrastructure/migration_readonly.py": {
       "lines": 45,
       "max_complexity": 6,
