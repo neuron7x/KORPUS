@@ -16,16 +16,13 @@ class _RevisionSourceView(Protocol):
     """Required immutable data shape without a reverse import of baseline proof."""
 
     @property
-    def path(self) -> str:
-        ...
+    def path(self) -> str: ...
 
     @property
-    def revision(self) -> str:
-        ...
+    def revision(self) -> str: ...
 
     @property
-    def source(self) -> bytes:
-        ...
+    def source(self) -> bytes: ...
 
 
 class _FrozenRevisionLoader(importlib.machinery.SourceFileLoader):

@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2228,
-  "root_sha256": "78f556e533f2d5cc06d88338eb1fe784b25dcf5971b6f74f586340246f3b719c",
+  "root_sha256": "d6c1cfc746e2bf7124477d018e92411e13dc5f892f5e4dc0424dfe4bd9ae06e9",
   "files": [
     {
       "path": ".dockerignore",
@@ -2443,8 +2443,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/migration_frozen_loader.py",
-      "bytes": 2066,
-      "sha256": "de210a3c845844fab671be54a73edb353bd11538f10eb9ef852f2bb149464bb8",
+      "bytes": 2042,
+      "sha256": "2f3d06b782c10e1e27c352ee7e38fbf5bb8c1e61dd73866d3e0e703a04bc4b6d",
       "mode": "0644"
     },
     {
