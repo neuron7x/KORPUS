@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2227,
-  "root_sha256": "46a849964ec3297d4d8c0fb91a4f847547af0cd4639be3b62c04e28b40bbfbec",
+  "file_count": 2228,
+  "root_sha256": "d9abfa291e84cb6d94c0c76a5725393f2afb9fc6f93a96e85cf86a7fabcddf44",
   "files": [
     {
       "path": ".dockerignore",
@@ -2437,8 +2437,14 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/migration_baseline_proof.py",
-      "bytes": 9978,
-      "sha256": "32303b7b5cea71ee889d621278a7f960dd6718c394dcc02e5b4433fdf6f93560",
+      "bytes": 8883,
+      "sha256": "e15baf095a5ebaf265c4d3b805ab060943ccd1652f8c7c2ad35fbabacd94f76c",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/migration_frozen_loader.py",
+      "bytes": 1870,
+      "sha256": "9a9c9514c91f0793231cfaa9b51e16aa026a01cab754ab7030321a3f73af59b1",
       "mode": "0644"
     },
     {

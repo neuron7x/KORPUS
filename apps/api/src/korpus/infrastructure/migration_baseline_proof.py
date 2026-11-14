@@ -4,16 +4,15 @@ from __future__ import annotations
 
 import ast
 import hashlib
-import importlib.machinery
-import importlib.util
 import json
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from types import CodeType
 
 from alembic.script.base import Script
+
+from korpus.infrastructure.migration_frozen_loader import frozen_revision_scripts
 
 _MIGRATION_PATH = re.compile(r"apps/api/migrations/versions/[a-z0-9_]+\.py\Z")
 _DIGEST = re.compile(r"[0-9a-f]{64}\Z")
@@ -228,31 +227,6 @@ def verify_passive_revision(root: Path, revision: str, parent: str) -> RevisionS
     return RevisionSource(path, revision, source)
 
 
-class _FrozenRevisionLoader(importlib.machinery.SourceFileLoader):
-    """Compile only proven bytes; deny fallback disk and bytecode reads/writes."""
-
-    def __init__(self, name: str, path: str, source: bytes) -> None:
-        super().__init__(name, path)
-        self._captured_source = source
-
-    def get_code(self, fullname: str) -> CodeType:  # noqa: ARG002
-        return self.source_to_code(self._captured_source, self.path)
-
-    def get_data(self, path: str) -> bytes:  # noqa: ARG002
-        raise BaselineProofError("DENIED_BASELINE_SOURCE_REREAD")
-
-    def set_data(self, path: str, data: bytes, **kwargs: object) -> None:  # noqa: ARG002
-        raise BaselineProofError("DENIED_BASELINE_BYTECODE_WRITE")
-
-
 def load_proven_revisions(root: Path, sources: tuple[RevisionSource, ...]) -> Iterator[Script]:
     """Execute already-admitted immutable bytes through the standard Python loader."""
-    for item in sources:
-        path = str(root / item.path)
-        loader = _FrozenRevisionLoader(Path(item.path).stem, path, item.source)
-        spec = importlib.util.spec_from_loader(loader.name, loader, origin=path)
-        if spec is None:
-            raise BaselineProofError("DENIED_BASELINE_LOADER_UNAVAILABLE")
-        module = importlib.util.module_from_spec(spec)
-        loader.exec_module(module)
-        yield Script(module, item.revision, path)
+    return frozen_revision_scripts(root, sources, error_type=BaselineProofError)
