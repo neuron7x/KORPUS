@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 
@@ -9,17 +10,32 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def _copy_surface(tmp_path: Path) -> Path:
-    shutil.copytree(
-        ROOT / "apps/api/migrations/versions", tmp_path / "apps/api/migrations/versions"
-    )
+    """Isolate synthetic expansions from the separately tested restrictive 0025."""
+    baseline = json.loads((ROOT / "config/production/migration-policy.json").read_text())
+    for relative in baseline["baseline_files"]:
+        target = tmp_path / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / relative, target)
     policy = tmp_path / "config/production/migration-policy.json"
     policy.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "config/production/migration-policy.json", policy)
     return tmp_path
 
 
-def test_current_migration_history_is_compatible() -> None:
+def test_current_contract_migration_is_rejected_by_expand_only_gate() -> None:
     report = evaluate(ROOT)
+    assert report["status"] == "FAIL", report
+    assert report["future_migrations"] == 1
+    assert report["findings"], report
+    assert all(
+        "future migration is not expand-only" in finding
+        and "0025_sealed_provenance_integrity.py" in finding
+        for finding in report["findings"]
+    ), report
+
+
+def test_pinned_baseline_remains_compatible(tmp_path: Path) -> None:
+    report = evaluate(_copy_surface(tmp_path))
     assert report["status"] == "PASS", report
     assert report["future_migrations"] == 0
 

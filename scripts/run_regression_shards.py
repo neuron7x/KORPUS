@@ -23,6 +23,7 @@ from bounded_process import run_bounded  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from regression_collection import build_manifest, load_verified_manifest, sha_lines  # noqa: E402
 from regression_collection import collect_nodeids as collect_manifest_nodeids  # noqa: E402
+from regression_shard_execution import execution_status  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
 
@@ -124,18 +125,7 @@ def run_shard(args: argparse.Namespace) -> int:
         if junit.is_file()
         else {"tests": 0, "failures": 0, "errors": 0, "skipped": 0}
     )
-    status = (
-        "UNKNOWN"
-        if timed_out
-        else (
-            "PASS"
-            if exit_code == 0
-            and counts["tests"] == len(selected)
-            and counts["failures"] == 0
-            and counts["errors"] == 0
-            else "FAIL"
-        )
-    )
+    status = execution_status(exit_code, timed_out, counts, len(selected))
     payload: dict[str, Any] = {
         "schema": "korpus.regression-shard.v1",
         "status": status,

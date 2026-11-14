@@ -32,6 +32,7 @@ RUN python -m pip install --no-cache-dir --no-deps --require-hashes --requiremen
 COPY apps/api/src /app/apps/api/src
 COPY apps/api/migrations /app/apps/api/migrations
 COPY apps/api/alembic.ini /app/apps/api/alembic.ini
+COPY config/production/migration-policy.json /app/config/production/migration-policy.json
 COPY scripts /app/scripts
 COPY apps/api/docker-entrypoint.sh /usr/local/bin/korpus-entrypoint
 
@@ -49,7 +50,7 @@ RUN groupadd --gid 10001 korpus \
     # never once run. Directories keep 0555 above; this makes their contents readable
     # and nothing writable.
     && chmod -R a+rX /app/apps/api/src /app/apps/api/migrations /app/scripts \
-    && chmod a+r /app/apps/api/alembic.ini
+    && chmod a+r /app/apps/api/alembic.ini /app/config/production/migration-policy.json
 
 USER 10001:10001
 WORKDIR /app

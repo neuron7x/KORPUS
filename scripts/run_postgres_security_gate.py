@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 from korpus.application.production_assurance import gate_payload  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
+from postgres_gate_nodes import EXPECTED_CASES, inspect_pytest_junit  # noqa: E402
 from postgres_gate_process import run as process_run  # noqa: E402
 from postgres_gate_process import runtime as process_runtime  # noqa: E402
 from release_identity import release_tag  # noqa: E402
@@ -26,6 +27,7 @@ TARGETS = [
     "apps/api/tests/test_audit.py",
     # Деструктивні контролі межі: кожен питає, що ПРОХОДИТЬ не маючи права.
     "apps/api/tests/test_postgres_rls_claim_forgery.py",
+    "apps/api/tests/test_postgres_rls_claim_mutations.py",
     "apps/api/tests/test_postgres_rls_policy_state.py",
     "apps/api/tests/test_postgres_role_reprovision_boundary.py",
     "apps/api/tests/test_postgres_approval_provenance.py",
@@ -34,40 +36,43 @@ TARGETS = [
 ]
 
 
+_STATIC_PYTEST = ("-m", "pytest", "-p", "no:cacheprovider", "-q", "--disable-warnings")
+
+
 def main() -> int:
     targets_present = all((ROOT / target).is_file() for target in TARGETS)
-    static = process_run(
-        ROOT,
-        [
-            sys.executable,
-            "-m",
-            "pytest",
-            "-p",
-            "no:cacheprovider",
-            "-q",
-            "--disable-warnings",
-            TARGETS[0],
-        ],
-        120,
-    )
+    static = process_run(ROOT, [sys.executable, *_STATIC_PYTEST, TARGETS[0]], 120)
     available, runtime_exit, runtime_tail = process_runtime(ROOT, TARGETS, targets_present)
+    nodes_ok, node_count, missing_nodes = inspect_pytest_junit(ROOT)
     checks = {
         "target_files_present": targets_present,
         "grant_contract_static": static.returncode == 0,
         "postgres_runtime_available": available,
-        "postgres_adversarial_suite": runtime_exit == 0,
+        "postgres_required_test_nodes": nodes_ok,
+        "postgres_adversarial_suite": all(
+            (
+                runtime_exit == 0,
+                " passed" in runtime_tail,
+                " skipped" not in runtime_tail,
+                " xfailed" not in runtime_tail,
+                " xpassed" not in runtime_tail,
+                " deselected" not in runtime_tail,
+            )
+        ),
     }
-    failures = [name for name, ok in checks.items() if not ok]
     result = gate_payload(
         "postgres_security",
-        status="PASS" if not failures else "FAIL",
+        status="PASS" if all(checks.values()) else "FAIL",
         source_digest=compute_source_digest(ROOT),
         release=release_tag(),
         checks=checks,
-        failures=failures,
+        failures=[name for name, ok in checks.items() if not ok],
         backend="postgresql" if runtime_exit == 0 else "UNEXECUTED",
         evidence_class="REAL_POSTGRESQL_REQUIRED",
         pytest_targets=TARGETS,
+        pytest_expected_case_count=EXPECTED_CASES,
+        pytest_observed_case_count=node_count,
+        pytest_missing_required_nodes=missing_nodes,
         runtime_exit_code=runtime_exit,
         runtime_tail=runtime_tail,
         static_tail=(static.stdout + static.stderr)[-4000:],
