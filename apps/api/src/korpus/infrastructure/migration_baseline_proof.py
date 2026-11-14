@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import importlib.machinery
+import importlib.util
 import json
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from types import ModuleType
+from types import CodeType
 
 from alembic.script.base import Script
 
@@ -226,11 +228,31 @@ def verify_passive_revision(root: Path, revision: str, parent: str) -> RevisionS
     return RevisionSource(path, revision, source)
 
 
+class _FrozenRevisionLoader(importlib.machinery.SourceFileLoader):
+    """Compile only proven bytes; deny fallback disk and bytecode reads/writes."""
+
+    def __init__(self, name: str, path: str, source: bytes) -> None:
+        super().__init__(name, path)
+        self._captured_source = source
+
+    def get_code(self, fullname: str) -> CodeType:  # noqa: ARG002
+        return self.source_to_code(self._captured_source, self.path)
+
+    def get_data(self, path: str) -> bytes:  # noqa: ARG002
+        raise BaselineProofError("DENIED_BASELINE_SOURCE_REREAD")
+
+    def set_data(self, path: str, data: bytes, **kwargs: object) -> None:  # noqa: ARG002
+        raise BaselineProofError("DENIED_BASELINE_BYTECODE_WRITE")
+
+
 def load_proven_revisions(root: Path, sources: tuple[RevisionSource, ...]) -> Iterator[Script]:
-    """Execute only captured source bytes, after admission; never load cached bytecode."""
+    """Execute already-admitted immutable bytes through the standard Python loader."""
     for item in sources:
         path = str(root / item.path)
-        module = ModuleType(Path(item.path).stem)
-        module.__file__ = path
-        exec(compile(item.source, path, "exec", dont_inherit=True), module.__dict__)
+        loader = _FrozenRevisionLoader(Path(item.path).stem, path, item.source)
+        spec = importlib.util.spec_from_loader(loader.name, loader, origin=path)
+        if spec is None:
+            raise BaselineProofError("DENIED_BASELINE_LOADER_UNAVAILABLE")
+        module = importlib.util.module_from_spec(spec)
+        loader.exec_module(module)
         yield Script(module, item.revision, path)

@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2227,
-  "root_sha256": "cf7592d59f8fecfd96dc23a4af62e4224be91ff50bf9b8e91ebe157771b56aaa",
+  "root_sha256": "46a849964ec3297d4d8c0fb91a4f847547af0cd4639be3b62c04e28b40bbfbec",
   "files": [
     {
       "path": ".dockerignore",
@@ -2437,8 +2437,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/migration_baseline_proof.py",
-      "bytes": 9030,
-      "sha256": "685bc4ee06ea0eb52b3d8880dae1d520331462377f1e086268afe6901136e5b0",
+      "bytes": 9978,
+      "sha256": "32303b7b5cea71ee889d621278a7f960dd6718c394dcc02e5b4433fdf6f93560",
       "mode": "0644"
     },
     {
