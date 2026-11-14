@@ -81,7 +81,7 @@ def test_the_head_is_the_one_the_deployed_base_expects() -> None:
     міграція розширювальна: наявних таблиць вона не торкається, тож ревізія N-1 лишається
     сумісною зі схемою.
     """
-    assert alembic_heads() == ["0024_capability_effect_ledger.py"]
+    assert alembic_heads() == ["0025_sealed_provenance_integrity.py"]
 
 
 # ── Найдорожча помилка цього інструмента: він довіряв власному застарілому входові.

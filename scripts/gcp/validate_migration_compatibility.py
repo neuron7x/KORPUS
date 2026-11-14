@@ -6,8 +6,35 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import sys
 from pathlib import Path
 from typing import Any
+
+# Anchor imports to this checkout for both the CLI and package import paths.
+SCRIPTS_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(SCRIPTS_DIR))
+from gcp.migration_add_column_bind import bind_add_column_argument  # noqa: E402
+from gcp.migration_check_constraint_scan import inline_check_failure  # noqa: E402
+from gcp.migration_column_keyword_scan import (  # noqa: E402
+    literal_column_keywords as _column_keywords,
+)
+from gcp.migration_column_shape_proof import column_shape_failure  # noqa: E402
+from gcp.migration_constraint_proof import constraint_failure as _constraint_failure  # noqa: E402
+from gcp.migration_create_table_proof import create_table_failure  # noqa: E402
+from gcp.migration_foreign_key_proof import sa_constructor  # noqa: E402
+from gcp.migration_inline_foreign_key_proof import inline_foreign_key_failure  # noqa: E402
+from gcp.migration_inline_unique_proof import inline_unique_failure  # noqa: E402
+from gcp.migration_numeric_default_proof import (  # noqa: E402
+    nonnullable_add_without_default as _nonnullable_add_without_default,
+)
+from gcp.migration_numeric_default_proof import (  # noqa: E402
+    unproven_numeric_server_default,
+)
+from gcp.migration_operation_argument_proof import operation_argument_failure  # noqa: E402
+from gcp.migration_order_proof import proven_created_before as _created_before  # noqa: E402
+from gcp.migration_raw_ddl_proof import execute_is_expanding as _execute_is_expanding  # noqa: E402
+from gcp.migration_reachability import reachable_calls as _reachable_calls  # noqa: E402
+from gcp.migration_revision_identity import _literal_assignment  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 POLICY = ROOT / "config/production/migration-policy.json"
@@ -18,59 +45,53 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _literal_assignment(tree: ast.Module, name: str) -> str | None:
-    for node in tree.body:
-        value: ast.expr | None = None
-        if (
-            isinstance(node, ast.AnnAssign)
-            and isinstance(node.target, ast.Name)
-            and node.target.id == name
-        ) or (
-            isinstance(node, ast.Assign)
-            and any(isinstance(t, ast.Name) and t.id == name for t in node.targets)
-        ):
-            value = node.value
-        if isinstance(value, ast.Constant) and isinstance(value.value, str):
-            return value.value
-    return None
-
-
 def _upgrade_function(tree: ast.Module) -> ast.FunctionDef | None:
-    return next(
-        (n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "upgrade"), None
-    )
+    upgrades = [node for node in tree.body if isinstance(node, ast.FunctionDef)]
+    upgrades = [node for node in upgrades if node.name == "upgrade"]
+    return upgrades[0] if len(upgrades) == 1 else None
 
 
 def _op_call_name(call: ast.Call) -> str | None:
     func = call.func
-    return (
-        func.attr
-        if isinstance(func, ast.Attribute)
-        and isinstance(func.value, ast.Name)
-        and func.value.id == "op"
-        else None
+    if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
+        return func.attr if func.value.id == "op" else None
+    return None
+
+
+def _literal_nul_default(keywords: dict[str, ast.expr]) -> bool:
+    value = keywords.get("server_default")
+    return value is not None and any(
+        isinstance(node, ast.Constant) and isinstance(node.value, str) and "\0" in node.value
+        for node in ast.walk(value)
     )
 
 
-def _unsafe_add_column(call: ast.Call) -> str | None:
-    if _op_call_name(call) != "add_column" or len(call.args) < 2:
+def _unsafe_add_column(call: ast.Call, created: frozenset[str]) -> str | None:
+    if _op_call_name(call) != "add_column":
         return None
-    column = call.args[1]
+    column, problem = bind_add_column_argument(call)
+    if problem is not None:
+        return problem
     if not isinstance(column, ast.Call):
         return "add_column uses a non-literal Column expression"
-    func = column.func
-    is_column = (isinstance(func, ast.Attribute) and func.attr == "Column") or (
-        isinstance(func, ast.Name) and func.id == "Column"
-    )
-    if not is_column:
+    if sa_constructor(column) != "Column":
         return "add_column second argument is not a Column constructor"
-    keywords = {kw.arg: kw.value for kw in column.keywords if kw.arg}
-    nullable, default = keywords.get("nullable"), keywords.get("server_default")
-    if (
-        isinstance(nullable, ast.Constant)
-        and nullable.value is False
-        and (default is None or (isinstance(default, ast.Constant) and default.value is None))
-    ):
+    keywords = _column_keywords(column)
+    if keywords is None:
+        return "unverified Column keyword expansion or duplicated keys"
+    if problem := column_shape_failure(column, keywords):
+        return problem
+    if constraint_problem := inline_unique_failure(
+        call, keywords, created
+    ) or inline_foreign_key_failure(call, column, keywords, created):
+        return constraint_problem
+    if _literal_nul_default(keywords):
+        return "literal server_default contains NUL character"
+    if (check_reason := inline_check_failure(column, keywords)) is not None:
+        return check_reason
+    if (default_problem := unproven_numeric_server_default(column, keywords)) is not None:
+        return default_problem
+    if _nonnullable_add_without_default(keywords):
         return "non-null column without server_default is not expand-safe for existing rows"
     return None
 
@@ -86,93 +107,30 @@ def _verify_baseline(current: dict[str, Path], baseline: dict[str, str]) -> list
     return findings
 
 
-#: Дієслова, які лише ДОДАЮТЬ. `op.execute` — це інструмент, а не операція: єдиний
-#: спосіб створити тригер в alembic, і водночас спосіб знести таблицю. Заборона на
-#: сам виклик не розрізняє розширення від руйнування, тобто перевірка з іменем
-#: «expand-only» міряє механізм, а не властивість, яку охороняє.
-_EXPANDING_VERBS = ("create ",)
-
-
-def _created_tables(upgrade: ast.FunctionDef) -> frozenset[str]:
-    """Таблиці, які ця сама міграція й створює, за літеральним першим аргументом.
-
-    Нелітеральне ім'я сюди не потрапляє: невідоме ім'я не дає дозволу нічому.
-    """
-    names: set[str] = set()
-    for node in ast.walk(upgrade):
-        if not isinstance(node, ast.Call) or _op_call_name(node) != "create_table":
-            continue
-        if node.args and isinstance(node.args[0], ast.Constant):
-            value = node.args[0].value
-            if isinstance(value, str):
-                names.add(value.lower())
-    return frozenset(names)
-
-
-def _altered_table(statement: str) -> str | None:
-    """Ім'я таблиці в `ALTER TABLE <ім'я> …`, якщо його видно дослівно."""
-    words = statement.split()
-    if len(words) >= 3 and words[0] == "alter" and words[1] == "table":
-        return words[2].strip('"').lower()
-    return None
-
-
-def _execute_is_expanding(node: ast.Call, created: frozenset[str] = frozenset()) -> str | None:
-    """None означає «розширювальне і дозволене»; рядок — причину відмови.
-
-    Нелітеральний аргумент НЕ проходить: судити його зсередини неможливо, а
-    невідоме не є дозволом.
-
-    `ALTER TABLE` пропускається РІВНО тоді, коли таблицю створює ця сама міграція.
-    Різниця не формальна. `ALTER TABLE documents ENABLE ROW LEVEL SECURITY` звужує те,
-    що бачить ревізія N-1, — саме так 0020 і був визнаний нерозширювальним, із жорсткою
-    послідовністю «мігрувати, потім підняти новий код». `ALTER TABLE capability_effects
-    …` над таблицею, народженою в цьому ж `upgrade()`, не може зачепити нікого: ревізія
-    N-1 про цю таблицю не знає й жодного запиту до неї не робить. Заборона на дієслово
-    не розрізняла цих випадків, тобто перевірка з іменем «expand-only» міряла механізм,
-    а не властивість, яку охороняє.
-    """
-    if not node.args:
-        return "op.execute without a statement"
-    first = node.args[0]
-    parts: list[str] = []
-    if isinstance(first, ast.Constant) and isinstance(first.value, str):
-        parts = [first.value]
-    elif isinstance(first, ast.JoinedStr):
-        parts = [
-            v.value
-            for v in first.values
-            if isinstance(v, ast.Constant) and isinstance(v.value, str)
-        ]
-    if not parts:
-        return "op.execute with a statement this gate cannot read"
-    statement = " ".join(parts).lstrip().lower()
-    if statement.startswith(_EXPANDING_VERBS):
-        return None
-    table = _altered_table(statement)
-    if table is not None:
-        if table in created:
-            return None
-        return f"op.execute(ALTER TABLE {table} …) над таблицею, якої ця міграція не створює"
-    verb = statement.split(" ", 1)[0] or "?"
-    return f"op.execute({verb.upper()} …)"
-
-
 def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[str]) -> list[str]:
     upgrade = _upgrade_function(tree)
     if upgrade is None:
-        return [f"future migration has no upgrade(): {relative}"]
-    findings: list[str] = []
-    created = _created_tables(upgrade)
-    for node in ast.walk(upgrade):
-        if not isinstance(node, ast.Call):
-            continue
+        return [f"future migration has no unique upgrade(): {relative}"]
+    calls, dispatch_failures = _reachable_calls(tree, upgrade)
+    findings = [
+        f"future migration is not expand-only: {relative}: {reason}" for reason in dispatch_failures
+    ]
+    created = _created_before(tree, upgrade)
+    for node in calls:
+        eligible = created.get(id(node), frozenset())
         opname = _op_call_name(node)
-        if opname in forbidden:
-            reason = _execute_is_expanding(node, created) if opname == "execute" else "op." + opname
+        if opname in forbidden or opname == "execute":
+            reason = (
+                _execute_is_expanding(node, eligible) if opname == "execute" else "op." + opname
+            )
             if reason is not None:
                 findings.append(f"future migration is not expand-only: {relative}: {reason}")
-        reason = _unsafe_add_column(node)
+        reason = (
+            operation_argument_failure(node, eligible)
+            or _unsafe_add_column(node, eligible)
+            or _constraint_failure(node, eligible)
+            or create_table_failure(node, eligible)
+        )
         if reason:
             findings.append(f"future migration is not expand-only: {relative}: {reason}")
     return findings
@@ -219,6 +177,16 @@ def _verify_graph(
         findings.append(f"exactly one migration head required, got {heads}")
     if baseline_revision not in revisions:
         findings.append(f"baseline revision absent: {baseline_revision}")
+    if len(heads) == 1:
+        seen: set[str] = set()
+        current: str | None = heads[0]
+        while current is not None and current in revisions and current not in seen:
+            seen.add(current)
+            current = revisions[current][0]
+        if current is not None:
+            findings.append(f"migration lineage cycle or missing parent: {current}")
+        if len(seen) != len(revisions):
+            findings.append(f"disconnected migration revisions: {sorted(set(revisions) - seen)}")
     return heads, findings
 
 

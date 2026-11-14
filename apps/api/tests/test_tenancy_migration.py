@@ -11,17 +11,21 @@ The second carries the property that matters. A migration that dropped or rewrot
 document version would take five hours of import with it, and the way that gets shipped is
 that nobody ran the upgrade against a database with rows in it.
 
-The downgrade is exercised too. A migration that cannot be reversed cannot be rehearsed,
-and rehearsing it is how anyone learns the cost before paying it.
+The historical downgrade SQL is exercised directly on an isolated fixture. Current CLI
+downgrades crossing the sealed-provenance boundary require retirement and are denied;
+test_migration_runtime_admission.py exercises that deployment boundary separately.
 """
 
 from __future__ import annotations
 
+import importlib.util
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
+from alembic.migration import MigrationContext
+from alembic.operations import Operations
 from sqlalchemy import create_engine, inspect, text
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -101,7 +105,7 @@ def test_upgrading_from_the_previous_release_preserves_the_corpus(tmp_path: Path
         before = set(inspect(engine).get_table_names())
         assert not (TENANCY_TABLES & before), "0011 already carries the tenancy tables"
 
-        _run(url, "upgrade", "head")
+        _run(url, "upgrade", "0012_tenancy")
 
         after = set(inspect(engine).get_table_names())
         assert after >= TENANCY_TABLES
@@ -115,13 +119,25 @@ def test_upgrading_from_the_previous_release_preserves_the_corpus(tmp_path: Path
 
 
 def test_the_upgrade_can_be_reversed(tmp_path: Path) -> None:
+    """The exact 0012 migration's SQL, without claiming current deployment admission."""
     database = tmp_path / "rollback.db"
     url = f"sqlite:///{database}"
-    _run(url, "upgrade", "head")
-    _run(url, "downgrade", "0011_audit_key_id")
+    _run(url, "upgrade", "0011_audit_key_id")
+    path = API / "migrations/versions/0012_tenancy.py"
+    spec = importlib.util.spec_from_file_location("historical_tenancy", path)
+    assert spec is not None and spec.loader is not None
+    migration = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(migration)
 
     engine = create_engine(url, future=True)
     try:
+        with (
+            engine.begin() as connection,
+            Operations.context(MigrationContext.configure(connection)),
+        ):
+            migration.upgrade()
+            assert set(inspect(connection).get_table_names()) >= TENANCY_TABLES
+            migration.downgrade()
         remaining = set(inspect(engine).get_table_names())
     finally:
         engine.dispose()
