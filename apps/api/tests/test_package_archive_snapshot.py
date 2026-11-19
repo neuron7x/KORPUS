@@ -5,14 +5,12 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
-import stat
 import sys
-import zipfile
 from pathlib import Path
 
 import pytest
 
-from scripts.manifest_lib.integrity import manifest_root
+from .package_fixtures import package_files, write_package
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -28,49 +26,22 @@ def _verifier():
     return module
 
 
-def _valid_zip(path: Path) -> None:
-    body = b"verified artifact bytes\n"
-    manifest = {
-        "schema": "korpus.distribution-manifest.v2",
-        "kind": "distribution",
-        "files": [
-            {
-                "path": "proof.txt",
-                "bytes": len(body),
-                "sha256": hashlib.sha256(body).hexdigest(),
-                "mode": "0644",
-            }
-        ],
-    }
-    records = manifest["files"]
-    manifest.update(
-        manifest_self_excluded=True,
-        file_count=len(records),
-        root_sha256=manifest_root(records),
-    )
-    with zipfile.ZipFile(path, "w") as zf:
-        for name, content in (
-            ("KORPUS/proof.txt", body),
-            ("KORPUS/DISTRIBUTION_MANIFEST.json", json.dumps(manifest).encode()),
-        ):
-            info = zipfile.ZipInfo(name)
-            info.create_system = 3
-            info.external_attr = (stat.S_IFREG | 0o644) << 16
-            zf.writestr(info, content)
+def _valid_zip(path: Path) -> int:
+    return write_package(path, package_files({"proof.txt": b"verified artifact bytes\n"}))
 
 
 def test_unmodified_verified_zip_digest_matches_exact_bytes(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     archive = tmp_path / "normal.zip"
-    _valid_zip(archive)
+    expected_count = _valid_zip(archive)
     expected = hashlib.sha256(archive.read_bytes()).hexdigest()
     module = _verifier()
     monkeypatch.setattr(sys, "argv", ["verify_package.py", str(archive)])
     assert module.main() == 0
     result = json.loads(capsys.readouterr().out)
     assert result["valid"] is True
-    assert result["files"] == 2
+    assert result["files"] == expected_count
     assert result["sha256"] == expected
 
 

@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 """Digest the complete release source tree, excluding generated evidence.
 
-Scope is DIGEST_SCOPE below. This is NOT the same measurement as
-korpus.application.provenance.compute_source_digest, which covers twenty declared
-evidence-bearing paths. Both were written into a field named `source_tree_sha256`, so a
-report signed by one and verified against the other fails as "unbound" — a message about
-the tree changing, when the tree did not change and two different scopes were compared.
-Carry `digest_scope` beside the value and compare scopes before hashes.
+DIGEST_SCOPE is tracked_tree; provenance.compute_source_digest covers evidence_paths.
+Keep the scope beside the digest: the two measurements are intentionally different.
 """
 
 from __future__ import annotations
@@ -14,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import subprocess
 import sys
+from collections.abc import Iterable
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -131,6 +128,11 @@ def source_tree_digest(ref: str = "HEAD") -> str:
         if git_paths is not None
         else _archive_files()
     )
+    return digest_tree_records(files)
+
+
+def digest_tree_records(files: Iterable[tuple[Path, bytes]]) -> str:
+    """Frame verified source records identically for committed and packaged trees."""
     hasher = hashlib.sha256()
     for relative_path, content in files:
         relative = relative_path.as_posix().encode("utf-8")
