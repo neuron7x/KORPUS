@@ -8,6 +8,34 @@ from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
 
+def execution_record(
+    tool: str, command: list[str], started: str, completed: str, code: int | bool = 0
+) -> dict[str, Any]:
+    from scripts.source_security_container import owned_command
+    from scripts.source_security_contract import IMAGES
+
+    if tool in IMAGES and command[0] == "neutral-fixture":
+        command = ["/usr/bin/docker", "--config", "/tmp/neutral/docker-config", "run", IMAGES[tool]]
+    actual, owned = owned_command(tool, command)
+    result: dict[str, Any] = {
+        "tool": tool,
+        "command": actual,
+        "exit_code": code,
+        "started_at": started,
+        "completed_at": completed,
+    }
+    if owned:
+        result["cleanup"] = {
+            "name": owned.name,
+            "owner": owned.owner,
+            "container_id": "e" * 64,
+            "status": "ABSENT",
+            "confirmed_absent": True,
+            "remove_exit_code": None,
+        }
+    return result
+
+
 def write_locks(root: Path) -> None:
     folder = root / "apps/api"
     folder.mkdir(parents=True)

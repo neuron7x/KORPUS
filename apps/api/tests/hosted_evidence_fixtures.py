@@ -383,7 +383,7 @@ def with_security(measured: EvidenceFixture) -> EvidenceFixture:
     from scripts.source_security_contract import EXECUTION_NAMES, expected_tools
     from scripts.source_security_lock import build_lock_sbom, locked_packages
 
-    from .source_security_fixtures import output_values
+    from .source_security_fixtures import execution_record, output_values
 
     fixture = measured.clone()
     values = output_values()
@@ -412,13 +412,7 @@ def with_security(measured: EvidenceFixture) -> EvidenceFixture:
         "source_after_sha256": fixture.checkout.source["sha256"],
         "tools": expected_tools(fixture.checkout.root),
         "executions": [
-            {
-                "tool": tool,
-                "exit_code": 0,
-                "command": ["neutral-fixture", tool],
-                "started_at": started,
-                "completed_at": completed,
-            }
+            execution_record(tool, ["neutral-fixture", tool], started, completed)
             for tool in EXECUTION_NAMES
         ],
         "artifacts": {

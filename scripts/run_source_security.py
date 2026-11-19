@@ -12,7 +12,6 @@ import json
 import os
 import subprocess
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
@@ -31,6 +30,8 @@ from scripts.source_security_contract import (  # noqa: E402
     require,
     validate_outputs,
 )
+from scripts.source_security_execution import environment as _environment  # noqa: E402
+from scripts.source_security_execution import execute, execution_succeeded  # noqa: E402
 from scripts.source_security_images import provision_images  # noqa: E402
 from scripts.source_security_lock import build_lock_sbom  # noqa: E402
 from scripts.source_security_source import (  # noqa: E402
@@ -41,41 +42,6 @@ from scripts.source_security_source import (  # noqa: E402
     verify_source_after,
 )
 from scripts.trusted_system_tools import trusted_executable  # noqa: E402
-
-
-def _environment() -> dict[str, str]:
-    # No caller PYTHONPATH, pip configuration, scanner flags, Docker endpoint or
-    # Git overrides enter the subprocess. Docker credentials use an empty dir.
-    return {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "TZ": "UTC"}
-
-
-def execute(tool: str, command: list[str], output: Path, cwd: Path) -> dict[str, Any]:
-    started = datetime.now(UTC).isoformat()
-    with (output / f"{tool.replace(':', '-')}.log").open("wb") as log:
-        try:
-            result = subprocess.run(
-                command,
-                cwd=cwd,
-                env=_environment(),
-                stdout=log,
-                stderr=subprocess.STDOUT,
-                timeout=240,
-                check=False,
-            )
-            code = result.returncode
-        except subprocess.TimeoutExpired:
-            log.write(b"\nSOURCE_SECURITY_TIMEOUT\n")
-            code = 124
-        except OSError:
-            log.write(b"\nSOURCE_SECURITY_EXECUTION_UNAVAILABLE\n")
-            code = 127
-    return {
-        "tool": tool,
-        "command": command,
-        "exit_code": code,
-        "started_at": started,
-        "completed_at": datetime.now(UTC).isoformat(),
-    }
 
 
 def verify_scanner_python(path: Path, root: Path) -> None:
@@ -138,10 +104,7 @@ def _scan(
         for name, raw in members.items()
     }
     require(
-        all(
-            type(item["exit_code"]) is int and item["exit_code"] == 0
-            for item in receipt["executions"]
-        ),
+        all(execution_succeeded(item) for item in receipt["executions"]),
         "a required scanner did not succeed",
     )
     validate_outputs(members, source)

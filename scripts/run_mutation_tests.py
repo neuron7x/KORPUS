@@ -49,6 +49,46 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M763_SOURCE_SECURITY_LEAVES_CREATED_CONTAINER_WITH_EMPTY_CID",
+        "scripts/source_security_container.py",
+        "    if info.st_size == 0 and not value:\n        return None\n",
+        '    if info.st_size == 0 and not value:\n        raise ValueError("empty CID skipped before owned-name cleanup")\n',
+        (
+            "apps/api/tests/test_source_security_cleanup.py::test_timeout_during_creation_resolves_empty_cid_by_owned_name",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M757_SOURCE_SECURITY_ACCEPTS_UNPROVEN_CONTAINER_CLEANUP",
+        "scripts/source_security_execution.py",
+        "        and cleanup_valid(execution)",
+        "        and True",
+        (
+            "apps/api/tests/test_source_security_cleanup.py::test_zero_exit_cannot_hide_missing_or_foreign_cleanup",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M758_SOURCE_SECURITY_ACCEPTS_SURVIVING_CONTAINER",
+        "scripts/source_security_container.py",
+        '    require(not _ids(owned, "id=" + cid, environment), "scanner container survived cleanup")',
+        '    require(True, "scanner container survived cleanup")',
+        (
+            "apps/api/tests/test_source_security_cleanup.py::test_unproven_cleanup_cannot_pass_or_delete_unknown_resources",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M759_SOURCE_SECURITY_REMOVES_UNOWNED_CONTAINER",
+        "scripts/source_security_container.py",
+        '        inspected.returncode == 0 and inspected.stdout.decode().strip() == cid + " " + owned.owner,',
+        "        inspected.returncode == 0,",
+        (
+            "apps/api/tests/test_source_security_cleanup.py::test_unproven_cleanup_cannot_pass_or_delete_unknown_resources",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M735_LEARNING_DOCUMENT_SCOPE_CHECK_REMOVED",
         "apps/api/src/korpus/infrastructure/learning_source_access.py",
         "            self._authorize_documents(connection, states, identity)",
@@ -180,9 +220,9 @@ MUTANTS = (
     ),
     Mutant(
         "M740_SOURCE_SECURITY_ACCEPTS_FAILED_SCANNER",
-        "scripts/run_source_security.py",
-        '            type(item["exit_code"]) is int and item["exit_code"] == 0',
-        "            True",
+        "scripts/source_security_execution.py",
+        '        type(execution.get("exit_code")) is int\n        and execution["exit_code"] == 0',
+        "        True",
         (
             "apps/api/tests/test_source_security_producer.py::test_failed_or_noninteger_execution_cannot_be_pass_with_clean_outputs",
         ),

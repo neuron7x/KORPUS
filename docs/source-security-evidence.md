@@ -159,3 +159,42 @@ Upstream format and command references used for this contract:
 - [Trivy 0.70.0 native report](https://github.com/aquasecurity/trivy/blob/v0.70.0/pkg/types/report.go)
 - [Trivy result filtering and rule census](https://github.com/aquasecurity/trivy/blob/v0.70.0/pkg/result/filter.go)
 - [Gitleaks 8.30.1 native JSON reporter](https://github.com/gitleaks/gitleaks/blob/v8.30.1/report/json.go)
+## Timeout ownership and diagnostic boundary
+
+The original producer used a 240-second `subprocess.run` timeout for `docker run --rm`.
+That bounds the Docker client process; automatic removal occurs after the container
+exits. An independent real POSIX process counterexample, using the exact original
+execution function and a shortened test timeout, showed a daemon-like worker writing
+to the output directory after its client had been killed. This establishes a cleanup
+defect, not the cause of the observed Gitleaks timeout and not a native Docker
+reproduction.
+
+Each scanner container now receives a unique name, ownership label, and private CID
+file outside the mounted source/output directories. Cleanup queries the exact
+identity, checks its full ID and ownership label before forced removal, and requires
+a successful independent absence query. Unknown ownership, unavailable daemon,
+malformed CID file, missing creation outcome, or a surviving container remains
+`UNPROVEN` and cannot produce an admitted successful execution. The producer and
+authenticated consumer both enforce this condition. Removal never targets an
+unverified container name or an unrelated container inventory.
+
+A zero-byte regular CID file is treated as an incomplete creation response. Cleanup
+then resolves the exact generated name and still verifies the full ID and ownership
+label before removal. No matching container leaves creation unproven. A nonempty
+malformed file, symlink, or nonregular file never becomes removal authority.
+
+The parent deadline remains 240 seconds. Gitleaks receives `--timeout 230` and
+`--log-level debug` to retain native diagnostics before that deadline; these flags
+do not restrict commits, rules, or file scope. The pinned v8.30.1
+[command context and failure handler](https://github.com/gitleaks/gitleaks/blob/v8.30.1/cmd/root.go)
+use a cancellation context and a nonzero exit for scan errors, including partial
+scans. A nonzero exit remains a failure even when a native report exists. The actual
+full-history scan must still complete successfully in hosted CI.
+
+Regression tests exercise a modeled Docker daemon with a real worker process,
+successful cleanup, unknown ownership, failed queries, missing creation identity,
+surviving removal, and coherently rehashed hosted receipts with missing cleanup.
+They do not establish native Docker execution in this local environment. Hosted
+verification of this revision remains pending; no successful Gitleaks measurement,
+complete evidence admission, or production authority is inferred from these tests.
+

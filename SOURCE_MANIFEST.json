@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2284,
-  "root_sha256": "8c22ad566d679e0b187b2a7c1dd5b624b29c4b3324bdf8b92c55827d1b1683a5",
+  "file_count": 2287,
+  "root_sha256": "0f31b7453ef960a44bf010876827d29dc7c626744461ee05c600b039eb8b93da",
   "files": [
     {
       "path": ".dockerignore",
@@ -2935,8 +2935,8 @@
     },
     {
       "path": "apps/api/tests/hosted_evidence_fixtures.py",
-      "bytes": 15838,
-      "sha256": "00029fa7e68295c04f16de5242d1febe01b6e7b7165dac592149d6d0d7526869",
+      "bytes": 15712,
+      "sha256": "f0419c54d4df3bafa09cb4814b68a3c56a26b57f9d64f3f05f1a2618c8062e88",
       "mode": "0644"
     },
     {
@@ -2959,8 +2959,8 @@
     },
     {
       "path": "apps/api/tests/source_security_fixtures.py",
-      "bytes": 3878,
-      "sha256": "19b11074f330bf399fe9b71277819d63de1c524c0204df91f578bf427ce96374",
+      "bytes": 4802,
+      "sha256": "a85b63ff81e3a6e04cfe119326158e4d5a00827524e77f02680dbbc97542b092",
       "mode": "0644"
     },
     {
@@ -4549,8 +4549,8 @@
     },
     {
       "path": "apps/api/tests/test_github_evidence_full_admission.py",
-      "bytes": 14391,
-      "sha256": "fbebe0220ac156b68d2840c4358ac17469ae50d5c1a879d1ee58b075f874dbf7",
+      "bytes": 14852,
+      "sha256": "d92c94fa4f045fbcb82ce30ebf53e1d961e2152d82b696991730b8267902bba3",
       "mode": "0644"
     },
     {
@@ -6084,6 +6084,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_source_security_cleanup.py",
+      "bytes": 9138,
+      "sha256": "16ad5725dc5d706a3714ef65af4676b5fc0a0bced09fdcd1f985433de08c61d8",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_source_security_contract.py",
       "bytes": 10203,
       "sha256": "3492f3b4ee48fd7e7de3cfbf73c52d79d9fcc5f361c1cc7f511f726a1397554d",
@@ -6097,8 +6103,8 @@
     },
     {
       "path": "apps/api/tests/test_source_security_producer.py",
-      "bytes": 12428,
-      "sha256": "c488ca8434fdaa99cf71fb889da2e17c486d2db3bf8dab9b571064f846d117f4",
+      "bytes": 12576,
+      "sha256": "8caa1e9f17bdff3830250a804cd248a431a96b643906de6e9c4de38bef2f02c1",
       "mode": "0644"
     },
     {
@@ -8725,8 +8731,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 791909,
-      "sha256": "0079d4bd0bba90dccb70c3656848773fe243f75ae1944a4d8616fe8acb643542",
+      "bytes": 792650,
+      "sha256": "6f1744e19758794b4787c4c0cf184832fd4b96f326f1696cb2a95ecc655b0d2b",
       "mode": "0644"
     },
     {
@@ -10399,8 +10405,8 @@
     },
     {
       "path": "docs/source-security-evidence.md",
-      "bytes": 10598,
-      "sha256": "8ac208c62c52a4433d5152dd23ebc4d5e9ed5f91c1fb21e2c9bf4bc3cece5431",
+      "bytes": 13165,
+      "sha256": "e67230ee71a9a6b091354acc45ee2eb32c9f5a0ea8e869a93cb72a16708adc89",
       "mode": "0644"
     },
     {
@@ -12229,8 +12235,8 @@
     },
     {
       "path": "scripts/github_security_admission.py",
-      "bytes": 4299,
-      "sha256": "686f5b98546363bd78a8f7b8c347a237d7ff1f3c632aed055f225d24446ac730",
+      "bytes": 4293,
+      "sha256": "ea66ec5c267157371228f5c999a307744455c758d2983e642d0678a3f552db4e",
       "mode": "0644"
     },
     {
@@ -13051,8 +13057,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 350390,
-      "sha256": "4fa68414e65590fda191e1bc76a626b39afa3e01e50adda8abd68e225566371f",
+      "bytes": 352212,
+      "sha256": "5aff1373c41b3168afe09fc6fd9afddae2d52fdd297ad0fbfa1125d94074208e",
       "mode": "0755"
     },
     {
@@ -13183,8 +13189,8 @@
     },
     {
       "path": "scripts/run_source_security.py",
-      "bytes": 6425,
-      "sha256": "6cbdd58854a3f2a55a80e57149a69a58cda2f06fa2bf10702713133ad40765c8",
+      "bytes": 5297,
+      "sha256": "6b29f891abb2d0b20bc542cf1c73a667f6569a95093c0a63e18232c3c94de288",
       "mode": "0755"
     },
     {
@@ -13297,14 +13303,26 @@
     },
     {
       "path": "scripts/source_security_commands.py",
-      "bytes": 3479,
-      "sha256": "e9b5a75a73f6d972c57affa25396d81fe65641583fa86267eec4b41f26f9526e",
+      "bytes": 3526,
+      "sha256": "c7de56588001e4db098c3911931855d7ede75fe4bcf76b560c37c5b952c11a06",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/source_security_container.py",
+      "bytes": 5358,
+      "sha256": "13c1e21d62667e834dec2b2f6bc0f148dc6ae8c2a5189363459b799be624de86",
       "mode": "0644"
     },
     {
       "path": "scripts/source_security_contract.py",
       "bytes": 9732,
       "sha256": "ca94ef6771374ea30e3afa10f4871f5bc483c5f176d8a2b24b8cc4df92dd15c6",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/source_security_execution.py",
+      "bytes": 1879,
+      "sha256": "80fc577212c6394db0dc90489f17bf486c8e3dd4838d543e28201f447d905344",
       "mode": "0644"
     },
     {

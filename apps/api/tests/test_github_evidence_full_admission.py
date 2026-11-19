@@ -185,7 +185,16 @@ def test_coherent_security_archive_cannot_rebind_its_source_or_verdict(
 
 @pytest.mark.parametrize(
     "poison",
-    ["wrong_attempt", "wrong_tool", "missing_execution", "duplicate_execution", "boolean_exit"],
+    [
+        "wrong_attempt",
+        "wrong_tool",
+        "missing_execution",
+        "duplicate_execution",
+        "boolean_exit",
+        "missing_cleanup",
+        "cleanup_unproven",
+        "foreign_cleanup_owner",
+    ],
 )
 def test_scanner_run_tool_and_execution_set_are_exact(
     monkeypatch, measured: EvidenceFixture, poison: str
@@ -201,6 +210,12 @@ def test_scanner_run_tool_and_execution_set_are_exact(
             record["executions"].pop()
         elif poison == "duplicate_execution":
             record["executions"][-1] = record["executions"][0]
+        elif poison == "missing_cleanup":
+            del record["executions"][0]["cleanup"]
+        elif poison == "cleanup_unproven":
+            record["executions"][0]["cleanup"]["confirmed_absent"] = False
+        elif poison == "foreign_cleanup_owner":
+            record["executions"][0]["cleanup"]["owner"] = "f" * 32
         else:
             record["executions"][0]["exit_code"] = False
 

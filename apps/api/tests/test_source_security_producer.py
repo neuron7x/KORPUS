@@ -17,7 +17,7 @@ from scripts import source_security_source as source  # noqa: E402
 from scripts.source_security_commands import scanner_commands  # noqa: E402
 from scripts.source_security_contract import EXECUTION_NAMES, IMAGES  # noqa: E402
 
-from .source_security_fixtures import output_bytes, write_locks  # noqa: E402
+from .source_security_fixtures import execution_record, output_bytes, write_locks  # noqa: E402
 
 
 @pytest.fixture
@@ -87,13 +87,13 @@ def prepared(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, dic
                 (output / "gitleaks.json").unlink()
             elif poison == "finding":
                 (output / "gitleaks.json").write_text('[{"Secret":"REDACTED"}]')
-        return {
-            "tool": tool,
-            "command": command,
-            "exit_code": state["exit_code"] if tool == "gitleaks" else 0,
-            "started_at": "2026-11-19T00:00:00Z",
-            "completed_at": "2026-11-19T00:00:02Z",
-        }
+        return execution_record(
+            tool,
+            command,
+            "2026-11-19T00:00:00Z",
+            "2026-11-19T00:00:02Z",
+            state["exit_code"] if tool == "gitleaks" else 0,
+        )
 
     monkeypatch.setattr(producer, "execute", execute)
     return root, state
@@ -205,6 +205,8 @@ def test_fixed_scanner_commands_preserve_source_history_lock_and_policy_scope(
         assert "--pull=never" in commands[tool]
     assert f"type=bind,src={root},dst=/source,readonly" in commands["gitleaks"]
     assert commands["gitleaks"][commands["gitleaks"].index("--log-opts") + 1] == "a" * 40
+    assert commands["gitleaks"][commands["gitleaks"].index("--timeout") + 1] == "230"
+    assert commands["gitleaks"][commands["gitleaks"].index("--log-level") + 1] == "debug"
     for tool in ("trivy", "syft"):
         assert f"type=bind,src={frozen},dst=/source,readonly" in commands[tool]
     assert commands["pip-audit:runtime"].count("-r") == 1

@@ -16,14 +16,12 @@ from source_security_contract import (
     expected_tools,
     validate_outputs,
 )
+from source_security_execution import execution_succeeded
 
 
 def _executions(record: dict[str, Any], job: dict[str, Any]) -> dict[str, dict[str, Any]]:
     executions = object_records(record.get("executions"), "invalid security executions")
-    insist(
-        len(executions) == len(EXECUTION_NAMES),
-        "incomplete security executions",
-    )
+    insist(len(executions) == len(EXECUTION_NAMES), "incomplete security executions")
     insist(
         all(isinstance(item, dict) and isinstance(item.get("tool"), str) for item in executions)
         and {item["tool"] for item in executions} == set(EXECUTION_NAMES),
@@ -31,7 +29,7 @@ def _executions(record: dict[str, Any], job: dict[str, Any]) -> dict[str, dict[s
     )
     for execution in executions:
         insist(
-            type(execution.get("exit_code")) is int and execution["exit_code"] == 0,
+            execution_succeeded(execution),
             "security scanner did not execute successfully",
         )
         command = execution.get("command")

@@ -7398,6 +7398,24 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/source_security_container.py": {
+      "lines": 145,
+      "proof_lines": 0,
+      "max_complexity": 9,
+      "max_function_lines": 23,
+      "max_function_args": 3,
+      "max_nesting": 2,
+      "reason": "2026-11-19 / #102 / measured initial limits for owned scanner container cleanup and bounded execution; all previous module ceilings unchanged."
+    },
+    "scripts/source_security_execution.py": {
+      "lines": 58,
+      "proof_lines": 0,
+      "max_complexity": 5,
+      "max_function_lines": 17,
+      "max_function_args": 4,
+      "max_nesting": 3,
+      "reason": "2026-11-19 / #102 / measured initial limits for owned scanner container cleanup and bounded execution; all previous module ceilings unchanged."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
