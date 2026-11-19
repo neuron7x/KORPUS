@@ -30,7 +30,7 @@ class DockerModel:
 
     def run(self, command: list[str], **kwargs: Any) -> subprocess.CompletedProcess[bytes]:
         if command[3] == "run":
-            assert kwargs["timeout"] == (930 if IMAGES["gitleaks"] in command else 240)
+            assert kwargs["timeout"] == 240
             self.owner = command[command.index("--label") + 1].split("=", 1)[1]
             if self.mode != "no-cid":
                 Path(command[command.index("--cidfile") + 1]).write_text(self.cid)
@@ -196,7 +196,7 @@ def test_container_names_are_unique_and_private_to_each_execution(tmp_path: Path
 
 
 @pytest.mark.parametrize("tool", ["pip-audit:runtime", "pip-audit:dev", "image:gitleaks"])
-def test_non_history_executions_keep_the_existing_parent_deadline(
+def test_non_container_executions_keep_the_original_parent_deadline(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, tool: str
 ) -> None:
     def run(arguments: list[str], **kwargs: Any) -> subprocess.CompletedProcess[bytes]:

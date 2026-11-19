@@ -6887,6 +6887,15 @@
       "max_nesting": 3,
       "reason": "2026-11-19 / #102 / measured initial limits for owned scanner container cleanup and bounded execution; all previous module ceilings unchanged."
     },
+    "scripts/source_security_gitleaks.py": {
+      "lines": 35,
+      "max_complexity": 2,
+      "max_function_lines": 26,
+      "max_function_args": 1,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "2026-11-19 / #102 / measured initial limits for fixed Gitleaks scope, original deadline and diagnostic policy; all existing module ceilings unchanged."
+    },
     "scripts/source_security_images.py": {
       "lines": 45,
       "proof_lines": 0,

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -15,7 +16,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from scripts import run_source_security as producer  # noqa: E402
 from scripts import source_security_source as source  # noqa: E402
 from scripts.source_security_commands import scanner_commands  # noqa: E402
-from scripts.source_security_contract import EXECUTION_NAMES, IMAGES  # noqa: E402
+from scripts.source_security_contract import EXECUTION_NAMES, IMAGES, OUTPUT_MEMBERS  # noqa: E402
 
 from .source_security_fixtures import execution_record, output_bytes, write_locks  # noqa: E402
 
@@ -204,8 +205,10 @@ def test_fixed_scanner_commands_preserve_source_history_lock_and_policy_scope(
         assert "--network" in commands[tool] and "none" in commands[tool]
         assert "--pull=never" in commands[tool]
     assert f"type=bind,src={root},dst=/source,readonly" in commands["gitleaks"]
-    assert commands["gitleaks"][commands["gitleaks"].index("--log-opts") + 1] == "a" * 40
-    assert commands["gitleaks"][commands["gitleaks"].index("--timeout") + 1] == "900"
+    assert commands["gitleaks"][commands["gitleaks"].index("--log-opts") + 1] == (
+        "a" * 40 + " --full-history --diff-merges=first-parent"
+    )
+    assert commands["gitleaks"][commands["gitleaks"].index("--timeout") + 1] == "230"
     assert commands["gitleaks"][commands["gitleaks"].index("--log-level") + 1] == "info"
     for tool in ("trivy", "syft"):
         assert f"type=bind,src={frozen},dst=/source,readonly" in commands[tool]
@@ -219,6 +222,70 @@ def test_fixed_scanner_commands_preserve_source_history_lock_and_policy_scope(
     assert "--include-non-failures" in commands["trivy"]
     assert "--skip-check-update" in commands["trivy"]
     assert "cyclonedx-json@1.6=/output/tree-sbom.cdx.json" in commands["syft"]
+
+
+def test_gitleaks_cpu_alignment_is_fixed_and_does_not_change_other_container_limits(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("GOMAXPROCS", "64")
+    commands = scanner_commands(tmp_path, tmp_path, tmp_path, tmp_path, Path("/python"), "a" * 40)
+    for tool in ("gitleaks", "trivy", "syft"):
+        command = commands[tool]
+        prefix = command[: command.index(IMAGES[tool])]
+        environment = [prefix[index + 1] for index, value in enumerate(prefix) if value == "--env"]
+        assert environment == ["SYFT_CHECK_FOR_APP_UPDATE=false"] + (
+            ["GOMAXPROCS=2"] if tool == "gitleaks" else []
+        )
+        assert prefix.count("--cpus=2") == prefix.count("--memory=2g") == 1
+        assert "--network" in prefix and prefix[prefix.index("--network") + 1] == "none"
+        assert "--read-only" in prefix and "--cap-drop=ALL" in prefix
+        assert "--security-opt=no-new-privileges" in prefix and "--pids-limit=256" in prefix
+    gitleaks = commands["gitleaks"]
+    assert gitleaks[gitleaks.index("--diagnostics") + 1] == "cpu"
+    assert gitleaks[gitleaks.index("--diagnostics-dir") + 1] == "/output/gitleaks-profile"
+    assert "--max-decode-depth" not in gitleaks and "--enable-rule" not in gitleaks
+
+
+def test_cpu_profile_has_a_dedicated_diagnostic_path_outside_the_seven_evidence_members() -> None:
+    workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())
+    steps = workflow["jobs"]["source-security"]["steps"]
+    evidence = next(step for step in steps if step["name"] == "Upload source security evidence")
+    diagnostics = next(
+        step for step in steps if step["name"] == "Preserve source security diagnostics"
+    )
+    expected = {f"var/source-security/{name}" for name in OUTPUT_MEMBERS}
+    expected.add("var/source-security/source-security-receipt.json")
+    assert set(evidence["with"]["path"].splitlines()) == expected
+    assert len(expected) == 7 and evidence["if"] == "always()"
+    assert set(diagnostics["with"]["path"].splitlines()) == {
+        "var/source-security/*.log",
+        "var/source-security/gitleaks-profile/cpu.pprof",
+    }
+    assert diagnostics["if"] == "always()"
+
+
+@pytest.mark.parametrize("code", [0, 1, 124])
+def test_cpu_profile_never_grants_authority_or_replaces_native_scanner_outcomes(
+    prepared: tuple[Path, dict[str, Any]], monkeypatch: pytest.MonkeyPatch, code: int
+) -> None:
+    root, state = prepared
+    state["exit_code"] = code
+    original = producer.execute
+
+    def execute(tool: str, command: list[str], output: Path, cwd: Path) -> dict[str, Any]:
+        result = original(tool, command, output, cwd)
+        if tool == "gitleaks":
+            path = output / "gitleaks-profile/cpu.pprof"
+            path.parent.mkdir()
+            path.write_bytes(b"neutral diagnostic fixture, not scanner evidence")
+        return result
+
+    monkeypatch.setattr(producer, "execute", execute)
+    receipt = producer.produce(root, Path("/external/scanner/python"))
+    assert receipt["status"] == ("PASS" if code == 0 else "FAIL")
+    assert set(receipt["artifacts"]) == set(OUTPUT_MEMBERS)
+    assert receipt["executions"][0]["exit_code"] == code
+    assert receipt["production_authorized"] is False
 
 
 def test_actual_command_exit_and_environment_are_recorded(

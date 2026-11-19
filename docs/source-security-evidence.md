@@ -17,8 +17,11 @@ snapshot must agree with that export. Full Git source admission, checkout/tree
 identity, snapshot hashes, and the exported inventory are checked again after
 the commands finish.
 
-Gitleaks examines the exact commit's reachable history in the read-only checkout
-with the existing committed baseline and redaction enabled. Syft and Trivy see
+Gitleaks is configured to traverse the exact commit's full reachable history in
+the read-only checkout, including merge patches against their first parent,
+with the existing committed baseline and redaction enabled. Completion under
+the required time budget still requires native evidence for this revision.
+Syft and Trivy see
 only the read-only exported source. The pip-audit environment and fresh HTTP
 caches are outside source; the audit reads the exported locks. Generated
 reports, `.git`, and local environments are excluded according to the canonical
@@ -45,11 +48,11 @@ not skip scanning. No ignore entry or severity is relaxed by this producer.
 
 Each pinned container image is pulled before native scanning, with its own
 240-second bound, start/end timestamps and exact exit code in `provisioning`.
-All three pulls must succeed. The scanner then uses `--pull=never`. Gitleaks has
-a separate 930-second parent bound; other scanner calls retain 240 seconds.
-Pull logs are retained alongside the
-native diagnostics. The job's 25-minute outer bound, immutable image digests,
-offline scanner containers, and complete reachable-history scope are unchanged.
+All three pulls must succeed. The scanner then uses `--pull=never`. Every scanner
+call retains the original 240-second parent bound; Gitleaks has a 230-second native
+deadline. Pull logs are retained alongside the native diagnostics. The job's
+25-minute outer bound, immutable image digests, and offline scanner containers
+are unchanged. The corrected merge-patch scope is specified below.
 
 ## Native reports and receipt
 
@@ -184,15 +187,20 @@ then resolves the exact generated name and still verifies the full ID and owners
 label before removal. No matching container leaves creation unproven. A nonempty
 malformed file, symlink, or nonregular file never becomes removal authority.
 
-Gitleaks receives `--timeout 900` with a 930-second parent bound. Other scanner
-calls and image pulls retain 240 seconds; cleanup queries retain 10 seconds.
-The pinned v8.30.1
+Gitleaks receives `--timeout 230` with a uniform 240-second parent bound. Image
+pulls also retain 240 seconds; cleanup queries retain 10 seconds. These are the
+original limits required by the
+[coordinator instruction](https://github.com/neuron7x/KORPUS/issues/97#issuecomment-7021766089)
+and [PR instruction](https://github.com/neuron7x/KORPUS/pull/116#issuecomment-7021753040).
+The subsequent 600/900-second native and 630/930-second parent allocations
+violated that bound. Their measurements remain diagnostic observations and do
+not qualify the policy. The pinned v8.30.1
 [command context and failure handler](https://github.com/gitleaks/gitleaks/blob/v8.30.1/cmd/root.go)
 use a cancellation context and a nonzero exit for scan errors, including partial
 scans. A nonzero exit remains a failure even when a native report exists. The actual
 full-history scan must still complete successfully in hosted CI.
 
-An earlier qualification run
+An earlier diagnostic run
 [44602028545, job 135835685439](https://github.com/neuron7x/KORPUS/actions/runs/44602028545/job/135835685439)
 used tree `b01163f098d842c3689768c8128e7f7dc53c75f1`. Its 230-second native deadline
 interrupted the history scan after approximately 303.72 MB and 761 commits; the
@@ -203,9 +211,9 @@ Two subsequent native runs used the 600-second allocation:
 
 - [Run 44607373087, job 135854556828](https://github.com/neuron7x/KORPUS/actions/runs/44607373087/job/135854556828)
   on head `ae602e01`, merge `64b52682`, tree
-  `3fec84f067b1009e227c8c90535814749b54f19e` completed with exit 0 in approximately
-  339 seconds. Gitleaks reported 1296 commits, 544,176,163 scanned bytes and no leaks
-  under the configured rules and baseline.
+  `3fec84f067b1009e227c8c90535814749b54f19e` completed its configured patch stream
+  with exit 0 in 338.984 seconds. Gitleaks reported 1296 commits,
+  544,176,163 scanned bytes and no leaks under the configured rules and baseline.
 - [Run 44609740798, job 135863006310](https://github.com/neuron7x/KORPUS/actions/runs/44609740798/job/135863006310)
   on head `16bfba03`, merge `59249b2e`, tree
   `527619ad70c19106814236d13c47ac4bd5e9a298` reached the 600-second native deadline
@@ -215,13 +223,70 @@ Two subsequent native runs used the 600-second allocation:
   the four other scanners exited 0. All three container receipts confirmed absence
   after natural removal; forced cleanup after a parent timeout was not exercised.
 
+A later diagnostic run used the 900-second allocation:
+[run 44616015657, job 135884788331](https://github.com/neuron7x/KORPUS/actions/runs/44616015657/job/135884788331)
+on head `cf256458`, merge `a879c4ca`, tree
+`deeed68d01b6204ed1c887e596c1bdbe0bf3de7f` completed its configured patch stream
+with exit 0 in 431.126 seconds. Gitleaks reported 1297 commits and
+544,179,939 scanned bytes. This run also exceeded the required 230-second budget.
+
+Those runs passed only a revision to Gitleaks' `--log-opts`. The pinned
+[Git source implementation](https://github.com/gitleaks/gitleaks/blob/v8.30.1/sources/git.go)
+therefore ran `git log -p -U0 <sha>` without requesting merge diffs. Git normally
+suppresses merge patches in that mode, so merge-only material was omitted. Even
+the exit-zero results do not establish complete reachable-history content coverage.
+Reported commit counts and raw-fragment byte totals are scanner observations,
+not a complete commit census or a measure of all decoding and regular-expression
+work. No completed scan satisfying the original budget and corrected scope has
+been established.
+
 The observed scan durations differ; these measurements do not establish the cause.
-The 900-second allocation adds bounded headroom above the failed native deadline,
-with a 30-second parent margin. It is a further qualification attempt, not a proven
-performance fix or evidence that this revision completes the full history. The
-earlier complete result applies only to its own head and checkout. CPU and memory
-limits, isolation, pins, history scope, rules, redaction, strict exit predicates and
-cleanup requirements remain unchanged.
+CPU and memory limits, isolation, pins, rules, baseline, redaction, strict exit
+predicates and cleanup requirements remain unchanged in this candidate.
+
+## Corrected history input and bounded performance experiment
+
+The exact log options are `<sha> --full-history --diff-merges=first-parent`.
+The [Git diff contract](https://git-scm.com/docs/git-log/2.31.0#Documentation/git-log.txt---diff-mergesltformatgt)
+distinguishes this merge-diff mode from the separate `--first-parent` traversal
+option. The latter is absent: all reachable parent histories remain eligible.
+Each merge emits its textual diff against its first parent, while ordinary
+commits on every parent history are still traversed. Under ordinary Git text-diff
+semantics this retains added text from every reachable commit, including
+merge-only additions. It does not promise every parent-relative delta or finding
+fingerprint, binary-blob coverage, or detection of every secret. Combined diffs
+are not substituted for the ordinary unified patches consumed by the pinned parser.
+
+The regression fixture contains two-parent and octopus merges, novel merge text,
+and side-branch text deleted before merging. The selected stream includes all
+nine reachable commits and all nine required neutral markers. Controls detect
+omitted merge patches and first-parent-only traversal. A separate-per-parent
+stream covers the same markers with more patch bytes in this fixture. These
+Git-only tests establish input semantics; they do not measure native detector
+performance or establish completion on the repository's real history.
+
+Only the Gitleaks container receives the fixed environment value `GOMAXPROCS=2`,
+before its immutable image argument. Its existing `--cpus=2` and `--memory=2g`
+limits are retained. The pinned
+[Dockerfile](https://github.com/gitleaks/gitleaks/blob/v8.30.1/Dockerfile) uses a
+Go 1.24 builder; the [Go runtime documentation](https://go.dev/blog/container-aware-gomaxprocs)
+describes the later Go 1.25 change to container-aware scheduler defaults.
+Aligning scheduler parallelism with the existing quota is a falsifiable
+performance candidate. The runner's actual scheduler default and the resulting
+speed difference have not been measured. No resource limit, decoding depth,
+garbage-collector setting, image, rule or baseline is changed.
+
+Gitleaks receives `--diagnostics cpu --diagnostics-dir /output/gitleaks-profile`.
+Its pinned [diagnostic implementation](https://github.com/gitleaks/gitleaks/blob/v8.30.1/cmd/diagnostics.go)
+writes `cpu.pprof` in that directory and finalizes CPU profiling when the command's
+normal completion/error handler runs. The dedicated path
+`var/source-security/gitleaks-profile/cpu.pprof` is uploaded with the diagnostic
+logs, outside the unchanged seven-member evidence artifact. It cannot replace a
+native report, a zero exit, source identity, or verified cleanup. An abrupt parent
+timeout or job cancellation may prevent profile finalization; a missing or partial
+profile is not a successful scan. CPU-only profiling enables neither an HTTP
+listener nor heap/trace collection. Its timing overhead is part of the same
+230/240-second experiment, not an allowance beyond the policy.
 
 `--log-level info` preserves completion/error summaries while avoiding the
 per-decoded-segment debug stream. It changes no history, rules, decoding, pins,

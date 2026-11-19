@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2299,
-  "root_sha256": "ca615298ab81354a48b04e6d24af7334a54e128495dbb3c8716a74279e48828c",
+  "file_count": 2301,
+  "root_sha256": "a80c807f52f130256a30271477960f5a844e95436f6b3af10c57ca39b778c1e5",
   "files": [
     {
       "path": ".dockerignore",
@@ -49,8 +49,8 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "bytes": 16122,
-      "sha256": "dfdb36d89989a665de6b86da38f0d7f63d2f4512b0f116bc761f2355e960b9ec",
+      "bytes": 16195,
+      "sha256": "94dd64aa9879747a4fc6c491bd5da1cd4efc4db3f3e3452aebf43e813846d542",
       "mode": "0644"
     },
     {
@@ -6133,8 +6133,8 @@
     },
     {
       "path": "apps/api/tests/test_source_security_cleanup.py",
-      "bytes": 9832,
-      "sha256": "bf3fad8911fcc87c18dd1cb787c1e8e16318fe5fc01584c0028ef37913e66b87",
+      "bytes": 9790,
+      "sha256": "9a58cf10155d81f46e93da4e71eab056ad32f4806200052554ce4b74a71e79bf",
       "mode": "0644"
     },
     {
@@ -6150,9 +6150,15 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_source_security_history.py",
+      "bytes": 7652,
+      "sha256": "3cbda368216a5f3bb21ec51f4c1d29ae9125366c74b681f9a5558406c17bea7c",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_source_security_producer.py",
-      "bytes": 12575,
-      "sha256": "f5605d2883dc886e62d170ac06537b366630cebc7b839e3c04ec49e1eee01e24",
+      "bytes": 15916,
+      "sha256": "59d6b8182fe25728fab30146edef4f65ac4b4a6604104843ab0ab40847e46c69",
       "mode": "0644"
     },
     {
@@ -8738,7 +8744,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5712,
-      "sha256": "6a4ff14a3182523795a6b0b43bece6410c017fefa5326e6a4f42b37c43fe7aaa",
+      "sha256": "710622cd4cec53faf131f5c0718fcfaaba626556ce98643a593b991b06d2c57d",
       "mode": "0644"
     },
     {
@@ -8779,8 +8785,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 794640,
-      "sha256": "2f7c772a52a97a24ad6d6018e4aa366fb6a8076d22d081842a689abbf6f16571",
+      "bytes": 795017,
+      "sha256": "42fb36114b0280d80ed9201098ffe6aed4aa49fe2d46b98502d0e41c35d7244e",
       "mode": "0644"
     },
     {
@@ -10459,8 +10465,8 @@
     },
     {
       "path": "docs/source-security-evidence.md",
-      "bytes": 15737,
-      "sha256": "e281ca74961635210f4c4d79ab57d7c0c9380343f764ec8c8ea401db23cbfe51",
+      "bytes": 20207,
+      "sha256": "793135540aa379e712fefe9b8c7c011f57ac895489e9bf0f6c1b69d9b8d4759c",
       "mode": "0644"
     },
     {
@@ -13123,8 +13129,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 352505,
-      "sha256": "11c8f1aad9f76ff0564607c70db81855f0478a10a5a822c44591f3f16a96662b",
+      "bytes": 354478,
+      "sha256": "3dd8b09861b37a1071ffb67f5042be902520aafa70dc26d88bce32fc3480d131",
       "mode": "0755"
     },
     {
@@ -13375,8 +13381,8 @@
     },
     {
       "path": "scripts/source_security_commands.py",
-      "bytes": 3525,
-      "sha256": "076257c47b3bf47e30d73e8b8d29ae7b0a585ae647222249a1810d334c4b0761",
+      "bytes": 3296,
+      "sha256": "0257205506fcd10c3926b3a783843723ca476e733dcec8880857fc5f0a2b76df",
       "mode": "0644"
     },
     {
@@ -13393,8 +13399,14 @@
     },
     {
       "path": "scripts/source_security_execution.py",
-      "bytes": 1925,
-      "sha256": "44dcabfa91c6874623e42d3ceb1b341e1fa0eb9352af11d5f342e2e611618cac",
+      "bytes": 1879,
+      "sha256": "80fc577212c6394db0dc90489f17bf486c8e3dd4838d543e28201f447d905344",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/source_security_gitleaks.py",
+      "bytes": 890,
+      "sha256": "e180b1fc434326bc98fb2a6be68178c0422f1cbf3357f108abd62cb9fdae0b1f",
       "mode": "0644"
     },
     {

@@ -22,7 +22,7 @@ def execution_succeeded(execution: dict[str, Any]) -> bool:
     )
 
 
-def _run(command: list[str], cwd: Path, log: Any, tool: str) -> int:
+def _run(command: list[str], cwd: Path, log: Any) -> int:
     try:
         return subprocess.run(
             command,
@@ -30,7 +30,7 @@ def _run(command: list[str], cwd: Path, log: Any, tool: str) -> int:
             env=environment(),
             stdout=log,
             stderr=subprocess.STDOUT,
-            timeout={"gitleaks": 930}.get(tool, 240),
+            timeout=240,
             check=False,
         ).returncode
     except subprocess.TimeoutExpired:
@@ -47,7 +47,7 @@ def execute(tool: str, command: list[str], output: Path, cwd: Path) -> dict[str,
     record: dict[str, Any] = {"tool": tool, "command": actual, "started_at": started}
     with (output / f"{tool.replace(':', '-')}.log").open("wb") as log:
         try:
-            code = _run(actual, cwd, log, tool)
+            code = _run(actual, cwd, log)
         finally:
             if owned is not None:
                 record["cleanup"] = cleanup(owned, environment())

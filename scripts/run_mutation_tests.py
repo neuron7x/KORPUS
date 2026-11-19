@@ -49,6 +49,49 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M768_SOURCE_SECURITY_OMITS_MERGE_ONLY_CONTENT",
+        "scripts/source_security_gitleaks.py",
+        '        f"{commit} --full-history --diff-merges=first-parent",',
+        "        commit,",
+        (
+            "apps/api/tests/test_source_security_history.py::test_actual_scanner_stream_includes_two_parent_merge_only_content",
+            "apps/api/tests/test_source_security_history.py::test_actual_scanner_stream_includes_octopus_merge_only_content",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M769_SOURCE_SECURITY_PRUNES_REACHABLE_SIDE_HISTORY",
+        "scripts/source_security_gitleaks.py",
+        '        f"{commit} --full-history --diff-merges=first-parent",',
+        '        f"{commit} --full-history --first-parent --diff-merges=first-parent",',
+        (
+            "apps/api/tests/test_source_security_history.py::test_actual_scanner_stream_retains_side_content_removed_before_merge",
+            "apps/api/tests/test_source_security_history.py::test_actual_scanner_stream_keeps_every_reachable_commit_and_text_introduction",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M770_SOURCE_SECURITY_RELAXES_NATIVE_DEADLINE",
+        "scripts/source_security_gitleaks.py",
+        '        "230",',
+        '        "900",',
+        (
+            "apps/api/tests/test_source_security_producer.py::test_fixed_scanner_commands_preserve_source_history_lock_and_policy_scope",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M771_SOURCE_SECURITY_RELAXES_PARENT_DEADLINE",
+        "scripts/source_security_execution.py",
+        "            timeout=240,",
+        "            timeout=930,",
+        (
+            "apps/api/tests/test_source_security_cleanup.py::test_known_owned_container_is_absent_after_execution",
+            "apps/api/tests/test_source_security_cleanup.py::test_non_container_executions_keep_the_original_parent_deadline",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M765_HOSTED_EVIDENCE_ACCEPTS_FOREIGN_LIVE_BASE_REF",
         "scripts/github_evidence_base.py",
         '    insist(record.get("ref") == f"refs/heads/{ref}", "GitHub base ref changed its subject")',

@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 from scripts.source_security_contract import IMAGES
+from scripts.source_security_gitleaks import gitleaks_arguments, gitleaks_environment
 from scripts.source_security_lock import LOCK_PATHS
 
 
@@ -39,6 +40,7 @@ def _container(tool: str, source: Path, output: Path, temporary: Path) -> list[s
         "/source",
         "--env",
         "SYFT_CHECK_FOR_APP_UPDATE=false",
+        *gitleaks_environment(tool),
         IMAGES[tool],
     ]
 
@@ -86,25 +88,12 @@ def scanner_commands(
     scanner_python: Path,
     commit: str,
 ) -> dict[str, list[str]]:
-    gitleaks = [
-        *_container("gitleaks", root, output, temporary),
-        "detect",
-        "--source",
-        "/source",
-        "--no-banner",
-        "--redact",
-        "--exit-code",
-        "1",
-        "--log-opts",
-        commit,
-        "--baseline-path",
-        "/source/.gitleaks-baseline.json",
-        "--report-format",
-        "json",
-        "--report-path",
-        "/output/gitleaks.json",
-    ]
-    commands = {"gitleaks": [*gitleaks, "--log-level", "info", "--timeout", "900"]}
+    commands = {
+        "gitleaks": [
+            *_container("gitleaks", root, output, temporary),
+            *gitleaks_arguments(commit),
+        ]
+    }
     for kind in ("runtime", "dev"):
         commands[f"pip-audit:{kind}"] = _audit_command(
             kind, source, output, temporary, scanner_python
