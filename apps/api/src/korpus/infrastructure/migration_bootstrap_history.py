@@ -14,6 +14,7 @@ from korpus.infrastructure.migration_baseline_proof import (
 BOOTSTRAP_REVISIONS = (
     "0025_sealed_provenance_integrity",
     "0026_learning_history_integrity",
+    "0027_learning_competency_integrity",
 )
 BOOTSTRAP_HEAD = BOOTSTRAP_REVISIONS[-1]
 
@@ -33,8 +34,7 @@ def preflight_source(source_root: Path) -> BaselineProof:
     if any(path.is_symlink() for path in files) or actual != expected:
         raise MigrationAdmissionError("DENIED_SOURCE_HISTORY_UNPROVEN")
     sources = list(baseline.sources)
-    parent = baseline.chain[-1]
-    for revision in BOOTSTRAP_REVISIONS:
+    parents = (baseline.chain[-1], *BOOTSTRAP_REVISIONS[:-1])
+    for revision, parent in zip(BOOTSTRAP_REVISIONS, parents, strict=True):
         sources.append(verify_passive_revision(source_root, revision, parent))
-        parent = revision
     return replace(baseline, sources=tuple(sources))

@@ -7200,6 +7200,24 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Issue #105 / #6 / #12: initial measured ceiling for shared packaged-source and research-evidence verification; existing module ceilings unchanged."
+    },
+    "apps/api/src/korpus/infrastructure/learning_competency_schema.py": {
+      "lines": 78,
+      "proof_lines": 0,
+      "max_complexity": 4,
+      "max_function_lines": 20,
+      "max_function_args": 3,
+      "max_nesting": 3,
+      "reason": "2026-11-19 / #100: initial measured bounds for competency edge immutability on SQLite bootstrap and forward PostgreSQL/SQLite migration; existing ceilings unchanged."
+    },
+    "apps/api/src/korpus/infrastructure/learning_history_concurrency.py": {
+      "lines": 87,
+      "proof_lines": 0,
+      "max_complexity": 1,
+      "max_function_lines": 4,
+      "max_function_args": 1,
+      "max_nesting": 0,
+      "reason": "2026-11-19 / #100: initial measured bounds for the unmerged forward PostgreSQL course-parent and lifecycle-lock guards; every pre-existing ceiling is unchanged."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

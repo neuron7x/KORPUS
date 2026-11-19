@@ -25,7 +25,7 @@ from korpus.infrastructure.migration_baseline_proof import BaselineProofError
 ROOT = Path(__file__).resolve().parents[3]
 API = ROOT / "apps/api"
 BASE = "0024_capability_effect_ledger"
-HEAD = "0026_learning_history_integrity"
+HEAD = "0027_learning_competency_integrity"
 
 
 def _configuration(tmp_path: Path) -> tuple[Path, Config]:
