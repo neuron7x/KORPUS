@@ -32,7 +32,11 @@ from github_evidence_run import (  # noqa: E402
     Selection,
 )
 from github_evidence_source import Checkout  # noqa: E402
-from github_evidence_transport import GitHubTransport, strict_object  # noqa: E402
+from github_evidence_transport import (  # noqa: E402
+    GitHubEvidenceError,
+    GitHubTransport,
+    strict_object,
+)
 from github_source_identity import IDENTITY_PATHS  # noqa: E402
 
 COMMIT, TREE = "a" * 40, "b" * 40
@@ -61,6 +65,8 @@ class ReplayTransport:
         self.downloads: list[str] = []
 
     def json(self, relative: str) -> dict[str, Any]:
+        if relative not in self.responses:
+            raise GitHubEvidenceError(f"GitHub metadata request refused: HTTP 404: {relative}")
         return strict_object(self.responses[relative], "test GitHub HTTPS response")
 
     def download(self, relative: str, limit: int) -> bytes:
@@ -355,6 +361,9 @@ def pull_request_fixture(measured: EvidenceFixture) -> EvidenceFixture:
             "head": {"sha": "c" * 40, "ref": "candidate", "repo": repository},
             "base": {"sha": "d" * 40, "ref": "main", "repo": repository},
         }
+    )
+    fixture.api.responses["/git/ref/heads/main"] = encoded(
+        {"ref": "refs/heads/main", "object": {"type": "commit", "sha": "d" * 40}}
     )
     fixture.api.responses[f"/git/commits/{COMMIT}"] = encoded(
         {

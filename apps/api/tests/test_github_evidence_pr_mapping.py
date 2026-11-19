@@ -51,12 +51,15 @@ def test_pr_head_and_native_merge_checkout_remain_distinct_valid_subjects(
     assert coverage["totals"]["percent_covered"] == 100
 
 
+@pytest.mark.parametrize("base_ref", ["issue-105-package-contract", "feature/stacked"])
 def test_stacked_pr_base_is_bound_by_actual_parent_commit_not_a_branch_name(
     measured: EvidenceFixture,
+    base_ref: str,
 ) -> None:
     fixture = measured.clone()
-    fixture.replace_json(
-        "/pulls/113", lambda record: record["base"].update(ref="issue-105-package-contract")
+    fixture.replace_json("/pulls/113", lambda record: record["base"].update(ref=base_ref))
+    fixture.api.responses[f"/git/ref/heads/{base_ref}"] = encoded(
+        {"ref": f"refs/heads/{base_ref}", "object": {"type": "commit", "sha": "d" * 40}}
     )
     run = admit_run(fixture.api, PR, fixture.checkout)
     assert run.checkout.commit == COMMIT and run.metadata["head_sha"] == "c" * 40

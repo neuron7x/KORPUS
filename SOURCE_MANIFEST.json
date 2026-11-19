@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2295,
-  "root_sha256": "44262b6597fe34b34e8d32b476564aa34fe6ca90dbc3f67c6991a42fe520dc89",
+  "file_count": 2299,
+  "root_sha256": "ca615298ab81354a48b04e6d24af7334a54e128495dbb3c8716a74279e48828c",
   "files": [
     {
       "path": ".dockerignore",
@@ -2953,8 +2953,8 @@
     },
     {
       "path": "apps/api/tests/hosted_evidence_fixtures.py",
-      "bytes": 15712,
-      "sha256": "f0419c54d4df3bafa09cb4814b68a3c56a26b57f9d64f3f05f1a2618c8062e88",
+      "bytes": 16037,
+      "sha256": "50debe70f874b5c15cc229e782051930e6ed3055ba46437ea6695c927adaf873",
       "mode": "0644"
     },
     {
@@ -4572,9 +4572,15 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_github_evidence_live_base.py",
+      "bytes": 9752,
+      "sha256": "5e5e9b35f3b739f2ca526426fda6dcfdf2c540b3c6adad831bfe315d463af866",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_github_evidence_pr_mapping.py",
-      "bytes": 4909,
-      "sha256": "1db0a3bd88e9968232e1092f9cb3d44f7fc3c552fc11512ddd340c57473c56e2",
+      "bytes": 5144,
+      "sha256": "99335c7e5a16fd1e18e0bcfdaaa363661f4ec1ff44385adb902aac21c3e69757",
       "mode": "0644"
     },
     {
@@ -4590,9 +4596,15 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_github_evidence_request_budget.py",
+      "bytes": 5149,
+      "sha256": "328f581f578d7e67015f469746cf2f9149c0bd6ff2c37a8cbc0c203ed449b137",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_github_evidence_transport.py",
-      "bytes": 7017,
-      "sha256": "39d5b17992a5602a68bedff44a063a8c6995482653fddf669f218502e5221be1",
+      "bytes": 8651,
+      "sha256": "20c341c48646667ba277310dcc7050176718666770a62224b43c6e0634134b2b",
       "mode": "0644"
     },
     {
@@ -6121,8 +6133,8 @@
     },
     {
       "path": "apps/api/tests/test_source_security_cleanup.py",
-      "bytes": 9804,
-      "sha256": "8559d6621d9f73c2f7cc2f69cd712d55c52077157469338e185e70972a9b4ee6",
+      "bytes": 9832,
+      "sha256": "bf3fad8911fcc87c18dd1cb787c1e8e16318fe5fc01584c0028ef37913e66b87",
       "mode": "0644"
     },
     {
@@ -6140,7 +6152,7 @@
     {
       "path": "apps/api/tests/test_source_security_producer.py",
       "bytes": 12575,
-      "sha256": "169855dd8a713a040d86451d45d51d9fe2bb3c7c5589de6ef46e36f372440e80",
+      "sha256": "f5605d2883dc886e62d170ac06537b366630cebc7b839e3c04ec49e1eee01e24",
       "mode": "0644"
     },
     {
@@ -8767,8 +8779,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 793850,
-      "sha256": "b755b9bfa9ad0ebc08834d54bdf0bc9f22d0429f5a5bf8b100669dd0f0eb4046",
+      "bytes": 794640,
+      "sha256": "2f7c772a52a97a24ad6d6018e4aa366fb6a8076d22d081842a689abbf6f16571",
       "mode": "0644"
     },
     {
@@ -9445,8 +9457,8 @@
     },
     {
       "path": "docs/github-hosted-evidence.md",
-      "bytes": 8675,
-      "sha256": "63608fedd31a28a32538a45ad5369d273315bc82cae5eb6760ae8e6375df48f2",
+      "bytes": 12025,
+      "sha256": "4656466c1700640ab1824a496e4198c92218eebf3e37460425a0d47925fd710d",
       "mode": "0644"
     },
     {
@@ -10447,8 +10459,8 @@
     },
     {
       "path": "docs/source-security-evidence.md",
-      "bytes": 14217,
-      "sha256": "ce338582e825a830a99f85779d555d64e01a6e2309ca29ba4735a39517ee9c4a",
+      "bytes": 15737,
+      "sha256": "e281ca74961635210f4c4d79ab57d7c0c9380343f764ec8c8ea401db23cbfe51",
       "mode": "0644"
     },
     {
@@ -12228,9 +12240,21 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/github_evidence_base.py",
+      "bytes": 4115,
+      "sha256": "a98937a4c5c007ca7f2aaf1ff1f211d8d5d08912994f11be047beca7c9f70478",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/github_evidence_import.py",
       "bytes": 2574,
       "sha256": "eea129759db84d415c91de28f857f6bf0004df902e705fbc37f18c9e307e6fd3",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_evidence_policy.py",
+      "bytes": 921,
+      "sha256": "4af9dd589be9fad31a257465826ef6ccd9ea0e208b8f749c4b569031e8fb7a0d",
       "mode": "0644"
     },
     {
@@ -12247,8 +12271,8 @@
     },
     {
       "path": "scripts/github_evidence_run.py",
-      "bytes": 10081,
-      "sha256": "8b3a20b7d9f347ae2dba17652c488449f25bce4b2ab562c56e52547944b7cad9",
+      "bytes": 10070,
+      "sha256": "61e960d281eb22b0b9995b2242b3ee722030dee2c028e395428d53ebdd49426b",
       "mode": "0644"
     },
     {
@@ -12259,8 +12283,8 @@
     },
     {
       "path": "scripts/github_evidence_transport.py",
-      "bytes": 5161,
-      "sha256": "dd0c082bcfe4c1cde4d50a0910ea627c80e9e13f25866c4940dca2772f6662d6",
+      "bytes": 4856,
+      "sha256": "6516ee4896c66811e59de6b3ec52aaf1f06d75434adf64bf86f61617977b8601",
       "mode": "0644"
     },
     {
@@ -13099,8 +13123,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 351123,
-      "sha256": "d83c28014ab7289e5583ec9ef56deab8d04cbf2b87b323065745029ae7439310",
+      "bytes": 352505,
+      "sha256": "11c8f1aad9f76ff0564607c70db81855f0478a10a5a822c44591f3f16a96662b",
       "mode": "0755"
     },
     {
@@ -13352,7 +13376,7 @@
     {
       "path": "scripts/source_security_commands.py",
       "bytes": 3525,
-      "sha256": "64607b0f696517e3779e17aeaea56571e0170ac03e6c9b7baa9d8d7f1e6ca84a",
+      "sha256": "076257c47b3bf47e30d73e8b8d29ae7b0a585ae647222249a1810d334c4b0761",
       "mode": "0644"
     },
     {
@@ -13370,7 +13394,7 @@
     {
       "path": "scripts/source_security_execution.py",
       "bytes": 1925,
-      "sha256": "3c4dbcacb6d01b593751a758ad9491d89bef14a5876a36281bcef42411c91f40",
+      "sha256": "44dcabfa91c6874623e42d3ceb1b341e1fa0eb9352af11d5f342e2e611618cac",
       "mode": "0644"
     },
     {

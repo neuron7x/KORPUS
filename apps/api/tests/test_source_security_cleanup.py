@@ -30,7 +30,7 @@ class DockerModel:
 
     def run(self, command: list[str], **kwargs: Any) -> subprocess.CompletedProcess[bytes]:
         if command[3] == "run":
-            assert kwargs["timeout"] == (630 if IMAGES["gitleaks"] in command else 240)
+            assert kwargs["timeout"] == (930 if IMAGES["gitleaks"] in command else 240)
             self.owner = command[command.index("--label") + 1].split("=", 1)[1]
             if self.mode != "no-cid":
                 Path(command[command.index("--cidfile") + 1]).write_text(self.cid)
@@ -38,7 +38,7 @@ class DockerModel:
             if self.mode in {"timeout", "no-cid"}:
                 if self.mode == "no-cid":
                     self.active = False
-                raise subprocess.TimeoutExpired(command, 240)
+                raise subprocess.TimeoutExpired(command, kwargs["timeout"])
             return subprocess.CompletedProcess(command, 0)
         assert command[3] == "container" and kwargs["timeout"] == 10
         action = command[4]
@@ -222,7 +222,7 @@ def test_timeout_during_creation_resolves_empty_cid_by_owned_name(
                 Path(arguments[arguments.index("--cidfile") + 1]).write_bytes(b"")
                 # Existence models a created, not yet started, daemon container.
                 self.active = mode != "not-created"
-                raise subprocess.TimeoutExpired(arguments, 240)
+                raise subprocess.TimeoutExpired(arguments, kwargs["timeout"])
             return super().run(arguments, **kwargs)
 
     model = CreationRace(mode)

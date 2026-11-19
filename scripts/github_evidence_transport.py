@@ -8,26 +8,21 @@ import ssl
 from typing import Any
 from urllib.parse import urlsplit
 
-from korpus.application.github_release_context import CANONICAL_GITHUB_REPOSITORY
+from github_evidence_policy import (
+    API_HOST,
+    API_PREFIX,
+    GitHubEvidenceError,
+    insist,
+    valid_api_path,
+)
 from korpus.application.strict_json import strict_json_object
 
-API_HOST = "api.github.com"
-API_PREFIX = f"/repos/{CANONICAL_GITHUB_REPOSITORY}"
 MAX_JSON_BYTES = 16 * 1024 * 1024
 MAX_METADATA_BYTES = 2 * 1024 * 1024
 MAX_LOG_BYTES = 16 * 1024 * 1024
 MAX_ARCHIVE_BYTES = 64 * 1024 * 1024
 MAX_REQUESTS = 32
 TIMEOUT_SECONDS = 30
-
-
-class GitHubEvidenceError(ValueError):
-    """An authoritative subject or its immutable bytes could not be established."""
-
-
-def insist(condition: bool, message: str) -> None:
-    if not condition:
-        raise GitHubEvidenceError(message)
 
 
 def strict_object(payload: bytes, label: str) -> dict[str, Any]:
@@ -95,7 +90,7 @@ class GitHubTransport:
             connection.close()
 
     def _api(self, relative: str, limit: int) -> tuple[int, str | None, bytes]:
-        insist(relative.startswith("/") and ".." not in relative, "invalid GitHub API path")
+        insist(valid_api_path(relative), "invalid GitHub API path")
         return self._get(API_HOST, API_PREFIX + relative, limit)
 
     def json(self, relative: str) -> dict[str, Any]:

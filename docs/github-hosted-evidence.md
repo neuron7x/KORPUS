@@ -15,12 +15,49 @@ hosted Ubuntu 24.04 jobs with the expected successful upload step.
 
 For `refs/heads/main`, the event is `push` and the API head equals the actual
 clean committed checkout. For `refs/pull/N/merge`, the event is `pull_request`.
-Fresh public GitHub PR metadata must name canonical head and base repositories,
+Authenticated GitHub PR metadata must name canonical head and base repositories,
 the API head must equal the PR head, and the actual checkout must equal the PR
 merge commit. Authenticated Git commit metadata must contain exactly the ordered
-base/head parents and the locally captured tree. The reusable assurance workflow
+current-base/head parents and the locally captured tree. The reusable assurance workflow
 reference must identify that same merge commit and PR ref. Stacked PR bases are
-supported through their exact base commit, without assuming their branch is main.
+supported through their exact current base commit, without assuming their branch is main.
+
+### Current base authority and recorded ancestry
+
+The PR response's `base.sha` is a recorded anchor; it is not used as the current
+target-branch authority. During the PR #116 integration, fresh authenticated PR
+responses retained an older base while GitHub's merge commit already used the
+advanced `main` tip. The admission path therefore resolves the PR's exact
+`base.ref` through the fixed repository's
+[Get a reference endpoint](https://docs.github.com/en/rest/git/refs#get-a-reference).
+The returned ref must be exactly `refs/heads/<base.ref>`, its object type must be
+`commit`, and its SHA must be a full lowercase commit identity. The checkout's two
+ordered parents must equal this current base SHA followed by the exact PR head SHA.
+An old merge or a matching tree alone cannot satisfy that equality.
+
+If the recorded and current base SHAs differ, an authenticated
+[Compare two commits request](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
+must prove a forward ancestry relationship. Its response URL must identify the exact
+requested SHA pair, both the base and merge-base identities must equal the recorded
+anchor, and its status must be `ahead`. Counts must be integers: `behind_by` must
+be zero, `ahead_by` positive, and `total_commits` equal to `ahead_by`. Missing,
+divergent, malformed or repointed ancestry is refused. Equal SHAs already establish
+the reflexive ancestry case and do not require a comparison request.
+
+The comparison uses `per_page=1&page=2`. GitHub documents that changed-file payloads
+appear only on the first comparison page; the ancestry summary is used without
+claiming a complete commit census. The transport permits exactly the full-SHA
+comparison route and these fixed pagination parameters. The comparison delimiter
+does not permit arbitrary traversal, encoded-dot routes or additional query fields.
+Both reference and comparison reads use the existing `contents: read` permission.
+
+After the job census and before artifact inventory or downloads, admission re-reads
+the PR and current base reference. PR number, merge SHA, both repository and owner
+identities, head SHA/ref, base ref, recorded base SHA and current base SHA must all
+remain unchanged. This is a bounded observation during `admit_run`; it is not an
+atomic GitHub snapshot and does not claim to detect branch movement during later
+artifact downloads or coverage reconstruction. A changed or unavailable subject
+refuses admission instead of falling back to the recorded base.
 
 The separate `hosted-evidence` workflow uses only `contents: read` and
 `actions: read`. It waits at most one hour for this exact independent CI execution
@@ -46,6 +83,25 @@ Existing ZIP safety limits run before any member is consumed. Metadata responses
 are limited to 2 MiB, native JSON and logs to 16 MiB, outer ZIPs to 64 MiB, and
 each admission transport to 32 requests. Collections must be complete within the
 100-item bound. Ambiguous JSON and ZIP paths are rejected.
+
+For a PR with an advanced base and all four producers, the normal single storage
+redirect per download consumes 26 requests:
+
+| Read category | Requests |
+| --- | ---: |
+| Latest run and selected attempt | 2 |
+| Exact checkout commit | 1 |
+| Initial and final PR subjects | 2 |
+| Initial and final current base references | 2 |
+| Recorded-to-current base comparison | 1 |
+| Job census and artifact inventory | 2 |
+| Four artifact ZIPs and four upload logs, each API GET plus one storage GET | 16 |
+| Total | 26 |
+
+The 32-request limit remains a hard refusal. Extra storage hops consume the same
+budget; all eight downloads taking two storage hops would require 34 requests and
+are refused. Tests execute both cases through the real transport with a controlled
+HTTPS response boundary, preserving authentication and byte limits.
 
 Both native coverage datasets require their original execution receipts, exact
 run/checkout/source/configuration identity, the locked coverage.py version, and

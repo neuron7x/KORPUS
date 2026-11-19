@@ -49,6 +49,37 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M765_HOSTED_EVIDENCE_ACCEPTS_FOREIGN_LIVE_BASE_REF",
+        "scripts/github_evidence_base.py",
+        '    insist(record.get("ref") == f"refs/heads/{ref}", "GitHub base ref changed its subject")',
+        '    insist(bool(record.get("ref")), "GitHub base ref changed its subject")',
+        (
+            "apps/api/tests/test_github_evidence_live_base.py::test_live_base_requires_the_exact_named_commit_ref",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M766_HOSTED_EVIDENCE_SKIPS_RECORDED_BASE_ANCESTRY",
+        "scripts/github_evidence_base.py",
+        "        _recorded_ancestor(api, recorded, current)",
+        "        len(recorded)",
+        (
+            "apps/api/tests/test_github_evidence_live_base.py::test_repointed_base_cannot_discard_the_recorded_pr_ancestor",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M767_HOSTED_EVIDENCE_SKIPS_PR_SUBJECT_STABILITY",
+        "scripts/github_evidence_run.py",
+        "        stable_pr_base(api, subject)",
+        "        len(subject.subject_bytes)",
+        (
+            "apps/api/tests/test_github_evidence_live_base.py::test_final_pr_read_rejects_retargeting_or_movement_of_every_subject_edge",
+            "apps/api/tests/test_github_evidence_live_base.py::test_final_base_read_rejects_a_ref_advance_during_admission",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M764_HOSTED_EVIDENCE_SILENTLY_DROPS_PR_AUTHENTICATION",
         "scripts/github_evidence_transport.py",
         "        if host == API_HOST and self._token:",
@@ -251,7 +282,7 @@ MUTANTS = (
     Mutant(
         "M751_HOSTED_EVIDENCE_ACCEPTS_WRONG_PR_MERGE_PARENTS",
         "scripts/github_evidence_run.py",
-        '        and [parent.get("sha") for parent in parents] == [base.get("sha"), head.get("sha")],',
+        '        and [parent.get("sha") for parent in parents] == [authority.sha, head.get("sha")],',
         '        and [parent.get("sha") for parent in parents] == [parent.get("sha") for parent in parents],',
         (
             "apps/api/tests/test_github_evidence_pr_mapping.py::test_same_tree_does_not_substitute_for_exact_pr_merge_parents",

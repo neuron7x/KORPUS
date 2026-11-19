@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Any
 
 from coverage_execution_contract import canonical_bytes
+from github_evidence_base import BaseAuthority, observe_pr_base, stable_pr_base
 from github_evidence_source import Checkout
 from github_evidence_transport import GitHubTransport, insist, object_record, object_records
 from korpus.application.github_release_context import (
@@ -142,7 +143,7 @@ def _pull_request_subject(
     checkout: Checkout,
     run: dict[str, Any],
     commit: dict[str, Any],
-) -> None:
+) -> BaseAuthority:
     number = int(selected.ref.split("/")[2])
     pull = api.json(f"/pulls/{number}")
     exact_integer(pull.get("number"), number, "pull-request number")
@@ -150,22 +151,16 @@ def _pull_request_subject(
     base = object_record(pull.get("base"), "PR base metadata missing")
     repository(head.get("repo"))
     repository(base.get("repo"))
-    insist(
-        isinstance(base.get("sha"), str) and GIT_SHA.fullmatch(base["sha"]) is not None,
-        "invalid PR base SHA",
-    )
     insist(head.get("sha") == run.get("head_sha"), "PR head differs from run head")
     insist(head.get("ref") == run.get("head_branch"), "PR branch differs from run head branch")
-    insist(
-        isinstance(base.get("ref"), str) and bool(base["ref"].strip()), "PR base branch is missing"
-    )
+    authority = observe_pr_base(api, pull)
     insist(pull.get("merge_commit_sha") == checkout.commit, "PR merge differs from actual checkout")
     parents = commit.get("parents")
     insist(
         isinstance(parents, list)
         and len(parents) == 2
         and all(isinstance(parent, dict) for parent in parents)
-        and [parent.get("sha") for parent in parents] == [base.get("sha"), head.get("sha")],
+        and [parent.get("sha") for parent in parents] == [authority.sha, head.get("sha")],
         "checkout commit is not the exact PR base/head merge",
     )
     references = run.get("referenced_workflows")
@@ -179,6 +174,7 @@ def _pull_request_subject(
         and sum(reference == expected for reference in references) == 1,
         "run does not prove the selected PR merge checkout/ref",
     )
+    return authority
 
 
 @dataclass(frozen=True)
@@ -217,8 +213,9 @@ def admit_run(api: GitHubTransport, selected: Selection, checkout: Checkout) -> 
     insist(commit.get("sha") == checkout.commit, "GitHub commit response changed its subject")
     tree = commit.get("tree")
     insist(isinstance(tree, dict) and tree.get("sha") == checkout.tree, "checkout tree mismatch")
+    subject = None
     if selected.ref != "refs/heads/main":
-        _pull_request_subject(api, selected, checkout, run, commit)
+        subject = _pull_request_subject(api, selected, checkout, run, commit)
     jobs = api.collection(f"{path}/attempts/{selected.attempt}/jobs", "jobs")
     identifiers = [job.get("id") for job in jobs]
     insist(
@@ -226,6 +223,8 @@ def admit_run(api: GitHubTransport, selected: Selection, checkout: Checkout) -> 
         and len(set(identifiers)) == len(identifiers),
         "GitHub job collection contains invalid or duplicate IDs",
     )
+    if subject is not None:
+        stable_pr_base(api, subject)
     return AdmittedRun(selected, checkout, canonical_bytes(run), canonical_bytes(jobs))
 
 

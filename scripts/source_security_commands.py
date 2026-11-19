@@ -104,7 +104,7 @@ def scanner_commands(
         "--report-path",
         "/output/gitleaks.json",
     ]
-    commands = {"gitleaks": [*gitleaks, "--log-level", "info", "--timeout", "600"]}
+    commands = {"gitleaks": [*gitleaks, "--log-level", "info", "--timeout", "900"]}
     for kind in ("runtime", "dev"):
         commands[f"pip-audit:{kind}"] = _audit_command(
             kind, source, output, temporary, scanner_python

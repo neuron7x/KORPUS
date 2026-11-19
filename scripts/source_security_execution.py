@@ -30,7 +30,7 @@ def _run(command: list[str], cwd: Path, log: Any, tool: str) -> int:
             env=environment(),
             stdout=log,
             stderr=subprocess.STDOUT,
-            timeout={"gitleaks": 630}.get(tool, 240),
+            timeout={"gitleaks": 930}.get(tool, 240),
             check=False,
         ).returncode
     except subprocess.TimeoutExpired:

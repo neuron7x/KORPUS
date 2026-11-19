@@ -46,7 +46,7 @@ not skip scanning. No ignore entry or severity is relaxed by this producer.
 Each pinned container image is pulled before native scanning, with its own
 240-second bound, start/end timestamps and exact exit code in `provisioning`.
 All three pulls must succeed. The scanner then uses `--pull=never`. Gitleaks has
-a separate 630-second parent bound; other scanner calls retain 240 seconds.
+a separate 930-second parent bound; other scanner calls retain 240 seconds.
 Pull logs are retained alongside the
 native diagnostics. The job's 25-minute outer bound, immutable image digests,
 offline scanner containers, and complete reachable-history scope are unchanged.
@@ -184,7 +184,7 @@ then resolves the exact generated name and still verifies the full ID and owners
 label before removal. No matching container leaves creation unproven. A nonempty
 malformed file, symlink, or nonregular file never becomes removal authority.
 
-Gitleaks receives `--timeout 600` with a 630-second parent bound. Other scanner
+Gitleaks receives `--timeout 900` with a 930-second parent bound. Other scanner
 calls and image pulls retain 240 seconds; cleanup queries retain 10 seconds.
 The pinned v8.30.1
 [command context and failure handler](https://github.com/gitleaks/gitleaks/blob/v8.30.1/cmd/root.go)
@@ -192,13 +192,37 @@ use a cancellation context and a nonzero exit for scan errors, including partial
 scans. A nonzero exit remains a failure even when a native report exists. The actual
 full-history scan must still complete successfully in hosted CI.
 
-This allocation follows native run
-[44602028545, job 135835685439](https://github.com/neuron7x/KORPUS/actions/runs/44602028545/job/135835685439),
-on tree `b01163f098d842c3689768c8128e7f7dc53c75f1`. Its 230-second native deadline
+An earlier qualification run
+[44602028545, job 135835685439](https://github.com/neuron7x/KORPUS/actions/runs/44602028545/job/135835685439)
+used tree `b01163f098d842c3689768c8128e7f7dc53c75f1`. Its 230-second native deadline
 interrupted the history scan after approximately 303.72 MB and 761 commits; the
 partial report correctly remained a failed execution. Pulls took about eight
-seconds and the four other scanners about 4.3 seconds combined. The new allocation
-is a bounded qualification attempt, not evidence that the full history finishes.
+seconds and the four other scanners about 4.3 seconds combined.
+
+Two subsequent native runs used the 600-second allocation:
+
+- [Run 44607373087, job 135854556828](https://github.com/neuron7x/KORPUS/actions/runs/44607373087/job/135854556828)
+  on head `ae602e01`, merge `64b52682`, tree
+  `3fec84f067b1009e227c8c90535814749b54f19e` completed with exit 0 in approximately
+  339 seconds. Gitleaks reported 1296 commits, 544,176,163 scanned bytes and no leaks
+  under the configured rules and baseline.
+- [Run 44609740798, job 135863006310](https://github.com/neuron7x/KORPUS/actions/runs/44609740798/job/135863006310)
+  on head `16bfba03`, merge `59249b2e`, tree
+  `527619ad70c19106814236d13c47ac4bd5e9a298` reached the 600-second native deadline
+  and exited 1 after 600.521 seconds. Its partial scan reported 1114 commits and
+  501,815,047 scanned bytes. Zero findings in that partial report did not qualify
+  as a completed clean scan. Pulls took approximately 7.36 seconds combined, and
+  the four other scanners exited 0. All three container receipts confirmed absence
+  after natural removal; forced cleanup after a parent timeout was not exercised.
+
+The observed scan durations differ; these measurements do not establish the cause.
+The 900-second allocation adds bounded headroom above the failed native deadline,
+with a 30-second parent margin. It is a further qualification attempt, not a proven
+performance fix or evidence that this revision completes the full history. The
+earlier complete result applies only to its own head and checkout. CPU and memory
+limits, isolation, pins, history scope, rules, redaction, strict exit predicates and
+cleanup requirements remain unchanged.
+
 `--log-level info` preserves completion/error summaries while avoiding the
 per-decoded-segment debug stream. It changes no history, rules, decoding, pins,
 redaction, dependency scope or output acceptance predicate.

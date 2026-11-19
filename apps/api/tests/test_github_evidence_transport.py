@@ -95,6 +95,43 @@ def test_pr_metadata_uses_the_existing_contents_read_token(wire) -> None:
     assert requests[0]["headers"].get("Authorization") == "Bearer test-only-read-token"
 
 
+def test_exact_bounded_sha_comparison_uses_the_existing_authenticated_api(wire) -> None:
+    responses, requests = wire
+    relative = f"/compare/{'a' * 40}...{'b' * 40}?per_page=1&page=2"
+    responses.append(Response(b'{"status":"ahead"}'))
+    assert transport.GitHubTransport().json(relative) == {"status": "ahead"}
+    assert requests[0]["host"] == transport.API_HOST
+    assert requests[0]["path"] == transport.API_PREFIX + relative
+    assert requests[0]["headers"].get("Authorization") == "Bearer test-only-read-token"
+
+
+@pytest.mark.parametrize(
+    "relative",
+    [
+        f"/compare/{'a' * 40}...{'b' * 40}",
+        f"/compare/{'a' * 40}...{'b' * 40}?per_page=100&page=1",
+        f"/compare/{'a' * 40}...{'b' * 40}?per_page=1&page=2&extra=1",
+        f"/compare/{'a' * 40}...{'b' * 40}?per_page=1&page=2#fragment",
+        f"/compare/{'a' * 39}...{'b' * 40}?per_page=1&page=2",
+        f"/compare/{'A' * 40}...{'b' * 40}?per_page=1&page=2",
+        f"/compare/{'a' * 40}%2E%2E%2E{'b' * 40}?per_page=1&page=2",
+        f"/comp%61re/{'a' * 40}...{'b' * 40}?per_page=1&page=2",
+        f"/compare/{'a' * 40}...{'b' * 40}/../pulls/1?per_page=1&page=2",
+        "/git/ref/heads/../main",
+        "/git/ref/heads/%2e%2e/main",
+        "/pulls/113#fragment",
+        "https://api.github.com/repos/neuron7x/KORPUS/pulls/113",
+    ],
+)
+def test_comparison_allowance_cannot_admit_traversal_or_changed_query_shape(
+    wire, relative: str
+) -> None:
+    _responses, requests = wire
+    with pytest.raises(ValueError, match="invalid GitHub API path"):
+        transport.GitHubTransport().json(relative)
+    assert requests == []
+
+
 @pytest.mark.parametrize("status", [401, 403, 429])
 def test_refused_pr_metadata_records_endpoint_without_anonymous_retry(wire, status: int) -> None:
     responses, requests = wire

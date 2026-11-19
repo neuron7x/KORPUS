@@ -5330,6 +5330,15 @@
       "proof_lines": 0,
       "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
     },
+    "scripts/github_evidence_base.py": {
+      "lines": 109,
+      "max_complexity": 4,
+      "max_function_args": 3,
+      "max_function_lines": 27,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #102: initial measured ceiling for authenticated current PR base authority, recorded ancestry and bounded exact API path policy; all pre-existing ceilings unchanged."
+    },
     "scripts/github_evidence_import.py": {
       "lines": 64,
       "max_complexity": 5,
@@ -5338,6 +5347,15 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/github_evidence_policy.py": {
+      "lines": 30,
+      "max_complexity": 3,
+      "max_function_args": 2,
+      "max_function_lines": 8,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #102: initial measured ceiling for authenticated current PR base authority, recorded ancestry and bounded exact API path policy; all pre-existing ceilings unchanged."
     },
     "scripts/github_evidence_publication.py": {
       "lines": 36,
