@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2229,
-  "root_sha256": "8533ac33c491e9f8e1f445c7c2bdde03225ae9a24b07cccc1edb19401ff52033",
+  "file_count": 2231,
+  "root_sha256": "fb4d3471fb2a62a8ab4cfad2e141ab78342cabe876b1d275da9236a715c38407",
   "files": [
     {
       "path": ".dockerignore",
@@ -5898,6 +5898,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_serving_readiness_contract.py",
+      "bytes": 5846,
+      "sha256": "3086c9f9433ced076f944d533e9c1da6978d1808de3c4c5299fc3651a9de119b",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_slsa_provenance.py",
       "bytes": 2958,
       "sha256": "9a4699e6c578a4cbaea69b011efc57b77c611e1792a887d20d04379b99eac034",
@@ -8563,8 +8569,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 781336,
-      "sha256": "66a2ab84abc79fe919abdb8c58cb97702bf07affe5739ccfe80290861dc01722",
+      "bytes": 781698,
+      "sha256": "202fd1cd8e0a879f79bbd08e04e2879cd79b668bd2eadd56126c8a158d51f1cd",
       "mode": "0644"
     },
     {
@@ -11281,8 +11287,8 @@
     },
     {
       "path": "scripts/check_serving_readiness.py",
-      "bytes": 9059,
-      "sha256": "4a539b05057f51b3b75430da6eed4f1e1fc9c6472154a3851ced9635fe0e4048",
+      "bytes": 8802,
+      "sha256": "24c2e56bec1a02253252896dcc5b47e247cced070ba66af5c8fd92b5c9f3c1ff",
       "mode": "0755"
     },
     {
@@ -12763,8 +12769,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 342449,
-      "sha256": "bffede4f8a0dd8f10fb5e9066127177695267c4ed3d73605b156efe55c3f0a7d",
+      "bytes": 343588,
+      "sha256": "791789636413be77d5faf5164f0658336dcccf5f51594f7fca0c9741bf4b8768",
       "mode": "0755"
     },
     {
@@ -12958,6 +12964,12 @@
       "bytes": 4753,
       "sha256": "e9116192ea8b5fae60af39811a8374f6ae095bd94025b7ecc17c433bd0b8e3d0",
       "mode": "0755"
+    },
+    {
+      "path": "scripts/serving_readiness_contract.py",
+      "bytes": 2947,
+      "sha256": "333967478ada73f31a94691858f240fa62990090b925d1d25d89296b56d5bce4",
+      "mode": "0644"
     },
     {
       "path": "scripts/slsa_provenance.py",
