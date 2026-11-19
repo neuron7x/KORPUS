@@ -16,7 +16,7 @@ def _container(tool: str, source: Path, output: Path, temporary: Path) -> list[s
         str(temporary / "docker-config"),
         "run",
         "--rm",
-        "--pull=always",
+        "--pull=never",
         "--platform",
         "linux/amd64",
         "--network",

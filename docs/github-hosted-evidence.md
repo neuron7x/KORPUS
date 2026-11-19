@@ -65,7 +65,8 @@ The scanners' outputs and the SBOM cannot be omitted for a coverage-only PASS.
 
 The fixed `PACKAGE` selector derives its five-member census from captured
 `apps/api/src/korpus/release.json`: `dist/<distribution_artifact>`, its `.sha256`
-sidecar, and the three `var/package-*-verification.json` / `package-envelope.json`
+sidecar, and the three generated outputs `var/package-first-verification.json`,
+`var/package-second-verification.json`, and `var/package-envelope.json`
 reports named by the producer. Missing, foreign, or extra members are refused.
 This transport boundary captures the package without substituting report verdicts
 for package semantic verification; that consumer belongs to #104.

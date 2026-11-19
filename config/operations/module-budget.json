@@ -7228,6 +7228,15 @@
       "max_nesting": 1,
       "reason": "2026-11-19 / #102 / initial measured ceilings for provenance-bound native source scanner producer; no existing module ceiling raised."
     },
+    "scripts/source_security_images.py": {
+      "lines": 45,
+      "proof_lines": 0,
+      "max_complexity": 4,
+      "max_function_lines": 34,
+      "max_function_args": 5,
+      "max_nesting": 0,
+      "reason": "2026-11-19 / #102 / initial measured ceilings for separate bounded immutable scanner-image provisioning; no existing ceiling raised."
+    },
     "scripts/source_security_lock.py": {
       "lines": 83,
       "proof_lines": 0,

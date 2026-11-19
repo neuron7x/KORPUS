@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""Execute the fixed source scanners and preserve native results from this run.
+"""Execute fixed source scanners on admitted bytes and preserve native outcomes.
 
-The receipt is evidence within the authenticated Actions job, not deployment
-authorization. Scanners never receive production credentials or runtime data.
+Authenticated job evidence conveys no production authority or access.
 """
 
 from __future__ import annotations
@@ -32,6 +31,7 @@ from scripts.source_security_contract import (  # noqa: E402
     require,
     validate_outputs,
 )
+from scripts.source_security_images import provision_images  # noqa: E402
 from scripts.source_security_lock import build_lock_sbom  # noqa: E402
 from scripts.source_security_source import (  # noqa: E402
     admit_source,
@@ -122,7 +122,7 @@ def _scan(
         snapshot(source, SOURCE_INPUTS) == before["source_before"],
         "source snapshot differs from the frozen export",
     )
-    (temporary / "docker-config").mkdir()
+    provision_images(temporary, output, source, receipt, execute)
     write_json(output / "lock-sbom.cdx.json", build_lock_sbom(source))
     commands = scanner_commands(
         root, source, output, temporary, scanner_python, before["source_commit_sha"]

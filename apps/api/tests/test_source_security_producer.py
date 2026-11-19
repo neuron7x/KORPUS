@@ -40,7 +40,14 @@ def prepared(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, dic
         "GITHUB_RUN_ID": "123",
         "GITHUB_RUN_ATTEMPT": "2",
     }
-    state: dict[str, Any] = {"calls": [], "exit_code": 0, "poison": "", "checkout": "a" * 40}
+    state: dict[str, Any] = {
+        "calls": [],
+        "exit_code": 0,
+        "poison": "",
+        "checkout": "a" * 40,
+        "provision_calls": [],
+        "provision_code": 0,
+    }
     monkeypatch.setattr(source, "SOURCE_INPUTS", ("apps/api", "neutral.txt"))
     monkeypatch.setattr(producer, "SOURCE_INPUTS", ("apps/api", "neutral.txt"))
     monkeypatch.setattr(source, "run_identity", lambda: dict(identity))
@@ -50,6 +57,15 @@ def prepared(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, dic
     monkeypatch.setattr(producer, "verify_scanner_python", lambda _path, _root: None)
 
     def execute(tool: str, command: list[str], output: Path, cwd: Path) -> dict[str, Any]:
+        if tool.startswith("image:"):
+            state["provision_calls"].append(command)
+            return {
+                "tool": tool,
+                "command": command,
+                "exit_code": state["provision_code"],
+                "started_at": "2026-11-19T00:00:00Z",
+                "completed_at": "2026-11-19T00:00:02Z",
+            }
         state["calls"].append(tool)
         native = {
             "gitleaks": "gitleaks.json",
@@ -94,6 +110,10 @@ def test_complete_fixture_execution_is_bound_and_only_writes_generated_paths(
     assert receipt["status"] == "PASS"
     assert receipt["production_authorized"] is False
     assert state["calls"] == list(EXECUTION_NAMES)
+    assert len(receipt["provisioning"]) == 3
+    assert [command[-1] for command in state["provision_calls"]] == list(IMAGES.values())
+    for command in state["provision_calls"]:
+        assert command[3:-1] == ["pull", "--platform", "linux/amd64"]
     assert receipt["source_commit_sha"] == "a" * 40
     assert receipt["source_tree_oid"] == "b" * 40
     assert receipt["source_after_sha256"] == receipt["source_before"]["sha256"]
@@ -105,6 +125,20 @@ def test_complete_fixture_execution_is_bound_and_only_writes_generated_paths(
     for path in root.rglob("*"):
         if path.is_file() and not path.is_relative_to(root / "var"):
             assert before[path.relative_to(root)] == path.read_bytes()
+
+
+@pytest.mark.parametrize("code", [1, 124, 127, False])
+def test_failed_provisioning_stops_before_native_execution(
+    prepared: tuple[Path, dict[str, Any]], code: int | bool
+) -> None:
+    root, state = prepared
+    state["provision_code"] = code
+    receipt = producer.produce(root, Path("/external/scanner/python"))
+    assert receipt["status"] == "FAIL"
+    assert state["calls"] == []
+    assert len(state["provision_calls"]) == 3
+    assert all(item["exit_code"] == code for item in receipt["provisioning"])
+    assert "image provisioning did not succeed" in receipt["error"]
 
 
 @pytest.mark.parametrize("code", [1, 124, 127, False])
@@ -168,7 +202,7 @@ def test_fixed_scanner_commands_preserve_source_history_lock_and_policy_scope(
     for tool in ("gitleaks", "trivy", "syft"):
         assert IMAGES[tool] in commands[tool]
         assert "--network" in commands[tool] and "none" in commands[tool]
-        assert "--pull=always" in commands[tool]
+        assert "--pull=never" in commands[tool]
     assert f"type=bind,src={root},dst=/source,readonly" in commands["gitleaks"]
     assert commands["gitleaks"][commands["gitleaks"].index("--log-opts") + 1] == "a" * 40
     for tool in ("trivy", "syft"):

@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2282,
-  "root_sha256": "39de77b418fe6d14c412dae06748af578999804f32033934bf12d77ef8c8dd8d",
+  "file_count": 2284,
+  "root_sha256": "8c22ad566d679e0b187b2a7c1dd5b624b29c4b3324bdf8b92c55827d1b1683a5",
   "files": [
     {
       "path": ".dockerignore",
@@ -4483,8 +4483,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_production_contract.py",
-      "bytes": 20696,
-      "sha256": "8135a7b2af65bc5dababc43358a6d24662b7906456f3549ec91acb8253390d0b",
+      "bytes": 20807,
+      "sha256": "8ff8642fa9620771a99505c9954d63fe3e2a0405c41ed487ed4f065765272032",
       "mode": "0644"
     },
     {
@@ -6090,9 +6090,15 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_source_security_deploy_config.py",
+      "bytes": 2695,
+      "sha256": "448c6b739c2ec36ce6b2e5b021e1b17915af808d8b2eaf50cafc4c4c1c3b876b",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_source_security_producer.py",
-      "bytes": 11140,
-      "sha256": "334a42dca1c6e88951d5aef8c79b70d9dd8e675b6b694b3d3d8790b9354afb12",
+      "bytes": 12428,
+      "sha256": "c488ca8434fdaa99cf71fb889da2e17c486d2db3bf8dab9b571064f846d117f4",
       "mode": "0644"
     },
     {
@@ -8678,7 +8684,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5712,
-      "sha256": "62ee1b4bddb0a1af2ee846ca664eabaae9223ac5ebfff6a4bdcc5ad201a61cee",
+      "sha256": "6a4ff14a3182523795a6b0b43bece6410c017fefa5326e6a4f42b37c43fe7aaa",
       "mode": "0644"
     },
     {
@@ -8719,8 +8725,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 791552,
-      "sha256": "e846cd60fd7ebb8dda6769d37c8da0c61717bab89b0f7cd84c1d4fbb3d2363a7",
+      "bytes": 791909,
+      "sha256": "0079d4bd0bba90dccb70c3656848773fe243f75ae1944a4d8616fe8acb643542",
       "mode": "0644"
     },
     {
@@ -8827,14 +8833,14 @@
     },
     {
       "path": "deploy/kubernetes/base/api-deployment.yaml",
-      "bytes": 2038,
-      "sha256": "ec533ad523dd13acf4d39ed22d837c7fbc510e44ed993fc327549f56f1c7cb15",
+      "bytes": 2211,
+      "sha256": "cfae84962d65e6194f789f4d95a67715f235f534df363157413666cdcdada2b5",
       "mode": "0644"
     },
     {
       "path": "deploy/kubernetes/base/configmap.yaml",
-      "bytes": 1748,
-      "sha256": "04a6303734ed9c311868c2457a1a2fdf47e867bc9ccb1d80dd059a74225bfa1b",
+      "bytes": 1746,
+      "sha256": "adc5b2667622842054095bf82e9902f44d55656e3cdd6732c10bb467650b442e",
       "mode": "0644"
     },
     {
@@ -8845,8 +8851,8 @@
     },
     {
       "path": "deploy/kubernetes/base/migrate-job.yaml",
-      "bytes": 1159,
-      "sha256": "bd2b770fea37bdbe8eaa97cb23eaca7b03cb65ae6a419ec2cbdd7e586abf7b4e",
+      "bytes": 1332,
+      "sha256": "d72ad6ff39427ec67131c0b60ad83c43f9b6b00dc70fe77507d18765c1c8ec85",
       "mode": "0644"
     },
     {
@@ -8887,8 +8893,8 @@
     },
     {
       "path": "deploy/kubernetes/base/worker-deployment.yaml",
-      "bytes": 1575,
-      "sha256": "d58fb190c47eb89a22c2c37513012ff236d1df8b17070bf111d79984afab2fe6",
+      "bytes": 1748,
+      "sha256": "d1ec40f125ccc46dd0774253281388e7b2a19998d3acc2da262b2660fd481831",
       "mode": "0644"
     },
     {
@@ -9397,8 +9403,8 @@
     },
     {
       "path": "docs/github-hosted-evidence.md",
-      "bytes": 7021,
-      "sha256": "4bddef6c3fe5691656351f8066ccecd32a32683467a186801628ab4e8f3909ef",
+      "bytes": 7090,
+      "sha256": "a834dddcbf2bced859823a9b73839413ed4c1309b70f4137340eb19eba274149",
       "mode": "0644"
     },
     {
@@ -10393,8 +10399,8 @@
     },
     {
       "path": "docs/source-security-evidence.md",
-      "bytes": 7096,
-      "sha256": "b5428cdd419f83bd182e7fd4c52b09cd57eca0d7890e907eef267b082d2d7bb5",
+      "bytes": 10598,
+      "sha256": "8ac208c62c52a4433d5152dd23ebc4d5e9ed5f91c1fb21e2c9bf4bc3cece5431",
       "mode": "0644"
     },
     {
@@ -10891,8 +10897,8 @@
     },
     {
       "path": "infra/gcp/foundation/main.tf",
-      "bytes": 16466,
-      "sha256": "73c88d16df8b752a369e7b45de609effaddc6d7e8540835e7d86cd26f00b1937",
+      "bytes": 16487,
+      "sha256": "2d873412f11577d3d78325b04b1c33f8e485c0539bc3966666081e29447d228c",
       "mode": "0644"
     },
     {
@@ -11995,8 +12001,8 @@
     },
     {
       "path": "scripts/gcp/production_contract_network.py",
-      "bytes": 2893,
-      "sha256": "d7ebb524776e780619e3ce3fd807c3cd759207e942d048ffca80460c9e51df3e",
+      "bytes": 2919,
+      "sha256": "6ccc8815b63dc2749c552c99f02dad3fc23af3949ec6fe437cb94b665b1fe08c",
       "mode": "0644"
     },
     {
@@ -13177,8 +13183,8 @@
     },
     {
       "path": "scripts/run_source_security.py",
-      "bytes": 6411,
-      "sha256": "c1dffd6af823ae3e0bdbcdc39fdcd5d50e6c73b315d51b6ffd05060459f612f4",
+      "bytes": 6425,
+      "sha256": "6cbdd58854a3f2a55a80e57149a69a58cda2f06fa2bf10702713133ad40765c8",
       "mode": "0755"
     },
     {
@@ -13291,14 +13297,20 @@
     },
     {
       "path": "scripts/source_security_commands.py",
-      "bytes": 3480,
-      "sha256": "970607996f5ce0d5669d01608acb1ec60c23588ffd264d47e72dd1b928096d34",
+      "bytes": 3479,
+      "sha256": "e9b5a75a73f6d972c57affa25396d81fe65641583fa86267eec4b41f26f9526e",
       "mode": "0644"
     },
     {
       "path": "scripts/source_security_contract.py",
       "bytes": 9732,
       "sha256": "ca94ef6771374ea30e3afa10f4871f5bc483c5f176d8a2b24b8cc4df92dd15c6",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/source_security_images.py",
+      "bytes": 1214,
+      "sha256": "b461ad847e752de35235b72e8821a4e8a14d9fbcebe53cfb202ae69ed430b216",
       "mode": "0644"
     },
     {

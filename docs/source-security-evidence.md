@@ -43,19 +43,28 @@ image (`--skip-check-update`) and the existing HIGH/CRITICAL policy with the
 existing path-scoped, expiring ignore file. That flag pins policy code; it does
 not skip scanning. No ignore entry or severity is relaxed by this producer.
 
+Each pinned container image is pulled before native scanning, with its own
+240-second bound, start/end timestamps and exact exit code in `provisioning`.
+All three pulls must succeed. The scanner then uses `--pull=never` and retains
+its separate 240-second execution bound. Pull logs are retained alongside the
+native diagnostics. The job's 25-minute outer bound, immutable image digests,
+offline scanner containers, and complete reachable-history scope are unchanged.
+
 ## Native reports and receipt
 
-The artifact `source-security-evidence-${run_attempt}` has exactly seven members:
+The artifact `source-security-evidence-${run_attempt}` has exactly seven members.
+These are generated at the paths below; the upload stores each basename at the
+artifact root:
 
-| Member | Meaning |
+| Generated output path | Meaning |
 | --- | --- |
-| `source-security-receipt.json` | Run/repository/attempt, checkout commit/tree, before/after source binding, tool identities, five real execution outcomes, and hashes of the other six members |
-| `gitleaks.json` | Native redacted findings array; admitted only when empty |
-| `pip-audit-runtime.json` | Native audit of every runtime lock pin; no skipped dependency, vulnerability, or repair |
-| `pip-audit-dev.json` | Native audit of the exact union of runtime and development pins |
-| `trivy.json` | Native configuration results with a positive census of passing HIGH/CRITICAL rules and no unaccepted failure |
-| `tree-sbom.cdx.json` | Actual Syft directory discovery in CycloneDX 1.6, including native tool/source metadata |
-| `lock-sbom.cdx.json` | Deterministic complete application lock component universe in CycloneDX 1.6 |
+| `var/source-security/source-security-receipt.json` | Run/repository/attempt, checkout commit/tree, before/after source binding, tool identities, five real execution outcomes, and hashes of the other six members |
+| `var/source-security/gitleaks.json` | Native redacted findings array; admitted only when empty |
+| `var/source-security/pip-audit-runtime.json` | Native audit of every runtime lock pin; no skipped dependency, vulnerability, or repair |
+| `var/source-security/pip-audit-dev.json` | Native audit of the exact union of runtime and development pins |
+| `var/source-security/trivy.json` | Native configuration results with a positive census of passing HIGH/CRITICAL rules and no unaccepted failure |
+| `var/source-security/tree-sbom.cdx.json` | Actual Syft directory discovery in CycloneDX 1.6, including native tool/source metadata |
+| `var/source-security/lock-sbom.cdx.json` | Deterministic complete application lock component universe in CycloneDX 1.6 |
 
 The development command explicitly names both lock files. With `--disable-pip`,
 pip-audit 2.10.1 does not traverse the development lock's nested `-r` directive;
@@ -85,7 +94,8 @@ artifact bytes through their separate hosted-evidence boundary.
 
 ## Failure behavior and proof limits
 
-Every scanner is attempted even when an earlier scanner fails. The producer
+After image provisioning succeeds, every scanner is attempted even when an
+earlier scanner fails. The producer
 writes PASS only after all five exact integer exit codes are zero, all six
 native outputs satisfy their semantics, and source remains unchanged. An absent
 scanner, timeout, stale output directory, malformed output, partial package
@@ -97,6 +107,49 @@ The unit suite uses explicitly neutral native-format fixtures to falsify
 admission boundaries. These tests do not prove that hosted scanners executed.
 That final positive requires the actual job and its immutable artifacts. No
 `LOCAL_SCANNERS` result is promoted into this hosted class.
+
+## Measured first hosted failure and bounded repair
+
+[CI run 44585835735](https://github.com/neuron7x/KORPUS/actions/runs/44585835735),
+attempt 1, failed source security on checkout
+`c2267bb0f2ecd7e98c6784ae2354a707fafe2560` on 2026-11-19. The native Gitleaks
+command timed out after 240 seconds without its JSON report. Its log contains
+image download progress and the timeout, but no timestamped separation of pull
+and scan. The share of time spent in either phase is **inconclusive**. The new
+separate provisioning records make that distinction measurable; they do not
+establish that the next full-history scan will finish.
+
+Both application dependency audits and Syft completed successfully. Trivy
+returned two HIGH findings, retained in the original native report:
+
+- KSV-0109 classified the public OIDC token endpoint by its ConfigMap key name.
+  The public URL now has the explicit `PUBLIC_OIDC_EXCHANGE_URL` key. Every API,
+  worker and migration container maps it through `configMapKeyRef` to the
+  existing `KORPUS_OIDC_TOKEN_ENDPOINT` runtime variable. Credentials remain in
+  Secrets. Both rendered deployment variants are tested. The expired ignore
+  entry is not renewed or broadened.
+- GCP-0015 reported the existing `ENCRYPTED_ONLY` Cloud SQL setting. That mode
+  already enforces TLS; the finding is not proof of plaintext transport.
+  [Google's TLS configuration contract](https://docs.cloud.google.com/sql/docs/postgres/configure-ssl-instance),
+  [Aqua's current GCP-0015 reference](https://avd.aquasec.com/misconfig/google/sql/gcp-0015/)
+  and [the upstream false-positive report](https://github.com/aquasecurity/trivy/issues/9999)
+  distinguish it from permitting unencrypted connections. The configuration is
+  hardened to `TRUSTED_CLIENT_CERTIFICATE_REQUIRED`, which also verifies client
+  certificates. Required Cloud SQL connectors and private-only networking remain
+  enforced. The production contract rejects either a TLS or client-certificate
+  downgrade. No infrastructure was applied by this source change.
+
+The downloaded ZIP bytes matched these GitHub artifact API SHA256 digests:
+
+| Artifact ID | Native artifact | SHA256 |
+| --- | --- | --- |
+| 14559089806 | source-security-evidence-1 | `188bf557e6fe479c7bdbd6f18100bef5786f664f9c1ed040b8df974fb30985c0` |
+| 14559049885 | source-security-diagnostics-1 | `e282aa55d1c44a65356b77a9c03312de7badb32fa19160076e44ff15c10dcdd9` |
+| 14561587649 | source-security-toolchain-1 | `e19f8cd7aae566e689b6eef91337f9936cd96bcc6b3520901d34be3a3a072d36` |
+
+This failed run remains diagnostic evidence. A new successful canonical run,
+matching the current PR merge checkout, and authenticated read-back are required
+before these changes can support a hosted-evidence success claim.
 
 Upstream format and command references used for this contract:
 
