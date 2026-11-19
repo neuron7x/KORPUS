@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2305,
-  "root_sha256": "08f5bf2e0ddf5b3d3c25fdf3b39b11efe2305a85bf9477c5a2af23f55765a337",
+  "root_sha256": "d826fce829f19227a7a15bf519eb60a3661eaa8d6e7c71b40fbaeb4c6ad7ecce",
   "files": [
     {
       "path": ".dockerignore",
@@ -9385,8 +9385,8 @@
     },
     {
       "path": "docs/audit/gitleaks-merge-baseline-reconciliation-2026-11-19.md",
-      "bytes": 3835,
-      "sha256": "eeffb841156d3112be652312de3f2e0d38e61585f34171c316b8d22158b53291",
+      "bytes": 3958,
+      "sha256": "6629331dcb746a6517ad9eba7b853325520319387031a62c4b35ff59324fe150",
       "mode": "0644"
     },
     {

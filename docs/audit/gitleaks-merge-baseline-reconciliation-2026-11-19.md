@@ -11,7 +11,8 @@ tested head `0e39b07bb9e4ad5d6d90dfcc3500a64d6f1a48ff`, merge checkout
 `99223f296f961d454778b569ebfb42d2f2879eb6`. Its original evidence ZIP,
 [artifact 14577755650](https://github.com/neuron7x/KORPUS/actions/runs/44621210256/artifacts/14577755650),
 has SHA256 `31aefdfa351ded59db54995eed699de80c84ea1af2af1933374b8306ca0e3fa1`.
-The native `gitleaks.json` member has SHA256
+The native report member [gitleaks.json](https://github.com/neuron7x/KORPUS/actions/runs/44621210256/artifacts/14577755650)
+belongs to that external ZIP and has SHA256
 `6c48de584d279928599a9d38c86d1ce5cae9a692e64b3c5fb9dd8f52e28d38c5`.
 
 The proposed baseline appends exactly those six complete, redacted native
