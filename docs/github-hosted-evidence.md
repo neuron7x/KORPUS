@@ -26,8 +26,8 @@ The separate `hosted-evidence` workflow uses only `contents: read` and
 `actions: read`. It waits at most one hour for this exact independent CI execution
 to finish, with finite polling and network budgets. CI does not depend on this
 readback workflow. There is no `workflow_run` handoff or in-progress admission.
-Public PR metadata is fetched without a token; Actions metadata and downloads use
-the read-only token. Credentials are confined to `api.github.com` and never sent
+PR metadata, Actions metadata, and API download requests use the existing
+read-only token. Credentials are confined to `api.github.com` and never sent
 to the restricted HTTPS artifact-storage redirect allowlist.
 
 ## Captured artifact contracts
@@ -112,3 +112,28 @@ It reports `signature_verified: false` and `production_authorized: false`.
 Sigstore verification belongs to #103, and production authorization remains a
 separate decision. Unit fixtures exercise real native coverage bytes and explicit
 test transports; they do not stand in for a successful live hosted round trip.
+
+
+## Authenticated PR discovery
+
+The readback uses the existing workflow token for the single-PR metadata request
+as well as Actions metadata. GitHub documents `contents: read` as a sufficient
+permission for [Get a pull request](https://docs.github.com/en/rest/pulls/pulls#get-a-pull-request),
+so the workflow's existing read-only permissions are unchanged. Credentials are
+sent only to the fixed GitHub API host and never to artifact storage redirects.
+
+[Readback run 44607373043](https://github.com/neuron7x/KORPUS/actions/runs/44607373043)
+on head `ae602e01` failed during initial readback with HTTP 403. Separately, code
+inspection confirmed that the prior transport suppressed its token for PR
+metadata. The saved diagnostic identified neither the refused endpoint nor the
+server's reason, so an anonymous rate-limit cause is not established.
+GitHub's [unauthenticated quota](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)
+is associated with the requesting IP; authenticated discovery avoids relying on
+that shared anonymous quota while preserving the existing permission boundary.
+
+A refused response still fails admission. There is no anonymous retry or saved
+receipt fallback. Diagnostics now identify the relative API endpoint and HTTP
+status without emitting tokens or response bodies. Tests cover 401, 403 and 429,
+authenticated PR metadata, and token exclusion from storage redirects; M764 guards
+against reintroducing silent PR-token suppression. A successful native readback
+on the corrected head is required before hosted evidence can be accepted.

@@ -88,11 +88,22 @@ def test_storage_redirect_never_receives_github_token(wire) -> None:
     assert "Authorization" not in requests[1]["headers"]
 
 
-def test_public_pr_metadata_does_not_require_pull_request_token_permissions(wire) -> None:
+def test_pr_metadata_uses_the_existing_contents_read_token(wire) -> None:
     responses, requests = wire
     responses.append(Response(b'{"number":113}'))
     assert transport.GitHubTransport().json("/pulls/113") == {"number": 113}
-    assert "Authorization" not in requests[0]["headers"]
+    assert requests[0]["headers"].get("Authorization") == "Bearer test-only-read-token"
+
+
+@pytest.mark.parametrize("status", [401, 403, 429])
+def test_refused_pr_metadata_records_endpoint_without_anonymous_retry(wire, status: int) -> None:
+    responses, requests = wire
+    responses.append(Response(b'{"message":"request refused"}', status))
+    with pytest.raises(ValueError, match=f"HTTP {status}.*pulls/113") as failure:
+        transport.GitHubTransport().json("/pulls/113")
+    assert len(requests) == 1
+    assert requests[0]["headers"].get("Authorization") == "Bearer test-only-read-token"
+    assert "test-only-read-token" not in str(failure.value)
 
 
 def test_ambient_tls_keylog_variable_cannot_export_credentials(wire, monkeypatch, tmp_path) -> None:

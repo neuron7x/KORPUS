@@ -49,6 +49,16 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M764_HOSTED_EVIDENCE_SILENTLY_DROPS_PR_AUTHENTICATION",
+        "scripts/github_evidence_transport.py",
+        "        if host == API_HOST and self._token:",
+        '        if host == API_HOST and self._token and not path.startswith(API_PREFIX + "/pulls/"):',
+        (
+            "apps/api/tests/test_github_evidence_transport.py::test_pr_metadata_uses_the_existing_contents_read_token",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M753_PUBLISHED_COMPETENCY_STATE_NOT_GUARDED",
         "apps/api/src/korpus/infrastructure/learning_competency_schema.py",
         "AND state IN ('published', 'invalidated', 'retired')",

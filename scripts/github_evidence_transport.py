@@ -77,8 +77,8 @@ class GitHubTransport:
             "X-GitHub-Api-Version": "2022-11-28",
             "User-Agent": "KORPUS-hosted-evidence/1",
         }
-        # Public PR metadata needs no token or pull-request permission; Actions downloads do.
-        if host == API_HOST and self._token and not path.startswith(API_PREFIX + "/pulls/"):
+        # The existing contents:read token also authorizes the single-PR metadata endpoint.
+        if host == API_HOST and self._token:
             headers["Authorization"] = "Bearer " + self._token
         connection = http.client.HTTPSConnection(host, timeout=TIMEOUT_SECONDS, context=self._tls)
         try:
@@ -100,7 +100,7 @@ class GitHubTransport:
 
     def json(self, relative: str) -> dict[str, Any]:
         status, _location, payload = self._api(relative, MAX_METADATA_BYTES)
-        insist(status == 200, f"GitHub metadata request refused: HTTP {status}")
+        insist(status == 200, f"GitHub metadata request refused: HTTP {status}: {relative}")
         return strict_object(payload, "GitHub API response")
 
     def collection(self, relative: str, key: str) -> list[dict[str, Any]]:
