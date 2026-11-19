@@ -14,7 +14,7 @@ Putting both operations in transactions does not itself order them.
 
 The earlier competency guard closes sequential edits of published history. The
 forward `0027_learning_competency_integrity` migration additionally replaces the
-existing content and course-identity guard bodies with locking reads. Accepted
+existing content and course-identity guard bodies with locking reads. Pre-existing
 migrations `0016` through `0026` remain unchanged.
 
 ## Lock protocol
