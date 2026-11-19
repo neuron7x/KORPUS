@@ -2,7 +2,7 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
   "version": 1,
-  "serialNumber": "urn:uuid:028e8b2bcbf9fad7335bb871df6b80f2",
+  "serialNumber": "urn:uuid:8bf5a1349133d98895696ee1acbccd4f",
   "metadata": {
     "component": {
       "type": "application",
@@ -363,9 +363,9 @@
     {
       "type": "library",
       "name": "pypdf",
-      "version": "6.19.0",
+      "version": "7.1.1",
       "scope": "required",
-      "purl": "pkg:pypi/pypdf@6.19.0"
+      "purl": "pkg:pypi/pypdf@7.1.1"
     },
     {
       "type": "library",

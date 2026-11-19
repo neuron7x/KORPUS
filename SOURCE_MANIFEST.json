@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2228,
-  "root_sha256": "d6c1cfc746e2bf7124477d018e92411e13dc5f892f5e4dc0424dfe4bd9ae06e9",
+  "file_count": 2229,
+  "root_sha256": "eb5af72f7528d5ff950d2c17436a39169bfdfb9c3ee5677bca68f8037aab391f",
   "files": [
     {
       "path": ".dockerignore",
@@ -721,8 +721,8 @@
     },
     {
       "path": "apps/api/pyproject.toml",
-      "bytes": 3439,
-      "sha256": "30eee35c4235066f5f8c56960815c5e9264cc50f704d4bae94626c1d303642b2",
+      "bytes": 3440,
+      "sha256": "2592fb298bf1aa161f6eb6698227c7a930b4ad96035c2c490583fcbcd3b6e931",
       "mode": "0644"
     },
     {
@@ -733,8 +733,8 @@
     },
     {
       "path": "apps/api/requirements.runtime.lock",
-      "bytes": 7298,
-      "sha256": "0ed5d1efdc14f1171b5d0409882a38eb5346a3b45bbf2707de5a069580d7a1f1",
+      "bytes": 7691,
+      "sha256": "c580052d627a63b7d6d9783a0d583498e02da4c80d0e08dfa09f04eeb4f81d3c",
       "mode": "0644"
     },
     {
@@ -2515,8 +2515,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/pdf_extraction.py",
-      "bytes": 7014,
-      "sha256": "a3f4f6c5b1fa5c8b19dc55911c6c5cb2a2cfc17718a1882bb3e6d770c4fd19ed",
+      "bytes": 6030,
+      "sha256": "34bd6cc8441d08481b362e46cd0fd67a041aada26ab81822d4eccfae290781c6",
       "mode": "0644"
     },
     {
@@ -4375,8 +4375,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_migration_default_bounds.py",
-      "bytes": 5081,
-      "sha256": "45c6afdad5c7f40a02969186ef6e865234c450592d1b4eb8b60658edaba1811d",
+      "bytes": 6562,
+      "sha256": "2c2f454e01efb750b4820ebf5bb7264fe8febf6501c29d33f02e859407a6ca45",
       "mode": "0644"
     },
     {
@@ -5409,6 +5409,12 @@
       "path": "apps/api/tests/test_public_web_deployment.py",
       "bytes": 2244,
       "sha256": "109577bc31ade6705992aa654920ebe9bb0fd1352123336157eed7040c32bda7",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_pypdf_compatibility.py",
+      "bytes": 10479,
+      "sha256": "e36f9c205843cc5514a9f1e10d84fac2ba31465157ff85edfc249b8580a3f237",
       "mode": "0644"
     },
     {
@@ -11683,8 +11689,8 @@
     },
     {
       "path": "scripts/gcp/migration_numeric_default_proof.py",
-      "bytes": 2073,
-      "sha256": "807d6c9eb849ca6883b1249a01f1c91f3764996542831dc19a6a6819eb5036cb",
+      "bytes": 2125,
+      "sha256": "634d81941884463dbb746e827d6f76c841e11a963f30b7e1ee2f0281b0741ece",
       "mode": "0644"
     },
     {
@@ -13369,8 +13375,8 @@
     },
     {
       "path": "source-sbom.cdx.json",
-      "bytes": 11915,
-      "sha256": "57ed58889ca2c76f8d809b8863be10ff227a6a364a7de279ba603ff51a34a98f",
+      "bytes": 11913,
+      "sha256": "a83b455e55722f76bcdb29a9d518ed1dcd0597bb39bb15c74ca9499e6c01b018",
       "mode": "0644"
     }
   ]

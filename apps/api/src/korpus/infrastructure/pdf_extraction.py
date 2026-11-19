@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from pypdf import PdfReader
-from pypdf.errors import PdfReadError
+from pypdf.errors import LimitReachedError, PdfReadError
 
 from korpus.domain.models import ExtractedPage
 
@@ -30,15 +30,14 @@ def _open_strict(
         reader = reader_factory(str(path), strict=strict)
     except (OSError, ValueError, TypeError, PdfReadError) as exc:
         raise ValueError("malformed PDF") from exc
-    owner_restricted = False
-    if reader.is_encrypted:
+    owner_restricted = bool(reader.is_encrypted)
+    if owner_restricted:
         try:
             opened = reader.decrypt("")
         except (NotImplementedError, ValueError, PdfReadError) as exc:
             raise ValueError("encrypted PDF uses an unsupported algorithm") from exc
         if not opened:
             raise ValueError("encrypted PDF requires a password that was not supplied")
-        owner_restricted = True
     try:
         page_count = len(reader.pages)
     except (KeyError, ValueError, TypeError, RecursionError, PdfReadError) as exc:
@@ -51,22 +50,7 @@ def _open_strict(
 def _open_pdf(
     path: Path, max_pdf_pages: int, reader_factory: Callable[..., Any]
 ) -> tuple[PdfReader, bool, bool]:
-    """Строго, а якщо не виходить — терпимо, і ТЕРПИМІСТЬ ЗАПИСУЄТЬСЯ.
-
-    `DD Form 1380` — картка тактичної допомоги пораненому — падала з `malformed PDF page
-    tree`. Причина глибша за назву: файл зашифрований порожнім паролем, і розшифрування
-    впирається в `Invalid padding bytes`, яку сама pypdf зі `strict=False` ігнорує з
-    повідомленням «Ignoring padding error». Терпимо це дві сторінки справжнього тексту
-    документа, який каталог законно вважає публічним (порожній бланк; заповнена картка —
-    CUI із даними пораненого і не входить у корпус ніколи).
-
-    Ліміт сторінок перевіряється в ОБОХ спробах, а не лише в строгій: інакше терпима
-    гілка обходила б запобіжник, і послаблення читання тихо послабило б і його.
-
-    Просто зняти `strict` означало б послабити читання для ВСІХ файлів і не сказати про
-    це жодним словом. Тому третій стан: `lenient` доїжджає до режиму витягу, і запис
-    каже, що файл нестандартний. Той самий підхід, що `extractor_misclassified`.
-    """
+    """Read strictly first; record lenient recovery without relaxing page limits."""
     try:
         reader, owner_restricted = _open_strict(path, max_pdf_pages, reader_factory, strict=True)
     except ValueError as strict_error:
@@ -90,6 +74,21 @@ def _embedded_pages(
     except (KeyError, TypeError, RecursionError, PdfReadError) as exc:
         raise ValueError("PDF text extraction failed") from exc
     return pages
+
+
+def _read_embedded_pdf(
+    path: Path,
+    max_pdf_pages: int,
+    reader_factory: Callable[..., Any],
+    deadline: float,
+    normalize: Normalize,
+) -> tuple[list[ExtractedPage], bool, bool]:
+    try:
+        reader, owner_restricted, lenient = _open_pdf(path, max_pdf_pages, reader_factory)
+        return _embedded_pages(reader, deadline, normalize), owner_restricted, lenient
+    except LimitReachedError as exc:
+        # Convert outside the lenient-reader fallback: resource refusal is terminal.
+        raise ValueError("PDF parser resource limit exceeded") from exc
 
 
 def _ocr_pages(
@@ -150,8 +149,9 @@ def extract_pdf_pages(
     reader_factory: Callable[..., Any] = PdfReader,
 ) -> tuple[list[ExtractedPage], str]:
     deadline = time.monotonic() + ocr_total_timeout_seconds
-    reader, owner_restricted, lenient = _open_pdf(path, max_pdf_pages, reader_factory)
-    pages = _embedded_pages(reader, deadline, normalize)
+    pages, owner_restricted, lenient = _read_embedded_pdf(
+        path, max_pdf_pages, reader_factory, deadline, normalize
+    )
     if sum(len(page.text) for page in pages) >= max(80, len(pages) * 30):
         mode = "pdf_text_owner_restricted" if owner_restricted else "pdf_text"
         return pages, f"{mode}_lenient" if lenient else mode
