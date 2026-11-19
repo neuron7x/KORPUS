@@ -10,12 +10,13 @@ from pathlib import Path
 
 import pytest
 
-from scripts.manifest_paths import source_included
-from scripts.verify_package import verify
-
-from .package_fixtures import package_files, write_package
-
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from scripts.manifest_paths import source_included  # noqa: E402
+from scripts.verify_package import verify  # noqa: E402
+
+from .package_fixtures import package_files, write_package  # noqa: E402
 
 
 def _build_zip(
