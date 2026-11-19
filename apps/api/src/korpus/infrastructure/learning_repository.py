@@ -16,29 +16,33 @@ from korpus.domain.learning import (
     PublicationValidation,
     validate_course_publication,
 )
+from korpus.domain.models import Identity
 from korpus.infrastructure.competency_schema import (
     competency_frameworks,
     operational_competencies,
+)
+from korpus.infrastructure.learning_publication import (
+    LearningPublicationWriter,
+)
+from korpus.infrastructure.learning_publication import (
+    LearningStateError as LearningStateError,
 )
 from korpus.infrastructure.learning_schema import (
     learning_course_versions,
     learning_courses,
     learning_publications,
 )
-from korpus.infrastructure.learning_source_state import load_bound_source_states
+from korpus.infrastructure.learning_source_access import IdentityBinder, LearningSourceAccess
 from korpus.infrastructure.learning_version_reader import load_course_version
 from korpus.infrastructure.learning_version_writer import insert_course_version
 
 
-class LearningStateError(RuntimeError):
-    """A requested transition violates an immutable learning lifecycle invariant."""
-
-
-class SqlLearningRepository:
+class SqlLearningRepository(LearningPublicationWriter):
     """Persist course graphs without copying canonical corpus text into learning tables."""
 
-    def __init__(self, engine: Engine) -> None:
+    def __init__(self, engine: Engine, *, bind_identity: IdentityBinder | None = None) -> None:
         self.engine = engine
+        self._sources = LearningSourceAccess(bind_identity)
 
     def create_course(self, course: Course, *, created_at: datetime | None = None) -> None:
         stamp = created_at or datetime.now(UTC)
@@ -156,12 +160,14 @@ class SqlLearningRepository:
         version_id: str,
         *,
         as_of: date | None = None,
+        identity: Identity | None = None,
     ) -> PublicationValidation:
         with self.engine.connect() as connection:
+            self._sources.bind(connection, identity)
             version = load_course_version(connection, version_id)
             if version is None:
                 raise LookupError(f"course version not found: {version_id}")
-            states = load_bound_source_states(connection, version)
+            states = self._sources.load(connection, version, identity)
         return validate_course_publication(version, states, as_of=as_of)
 
     def get_serving_version(
@@ -169,11 +175,13 @@ class SqlLearningRepository:
         version_id: str,
         *,
         as_of: date | None = None,
+        identity: Identity | None = None,
     ) -> CourseVersion:
         """Return only currently source-valid published content; otherwise invalidate it."""
 
         invalidation_reason: str | None = None
         with self.engine.begin() as connection:
+            self._sources.bind(connection, identity)
             state = connection.execute(
                 select(learning_publications.c.state).where(
                     learning_publications.c.course_version_id == version_id
@@ -188,7 +196,7 @@ class SqlLearningRepository:
                 raise LookupError(f"course version not found: {version_id}")
             validation = validate_course_publication(
                 version,
-                load_bound_source_states(connection, version),
+                self._sources.load(connection, version, identity),
                 as_of=as_of,
             )
             if not validation.publishable:
@@ -206,63 +214,6 @@ class SqlLearningRepository:
                 "published learning content is no longer source-valid: " + invalidation_reason
             )
         return version
-
-    def publish_version(
-        self,
-        version_id: str,
-        *,
-        reviewed_by: str,
-        reviewed_at: datetime | None = None,
-        as_of: date | None = None,
-    ) -> CoursePublication:
-        reviewer = reviewed_by.strip()
-        if not reviewer:
-            raise ValueError("reviewed_by must be non-empty")
-        stamp = reviewed_at or datetime.now(UTC)
-        with self.engine.begin() as connection:
-            publication = (
-                connection.execute(
-                    select(learning_publications).where(
-                        learning_publications.c.course_version_id == version_id
-                    )
-                )
-                .mappings()
-                .first()
-            )
-            if publication is None:
-                raise LookupError(f"course version not found: {version_id}")
-            if str(publication["state"]) != CoursePublicationState.DRAFT.value:
-                raise LearningStateError(
-                    f"course version is not publishable from state {publication['state']}"
-                )
-            version = load_course_version(connection, version_id)
-            if version is None:
-                raise LookupError(f"course version not found: {version_id}")
-            validation = validate_course_publication(
-                version,
-                load_bound_source_states(connection, version),
-                as_of=as_of,
-            )
-            if not validation.publishable:
-                raise LearningStateError(
-                    "learning publication blocked: " + ", ".join(validation.violations)
-                )
-            connection.execute(
-                update(learning_publications)
-                .where(learning_publications.c.course_version_id == version_id)
-                .values(
-                    state=CoursePublicationState.PUBLISHED.value,
-                    reviewed_at=stamp,
-                    reviewed_by=reviewer,
-                    updated_at=stamp,
-                )
-            )
-        return CoursePublication(
-            course_version_id=version_id,
-            state=CoursePublicationState.PUBLISHED,
-            reviewed_at=stamp,
-            reviewed_by=reviewer,
-        )
 
     def retire_version(
         self,

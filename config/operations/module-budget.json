@@ -609,6 +609,33 @@
     }
   ],
   "modules": {
+    "apps/api/src/korpus/infrastructure/learning_publication.py": {
+      "lines": 88,
+      "max_complexity": 8,
+      "max_function_args": 6,
+      "max_function_lines": 58,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "2026-11-19 / #100: exact initial AST measurements for bounded source authorization, publication transaction, and explicit bootstrap history; existing ceilings unchanged."
+    },
+    "apps/api/src/korpus/infrastructure/learning_source_access.py": {
+      "lines": 65,
+      "max_complexity": 6,
+      "max_function_args": 4,
+      "max_function_lines": 17,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "2026-11-19 / #100: exact initial AST measurements for bounded source authorization, publication transaction, and explicit bootstrap history; existing ceilings unchanged."
+    },
+    "apps/api/src/korpus/infrastructure/migration_bootstrap_history.py": {
+      "lines": 40,
+      "max_complexity": 7,
+      "max_function_args": 1,
+      "max_function_lines": 16,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "2026-11-19 / #100: exact initial AST measurements for bounded source authorization, publication transaction, and explicit bootstrap history; existing ceilings unchanged."
+    },
     "apps/api/src/korpus/__init__.py": {
       "lines": 7,
       "max_complexity": 0,

@@ -15,7 +15,7 @@ from korpus.infrastructure.migration_admission import MigrationAdmissionError
 ROOT = Path(__file__).resolve().parents[3]
 API = ROOT / "apps/api"
 BASELINE = "0024_capability_effect_ledger"
-HEAD = "0025_sealed_provenance_integrity"
+HEAD = "0026_learning_history_integrity"
 
 
 def _migrate(

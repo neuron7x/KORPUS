@@ -1,6 +1,6 @@
 """Issue #100 / #35: named, real-PostgreSQL publication and immutability controls.
 
-These tests intentionally exercise both the unchanged repository entry point and
+These tests intentionally exercise both the authorized repository entry point and
 direct application SQL. They must not acquire owner privileges to make a positive
 publication pass. The existing SQLite repository tests remain a separate proof.
 """
@@ -38,13 +38,18 @@ def test_postgres_learning_repository_publishes_valid_exact_source_graph(
     graph = course_graph()
     store.learning.create_version(graph)
     assert store.learning.get_version(graph.id) == graph
-    validation = store.learning.validate_version(graph.id, as_of=store.today)
+    validation = store.learning.validate_version(
+        graph.id, as_of=store.today, identity=store.identity
+    )
     assert validation.publishable, validation.violations
     publication = store.learning.publish_version(
-        graph.id, reviewed_by="public-course-reviewer", as_of=store.today
+        graph.id, reviewed_by="public-course-reviewer", as_of=store.today, identity=store.identity
     )
     assert publication.state is CoursePublicationState.PUBLISHED
-    assert store.learning.get_serving_version(graph.id, as_of=store.today) == graph
+    assert (
+        store.learning.get_serving_version(graph.id, as_of=store.today, identity=store.identity)
+        == graph
+    )
 
 
 def test_postgres_learning_sql_publication_and_new_revision_keep_exact_bindings(
@@ -133,7 +138,7 @@ def test_postgres_learning_sql_publication_rejects_invalid_source(
 ) -> None:
     store = learning_postgres
     source_changes = {
-        "unapproved": {"review_state": "quarantined"},
+        "unapproved": {"review_state": "quarantined", "is_current": False},
         "rescinded": {"rescinded_at": datetime.now(UTC)},
         "expired": {"effective_until": store.today - timedelta(days=1)},
         "future": {"effective_from": store.today + timedelta(days=1)},
@@ -287,7 +292,7 @@ def test_postgres_learning_source_transition_invalidates_serving_without_rewriti
     publication = store.learning.get_publication(graph.id)
     assert publication is not None and publication.state is CoursePublicationState.INVALIDATED
     with pytest.raises(LearningStateError, match="not serving from state invalidated"):
-        store.learning.get_serving_version(graph.id, as_of=store.today)
+        store.learning.get_serving_version(graph.id, as_of=store.today, identity=store.identity)
     assert store.learning.get_version(graph.id) == graph
     reject_sql(
         store,

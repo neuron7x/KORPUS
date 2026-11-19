@@ -25,7 +25,7 @@ from korpus.infrastructure.migration_baseline_proof import BaselineProofError
 ROOT = Path(__file__).resolve().parents[3]
 API = ROOT / "apps/api"
 BASE = "0024_capability_effect_ledger"
-HEAD = "0025_sealed_provenance_integrity"
+HEAD = "0026_learning_history_integrity"
 
 
 def _configuration(tmp_path: Path) -> tuple[Path, Config]:
@@ -96,9 +96,9 @@ def test_unknown_future_revision_has_no_implicit_admission(
     root, config = _configuration(tmp_path)
     database = tmp_path / "future.db"
     monkeypatch.setenv("KORPUS_DATABASE_URL", f"sqlite:///{database}")
-    future = root / "apps/api/migrations/versions/0026_unknown.py"
+    future = root / "apps/api/migrations/versions/0027_unknown.py"
     future.write_text(
-        "revision = '0026_unknown'\n"
+        "revision = '0027_unknown'\n"
         f"down_revision = '{HEAD}'\n"
         "def upgrade():\n    raise RuntimeError('untrusted migration executed')\n"
     )

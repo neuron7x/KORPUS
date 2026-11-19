@@ -47,7 +47,12 @@ def test_required_artifacts_have_complete_inputs_and_current_run_downloads() -> 
             "api-test",
             "coverage-postgres",
             "make coverage-ratchet",
-            {"coverage-postgres.json", "coverage-postgres.data", "coverage-postgres-receipt.json"},
+            {
+                "coverage-postgres.json",
+                "coverage-postgres.data",
+                "coverage-postgres-receipt.json",
+                "pytest-postgres.xml",
+            },
         ),
         (
             "research-assurance",

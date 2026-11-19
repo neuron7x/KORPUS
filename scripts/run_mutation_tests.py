@@ -49,6 +49,26 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M735_LEARNING_DOCUMENT_SCOPE_CHECK_REMOVED",
+        "apps/api/src/korpus/infrastructure/learning_source_access.py",
+        "            self._authorize_documents(connection, states, identity)",
+        "            pass",
+        (
+            "apps/api/tests/test_learning_source_authorization.py::"
+            "test_learning_source_substitution_outside_identity_scope_is_denied",
+        ),
+    ),
+    Mutant(
+        "M736_LEARNING_AUTHORIZATION_LOSS_INVALIDATES_HISTORY",
+        "apps/api/src/korpus/infrastructure/learning_source_access.py",
+        '        if visible != requested:\n            raise AuthorizationError("learning source is outside the authorized scope")',
+        "        if visible != requested:\n            states.clear()",
+        (
+            "apps/api/tests/test_learning_source_authorization.py::"
+            "test_learning_hidden_source_does_not_invalidate_publication",
+        ),
+    ),
+    Mutant(
         "M734_MIXED_ROOT_ALIASES_BYPASS_WRAPPER_POLICY",
         "scripts/distribution_runtime_policy.py",
         '    return ["archive root aliases forbidden"] if len(keys) != len(set(keys)) else []',
@@ -1228,7 +1248,7 @@ MUTANTS = (
     Mutant(
         "M94_SCHEMA_REVISION_PIN_UNCHECKED",
         "apps/api/src/korpus/infrastructure/schema.py",
-        'SCHEMA_REVISION = "0025_sealed_provenance_integrity"',
+        'SCHEMA_REVISION = "0026_learning_history_integrity"',
         'SCHEMA_REVISION = "0016_learning_course_graph"',
         (
             "apps/api/tests/test_schema_revision_pin.py::test_the_code_pins_the_head_of_the_migration_graph",

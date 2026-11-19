@@ -32,12 +32,14 @@ from korpus.domain.models import (
     DocumentRecord,
     DocumentVersionRecord,
     EvidenceSpanRecord,
+    Identity,
     ReviewState,
 )
 from korpus.infrastructure import row_mapping
 from korpus.infrastructure.evidence_sealing import seal_evidence_digest
 from korpus.infrastructure.learning_repository import SqlLearningRepository
 from korpus.infrastructure.learning_schema import LEARNING_TABLES
+from korpus.infrastructure.rls_repository import RlsBoundSqlRepository
 from korpus.infrastructure.schema import SCHEMA_REVISION, documents, spans, versions
 from sqlalchemy import create_engine, insert, text, update
 from sqlalchemy.engine import Engine, make_url
@@ -64,6 +66,8 @@ class LearningPostgres:
     fixture_owner: Engine
     today: date
     learning: SqlLearningRepository
+    canonical: RlsBoundSqlRepository
+    identity: Identity
 
 
 def course_graph(
@@ -158,7 +162,9 @@ def learning_postgres(request: pytest.FixtureRequest) -> Iterator[LearningPostgr
     if not app_url:
         pytest.skip("actual PostgreSQL learning acceptance requires KORPUS_TEST_DATABASE_URL")
     owner_url = os.getenv("KORPUS_TEST_DATABASE_ADMIN_URL")
+    authz_url = os.getenv("KORPUS_AUTHZ_DATABASE_URL")
     assert owner_url, "PostgreSQL acceptance requires a separate fixture-owner URL"
+    assert authz_url, "PostgreSQL acceptance requires the existing trusted authorization broker"
     app_target, owner_target = make_url(app_url), make_url(owner_url)
     assert app_target.get_backend_name() == owner_target.get_backend_name() == "postgresql"
     assert (app_target.host, app_target.port, app_target.database) == (
@@ -167,8 +173,13 @@ def learning_postgres(request: pytest.FixtureRequest) -> Iterator[LearningPostgr
         owner_target.database,
     ), "application and fixture owner must target the same isolated database"
     assert app_target.username != owner_target.username
+    assert make_url(authz_url).username == os.getenv("KORPUS_POSTGRES_AUTHZ_ROLE", "korpus_authz")
+    assert make_url(authz_url).username != owner_target.username
     reset_database()
-    app = create_engine(app_url)
+    canonical = RlsBoundSqlRepository(
+        app_url, "learning-acceptance-audit-key", authz_database_url=authz_url
+    )
+    app = canonical.engine
     owner = create_engine(owner_url)
     try:
         with app.connect() as connection:
@@ -218,17 +229,25 @@ def learning_postgres(request: pytest.FixtureRequest) -> Iterator[LearningPostgr
         )
         _seed_source(owner, SOURCE, role.today)
         _seed_source(owner, OTHER_SOURCE, role.today)
-        learning = SqlLearningRepository(app)
+        identity = Identity(
+            subject="public-learning-author",
+            roles=frozenset({"user", "instructor"}),
+            corpora=frozenset({"public", "library-other"}),
+        )
+        learning = SqlLearningRepository(app, bind_identity=canonical._apply_postgres_identity)
         learning.create_course(Course(id="library", specialty_id="public", title="Library basics"))
-        yield LearningPostgres(app, owner, role.today, learning)
+        yield LearningPostgres(app, owner, role.today, learning, canonical, identity)
     finally:
-        app.dispose()
+        canonical.close()
         owner.dispose()
 
 
-def publish_sql(store: LearningPostgres, version_id: str) -> None:
+def publish_sql(
+    store: LearningPostgres, version_id: str, *, identity: Identity | None = None
+) -> None:
     """Exercise the migrated SQL boundary without the Python publication validator."""
     with store.app.begin() as connection:
+        store.canonical._apply_postgres_identity(connection, identity or store.identity)
         result = connection.execute(
             text(
                 "UPDATE learning_publications SET state = 'published', "

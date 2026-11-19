@@ -366,7 +366,7 @@ def test_learning_repository_detects_publication_version_inconsistency(stores, m
 def test_learning_repository_detects_draft_version_inconsistency_on_publish(
     stores, monkeypatch
 ) -> None:
-    import korpus.infrastructure.learning_repository as learning_repository_module
+    import korpus.infrastructure.learning_publication as learning_repository_module
 
     _, learning = stores
     version = _version()
