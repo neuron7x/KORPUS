@@ -27,6 +27,13 @@ These values establish fixed content identity. The inspected release does not pr
 an independently verified binary build attestation. Archive members, extracted binary
 hash and actual version/engine messages are recorded only after native observation.
 
+The canonical full invocation has no `--config` override, and the repository has no
+root configuration file named .gitleaks.toml. It selects embedded default rules with
+the existing ignore file and baseline. The diagnostic policy records this rule source;
+equality of the embedded rule bytes between the pinned image and release binary is
+not independently verified. The diagnostic does not create a custom rule configuration
+for the full invocation.
+
 Primary sources: [release configuration](https://github.com/gitleaks/gitleaks/blob/83d9cd684c87d95d656c1458ef04895a7f1cbd8e/.goreleaser.yml),
 [Dockerfile](https://github.com/gitleaks/gitleaks/blob/83d9cd684c87d95d656c1458ef04895a7f1cbd8e/Dockerfile),
 [official release](https://github.com/gitleaks/gitleaks/releases/tag/v8.30.1), and

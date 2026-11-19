@@ -69,7 +69,7 @@ def scanner_policy(root: Path) -> dict[str, Any]:
     return {
         "baseline_sha256": hashlib.sha256(baseline).hexdigest(),
         "baseline_records": len(value),
-        "config_sha256": hashlib.sha256((root / ".gitleaks.toml").read_bytes()).hexdigest(),
+        "rules": {"source": "embedded-default", "byte_equivalence_independently_verified": False},
         "native_timeout_seconds": 230,
         "parent_timeout_seconds": 240,
         "cpus": 2,

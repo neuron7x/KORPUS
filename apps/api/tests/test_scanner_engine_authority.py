@@ -144,7 +144,6 @@ def test_event_shape_and_file_poison_cannot_supply_subject_edges(
 def test_full_diagnostic_cannot_change_the_22_record_baseline(tmp_path, count) -> None:
     baseline = json.dumps([{"unit_fixture": True}] * count).encode()
     (tmp_path / ".gitleaks-baseline.json").write_bytes(baseline)
-    (tmp_path / ".gitleaks.toml").write_bytes(b"neutral unit configuration")
     if count != 22:
         with pytest.raises(ValueError, match="22 records"):
             subject.scanner_policy(tmp_path)
@@ -157,12 +156,27 @@ def test_full_diagnostic_cannot_change_the_22_record_baseline(tmp_path, count) -
     )
 
 
+def test_actual_repository_policy_records_embedded_defaults_without_config_file() -> None:
+    assert not (ROOT / ".gitleaks.toml").exists()
+    assert (ROOT / ".gitleaksignore").is_file()
+    assert "--config" not in gitleaks_arguments("a" * 40)
+    policy = subject.scanner_policy(ROOT)
+    assert policy["rules"] == {
+        "source": "embedded-default",
+        "byte_equivalence_independently_verified": False,
+    }
+    assert "config_sha256" not in policy
+    assert (
+        policy["baseline_sha256"]
+        == hashlib.sha256((ROOT / ".gitleaks-baseline.json").read_bytes()).hexdigest()
+    )
+
+
 def _prepared(tmp_path, monkeypatch, *, code=0, log=b"INF neutral summary\n", cleanup=True):
     root, temporary = tmp_path / "checkout", tmp_path / "temporary"
     root.mkdir()
     temporary.mkdir()
     (root / ".gitleaks-baseline.json").write_text(json.dumps([{}] * 22))
-    (root / ".gitleaks.toml").write_text("neutral unit configuration")
     monkeypatch.setenv("GITHUB_EVENT_NAME", "workflow_dispatch")
     monkeypatch.setenv("GITHUB_REF", "refs/heads/diagnostic")
     monkeypatch.setattr(runner, "admit_source", lambda _: (_before(), []))

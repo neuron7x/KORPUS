@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2319,
-  "root_sha256": "04b31f1b5417437b1c51758d238ab16d3a93dac96c1171c08aa89e64c2bcc32c",
+  "root_sha256": "4b2ce06a8d4828a9f9266fcfd7901768426cb3c8664f8d2091fdbe042dc817d4",
   "files": [
     {
       "path": ".dockerignore",
@@ -6019,8 +6019,8 @@
     },
     {
       "path": "apps/api/tests/test_scanner_engine_authority.py",
-      "bytes": 16003,
-      "sha256": "d2337ef77ccf32363a9eb1caddd8c72645153eea64cff7e240c909241b2af2ad",
+      "bytes": 16461,
+      "sha256": "2491d65045ffed8b522af584fe839242be9cd9784cf420d07276319bf1445a9e",
       "mode": "0644"
     },
     {
@@ -10495,8 +10495,8 @@
     },
     {
       "path": "docs/scanner-engine-diagnostic.md",
-      "bytes": 6681,
-      "sha256": "66b0f51b4d739e3042bd4c99b83afd2d0606527295786fe2f96aea588fe31b71",
+      "bytes": 7133,
+      "sha256": "194230a867328d585c17be629907f0b47313287d694a99c33997137bfd90a552",
       "mode": "0644"
     },
     {
@@ -13399,8 +13399,8 @@
     },
     {
       "path": "scripts/scanner_engine_subject.py",
-      "bytes": 3447,
-      "sha256": "0133f165cb8afb6731fdffe775f4428d636b3790b9d8a6e26308e98c897cf453",
+      "bytes": 3453,
+      "sha256": "57459587358d3545e6e697d1142bd6b169d53c12e9be094eb4655b2af9536d67",
       "mode": "0644"
     },
     {
