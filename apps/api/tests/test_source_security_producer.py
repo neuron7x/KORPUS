@@ -205,8 +205,8 @@ def test_fixed_scanner_commands_preserve_source_history_lock_and_policy_scope(
         assert "--pull=never" in commands[tool]
     assert f"type=bind,src={root},dst=/source,readonly" in commands["gitleaks"]
     assert commands["gitleaks"][commands["gitleaks"].index("--log-opts") + 1] == "a" * 40
-    assert commands["gitleaks"][commands["gitleaks"].index("--timeout") + 1] == "230"
-    assert commands["gitleaks"][commands["gitleaks"].index("--log-level") + 1] == "debug"
+    assert commands["gitleaks"][commands["gitleaks"].index("--timeout") + 1] == "600"
+    assert commands["gitleaks"][commands["gitleaks"].index("--log-level") + 1] == "info"
     for tool in ("trivy", "syft"):
         assert f"type=bind,src={frozen},dst=/source,readonly" in commands[tool]
     assert commands["pip-audit:runtime"].count("-r") == 1

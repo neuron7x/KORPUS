@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2287,
-  "root_sha256": "0f31b7453ef960a44bf010876827d29dc7c626744461ee05c600b039eb8b93da",
+  "file_count": 2289,
+  "root_sha256": "65e6c3eee8d39bf24fb259b70e5376deb449bd5d93a118c6b60df904c6ddcc6a",
   "files": [
     {
       "path": ".dockerignore",
@@ -6042,6 +6042,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_serving_readiness_contract.py",
+      "bytes": 5846,
+      "sha256": "3086c9f9433ced076f944d533e9c1da6978d1808de3c4c5299fc3651a9de119b",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_slsa_provenance.py",
       "bytes": 2958,
       "sha256": "9a4699e6c578a4cbaea69b011efc57b77c611e1792a887d20d04379b99eac034",
@@ -6085,8 +6091,8 @@
     },
     {
       "path": "apps/api/tests/test_source_security_cleanup.py",
-      "bytes": 9138,
-      "sha256": "16ad5725dc5d706a3714ef65af4676b5fc0a0bced09fdcd1f985433de08c61d8",
+      "bytes": 9804,
+      "sha256": "8559d6621d9f73c2f7cc2f69cd712d55c52077157469338e185e70972a9b4ee6",
       "mode": "0644"
     },
     {
@@ -6103,8 +6109,8 @@
     },
     {
       "path": "apps/api/tests/test_source_security_producer.py",
-      "bytes": 12576,
-      "sha256": "8caa1e9f17bdff3830250a804cd248a431a96b643906de6e9c4de38bef2f02c1",
+      "bytes": 12575,
+      "sha256": "169855dd8a713a040d86451d45d51d9fe2bb3c7c5589de6ef46e36f372440e80",
       "mode": "0644"
     },
     {
@@ -8731,8 +8737,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 792650,
-      "sha256": "6f1744e19758794b4787c4c0cf184832fd4b96f326f1696cb2a95ecc655b0d2b",
+      "bytes": 793012,
+      "sha256": "b0c865e254f7416b50b1a04fb3c8ba937da47e22d8c4821f4e8c4f74378414f7",
       "mode": "0644"
     },
     {
@@ -10405,8 +10411,8 @@
     },
     {
       "path": "docs/source-security-evidence.md",
-      "bytes": 13165,
-      "sha256": "e67230ee71a9a6b091354acc45ee2eb32c9f5a0ea8e869a93cb72a16708adc89",
+      "bytes": 14217,
+      "sha256": "ce338582e825a830a99f85779d555d64e01a6e2309ca29ba4735a39517ee9c4a",
       "mode": "0644"
     },
     {
@@ -11473,8 +11479,8 @@
     },
     {
       "path": "scripts/check_serving_readiness.py",
-      "bytes": 9059,
-      "sha256": "4a539b05057f51b3b75430da6eed4f1e1fc9c6472154a3851ced9635fe0e4048",
+      "bytes": 8802,
+      "sha256": "24c2e56bec1a02253252896dcc5b47e247cced070ba66af5c8fd92b5c9f3c1ff",
       "mode": "0755"
     },
     {
@@ -13057,8 +13063,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 352212,
-      "sha256": "5aff1373c41b3168afe09fc6fd9afddae2d52fdd297ad0fbfa1125d94074208e",
+      "bytes": 348851,
+      "sha256": "f4b2b06548fd62ecfdbfe46fb216f8f56bf628adab9c71ef3a878bdda3e42c95",
       "mode": "0755"
     },
     {
@@ -13260,6 +13266,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/serving_readiness_contract.py",
+      "bytes": 2947,
+      "sha256": "333967478ada73f31a94691858f240fa62990090b925d1d25d89296b56d5bce4",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/slsa_provenance.py",
       "bytes": 12203,
       "sha256": "6d71b6fa697af9be673d1ed7d38a5884877ac68b8fbf9e50d83970f95db21e93",
@@ -13303,8 +13315,8 @@
     },
     {
       "path": "scripts/source_security_commands.py",
-      "bytes": 3526,
-      "sha256": "c7de56588001e4db098c3911931855d7ede75fe4bcf76b560c37c5b952c11a06",
+      "bytes": 3525,
+      "sha256": "64607b0f696517e3779e17aeaea56571e0170ac03e6c9b7baa9d8d7f1e6ca84a",
       "mode": "0644"
     },
     {
@@ -13321,8 +13333,8 @@
     },
     {
       "path": "scripts/source_security_execution.py",
-      "bytes": 1879,
-      "sha256": "80fc577212c6394db0dc90489f17bf486c8e3dd4838d543e28201f447d905344",
+      "bytes": 1925,
+      "sha256": "3c4dbcacb6d01b593751a758ad9491d89bef14a5876a36281bcef42411c91f40",
       "mode": "0644"
     },
     {

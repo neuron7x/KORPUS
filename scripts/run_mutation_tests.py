@@ -49,6 +49,36 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M760_READINESS_ACCEPTS_INCOMPLETE_PROBE_SUBJECT",
+        "scripts/serving_readiness_contract.py",
+        "and set(ports) == set(observed)",
+        "and True",
+        (
+            "apps/api/tests/test_serving_readiness_contract.py::test_incomplete_or_ambiguous_probe_identity_fails",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M761_READINESS_ACCEPTS_INACTIVE_DECLARED_UNIT",
+        "scripts/serving_readiness_contract.py",
+        '    if state.get("active") != "active" or not isinstance(pid, str):',
+        "    if not isinstance(pid, str):",
+        (
+            "apps/api/tests/test_serving_readiness_contract.py::test_discovery_rejects_partial_or_ambiguous_topology[inactive-unit]",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M762_READINESS_ACCEPTS_MISSING_DECLARED_UNIT",
+        "scripts/serving_readiness_contract.py",
+        "or set(names) != set(units)",
+        "or False",
+        (
+            "apps/api/tests/test_serving_readiness_contract.py::test_discovery_rejects_partial_or_ambiguous_topology[missing-unit]",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M763_SOURCE_SECURITY_LEAVES_CREATED_CONTAINER_WITH_EMPTY_CID",
         "scripts/source_security_container.py",
         "    if info.st_size == 0 and not value:\n        return None\n",
@@ -2062,8 +2092,6 @@ MUTANTS = (
             "test_a_duration_without_provenance_is_not_a_measurement",
         ),
     ),
-    # OPS-004. Every one of these turns a finding into a silence, which is the only
-    # way a drift checker fails without anyone noticing: it keeps reporting IN_SYNC.
     Mutant(
         # The binding between an answer's text and its citations is decided once. A
         # mutable Answer lets anything downstream change the sentence while keeping the
@@ -2852,10 +2880,6 @@ MUTANTS = (
             "test_manifest_without_records_refuses_rather_than_returning_empty",
         ),
     ),
-    # ---------------------------------------------------------------- ACT-001
-    # Every mutant below turns a narrowing rule into a widening one, or removes a
-    # refusal. They are the shapes the account/billing/conversation layer fails in, and
-    # each one would leave the system running and answering.
     Mutant(
         "M130_ENTITLEMENT_UNIONS_INSTEAD_OF_INTERSECTS",
         "apps/api/src/korpus/application/paid_access.py",
@@ -4182,10 +4206,6 @@ MUTANTS = (
             "apps/api/tests/test_supply_chain_attestation_v097.py::test_in_toto_subject_rejects_artifact_mutation",
         ),
     ),
-    # --- doctrine catalog provenance rules 9-14 (scripts/validate_doctrine_catalog.py) ----
-    # Added 2026-08-29. The catalogue carried 349 mutants and none of them touched the rules
-    # that decide whether a doctrine source may be staged at all: every one of the 73 tests
-    # in test_doctrine_catalog.py was a negative control nobody had falsified.
     Mutant(
         "M313_CATALOG_EVIDENCE_FLOOR_DISABLED",
         "scripts/validate_doctrine_catalog.py",
@@ -4470,8 +4490,6 @@ MUTANTS = (
             "test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost",
         ),
     ),
-    # ── Публічна поверхня. Отрута по ПОВЕДІНЦІ правила, не по його оформленню:
-    # мутант, що ламає лише текст повідомлення, вижив би й не довів нічого про охорону.
     Mutant(
         "M399_CONSOLE_CLOSURE_FOLLOWS_NAVIGATION",
         "scripts/public_operator_surface.py",
@@ -4615,8 +4633,6 @@ MUTANTS = (
         ("apps/api/tests/test_public_surface.py::test_gate_reddens_on_every_defect_separately",),
         full_copy=True,
     ),
-    # Закриття як математичний об'єкт. Обидві отрути ламають ВЛАСТИВІСТЬ, не текст:
-    # перша робить обхід одношаровим, друга — знімає віднімання читацького закриття.
     Mutant(
         "M420_TRAVERSAL_STOPS_AT_ONE_LEVEL",
         "scripts/public_operator_surface.py",
@@ -4770,7 +4786,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Покриття гейтами. Отрути ламають ОЗНАЧЕННЯ покриття, не його оформлення.
     Mutant(
         "M434_COVERAGE_IGNORES_SCRIPT_EQUIVALENCE",
         "scripts/verify_gate_closure.py",
@@ -5476,8 +5491,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Приймальна перевірка зведення. Сторож, який довіряє власному застарілому
-    # входові, видає непроміряний стан за перевірений — і саме це сталося 01.09.2026.
     Mutant(
         "M553_A_LANE_REPORT_OLDER_THAN_HEAD_IS_STILL_TRUSTED",
         "scripts/verify_branch_consolidation.py",
@@ -5508,8 +5521,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Сплячі підсистеми. Гейт мусить падати в ОБИДВА боки: той, що ловить лише
-    # пробудження, не помітить тихого видалення, і реєстр стане описом неіснуючого.
     Mutant(
         "M549_A_PACKAGE_IMPORT_HIDES_THE_MODULE_IT_BRINGS",
         "scripts/check_dormant_subsystems.py",
@@ -5551,8 +5562,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Бігун лану. `make -k` дає два стани; тут первинний саме ТРЕТІЙ, і мутанти
-    # цілять у нього: невиконане, зараховане як пройдене, — це і є та вада.
     Mutant(
         "M546_A_TARGET_NEVER_REACHED_IS_COUNTED_AS_PASSED",
         "scripts/run_lane.py",
@@ -5583,8 +5592,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Допуск оголошеного предмета за початком слова. Дослівний підрядок вимагав від
-    # людини називного відмінка: виміряно 1 із 14 у родовому проти 13 після зміни.
     Mutant(
         "M527_THE_SUBJECT_MUST_BE_SPELLED_AS_THE_TITLE_SPELLS_IT",
         "apps/api/src/korpus/application/declared_subject.py",
@@ -5615,8 +5622,6 @@ MUTANTS = (
             "test_a_subject_with_no_long_word_is_not_admitted",
         ),
     ),
-    # ── Друга форма питання. Лінійка, що зараховує довшу роль за коротшу або цитату
-    # не першою, показала б високе число там, де воно 1/14.
     Mutant(
         "M525_A_LONGER_ROLE_COUNTS_AS_THE_ROLE_ASKED_FOR",
         "scripts/benchmark_subject_precision.py",
@@ -5639,8 +5644,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Свіжість обслуговуючого процесу. П'ять осей міряються запитом до сервера, тож
-    # вони кредитують ПРОЦЕС, а не дерево, і жодне поле звіту про це не каже.
     Mutant(
         "M523_A_SERVER_OLDER_THAN_THE_CODE_STILL_COUNTS_AS_SERVING_IT",
         "scripts/check_serving_freshness.py",
@@ -5674,8 +5677,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Бази доказів. Гейт проти неоголошених баз, який сам спирається на оголошення,
-    # зелений саме в тому стані, заради якого існує: M498 — це та отрута, що проходила.
     Mutant(
         "M498_A_BASE_EXISTS_ONLY_IF_THE_REGISTRY_NAMES_IT",
         "scripts/measure_evidence_bases.py",
@@ -5708,10 +5709,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Навчальний шар: 1516 рядків коду й 1036 рядків тестів, і ЖОДНОГО мутанта до
-    # 01.09.2026. Жоден маршрут API його не імпортує, усі його таблиці порожні в обох
-    # базах — тобто «тести є» було твердженням, яке ніхто не перевіряв. Шість мутантів
-    # цілять у шість РІЗНИХ тверджень цього шару, а не в шість рядків одного.
     Mutant(
         "M492_A_SUPERSET_OF_THE_CORRECT_ANSWERS_COUNTS_AS_CORRECT",
         "apps/api/src/korpus/application/learning_assessment.py",
@@ -5806,7 +5803,6 @@ MUTANTS = (
             "test_a_comparably_responsive_official_source_still_outranks_a_better_match",
         ),
     ),
-    # ── Паритет двох оголошень оточення. Отрути по ПРАВИЛУ, не по переліку змінних.
     Mutant(
         "M450_A_VARIABLE_MISSING_FROM_THE_UNIT_IS_TOLERATED",
         "scripts/check_public_env_parity.py",
@@ -5835,7 +5831,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Ратчет прийнятого боргу розгортання.
     Mutant(
         "M460_WORSENING_PAST_THE_CEILING_IS_TOLERATED",
         "scripts/check_deployment_debt.py",
@@ -6322,7 +6317,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Проба некаталогізованих мутацій не сміє лишати стану в дереві.
     Mutant(
         "M480_THE_PROBE_EDITS_THE_SERVED_TREE_BY_DEFAULT",
         "scripts/probe_uncatalogued_mutation.py",

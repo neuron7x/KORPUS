@@ -28,6 +28,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_serving_freshness import required_units, serving_processes, unit_states  # noqa: E402
+from serving_readiness_contract import owned_ports, readiness_checks  # noqa: E402
 
 TIMEOUT = 10.0
 
@@ -83,14 +84,11 @@ def verdict(
     liveness: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Оголошено — значить мусить відповідати. Порожній перелік не є згодою."""
-    serving = [item for item in probes if item["status"] == 200]
-    refusing = [item for item in probes if item["status"] != 200]
-    masked = liveness_masking(probes, liveness or [])
-    checks = {
-        "units_declared": bool(units),
-        "ports_found": bool(ports),
-        "every_declared_port_answers": bool(probes) and not refusing,
-    }
+    checks = readiness_checks(units, ports, probes)
+    admitted = probes if checks["probe_set_complete"] else []
+    serving = [item for item in admitted if item["status"] == 200]
+    refusing = [item for item in admitted if item["status"] != 200]
+    masked = liveness_masking(admitted, liveness or [])
     failures = [name for name, ok in checks.items() if not ok]
     return {
         "schema": "korpus.serving-readiness.v1",
@@ -121,16 +119,8 @@ def verdict(
 
 def declared_ports() -> list[int]:
     """Порти процесів, що належать ОГОЛОШЕНИМ юнітам."""
-    units = set(required_units())
-    owned = {
-        str(state.get("main_pid")) for state in unit_states(sorted(units)) if state.get("main_pid")
-    }
-    ports: set[int] = set()
-    for process in serving_processes():
-        port, pid = process.get("port"), str(process.get("pid"))
-        if port and (pid in owned or not owned):
-            ports.add(int(port))
-    return sorted(ports)
+    units = required_units()
+    return owned_ports(units, unit_states(units), serving_processes())
 
 
 def selftest() -> int:

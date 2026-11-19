@@ -30,7 +30,7 @@ class DockerModel:
 
     def run(self, command: list[str], **kwargs: Any) -> subprocess.CompletedProcess[bytes]:
         if command[3] == "run":
-            assert kwargs["timeout"] == 240
+            assert kwargs["timeout"] == (630 if IMAGES["gitleaks"] in command else 240)
             self.owner = command[command.index("--label") + 1].split("=", 1)[1]
             if self.mode != "no-cid":
                 Path(command[command.index("--cidfile") + 1]).write_text(self.cid)
@@ -193,6 +193,20 @@ def test_container_names_are_unique_and_private_to_each_execution(tmp_path: Path
     assert first.cidfile.parent == tmp_path
     assert "--rm" in a and "--rm" in b
     assert os.path.isabs(first.cidfile)
+
+
+@pytest.mark.parametrize("tool", ["pip-audit:runtime", "pip-audit:dev", "image:gitleaks"])
+def test_non_history_executions_keep_the_existing_parent_deadline(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, tool: str
+) -> None:
+    def run(arguments: list[str], **kwargs: Any) -> subprocess.CompletedProcess[bytes]:
+        assert kwargs["timeout"] == 240
+        return subprocess.CompletedProcess(arguments, 0)
+
+    monkeypatch.setattr(subprocess, "run", run)
+    receipt = execution.execute(tool, ["/fixed/executable"], tmp_path, tmp_path)
+    assert receipt["exit_code"] == 0
+    assert "cleanup" not in receipt
 
 
 @pytest.mark.parametrize("mode", ["owned", "foreign-owner", "not-created"])

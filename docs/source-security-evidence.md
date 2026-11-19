@@ -45,8 +45,9 @@ not skip scanning. No ignore entry or severity is relaxed by this producer.
 
 Each pinned container image is pulled before native scanning, with its own
 240-second bound, start/end timestamps and exact exit code in `provisioning`.
-All three pulls must succeed. The scanner then uses `--pull=never` and retains
-its separate 240-second execution bound. Pull logs are retained alongside the
+All three pulls must succeed. The scanner then uses `--pull=never`. Gitleaks has
+a separate 630-second parent bound; other scanner calls retain 240 seconds.
+Pull logs are retained alongside the
 native diagnostics. The job's 25-minute outer bound, immutable image digests,
 offline scanner containers, and complete reachable-history scope are unchanged.
 
@@ -183,13 +184,29 @@ then resolves the exact generated name and still verifies the full ID and owners
 label before removal. No matching container leaves creation unproven. A nonempty
 malformed file, symlink, or nonregular file never becomes removal authority.
 
-The parent deadline remains 240 seconds. Gitleaks receives `--timeout 230` and
-`--log-level debug` to retain native diagnostics before that deadline; these flags
-do not restrict commits, rules, or file scope. The pinned v8.30.1
+Gitleaks receives `--timeout 600` with a 630-second parent bound. Other scanner
+calls and image pulls retain 240 seconds; cleanup queries retain 10 seconds.
+The pinned v8.30.1
 [command context and failure handler](https://github.com/gitleaks/gitleaks/blob/v8.30.1/cmd/root.go)
 use a cancellation context and a nonzero exit for scan errors, including partial
 scans. A nonzero exit remains a failure even when a native report exists. The actual
 full-history scan must still complete successfully in hosted CI.
+
+This allocation follows native run
+[44602028545, job 135835685439](https://github.com/neuron7x/KORPUS/actions/runs/44602028545/job/135835685439),
+on tree `b01163f098d842c3689768c8128e7f7dc53c75f1`. Its 230-second native deadline
+interrupted the history scan after approximately 303.72 MB and 761 commits; the
+partial report correctly remained a failed execution. Pulls took about eight
+seconds and the four other scanners about 4.3 seconds combined. The new allocation
+is a bounded qualification attempt, not evidence that the full history finishes.
+`--log-level info` preserves completion/error summaries while avoiding the
+per-decoded-segment debug stream. It changes no history, rules, decoding, pins,
+redaction, dependency scope or output acceptance predicate.
+
+The existing 25-minute job limit is an outer cancellation cap. The sum of all
+sequential per-call maxima can exceed it; adverse timing can prevent cleanup
+receipts or diagnostic uploads from completing. A cancelled or incomplete job
+cannot be admitted. No worst-case completion guarantee is claimed.
 
 Regression tests exercise a modeled Docker daemon with a real worker process,
 successful cleanup, unknown ownership, failed queries, missing creation identity,
