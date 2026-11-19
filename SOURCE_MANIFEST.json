@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2228,
-  "root_sha256": "4678f04b338b682849fad8c1f122ff4f8b9e3f075ba1076904a7a9241f2f4748",
+  "file_count": 2229,
+  "root_sha256": "8533ac33c491e9f8e1f445c7c2bdde03225ae9a24b07cccc1edb19401ff52033",
   "files": [
     {
       "path": ".dockerignore",
@@ -721,8 +721,8 @@
     },
     {
       "path": "apps/api/pyproject.toml",
-      "bytes": 3439,
-      "sha256": "30eee35c4235066f5f8c56960815c5e9264cc50f704d4bae94626c1d303642b2",
+      "bytes": 3440,
+      "sha256": "2592fb298bf1aa161f6eb6698227c7a930b4ad96035c2c490583fcbcd3b6e931",
       "mode": "0644"
     },
     {
@@ -733,8 +733,8 @@
     },
     {
       "path": "apps/api/requirements.runtime.lock",
-      "bytes": 7298,
-      "sha256": "0ed5d1efdc14f1171b5d0409882a38eb5346a3b45bbf2707de5a069580d7a1f1",
+      "bytes": 7691,
+      "sha256": "c580052d627a63b7d6d9783a0d583498e02da4c80d0e08dfa09f04eeb4f81d3c",
       "mode": "0644"
     },
     {
@@ -2515,8 +2515,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/pdf_extraction.py",
-      "bytes": 7014,
-      "sha256": "a3f4f6c5b1fa5c8b19dc55911c6c5cb2a2cfc17718a1882bb3e6d770c4fd19ed",
+      "bytes": 6030,
+      "sha256": "34bd6cc8441d08481b362e46cd0fd67a041aada26ab81822d4eccfae290781c6",
       "mode": "0644"
     },
     {
@@ -5409,6 +5409,12 @@
       "path": "apps/api/tests/test_public_web_deployment.py",
       "bytes": 2244,
       "sha256": "109577bc31ade6705992aa654920ebe9bb0fd1352123336157eed7040c32bda7",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_pypdf_compatibility.py",
+      "bytes": 10479,
+      "sha256": "e36f9c205843cc5514a9f1e10d84fac2ba31465157ff85edfc249b8580a3f237",
       "mode": "0644"
     },
     {
@@ -8516,7 +8522,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "f94d3f921ce945be8f77da3623851139cb744dbe5566606216ca54371f9f2074",
+      "sha256": "5445d3ad12168be24ff5827573829e862ef1a34b93e390f51f3c18cafd0f3655",
       "mode": "0644"
     },
     {
@@ -13369,8 +13375,8 @@
     },
     {
       "path": "source-sbom.cdx.json",
-      "bytes": 11915,
-      "sha256": "57ed58889ca2c76f8d809b8863be10ff227a6a364a7de279ba603ff51a34a98f",
+      "bytes": 11913,
+      "sha256": "a83b455e55722f76bcdb29a9d518ed1dcd0597bb39bb15c74ca9499e6c01b018",
       "mode": "0644"
     }
   ]

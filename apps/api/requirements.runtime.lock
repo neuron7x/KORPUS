@@ -90,8 +90,13 @@ PyJWT==2.15.1 \
 # доктринальних документів, тож третій CVE лежить рівно на `pdf_extraction.py`.
 # 6.16.1 закрила ті три, але вереснева хвиля 2026 додала ще вісім parser/DoS
 # advisory; 6.19.0 є першою версією, що закриває весь виміряний набір.
-pypdf==6.19.0 \
-    --hash=sha256:7e5d6e730e7dae87d560a2cee218b852f6498c8be61966f3cd02ead971e48d14
+# PR #113 upgrades the installed parser as well as the declared requirement.
+# 7.1.1 adds resource bounds for cross-reference streams, page labels, and inline
+# images, and reduces ASCIIHexDecode memory use (upstream release 2026-11-18).
+# The universal wheel SHA-256 is verified against PyPI release metadata;
+# CI and the runtime image both install this exact artifact with --require-hashes.
+pypdf==7.1.1 \
+    --hash=sha256:04c5680d4b4cfa04ab505b09393fc949860c34a4dad6565284d11a2f5c3ce8b1
 python-dateutil==2.9.0.post0 \
     --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
 python-dotenv==1.2.2 \
