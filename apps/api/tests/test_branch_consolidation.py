@@ -83,7 +83,7 @@ def test_the_head_is_the_one_the_deployed_base_expects() -> None:
     The 0026 learning-history guard is a restrictive bootstrap migration. Existing
     deployments require independent retirement proof; the pin grants no live upgrade.
     """
-    assert alembic_heads() == ["0026_learning_history_integrity.py"]
+    assert alembic_heads() == ["0027_learning_competency_integrity.py"]
 
 
 # ── Найдорожча помилка цього інструмента: він довіряв власному застарілому входові.

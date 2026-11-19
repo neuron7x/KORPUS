@@ -45,9 +45,9 @@ class LearningPublicationWriter:
             self._sources.bind(connection, identity)
             publication = (
                 connection.execute(
-                    select(learning_publications).where(
-                        learning_publications.c.course_version_id == version_id
-                    )
+                    select(learning_publications)
+                    .where(learning_publications.c.course_version_id == version_id)
+                    .with_for_update()
                 )
                 .mappings()
                 .first()

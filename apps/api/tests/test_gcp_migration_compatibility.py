@@ -25,9 +25,13 @@ def _copy_surface(tmp_path: Path) -> Path:
 def test_current_contract_migration_is_rejected_by_expand_only_gate() -> None:
     report = evaluate(ROOT)
     assert report["status"] == "FAIL", report
-    assert report["future_migrations"] == 2
+    assert report["future_migrations"] == 3
     assert report["findings"], report
-    restrictive = {"0025_sealed_provenance_integrity.py", "0026_learning_history_integrity.py"}
+    restrictive = {
+        "0025_sealed_provenance_integrity.py",
+        "0026_learning_history_integrity.py",
+        "0027_learning_competency_integrity.py",
+    }
     assert all(
         "future migration is not expand-only" in finding
         and any(revision in finding for revision in restrictive)
