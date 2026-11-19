@@ -49,6 +49,46 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M773_ENGINE_DIAGNOSTIC_ARCHIVE_DIGEST_BYPASS",
+        "scripts/scanner_engine_download.py",
+        "        hashlib.sha256(raw).hexdigest() == ARCHIVE_SHA256,",
+        "        True,",
+        (
+            "apps/api/tests/test_scanner_engine_artifact.py::test_archive_digest_mismatch_stops_before_any_archive_inspection",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M774_ENGINE_DIAGNOSTIC_EXPORT_VALIDATES_DIFFERENT_BYTES",
+        "scripts/scanner_engine_result.py",
+        "            parse_findings(raw)",
+        "            findings(path.parent)",
+        (
+            "apps/api/tests/test_scanner_engine_sandbox.py::test_export_validates_the_exact_bytes_it_will_copy",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M775_ENGINE_DIAGNOSTIC_MISSING_PENDING_NATIVE_EXECUTION",
+        "scripts/scanner_engine_commands.py",
+        '        self.executions.append(record)\n        record.update(execute("gitleaks", command, output, self.source))',
+        '        record.update(execute("gitleaks", command, output, self.source))',
+        (
+            "apps/api/tests/test_scanner_engine_authority.py::test_unreturned_native_execution_cannot_export_after_unproven_cleanup",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M776_ENGINE_DIAGNOSTIC_ZERO_EXIT_HIDES_NATIVE_INPUT_ERRORS",
+        "scripts/scanner_engine_result.py",
+        '        "partial_or_failed": any(diagnostics.values()) or execution["exit_code"] != 0,',
+        '        "partial_or_failed": execution["exit_code"] != 0,',
+        (
+            "apps/api/tests/test_scanner_engine_sandbox.py::test_clean_exit_never_hides_observed_input_errors_or_claims_eof",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M772_HOSTED_EVIDENCE_SPLICES_UPLOAD_INVOCATIONS",
         "scripts/github_evidence_upload.py",
         "        if message.startswith(RUN_HEADER):",

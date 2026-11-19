@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2305,
-  "root_sha256": "d826fce829f19227a7a15bf519eb60a3661eaa8d6e7c71b40fbaeb4c6ad7ecce",
+  "file_count": 2319,
+  "root_sha256": "04b31f1b5417437b1c51758d238ab16d3a93dac96c1171c08aa89e64c2bcc32c",
   "files": [
     {
       "path": ".dockerignore",
@@ -105,6 +105,12 @@
       "path": ".github/workflows/release.yml",
       "bytes": 3140,
       "sha256": "86b5ce5a1c82a18891c1ed65777bdab5cbec64f277c621b30cb6313cd6548bfe",
+      "mode": "0644"
+    },
+    {
+      "path": ".github/workflows/scanner-engine-diagnostic.yml",
+      "bytes": 1749,
+      "sha256": "e96fb39da6d59186e340dc7f9c84ef32833a9796ca365f7afdfa09e1bf2d0eee",
       "mode": "0644"
     },
     {
@@ -6006,6 +6012,30 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_scanner_engine_artifact.py",
+      "bytes": 10567,
+      "sha256": "342d75120b9e55d1562f424282e3fd4170ffe4066a4aca5228b0143fb02c5580",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_scanner_engine_authority.py",
+      "bytes": 16003,
+      "sha256": "d2337ef77ccf32363a9eb1caddd8c72645153eea64cff7e240c909241b2af2ad",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_scanner_engine_probes.py",
+      "bytes": 10960,
+      "sha256": "e4766b5f52e31ec1a5dcfef9b72150760fdeb7cdcc69288810b72975fbe73710",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_scanner_engine_sandbox.py",
+      "bytes": 13909,
+      "sha256": "a0a07688c3bc58494dc72476e8f09448027951881c960d15610c3f958a6ff9bf",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_schema_revision_pin.py",
       "bytes": 3319,
       "sha256": "3dcb29a5eb166971db6e9da5daa54a061df361989939af352f29663efba5c62b",
@@ -8755,8 +8785,8 @@
     },
     {
       "path": "config/operations/desired-state.json",
-      "bytes": 5712,
-      "sha256": "710622cd4cec53faf131f5c0718fcfaaba626556ce98643a593b991b06d2c57d",
+      "bytes": 5894,
+      "sha256": "b7a6f7e18c6f6bec648192a05548644436cc1e79d823395b9801a5c444bf2b68",
       "mode": "0644"
     },
     {
@@ -8797,8 +8827,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 795403,
-      "sha256": "abf6669165a0ebdf616b9e18b6d482e3ebb84f09f6d48d227455fd17e57150e3",
+      "bytes": 798315,
+      "sha256": "c4994b3761965254a049cf568bd3866a138bd965d068c3a45ec6ce71431dfdf4",
       "mode": "0644"
     },
     {
@@ -10461,6 +10491,12 @@
       "path": "docs/runbooks/OPERATIONS.md",
       "bytes": 2973,
       "sha256": "9ea7b1fb39ba5d634392fc529b4256d7214bdcfd1b0763a954502a16577d106d",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/scanner-engine-diagnostic.md",
+      "bytes": 6681,
+      "sha256": "66b0f51b4d739e3042bd4c99b83afd2d0606527295786fe2f96aea588fe31b71",
       "mode": "0644"
     },
     {
@@ -13153,8 +13189,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 354862,
-      "sha256": "b6e6c3081f87ed13f276ad9059d42ea4bc09e767fd4fc5c647156dbe94a47055",
+      "bytes": 356617,
+      "sha256": "89333ab3af76e191e9bfc7ba2a7a9e400780e5b0f29a873da38be2867c4f354a",
       "mode": "0755"
     },
     {
@@ -13284,6 +13320,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/run_scanner_engine_diagnostic.py",
+      "bytes": 5777,
+      "sha256": "9106a7006953378e61f60b11492b06c149b6e66323f859a781d1558310a324b1",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/run_source_security.py",
       "bytes": 5297,
       "sha256": "6b29f891abb2d0b20bc542cf1c73a667f6569a95093c0a63e18232c3c94de288",
@@ -13317,6 +13359,48 @@
       "path": "scripts/safe_archive_extract.py",
       "bytes": 728,
       "sha256": "433622a10bfde73e9906109f2530c3d8b72d7654f3a7fa5e760e2e5d3a2cd248",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_engine_artifact.py",
+      "bytes": 3458,
+      "sha256": "6bc185d40d1dedf29ecf6293f031f0ae17d427b8ba92949c8f7229a3a202b12a",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_engine_commands.py",
+      "bytes": 4125,
+      "sha256": "d9777a29aabf762d41b48aca2002c640cf4991159ea7b56d01063fa3a9b84870",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_engine_download.py",
+      "bytes": 4910,
+      "sha256": "569ffb394e79fba4800406a2a4e5eb521272fc2bdf2ec9002605a5d473aa51df",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_engine_fixtures.py",
+      "bytes": 5498,
+      "sha256": "e357236bbcc71ee52b712cf76cb2adebbf24185f72404bdbcd3b67f2286ff59b",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_engine_probes.py",
+      "bytes": 6184,
+      "sha256": "62a0c516dcaed3d2c877f42680e826eb4f73d802a5255f466940bceedc7e71e5",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_engine_result.py",
+      "bytes": 6316,
+      "sha256": "a8275e17c584d3f739b08f3645deeb64383a352f4990c71d7ac6810547ea0d85",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_engine_subject.py",
+      "bytes": 3447,
+      "sha256": "0133f165cb8afb6731fdffe775f4428d636b3790b9d8a6e26308e98c897cf453",
       "mode": "0644"
     },
     {
