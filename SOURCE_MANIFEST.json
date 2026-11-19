@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2245,
-  "root_sha256": "54e2d245ce793708feb7a3a31f1edbc673c37ec0704e281e10ee357403e71137",
+  "root_sha256": "17d8f8c2baa8438e784eb04b3ebe708130594742c1486603e14e098016231ae9",
   "files": [
     {
       "path": ".dockerignore",
@@ -721,8 +721,8 @@
     },
     {
       "path": "apps/api/migrations/versions/0026_learning_history_integrity.py",
-      "bytes": 4919,
-      "sha256": "63d2b237aafd238bc386b650400e8651aa9b1a4a5c5ac454dd205a58489894ff",
+      "bytes": 6379,
+      "sha256": "b20ddc449238e3934d7c475f50fc68ccde208ef83bc55596e0736cd45fbc2dfd",
       "mode": "0644"
     },
     {
@@ -2401,8 +2401,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/learning_repository.py",
-      "bytes": 11360,
-      "sha256": "5a6002e2ee3c391422cb468acac067a0c9edc669fd7547a2e043c02555619c69",
+      "bytes": 11583,
+      "sha256": "8b296269f610049b7ea049f48ec42403a47ac541588c479d6757152e55f54890",
       "mode": "0644"
     },
     {
@@ -3253,8 +3253,8 @@
     },
     {
       "path": "apps/api/tests/test_branch_consolidation.py",
-      "bytes": 6203,
-      "sha256": "ddc6941a1f08e7c49ef652e8fc4bc09eebc4164641287df8a8b4830e1435cef4",
+      "bytes": 6371,
+      "sha256": "3855da3967e5beb6fbefe5cdf4d049192bf9e4527d8a45addc4a5f9d662ad446",
       "mode": "0644"
     },
     {
@@ -3373,8 +3373,8 @@
     },
     {
       "path": "apps/api/tests/test_capability_effect_schema_boundary.py",
-      "bytes": 2627,
-      "sha256": "7b5a39afea2d86d6f8a3c4c81aa85ef4a282ad36b19ee259041f22a6ab5dd193",
+      "bytes": 2626,
+      "sha256": "875a21e8a77cc7b5f0a63036517211261824613f281e80567cf98b4868cc1994",
       "mode": "0644"
     },
     {
@@ -4723,8 +4723,8 @@
     },
     {
       "path": "apps/api/tests/test_learning_repository.py",
-      "bytes": 17414,
-      "sha256": "0af1b786a507a02cc4db844bf6d2ce8f80df89de2b8170096cf4b441c596bd2e",
+      "bytes": 17575,
+      "sha256": "e4bc7012d1d6e7857f0126101e1ce177ce4ea2e9fd218c04601786a7b603dafc",
       "mode": "0644"
     },
     {
@@ -5317,8 +5317,8 @@
     },
     {
       "path": "apps/api/tests/test_postgres_learning_scope_lifecycle.py",
-      "bytes": 9419,
-      "sha256": "e5d76da8f54e3cbf3224f976af86c3a4beedbab613dc638980bc3ef478ce9891",
+      "bytes": 10110,
+      "sha256": "9e3aaaf70a448f6d0d3ae664392de37c657311b1d97f155a43e36c84776aea91",
       "mode": "0644"
     },
     {

@@ -122,11 +122,46 @@ def _install_postgres_guards() -> None:
     )
 
 
+def _install_postgres_source_scope_guard() -> None:
+    op.execute(
+        """
+        CREATE FUNCTION public.korpus_guard_learning_source_scope()
+        RETURNS trigger AS $$
+        BEGIN
+          IF NEW.state = 'published' AND (TG_OP = 'INSERT' OR OLD.state = 'draft') THEN
+            IF EXISTS (
+              SELECT 1 FROM public.learning_source_bindings b
+              WHERE b.course_version_id = NEW.course_version_id
+                AND NOT EXISTS (
+                  SELECT 1 FROM public.documents d WHERE d.id = b.document_id
+                )
+            ) THEN
+              RAISE EXCEPTION 'course source is outside the authorized scope'
+                USING ERRCODE = '42501';
+            END IF;
+          END IF;
+          RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = pg_catalog
+        """
+    )
+    op.execute("REVOKE ALL ON FUNCTION public.korpus_guard_learning_source_scope() FROM PUBLIC")
+    # PostgreSQL orders same-kind triggers by name: scope admission precedes the
+    # SECURITY DEFINER structural guard and uses the caller's existing document RLS.
+    op.execute(
+        "CREATE TRIGGER trg_korpus_guard_learning_a_source_scope "
+        "BEFORE INSERT OR UPDATE OF state, reviewed_at, reviewed_by "
+        "ON public.learning_publications FOR EACH ROW "
+        "EXECUTE FUNCTION public.korpus_guard_learning_source_scope()"
+    )
+
+
 def upgrade() -> None:
     _require_complete_lifecycle()
     dialect = op.get_bind().dialect.name
     if dialect == "postgresql":
         _install_postgres_guards()
+        _install_postgres_source_scope_guard()
     elif dialect != "sqlite":
         raise RuntimeError("unsupported learning migration dialect")
 

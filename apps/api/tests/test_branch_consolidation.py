@@ -80,8 +80,10 @@ def test_the_head_is_the_one_the_deployed_base_expects() -> None:
     мігрувати ПЕРЕД підняттям нового коду — як і завжди, коли ланцюг довшає, — але сама
     міграція розширювальна: наявних таблиць вона не торкається, тож ревізія N-1 лишається
     сумісною зі схемою.
+    The 0026 learning-history guard is a restrictive bootstrap migration. Existing
+    deployments require independent retirement proof; the pin grants no live upgrade.
     """
-    assert alembic_heads() == ["0025_sealed_provenance_integrity.py"]
+    assert alembic_heads() == ["0026_learning_history_integrity.py"]
 
 
 # ── Найдорожча помилка цього інструмента: він довіряв власному застарілому входові.

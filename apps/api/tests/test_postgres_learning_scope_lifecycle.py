@@ -103,6 +103,25 @@ def test_postgres_learning_sql_publication_rejects_cross_corpus_source_substitut
     publish_sql(store, graph.id)
 
 
+def test_postgres_learning_sql_publication_requires_bound_identity(
+    learning_postgres: LearningPostgres,
+) -> None:
+    store = learning_postgres
+    graph = course_graph()
+    store.learning.create_version(graph)
+    reject_sql(
+        store,
+        "UPDATE learning_publications SET state = 'published', "
+        "reviewed_at = CURRENT_TIMESTAMP, reviewed_by = 'course-reviewer' "
+        "WHERE course_version_id = 'library-v1'",
+        sqlstate="42501",
+        message="authorized scope",
+    )
+    publication = store.learning.get_publication(graph.id)
+    assert publication is not None and publication.state is CoursePublicationState.DRAFT
+    publish_sql(store, graph.id)
+
+
 @pytest.mark.parametrize("state", ["published", "invalidated", "retired"])
 def test_postgres_learning_lifecycle_cannot_return_to_draft(
     learning_postgres: LearningPostgres, state: str

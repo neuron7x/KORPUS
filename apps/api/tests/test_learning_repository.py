@@ -457,6 +457,9 @@ def test_learning_repository_round_trips_prerequisite_edges(stores) -> None:
     )
     learning.create_version(version)
     assert learning.get_version(version.id) == version
+    assert learning.delete_draft_version(version.id)
+    assert learning.get_version(version.id) is None
+    assert learning.get_publication(version.id) is None
 
 
 def test_empty_learning_source_projection_short_circuits(stores) -> None:

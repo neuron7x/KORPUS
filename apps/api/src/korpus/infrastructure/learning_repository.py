@@ -30,6 +30,7 @@ from korpus.infrastructure.learning_publication import (
 from korpus.infrastructure.learning_schema import (
     learning_course_versions,
     learning_courses,
+    learning_prerequisites,
     learning_publications,
 )
 from korpus.infrastructure.learning_source_access import IdentityBinder, LearningSourceAccess
@@ -267,6 +268,11 @@ class SqlLearningRepository(LearningPublicationWriter):
                 return False
             if str(state) != CoursePublicationState.DRAFT.value:
                 raise LearningStateError("published learning history cannot be deleted")
+            connection.execute(
+                delete(learning_prerequisites).where(
+                    learning_prerequisites.c.course_version_id == version_id
+                )
+            )
             connection.execute(
                 delete(learning_publications).where(
                     learning_publications.c.course_version_id == version_id
