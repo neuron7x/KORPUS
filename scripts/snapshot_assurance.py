@@ -11,6 +11,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "apps/api/src")]
 from assurance_publication import publish  # noqa: E402
+from assurance_snapshot_contract import SOURCES, limitations_valid  # noqa: E402
+from assurance_snapshot_contract import (  # noqa: E402
+    complete_snapshot_records as _complete_snapshot_records,
+)
+from assurance_snapshot_contract import (  # noqa: E402
+    snapshot_contract_valid as snapshot_contract_valid,
+)
 from evidence_source_binding import evidence_source_binding_failure  # noqa: E402
 from korpus.application.final_release_evidence import strict_signed_json_object  # noqa: E402
 from path_admission import regular_file, symlink_free  # noqa: E402
@@ -19,19 +26,6 @@ from source_digest import source_tree_digest  # noqa: E402
 
 VAR = ROOT / "var"
 REPORTS = ROOT / "reports"
-SOURCES = {
-    "PYTEST_REPORT.xml": "pytest.xml",
-    "COVERAGE_REPORT.xml": "coverage.xml",
-    "COVERAGE_REPORT.json": "coverage.json",
-    "EVAL_REPORT.json": "eval-report.json",
-    "MUTATION_REPORT.json": "mutation-report.json",
-    "MIGRATION_REPORT.json": "migration-report.json",
-    "SCALE_REPORT.json": "scale-report.json",
-    "OPERATIONAL_GATE.json": "operational-gate.json",
-    "SUPPLY_CHAIN_INVENTORY.json": "supply-chain-inventory.json",
-    "INFRASTRUCTURE_VALIDATION.json": "infrastructure-validation.json",
-    "KUBERNETES_VALIDATION.json": "kubernetes-validation.json",
-}
 
 
 def sha256(path: Path) -> str:
@@ -44,43 +38,8 @@ def load_json(path: Path) -> dict[str, object]:
     return dict(strict_signed_json_object(path.read_bytes(), f"assurance output {path}"))
 
 
-def limitations_valid(value: object) -> bool:
-    return isinstance(value, list) and all(isinstance(item, str) for item in value)
-
-
-def snapshot_contract_valid(snapshot: object) -> bool:
-    if not isinstance(snapshot, dict):
-        return False
-    records = snapshot.get("records")
-    return (
-        set(snapshot) == {"schema", "release", "status", "records", "limitations"}
-        and snapshot.get("schema") == "korpus.assurance-snapshot.v1"
-        and limitations_valid(snapshot.get("limitations"))
-        and isinstance(records, list)
-        and all(
-            isinstance(record, dict)
-            and set(record) == {"path", "bytes", "sha256"}
-            and isinstance(record.get("path"), str)
-            and type(record.get("bytes")) is int
-            and isinstance(record.get("sha256"), str)
-            for record in records
-        )
-    )
-
-
 def complete_snapshot_records(value: object) -> list[dict[str, object]]:
-    records = value if isinstance(value, list) else []
-    expected = {f"reports/{name}" for name in (*SOURCES, "RESEARCH_ASSURANCE_REPORT.json")}
-    paths = {str(item.get("path", "")) for item in records if isinstance(item, dict)}
-    if len(paths) != len(records) or paths != expected:
-        return []
-    valid = all(
-        regular_file(path := ROOT / str(item["path"]))
-        and path.stat().st_size == item.get("bytes")
-        and hashlib.sha256(path.read_bytes()).hexdigest() == item.get("sha256")
-        for item in records
-    )
-    return records if valid else []
+    return _complete_snapshot_records(ROOT, value)
 
 
 def assemble_ci_report() -> dict[str, object]:

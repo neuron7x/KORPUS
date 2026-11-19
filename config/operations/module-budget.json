@@ -7164,6 +7164,42 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Issue #109: shared equal-cardinality FK collection proof with extracted literal signature checks; exact initial limits, existing ceilings unchanged."
+    },
+    "scripts/assurance_snapshot_contract.py": {
+      "lines": 66,
+      "max_complexity": 11,
+      "max_function_lines": 15,
+      "max_function_args": 2,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #105 / #6 / #12: initial measured ceiling for shared packaged-source and research-evidence verification; existing module ceilings unchanged."
+    },
+    "scripts/manifest_lib/source_verification.py": {
+      "lines": 37,
+      "max_complexity": 9,
+      "max_function_lines": 25,
+      "max_function_args": 2,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #105 / #6 / #12: initial measured ceiling for shared packaged-source and research-evidence verification; existing module ceilings unchanged."
+    },
+    "scripts/package_contracts.py": {
+      "lines": 79,
+      "max_complexity": 6,
+      "max_function_lines": 28,
+      "max_function_args": 3,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #105 / #6 / #12: initial measured ceiling for shared packaged-source and research-evidence verification; existing module ceilings unchanged."
+    },
+    "scripts/research_assurance_verification.py": {
+      "lines": 32,
+      "max_complexity": 6,
+      "max_function_lines": 23,
+      "max_function_args": 7,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Issue #105 / #6 / #12: initial measured ceiling for shared packaged-source and research-evidence verification; existing module ceilings unchanged."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

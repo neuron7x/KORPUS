@@ -7,45 +7,23 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "apps/api/src")]
 from korpus.application.provenance import compute_source_digest
-from manifest_lib.integrity import manifest_failures, mode_string, record_failures
-from manifest_lib.source_contract import load_source_manifest
+from manifest_lib.integrity import mode_string
+from manifest_lib.source_verification import source_manifest_failures
 from manifest_paths import source_paths
 from path_admission import regular_file
 from release_identity import release_tag
 
 
 def verify(root: Path) -> dict[str, object]:
-    path = root / "SOURCE_MANIFEST.json"
-    if not regular_file(path):
-        return {"valid": False, "failures": ["SOURCE_MANIFEST.json is missing or symlinked"]}
-    try:
-        manifest, records = load_source_manifest(path)
-    except (OSError, ValueError) as error:
-        return {"valid": False, "failures": [str(error)]}
-    by_path = {record["path"]: record for record in records}
-    authoritative = [p.as_posix() for p in source_paths(root)]
-    failures = manifest_failures(manifest, records)
-    if sorted(by_path) != authoritative:
-        failures.append(
-            "path parity mismatch "
-            f"in_tree_not_in_manifest={sorted(set(authoritative) - set(by_path))} "
-            f"in_manifest_not_in_tree={sorted(set(by_path) - set(authoritative))}"
-        )
-    for relative in authoritative:
-        file, record = root / relative, by_path.get(relative)
-        if not regular_file(file):
-            failures.append(f"missing or symlinked source file: {relative}")
-        elif record is None:
-            continue
-        else:
-            failures.extend(
-                f"source {item}"
-                for item in record_failures(file, record, mode_string(file, source=True))
-            )
+    inventory = {
+        path.as_posix(): mode_string(root / path, source=True) if regular_file(root / path) else ""
+        for path in source_paths(root)
+    }
+    failures, digest = source_manifest_failures(root, inventory)
     return {
         "valid": not failures,
-        "files": len(authoritative),
-        "root_sha256": manifest.get("root_sha256"),
+        "files": len(inventory),
+        "root_sha256": digest,
         "failures": failures,
     }
 
