@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v0.9.7",
-  "root_sha256": "86c181d586bfdd8211e7a60094e0e9fe2b4d7647cc30d350918240d5140ae6bf",
+  "root_sha256": "0d09d9d0ee1af12bee0d7bc70a8a7304b259030df95ac19868dcf976c40d1065",
   "records": [
     {
       "path": ".github/dependabot.yml",
@@ -10,8 +10,8 @@
     },
     {
       "path": ".github/workflows/assurance.yml",
-      "sha256": "6b535576e89f117d44cf6187e5f08241603c614b4670a496aef31cb6c9447baf",
-      "bytes": 6492
+      "sha256": "54bb775cb36324781bdbe81992fc4eb738e58f5bc74bab95b368627bd98939ba",
+      "bytes": 6588
     },
     {
       "path": ".github/workflows/ci.yml",

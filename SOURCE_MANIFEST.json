@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2229,
-  "root_sha256": "8533ac33c491e9f8e1f445c7c2bdde03225ae9a24b07cccc1edb19401ff52033",
+  "file_count": 2231,
+  "root_sha256": "bf81df3c46e306efc11a22a854c99843fedd40d7bc67e63253c4015faf7fe5c4",
   "files": [
     {
       "path": ".dockerignore",
@@ -43,8 +43,8 @@
     },
     {
       "path": ".github/workflows/assurance.yml",
-      "bytes": 6492,
-      "sha256": "6b535576e89f117d44cf6187e5f08241603c614b4670a496aef31cb6c9447baf",
+      "bytes": 6588,
+      "sha256": "54bb775cb36324781bdbe81992fc4eb738e58f5bc74bab95b368627bd98939ba",
       "mode": "0644"
     },
     {
@@ -2898,6 +2898,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/learning_postgres_support.py",
+      "bytes": 10287,
+      "sha256": "11d436e23f0665a5441609f0dd89b22e2d7c517ea177f7ef38512c24eb72b5fa",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/security_fixtures.py",
       "bytes": 8868,
       "sha256": "721d2e96251ed4491253cc8d0e83f24b1067e17ff7d866e9de9ba560f0c7c6b3",
@@ -5250,6 +5256,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_postgres_learning_persistence.py",
+      "bytes": 11958,
+      "sha256": "98fe7f09de28c040bf5b02bac80ab4856f310244d48630a90cfd5287d3c99baa",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_postgres_migration_admission.py",
       "bytes": 6379,
       "sha256": "12ec30b2690fb83e31a42f1367d2998eedad726aa91d41906a052853c0349bb0",
@@ -5287,8 +5299,8 @@
     },
     {
       "path": "apps/api/tests/test_postgres_runner_execution.py",
-      "bytes": 10645,
-      "sha256": "866f6288640c95a7ae4b049dfd2fc0736b08951022cd2c3c491d5526902c251b",
+      "bytes": 11108,
+      "sha256": "84b725d4875a20a0c14425bc3a8f462cc71cc21a3b3122b8f0a2430b619dd68e",
       "mode": "0644"
     },
     {
@@ -8522,7 +8534,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "5445d3ad12168be24ff5827573829e862ef1a34b93e390f51f3c18cafd0f3655",
+      "sha256": "cfa52e650a772c2d3de635991fde7908a960c4e45dcfa1dd429afe2cecfd1b0f",
       "mode": "0644"
     },
     {
@@ -12817,8 +12829,8 @@
     },
     {
       "path": "scripts/run_postgres_coverage.sh",
-      "bytes": 7022,
-      "sha256": "3b1125e2d2a640fc4625b18f0b1f5d7a1f722d5e9aadcc9d425006a28df9c4ad",
+      "bytes": 7124,
+      "sha256": "92e5ec42714867bf0b7952ed495a7884ebd876b6e1bea67729a68a187178fd99",
       "mode": "0755"
     },
     {

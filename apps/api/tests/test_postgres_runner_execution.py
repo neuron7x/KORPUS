@@ -129,6 +129,15 @@ def test_empty_or_invalid_targeted_selection_fails_before_execution(
     assert not _commands(shell_root)
 
 
+@pytest.mark.parametrize("database", [False, True])
+def test_postgres_coverage_preserves_named_junit_evidence(shell_root: Path, database: bool) -> None:
+    result = _shell(shell_root, "run_postgres_coverage.sh", [], database=database)
+    assert result.returncode == 0, result.stdout + result.stderr
+    calls = [call for call in _commands(shell_root) if "pytest" in call]
+    assert len(calls) == 1
+    assert "--junitxml=var/pytest-postgres.xml" in calls[0]
+
+
 @pytest.mark.parametrize("script", ["run_postgres_suite.sh", "run_postgres_coverage.sh"])
 def test_readiness_ignores_temporary_server_and_waits_for_three_stable_successes(
     shell_root: Path, script: str
