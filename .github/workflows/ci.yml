@@ -189,3 +189,136 @@ jobs:
           npm --prefix apps/web run lint
           npm --prefix apps/web run test
           npm --prefix apps/web run build
+
+  package:
+    name: canonical-package
+    needs: [api-test, api-quality, web-test, repository]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Download current source evidence
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: source-assurance-${{ github.run_attempt }}
+          path: var
+      - name: Download current API execution evidence
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: api-coverage-diagnostics-${{ github.run_attempt }}
+          path: var
+      - name: Download current quality execution evidence
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: api-quality-diagnostics-${{ github.run_attempt }}
+          path: var
+      - name: Execute supporting package evidence
+        run: |
+          set -o pipefail
+          make supply-chain-inventory infra-validate kubernetes-validate PY=python \
+            2>&1 | tee var/package-support.log
+          make sqlite-recovery-drill PY=python 2>&1 | tee var/package-recovery.log
+      - name: Assemble and bind canonical report snapshot
+        run: |
+          set -o pipefail
+          make assemble-assurance snapshot PY=python 2>&1 | tee var/package-assurance.log
+          python scripts/verify_release_evidence.py
+      - name: Verify canonical package and reproducible bytes
+        id: package
+        run: |
+          set -o pipefail
+          bash scripts/package_repository.sh 2>&1 | tee var/package-first.log
+          artifact="$(cat dist/LATEST)"
+          cp "$artifact" "$RUNNER_TEMP/korpus-first.zip"
+          python scripts/verify_package.py "$RUNNER_TEMP/korpus-first.zip" > var/package-first-verification.json
+          bash scripts/package_repository.sh 2>&1 | tee var/package-second.log
+          cmp "$RUNNER_TEMP/korpus-first.zip" "$artifact"
+          python scripts/verify_package.py "$artifact" > var/package-second-verification.json
+          echo "path=$artifact" >> "$GITHUB_OUTPUT"
+      - name: Record measured package envelope
+        run: |
+          python - <<'PY'
+          import hashlib
+          import io
+          import json
+          import os
+          from pathlib import Path
+          from zipfile import ZipFile
+          from scripts import zip_resource_policy as limits
+
+          artifact = Path(Path("dist/LATEST").read_text().strip())
+          payload = artifact.read_bytes()
+          verified = json.loads(Path("var/package-second-verification.json").read_bytes())
+          digest = hashlib.sha256(payload).hexdigest()
+          assert verified["valid"] and verified["sha256"] == digest
+          with ZipFile(io.BytesIO(payload)) as archive:
+              entries = archive.infolist()
+          observed = {
+              "entries": len(entries),
+              "total_uncompressed_bytes": sum(item.file_size for item in entries),
+              "max_entry_uncompressed_bytes": max(item.file_size for item in entries),
+              "max_compression_ratio": max(
+                  item.file_size / item.compress_size if item.compress_size else 0
+                  for item in entries
+              ),
+          }
+          ceilings = {
+              "entries": limits.MAX_ARCHIVE_ENTRIES,
+              "total_uncompressed_bytes": limits.MAX_TOTAL_UNCOMPRESSED_BYTES,
+              "max_entry_uncompressed_bytes": limits.MAX_ENTRY_UNCOMPRESSED_BYTES,
+              "max_compression_ratio": limits.MAX_COMPRESSION_RATIO,
+          }
+          report = {
+              "schema": "korpus.package-envelope.v1",
+              "commit": os.environ["GITHUB_SHA"],
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "artifact_sha256": digest,
+              "artifact_bytes": len(payload),
+              "two_builds_byte_identical": True,
+              "observed": observed,
+              "ceilings": ceilings,
+              "remaining_capacity": {name: ceilings[name] - value for name, value in observed.items()},
+              "recovery_scope": "CI_FIXTURE",
+              "production_authorized": False,
+          }
+          Path("var/package-envelope.json").write_text(json.dumps(report, indent=2) + "\n")
+          print(json.dumps(report, indent=2))
+          PY
+      - name: Upload verified source package
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: canonical-package-${{ github.run_attempt }}
+          path: |
+            ${{ steps.package.outputs.path }}
+            ${{ steps.package.outputs.path }}.sha256
+            var/package-first-verification.json
+            var/package-second-verification.json
+            var/package-envelope.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Preserve package diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: package-diagnostics-${{ github.run_attempt }}
+          path: |
+            var/package-*.log
+            var/package-*.json
+            var/research-assurance-report.json
+            var/recovery-report.json
+          if-no-files-found: warn
+          retention-days: 14

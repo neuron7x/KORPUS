@@ -11,10 +11,15 @@ umask 077
 root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$root"
 python_bin="${PYTHON:-$(command -v python3)}"
-if [[ "$python_bin" != /* ]]; then
+case "$python_bin" in
+  /*) ;;
+  */*) python_bin="$root/$python_bin" ;;
+  *) python_bin="$(command -v -- "$python_bin" || true)" ;;
+esac
+if [[ -n "$python_bin" && "$python_bin" != /* ]]; then
   python_bin="$root/$python_bin"
 fi
-[[ -x "$python_bin" ]] || {
+[[ -n "$python_bin" && -f "$python_bin" && -x "$python_bin" ]] || {
   echo "Python interpreter is not executable: $python_bin" >&2
   exit 69
 }

@@ -16,6 +16,7 @@ from artifact_snapshot import verify_snapshot
 from distribution_runtime_policy import opaque_runtime_failures
 from korpus.application.final_release_evidence import strict_signed_json_object
 from manifest_lib import integrity
+from package_contracts import package_contract_failures
 from zip_safety import safety_failures
 
 Record = dict[str, object]
@@ -73,6 +74,7 @@ def verify(archive: Path | BinaryIO) -> tuple[list[str], int]:
             modes = integrity.archive_modes(zf, root.name if root != tmp else "")
         records = _load_records(root, failures)
         failures.extend(_verify_tree(root, records, modes))
+        failures = package_contract_failures(root, modes, failures)
         return failures, len(records) + 1
 
 

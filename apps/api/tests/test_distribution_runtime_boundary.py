@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 import stat
 import subprocess
 import sys
@@ -12,11 +10,13 @@ from pathlib import Path
 
 import pytest
 
-from scripts.manifest_lib.integrity import manifest_root
-from scripts.manifest_paths import source_included
-from scripts.verify_package import verify
-
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from scripts.manifest_paths import source_included  # noqa: E402
+from scripts.verify_package import verify  # noqa: E402
+
+from .package_fixtures import package_files, write_package  # noqa: E402
 
 
 def _build_zip(
@@ -27,38 +27,15 @@ def _build_zip(
     extra_member: str | None = None,
     extra_payload: bytes = b"additional bound file",
     include_proof: bool = True,
-) -> None:
+) -> int:
     files = {"proof.txt": b"verified source"} if include_proof else {}
     if poisoned:
         files["evidence/registry.json"] = b'{"digest":"internally-consistent"}'
     if extra_member is not None:
         files[extra_member] = extra_payload
-    manifest = {
-        "schema": "korpus.distribution-manifest.v2",
-        "kind": "distribution",
-        "files": [
-            {
-                "path": name,
-                "bytes": len(body),
-                "sha256": hashlib.sha256(body).hexdigest(),
-                "mode": "0644",
-            }
-            for name, body in sorted(files.items())
-        ],
-    }
-    records = manifest["files"]
-    manifest.update(
-        manifest_self_excluded=True,
-        file_count=len(records),
-        root_sha256=manifest_root(records),
-    )
-    files["DISTRIBUTION_MANIFEST.json"] = json.dumps(manifest).encode()
-    with zipfile.ZipFile(archive, "w") as target:
-        for name, body in files.items():
-            info = zipfile.ZipInfo(prefix + name)
-            info.create_system = 3
-            info.external_attr = (stat.S_IFREG | 0o644) << 16
-            target.writestr(info, body)
+    if include_proof:
+        files = package_files(files)
+    return write_package(archive, files, prefix=prefix)
 
 
 @pytest.mark.parametrize("prefix", ["", "KORPUS/"])
@@ -67,14 +44,14 @@ def test_opaque_runtime_payload_fails_before_extraction(
     tmp_path: Path, prefix: str, poisoned: bool
 ) -> None:
     candidate = tmp_path / "candidate.zip"
-    _build_zip(candidate, prefix=prefix, poisoned=poisoned)
+    expected_count = _build_zip(candidate, prefix=prefix, poisoned=poisoned)
     failures, files = verify(candidate)
     if poisoned:
         assert files == 0
         assert any("unverified runtime evidence forbidden" in item for item in failures)
     else:
         assert failures == []
-        assert files == 2
+        assert files == expected_count
 
 
 @pytest.mark.parametrize(
@@ -118,8 +95,8 @@ def test_sole_handoff_wrapper_without_opaque_evidence_remains_admitted(
     tmp_path: Path,
 ) -> None:
     archive = tmp_path / "safe-wrapper.zip"
-    _build_zip(archive, prefix="handoff/", poisoned=False)
-    assert verify(archive) == ([], 2)
+    expected_count = _build_zip(archive, prefix="handoff/", poisoned=False)
+    assert verify(archive) == ([], expected_count)
 
 
 @pytest.mark.parametrize(
@@ -279,7 +256,7 @@ def test_disguised_bundle_magic_is_rejected(tmp_path: Path, header: bytes) -> No
 @pytest.mark.parametrize("prefix", ["", "KORPUS/"])
 def test_authorized_handoff_evidence_is_not_misclassified(tmp_path: Path, prefix: str) -> None:
     archive = tmp_path / "handoff.zip"
-    _build_zip(
+    expected_count = _build_zip(
         archive,
         prefix=prefix,
         poisoned=False,
@@ -287,13 +264,13 @@ def test_authorized_handoff_evidence_is_not_misclassified(tmp_path: Path, prefix
     )
     failures, count = verify(archive)
     assert failures == []
-    assert count == 3
+    assert count == expected_count
 
 
 @pytest.mark.parametrize("prefix", ["", "KORPUS/"])
 def test_release_report_evidence_remains_admitted(tmp_path: Path, prefix: str) -> None:
     archive = tmp_path / "report.zip"
-    _build_zip(
+    expected_count = _build_zip(
         archive,
         prefix=prefix,
         poisoned=False,
@@ -301,7 +278,7 @@ def test_release_report_evidence_remains_admitted(tmp_path: Path, prefix: str) -
     )
     failures, count = verify(archive)
     assert failures == []
-    assert count == 3
+    assert count == expected_count
 
 
 @pytest.mark.parametrize(

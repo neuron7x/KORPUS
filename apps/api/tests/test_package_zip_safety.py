@@ -12,6 +12,8 @@ import pytest
 
 from scripts.manifest_lib.integrity import manifest_root
 
+from .package_fixtures import package_files, write_package
+
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -71,19 +73,16 @@ def _info(name: str, mode: int = stat.S_IFREG | 0o644) -> zipfile.ZipInfo:
     return info
 
 
-def _valid_archive(path: Path) -> None:
-    payload = b"safe\n"
-    with zipfile.ZipFile(path, "w") as zf:
-        zf.writestr(_info("KORPUS/payload.txt"), payload)
-        zf.writestr(_info("KORPUS/DISTRIBUTION_MANIFEST.json"), _manifest(payload))
+def _valid_archive(path: Path) -> int:
+    return write_package(path, package_files({"payload.txt": b"safe\n"}))
 
 
 def test_valid_archive_remains_accepted(tmp_path: Path) -> None:
     archive = tmp_path / "valid.zip"
-    _valid_archive(archive)
+    expected_count = _valid_archive(archive)
     failures, count = _module().verify(archive)
     assert failures == []
-    assert count == 2
+    assert count == expected_count
 
 
 @pytest.mark.parametrize(
@@ -346,29 +345,13 @@ def test_backslash_alias_is_rejected(tmp_path: Path) -> None:
 def test_nested_distribution_manifest_is_not_an_unbound_blind_spot(tmp_path: Path) -> None:
     archive = tmp_path / "nested-manifest.zip"
     nested = b'{"inner":true}\n'
-    record = {
-        "path": "KORPUS_SOURCE/DISTRIBUTION_MANIFEST.json",
-        "bytes": len(nested),
-        "sha256": hashlib.sha256(nested).hexdigest(),
-        "mode": "0644",
-    }
-    outer = json.dumps(
-        _complete(
-            {
-                "schema": "korpus.distribution-manifest.v2",
-                "kind": "distribution",
-                "files": [record],
-            }
-        )
-    ).encode()
-    with zipfile.ZipFile(archive, "w") as zf:
-        zf.writestr(_info("KORPUS_SOURCE/DISTRIBUTION_MANIFEST.json"), nested)
-        zf.writestr(_info("DISTRIBUTION_MANIFEST.json"), outer)
+    files = package_files({"KORPUS_SOURCE/DISTRIBUTION_MANIFEST.json": nested})
+    expected_count = write_package(archive, files, prefix="")
 
     failures, count = _module().verify(archive)
 
     assert failures == []
-    assert count == 2
+    assert count == expected_count
 
 
 def test_entry_count_budget_refuses_before_structural_processing(
