@@ -5402,6 +5402,15 @@
       "proof_lines": 0,
       "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
     },
+    "scripts/github_evidence_upload.py": {
+      "lines": 50,
+      "proof_lines": 0,
+      "max_complexity": 6,
+      "max_function_lines": 19,
+      "max_function_args": 3,
+      "max_nesting": 2,
+      "reason": "2026-11-19 / #102 / measured initial limits for invocation-bound authenticated upload evidence; all previous ceilings and the original time window are unchanged."
+    },
     "scripts/github_evidence_wait.py": {
       "lines": 103,
       "max_complexity": 8,

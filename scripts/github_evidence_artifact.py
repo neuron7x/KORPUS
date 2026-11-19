@@ -30,6 +30,7 @@ from github_evidence_transport import (
     insist,
     object_record,
 )
+from github_evidence_upload import validate_upload_log as _upload_log
 from zip_safety import safety_failures
 
 
@@ -80,32 +81,6 @@ def _metadata(
         "artifact was not created during its producer upload step",
     )
     insist(created >= timestamp(run.metadata.get("run_started_at")), "artifact predates attempt")
-
-
-def _upload_log(payload: bytes, record: dict[str, Any], upload: dict[str, Any]) -> None:
-    start, end = timestamp(upload["started_at"]), timestamp(upload["completed_at"]) + 1
-    lines: list[str] = []
-    for line in payload.decode("utf-8").splitlines():
-        instant, separator, message = line.partition(" ")
-        if (
-            separator
-            and re.fullmatch(r"\d{4}-\d\d-\d\dT\S+Z", instant)
-            and start <= timestamp(instant) < end
-        ):
-            lines.append(message)
-    expected = (
-        "##[group]Run " + UPLOAD_ACTION,
-        "SHA256 digest of uploaded artifact is " + record["digest"].removeprefix("sha256:"),
-        f"Artifact {record['name']} successfully finalized. Artifact ID {record['id']}",
-    )
-    insist(
-        all(lines.count(message) == 1 for message in expected),
-        "authenticated producer log does not bind the pinned upload action, artifact ID and digest",
-    )
-    insist(
-        [lines.index(message) for message in expected] == sorted(lines.index(m) for m in expected),
-        "producer upload log sequence is inconsistent",
-    )
 
 
 @dataclass(frozen=True)

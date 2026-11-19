@@ -49,6 +49,16 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M772_HOSTED_EVIDENCE_SPLICES_UPLOAD_INVOCATIONS",
+        "scripts/github_evidence_upload.py",
+        "        if message.startswith(RUN_HEADER):",
+        "        if not invocations:",
+        (
+            "apps/api/tests/test_github_evidence_upload.py::test_artifact_download_rejects_cross_invocation_log_splicing",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M768_SOURCE_SECURITY_OMITS_MERGE_ONLY_CONTENT",
         "scripts/source_security_gitleaks.py",
         '        f"{commit} --full-history --diff-merges=first-parent",',

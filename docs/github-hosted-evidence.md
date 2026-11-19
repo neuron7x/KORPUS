@@ -84,6 +84,44 @@ are limited to 2 MiB, native JSON and logs to 16 MiB, outer ZIPs to 64 MiB, and
 each admission transport to 32 requests. Collections must be complete within the
 100-item bound. Ambiguous JSON and ZIP paths are rejected.
 
+### Upload invocation boundaries
+
+The producer job API reports whole-second step timestamps, while its log carries
+fractional timestamps. The existing inclusive-start/exclusive-end window remains
+`[started_at, completed_at + 1 second)`. Adjacent serial uploads can legitimately
+start in the same final second, so a unique action header across that entire
+window is not a valid identity predicate.
+
+The importer partitions the authenticated job log at every runner
+`##[group]Run ...` header, including foreign actions and shell commands. It selects
+exactly one invocation containing the expected artifact name and ID finalization.
+That invocation must contain the exact pinned upload action, expected SHA256 and
+expected finalization exactly once, in that order, with every selected event
+inside the original upload-step window. Duplicate selected finalizations and
+evidence split across invocations refuse admission. An adjacent artifact can
+have the same ZIP digest without owning the selected artifact ID.
+
+The runner's `##[endgroup]` closes its input/environment metadata before executing
+the action; it is not the upload invocation's end. This follows the pinned
+[runner metadata implementation](https://github.com/actions/runner/blob/d1eb12d4b115c301201de27d667284e1a80f2ab5/src/Runner.Worker/Handlers/Handler.cs)
+and [handler execution order](https://github.com/actions/runner/blob/d1eb12d4b115c301201de27d667284e1a80f2ab5/src/Runner.Worker/ActionRunner.cs).
+The boundary applies to the current serial producer steps in the authenticated
+CI workflows, not arbitrary background-step interleaving. The immutable
+[upload action](https://github.com/actions/upload-artifact/blob/cf430e030ddbb5b0abf93d22962f4752f3646cd9/src/shared/upload-artifact.ts),
+successful producer/step requirements, artifact metadata, archive digest/size
+checks, permissions and network budgets are unchanged.
+
+The regression excerpts come from
+[CI run 44616015657](https://github.com/neuron7x/KORPUS/actions/runs/44616015657).
+Its API upload passed the old binding predicate, while PostgreSQL, source-security
+and package upload windows each contained two pinned headers and one exact
+digest/finalization pair. For example, PostgreSQL finalized artifact `14576640600`
+at `21:21:10.0156215Z`; the next diagnostics upload began at `21:21:10.0404529Z`,
+inside the same rounded step window. The old predicate rejected all three;
+the new tests replay their exact relevant log lines and retain the API control.
+These saved excerpts establish parser regression behavior. They are not a live
+admission input or a successful hosted readback for the repaired revision.
+
 For a PR with an advanced base and all four producers, the normal single storage
 redirect per download consumes 26 requests:
 

@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2301,
-  "root_sha256": "a80c807f52f130256a30271477960f5a844e95436f6b3af10c57ca39b778c1e5",
+  "file_count": 2305,
+  "root_sha256": "08f5bf2e0ddf5b3d3c25fdf3b39b11efe2305a85bf9477c5a2af23f55765a337",
   "files": [
     {
       "path": ".dockerignore",
@@ -133,8 +133,8 @@
     },
     {
       "path": ".gitleaks-baseline.json",
-      "bytes": 37274,
-      "sha256": "605fb1f1823121075ceffc7ee1d352432f0cdf36a3f8470f7e3a9c41ddd2ab6a",
+      "bytes": 43904,
+      "sha256": "c460c0623fe7c8acde749f134fc90564c22c387623be803763cd15e9bd848f91",
       "mode": "0644"
     },
     {
@@ -2946,6 +2946,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/fixtures/github_upload_window_v7.json",
+      "bytes": 6135,
+      "sha256": "dd339dd8374affa34094d280e38db42ce7bcb550106b9f957f086f844b76f0e2",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/helpers.py",
       "bytes": 6152,
       "sha256": "4998c02f20b64facc9c41f1a512dc18bd11f1fe205344e8ae8fb1d61890b368e",
@@ -4605,6 +4611,12 @@
       "path": "apps/api/tests/test_github_evidence_transport.py",
       "bytes": 8651,
       "sha256": "20c341c48646667ba277310dcc7050176718666770a62224b43c6e0634134b2b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_github_evidence_upload.py",
+      "bytes": 7720,
+      "sha256": "a7499efc29aa49d9d3e4ba57783d1b18f8517e17c9f5431eef622e5d38453c33",
       "mode": "0644"
     },
     {
@@ -8785,8 +8797,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 795017,
-      "sha256": "42fb36114b0280d80ed9201098ffe6aed4aa49fe2d46b98502d0e41c35d7244e",
+      "bytes": 795403,
+      "sha256": "abf6669165a0ebdf616b9e18b6d482e3ebb84f09f6d48d227455fd17e57150e3",
       "mode": "0644"
     },
     {
@@ -9372,6 +9384,12 @@
       "mode": "0644"
     },
     {
+      "path": "docs/audit/gitleaks-merge-baseline-reconciliation-2026-11-19.md",
+      "bytes": 3835,
+      "sha256": "eeffb841156d3112be652312de3f2e0d38e61585f34171c316b8d22158b53291",
+      "mode": "0644"
+    },
+    {
       "path": "docs/audit/source/KORPUS_v4_AUDIT_ARTIFACTS_2026-08-01.sha256",
       "bytes": 674,
       "sha256": "6b5a55122f8ec316146b800e11b6d720c572dae9fd9e04fe4fdd929dd25d69b3",
@@ -9463,8 +9481,8 @@
     },
     {
       "path": "docs/github-hosted-evidence.md",
-      "bytes": 12025,
-      "sha256": "4656466c1700640ab1824a496e4198c92218eebf3e37460425a0d47925fd710d",
+      "bytes": 14662,
+      "sha256": "0735bb7d46a08c799f558591d0961208f2a7d1a24117f3ef67e9d4208aa8c534",
       "mode": "0644"
     },
     {
@@ -10465,8 +10483,8 @@
     },
     {
       "path": "docs/source-security-evidence.md",
-      "bytes": 20207,
-      "sha256": "793135540aa379e712fefe9b8c7c011f57ac895489e9bf0f6c1b69d9b8d4759c",
+      "bytes": 25482,
+      "sha256": "d47415674fc17f36ba60a26a6d4f1c35269276c2a20e48650682de83c89ce6a9",
       "mode": "0644"
     },
     {
@@ -12241,8 +12259,8 @@
     },
     {
       "path": "scripts/github_evidence_artifact.py",
-      "bytes": 6988,
-      "sha256": "370e30d04d035131b981d287cfb9afdf85c1626493b4b5c0c77a34ec1092ba9e",
+      "bytes": 5945,
+      "sha256": "ab74c3bed3b103c3b34f8b96a387bd3b30855899fbda2fef3995e8a4c61cd0b6",
       "mode": "0644"
     },
     {
@@ -12291,6 +12309,12 @@
       "path": "scripts/github_evidence_transport.py",
       "bytes": 4856,
       "sha256": "6516ee4896c66811e59de6b3ec52aaf1f06d75434adf64bf86f61617977b8601",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_evidence_upload.py",
+      "bytes": 1976,
+      "sha256": "16295d07e753f4a0d201579474627712ed9d88b1c518823c5d455824b685ddfe",
       "mode": "0644"
     },
     {
@@ -13129,8 +13153,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 354478,
-      "sha256": "3dd8b09861b37a1071ffb67f5042be902520aafa70dc26d88bce32fc3480d131",
+      "bytes": 354862,
+      "sha256": "b6e6c3081f87ed13f276ad9059d42ea4bc09e767fd4fc5c647156dbe94a47055",
       "mode": "0755"
     },
     {

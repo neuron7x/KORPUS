@@ -1,0 +1,92 @@
+{
+  "schema": "korpus.test.native-upload-window-excerpts.v1",
+  "provenance": {
+    "repository": "neuron7x/KORPUS",
+    "run_id": 44616015657,
+    "run_attempt": 1,
+    "head_sha": "cf25645806bf22639c01cf01c1a65ce775b8ab04",
+    "checkout_sha": "a879c4ca17ff387387dc7b18e1870057bb0fd08f",
+    "upload_action": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+    "selection": "Exact timestamped Run/name/endgroup/digest/finalization lines inside each original REST upload-step [started_at, completed_at + 1 second) window. These are regression excerpts, not live admission evidence.",
+    "readback_run_id": 44616015953,
+    "readback_job_id": 135884789101
+  },
+  "cases": [
+    {
+      "producer": "api-tests",
+      "job_id": 135891370191,
+      "source_url": "https://github.com/neuron7x/KORPUS/actions/runs/44616015657/job/135891370191",
+      "upload": {
+        "name": "Preserve API and coverage diagnostics",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-11-19T21:36:50Z",
+        "completed_at": "2026-11-19T21:36:51Z"
+      },
+      "artifact": {
+        "id": 14577455052,
+        "name": "api-coverage-diagnostics-1",
+        "digest": "sha256:26f67e81bbdb8340b5a89d636336421d1f53f5b6083d897802778b4fa0aaa16b"
+      },
+      "log_excerpt": "2026-11-19T21:36:50.0542127Z ##[group]Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9\n2026-11-19T21:36:50.0542773Z   name: api-coverage-diagnostics-1\n2026-11-19T21:36:50.0552352Z ##[endgroup]\n2026-11-19T21:36:50.9205182Z SHA256 digest of uploaded artifact is 26f67e81bbdb8340b5a89d636336421d1f53f5b6083d897802778b4fa0aaa16b\n2026-11-19T21:36:51.2646659Z Artifact api-coverage-diagnostics-1 successfully finalized. Artifact ID 14577455052\n"
+    },
+    {
+      "producer": "assurance / postgres-full-suite",
+      "job_id": 135884788526,
+      "source_url": "https://github.com/neuron7x/KORPUS/actions/runs/44616015657/job/135884788526",
+      "upload": {
+        "name": "Upload PostgreSQL coverage evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-11-19T21:21:08Z",
+        "completed_at": "2026-11-19T21:21:10Z"
+      },
+      "artifact": {
+        "id": 14576640600,
+        "name": "coverage-postgres-1",
+        "digest": "sha256:a14ca234c1729e4dc36e8d22edcac2c6f9831d15bd0bbc39ee463f52ce41fc54"
+      },
+      "log_excerpt": "2026-11-19T21:21:08.7851732Z ##[group]Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9\n2026-11-19T21:21:08.7852618Z   name: coverage-postgres-1\n2026-11-19T21:21:08.7865508Z ##[endgroup]\n2026-11-19T21:21:09.6402667Z SHA256 digest of uploaded artifact is a14ca234c1729e4dc36e8d22edcac2c6f9831d15bd0bbc39ee463f52ce41fc54\n2026-11-19T21:21:10.0156215Z Artifact coverage-postgres-1 successfully finalized. Artifact ID 14576640600\n2026-11-19T21:21:10.0404529Z ##[group]Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9\n2026-11-19T21:21:10.0405031Z   name: postgres-diagnostics-1\n2026-11-19T21:21:10.0412624Z ##[endgroup]\n2026-11-19T21:21:10.6075196Z SHA256 digest of uploaded artifact is 20489da6fb2e955effa1e1be434aea9cae30805754a7f44a9c3648c5db79705a\n2026-11-19T21:21:10.9588906Z Artifact postgres-diagnostics-1 successfully finalized. Artifact ID 14576960067\n"
+    },
+    {
+      "producer": "source-security",
+      "job_id": 135884788331,
+      "source_url": "https://github.com/neuron7x/KORPUS/actions/runs/44616015657/job/135884788331",
+      "upload": {
+        "name": "Upload source security evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-11-19T21:18:16Z",
+        "completed_at": "2026-11-19T21:18:18Z"
+      },
+      "artifact": {
+        "id": 14575077249,
+        "name": "source-security-evidence-1",
+        "digest": "sha256:f56ec23316e67006bbc9ca6218870db1505309866ec0225c7fa5cab6a7442fc8"
+      },
+      "log_excerpt": "2026-11-19T21:18:16.9311970Z ##[group]Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9\n2026-11-19T21:18:16.9312645Z   name: source-security-evidence-1\n2026-11-19T21:18:16.9322760Z ##[endgroup]\n2026-11-19T21:18:18.3965272Z SHA256 digest of uploaded artifact is f56ec23316e67006bbc9ca6218870db1505309866ec0225c7fa5cab6a7442fc8\n2026-11-19T21:18:18.9378401Z Artifact source-security-evidence-1 successfully finalized. Artifact ID 14575077249\n2026-11-19T21:18:18.9493033Z ##[group]Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9\n2026-11-19T21:18:18.9493631Z   name: source-security-diagnostics-1\n2026-11-19T21:18:18.9502565Z ##[endgroup]\n"
+    },
+    {
+      "producer": "canonical-package",
+      "job_id": 135900659388,
+      "source_url": "https://github.com/neuron7x/KORPUS/actions/runs/44616015657/job/135900659388",
+      "upload": {
+        "name": "Upload verified source package",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-11-19T21:38:21Z",
+        "completed_at": "2026-11-19T21:38:24Z"
+      },
+      "artifact": {
+        "id": 14575668368,
+        "name": "canonical-package-1",
+        "digest": "sha256:202ee648a2801a16181d08bcf26fd1261c7a374771182ada58e7b6f2525c63b2"
+      },
+      "log_excerpt": "2026-11-19T21:38:21.6323145Z ##[group]Run python - <<'PY'\n2026-11-19T21:38:21.6369236Z ##[endgroup]\n2026-11-19T21:38:21.7953654Z ##[group]Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9\n2026-11-19T21:38:21.7954148Z   name: canonical-package-1\n2026-11-19T21:38:21.7962228Z ##[endgroup]\n2026-11-19T21:38:24.3476730Z SHA256 digest of uploaded artifact is 202ee648a2801a16181d08bcf26fd1261c7a374771182ada58e7b6f2525c63b2\n2026-11-19T21:38:24.8735723Z Artifact canonical-package-1 successfully finalized. Artifact ID 14575668368\n2026-11-19T21:38:24.8865380Z ##[group]Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9\n2026-11-19T21:38:24.8865969Z   name: package-diagnostics-1\n2026-11-19T21:38:24.8873841Z ##[endgroup]\n"
+    }
+  ]
+}

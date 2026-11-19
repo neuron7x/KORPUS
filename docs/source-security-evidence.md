@@ -300,7 +300,93 @@ cannot be admitted. No worst-case completion guarantee is claimed.
 Regression tests exercise a modeled Docker daemon with a real worker process,
 successful cleanup, unknown ownership, failed queries, missing creation identity,
 surviving removal, and coherently rehashed hosted receipts with missing cleanup.
-They do not establish native Docker execution in this local environment. Hosted
-verification of this revision remains pending; no successful Gitleaks measurement,
-complete evidence admission, or production authority is inferred from these tests.
+They do not establish native Docker execution in this local environment. The
+first hosted execution of the corrected configuration failed, as recorded below;
+the local controls supply no successful scan, complete admission or production
+authority.
+
+## Native corrected-scope result: original budget still unmet
+
+Head `0e39b07bb9e4ad5d6d90dfcc3500a64d6f1a48ff`, tree
+`99223f296f961d454778b569ebfb42d2f2879eb6`, ran as merge checkout
+`fa7009f2ac833e616470da807ab45e35b9c20c95` in
+[CI 44621210256/1, source-security job 135903048216](https://github.com/neuron7x/KORPUS/actions/runs/44621210256/job/135903048216).
+Gitleaks returned **exit 1 after 230.407176 seconds**, with a native context
+deadline and a **partial** 1,190-commit / 597,634,761-byte scan. The original
+230-second native and 240-second parent limits were configured. Six findings
+were retained. This is a failed qualification, including if the remaining
+software checks succeed.
+
+All four other scanners returned zero. The three image pulls completed in
+13.662595 seconds total. All three container records confirmed natural absence;
+no forced cleanup after a native parent timeout occurred. Six native output
+hashes, the 29-package scanner-toolchain census and the source snapshot were
+independently verified. The snapshot contains 1,937 files with SHA256
+`6b7df8e30203f352fc3784fa0252b7dee84b7ab9758180fe2aca134ba42ba290`.
+
+| Original artifact | GitHub SHA256 |
+| --- | --- |
+| Evidence 14577755650 | `31aefdfa351ded59db54995eed699de80c84ea1af2af1933374b8306ca0e3fa1` |
+| Diagnostics 14577905969 | `c024a34aad9b0bc3e84443407195c4900b0d739ac98aeef616e9f7f00671a66e` |
+| Scanner toolchain 14577831159 | `292546164484e9c9ab923b7591dc38b9696bc9ae7b3d64948d5af466bd768a11` |
+
+Each original ZIP matched its authenticated size, digest and CRCs. The finalized
+CPU profile is 65,081 bytes, SHA256
+`b3e685681e326d01d3b934cd68f1ca2767b48eef143aadcda3d43cfe57781455`.
+
+### Measured CPU work
+
+The CPU profile records 230.199646515 seconds of duration and 448.15 sampled CPU
+seconds, approximately 1.947 CPU-seconds per elapsed second. Stacks containing
+`regexp.(*Regexp).doExecute` account for 439.36 CPU seconds, or 98.039% of the
+sampled CPU total. Rule matching accounts for 371.05 cumulative CPU seconds;
+decoder processing accounts for 66.52. These cumulative stack measurements are
+not disjoint categories to sum.
+
+This observation identifies regular-expression work as the dominant cost in this
+partial run. It does not measure the complete history's CPU requirement, prove
+host throttling, or isolate the effect of `GOMAXPROCS`: the corrected merge stream
+also changed the workload. The profile covers the Go scanner process and excludes
+Git subprocess CPU. It supplies no evidence for a material gain from arbitrary
+garbage-collector tuning and no authority to raise the preserved time or resource
+limits.
+
+### Six reports concern already-baselined file bytes at a merge
+
+All six `generic-api-key` records refer to historical merge commit
+`81bbfaa3ac63ae626476989135f5d17ee3b73654`. Authenticated Git tree objects show
+that their entire file blobs equal versions already represented in the unchanged
+16-entry baseline:
+
+| Path | Reported lines | Existing baseline-associated commit | Identical Git blob |
+| --- | --- | --- | --- |
+| `docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.csv` | 62, 72 | `8282281cec9b58deb029b0123fd9b4e5f01c0cd1` | `9c9481223b40eee9c1595ef1cab9c5426aaa16d7` |
+| `docs/audit/closure/KORPUS_v5_REMAINING_DEBT.csv` | 45, 52 | `8282281cec9b58deb029b0123fd9b4e5f01c0cd1` | `c718ef0f3e449850f01b57cf238bc9a714ebed8c` |
+| `docs/audit/source/KORPUS_v4_REMEDIATION_BACKLOG_2026-08-01.csv` | 62, 72 | `0c04b9efef53f988056c4c9e2ed96afab4798bf9` | `66444c3fff19ee6166bb0113f60b216ddd8d2c5f` |
+
+Each report has a baseline counterpart with matching rule, path, line/column
+coordinates and redacted match. Whole-file Git blob equality establishes the
+material comparison; equality of redacted secret fields is not used as proof.
+The pinned [Gitleaks baseline predicate](https://github.com/gitleaks/gitleaks/blob/83d9cd684c87d95d656c1458ef04895a7f1cbd8e/detect/baseline.go)
+compares commit and authorship metadata and explicitly omits the displayed
+fingerprint from that comparison. New merge attribution therefore causes these
+existing bytes to be reported again.
+
+These six reports establish no new file material. Redacted output alone does not
+establish credential validity, fixture neutrality, or permission to broaden a
+suppression. The baseline used by that native run had 16 records and SHA256
+`605fb1f1823121075ceffc7ee1d352432f0cdf36a3f8470f7e3a9c41ddd2ab6a`.
+No baseline, rule, ignore or history change was part of that measured revision.
+Partial findings cannot be treated as the complete finding census.
+
+The subsequent [six-record reconciliation proposal](audit/gitleaks-merge-baseline-reconciliation-2026-11-19.md)
+uses the authenticated identical blobs and the historical owner's explicit
+audit-false-positive dispositions. It appends only the six complete redacted
+merge-attributed records, preserves all 16 existing records, and records the
+resulting 22-entry baseline SHA256
+`c460c0623fe7c8acde749f134fc90564c22c387623be803763cd15e9bd848f91`.
+This is a narrowly scoped draft source change for independent review, not a
+path-wide exception or a complete-scan result. Pinned rules, matcher semantics,
+ignore file, history and the original timing/resource limits remain unchanged.
+The original native budget failure remains unresolved.
 
