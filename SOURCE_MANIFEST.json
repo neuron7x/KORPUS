@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2229,
-  "root_sha256": "eb5af72f7528d5ff950d2c17436a39169bfdfb9c3ee5677bca68f8037aab391f",
+  "root_sha256": "8533ac33c491e9f8e1f445c7c2bdde03225ae9a24b07cccc1edb19401ff52033",
   "files": [
     {
       "path": ".dockerignore",
@@ -8522,7 +8522,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "f94d3f921ce945be8f77da3623851139cb744dbe5566606216ca54371f9f2074",
+      "sha256": "5445d3ad12168be24ff5827573829e862ef1a34b93e390f51f3c18cafd0f3655",
       "mode": "0644"
     },
     {
