@@ -7,6 +7,8 @@ from pathlib import Path
 
 from scripts.manifest_lib.integrity import manifest_root
 
+from .package_fixtures import package_files, write_package
+
 
 def _module(root: Path):
     script = root / "scripts" / "verify_package.py"
@@ -18,40 +20,9 @@ def _module(root: Path):
 
 
 def _write_zip(path: Path, *, stored_mode: int) -> None:
-    manifest = {
-        "schema": "korpus.distribution-manifest.v2",
-        "kind": "distribution",
-        "files": [
-            {
-                "path": "scripts/run.sh",
-                "bytes": 17,
-                "sha256": "37f5ca4b67635e260d9c74c2a932608b654c3c368506735b7d6696c67a43ffb7",
-                "mode": "0755",
-            }
-        ],
-    }
-    # sha256 is for the exact bytes below.
-    payload = b"#!/bin/sh\nexit 0\n"
-    import hashlib
-
-    manifest["files"][0]["bytes"] = len(payload)
-    manifest["files"][0]["sha256"] = hashlib.sha256(payload).hexdigest()
-    records = manifest["files"]
-    manifest.update(
-        manifest_self_excluded=True,
-        file_count=len(records),
-        root_sha256=manifest_root(records),
-    )
-    with zipfile.ZipFile(path, "w") as zf:
-        root = "KORPUS/"
-        info = zipfile.ZipInfo(root + "scripts/run.sh")
-        info.create_system = 3
-        info.external_attr = (0o100000 | stored_mode) << 16
-        zf.writestr(info, payload)
-        mi = zipfile.ZipInfo(root + "DISTRIBUTION_MANIFEST.json")
-        mi.create_system = 3
-        mi.external_attr = (0o100644) << 16
-        zf.writestr(mi, json.dumps(manifest).encode())
+    modes = {"scripts/run.sh": 0o755}
+    files = package_files({"scripts/run.sh": b"#!/bin/sh\nexit 0\n"}, modes=modes)
+    write_package(path, files, modes=modes, stored_modes={"scripts/run.sh": stored_mode})
 
 
 def test_package_verifier_accepts_preserved_executable_mode(tmp_path: Path) -> None:
