@@ -69,6 +69,166 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M745_HOSTED_EVIDENCE_ACCEPTS_FOREIGN_OWNER_ID",
+        "scripts/github_evidence_run.py",
+        '    exact_integer(owner.get("id"), OWNER_ID, "repository owner numeric ID")',
+        '    exact_integer(owner.get("id"), owner["id"], "repository owner numeric ID")',
+        (
+            "apps/api/tests/test_github_evidence_receipts.py::test_authenticated_run_fields_cannot_be_replaced_by_candidate_identity",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M746_HOSTED_EVIDENCE_ACCEPTS_STALE_ATTEMPT",
+        "scripts/github_evidence_run.py",
+        '    exact_integer(record.get("run_attempt"), selected.attempt, "run attempt")',
+        '    exact_integer(record.get("run_attempt"), record["run_attempt"], "run attempt")',
+        (
+            "apps/api/tests/test_github_evidence_receipts.py::test_exact_attempt_response_is_checked_separately_from_latest",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M747_HOSTED_EVIDENCE_ACCEPTS_FAILED_PRODUCER",
+        "scripts/github_evidence_run.py",
+        "    successful(job, producer.job)",
+        "    insist(bool(job), producer.job)",
+        (
+            "apps/api/tests/test_github_evidence_receipts.py::test_named_producer_must_belong_to_successful_exact_hosted_attempt",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M748_HOSTED_EVIDENCE_ACCEPTS_REPLACED_ZIP_BYTES",
+        "scripts/github_evidence_artifact.py",
+        '    insist("sha256:" + checksum == record["digest"], "downloaded artifact SHA256 mismatch")',
+        '    insist(len(checksum) == 64, "downloaded artifact SHA256 mismatch")',
+        (
+            "apps/api/tests/test_github_evidence_receipts.py::test_downloaded_zip_bytes_must_match_authenticated_digest",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M749_HOSTED_EVIDENCE_ACCEPTS_FOREIGN_NATIVE_RUN",
+        "scripts/coverage_receipt_contract.py",
+        '        receipt.get("run") == subject.run,',
+        '        isinstance(receipt.get("run"), dict),',
+        (
+            "apps/api/tests/test_github_coverage_admission.py::test_inner_execution_cannot_borrow_another_run",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M750_HOSTED_EVIDENCE_ACCEPTS_FORGED_NATIVE_REPORT",
+        "scripts/github_coverage_admission.py",
+        "        semantic_report(reported) == semantic_report(regenerated),",
+        "        bool(semantic_report(regenerated)),",
+        (
+            "apps/api/tests/test_github_coverage_admission.py::test_native_data_refutes_report_with_coherent_receipt_and_zip_hashes",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M751_HOSTED_EVIDENCE_ACCEPTS_WRONG_PR_MERGE_PARENTS",
+        "scripts/github_evidence_run.py",
+        '        and [parent.get("sha") for parent in parents] == [base.get("sha"), head.get("sha")],',
+        '        and [parent.get("sha") for parent in parents] == [parent.get("sha") for parent in parents],',
+        (
+            "apps/api/tests/test_github_evidence_pr_mapping.py::test_same_tree_does_not_substitute_for_exact_pr_merge_parents",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M752_HOSTED_EVIDENCE_SKIPS_SECURITY_SUBJECT",
+        "scripts/github_evidence_import.py",
+        "    verified_security(run, security)",
+        "    len(security.members)",
+        (
+            "apps/api/tests/test_github_evidence_full_admission.py::test_coherent_security_archive_cannot_rebind_its_source_or_verdict",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M737_SOURCE_SECURITY_ACCEPTS_GITLEAKS_FINDINGS",
+        "scripts/source_security_contract.py",
+        '    require(parsed["gitleaks.json"] == [], "Gitleaks reports findings or invalid output")',
+        '    require(True, "Gitleaks reports findings or invalid output")',
+        (
+            "apps/api/tests/test_source_security_contract.py::test_gitleaks_requires_native_empty_findings",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M738_SOURCE_SECURITY_ACCEPTS_INCOMPLETE_LOCK_AUDIT",
+        "scripts/source_security_contract.py",
+        '    require(actual == locked_packages(root, kind), f"pip-audit {kind} lock census differs")',
+        '    require(True, f"pip-audit {kind} lock census differs")',
+        (
+            "apps/api/tests/test_source_security_contract.py::test_audit_census_and_findings_are_not_replaceable_by_exit_zero",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M739_SOURCE_SECURITY_ACCEPTS_FOREIGN_LOCK_SBOM",
+        "scripts/source_security_contract.py",
+        '        json.dumps(parsed["lock-sbom.cdx.json"], sort_keys=True)\n        == json.dumps(build_lock_sbom(root), sort_keys=True),',
+        "        True,",
+        (
+            "apps/api/tests/test_source_security_contract.py::test_lock_sbom_is_exact_not_an_arbitrary_cyclonedx_document",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M740_SOURCE_SECURITY_ACCEPTS_FAILED_SCANNER",
+        "scripts/run_source_security.py",
+        '            type(item["exit_code"]) is int and item["exit_code"] == 0',
+        "            True",
+        (
+            "apps/api/tests/test_source_security_producer.py::test_failed_or_noninteger_execution_cannot_be_pass_with_clean_outputs",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M741_SOURCE_SECURITY_IGNORES_SOURCE_CHANGE",
+        "scripts/run_source_security.py",
+        '    receipt["source_after_sha256"] = verify_source_after(root, before, files)',
+        '    receipt["source_after_sha256"] = before["source_before"]["sha256"]',
+        (
+            "apps/api/tests/test_source_security_producer.py::test_source_change_missing_output_or_native_finding_refuses_pass",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M742_SOURCE_SECURITY_IGNORES_FROZEN_SCAN_INPUT_CHANGE",
+        "scripts/run_source_security.py",
+        "    verify_frozen_source(source, files)",
+        '    require(source.is_dir(), "frozen source missing")',
+        (
+            "apps/api/tests/test_source_security_producer.py::test_source_change_missing_output_or_native_finding_refuses_pass",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M743_SOURCE_SECURITY_ACCEPTS_UNCHECKED_TRIVY_RESULTS",
+        "scripts/source_security_contract.py",
+        '    _trivy(parsed["trivy.json"])',
+        '    _object(parsed["trivy.json"], "Trivy")',
+        (
+            "apps/api/tests/test_source_security_contract.py::test_trivy_requires_actual_passing_configuration_checks",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M744_SOURCE_SECURITY_ACCEPTS_FOREIGN_DISCOVERY",
+        "scripts/source_security_contract.py",
+        '    _tree_sbom(parsed["tree-sbom.cdx.json"])',
+        '    _object(parsed["tree-sbom.cdx.json"], "Syft")',
+        (
+            "apps/api/tests/test_source_security_contract.py::test_tree_sbom_must_be_native_bound_discovery",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M734_MIXED_ROOT_ALIASES_BYPASS_WRAPPER_POLICY",
         "scripts/distribution_runtime_policy.py",
         '    return ["archive root aliases forbidden"] if len(keys) != len(set(keys)) else []',

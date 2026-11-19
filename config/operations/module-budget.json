@@ -7200,6 +7200,195 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Issue #105 / #6 / #12: initial measured ceiling for shared packaged-source and research-evidence verification; existing module ceilings unchanged."
+    },
+    "scripts/run_source_security.py": {
+      "lines": 188,
+      "proof_lines": 0,
+      "max_complexity": 5,
+      "max_function_lines": 38,
+      "max_function_args": 5,
+      "max_nesting": 2,
+      "reason": "2026-11-19 / #102 / initial measured ceilings for provenance-bound native source scanner producer; no existing module ceiling raised."
+    },
+    "scripts/source_security_commands.py": {
+      "lines": 137,
+      "proof_lines": 0,
+      "max_complexity": 2,
+      "max_function_lines": 57,
+      "max_function_args": 6,
+      "max_nesting": 1,
+      "reason": "2026-11-19 / #102 / initial measured ceilings for provenance-bound native source scanner producer; no existing module ceiling raised."
+    },
+    "scripts/source_security_contract.py": {
+      "lines": 271,
+      "proof_lines": 0,
+      "max_complexity": 7,
+      "max_function_lines": 33,
+      "max_function_args": 3,
+      "max_nesting": 1,
+      "reason": "2026-11-19 / #102 / initial measured ceilings for provenance-bound native source scanner producer; no existing module ceiling raised."
+    },
+    "scripts/source_security_lock.py": {
+      "lines": 83,
+      "proof_lines": 0,
+      "max_complexity": 13,
+      "max_function_lines": 25,
+      "max_function_args": 2,
+      "max_nesting": 3,
+      "reason": "2026-11-19 / #102 / initial measured ceilings for provenance-bound native source scanner producer; no existing module ceiling raised."
+    },
+    "scripts/source_security_source.py": {
+      "lines": 128,
+      "proof_lines": 0,
+      "max_complexity": 9,
+      "max_function_lines": 28,
+      "max_function_args": 3,
+      "max_nesting": 2,
+      "reason": "2026-11-19 / #102 / initial measured ceilings for provenance-bound native source scanner producer; no existing module ceiling raised."
+    },
+    "scripts/validate_scanner_toolchain.py": {
+      "lines": 43,
+      "proof_lines": 0,
+      "max_complexity": 2,
+      "max_function_lines": 22,
+      "max_function_args": 0,
+      "max_nesting": 1,
+      "reason": "2026-11-19 / #102 / initial measured ceilings for fatal native scanner-toolchain audit census validation; no existing ceilings raised."
+    },
+    "scripts/await_github_evidence.py": {
+      "lines": 45,
+      "max_complexity": 3,
+      "max_function_args": 0,
+      "max_function_lines": 21,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/coverage_receipt_contract.py": {
+      "lines": 86,
+      "max_complexity": 3,
+      "max_function_args": 3,
+      "max_function_lines": 29,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/github_coverage_admission.py": {
+      "lines": 110,
+      "max_complexity": 5,
+      "max_function_args": 5,
+      "max_function_lines": 35,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/github_evidence_artifact.py": {
+      "lines": 183,
+      "max_complexity": 7,
+      "max_function_args": 4,
+      "max_function_lines": 27,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/github_evidence_import.py": {
+      "lines": 64,
+      "max_complexity": 5,
+      "max_function_args": 4,
+      "max_function_lines": 21,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/github_evidence_publication.py": {
+      "lines": 36,
+      "max_complexity": 5,
+      "max_function_args": 2,
+      "max_function_lines": 21,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/github_evidence_result.py": {
+      "lines": 152,
+      "max_complexity": 5,
+      "max_function_args": 3,
+      "max_function_lines": 34,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/github_evidence_run.py": {
+      "lines": 257,
+      "max_complexity": 8,
+      "max_function_args": 5,
+      "max_function_lines": 43,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/github_evidence_source.py": {
+      "lines": 106,
+      "max_complexity": 7,
+      "max_function_args": 2,
+      "max_function_lines": 36,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/github_evidence_transport.py": {
+      "lines": 127,
+      "max_complexity": 5,
+      "max_function_args": 4,
+      "max_function_lines": 24,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/github_evidence_wait.py": {
+      "lines": 103,
+      "max_complexity": 8,
+      "max_function_args": 4,
+      "max_function_lines": 23,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/github_package_admission.py": {
+      "lines": 29,
+      "max_complexity": 2,
+      "max_function_args": 1,
+      "max_function_lines": 16,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/github_security_admission.py": {
+      "lines": 105,
+      "max_complexity": 11,
+      "max_function_args": 2,
+      "max_function_lines": 43,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/github_source_identity.py": {
+      "lines": 54,
+      "max_complexity": 6,
+      "max_function_args": 2,
+      "max_function_lines": 12,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
+    },
+    "scripts/import_github_evidence.py": {
+      "lines": 51,
+      "max_complexity": 3,
+      "max_function_args": 2,
+      "max_function_lines": 20,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured ceilings for issue #102 live hosted evidence admission; existing source and report ratchets remain unchanged."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

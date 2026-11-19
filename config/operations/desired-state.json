@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v0.9.7",
-  "root_sha256": "6aa91a873f565b755528007a3343c5cb4604aaeea519ae911fd44179a0ec6db5",
+  "root_sha256": "60c6eabe102825b571a1909232133dfefe0e9736e41359b00db959dd3ff5011e",
   "records": [
     {
       "path": ".github/dependabot.yml",
@@ -15,8 +15,8 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "c30aa14f186c1e7f9eecf58f2cc3d8c578573f2d32387fbde6a3d756de3f7bdf",
-      "bytes": 12818
+      "sha256": "dfdb36d89989a665de6b86da38f0d7f63d2f4512b0f116bc761f2355e960b9ec",
+      "bytes": 16122
     },
     {
       "path": ".github/workflows/dependency-review.yml",
@@ -42,6 +42,11 @@
       "path": ".github/workflows/gcp-production.yml",
       "sha256": "268587e13d704bcd50c2c85dfe711ea282fad936f4a1840f3312ad121a9b1dfa",
       "bytes": 26468
+    },
+    {
+      "path": ".github/workflows/hosted-evidence.yml",
+      "sha256": "c727cb38b9a4e055efffbac4f494f76821193116e013fd1648c42b56371991c6",
+      "bytes": 1495
     },
     {
       "path": ".github/workflows/pec-production-evidence.yml",
@@ -75,8 +80,8 @@
     },
     {
       "path": "apps/api/requirements.runtime.lock",
-      "sha256": "c580052d627a63b7d6d9783a0d583498e02da4c80d0e08dfa09f04eeb4f81d3c",
-      "bytes": 7691
+      "sha256": "2f13e583f691366995297813194d644a735eb011b80fc8d5296bb2e28f5443d9",
+      "bytes": 8094
     },
     {
       "path": "apps/web/Dockerfile",
