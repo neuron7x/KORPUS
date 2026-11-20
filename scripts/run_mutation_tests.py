@@ -79,6 +79,66 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M753_PUBLISHED_COMPETENCY_STATE_NOT_GUARDED",
+        "apps/api/src/korpus/infrastructure/learning_competency_schema.py",
+        "AND state IN ('published', 'invalidated', 'retired')",
+        "AND state IN ('never_published')",
+        (
+            "apps/api/tests/test_learning_competency_integrity.py::"
+            "test_published_competency_edges_refuse_application_dml[sqlite-insert-published]",
+        ),
+    ),
+    Mutant(
+        "M754_COMPETENCY_UPDATE_IGNORES_OLD_PARENT",
+        "apps/api/src/korpus/infrastructure/learning_competency_schema.py",
+        '        ("UPDATE", "OLD.course_version_id, NEW.course_version_id"),',
+        '        ("UPDATE", "NEW.course_version_id"),',
+        (
+            "apps/api/tests/test_learning_competency_integrity.py::"
+            "test_published_competency_edges_refuse_application_dml[sqlite-move-out-published]",
+        ),
+    ),
+    Mutant(
+        "M755_COMPETENCY_UPDATE_IGNORES_NEW_PARENT",
+        "apps/api/src/korpus/infrastructure/learning_competency_schema.py",
+        '        ("UPDATE", "OLD.course_version_id, NEW.course_version_id"),',
+        '        ("UPDATE", "OLD.course_version_id"),',
+        (
+            "apps/api/tests/test_learning_competency_integrity.py::"
+            "test_published_competency_edges_refuse_application_dml[sqlite-move-in-published]",
+        ),
+    ),
+    Mutant(
+        "M756_COMPETENCY_DELETE_IGNORES_PARENT_STATE",
+        "apps/api/src/korpus/infrastructure/learning_competency_schema.py",
+        '        ("DELETE", "OLD.course_version_id"),',
+        '        ("DELETE", "NULL"),',
+        (
+            "apps/api/tests/test_learning_competency_integrity.py::"
+            "test_published_competency_edges_refuse_application_dml[sqlite-delete-published]",
+        ),
+    ),
+    Mutant(
+        "M735_LEARNING_DOCUMENT_SCOPE_CHECK_REMOVED",
+        "apps/api/src/korpus/infrastructure/learning_source_access.py",
+        "            self._authorize_documents(connection, states, identity)",
+        "            pass",
+        (
+            "apps/api/tests/test_learning_source_authorization.py::"
+            "test_learning_source_substitution_outside_identity_scope_is_denied",
+        ),
+    ),
+    Mutant(
+        "M736_LEARNING_AUTHORIZATION_LOSS_INVALIDATES_HISTORY",
+        "apps/api/src/korpus/infrastructure/learning_source_access.py",
+        '        if visible != requested:\n            raise AuthorizationError("learning source is outside the authorized scope")',
+        "        if visible != requested:\n            states.clear()",
+        (
+            "apps/api/tests/test_learning_source_authorization.py::"
+            "test_learning_hidden_source_does_not_invalidate_publication",
+        ),
+    ),
+    Mutant(
         "M734_MIXED_ROOT_ALIASES_BYPASS_WRAPPER_POLICY",
         "scripts/distribution_runtime_policy.py",
         '    return ["archive root aliases forbidden"] if len(keys) != len(set(keys)) else []',
@@ -1258,7 +1318,7 @@ MUTANTS = (
     Mutant(
         "M94_SCHEMA_REVISION_PIN_UNCHECKED",
         "apps/api/src/korpus/infrastructure/schema.py",
-        'SCHEMA_REVISION = "0025_sealed_provenance_integrity"',
+        'SCHEMA_REVISION = "0027_learning_competency_integrity"',
         'SCHEMA_REVISION = "0016_learning_course_graph"',
         (
             "apps/api/tests/test_schema_revision_pin.py::test_the_code_pins_the_head_of_the_migration_graph",

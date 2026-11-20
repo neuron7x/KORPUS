@@ -71,7 +71,7 @@ def run_migrations_online() -> None:
                     connection,
                     destination,
                     BOOTSTRAP_HEAD,
-                    frozenset((*proof.chain, BOOTSTRAP_HEAD)),
+                    frozenset(source.revision for source in proof.sources),
                     proof,
                 )
                 context.script.revision_map = RevisionMap(

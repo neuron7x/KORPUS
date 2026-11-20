@@ -8,8 +8,6 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from contextlib import contextmanager
-from dataclasses import replace
-from pathlib import Path
 
 from sqlalchemy import Connection, text
 
@@ -17,35 +15,28 @@ from korpus.infrastructure.corpus_snapshot_guards import require_guards
 from korpus.infrastructure.migration_baseline_proof import (
     BaselineProof,
     proven_baseline_forward,
-    verify_baseline,
-    verify_passive_revision,
+)
+from korpus.infrastructure.migration_bootstrap_history import (
+    BOOTSTRAP_HEAD as BOOTSTRAP_HEAD,
+)
+from korpus.infrastructure.migration_bootstrap_history import (
+    BOOTSTRAP_REVISIONS,
+)
+from korpus.infrastructure.migration_bootstrap_history import (
+    MigrationAdmissionError as MigrationAdmissionError,
+)
+from korpus.infrastructure.migration_bootstrap_history import (
+    preflight_source as preflight_source,
 )
 
-BOOTSTRAP_HEAD = "0025_sealed_provenance_integrity"
 _MIGRATION_LOCK = 0x4B4F525055534D47
-
-
-class MigrationAdmissionError(RuntimeError):
-    """No observed state proves this migration is admissible."""
-
-
-def preflight_source(source_root: Path) -> BaselineProof:
-    """Reject unknown source before Alembic imports executable revision modules."""
-    baseline = verify_baseline(source_root)
-    files = list((source_root / "apps/api/migrations/versions").glob("*.py"))
-    actual = {str(path.relative_to(source_root)) for path in files}
-    expected = baseline.files | {f"apps/api/migrations/versions/{BOOTSTRAP_HEAD}.py"}
-    if any(path.is_symlink() for path in files) or actual != expected:
-        raise MigrationAdmissionError("DENIED_SOURCE_HISTORY_UNPROVEN")
-    head = verify_passive_revision(source_root, BOOTSTRAP_HEAD, baseline.chain[-1])
-    return replace(baseline, sources=(*baseline.sources, head))
 
 
 def resolve_proven_target(destination: object, baseline: BaselineProof) -> str:
     """Resolve only raw canonical targets; Alembic resolution imports revision modules."""
     if destination == "head":
         return BOOTSTRAP_HEAD
-    if isinstance(destination, str) and destination in (*baseline.chain, BOOTSTRAP_HEAD):
+    if isinstance(destination, str) and destination in (*baseline.chain, *BOOTSTRAP_REVISIONS):
         return destination
     raise MigrationAdmissionError("DENIED_MIGRATION_TARGET_UNPROVEN")
 

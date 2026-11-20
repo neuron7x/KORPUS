@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2237,
-  "root_sha256": "92aece25b85969ebbd54f1d955f67a63f6745ee726cac1409ed50f171a87b789",
+  "file_count": 2253,
+  "root_sha256": "6e6b9ff881785d6563c6cc87b3a154eae93634e3c2b589ecb874a07d6f34b26c",
   "files": [
     {
       "path": ".dockerignore",
@@ -43,8 +43,8 @@
     },
     {
       "path": ".github/workflows/assurance.yml",
-      "bytes": 6492,
-      "sha256": "6b535576e89f117d44cf6187e5f08241603c614b4670a496aef31cb6c9447baf",
+      "bytes": 6588,
+      "sha256": "54bb775cb36324781bdbe81992fc4eb738e58f5bc74bab95b368627bd98939ba",
       "mode": "0644"
     },
     {
@@ -559,8 +559,8 @@
     },
     {
       "path": "apps/api/migrations/env.py",
-      "bytes": 2876,
-      "sha256": "7f9c4dba1d7d156791be9db7384d24546178b11bfdf57bdcb698f89c84019a5e",
+      "bytes": 2889,
+      "sha256": "525460ea9cf11c2dd5b44d3f4f588a489ef8a33167cba696ba5602780b09ab6c",
       "mode": "0644"
     },
     {
@@ -717,6 +717,18 @@
       "path": "apps/api/migrations/versions/0025_sealed_provenance_integrity.py",
       "bytes": 7830,
       "sha256": "30353688780d988fc0ecba2556a190dbc4284a9176b9c25361ab79fd6fab52f1",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/migrations/versions/0026_learning_history_integrity.py",
+      "bytes": 6379,
+      "sha256": "b20ddc449238e3934d7c475f50fc68ccde208ef83bc55596e0736cd45fbc2dfd",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/migrations/versions/0027_learning_competency_integrity.py",
+      "bytes": 1647,
+      "sha256": "7508fa60b40104ca5e16ba5a13dcc78ee03a4e824cdcfe9ad1a2b04a9eaf7b0e",
       "mode": "0644"
     },
     {
@@ -2382,21 +2394,45 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/src/korpus/infrastructure/learning_competency_schema.py",
+      "bytes": 3089,
+      "sha256": "b39bd66c8900d22fd27d4c8e0c61b0dadd30737d734abe8a5977cfb67effd9ff",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/learning_history_concurrency.py",
+      "bytes": 3305,
+      "sha256": "8d04bc4baf2c73431fb175d1c94d72f4c886c540784965ee25fce18b62d46fe4",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/src/korpus/infrastructure/learning_progress_schema.py",
       "bytes": 963,
       "sha256": "53febb1fead174bcad1d7713e6bcd333d947de6a7ea2ef8e6724fd0e49daec70",
       "mode": "0644"
     },
     {
+      "path": "apps/api/src/korpus/infrastructure/learning_publication.py",
+      "bytes": 3283,
+      "sha256": "c03e448baaef7f40f760322e0b9c85fc904a5847415cfd25b9e546fa1009d18c",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/src/korpus/infrastructure/learning_repository.py",
-      "bytes": 13143,
-      "sha256": "1837e3e5bfc1e2781ccdc9abe7c35a31f812f5440243151b9e132d7c5d8eeb85",
+      "bytes": 11583,
+      "sha256": "8b296269f610049b7ea049f48ec42403a47ac541588c479d6757152e55f54890",
       "mode": "0644"
     },
     {
       "path": "apps/api/src/korpus/infrastructure/learning_schema.py",
-      "bytes": 9479,
-      "sha256": "5dda0465fea73f591879345b0454978ea30757003dbf9210db6a1e4e1ac27ea0",
+      "bytes": 9002,
+      "sha256": "df15f5b6d7ece1b2a4008184cc3f8840bcbeca99c412ebb3bc6afb761c3754e6",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/learning_source_access.py",
+      "bytes": 2637,
+      "sha256": "ea8a8efae939830986eee8cf9ad17634d83d78b09b84d51df9281a304ac5dc76",
       "mode": "0644"
     },
     {
@@ -2431,14 +2467,20 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/migration_admission.py",
-      "bytes": 6379,
-      "sha256": "86297ec40fb1d9072bcd172993f8f3e7bb5eecfda2a0d9a98fbfdf2052be49a8",
+      "bytes": 5828,
+      "sha256": "2a5673522271469321b4fd623c0452c2976683a9efee950a07a50a18a3b22c3f",
       "mode": "0644"
     },
     {
       "path": "apps/api/src/korpus/infrastructure/migration_baseline_proof.py",
       "bytes": 8883,
       "sha256": "e15baf095a5ebaf265c4d3b805ab060943ccd1652f8c7c2ad35fbabacd94f76c",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/migration_bootstrap_history.py",
+      "bytes": 1533,
+      "sha256": "4d1ebc2191320a41271465e1fb7847c356ea37ae1032969792e93b7fd09aa677",
       "mode": "0644"
     },
     {
@@ -2593,8 +2635,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/schema.py",
-      "bytes": 10002,
-      "sha256": "ccbf2b9420d86f2401b465b0f5b4d4ddfeba6f35bceabb5d187545d3e7373a9f",
+      "bytes": 10004,
+      "sha256": "984a652ad9d298369c3e447bd9eb40129e0fce16c9bbe637ffb0fcd93608d660",
       "mode": "0644"
     },
     {
@@ -2895,6 +2937,12 @@
       "path": "apps/api/tests/helpers.py",
       "bytes": 6152,
       "sha256": "4998c02f20b64facc9c41f1a512dc18bd11f1fe205344e8ae8fb1d61890b368e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/learning_postgres_support.py",
+      "bytes": 11271,
+      "sha256": "9de2e4f62aee2c9bdb07cf4941de42979e30132358c3a1f7c9949d518908eaae",
       "mode": "0644"
     },
     {
@@ -3223,8 +3271,8 @@
     },
     {
       "path": "apps/api/tests/test_branch_consolidation.py",
-      "bytes": 6203,
-      "sha256": "ddc6941a1f08e7c49ef652e8fc4bc09eebc4164641287df8a8b4830e1435cef4",
+      "bytes": 6374,
+      "sha256": "2444c0c163c089f8f90f212ba750b8403a84e7bd8c794fc95d695c9e1153aa01",
       "mode": "0644"
     },
     {
@@ -3343,8 +3391,8 @@
     },
     {
       "path": "apps/api/tests/test_capability_effect_schema_boundary.py",
-      "bytes": 2627,
-      "sha256": "7b5a39afea2d86d6f8a3c4c81aa85ef4a282ad36b19ee259041f22a6ab5dd193",
+      "bytes": 2629,
+      "sha256": "62d8d05396b34f97ea2424d22fcce56e26cb084f416c5f902f263676d44cb8b9",
       "mode": "0644"
     },
     {
@@ -3673,8 +3721,8 @@
     },
     {
       "path": "apps/api/tests/test_ci_evidence_dependencies.py",
-      "bytes": 4679,
-      "sha256": "cf0f6cfcf22fdc0afdf733e3b5cdc07e3bc6abb7fb19bd5faa5b1b1dc790738f",
+      "bytes": 4781,
+      "sha256": "a9caff8f4e315e788570a3a115c3c9ef099bac3c924b0c7b8d6a1af3aed688da",
       "mode": "0644"
     },
     {
@@ -4375,8 +4423,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_migration_compatibility.py",
-      "bytes": 38388,
-      "sha256": "4b9ac2d00180a5f2066f0949f20b696b855572a429b9fa76ca8b0da9b8b14f49",
+      "bytes": 38682,
+      "sha256": "9cd937deb0f43fb36272d65bd8459a76e4e329a540e9fe232b6c5633d92a5ddf",
       "mode": "0644"
     },
     {
@@ -4680,15 +4728,33 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_learning_competency_integrity.py",
+      "bytes": 9326,
+      "sha256": "aac7054bbc77a9f0ebd054a6b6faf0545ae7539fe56af43b6bc115df9399191d",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_learning_course_domain.py",
       "bytes": 16028,
       "sha256": "8876b43369f99119e66286aa92b56bfb29d850920fc7381ae82628132f1bf081",
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_learning_history_migration.py",
+      "bytes": 3220,
+      "sha256": "f5e19ac4f9e23bcd047c8371538bbd9bfb42de22b3dd2acba442e70120302224",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_learning_repository.py",
-      "bytes": 17413,
-      "sha256": "1394616828de4d56c673a30eb199d99b9ddd021156263bec8a0b25cdff415fe7",
+      "bytes": 17575,
+      "sha256": "e4bc7012d1d6e7857f0126101e1ce177ce4ea2e9fd218c04601786a7b603dafc",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_learning_source_authorization.py",
+      "bytes": 4680,
+      "sha256": "11d024cb5c5c4680b425d2fab44160433f0ceee1c13e8b342e18d271977a2236",
       "mode": "0644"
     },
     {
@@ -4771,8 +4837,8 @@
     },
     {
       "path": "apps/api/tests/test_migration_admission_policy.py",
-      "bytes": 14395,
-      "sha256": "1f48eb4d3ac536416d1a6674c0cfd9e58b8747861fef3f0718b0ff7d2ea39b7d",
+      "bytes": 14397,
+      "sha256": "a44daac029bc6f48ce7f6a9d4a1122ab1a179a9b926a467f0ca549b9a07b22bc",
       "mode": "0644"
     },
     {
@@ -4789,8 +4855,8 @@
     },
     {
       "path": "apps/api/tests/test_migration_runtime_admission.py",
-      "bytes": 7802,
-      "sha256": "01108e14a6f5540aeaa893551db549350066ed8148db66b46a02d4ce840e3c87",
+      "bytes": 7804,
+      "sha256": "29cfccd49f336705258fd63c5337e02f6f55ba2bc80de83a7f9b09b18bf077e1",
       "mode": "0644"
     },
     {
@@ -5262,9 +5328,33 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_postgres_learning_concurrency.py",
+      "bytes": 12691,
+      "sha256": "1707b5277cbf80121179771989603c156380c215e1dde445ada0c7bd98c28b61",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_postgres_learning_history_migration.py",
+      "bytes": 3686,
+      "sha256": "24ee22ba6b599a85002df10f945b299cc959b901469a76014a98992b1f51b944",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_postgres_learning_persistence.py",
+      "bytes": 12118,
+      "sha256": "ff31bd096d86bb63c45840600bc06b9ad1d5f29b26941d77989dde0d58aa4c65",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_postgres_learning_scope_lifecycle.py",
+      "bytes": 10110,
+      "sha256": "9e3aaaf70a448f6d0d3ae664392de37c657311b1d97f155a43e36c84776aea91",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_postgres_migration_admission.py",
-      "bytes": 6379,
-      "sha256": "12ec30b2690fb83e31a42f1367d2998eedad726aa91d41906a052853c0349bb0",
+      "bytes": 6381,
+      "sha256": "b96e7c3a11c43612535d34c8488a545fa2c66a70541c6c8e7b54df2e4275d3fa",
       "mode": "0644"
     },
     {
@@ -5299,8 +5389,8 @@
     },
     {
       "path": "apps/api/tests/test_postgres_runner_execution.py",
-      "bytes": 10645,
-      "sha256": "866f6288640c95a7ae4b049dfd2fc0736b08951022cd2c3c491d5526902c251b",
+      "bytes": 11108,
+      "sha256": "84b725d4875a20a0c14425bc3a8f462cc71cc21a3b3122b8f0a2430b619dd68e",
       "mode": "0644"
     },
     {
@@ -8540,7 +8630,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5540,
-      "sha256": "eb95431e7f592bfc02b24ffb46112d0234bec087cff99f8b30f35fbcab3a395e",
+      "sha256": "178048c41b8cf69c0f46fa90ad841dfc9fa444080a7d830844442a9b18d63381",
       "mode": "0644"
     },
     {
@@ -8581,8 +8671,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 783202,
-      "sha256": "f4b99847440e60258303e27ff65010e9d78300dab37e0a17853f5d4685345c2e",
+      "bytes": 785306,
+      "sha256": "d5122c8a45b9594e2a73fa0593c0f2ef906dc760322a1c4aac8a7a3bfc7ddbca",
       "mode": "0644"
     },
     {
@@ -9291,6 +9381,12 @@
       "path": "docs/incidents/2026-09-03-sqlite-corpus-unreadable.md",
       "bytes": 4765,
       "sha256": "ecc60ae676437f927b59101636f4adc342245e9d1a871c9376e68ea8c329684f",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/learning-publication-concurrency.md",
+      "bytes": 6844,
+      "sha256": "4c40f2edbd35c5bc824f1a689fc0111aba3fed04f9523edc7e6b937d2ba02dac",
       "mode": "0644"
     },
     {
@@ -12805,8 +12901,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 343588,
-      "sha256": "791789636413be77d5faf5164f0658336dcccf5f51594f7fca0c9741bf4b8768",
+      "bytes": 346351,
+      "sha256": "44176f84e398087400e48b393160db345a8fcdba45d426591457d3f5ac2853ac",
       "mode": "0755"
     },
     {
@@ -12859,8 +12955,8 @@
     },
     {
       "path": "scripts/run_postgres_coverage.sh",
-      "bytes": 7022,
-      "sha256": "3b1125e2d2a640fc4625b18f0b1f5d7a1f722d5e9aadcc9d425006a28df9c4ad",
+      "bytes": 7124,
+      "sha256": "92e5ec42714867bf0b7952ed495a7884ebd876b6e1bea67729a68a187178fd99",
       "mode": "0755"
     },
     {

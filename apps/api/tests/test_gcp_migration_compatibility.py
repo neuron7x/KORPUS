@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def _copy_surface(tmp_path: Path) -> Path:
-    """Isolate synthetic expansions from the separately tested restrictive 0025."""
+    """Isolate synthetic expansions from the separately tested restrictive revisions."""
     baseline = json.loads((ROOT / "config/production/migration-policy.json").read_text())
     for relative in baseline["baseline_files"]:
         target = tmp_path / relative
@@ -25,13 +25,21 @@ def _copy_surface(tmp_path: Path) -> Path:
 def test_current_contract_migration_is_rejected_by_expand_only_gate() -> None:
     report = evaluate(ROOT)
     assert report["status"] == "FAIL", report
-    assert report["future_migrations"] == 1
+    assert report["future_migrations"] == 3
     assert report["findings"], report
+    restrictive = {
+        "0025_sealed_provenance_integrity.py",
+        "0026_learning_history_integrity.py",
+        "0027_learning_competency_integrity.py",
+    }
     assert all(
         "future migration is not expand-only" in finding
-        and "0025_sealed_provenance_integrity.py" in finding
+        and any(revision in finding for revision in restrictive)
         for finding in report["findings"]
     ), report
+    assert all(
+        any(revision in finding for finding in report["findings"]) for revision in restrictive
+    )
 
 
 def test_pinned_baseline_remains_compatible(tmp_path: Path) -> None:

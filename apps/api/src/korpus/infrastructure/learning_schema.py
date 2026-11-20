@@ -14,6 +14,9 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 
+from korpus.infrastructure.learning_competency_schema import (
+    learning_objective_competencies as learning_objective_competencies,
+)
 from korpus.infrastructure.schema import metadata
 
 learning_courses = Table(
@@ -89,24 +92,6 @@ learning_objectives = Table(
         ["learning_lessons.course_version_id", "learning_lessons.id"],
         ondelete="CASCADE",
         name="fk_learning_objective_lesson",
-    ),
-)
-
-learning_objective_competencies = Table(
-    "learning_objective_competencies",
-    metadata,
-    Column("course_version_id", String(128), primary_key=True),
-    Column("lesson_id", String(128), primary_key=True),
-    Column("objective_id", String(128), primary_key=True),
-    Column("competency_id", String(128), primary_key=True),
-    ForeignKeyConstraint(
-        ["course_version_id", "lesson_id", "objective_id"],
-        [
-            "learning_objectives.course_version_id",
-            "learning_objectives.lesson_id",
-            "learning_objectives.id",
-        ],
-        ondelete="CASCADE",
     ),
 )
 

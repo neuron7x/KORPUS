@@ -15,7 +15,7 @@ from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import URL, make_url
 
 ROOT = Path(__file__).resolve().parents[3]
-HEAD = "0025_sealed_provenance_integrity"
+HEAD = "0027_learning_competency_integrity"
 BASE = "0024_capability_effect_ledger"
 pytestmark = pytest.mark.postgres
 
