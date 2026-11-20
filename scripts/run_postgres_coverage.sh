@@ -33,6 +33,7 @@ else
 fi
 
 out="${KORPUS_COVERAGE_POSTGRES_OUT:-var/coverage-postgres.json}"
+junit="${KORPUS_POSTGRES_JUNIT_OUT:-var/pytest-postgres.xml}"
 
 # Готова база — і контейнер не потрібен. Це та сама дорога, якою йде джоб CI: там базу
 # дає служба конвеєра. Завдяки їй обидва виробники відрізняються РІВНО тим, хто підняв
@@ -41,7 +42,7 @@ out="${KORPUS_COVERAGE_POSTGRES_OUT:-var/coverage-postgres.json}"
 if [[ -n "${KORPUS_TEST_DATABASE_URL:-}" ]]; then
   exec env PYTHONPATH="$root/apps/api/src" "$python_bin" scripts/collect_dialect_coverage.py \
     --dialect postgresql --report "$out" -- \
-    "$python_bin" -m pytest -q -p no:cacheprovider apps/api/tests --cov=apps/api/src/korpus --cov-branch \
+    "$python_bin" -m pytest -q -p no:cacheprovider apps/api/tests --junitxml="$junit" --cov=apps/api/src/korpus --cov-branch \
     --cov-report="json:${out}" --cov-report= --cov-fail-under=0 "$@"
 fi
 
@@ -119,6 +120,6 @@ KORPUS_AUTHZ_DATABASE_URL="$authz_url" \
 KORPUS_REVIEW_DATABASE_URL="$review_url" \
 PYTHONPATH="$root/apps/api/src" "$python_bin" scripts/collect_dialect_coverage.py \
   --dialect postgresql --report "$out" -- \
-  "$python_bin" -m pytest -q -p no:cacheprovider apps/api/tests \
+  "$python_bin" -m pytest -q -p no:cacheprovider apps/api/tests --junitxml="$junit" \
   --cov=apps/api/src/korpus --cov-branch \
   --cov-report="json:${out}" --cov-report= --cov-fail-under=0 "$@"

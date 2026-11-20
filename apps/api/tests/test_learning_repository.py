@@ -366,7 +366,7 @@ def test_learning_repository_detects_publication_version_inconsistency(stores, m
 def test_learning_repository_detects_draft_version_inconsistency_on_publish(
     stores, monkeypatch
 ) -> None:
-    import korpus.infrastructure.learning_repository as learning_repository_module
+    import korpus.infrastructure.learning_publication as learning_repository_module
 
     _, learning = stores
     version = _version()
@@ -457,6 +457,9 @@ def test_learning_repository_round_trips_prerequisite_edges(stores) -> None:
     )
     learning.create_version(version)
     assert learning.get_version(version.id) == version
+    assert learning.delete_draft_version(version.id)
+    assert learning.get_version(version.id) is None
+    assert learning.get_publication(version.id) is None
 
 
 def test_empty_learning_source_projection_short_circuits(stores) -> None:

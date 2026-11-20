@@ -137,7 +137,7 @@ jobs:
           mkdir -p var
           set -o pipefail
           scripts/run_postgres_coverage.sh 2>&1 | tee var/postgres-coverage.log
-          for report in var/coverage-postgres.json var/coverage-postgres.data var/coverage-postgres-receipt.json; do
+          for report in var/coverage-postgres.json var/coverage-postgres.data var/coverage-postgres-receipt.json var/pytest-postgres.xml; do
             if ! test -s "$report"; then
               printf '::error::missing or empty required coverage output: %s\n' "$report"
               exit 1
@@ -157,6 +157,7 @@ jobs:
             var/coverage-postgres.json
             var/coverage-postgres.data
             var/coverage-postgres-receipt.json
+            var/pytest-postgres.xml
           if-no-files-found: error
           retention-days: 14
       - name: Preserve PostgreSQL diagnostics
@@ -170,6 +171,7 @@ jobs:
             var/coverage-postgres.json
             var/coverage-postgres.data
             var/coverage-postgres-receipt.json
+            var/pytest-postgres.xml
             var/production/postgres_security-gate.json
             var/postgres-security/
           if-no-files-found: warn
