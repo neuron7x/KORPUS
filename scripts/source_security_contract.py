@@ -16,8 +16,9 @@ from typing import Any
 from uuid import UUID
 
 from scripts.source_security_lock import build_lock_sbom, canonical_name, locked_packages
+from scripts.source_security_native import OUTPUT_MEMBERS, validate_gitleaks_log
 
-SCHEMA = "korpus.source-security-execution.v1"
+SCHEMA = "korpus.source-security-execution.v2"
 SCANNER_LOCK = "apps/api/requirements.scanners.lock"
 PIP_AUDIT_VERSION = "2.10.1"
 IMAGES = {
@@ -26,14 +27,6 @@ IMAGES = {
     "syft": "anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b799e7cadaff6be2ec6d555757c4eeec0c0e48162f20b042ffa1ff",
 }
 EXECUTION_NAMES = ("gitleaks", "pip-audit:runtime", "pip-audit:dev", "trivy", "syft")
-OUTPUT_MEMBERS = (
-    "tree-sbom.cdx.json",
-    "lock-sbom.cdx.json",
-    "gitleaks.json",
-    "pip-audit-runtime.json",
-    "pip-audit-dev.json",
-    "trivy.json",
-)
 
 
 def require(condition: bool, message: str) -> None:
@@ -258,7 +251,8 @@ def validate_outputs(members: Mapping[str, bytes], root: Path) -> None:
     require(
         set(members) == set(OUTPUT_MEMBERS), "source-security outputs are incomplete or ambiguous"
     )
-    parsed = {name: strict_json(raw) for name, raw in members.items()}
+    validate_gitleaks_log(members["gitleaks.log"])
+    parsed = {name: strict_json(raw) for name, raw in members.items() if name != "gitleaks.log"}
     require(parsed["gitleaks.json"] == [], "Gitleaks reports findings or invalid output")
     validate_audit(parsed["pip-audit-runtime.json"], root, "runtime")
     validate_audit(parsed["pip-audit-dev.json"], root, "dev")

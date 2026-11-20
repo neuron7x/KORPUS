@@ -7551,6 +7551,15 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
+    },
+    "scripts/source_security_native.py": {
+      "lines": 78,
+      "proof_lines": 0,
+      "max_complexity": 12,
+      "max_function_lines": 16,
+      "max_function_args": 1,
+      "max_nesting": 2,
+      "reason": "Initial measured limits for shared native source-security log capture and v2 input-error refusal; no prior module ceiling is raised."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

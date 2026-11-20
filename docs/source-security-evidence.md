@@ -37,7 +37,7 @@ dependency universe. Updating it requires review of the actual new wheel bytes.
 Before the five source executions, a separate fatal preflight audits every
 scanner-toolchain pin against live PyPI advisories and validates the exact native
 package census. Its JSON is preserved in `source-security-toolchain-${run_attempt}`;
-it does not replace an application audit or enter the seven-member source artifact.
+it does not replace an application audit or enter the eight-member source artifact.
 
 Pip-audit queries the live PyPI vulnerability service using a new per-command
 cache; the receipt records the command and its actual start/end time. This is a
@@ -56,14 +56,15 @@ are unchanged. The corrected merge-patch scope is specified below.
 
 ## Native reports and receipt
 
-The artifact `source-security-evidence-${run_attempt}` has exactly seven members.
+The v2 artifact `source-security-evidence-${run_attempt}` has exactly eight members.
 These are generated at the paths below; the upload stores each basename at the
 artifact root:
 
 | Generated output path | Meaning |
 | --- | --- |
-| `var/source-security/source-security-receipt.json` | Run/repository/attempt, checkout commit/tree, before/after source binding, tool identities, five real execution outcomes, and hashes of the other six members |
+| `var/source-security/source-security-receipt.json` | Run/repository/attempt, checkout commit/tree, before/after source binding, tool identities, five real execution outcomes, and hashes of the other seven members |
 | `var/source-security/gitleaks.json` | Native redacted findings array; admitted only when empty |
+| var/source-security/gitleaks.log | Exact original native log bytes; explicit input/error/partial diagnostics and incomplete success framing refuse admission |
 | `var/source-security/pip-audit-runtime.json` | Native audit of every runtime lock pin; no skipped dependency, vulnerability, or repair |
 | `var/source-security/pip-audit-dev.json` | Native audit of the exact union of runtime and development pins |
 | `var/source-security/trivy.json` | Native configuration results with a positive census of passing HIGH/CRITICAL rules and no unaccepted failure |
@@ -91,7 +92,10 @@ valid CycloneDX 1.6 scope value.
 `scripts/source_security_contract.py` exports `validate_outputs(members, root)`
 and `expected_tools(root)` for the producer and authenticated importer. Native
 JSON must reject duplicate keys and nonfinite values. Receipt schema is
-`korpus.source-security-execution.v1`; `production_authorized` is always `false`.
+`korpus.source-security-execution.v2`; `production_authorized` is always `false`.
+The v2 importer rejects v1 receipts and missing-log artifacts. The log is validated
+as native text, while the six original report members retain their strict JSON
+semantics. There is no fallback to a separate diagnostics artifact.
 The receipt itself is not its own authority: consumers must authenticate the
 workflow, run attempt, successful job/upload step, checkout tree and downloaded
 artifact bytes through their separate hosted-evidence boundary.
@@ -100,17 +104,52 @@ artifact bytes through their separate hosted-evidence boundary.
 
 After image provisioning succeeds, every scanner is attempted even when an
 earlier scanner fails. The producer
-writes PASS only after all five exact integer exit codes are zero, all six
+writes PASS only after all five exact integer exit codes are zero, all seven
 native outputs satisfy their semantics, and source remains unchanged. An absent
 scanner, timeout, stale output directory, malformed output, partial package
-census, or source mutation refuses admission. Native JSON and redacted logs are
-retained in separate evidence/diagnostic artifacts; failed jobs cannot become
+census, or source mutation refuses admission. Native JSON and the original
+Gitleaks log are bound in the evidence artifact; the other logs and CPU profile
+remain diagnostic outputs. Failed jobs cannot become
 positive evidence through the `always()` upload step.
 
 The unit suite uses explicitly neutral native-format fixtures to falsify
 admission boundaries. These tests do not prove that hosted scanners executed.
 That final positive requires the actual job and its immutable artifacts. No
 `LOCAL_SCANNERS` result is promoted into this hosted class.
+
+## Native input errors and the v2 log contract
+
+The [2026-11-20 native diagnostic](https://github.com/neuron7x/KORPUS/actions/runs/44643158063)
+found a concrete upstream failure mode. Both engines found a neutral marker in
+an intact private fixture, then returned exit zero and an empty findings array
+after that fixture's known historical blob was deliberately removed. Independent
+Git log and fsck returned 128 and 2; both scanner logs reported the read failure.
+The original [native log members](https://github.com/neuron7x/KORPUS/actions/runs/44643158063/artifacts/14587007971)
+are preserved as regression bytes with run, artifact and member hashes. This is
+not evidence that the canonical repository history is corrupt, or that an
+enabled default rule missed a real secret. The separate custom-rule UTF-8
+disagreement does not establish either claim.
+
+The shared validator now requires the exact native log in the authoritative
+artifact. The producer captures at most 16 MiB from one regular file, refuses
+unsafe or changing captures, and hashes and validates those same unmodified
+bytes. The hosted importer recomputes that member hash from the original ZIP
+and runs the same semantic validation; a rewritten PASS or clean-log boolean
+cannot replace the bytes. JSON-encoded log strings are not native logs.
+
+The inspection view removes only complete ANSI color sequences and refuses
+unsupported controls, malformed UTF-8, explicit error/fatal/panic diagnostics,
+Git input failures, partial scans and timeout markers. A successful log must
+retain its final newline and exactly one ordered commits/bytes/no-leaks summary,
+with the no-leaks summary at the end. This detects truncation that loses that
+framing; a complete-looking log still does not independently prove successful
+Git EOF or complete detector consumption. Source before/after equality verifies
+the admitted current tree, not every historical object's readability.
+
+The v2 change adds no scanner execution, API request, engine substitution,
+rule/baseline adjustment, timeout extension or resource allowance. Historical
+seven-member v1 artifacts remain historical evidence; current admission requires
+the v2 eight-member contract and a fresh original hosted artifact.
 
 ## Measured first hosted failure and bounded repair
 
@@ -281,7 +320,7 @@ Its pinned [diagnostic implementation](https://github.com/gitleaks/gitleaks/blob
 writes `cpu.pprof` in that directory and finalizes CPU profiling when the command's
 normal completion/error handler runs. The dedicated path
 `var/source-security/gitleaks-profile/cpu.pprof` is uploaded with the diagnostic
-logs, outside the unchanged seven-member evidence artifact. It cannot replace a
+logs, outside the eight-member v2 evidence artifact. It cannot replace a
 native report, a zero exit, source identity, or verified cleanup. An abrupt parent
 timeout or job cancellation may prevent profile finalization; a missing or partial
 profile is not a successful scan. CPU-only profiling enables neither an HTTP

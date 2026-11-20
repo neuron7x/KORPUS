@@ -49,6 +49,36 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M777_SOURCE_SECURITY_IGNORES_NATIVE_LOG_ERRORS",
+        "scripts/source_security_native.py",
+        "    _reject_diagnostics(text)",
+        "    len(text)",
+        (
+            "apps/api/tests/test_github_evidence_full_admission.py::test_coherent_native_error_log_cannot_be_laundered_by_receipt_or_zip_hashes[framed-error]",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M778_SOURCE_SECURITY_ACCEPTS_UNBOUND_NATIVE_LOG",
+        "scripts/github_security_admission.py",
+        '        record.get("artifacts") == artifacts, "security output does not match its execution receipt"',
+        '        {key: value for key, value in record.get("artifacts", {}).items() if key != "gitleaks.log"}\n        == {key: value for key, value in artifacts.items() if key != "gitleaks.log"},\n        "security output does not match its execution receipt",',
+        (
+            "apps/api/tests/test_github_evidence_full_admission.py::test_different_benign_log_bytes_cannot_reuse_a_stale_native_receipt_digest",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M779_SOURCE_SECURITY_ACCEPTS_LEGACY_SCHEMA",
+        "scripts/github_security_admission.py",
+        '        record.get("schema") == SCHEMA',
+        '        record.get("schema") in {SCHEMA, "korpus.source-security-execution.v1"}',
+        (
+            "apps/api/tests/test_github_evidence_full_admission.py::test_v1_receipt_is_refused_even_with_a_complete_new_native_log_artifact",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M773_ENGINE_DIAGNOSTIC_ARCHIVE_DIGEST_BYPASS",
         "scripts/scanner_engine_download.py",
         "        hashlib.sha256(raw).hexdigest() == ARCHIVE_SHA256,",

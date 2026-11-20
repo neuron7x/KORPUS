@@ -149,13 +149,19 @@ a conflicting secondary PostgreSQL copy, or a changed publisher union is refused
 Temporarily replacing caller source and restoring it before final checks cannot
 change the admitted statement or branch universe.
 
-Source security requires the exact seven-member artifact: the execution receipt,
-native Syft tree SBOM, deterministic lock SBOM, native Gitleaks output, runtime
+Source security requires the exact eight-member v2 artifact: the execution receipt,
+native Syft tree SBOM, deterministic lock SBOM, native Gitleaks output and original log, runtime
 and combined development pip-audit outputs, and native Trivy output. All five
 execution records must succeed and bind the same run and source. Shared producer
 validators check exact pinned tool identity, lock census, and native findings;
 Syft and Trivy timestamps must fall inside their admitted execution windows.
 The scanners' outputs and the SBOM cannot be omitted for a coverage-only PASS.
+The original log bytes are included in the receipt's member hashes and independently
+revalidated after authenticated ZIP capture. Explicit Gitleaks input/error/partial
+diagnostics refuse admission even with exit zero and empty JSON. Missing-log and
+v1 artifacts are refused without consulting a diagnostics archive. Required
+terminal log framing detects incomplete summaries; it does not prove Git input
+EOF. This adds no API request or alternative scanner authority.
 
 The fixed `PACKAGE` selector derives its five-member census from captured
 `apps/api/src/korpus/release.json`: `dist/<distribution_artifact>`, its `.sha256`

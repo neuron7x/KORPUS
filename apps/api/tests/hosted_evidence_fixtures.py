@@ -389,10 +389,10 @@ def pull_request_fixture(measured: EvidenceFixture) -> EvidenceFixture:
 
 
 def with_security(measured: EvidenceFixture) -> EvidenceFixture:
-    from scripts.source_security_contract import EXECUTION_NAMES, expected_tools
+    from scripts.source_security_contract import EXECUTION_NAMES, SCHEMA, expected_tools
     from scripts.source_security_lock import build_lock_sbom, locked_packages
 
-    from .source_security_fixtures import execution_record, output_values
+    from .source_security_fixtures import execution_record, native_log, output_values
 
     fixture = measured.clone()
     values = output_values()
@@ -407,8 +407,9 @@ def with_security(measured: EvidenceFixture) -> EvidenceFixture:
     values["tree-sbom.cdx.json"]["metadata"]["timestamp"] = completed
     values["trivy.json"]["CreatedAt"] = completed
     members = {name: encoded(value) for name, value in values.items()}
+    members["gitleaks.log"] = native_log("clean_stdlib")
     receipt = {
-        "schema": "korpus.source-security-execution.v1",
+        "schema": SCHEMA,
         "status": "PASS",
         "production_authorized": False,
         "run": {

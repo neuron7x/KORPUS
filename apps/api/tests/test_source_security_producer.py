@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
@@ -76,6 +77,8 @@ def prepared(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, dic
             "syft": "tree-sbom.cdx.json",
         }[tool]
         (output / native).write_bytes(output_bytes()[native])
+        if tool == "gitleaks":
+            (output / "gitleaks.log").write_bytes(output_bytes()["gitleaks.log"])
         if tool == "syft":
             poison = state["poison"]
             if poison == "checkout":
@@ -118,7 +121,7 @@ def test_complete_fixture_execution_is_bound_and_only_writes_generated_paths(
     assert receipt["source_commit_sha"] == "a" * 40
     assert receipt["source_tree_oid"] == "b" * 40
     assert receipt["source_after_sha256"] == receipt["source_before"]["sha256"]
-    assert len(receipt["artifacts"]) == 6
+    assert len(receipt["artifacts"]) == 7
     assert (
         json.loads((root / "var/source-security/source-security-receipt.json").read_bytes())
         == receipt
@@ -246,7 +249,7 @@ def test_gitleaks_cpu_alignment_is_fixed_and_does_not_change_other_container_lim
     assert "--max-decode-depth" not in gitleaks and "--enable-rule" not in gitleaks
 
 
-def test_cpu_profile_has_a_dedicated_diagnostic_path_outside_the_seven_evidence_members() -> None:
+def test_cpu_profile_has_a_dedicated_diagnostic_path_outside_the_eight_evidence_members() -> None:
     workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())
     steps = workflow["jobs"]["source-security"]["steps"]
     evidence = next(step for step in steps if step["name"] == "Upload source security evidence")
@@ -256,7 +259,7 @@ def test_cpu_profile_has_a_dedicated_diagnostic_path_outside_the_seven_evidence_
     expected = {f"var/source-security/{name}" for name in OUTPUT_MEMBERS}
     expected.add("var/source-security/source-security-receipt.json")
     assert set(evidence["with"]["path"].splitlines()) == expected
-    assert len(expected) == 7 and evidence["if"] == "always()"
+    assert len(expected) == 8 and evidence["if"] == "always()"
     assert set(diagnostics["with"]["path"].splitlines()) == {
         "var/source-security/*.log",
         "var/source-security/gitleaks-profile/cpu.pprof",
@@ -371,3 +374,72 @@ def test_runner_temp_inside_repository_is_refused(
     monkeypatch.setenv("RUNNER_TEMP", str(temporary))
     with pytest.raises(ValueError, match="cannot enter the source"):
         source.runner_temporary(tmp_path)
+
+
+@pytest.mark.parametrize("name", ["damaged_stdlib", "damaged_release"])
+def test_zero_exit_native_input_error_refuses_producer_pass(
+    prepared: tuple[Path, dict[str, Any]], monkeypatch, name: str
+) -> None:
+    from .source_security_fixtures import native_log
+
+    root, _state = prepared
+    original = producer.execute
+    raw = native_log(name)
+
+    def execute(tool, command, output, cwd):
+        record = original(tool, command, output, cwd)
+        if tool == "gitleaks":
+            (output / "gitleaks.log").write_bytes(raw)
+        return record
+
+    monkeypatch.setattr(producer, "execute", execute)
+    receipt = producer.produce(root, Path("/external/scanner/python"))
+    assert receipt["status"] == "FAIL" and "input error" in receipt["error"]
+    assert receipt["executions"][0]["exit_code"] == 0
+    assert (root / "var/source-security/gitleaks.log").read_bytes() == raw
+    assert receipt["artifacts"]["gitleaks.log"]["sha256"] == hashlib.sha256(raw).hexdigest()
+
+
+def test_producer_hashes_and_validates_the_same_captured_native_log_bytes(
+    prepared: tuple[Path, dict[str, Any]], monkeypatch
+) -> None:
+    from .source_security_fixtures import native_log
+
+    root, _state = prepared
+    raw = native_log("damaged_stdlib")
+    calls = []
+
+    def capture(path):
+        calls.append(path)
+        # A changed path cannot replace the captured bytes during semantic validation.
+        path.write_bytes(native_log("clean_stdlib"))
+        return raw
+
+    monkeypatch.setattr(producer, "read_native_log", capture)
+    receipt = producer.produce(root, Path("/external/scanner/python"))
+    assert len(calls) == 1
+    assert receipt["status"] == "FAIL" and "input error" in receipt["error"]
+    assert receipt["artifacts"]["gitleaks.log"]["sha256"] == hashlib.sha256(raw).hexdigest()
+
+
+@pytest.mark.parametrize("poison", ["absent", "empty", "truncated"])
+def test_missing_or_incomplete_log_cannot_be_a_successful_producer(
+    prepared: tuple[Path, dict[str, Any]], monkeypatch, poison: str
+) -> None:
+    root, _state = prepared
+    original = producer.execute
+
+    def execute(tool, command, output, cwd):
+        record = original(tool, command, output, cwd)
+        if tool == "syft":
+            path = output / "gitleaks.log"
+            if poison == "absent":
+                path.unlink()
+            elif poison == "empty":
+                path.write_bytes(b"")
+            else:
+                path.write_bytes(path.read_bytes().splitlines(keepends=True)[0])
+        return record
+
+    monkeypatch.setattr(producer, "execute", execute)
+    assert producer.produce(root, Path("/external/scanner/python"))["status"] == "FAIL"

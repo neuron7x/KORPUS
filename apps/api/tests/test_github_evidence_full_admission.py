@@ -388,3 +388,112 @@ def test_final_source_change_revokes_otherwise_valid_capture(
     monkeypatch.setattr(importer, "capture_checkout", lambda root: next(captures))
     with pytest.raises(ValueError, match="source changed during"):
         importer.fetch_evidence(fixture.checkout.root, SELECTED)
+
+
+@pytest.mark.parametrize("name", ["clean_stdlib", "clean_release"])
+def test_complete_native_log_is_bound_in_full_hosted_admission(
+    monkeypatch, measured: EvidenceFixture, name: str
+) -> None:
+    from .source_security_fixtures import native_log
+
+    fixture = measured.clone()
+    raw = native_log(name)
+    _member(fixture, "gitleaks.log", raw)
+    _wire(monkeypatch, fixture)
+    admitted = importer.fetch_evidence(fixture.checkout.root, SELECTED)
+    security = next(item for item in admitted.artifacts if item.producer_job_name == SECURITY.job)
+    assert security.members["gitleaks.log"] == raw
+    assert len(security.members) == 8
+
+
+@pytest.mark.parametrize("name", ["damaged_stdlib", "damaged_release", "framed-error"])
+def test_coherent_native_error_log_cannot_be_laundered_by_receipt_or_zip_hashes(
+    monkeypatch, measured: EvidenceFixture, name: str
+) -> None:
+    from .source_security_fixtures import native_log
+
+    fixture = measured.clone()
+    raw = (
+        b"12:08AM ERR [git] fatal: neutral modeled input failure\n" + native_log("clean_release")
+        if name == "framed-error"
+        else native_log(name)
+    )
+    _member(fixture, "gitleaks.log", raw)
+    _receipt(fixture, lambda record: record.update(log_clean=True))
+    receipt = json.loads(fixture.members[SECURITY.job]["source-security-receipt.json"])
+    assert receipt["schema"] == "korpus.source-security-execution.v2"
+    assert receipt["status"] == "PASS" and receipt["executions"][0]["exit_code"] == 0
+    assert receipt["artifacts"]["gitleaks.log"]["sha256"] == digest(raw)
+    assert len(fixture.members[SECURITY.job]) == 8
+    _wire(monkeypatch, fixture)
+    with pytest.raises(ValueError, match="input error"):
+        importer.fetch_evidence(fixture.checkout.root, SELECTED)
+
+
+def test_different_benign_log_bytes_cannot_reuse_a_stale_native_receipt_digest(
+    monkeypatch, measured: EvidenceFixture
+) -> None:
+    from .source_security_fixtures import native_log
+
+    fixture = measured.clone()
+    old = fixture.members[SECURITY.job]["gitleaks.log"]
+    replacement = native_log("clean_release")
+    assert old != replacement
+    fixture.members[SECURITY.job]["gitleaks.log"] = replacement
+    fixture.repack(SECURITY)
+    _wire(monkeypatch, fixture)
+    with pytest.raises(ValueError, match="does not match its execution receipt"):
+        importer.fetch_evidence(fixture.checkout.root, SELECTED)
+
+
+def test_v1_receipt_is_refused_even_with_a_complete_new_native_log_artifact(
+    monkeypatch, measured: EvidenceFixture
+) -> None:
+    fixture = measured.clone()
+    _receipt(fixture, lambda record: record.update(schema="korpus.source-security-execution.v1"))
+    assert len(fixture.members[SECURITY.job]) == 8
+    _wire(monkeypatch, fixture)
+    with pytest.raises(ValueError, match="execution did not pass"):
+        importer.fetch_evidence(fixture.checkout.root, SELECTED)
+
+
+@pytest.mark.parametrize("poison", ["missing", "empty", "truncated", "invalid-utf8"])
+def test_missing_or_invalid_native_log_never_becomes_hosted_success(
+    monkeypatch, measured: EvidenceFixture, poison: str
+) -> None:
+    fixture = measured.clone()
+    if poison == "missing":
+        fixture.members[SECURITY.job].pop("gitleaks.log")
+        fixture.repack(SECURITY)
+    else:
+        raw = {
+            "empty": b"",
+            "truncated": b"12:08AM INF no leaks found\n",
+            "invalid-utf8": b"\xff\n",
+        }[poison]
+        _member(fixture, "gitleaks.log", raw)
+    _wire(monkeypatch, fixture)
+    with pytest.raises(ValueError):
+        importer.fetch_evidence(fixture.checkout.root, SELECTED)
+
+
+def test_missing_authoritative_log_cannot_fall_back_to_a_diagnostics_archive(
+    monkeypatch, measured: EvidenceFixture
+) -> None:
+    from .source_security_fixtures import native_log
+
+    fixture = measured.clone()
+    fixture.members[SECURITY.job].pop("gitleaks.log")
+    _receipt(fixture, lambda record: record["artifacts"].pop("gitleaks.log"))
+    diagnostics = Producer(
+        "source-security-diagnostics",
+        "separate-native-diagnostics",
+        "Preserve source security diagnostics",
+        ("gitleaks.log",),
+    )
+    fixture.add_artifact(diagnostics, {"gitleaks.log": native_log("clean_stdlib")})
+    diagnostic_id = fixture.artifacts[diagnostics.job]["id"]
+    _wire(monkeypatch, fixture)
+    with pytest.raises(ValueError, match="members"):
+        importer.fetch_evidence(fixture.checkout.root, SELECTED)
+    assert f"/actions/artifacts/{diagnostic_id}/zip" not in fixture.api.downloads

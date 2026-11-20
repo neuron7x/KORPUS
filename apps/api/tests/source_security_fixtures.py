@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -130,4 +131,15 @@ def output_values() -> dict[str, Any]:
 
 
 def output_bytes(values: dict[str, Any] | None = None) -> dict[str, bytes]:
-    return {name: json.dumps(value).encode() for name, value in (values or output_values()).items()}
+    return {
+        **{name: json.dumps(value).encode() for name, value in (values or output_values()).items()},
+        "gitleaks.log": native_log("clean_stdlib"),
+    }
+
+
+def native_log(name: str) -> bytes:
+    path = Path(__file__).parent / "fixtures/gitleaks_native_logs_v8_30_1.json"
+    record = json.loads(path.read_bytes())["records"][name]
+    raw = record["log"].encode("utf-8")
+    assert hashlib.sha256(raw).hexdigest() == record["member_sha256"]
+    return raw

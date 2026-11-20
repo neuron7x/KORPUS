@@ -34,6 +34,7 @@ from scripts.source_security_execution import environment as _environment  # noq
 from scripts.source_security_execution import execute, execution_succeeded  # noqa: E402
 from scripts.source_security_images import provision_images  # noqa: E402
 from scripts.source_security_lock import build_lock_sbom  # noqa: E402
+from scripts.source_security_native import read_native_log  # noqa: E402
 from scripts.source_security_source import (  # noqa: E402
     admit_source,
     freeze_source,
@@ -70,7 +71,7 @@ def _outputs(output: Path) -> dict[str, bytes]:
     for name in OUTPUT_MEMBERS:
         path = output / name
         require(path.is_file() and not path.is_symlink(), f"missing native scanner output: {name}")
-        members[name] = path.read_bytes()
+        members[name] = read_native_log(path) if name == "gitleaks.log" else path.read_bytes()
     return members
 
 

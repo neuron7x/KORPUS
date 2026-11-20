@@ -13,6 +13,7 @@ from github_evidence_transport import insist, object_records, strict_object
 from source_security_contract import (
     EXECUTION_NAMES,
     OUTPUT_MEMBERS,
+    SCHEMA,
     expected_tools,
     validate_outputs,
 )
@@ -69,7 +70,7 @@ def verified_security(run: AdmittedRun, artifact: AdmittedArtifact) -> dict[str,
         artifact.members["source-security-receipt.json"], "source security receipt"
     )
     insist(
-        record.get("schema") == "korpus.source-security-execution.v1"
+        record.get("schema") == SCHEMA
         and record.get("status") == "PASS"
         and record.get("production_authorized") is False,
         "source security execution did not pass",

@@ -72,6 +72,7 @@ jobs:
             var/source-security/tree-sbom.cdx.json
             var/source-security/lock-sbom.cdx.json
             var/source-security/gitleaks.json
+            var/source-security/gitleaks.log
             var/source-security/pip-audit-runtime.json
             var/source-security/pip-audit-dev.json
             var/source-security/trivy.json
