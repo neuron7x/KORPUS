@@ -141,10 +141,15 @@ The inspection view removes only complete ANSI color sequences and refuses
 unsupported controls, malformed UTF-8, explicit error/fatal/panic diagnostics,
 Git input failures, partial scans and timeout markers. A successful log must
 retain its final newline and exactly one ordered commits/bytes/no-leaks summary,
-with the no-leaks summary at the end. This detects truncation that loses that
-framing; a complete-looking log still does not independently prove successful
-Git EOF or complete detector consumption. Source before/after equality verifies
-the admitted current tree, not every historical object's readability.
+with the no-leaks summary at the end. Both reported counts must be positive
+ASCII decimals without leading zeroes. The
+[zero-census counterexample](https://github.com/neuron7x/KORPUS/pull/116#issuecomment-7027287930)
+is refused independently for zero commits or zero bytes, including when the other
+count is positive and the findings report is empty. Required framing detects
+truncation that loses the summary; positive reported counts and a complete-looking
+log still do not independently prove successful Git EOF or complete detector
+consumption. Source before/after equality verifies the admitted current tree,
+not every historical object's readability.
 
 The v2 change adds no scanner execution, API request, engine substitution,
 rule/baseline adjustment, timeout extension or resource allowance. Historical

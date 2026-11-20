@@ -406,6 +406,44 @@ def test_complete_native_log_is_bound_in_full_hosted_admission(
     assert len(security.members) == 8
 
 
+@pytest.mark.parametrize(
+    ("commits", "byte_count", "valid"),
+    [
+        pytest.param(0, 1, False, id="zero-commits"),
+        pytest.param(1, 0, False, id="zero-bytes"),
+        pytest.param(0, 0, False, id="zero-both"),
+        pytest.param(1, 1, True, id="minimum-positive"),
+    ],
+)
+def test_full_admission_requires_positive_reported_native_census(
+    monkeypatch,
+    measured: EvidenceFixture,
+    commits: int,
+    byte_count: int,
+    valid: bool,
+) -> None:
+    fixture = measured.clone()
+    raw = (
+        f"12:53AM INF {commits} commits scanned.\n"
+        f"12:53AM INF scanned ~{byte_count} bytes (0 MB) in 0s\n"
+        "12:53AM INF no leaks found\n"
+    ).encode()
+    _member(fixture, "gitleaks.log", raw)
+    receipt = json.loads(fixture.members[SECURITY.job]["source-security-receipt.json"])
+    assert receipt["schema"] == "korpus.source-security-execution.v2"
+    assert receipt["status"] == "PASS" and receipt["executions"][0]["exit_code"] == 0
+    assert receipt["artifacts"]["gitleaks.log"]["sha256"] == digest(raw)
+    assert len(fixture.members[SECURITY.job]) == 8
+    _wire(monkeypatch, fixture)
+    if valid:
+        admitted = importer.fetch_evidence(fixture.checkout.root, SELECTED)
+        security = next(x for x in admitted.artifacts if x.producer_job_name == SECURITY.job)
+        assert security.members["gitleaks.log"] == raw
+    else:
+        with pytest.raises(ValueError, match="complete success summary"):
+            importer.fetch_evidence(fixture.checkout.root, SELECTED)
+
+
 @pytest.mark.parametrize("name", ["damaged_stdlib", "damaged_release", "framed-error"])
 def test_coherent_native_error_log_cannot_be_laundered_by_receipt_or_zip_hashes(
     monkeypatch, measured: EvidenceFixture, name: str

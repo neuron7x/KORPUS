@@ -7422,6 +7422,26 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    Mutant(
+        "M780_SOURCE_SECURITY_ACCEPTS_ZERO_COMMITS",
+        "scripts/source_security_native.py",
+        '    re.compile(INFO_PREFIX + r"[1-9][0-9]* commits scanned\\."),',
+        '    re.compile(INFO_PREFIX + r"\\d+ commits scanned\\."),',
+        (
+            "apps/api/tests/test_github_evidence_full_admission.py::test_full_admission_requires_positive_reported_native_census[zero-commits]",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M781_SOURCE_SECURITY_ACCEPTS_ZERO_BYTES",
+        "scripts/source_security_native.py",
+        '    re.compile(INFO_PREFIX + r"scanned ~[1-9][0-9]* bytes \\([^\\r\\n)]+\\) in \\S+"),',
+        '    re.compile(INFO_PREFIX + r"scanned ~\\d+ bytes \\([^\\r\\n)]+\\) in \\S+"),',
+        (
+            "apps/api/tests/test_github_evidence_full_admission.py::test_full_admission_requires_positive_reported_native_census[zero-bytes]",
+        ),
+        full_copy=True,
+    ),
 )
 
 

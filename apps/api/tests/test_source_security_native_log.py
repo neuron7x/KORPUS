@@ -16,6 +16,44 @@ from scripts.source_security_contract import validate_outputs
 from .source_security_fixtures import native_log, output_bytes, write_locks
 
 
+@pytest.mark.parametrize(
+    ("commits", "byte_count", "valid"),
+    [
+        pytest.param(0, 1, False, id="zero-commits"),
+        pytest.param(1, 0, False, id="zero-bytes"),
+        pytest.param(0, 0, False, id="zero-both"),
+        pytest.param(1, 1, True, id="minimum-positive"),
+    ],
+)
+def test_reported_native_census_requires_both_positive_counts(
+    commits: int, byte_count: int, valid: bool
+) -> None:
+    # A modeled frame tests reported counts, not actual input consumption or EOF.
+    raw = (
+        f"12:53AM INF {commits} commits scanned.\n"
+        f"12:53AM INF scanned ~{byte_count} bytes (0 MB) in 0s\n"
+        "12:53AM INF no leaks found\n"
+    ).encode()
+    if valid:
+        native.validate_gitleaks_log(raw)
+    else:
+        with pytest.raises(ValueError, match="complete success summary"):
+            native.validate_gitleaks_log(raw)
+
+
+@pytest.mark.parametrize("field", ["commits", "bytes"])
+@pytest.mark.parametrize("count", ["00", "01", "-1", "+1", "1.0", "١", "１"])
+def test_native_census_rejects_noncanonical_decimal_counts(field: str, count: str) -> None:
+    commits, byte_count = (count, "1") if field == "commits" else ("1", count)
+    raw = (
+        f"12:53AM INF {commits} commits scanned.\n"
+        f"12:53AM INF scanned ~{byte_count} bytes (0 MB) in 0s\n"
+        "12:53AM INF no leaks found\n"
+    ).encode()
+    with pytest.raises(ValueError, match="complete success summary"):
+        native.validate_gitleaks_log(raw)
+
+
 @pytest.mark.parametrize("name", ["clean_stdlib", "clean_release"])
 def test_original_complete_native_log_bytes_are_accepted_without_rewriting(
     tmp_path: Path, name: str

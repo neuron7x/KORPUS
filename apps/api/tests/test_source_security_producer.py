@@ -400,6 +400,46 @@ def test_zero_exit_native_input_error_refuses_producer_pass(
     assert receipt["artifacts"]["gitleaks.log"]["sha256"] == hashlib.sha256(raw).hexdigest()
 
 
+@pytest.mark.parametrize(
+    ("commits", "byte_count", "expected_status"),
+    [
+        pytest.param(0, 1, "FAIL", id="zero-commits"),
+        pytest.param(1, 0, "FAIL", id="zero-bytes"),
+        pytest.param(0, 0, "FAIL", id="zero-both"),
+        pytest.param(1, 1, "PASS", id="minimum-positive"),
+    ],
+)
+def test_producer_requires_positive_reported_native_census(
+    prepared: tuple[Path, dict[str, Any]],
+    monkeypatch,
+    commits: int,
+    byte_count: int,
+    expected_status: str,
+) -> None:
+    root, _state = prepared
+    original = producer.execute
+    raw = (
+        f"12:53AM INF {commits} commits scanned.\n"
+        f"12:53AM INF scanned ~{byte_count} bytes (0 MB) in 0s\n"
+        "12:53AM INF no leaks found\n"
+    ).encode()
+
+    def execute(tool, command, output, cwd):
+        record = original(tool, command, output, cwd)
+        if tool == "gitleaks":
+            (output / "gitleaks.log").write_bytes(raw)
+        return record
+
+    monkeypatch.setattr(producer, "execute", execute)
+    receipt = producer.produce(root, Path("/external/scanner/python"))
+    assert receipt["executions"][0]["exit_code"] == 0
+    assert (root / "var/source-security/gitleaks.json").read_bytes() == b"[]"
+    assert receipt["artifacts"]["gitleaks.log"]["sha256"] == hashlib.sha256(raw).hexdigest()
+    assert receipt["status"] == expected_status
+    if expected_status == "FAIL":
+        assert "complete success summary" in receipt["error"]
+
+
 def test_producer_hashes_and_validates_the_same_captured_native_log_bytes(
     prepared: tuple[Path, dict[str, Any]], monkeypatch
 ) -> None:

@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2322,
-  "root_sha256": "a73c453ebc10a0b4ee8785aad0f7a6eca0c9dc2a68903638847af928fec27ee8",
+  "root_sha256": "2c8260dccfbbda1be5c805377ec988b4a95c66eb8b38061b530feba6c424b3c1",
   "files": [
     {
       "path": ".dockerignore",
@@ -4585,8 +4585,8 @@
     },
     {
       "path": "apps/api/tests/test_github_evidence_full_admission.py",
-      "bytes": 19368,
-      "sha256": "49cf83d9726cf4b79d878565aa3b67f9f074ceeb4ddadfff2b3f856739107ee3",
+      "bytes": 20895,
+      "sha256": "eae3566c334fcca970cf7c9569439377382575622878a67f6b96b8c064029422",
       "mode": "0644"
     },
     {
@@ -6205,14 +6205,14 @@
     },
     {
       "path": "apps/api/tests/test_source_security_native_log.py",
-      "bytes": 5984,
-      "sha256": "62dd1652710741a3d75e5ee8e3f1f7ef6aebb7dec81152585adbd099cdd13666",
+      "bytes": 7459,
+      "sha256": "c8a892768ade3c14a666fda2a15ac9bcabe50c6e36b128f43320e1e55521f4d5",
       "mode": "0644"
     },
     {
       "path": "apps/api/tests/test_source_security_producer.py",
-      "bytes": 18701,
-      "sha256": "c65830e53c103b86c36e34c340a54a741f1ee53cae8bbc3857af5216352977c5",
+      "bytes": 20156,
+      "sha256": "5fe664d7b93f97a97518b3c9718e724d331e2422bf771af6c7ebb6dbbfcb423d",
       "mode": "0644"
     },
     {
@@ -10531,8 +10531,8 @@
     },
     {
       "path": "docs/source-security-evidence.md",
-      "bytes": 28159,
-      "sha256": "6185e138bae2ffd93f188d6e355340c910d6de1d05cb69099d2c5026889fd146",
+      "bytes": 28510,
+      "sha256": "8a51630236fee8c9d2a992d26c21d2838f73bd25ebdae2167cb5a2409658f187",
       "mode": "0644"
     },
     {
@@ -13201,8 +13201,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 358150,
-      "sha256": "c4d767a6f8fdeb8eb22f2787da3d8973db6cdb8c90eaef8010519203341b71e6",
+      "bytes": 359094,
+      "sha256": "378afdc4b8c0575aa2d91dc935aa0139fa7e2a7e55253ab9816ac9f1b20f8806",
       "mode": "0755"
     },
     {
@@ -13543,8 +13543,8 @@
     },
     {
       "path": "scripts/source_security_native.py",
-      "bytes": 2831,
-      "sha256": "3324417fd4a49ff137b974c485d2bf4718b9d252804c4f7a8ca609583b226731",
+      "bytes": 2847,
+      "sha256": "1b9a1ce17b199e77a8c3160386064fc0ca14347f465504ed8cae10be76cb1093",
       "mode": "0644"
     },
     {

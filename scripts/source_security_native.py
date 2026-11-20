@@ -20,8 +20,8 @@ MAX_GITLEAKS_LOG_BYTES = 16 * 1024 * 1024
 ANSI_SGR = re.compile(r"\x1b\[[0-9;]*m")
 INFO_PREFIX = r"\d{1,2}:\d{2}(?:AM|PM) INF "
 SUMMARY_PATTERNS = (
-    re.compile(INFO_PREFIX + r"\d+ commits scanned\."),
-    re.compile(INFO_PREFIX + r"scanned ~\d+ bytes \([^\r\n)]+\) in \S+"),
+    re.compile(INFO_PREFIX + r"[1-9][0-9]* commits scanned\."),
+    re.compile(INFO_PREFIX + r"scanned ~[1-9][0-9]* bytes \([^\r\n)]+\) in \S+"),
     re.compile(INFO_PREFIX + r"no leaks found"),
 )
 ERROR_MARKERS = (
