@@ -19,16 +19,23 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from check_answer_quality_ratchet import problems  # noqa: E402
 
 CONFIG: dict = {
-    "measured": {"set_digest": "12cef2e250cba405"},
+    "schema": "korpus.answer-quality-ratchet.v1",
+    "measured": {
+        "set_digest": "12cef2e250cba405626017a186b69817f152490f1ccfc73f56a4f38ce614b5ea",
+        "in_corpus_answered_rate": 0.95,
+        "out_of_corpus_answered_rate": 0.2,
+    },
     "floors": {"in_corpus_answered_rate": 0.9},
     "ceilings": {"out_of_corpus_answered_rate": 0.25},
     "relaxed": [],
 }
 GOOD: dict = {
+    "schema": "korpus.domain-boundary-eval.v1",
     "status": "MEASURED",
-    "set_digest": "12cef2e250cba405ff",
-    "in_corpus": {"rate": 0.95},
-    "out_of_corpus": {"rate": 0.2},
+    "set_digest": CONFIG["measured"]["set_digest"],
+    "unreachable": [],
+    "in_corpus": {"answered": 19, "judged": 20, "rate": 0.95},
+    "out_of_corpus": {"answered": 4, "judged": 20, "rate": 0.2},
 }
 
 
@@ -38,12 +45,12 @@ def test_a_measurement_inside_both_bounds_passes() -> None:
 
 
 def test_answering_fewer_of_our_own_questions_is_caught() -> None:
-    assert problems({**GOOD, "in_corpus": {"rate": 0.85}}, CONFIG)
+    assert problems({**GOOD, "in_corpus": {"answered": 17, "judged": 20, "rate": 0.85}}, CONFIG)
 
 
 def test_letting_in_more_foreign_questions_is_caught() -> None:
     """Вісь, заради якої все почалось: 17 із 20 чужих питань під зеленим вироком."""
-    assert problems({**GOOD, "out_of_corpus": {"rate": 0.3}}, CONFIG)
+    assert problems({**GOOD, "out_of_corpus": {"answered": 6, "judged": 20, "rate": 0.3}}, CONFIG)
 
 
 def test_a_run_that_never_reached_the_server_is_not_perfect_restraint() -> None:

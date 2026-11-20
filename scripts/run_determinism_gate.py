@@ -24,6 +24,10 @@ TESTS = (
     "apps/api/tests/test_branch_cycle2_ratchet_v050.py",
     "apps/api/tests/test_release_state_machine.py",
     "apps/api/tests/test_assurance_calculus.py",
+    "apps/api/tests/test_reference_eval_admission.py",
+    "apps/api/tests/test_reference_eval_evidence.py",
+    "apps/api/tests/test_answer_quality_validation.py",
+    "apps/api/tests/test_boundary_eval_admission.py",
 )
 
 

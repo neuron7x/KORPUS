@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2276,
-  "root_sha256": "88842e3b4224f745ed481d8c2fafc73817af61042ea5cb5df83bace61e1db2f1",
+  "file_count": 2290,
+  "root_sha256": "4f9da6fc5284ec7b5083b5c7523e92d9907113d7b82de92f219087caad3c7221",
   "files": [
     {
       "path": ".dockerignore",
@@ -2946,6 +2946,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/evaluation_fixtures.py",
+      "bytes": 3720,
+      "sha256": "3a723be287abec0603535431d6837ceda896c1fff6e2dd486f04ed37a1e43d7d",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/helpers.py",
       "bytes": 6152,
       "sha256": "4998c02f20b64facc9c41f1a512dc18bd11f1fe205344e8ae8fb1d61890b368e",
@@ -3097,8 +3103,14 @@
     },
     {
       "path": "apps/api/tests/test_answer_quality_ratchet.py",
-      "bytes": 3715,
-      "sha256": "31ab7cae0a8db657240c680a22a99cee1d7cc549e257630c60ece9ec11823d40",
+      "bytes": 4114,
+      "sha256": "1f5f7a36e55a2fcaf8e6245f85a5a9eee3216b8b99bd62863a77f7f920409e61",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_answer_quality_validation.py",
+      "bytes": 5086,
+      "sha256": "090f78b0c15ffe3585cf70c4fd6d61699ab8bbe19045c3c07a78eba9d21cd080",
       "mode": "0644"
     },
     {
@@ -3285,6 +3297,12 @@
       "path": "apps/api/tests/test_boundary_coverage_v5.py",
       "bytes": 21933,
       "sha256": "c57fccce54f4b06f872a8f3d922421e5d595e6e6a46868ff253abf83ab4ff5e3",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_boundary_eval_admission.py",
+      "bytes": 5512,
+      "sha256": "386ec0fbf4c8217c23421f8494aab52991ed52b4bb7706a031d96ea1592f24cb",
       "mode": "0644"
     },
     {
@@ -5655,6 +5673,18 @@
       "path": "apps/api/tests/test_recovery_measurement.py",
       "bytes": 10145,
       "sha256": "a8db77d211a7d32e554974719dcc15b356c31336251f510ad43762117487f1ec",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_reference_eval_admission.py",
+      "bytes": 6182,
+      "sha256": "c3b1d7cd0271950eb482a9d783e6ba17f147edc6bd4c4b506f5eb18f788e6230",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_reference_eval_evidence.py",
+      "bytes": 11847,
+      "sha256": "f9bb3f10e61f66360cb1668b15eff0c5835d1268f53e9dba7568f10764ea9a0a",
       "mode": "0644"
     },
     {
@@ -8659,8 +8689,8 @@
     },
     {
       "path": "config/operations/answer-quality-ratchet.json",
-      "bytes": 1297,
-      "sha256": "9a34c6436cff560e5e8c90f568336967f7210eb7d1d2ea740e2cbb04932c71ae",
+      "bytes": 1345,
+      "sha256": "1954511d44931b699e5cd20bb80d9d005d05f63e3f95b1942b194aabd4be6d42",
       "mode": "0644"
     },
     {
@@ -8743,8 +8773,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 791109,
-      "sha256": "308213a8e2231d33a76a4f2f81418c2a3d3c87753ae342b1c588a8094faf871b",
+      "bytes": 794512,
+      "sha256": "4abe1e2a88b0c78d99b16ddea9fcbed3870f8ecead2d672ddff6a3a35d3a2461",
       "mode": "0644"
     },
     {
@@ -9519,6 +9549,12 @@
       "path": "docs/operations/DISTRIBUTION_RUNTIME_BOUNDARY.md",
       "bytes": 3505,
       "sha256": "c930100948fc1c99e62a230936447a3f6715561ca81cc08245c1151017e38d1a",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/operations/EVALUATION_EVIDENCE_ADMISSION.md",
+      "bytes": 5381,
+      "sha256": "2bd30abd4d3c68d8e3e36b183923a349801835f6ce815d4cd30bf51e63f8e9e7",
       "mode": "0644"
     },
     {
@@ -11124,6 +11160,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/answer_quality_validation.py",
+      "bytes": 3444,
+      "sha256": "42b80562a6a326a93379bee503d56b1ab29f073049aee6c5bfdc46df04079377",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/archive_atomic_publish.py",
       "bytes": 1526,
       "sha256": "33e92c0c443fe137cd434541ab5ab9a01e94c23f041962d5ad1e1954cb667638",
@@ -11268,6 +11310,12 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/boundary_eval_set.py",
+      "bytes": 2313,
+      "sha256": "f4cfc6aca02d4575f51508a1dbe2ebd5e1694129b8bc6403eb2230ba060485f5",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/bounded_process.py",
       "bytes": 577,
       "sha256": "d5188bd9c0ef559773104c99d7abfea3e1ea0163d244b2be5e2c2f27f3352d48",
@@ -11371,8 +11419,8 @@
     },
     {
       "path": "scripts/check_answer_quality_ratchet.py",
-      "bytes": 6435,
-      "sha256": "5cf177fa601a4fe48827d71a31ca8506d21981b78d6a45637369057bab8fc71d",
+      "bytes": 6349,
+      "sha256": "f204f6bad33bad7a59f49ce003a8001f3ca351ac834d3df4163ee9dee3aded86",
       "mode": "0755"
     },
     {
@@ -11644,6 +11692,18 @@
       "bytes": 1654,
       "sha256": "20e0f539b609b56d295b1cd43923cfda7e5a0c6b17b1f5d975067f2bf6459eee",
       "mode": "0755"
+    },
+    {
+      "path": "scripts/evaluation_http.py",
+      "bytes": 4647,
+      "sha256": "63f48368e37f7bd79b973a68db3dab9065f1daae64ddd9db744629eddbcd1dc6",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/evaluation_json.py",
+      "bytes": 2520,
+      "sha256": "bf66653030be87add265226ee98ca2ca39c3883ace85d3d5690e9d02741deb61",
+      "mode": "0644"
     },
     {
       "path": "scripts/evidence_access_route.py",
@@ -12756,9 +12816,33 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/reference_eval_citations.py",
+      "bytes": 4456,
+      "sha256": "4b4ba9943c5050539a570dd22df2591e047bf096f3b0bb0c4e14293127139ab7",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/reference_eval_judge.py",
+      "bytes": 3028,
+      "sha256": "4d128c50179fa0074556a9bd60edf551bda8e71a6c5c8b3786755e0b5f293f0a",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/reference_eval_metrics.py",
       "bytes": 2010,
       "sha256": "35f7651fdbef62ab6e1f09446952b893bdfe05f2fe6571bb9a603ae731dc8b9a",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/reference_eval_report.py",
+      "bytes": 2148,
+      "sha256": "3c86d01afc36ca2a90c6473a6b23b62c0e86bf9fb0b21ee18be27c7ea8b083f8",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/reference_eval_set.py",
+      "bytes": 5098,
+      "sha256": "2ea2024a59cd7f2a74c03fd94e548658735dd8cc791fbaf6f505dd6a7a639a2a",
       "mode": "0644"
     },
     {
@@ -12907,8 +12991,8 @@
     },
     {
       "path": "scripts/run_boundary_eval.py",
-      "bytes": 5875,
-      "sha256": "cf0ed087ba5f17023845de84152c10cb8a705ed37323640d0fd3231d53af7d78",
+      "bytes": 4150,
+      "sha256": "1f022004d837c6319c002526674dfabfbf522c314eac8ce16d8cd922df98265b",
       "mode": "0755"
     },
     {
@@ -12931,8 +13015,8 @@
     },
     {
       "path": "scripts/run_determinism_gate.py",
-      "bytes": 2106,
-      "sha256": "de35c9b4ed410456217f4761e3e56f682915253b4cb5a33248446c74da8584f4",
+      "bytes": 2325,
+      "sha256": "29e9f9fa9c721271210eb617ce845a731a256f6445100dc3fefa66d42601dce2",
       "mode": "0755"
     },
     {
@@ -13033,8 +13117,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 346343,
-      "sha256": "6e7fd1125f38c161bd62765276dd395ad77a92b4b31a1d52b07c08035dc7ee8c",
+      "bytes": 347936,
+      "sha256": "342a7df530f81efa11ac9707650ea5e3e1356883a34df2b53549ead0959ee538",
       "mode": "0755"
     },
     {
@@ -13129,8 +13213,8 @@
     },
     {
       "path": "scripts/run_reference_eval.py",
-      "bytes": 12506,
-      "sha256": "4a460be0a10ae3512798085259c4d589a114ad4fb2ac35409d189c95db7f74b1",
+      "bytes": 3781,
+      "sha256": "b1bf3e777013e67e6b75cd6b801cee9620943eb6ca96cd22cac52d4cb292373b",
       "mode": "0755"
     },
     {

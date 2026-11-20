@@ -606,6 +606,37 @@
         "max_nesting": 0
       },
       "reason": "Adversarial path normalization reduced branching and eliminated mutable wrapper-root admission assumptions."
+    },
+    {
+      "from": {
+        "lines": 260,
+        "max_complexity": 26,
+        "max_function_args": 4,
+        "max_function_lines": 85,
+        "max_nesting": 5,
+        "proof_lines": 0
+      },
+      "new_modules": [
+        "scripts/answer_quality_validation.py",
+        "scripts/boundary_eval_set.py",
+        "scripts/evaluation_http.py",
+        "scripts/evaluation_json.py",
+        "scripts/reference_eval_citations.py",
+        "scripts/reference_eval_judge.py",
+        "scripts/reference_eval_report.py",
+        "scripts/reference_eval_set.py"
+      ],
+      "on": "2026-11-20",
+      "path": "scripts/run_reference_eval.py",
+      "reason": "Issue #131: bounded input admission, evidence verification and report helpers replace the monolithic reference evaluator without raising global defaults.",
+      "to": {
+        "lines": 94,
+        "max_complexity": 6,
+        "max_function_args": 3,
+        "max_function_lines": 28,
+        "max_nesting": 3,
+        "proof_lines": 0
+      }
     }
   ],
   "modules": {
@@ -4076,7 +4107,7 @@
       "max_function_args": 2,
       "max_function_lines": 24,
       "max_nesting": 2,
-      "proof_lines": 48,
+      "proof_lines": 65,
       "reason": "Ратчет на дві протилежні осі якості відповідей. Кожен новий клас порушення — рядок у переліку `problems`, а не гілка."
     },
     "scripts/check_budget_raises_are_named.py": {
@@ -5701,7 +5732,7 @@
       "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
     "scripts/run_determinism_gate.py": {
-      "lines": 57,
+      "lines": 61,
       "max_complexity": 4,
       "max_function_args": 0,
       "max_function_lines": 24,
@@ -5947,11 +5978,11 @@
       "reason": " | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "scripts/run_reference_eval.py": {
-      "lines": 260,
-      "max_complexity": 26,
-      "max_function_args": 4,
-      "max_function_lines": 85,
-      "max_nesting": 5,
+      "lines": 94,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 28,
+      "max_nesting": 3,
       "proof_lines": 0,
       "reason": "Повтор на `http_429` і його класифікація як відсутності виміру: контроль допуску відхиляв за навантаженням, а судилося це як вирок. Той самий клас лагодили 30.08 для 5xx і проґавили 429, бо префікс описував КОДИ, а спільним є не код, а те, що розгортання не виносило судження."
     },
@@ -7290,6 +7321,70 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Issue #129 independent parser review: consume every byte with PostgreSQL ASCII whitespace and closed punctuation; reject non-ASCII relations, Python-only whitespace and adjacent integer/identifier junk before the exact policy-token comparison."
+    },
+    "scripts/answer_quality_validation.py": {
+      "lines": 79,
+      "max_complexity": 9,
+      "max_function_args": 2,
+      "max_function_lines": 15,
+      "max_nesting": 2,
+      "proof_lines": 0
+    },
+    "scripts/boundary_eval_set.py": {
+      "lines": 57,
+      "max_complexity": 9,
+      "max_function_args": 1,
+      "max_function_lines": 17,
+      "max_nesting": 2,
+      "proof_lines": 0
+    },
+    "scripts/evaluation_http.py": {
+      "lines": 122,
+      "max_complexity": 11,
+      "max_function_args": 5,
+      "max_function_lines": 24,
+      "max_nesting": 3,
+      "proof_lines": 0
+    },
+    "scripts/evaluation_json.py": {
+      "lines": 78,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 8,
+      "max_nesting": 2,
+      "proof_lines": 0
+    },
+    "scripts/reference_eval_citations.py": {
+      "lines": 101,
+      "max_complexity": 15,
+      "max_function_args": 2,
+      "max_function_lines": 34,
+      "max_nesting": 3,
+      "proof_lines": 0
+    },
+    "scripts/reference_eval_judge.py": {
+      "lines": 75,
+      "max_complexity": 10,
+      "max_function_args": 3,
+      "max_function_lines": 33,
+      "max_nesting": 1,
+      "proof_lines": 0
+    },
+    "scripts/reference_eval_report.py": {
+      "lines": 54,
+      "max_complexity": 10,
+      "max_function_args": 4,
+      "max_function_lines": 29,
+      "max_nesting": 2,
+      "proof_lines": 0
+    },
+    "scripts/reference_eval_set.py": {
+      "lines": 124,
+      "max_complexity": 14,
+      "max_function_args": 2,
+      "max_function_lines": 19,
+      "max_nesting": 2,
+      "proof_lines": 0
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -13748,6 +13843,28 @@
         "max_nesting": 2
       },
       "reason": "Issue #129 independent parser review: consume every byte with PostgreSQL ASCII whitespace and closed punctuation; reject non-ASCII relations, Python-only whitespace and adjacent integer/identifier junk before the exact policy-token comparison."
+    },
+    {
+      "from": {
+        "proof_lines": 48
+      },
+      "on": "2026-11-20",
+      "path": "scripts/check_answer_quality_ratchet.py",
+      "reason": "Issue #131: the same eight selftest cases now include complete dataset identity, schema, baseline rates and internally consistent integer counts. Only proof lines grow; executable complexity decreases.",
+      "to": {
+        "proof_lines": 65
+      }
+    },
+    {
+      "from": {
+        "lines": 57
+      },
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "reason": "Issue #131: four critical evaluation test modules join the existing determinism test registry. Only registry lines grow; executable complexity is unchanged.",
+      "to": {
+        "lines": 61
+      }
     }
   ],
   "recorded_at": "2026-10-04",

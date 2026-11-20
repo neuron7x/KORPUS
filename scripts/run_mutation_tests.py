@@ -49,6 +49,50 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M800_REFERENCE_SET_DIGEST_NOT_VERIFIED",
+        "scripts/reference_eval_set.py",
+        '    if digest != meta["content_digest"]:',
+        "    if False:",
+        (
+            "apps/api/tests/test_reference_eval_admission.py::"
+            "test_changed_reference_query_is_rejected_before_network",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M801_REFERENCE_CITATION_SUBSTRING_NOT_VERIFIED",
+        "scripts/reference_eval_citations.py",
+        "    if text[start:end] != quote:",
+        "    if False:",
+        (
+            "apps/api/tests/test_reference_eval_evidence.py::"
+            "test_self_consistent_fabricated_quote_is_rejected_against_source",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M802_QUALITY_RATE_DOMAIN_NOT_VERIFIED",
+        "scripts/answer_quality_validation.py",
+        "    return 0 <= value <= 1 and math.isfinite(value)",
+        "    return True",
+        (
+            "apps/api/tests/test_answer_quality_validation.py::"
+            "test_nonfinite_floor_is_rejected_before_comparison",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M803_EVALUATION_FOLLOWS_UNTRUSTED_REDIRECT",
+        "scripts/evaluation_http.py",
+        "timeout=timeout, follow_redirects=False, trust_env=False, transport=transport",
+        "timeout=timeout, follow_redirects=True, trust_env=False, transport=transport",
+        (
+            "apps/api/tests/test_reference_eval_evidence.py::"
+            "test_answer_redirect_never_sends_bearer_to_location",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M760_READINESS_ACCEPTS_INCOMPLETE_PROBE_SUBJECT",
         "scripts/serving_readiness_contract.py",
         "and set(ports) == set(observed)",
