@@ -334,6 +334,8 @@ def test_redirect_to_another_ready_responder_is_refused() -> None:
     ("status", "body", "expected_status"),
     [
         (200, b'{"status":"ready"}', 200),
+        (200, b'{"status":"ready"}' + b" " * 4078, 200),
+        (200, b'{"status":"ready"}' + b" " * 4078 + b'{"status":"not_ready"}', None),
         (200, b'{"status":"ready","audit_head":0,"telemetry":"\xff"}', None),
         (503, b"\xff", 503),
         (503, b'{"detail":{"database":false}}', 503),
@@ -360,8 +362,10 @@ def test_non_utf8_probes_fail_closed_with_structured_observations(
         result = GATE.verdict(["pilot.service"], [server.server_port], [observed])
         assert result["status"] == ("PASS" if expected_status == 200 else "FAIL")
         assert result["serving"] == ([server.server_port] if expected_status == 200 else [])
-        if expected_status is None:
+        if expected_status is None and len(body) <= 4096:
             assert "UnicodeDecodeError" in observed["body"]
+        if len(body) > 4096:
+            assert observed["body"] == "READINESS_BODY_TOO_LARGE"
         if status == 503 and body.startswith(b'{"detail":'):
             assert result["refusing"][0]["false_checks"] == ["database"]
     finally:

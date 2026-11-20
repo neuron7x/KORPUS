@@ -43,11 +43,12 @@ def probe(port: int, path: str = "/ready", timeout: float = TIMEOUT) -> dict[str
     url = f"http://127.0.0.1:{port}{path}"
     try:
         with urllib.request.build_opener(_NoRedirect).open(url, timeout=timeout) as response:
+            body = response.read(4097)
             return {
                 "port": port,
                 "path": path,
-                "status": response.status,
-                "body": response.read(4096).decode(),
+                "status": response.status if len(body) <= 4096 else None,
+                "body": body.decode() if len(body) <= 4096 else "READINESS_BODY_TOO_LARGE",
             }
     except urllib.error.HTTPError as e:
         status = None if 300 <= e.code < 400 else e.code
