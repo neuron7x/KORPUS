@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2260,
-  "root_sha256": "968a0670e24ce132de3a95ff0aa3f1b3451e22dcc2057586c8fc814dee63a4af",
+  "file_count": 2262,
+  "root_sha256": "1eb8f1efa3e6bc01993d309b86c1aeac4d31ca3b84f8c9f917e6e4bb18bd3568",
   "files": [
     {
       "path": ".dockerignore",
@@ -2095,8 +2095,8 @@
     },
     {
       "path": "apps/api/src/korpus/cli.py",
-      "bytes": 10229,
-      "sha256": "11ece950a5ac9a16e8f8a90a19dd85f9d751fea5848ca5d3efae4336606c4c13",
+      "bytes": 10331,
+      "sha256": "90aeeecd7e8d908760169859f39e7c934761e0832e95c451433c1d3b1c96b139",
       "mode": "0644"
     },
     {
@@ -2365,8 +2365,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
-      "bytes": 14143,
-      "sha256": "56620c0c2d84ab72fa0f7c2cd17199d706efa0a45eb6e35aebde41b3c6451305",
+      "bytes": 14266,
+      "sha256": "ff2dd5e2dfe39009835c74e5a257c624ac027c6e4043580e9bec93e7012d4bd9",
       "mode": "0644"
     },
     {
@@ -2611,8 +2611,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/rls_repository.py",
-      "bytes": 6631,
-      "sha256": "e9d8b967472d6743a95942a9d53fe9f373755fa9153968f1458c7283cb847b04",
+      "bytes": 6412,
+      "sha256": "0916536caa53a60e52f6692764da02fa7259da85add353e652f6ebdd31a8232e",
       "mode": "0644"
     },
     {
@@ -2696,7 +2696,7 @@
     {
       "path": "apps/api/src/korpus/main.py",
       "bytes": 13921,
-      "sha256": "d0193457ab32c6215d7d32a756e5b61f1895cf2a501e02558c84e5d91cce8107",
+      "sha256": "118584e1c0639aa63132664530ea357306a1ed7414edc1b24643ac7ea3f9ff2f",
       "mode": "0644"
     },
     {
@@ -3265,8 +3265,8 @@
     },
     {
       "path": "apps/api/tests/test_boundary_coverage_v5.py",
-      "bytes": 21657,
-      "sha256": "f5cb11fc2f83b37acb24b6e9e0aa8fa6f81b28b2bb64b1dd4ff9c92cc51ad167",
+      "bytes": 21933,
+      "sha256": "c57fccce54f4b06f872a8f3d922421e5d595e6e6a46868ff253abf83ab4ff5e3",
       "mode": "0644"
     },
     {
@@ -4650,6 +4650,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_ingestion_queue_binding.py",
+      "bytes": 4358,
+      "sha256": "352a6ad506a08ff8a3446bc016643faa79d27122699d17b048c239f2c3b97079",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_ingestion_queue_ownership.py",
       "bytes": 10941,
       "sha256": "bb7c25707dc8b983fcea2d579e5a1d0bf81ec68248364af9d7178b1d2596d0c7",
@@ -5334,6 +5340,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_postgres_ingestion_queue.py",
+      "bytes": 8954,
+      "sha256": "a77c69d674c7a5693c50786c874c411c3cb8cbb4b33abc385edd8d42d984f040",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_postgres_integration.py",
       "bytes": 8236,
       "sha256": "f6622cd6aa8602963cc61c314ccdea95ba936305ab4bcf72f1d7908eb7f43e79",
@@ -5725,8 +5737,8 @@
     },
     {
       "path": "apps/api/tests/test_repository_access_refusals.py",
-      "bytes": 11784,
-      "sha256": "7496d078fd680c32edf2dcebe747a63038de45cbd414ca9fd58038fdae692ff5",
+      "bytes": 11835,
+      "sha256": "1805e968f5a1682b2bf7f86106ceac5cb39eae6763f5d3df3ebc4e4dd66f105a",
       "mode": "0644"
     },
     {
@@ -9487,8 +9499,8 @@
     },
     {
       "path": "docs/operations/PILOT_ACCEPTANCE.md",
-      "bytes": 7896,
-      "sha256": "c023f3d96d60857b5ba6655e0b251fa89400f3401634173a284da66712c596f0",
+      "bytes": 9137,
+      "sha256": "ead419eec6cf127b85c9e598f1cc88f3ba1c1763db09c2a1ce7aef9d53d87c12",
       "mode": "0644"
     },
     {
