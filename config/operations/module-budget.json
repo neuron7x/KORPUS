@@ -619,7 +619,7 @@
       "reason": "Issue #124: initial measured ceiling for private laptop Compose ownership, local persistence paths, canonical runtime guards and exact host checks; every dimension is within the unchanged new-module defaults."
     },
     "scripts/run_compose_pilot_smoke.py": {
-      "lines": 378,
+      "lines": 382,
       "max_complexity": 5,
       "max_function_args": 4,
       "max_function_lines": 36,
@@ -13663,6 +13663,17 @@
         "lines": 34
       },
       "reason": "Address exact PR #86 isolated package context and PR #87 scripts-mypy no-any-return failures; source-format measurement, no security gate relaxation."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/run_compose_pilot_smoke.py",
+      "from": {
+        "lines": 378
+      },
+      "to": {
+        "lines": 382
+      },
+      "reason": "Issue #124: the native cold start exposed Compose 2.38.2 rejecting the worker disabled HTTP probe under --wait. Start worker after web/dependency readiness with a bounded build deadline; preserve service-state validation and actual durable-job acceptance. Five new readiness cases cover stopped/restarting worker, unhealthy API and failed migration; no default ceilings or runtime guards change."
     }
   ],
   "recorded_at": "2026-10-04",

@@ -381,6 +381,58 @@ def test_start_failure_cleans_only_own_project(
             assert command[-1] == "label=com.docker.compose.project=" + workspace.project
 
 
+@pytest.mark.parametrize(
+    "broken_service,field,value",
+    [
+        (None, "", ""),
+        ("worker", "State", "exited"),
+        ("worker", "State", "restarting"),
+        ("api", "Health", "unhealthy"),
+        ("migrate", "ExitCode", 1),
+    ],
+)
+def test_start_preserves_readiness_with_disabled_worker_http_probe(
+    workspace: Workspace,
+    monkeypatch: pytest.MonkeyPatch,
+    broken_service: str | None,
+    field: str,
+    value: str | int,
+) -> None:
+    smoke = prepared_smoke(workspace)
+    monkeypatch.setattr(runner, "check_port", lambda: None)
+    rows = [
+        {
+            "Service": name,
+            "State": "exited" if name == "migrate" else "running",
+            "Health": "" if name in {"migrate", "worker"} else "healthy",
+            "ExitCode": 0,
+        }
+        for name in sorted(environment.SERVICES)
+    ]
+    for row in rows:
+        if row["Service"] == broken_service:
+            row[field] = value
+    started: list[str] = []
+
+    def compose(arguments: list[str], timeout: int = 30) -> str:
+        if arguments[0] == "up":
+            if "--wait" in arguments and "worker" in arguments:
+                raise SmokeFailure("worker has no healthcheck configured")
+            started.append(arguments[-1])
+            return ""
+        return json.dumps(rows)
+
+    monkeypatch.setattr(smoke, "compose", compose)
+    if broken_service is None:
+        smoke.start()
+        assert smoke.report["services"]["worker"]["state"] == "running"
+    else:
+        with pytest.raises(SmokeFailure):
+            smoke.start()
+    assert started == ["web", "worker"]
+    assert smoke.report["status"] == "FAIL"  # Startup alone never qualifies the journey.
+
+
 def test_existing_project_is_never_adopted_or_torn_down(
     workspace: Workspace, monkeypatch: pytest.MonkeyPatch
 ) -> None:

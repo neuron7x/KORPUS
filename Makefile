@@ -1530,6 +1530,8 @@ infra-secrets:
 	bash scripts/init_local_secrets.sh
 
 .PHONY: compose-pilot-smoke pilot-compose pilot-compose-check pilot-up
+PILOT_COMPOSE := docker compose --project-directory . --project-name korpus-pilot -f deploy/pilot/compose.local.yaml
+
 pilot-compose:
 	$(PY) scripts/generate_pilot_compose.py
 
@@ -1537,7 +1539,9 @@ pilot-compose-check:
 	$(PY) scripts/generate_pilot_compose.py --check
 
 pilot-up: pilot-compose-check infra-secrets
-	docker compose --project-directory . --project-name korpus-pilot -f deploy/pilot/compose.local.yaml up -d --build --wait --wait-timeout 600 web worker
+	$(PILOT_COMPOSE) up -d --build --wait --wait-timeout 600 web
+	$(PILOT_COMPOSE) up -d --build worker
+	test "$$($(PILOT_COMPOSE) ps --status running --services worker)" = worker
 
 compose-pilot-smoke: pilot-compose-check
 	$(PY) scripts/run_compose_pilot_smoke.py

@@ -90,7 +90,12 @@ curl --fail --silent --show-error http://127.0.0.1:3000/healthz
 curl --fail --silent --show-error http://127.0.0.1:3000/api/ready
 ```
 
-`pilot-up` checks derivation, prepares operator secrets, builds and waits for readiness.
+`pilot-up` checks derivation, prepares operator secrets, builds and waits for the web/API
+and their dependencies, then starts the worker and verifies its running state.
+The worker deliberately has no HTTP healthcheck. Compose 2.38.2 rejects `--wait` on
+its disabled inherited probe, so the commands start it separately with its dependency
+checks intact. The disposable smoke's completed ingestion job is the functional worker
+proof; a running-state check alone does not establish successful processing.
 Run it from the checkout root. The stable project name `korpus-pilot` creates its own
 PostgreSQL, object/quarantine and audit volumes; it does not migrate or adopt a legacy
 `korpus` database whose source bytes live in S3. Port 3000 must be available. A bind
@@ -99,8 +104,13 @@ conflict is an error; these commands do not stop another stack to claim the port
 Keep the generated secrets and named volumes. `dc down` stops this pilot stack
 without deleting volumes; the disposable smoke's volume cleanup is not an operator
 shutdown command. First-time image and scanner startup must complete before upload.
-For a rebuild of this same persistent pilot, use
-`dc up -d --build --wait --wait-timeout 600 web worker`.
+For a rebuild of this same persistent pilot, use:
+
+```sh
+dc up -d --build --wait --wait-timeout 600 web &&
+dc up -d --build worker &&
+test "$(dc ps --status running --services worker)" = worker
+```
 
 API and worker run as UID 10001 and mount `korpus-pilot_pilot-objects` at `/data`.
 Normal fresh-volume initialization preserves the image's ownership; ingested source
@@ -124,8 +134,10 @@ dc() {
   docker compose --project-directory . --project-name korpus-pilot \
     -f deploy/pilot/compose.local.yaml -f deploy/pilot/compose.private.yaml "$@"
 }
-dc config --quiet
-dc up -d --build --wait --wait-timeout 600 web worker
+dc config --quiet &&
+dc up -d --build --wait --wait-timeout 600 web &&
+dc up -d --build worker &&
+test "$(dc ps --status running --services worker)" = worker
 ```
 
 Compose refuses a missing hostname; the shell check above rejects wildcard/list

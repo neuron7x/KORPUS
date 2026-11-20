@@ -177,10 +177,14 @@ class ComposeSmoke:
                 "--wait-timeout",
                 str(self.startup_timeout),
                 "web",
-                "worker",
             ],
             self.startup_timeout + 1200,
         )
+        # The worker intentionally disables the image's HTTP healthcheck. Older
+        # Compose versions cannot --wait on that NONE probe; its real proof is
+        # the durable ingestion journey after dependency and running-state checks.
+        self.phase = "worker_start"
+        self.compose(["up", "-d", "--build", "worker"], self.startup_timeout + 1200)
         self.phase = "service_state"
         output = self.compose(["ps", "--all", "--format", "json"])
         services = parse_services(output)
