@@ -25,7 +25,7 @@ def _copy_surface(tmp_path: Path) -> Path:
 def test_current_contract_migration_is_rejected_by_expand_only_gate() -> None:
     report = evaluate(ROOT)
     assert report["status"] == "FAIL", report
-    assert report["future_migrations"] == 3
+    assert report["future_migrations"] == 4
     assert report["findings"], report
     restrictive = {
         "0025_sealed_provenance_integrity.py",

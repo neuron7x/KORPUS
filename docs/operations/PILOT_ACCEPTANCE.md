@@ -162,3 +162,30 @@ requires app, owner and broker URLs to address the same database with distinct l
 Only suite cleanup uses the owner; queue operations never do. Synthetic completion
 metadata proves queue persistence. The authenticated live acceptance above still has
 to prove actual upload, document processing, review and source-grounded answers.
+
+## PostgreSQL reviewer-only transitions
+
+Migration `0028_reviewer_update_scope` adds two permissive UPDATE policies. Each
+requires the trusted broker's `reviewer` role, the original document visibility and
+the actual SQL login's existing review-column privilege. API application credentials
+do not gain review authority; content reviewers and approvers do not need curator or
+administrator roles. The review login's existing table-level version UPDATE grant
+remains a capability discriminator, not a new column whitelist. Sealed-provenance
+guards and non-review document-column grants continue to apply.
+
+Run the native regression with the disposable PostgreSQL runner:
+
+```sh
+scripts/run_postgres_suite.sh --targeted apps/api/tests/test_postgres_reviewer_scope.py
+```
+
+It exercises distinct metadata/content/approval identities, including a separately
+named review login, and verifies app-role, forged-claim, scope and new-row denials.
+An access-tier UPDATE affecting zero rows aborts the entire review transaction,
+including predecessor retirement and audit changes.
+
+The new head is eligible for fresh database bootstrap. Existing populated-deployment
+retirement admission remains required, including an existing `0027` database; do not
+stamp a revision or delete a pilot volume to bypass it. The expand-only assessment
+continues to report the 32 existing findings for `0025`–`0027`. The narrowly proven
+additive `0028` policies add no findings and do not authorize production deployment.

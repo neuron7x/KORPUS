@@ -1,9 +1,11 @@
-"""Bounded literal SQL forms with effects confined to independent new tables."""
+"""Bounded literal SQL proofs for new-table effects and scoped reviewer policies."""
 
 from __future__ import annotations
 
 import ast
 import re
+
+from gcp.migration_review_policy_proof import reviewer_policy_is_expanding
 
 _IDENTIFIER = r'(?:"[A-Za-z_][A-Za-z_0-9]*"|[A-Za-z_][A-Za-z_0-9]*)'
 _COLUMN = (
@@ -36,7 +38,7 @@ def _alter_failure(statement: str, created: frozenset[str]) -> str | None:
 
 
 def execute_is_expanding(node: ast.Call, created: frozenset[str] = frozenset()) -> str | None:
-    """Admit only simple CREATE columns or enumerated local ALTER effects.
+    """Admit simple CREATE columns, local ALTER effects or exact additive review policies.
 
     A matching new table name alone is insufficient: inheritance and partition
     attachment can alter old reads/writes. Unknown SQL remains a denial.
@@ -49,6 +51,6 @@ def execute_is_expanding(node: ast.Call, created: frozenset[str] = frozenset()) 
     statement = first.value.strip()
     if any(marker in statement for marker in (";", "--", "/*", "*/", "\x00")):
         return "op.execute with stacked or commented SQL is not expand-safe"
-    if _CREATE.fullmatch(statement):
+    if _CREATE.fullmatch(statement) or reviewer_policy_is_expanding(statement):
         return None
     return _alter_failure(statement, created)
