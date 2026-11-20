@@ -130,7 +130,7 @@ def serving_processes(proc: Path = Path("/proc")) -> list[dict[str, Any]]:
             cmdline = (entry / "cmdline").read_bytes().decode("utf-8", "replace")
         except OSError:
             continue
-        if b"KORPUS_DATABASE_URL=" not in raw:
+        if not any(part.startswith(b"KORPUS_DATABASE_URL=") for part in raw.split(b"\0")):
             continue
         command = cmdline.replace("\0", " ").strip()
         port = _PORT.search(command)

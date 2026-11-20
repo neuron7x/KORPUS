@@ -49,6 +49,36 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M760_READINESS_ACCEPTS_INCOMPLETE_PROBE_SUBJECT",
+        "scripts/serving_readiness_contract.py",
+        "and set(ports) == set(observed)",
+        "and True",
+        (
+            "apps/api/tests/test_serving_readiness_contract.py::test_incomplete_or_ambiguous_probe_identity_fails",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M761_READINESS_ACCEPTS_INACTIVE_DECLARED_UNIT",
+        "scripts/serving_readiness_contract.py",
+        '    if state.get("active") != "active" or not isinstance(pid, str):',
+        "    if not isinstance(pid, str):",
+        (
+            "apps/api/tests/test_serving_readiness_contract.py::test_discovery_rejects_partial_or_ambiguous_topology[inactive-unit]",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M762_READINESS_ACCEPTS_MISSING_DECLARED_UNIT",
+        "scripts/serving_readiness_contract.py",
+        "or set(names) != set(units)",
+        "or False",
+        (
+            "apps/api/tests/test_serving_readiness_contract.py::test_discovery_rejects_partial_or_ambiguous_topology[missing-unit]",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M753_PUBLISHED_COMPETENCY_STATE_NOT_GUARDED",
         "apps/api/src/korpus/infrastructure/learning_competency_schema.py",
         "AND state IN ('published', 'invalidated', 'retired')",

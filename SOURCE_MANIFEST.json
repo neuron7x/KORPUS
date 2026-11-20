@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2251,
-  "root_sha256": "87232729eae453662f8bcee31400968eb8a583b8bd2bb25af4c72df1017f15be",
+  "file_count": 2253,
+  "root_sha256": "da51f1b0d4752fa0f83f9f63c72aaef31770eea8215e173a0d30e9e24df4e85f",
   "files": [
     {
       "path": ".dockerignore",
@@ -5989,14 +5989,20 @@
     },
     {
       "path": "apps/api/tests/test_serving_freshness.py",
-      "bytes": 7121,
-      "sha256": "073d13165d79840880bcb23cd611e9bbacc676b7ba9449e9cb6b5047bfde08fe",
+      "bytes": 8051,
+      "sha256": "e52e1950760be6251dac2999eef3f1d629b0ea419099109c425ac30b7dc76552",
       "mode": "0644"
     },
     {
       "path": "apps/api/tests/test_serving_readiness.py",
       "bytes": 5779,
       "sha256": "cc791af9b696eaa25b4cc126eb875ea9d7cb6e586ac839825d77dcf0f33bb71b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_serving_readiness_contract.py",
+      "bytes": 5846,
+      "sha256": "3086c9f9433ced076f944d533e9c1da6978d1808de3c4c5299fc3651a9de119b",
       "mode": "0644"
     },
     {
@@ -8665,8 +8671,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 784944,
-      "sha256": "6fd0157c3c5e13bd243a682cd3929bd86133f95b65fecc6cc0cb2d4d5e566b82",
+      "bytes": 785306,
+      "sha256": "d5122c8a45b9594e2a73fa0593c0f2ef906dc760322a1c4aac8a7a3bfc7ddbca",
       "mode": "0644"
     },
     {
@@ -11389,14 +11395,14 @@
     },
     {
       "path": "scripts/check_serving_freshness.py",
-      "bytes": 23553,
-      "sha256": "0613426846295ad7ef7c9d61823d83d30be692de0d5dc4b14c148d3b5146b15f",
+      "bytes": 23597,
+      "sha256": "2f7d53fbcaedecc05fd0f3222aadebdedef43753218a27e4ae6fff49e6e43cf0",
       "mode": "0755"
     },
     {
       "path": "scripts/check_serving_readiness.py",
-      "bytes": 9059,
-      "sha256": "4a539b05057f51b3b75430da6eed4f1e1fc9c6472154a3851ced9635fe0e4048",
+      "bytes": 8802,
+      "sha256": "24c2e56bec1a02253252896dcc5b47e247cced070ba66af5c8fd92b5c9f3c1ff",
       "mode": "0755"
     },
     {
@@ -12895,8 +12901,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 345212,
-      "sha256": "49c05d4ef6d4e8db9d76fa13b7c9df339251f836a0a0d001b40450b56b5c22c7",
+      "bytes": 346351,
+      "sha256": "44176f84e398087400e48b393160db345a8fcdba45d426591457d3f5ac2853ac",
       "mode": "0755"
     },
     {
@@ -13090,6 +13096,12 @@
       "bytes": 4753,
       "sha256": "e9116192ea8b5fae60af39811a8374f6ae095bd94025b7ecc17c433bd0b8e3d0",
       "mode": "0755"
+    },
+    {
+      "path": "scripts/serving_readiness_contract.py",
+      "bytes": 2947,
+      "sha256": "333967478ada73f31a94691858f240fa62990090b925d1d25d89296b56d5bce4",
+      "mode": "0644"
     },
     {
       "path": "scripts/slsa_provenance.py",

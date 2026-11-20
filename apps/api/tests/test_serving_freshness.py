@@ -16,6 +16,8 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "scripts"))
 
@@ -82,6 +84,31 @@ def test_a_process_that_opened_no_corpus_is_not_serving(tmp_path: Path) -> None:
     (entry / "cmdline").write_bytes(b"python\x00-m\x00pytest\x00")
 
     assert serving_processes(tmp_path) == []
+
+
+@pytest.mark.parametrize(
+    ("environ", "expected"),
+    [
+        (b"NOT_KORPUS_DATABASE_URL=forged\0", False),
+        (b"COMMENT=example KORPUS_DATABASE_URL=fake\0", False),
+        (b"PATH=/tmp/KORPUS_DATABASE_URL=fake\0", False),
+        (b"KORPUS_DATABASE_URL_FAKE=forged\0", False),
+        (b"KORPUS_DATABASE_URL=postgresql://real\0", True),
+        (b"PATH=/usr/bin\0KORPUS_DATABASE_URL=postgresql://real\0", True),
+    ],
+)
+def test_process_identity_requires_exact_nul_delimited_environment_name(
+    tmp_path: Path, environ: bytes, expected: bool
+) -> None:
+    entry = tmp_path / "4242"
+    entry.mkdir()
+    (entry / "environ").write_bytes(environ)
+    (entry / "cmdline").write_bytes(b"python\0-m\0uvicorn\0--port\08000\0")
+    found = serving_processes(tmp_path)
+    assert bool(found) is expected
+    if expected:
+        assert found[0]["pid"] == "4242"
+        assert found[0]["port"] == 8000
 
 
 def test_the_newest_source_is_the_one_the_server_would_have_to_hold() -> None:

@@ -609,6 +609,15 @@
     }
   ],
   "modules": {
+    "scripts/serving_readiness_contract.py": {
+      "lines": 84,
+      "max_complexity": 13,
+      "max_function_lines": 15,
+      "max_function_args": 3,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured ceiling for complete serving-unit, process and probe identity admission; existing module ceilings remain unchanged."
+    },
     "apps/api/src/korpus/infrastructure/learning_publication.py": {
       "lines": 88,
       "max_complexity": 8,
