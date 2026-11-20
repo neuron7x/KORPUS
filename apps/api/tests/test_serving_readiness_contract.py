@@ -170,6 +170,49 @@ def test_cli_accepts_complete_topology_and_probes_each_subject(monkeypatch, tmp_
     assert calls == [(8040, "/ready"), (8041, "/ready"), (8040, "/health"), (8041, "/health")]
 
 
+
+@pytest.mark.parametrize(
+    ("discovered_unit", "expected_exit"),
+    [("pilot.service", 0), ("other.service", 1)],
+    ids=("stable-snapshot-still-serves", "changed-topology-refuses"),
+)
+def test_cli_uses_one_declaration_snapshot_for_discovery_and_verdict(
+    monkeypatch, tmp_path, discovered_unit: str, expected_exit: int
+) -> None:
+    snapshots: list[list[str]] = []
+    successive = iter((["pilot.service"], ["other.service"]))
+
+    def changing_units() -> list[str]:
+        snapshot = next(successive)
+        snapshots.append(snapshot)
+        return snapshot
+
+    monkeypatch.setattr(GATE, "required_units", changing_units)
+    monkeypatch.setattr(
+        GATE,
+        "unit_states",
+        lambda _units: [{"unit": discovered_unit, "active": "active", "main_pid": "301"}],
+    )
+    monkeypatch.setattr(GATE, "serving_processes", lambda: [{"pid": "301", "port": 8041}])
+    calls: list[tuple[int, str]] = []
+
+    def probe(port: int, path: str = "/ready") -> dict[str, object]:
+        calls.append((port, path))
+        return {**_ready(port), "path": path}
+
+    out = tmp_path / "readiness.json"
+    monkeypatch.setattr(GATE, "probe", probe)
+    monkeypatch.setattr(sys, "argv", ["check_serving_readiness.py", "--out", str(out)])
+    assert GATE.main() == expected_exit
+    recorded = json.loads(out.read_text())
+    assert recorded["declared_units"] == ["pilot.service"]
+    assert recorded["status"] == ("PASS" if expected_exit == 0 else "FAIL")
+    assert recorded["probed_ports"] == ([8041] if expected_exit == 0 else [])
+    assert snapshots == [["pilot.service"]]
+    assert calls == (
+        [(8041, "/ready"), (8041, "/health")] if expected_exit == 0 else []
+    )
+
 @pytest.mark.parametrize(
     "body",
     [

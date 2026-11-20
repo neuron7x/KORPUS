@@ -123,9 +123,9 @@ def verdict(
     }
 
 
-def declared_ports() -> list[int]:
+def declared_ports(units: list[str] | None = None) -> list[int]:
     """Порти процесів, що належать ОГОЛОШЕНИМ юнітам."""
-    units = required_units()
+    units = required_units() if units is None else units
     return owned_ports(units, unit_states(units), serving_processes())
 
 
@@ -174,7 +174,8 @@ def main() -> int:
     args = parser.parse_args()
     if args.selftest:
         return selftest()
-    units, ports = required_units(), declared_ports()
+    units = required_units()
+    ports = declared_ports(units)
     payload = verdict(
         units,
         ports,
