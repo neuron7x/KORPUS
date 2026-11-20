@@ -176,6 +176,7 @@ def test_native_forged_session_claims_cannot_read_or_enqueue(postgres_queue, bin
         repository._apply_postgres_identity(connection, OWNER)
         assert connection.execute(select(ingestion_jobs.c.id)).scalars().all() == [str(original.id)]
         backend = connection.execute(text("SELECT pg_backend_pid()")).scalar_one()
+    insert_reached = False
     with pytest.raises(DBAPIError) as denied, repository.engine.begin() as connection:
         # Return to the same pooled backend in a new transaction: owner claims must expire.
         assert connection.execute(text("SELECT pg_backend_pid()")).scalar_one() == backend
@@ -190,7 +191,9 @@ def test_native_forged_session_claims_cannot_read_or_enqueue(postgres_queue, bin
         )
         # Direct SQL proves RLS denial independently of queue.get's Python owner filter.
         assert connection.execute(select(ingestion_jobs.c.id)).all() == []
+        insert_reached = True
         connection.execute(insert(ingestion_jobs).values(**queue._values(forged)))
+    assert insert_reached, "a setup error cannot qualify the forged INSERT refusal"
     assert getattr(denied.value.orig, "sqlstate", None) == "42501"
     assert queue.get(OWNER, original.id) == original
     assert queue.get(OWNER, forged.id) is None

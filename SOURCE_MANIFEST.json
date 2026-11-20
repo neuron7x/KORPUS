@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2262,
-  "root_sha256": "51881a7de3a0b0761aedd96c558ccfb2b1b4ff954962b3a5f272acbdb75a61c6",
+  "root_sha256": "1eb8f1efa3e6bc01993d309b86c1aeac4d31ca3b84f8c9f917e6e4bb18bd3568",
   "files": [
     {
       "path": ".dockerignore",
@@ -5341,8 +5341,8 @@
     },
     {
       "path": "apps/api/tests/test_postgres_ingestion_queue.py",
-      "bytes": 8813,
-      "sha256": "279bec56f95573e94d29bc49f641a2bf08f899b8e3679adf8a5833b245cd4a56",
+      "bytes": 8954,
+      "sha256": "a77c69d674c7a5693c50786c874c411c3cb8cbb4b33abc385edd8d42d984f040",
       "mode": "0644"
     },
     {
