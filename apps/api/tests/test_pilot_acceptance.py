@@ -27,6 +27,9 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from pilot_acceptance_contract import (  # noqa: E402
     ABSTENTION_TEXT,
+    COMPOSITION_LIMITATION,
+    POSITIVE_LIMITATIONS,
+    REPEATED_SOURCE_LIMITATION,
     Credentials,
     Fixture,
     ProbeFailure,
@@ -281,7 +284,9 @@ def test_non_abstentions_never_pass_blank_evidence_check(answer: dict[str, objec
         require_abstention(answer)
 
 
-@pytest.mark.parametrize("channel", ["text", "opening", "decision_reason", "limitations"])
+@pytest.mark.parametrize(
+    "channel", ["text", "opening", "decision_reason", "limitations", "corpus_release"]
+)
 def test_abstention_cannot_leak_through_rendered_channels(channel: str) -> None:
     fixture = Fixture(CORPUS)
     answer = {
@@ -292,6 +297,7 @@ def test_abstention_cannot_leak_through_rendered_channels(channel: str) -> None:
         "opening": "",
         "decision_reason": "retrieval_gate_failed",
         "limitations": ["Генерацію зупинено fail-closed."],
+        "corpus_release": "0" * 64,
     }
     require_abstention(answer)
     leaked = fixture.content.decode("utf-8")
@@ -455,6 +461,9 @@ def test_self_consistent_forged_span_cannot_claim_the_known_source_hash() -> Non
         "status": "answered",
         "text": forged,
         "opening": "",
+        "decision_reason": "extractive_claims_passed_calibrated_gates",
+        "limitations": list(POSITIVE_LIMITATIONS),
+        "corpus_release": "0" * 64,
         "claims": [{"text": forged, "evidence_span_ids": [span_id]}],
         "citations": [citation],
     }
@@ -463,7 +472,9 @@ def test_self_consistent_forged_span_cannot_claim_the_known_source_hash() -> Non
         verify_citation(checked[0], span, fixture, document_id, version_id)
 
 
-@pytest.mark.parametrize("channel", ["text", "opening"])
+@pytest.mark.parametrize(
+    "channel", ["text", "opening", "decision_reason", "limitations", "corpus_release"]
+)
 def test_positive_answer_cannot_append_an_uncited_rendered_fact(channel: str) -> None:
     fixture = Fixture(CORPUS)
     span_id = str(uuid4())
@@ -472,12 +483,51 @@ def test_positive_answer_cannot_append_an_uncited_rendered_fact(channel: str) ->
         "status": "answered",
         "text": fact,
         "opening": "",
+        "decision_reason": "extractive_claims_passed_calibrated_gates",
+        "limitations": list(POSITIVE_LIMITATIONS),
+        "corpus_release": "0" * 64,
         "claims": [{"text": fact, "evidence_span_ids": [span_id]}],
         "citations": [{"span_id": span_id, "quote": fact}],
     }
     answer_citations(answer, fixture)
-    answer[channel] = fact + " Додаткова плата становить 999 гривень."
+    leaked = "Додаткова плата за доступ становить 999 гривень."
+    answer[channel] = [*POSITIVE_LIMITATIONS, leaked] if channel == "limitations" else fact + leaked
     with pytest.raises(ProbeFailure):
+        answer_citations(answer, fixture)
+
+
+@pytest.mark.parametrize(
+    "opening,repeated,composition",
+    [(False, False, False), (True, False, True), (False, True, False), (False, False, True)],
+)
+def test_positive_limitations_are_bound_to_the_fixture(
+    opening: bool, repeated: bool, composition: bool
+) -> None:
+    fixture = Fixture(CORPUS)
+    fact = fixture.content.decode().strip()
+    span_id = str(uuid4())
+    citations = [{"span_id": span_id, "quote": fact}] * (2 if repeated else 1)
+    limitations = list(POSITIVE_LIMITATIONS)
+    if repeated:
+        limitations.append(REPEATED_SOURCE_LIMITATION)
+    if composition:
+        limitations.append(COMPOSITION_LIMITATION)
+    answer = {
+        "status": "answered",
+        "text": fact,
+        "opening": fact if opening else "",
+        "decision_reason": "extractive_claims_passed_calibrated_gates",
+        "limitations": limitations,
+        "corpus_release": "0" * 64,
+        "claims": [{"text": fact, "evidence_span_ids": [span_id]}],
+        "citations": citations,
+    }
+    answer_citations(answer, fixture)
+    for invalid in (None, [], "unsupported prose", limitations[1:], [*limitations, "extra fact"]):
+        with pytest.raises(ProbeFailure, match="unexpected limitations"):
+            answer_citations({**answer, "limitations": invalid}, fixture)
+    del answer["limitations"]
+    with pytest.raises(ProbeFailure, match="unexpected limitations"):
         answer_citations(answer, fixture)
 
 
@@ -492,13 +542,43 @@ def test_positive_answer_cannot_append_an_uncited_rendered_fact(channel: str) ->
         "quote_start",
         "quote_end",
         "span_text",
+        "citation_title",
+        "citation_revision",
+        "citation_section",
+        "citation_page",
+        "citation_source_uri",
+        "citation_presentation",
+        "citation_adjudication_reason",
+        "citation_quote_starts_mid_sentence",
+        "span_document_title",
+        "span_revision",
+        "span_section",
+        "span_page",
+        "span_source_uri",
+        "span_authority",
+        "span_publication_date",
+        "span_effective_from",
+        "span_effective_until",
+        "span_rescinded_at",
+        "span_ordinal",
     ],
 )
 def test_broken_provenance_links_fail_closed(poison: str) -> None:
     fixture = Fixture(CORPUS)
     document_id, version_id, span_id = (str(uuid4()) for _ in range(3))
     text = fixture.content.decode("utf-8")
+    shared = {
+        "revision": "acceptance-1",
+        "section": "Розділ 1. Синтетичний навчальний каталог",
+        "page": None,
+        "source_uri": None,
+    }
     citation = {
+        **shared,
+        "title": fixture.metadata()["canonical_title"],
+        "presentation": "supported",
+        "adjudication_reason": "тип питання не впізнано",
+        "quote_starts_mid_sentence": False,
         "document_id": document_id,
         "version_id": version_id,
         "span_id": span_id,
@@ -510,6 +590,14 @@ def test_broken_provenance_links_fail_closed(poison: str) -> None:
         "quote_hash": sha256(text),
     }
     span = {
+        **shared,
+        "document_title": fixture.metadata()["canonical_title"],
+        "authority": "analytical",
+        "publication_date": fixture.as_of.isoformat(),
+        "effective_from": fixture.as_of.isoformat(),
+        "effective_until": None,
+        "rescinded_at": None,
+        "ordinal": 0,
         "id": span_id,
         "document_id": document_id,
         "version_id": version_id,
@@ -524,6 +612,10 @@ def test_broken_provenance_links_fail_closed(poison: str) -> None:
         citation[poison] = -1
     elif poison == "quote_end":
         citation[poison] = len(text) + 1
+    elif poison.startswith("citation_"):
+        citation[poison.removeprefix("citation_")] = "Додаткова плата становить 999 гривень."
+    elif poison.startswith("span_") and poison != "span_hash":
+        span[poison.removeprefix("span_")] = "Додаткова плата становить 999 гривень."
     else:
         citation[poison] = "substituted"
     with pytest.raises(ProbeFailure):

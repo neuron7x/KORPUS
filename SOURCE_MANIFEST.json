@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2260,
-  "root_sha256": "ab6d98bcb8d62b2c9e9382740cee17b7a84a55a9a6bfabc5ce07238e44e30d4f",
+  "root_sha256": "968a0670e24ce132de3a95ff0aa3f1b3451e22dcc2057586c8fc814dee63a4af",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 135402,
-      "sha256": "7d4c18e4cb3a64a1a3ea12ad7a06defb6ceb6fe7dd9e30a4a23ce11d57fc6c52",
+      "bytes": 135691,
+      "sha256": "8ab03c424755cafe8cbdd295ee728136809f5996e304601e44b22a2ca8ba2e75",
       "mode": "0644"
     },
     {
@@ -5293,8 +5293,8 @@
     },
     {
       "path": "apps/api/tests/test_pilot_acceptance.py",
-      "bytes": 18897,
-      "sha256": "6535298b216b7e2162a40c0ac21910df63ae8839ce9f71b8841b787cd01888df",
+      "bytes": 22610,
+      "sha256": "3e9692e85ef6ffd64970c586781d2ff11425dd76fe90a6fe00ad42ec53a50830",
       "mode": "0644"
     },
     {
@@ -8689,8 +8689,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 785306,
-      "sha256": "d5122c8a45b9594e2a73fa0593c0f2ef906dc760322a1c4aac8a7a3bfc7ddbca",
+      "bytes": 786528,
+      "sha256": "67e4f02a2febac8c30e467531c41c21fd395a11d9f62e4c731905b84692b3f5d",
       "mode": "0644"
     },
     {
@@ -9487,8 +9487,8 @@
     },
     {
       "path": "docs/operations/PILOT_ACCEPTANCE.md",
-      "bytes": 6609,
-      "sha256": "3d4670e949afe870f632396e2bf6934333b545b4f762cfad07898e169f4fe428",
+      "bytes": 7896,
+      "sha256": "c023f3d96d60857b5ba6655e0b251fa89400f3401634173a284da66712c596f0",
       "mode": "0644"
     },
     {
@@ -12481,8 +12481,8 @@
     },
     {
       "path": "scripts/pilot_acceptance_contract.py",
-      "bytes": 11799,
-      "sha256": "d7d664d198b5faf43fc91fec8cf0b9b3c701efc2eb4dd08a2afcd71ee06018e3",
+      "bytes": 14923,
+      "sha256": "f7152ec274f6f27bb65f4ab7c562dbf390c88e033d01f9c9f697aa630ffa786e",
       "mode": "0644"
     },
     {

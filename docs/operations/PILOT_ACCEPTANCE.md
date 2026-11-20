@@ -59,7 +59,22 @@ apps/api/.venv/bin/python scripts/run_pilot_acceptance.py \
 For the reader-facing edge, use `--base-url https://your-pilot.example/api` so requests
 cross the same proxy prefix as the browser. HTTPS is required outside loopback, TLS
 verification remains enabled, redirects are not followed, and response sizes are
-bounded. `make pilot-acceptance ARGS='...'` is an equivalent entry point.
+bounded. The Make entry point names every required input explicitly:
+
+```sh
+make pilot-acceptance \
+  PILOT_BASE_URL=http://127.0.0.1:3000/api \
+  PILOT_CORPUS_ID=pilot-smoke-first \
+  PILOT_OWNER_CREDENTIAL=file:/private/pilot/owner.token \
+  PILOT_READER_1_CREDENTIAL=file:/private/pilot/reader-1.token \
+  PILOT_READER_2_CREDENTIAL=file:/private/pilot/reader-2.token \
+  PILOT_READER_3_CREDENTIAL=file:/private/pilot/reader-3.token \
+  ARGS='--exercise-fixture --content-credential file:/private/pilot/content.token --approver-credential file:/private/pilot/approver.token'
+```
+
+`ARGS` carries optional flags, including a fourth/fifth reader credential, a separate
+metadata reviewer, an outsider credential or a report path. Neither entry point
+supplies a default identity or authorizes fixture mutation implicitly.
 
 Each request has a configurable total `--timeout` (default 15 seconds, maximum 60),
 covering connection, headers and the complete response body. A stream that keeps
@@ -84,6 +99,13 @@ Exit `0` and report `status: PASS` require all of these checks:
   This narrow fixture checks an extractive answer: its body must join the verified
   claims, and any opening must be an exact excerpt of the fixture. A differently
   worded model composition fails this probe; the probe never changes model settings.
+  Positive limitations must be the exact standard extractive/ranking caveats, with
+  a repeated-source caveat for repeated citations and an optional fixed composition
+  caveat (required when an opening is present).
+  Extra prose, missing caveats and an unexpected decision reason fail acceptance.
+  Visible source metadata is bound to the known title, revision, section, dates and
+  authority of this fixture; its presentation/adjudication fields must match the
+  fixture's fixed verdict. The displayed corpus release must be a content hash.
 - The same question before the fixture's effective date abstains, with no claims or
   citations; its source spans are unavailable on that date. Both empty-evidence
   checks require the expected `retrieval_gate_failed` refusal text, empty opening

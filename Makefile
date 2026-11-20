@@ -1464,7 +1464,12 @@ install-pilot-runtime:
 # Explicit live mutations are confined to a synthetic pilot-smoke-* corpus.
 # Pass credential references, never bearer values: see docs/operations/PILOT_ACCEPTANCE.md.
 pilot-acceptance:
-	$(PY) scripts/run_pilot_acceptance.py $(ARGS)
+	$(PY) scripts/run_pilot_acceptance.py \
+	  --base-url "$(PILOT_BASE_URL)" --corpus-id "$(PILOT_CORPUS_ID)" \
+	  --owner-credential "$(PILOT_OWNER_CREDENTIAL)" \
+	  --reader-credential "$(PILOT_READER_1_CREDENTIAL)" \
+	  --reader-credential "$(PILOT_READER_2_CREDENTIAL)" \
+	  --reader-credential "$(PILOT_READER_3_CREDENTIAL)" $(ARGS)
 
 # `serving-freshness` ПЕРШИМ у цьому лані. Чотири осі профілю відповідей міряються
 # запитом до живого процесу, тож вони описують ПРОЦЕС, а не дерево. Гейт існував із

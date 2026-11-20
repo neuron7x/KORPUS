@@ -10,6 +10,18 @@ from typing import Any
 from uuid import UUID, uuid4
 
 ABSTENTION_TEXT = "У чинному перевіреному корпусі недостатньо доказів для надійної відповіді."
+POSITIVE_LIMITATIONS = (
+    "Відповідь екстрактивна: система не додає фактів поза точними цитованими реченнями.",
+    "Retrieval score є ranking utility, а не ймовірністю істинності.",
+)
+REPEATED_SOURCE_LIMITATION = (
+    "1 версій цитовано більше ніж один раз:"
+    " кілька цитат з однієї версії — це одне джерело, а не кілька."
+)
+COMPOSITION_LIMITATION = (
+    "Перший рядок написала система з наведених цитат: без "
+    "цифр, без заперечень, лише словами, що є в цитатах."
+)
 
 
 class ProbeFailure(RuntimeError):
@@ -176,6 +188,15 @@ def require_abstention(payload: object) -> None:
         answer.get("limitations") == ["Генерацію зупинено fail-closed."],
         "abstention rendered unexpected limitations",
     )
+    verify_release(answer)
+
+
+def verify_release(answer: dict[str, Any]) -> None:
+    release = answer.get("corpus_release")
+    require(
+        isinstance(release, str) and re.fullmatch(r"[a-f0-9]{64}", release),
+        "answer corpus release is not a content hash",
+    )
 
 
 def answer_citations(payload: object, fixture: Fixture) -> list[dict[str, Any]]:
@@ -192,11 +213,16 @@ def answer_citations(payload: object, fixture: Fixture) -> list[dict[str, Any]]:
     require(fixture.marker in text and "бірюзовий" in text, "answer omitted the fixture fact")
     checked = [object_payload(citation) for citation in citations]
     verify_claim_links(claims, checked)
-    verify_answer_text(answer, claims, fixture)
+    verify_answer_text(answer, claims, checked, fixture)
     return checked
 
 
-def verify_answer_text(answer: dict[str, Any], claims: list[Any], fixture: Fixture) -> None:
+def verify_answer_text(
+    answer: dict[str, Any],
+    claims: list[Any],
+    citations: list[dict[str, Any]],
+    fixture: Fixture,
+) -> None:
     texts = [str(object_payload(claim).get("text", "")) for claim in claims]
     require(
         answer.get("text") == "\n\n".join(texts),
@@ -209,6 +235,23 @@ def verify_answer_text(answer: dict[str, Any], claims: list[Any], fixture: Fixtu
         not opening or opening in fixture.content.decode("utf-8"),
         "answer opening is not contained in the independently known upload",
     )
+    require(
+        answer.get("decision_reason") == "extractive_claims_passed_calibrated_gates",
+        "positive answer rendered an unexpected decision reason",
+    )
+    # The probe knows one dated fixture version. A caveat about another source or
+    # arbitrary prose is not justified by this deliberately narrow acceptance case.
+    limitations = list(POSITIVE_LIMITATIONS)
+    if len(citations) > 1:
+        limitations.append(REPEATED_SOURCE_LIMITATION)
+    permitted = [[*limitations, COMPOSITION_LIMITATION]]
+    if not opening:
+        permitted.append(limitations)
+    require(
+        answer.get("limitations") in permitted,
+        "positive answer rendered unexpected limitations",
+    )
+    verify_release(answer)
 
 
 def verify_claim_links(claims: list[Any], citations: list[dict[str, Any]]) -> None:
@@ -252,6 +295,40 @@ def verify_citation(
     require(span.get("text_hash") == sha256(text), "disclosed span hash mismatch")
     require(citation.get("span_hash") == sha256(text), "citation span hash mismatch")
     verify_quote(citation, text, quote)
+    verify_source_metadata(citation, span, fixture)
+
+
+def verify_source_metadata(
+    citation: dict[str, Any], span: dict[str, Any], fixture: Fixture
+) -> None:
+    shared = {
+        "revision": fixture.version()["revision"],
+        "section": fixture.content.decode("utf-8").splitlines()[0],
+        "page": None,
+        "source_uri": None,
+    }
+    citation_fields = {
+        **shared,
+        "title": fixture.metadata()["canonical_title"],
+        "presentation": "supported",
+        "adjudication_reason": "тип питання не впізнано",
+        "quote_starts_mid_sentence": False,
+    }
+    span_fields = {
+        **shared,
+        "document_title": fixture.metadata()["canonical_title"],
+        "authority": "analytical",
+        "publication_date": fixture.as_of.isoformat(),
+        "effective_from": fixture.as_of.isoformat(),
+        "effective_until": None,
+        "rescinded_at": None,
+    }
+    for payload, expected in ((citation, citation_fields), (span, span_fields)):
+        require(
+            all(key in payload and payload[key] == value for key, value in expected.items()),
+            "rendered source metadata differs from the independently known fixture",
+        )
+    require(type(span.get("ordinal")) is int and span["ordinal"] == 0, "unexpected fixture ordinal")
 
 
 def verify_quote(citation: dict[str, Any], text: str, quote: str) -> None:
