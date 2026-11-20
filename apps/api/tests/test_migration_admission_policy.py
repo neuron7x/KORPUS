@@ -25,7 +25,7 @@ from korpus.infrastructure.migration_baseline_proof import BaselineProofError
 ROOT = Path(__file__).resolve().parents[3]
 API = ROOT / "apps/api"
 BASE = "0024_capability_effect_ledger"
-HEAD = "0027_learning_competency_integrity"
+HEAD = "0028_reviewer_update_scope"
 
 
 def _configuration(tmp_path: Path) -> tuple[Path, Config]:
@@ -348,7 +348,9 @@ def test_failed_bootstrap_rolls_back_all_schema_ddl(
     )
     assert upgrade.end_lineno is not None
     lines = source.splitlines(keepends=True)
-    lines.insert(upgrade.end_lineno, "    raise RuntimeError('injected bootstrap failure')\n")
+    lines.insert(
+        upgrade.body[0].lineno - 1, "    raise RuntimeError('injected bootstrap failure')\n"
+    )
     path.write_text("".join(lines))
     with pytest.raises(RuntimeError, match="injected bootstrap failure"):
         command.upgrade(config, "head")

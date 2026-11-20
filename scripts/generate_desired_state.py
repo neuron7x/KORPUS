@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 EXACT = [
     ".gitlab-ci.yml",
     "docker-compose.yml",
+    "deploy/pilot/compose.private.yaml",
+    "deploy/pilot/compose.local.yaml",
     "apps/api/Dockerfile",
     "apps/web/Dockerfile",
     "apps/api/requirements.runtime.lock",
@@ -61,9 +63,7 @@ def main() -> int:
     rendered = json.dumps(output, ensure_ascii=False, indent=2) + "\n"
     if args.check:
         if not target.is_file() or target.read_text(encoding="utf-8") != rendered:
-            # "stale" alone sent the reader looking through eight inputs and a
-            # kubernetes tree by hand. It is the message an author sees after every
-            # edit to .gitlab-ci.yml, so it says which inputs moved and how to fix it.
+            # Identify changed inputs and the canonical regeneration command.
             previous: dict[str, str] = {}
             if target.is_file():
                 try:

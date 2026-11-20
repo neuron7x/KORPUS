@@ -254,7 +254,7 @@ def test_a_version_cannot_be_queued_against_a_document_in_another_corpus(
     staged = tmp_path / "staged.txt"
     staged.write_bytes(CONTENT)
     service = DurableIngestionCoordinator(
-        SqlIngestionJobQueue(repository.engine),
+        SqlIngestionJobQueue(repository.engine, bind_identity=repository._apply_postgres_identity),
         LocalObjectStore(tmp_path / "quarantine"),
         repository,
         PolicyEngine(),

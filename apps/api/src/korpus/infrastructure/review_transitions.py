@@ -138,11 +138,13 @@ def _apply_access_tier(
         raise ValueError("access_tier is below classification minimum")
     if int(access_tier) > int(actor.clearance):
         raise PermissionError("approver cannot assign a tier above own clearance")
-    connection.execute(
+    changed = connection.execute(
         update(documents)
         .where(documents.c.id == str(current.document_id))
         .values(access_tier=int(access_tier))
     )
+    if changed.rowcount != 1:
+        raise ReviewTransitionConflict("optimistic document tier update failed")
 
 
 def _approval_changes(

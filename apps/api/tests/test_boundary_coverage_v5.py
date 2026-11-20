@@ -373,6 +373,9 @@ class DummyRepository:
     def initialize(self, create_schema: bool) -> None:
         self.initialized = create_schema
 
+    def _apply_postgres_identity(self, connection: object, identity: Identity) -> None:
+        raise AssertionError("CLI lifecycle double must not execute a database binding")
+
     def verify_audit(self) -> DummyAuditVerification:
         return DummyAuditVerification()
 
@@ -502,7 +505,8 @@ def test_cli_reconciliation_and_worker_boundaries(
     assert repository.closed and content.closed and quarantine.closed
 
     class Queue:
-        def __init__(self, engine: object) -> None:
+        def __init__(self, engine: object, *, bind_identity: object) -> None:
+            assert bind_identity == repository._apply_postgres_identity
             self.engine = engine
 
     class Worker:

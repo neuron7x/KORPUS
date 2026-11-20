@@ -1,0 +1,11 @@
+# Supply one exact hostname. TLS/tunnel termination stays on the operator's host;
+# the canonical web publication remains 127.0.0.1:3000 and authentication remains JWT.
+services:
+  api:
+    environment:
+      KORPUS_TRUSTED_HOSTS: "localhost,127.0.0.1,${PILOT_HOSTNAME:?Set one exact pilot DNS hostname}"
+      KORPUS_CORS_ORIGINS: "http://127.0.0.1:3000,http://localhost:3000,https://${PILOT_HOSTNAME:?Set one exact pilot DNS hostname}"
+  worker:
+    environment:
+      KORPUS_TRUSTED_HOSTS: "localhost,127.0.0.1,${PILOT_HOSTNAME:?Set one exact pilot DNS hostname}"
+      KORPUS_CORS_ORIGINS: "http://127.0.0.1:3000,http://localhost:3000,https://${PILOT_HOSTNAME:?Set one exact pilot DNS hostname}"
