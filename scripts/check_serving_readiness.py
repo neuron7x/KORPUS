@@ -33,20 +33,25 @@ from serving_readiness_contract import owned_ports, readiness_checks, ready_resp
 TIMEOUT = 10.0
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *_args: object, **_kwargs: object) -> None:
+        return None
+
+
 def probe(port: int, path: str = "/ready", timeout: float = TIMEOUT) -> dict[str, Any]:
     """Стан одного шляху на одному порту. Недосяжність — теж стан, не брак виміру."""
     url = f"http://127.0.0.1:{port}{path}"
     try:
-        with urllib.request.urlopen(url, timeout=timeout) as response:
+        with urllib.request.build_opener(_NoRedirect).open(url, timeout=timeout) as response:
             return {
                 "port": port,
                 "path": path,
-                # Redirected answers do not prove readiness at the declared port.
-                "status": response.status if response.geturl() == url else None,
+                "status": response.status,
                 "body": response.read(4096).decode(),
             }
     except urllib.error.HTTPError as e:
-        return dict(port=port, path=path, status=e.code, body=e.read(4096).decode(errors="replace"))
+        status = None if 300 <= e.code < 400 else e.code
+        return dict(port=port, path=path, status=status, body=e.read(4096).decode(errors="replace"))
     except (UnicodeDecodeError, OSError) as error:
         return {
             "port": port,

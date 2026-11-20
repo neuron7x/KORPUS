@@ -244,8 +244,11 @@ def test_actual_http_200_false_ready_body_cannot_be_credited() -> None:
 
 
 def test_redirect_to_another_ready_responder_is_refused() -> None:
+    target_hits: list[str] = []
+
     class Ready(BaseHTTPRequestHandler):
         def do_GET(self) -> None:
+            target_hits.append(self.path)
             self.send_response(200)
             self.end_headers()
             self.wfile.write(b'{"status":"ready"}')
@@ -268,7 +271,10 @@ def test_redirect_to_another_ready_responder_is_refused() -> None:
     try:
         positive = GATE.probe(ready.server_port)
         assert GATE.verdict(["pilot.service"], [ready.server_port], [positive])["status"] == "PASS"
+        direct_hits = len(target_hits)
+        assert direct_hits == 1
         poisoned = GATE.probe(redirect.server_port)
+        assert len(target_hits) == direct_hits, "redirect must not request the foreign port"
         assert poisoned["status"] is None
         verdict = GATE.verdict(["pilot.service"], [redirect.server_port], [poisoned])
         assert verdict["status"] == "FAIL"
