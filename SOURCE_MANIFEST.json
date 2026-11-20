@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2254,
-  "root_sha256": "0e40ebaa146615a85e823016cc2b0b2755ff81a8e134266a6e1cb418ec8d5c9a",
+  "file_count": 2255,
+  "root_sha256": "c63a5e1e044686df20011b4a317a14b53319ca42f76fa3423edbf3234075d82f",
   "files": [
     {
       "path": ".dockerignore",
@@ -6481,14 +6481,14 @@
     },
     {
       "path": "apps/web/public/console.html",
-      "bytes": 21259,
-      "sha256": "3a6fc233f01ef52afa51040d7ddcbbad512ddb0ebbfcd4d2bda54d7f4d27e291",
+      "bytes": 21377,
+      "sha256": "fe92d0b80aa5f8a7f2303f420af756c66fcd0ff7dc52921afe535e9b4800329a",
       "mode": "0644"
     },
     {
       "path": "apps/web/public/console.js",
-      "bytes": 12307,
-      "sha256": "7cdaa9818ec54884327983ea43665dda741bbd7a34cc6fd532c9233f9cb36882",
+      "bytes": 12463,
+      "sha256": "4d9c6ee8a3fc1cfd9c08970d05bf4882872a6dc46c5ade96312455789ab9f7cd",
       "mode": "0644"
     },
     {
@@ -6499,8 +6499,8 @@
     },
     {
       "path": "apps/web/public/console_mutations.js",
-      "bytes": 3313,
-      "sha256": "48f5d17711a609a055cfe9f426624623de1f5041107cc3fd5b270fb2bbe1d8a8",
+      "bytes": 4273,
+      "sha256": "8d8e581a509f00e88405438c99ecf7fbbb800c24302da8a3ddbb058a895abd0e",
       "mode": "0644"
     },
     {
@@ -6511,8 +6511,8 @@
     },
     {
       "path": "apps/web/public/console_rules.js",
-      "bytes": 9614,
-      "sha256": "a94a5c0f74a851c17fd2f527963e3acdca6b6eac6c53da4644a507d6930c3aa3",
+      "bytes": 10359,
+      "sha256": "b0d164b8625b2dc8a8ad5f71aa7b81b20b43f6f7933d409abe6b32c4196abe50",
       "mode": "0644"
     },
     {
@@ -6741,6 +6741,12 @@
       "path": "apps/web/tests/chat_fsm.test.mjs",
       "bytes": 1692,
       "sha256": "5a0074ee69c1a45fd79c7454986671a2c1743f1a82ae7ccf5ea2671063e93b0a",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/web/tests/console_ingestion.test.mjs",
+      "bytes": 5990,
+      "sha256": "66b74317a55f8c86f000cd9063022cee49c5c6f001c98983adb7eee79222117d",
       "mode": "0644"
     },
     {
