@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2253,
-  "root_sha256": "6e6b9ff881785d6563c6cc87b3a154eae93634e3c2b589ecb874a07d6f34b26c",
+  "root_sha256": "2d6331e04b17aa1980d40c04092f0aca2b3b74b7f8316aa6f9ae9239190e4a29",
   "files": [
     {
       "path": ".dockerignore",
@@ -5989,8 +5989,8 @@
     },
     {
       "path": "apps/api/tests/test_serving_freshness.py",
-      "bytes": 7121,
-      "sha256": "073d13165d79840880bcb23cd611e9bbacc676b7ba9449e9cb6b5047bfde08fe",
+      "bytes": 8051,
+      "sha256": "c5f2f0c808fff70ba6b266a068ee02253181e4051d91fc55a58cc58d5f46e0c8",
       "mode": "0644"
     },
     {
@@ -11395,8 +11395,8 @@
     },
     {
       "path": "scripts/check_serving_freshness.py",
-      "bytes": 23553,
-      "sha256": "0613426846295ad7ef7c9d61823d83d30be692de0d5dc4b14c148d3b5146b15f",
+      "bytes": 23597,
+      "sha256": "2f7d53fbcaedecc05fd0f3222aadebdedef43753218a27e4ae6fff49e6e43cf0",
       "mode": "0755"
     },
     {
