@@ -1,20 +1,14 @@
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from contextlib import nullcontext
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import (
-    and_,
-    func,
-    insert,
-    or_,
-    select,
-    update,
-)
-from sqlalchemy.engine import Engine
+from sqlalchemy import and_, insert, or_, select, update
+from sqlalchemy.engine import Connection, Engine
 
 from korpus.domain.models import (
     DocumentCreate,
@@ -39,20 +33,21 @@ class SqlIngestionJobQueue:
     delegated to a worker process. Claims are exclusive, expire, and are retry-bounded.
     """
 
-    def __init__(self, engine: Engine) -> None:
+    def __init__(
+        self,
+        engine: Engine,
+        *,
+        bind_identity: Callable[[Connection, Identity], None] | None = None,
+    ) -> None:
+        if engine.dialect.name == "postgresql" and bind_identity is None:
+            raise ValueError("PostgreSQL ingestion queue requires a trusted identity binder")
         self.engine = engine
+        self._bind_identity = bind_identity
         self._sqlite_lock = threading.RLock()
 
-    @staticmethod
-    def _apply_identity(connection: Any, identity: Identity) -> None:
-        if connection.dialect.name != "postgresql":
-            return
-        connection.execute(
-            select(
-                func.set_config("korpus.subject", identity.subject, True),
-                func.set_config("korpus.roles", ",".join(sorted(identity.roles)), True),
-            )
-        )
+    def _apply_identity(self, connection: Connection, identity: Identity) -> None:
+        if self._bind_identity is not None:
+            self._bind_identity(connection, identity)
 
     def create(self, actor: Identity, job: IngestionJobRecord) -> IngestionJobRecord:
         if job.actor.subject != actor.subject:
