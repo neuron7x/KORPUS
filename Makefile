@@ -1529,6 +1529,10 @@ release: assemble-assurance snapshot validate owner-packet-check handoff-verify-
 infra-secrets:
 	bash scripts/init_local_secrets.sh
 
+.PHONY: compose-pilot-smoke
+compose-pilot-smoke:
+	$(PY) scripts/run_compose_pilot_smoke.py
+
 infra-up: infra-secrets
 	docker compose up -d --wait web worker
 

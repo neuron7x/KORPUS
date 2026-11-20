@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v0.9.7",
-  "root_sha256": "51413ab39cf79e9b78ebef50977f208339773afd54200cde69015dce2bf3c096",
+  "root_sha256": "4899817a9564645e9d069cd839c2bbdee9f6b2651cb580526b13a35a3566dbc5",
   "records": [
     {
       "path": ".github/dependabot.yml",
@@ -17,6 +17,11 @@
       "path": ".github/workflows/ci.yml",
       "sha256": "c30aa14f186c1e7f9eecf58f2cc3d8c578573f2d32387fbde6a3d756de3f7bdf",
       "bytes": 12818
+    },
+    {
+      "path": ".github/workflows/compose-pilot-smoke.yml",
+      "sha256": "7615a0f47042d6178b75c8b0bcf3b403e5a04317f4d542cf0cc59cc6ad5a6070",
+      "bytes": 1418
     },
     {
       "path": ".github/workflows/dependency-review.yml",
@@ -142,6 +147,11 @@
       "path": "deploy/kubernetes/overlays/production/kustomization.yaml",
       "sha256": "05c05536298180f9834bdffe250b52b08ad3728296a33648991a091c45cecb4d",
       "bytes": 507
+    },
+    {
+      "path": "deploy/pilot/compose.private.yaml",
+      "sha256": "946d5ce41c30a7ba78c1f902c2777012a1a408197145ebbd5b0df47645f9f741",
+      "bytes": 700
     },
     {
       "path": "docker-compose.yml",

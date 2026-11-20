@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2260,
-  "root_sha256": "968a0670e24ce132de3a95ff0aa3f1b3451e22dcc2057586c8fc814dee63a4af",
+  "file_count": 2266,
+  "root_sha256": "ecb8ac78948aea8eaf7a51c9f5671a5c16b3b90e8ff3a963186251d7911e5d00",
   "files": [
     {
       "path": ".dockerignore",
@@ -51,6 +51,12 @@
       "path": ".github/workflows/ci.yml",
       "bytes": 12818,
       "sha256": "c30aa14f186c1e7f9eecf58f2cc3d8c578573f2d32387fbde6a3d756de3f7bdf",
+      "mode": "0644"
+    },
+    {
+      "path": ".github/workflows/compose-pilot-smoke.yml",
+      "bytes": 1418,
+      "sha256": "7615a0f47042d6178b75c8b0bcf3b403e5a04317f4d542cf0cc59cc6ad5a6070",
       "mode": "0644"
     },
     {
@@ -415,8 +421,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 135691,
-      "sha256": "8ab03c424755cafe8cbdd295ee728136809f5996e304601e44b22a2ca8ba2e75",
+      "bytes": 135783,
+      "sha256": "3aa7566ec452740264cef7ae53dc806930d2b8905d85e53a268e08e57e14ac9a",
       "mode": "0644"
     },
     {
@@ -3783,6 +3789,12 @@
       "path": "apps/api/tests/test_compose_database_identities.py",
       "bytes": 8568,
       "sha256": "8575c60c315321370c531aac3d22915132813105903c573507d44b9fdea3e979",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_compose_pilot_smoke.py",
+      "bytes": 20349,
+      "sha256": "7405600356697073eaa58bb7a37d6fe294bc863fbe151a1068a2d93d16d169b9",
       "mode": "0644"
     },
     {
@@ -8647,8 +8659,8 @@
     },
     {
       "path": "config/operations/desired-state.json",
-      "bytes": 5540,
-      "sha256": "ec3e4149d5571dad450ec678e2e665af5c2bb2bff09ef0f74cb799d169992e4b",
+      "bytes": 5883,
+      "sha256": "005c1b4bfd1748b4031a13cad91dbc72e7cdf18a8ec79ec2e4224c6d9515893e",
       "mode": "0644"
     },
     {
@@ -8689,8 +8701,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 786528,
-      "sha256": "67e4f02a2febac8c30e467531c41c21fd395a11d9f62e4c731905b84692b3f5d",
+      "bytes": 787357,
+      "sha256": "6fc71e09c04f95b39d2dadb02c8fb6e15e012215b201640c07f65da4e1ab6b5b",
       "mode": "0644"
     },
     {
@@ -8865,6 +8877,12 @@
       "path": "deploy/kubernetes/overlays/production/kustomization.yaml",
       "bytes": 507,
       "sha256": "05c05536298180f9834bdffe250b52b08ad3728296a33648991a091c45cecb4d",
+      "mode": "0644"
+    },
+    {
+      "path": "deploy/pilot/compose.private.yaml",
+      "bytes": 700,
+      "sha256": "946d5ce41c30a7ba78c1f902c2777012a1a408197145ebbd5b0df47645f9f741",
       "mode": "0644"
     },
     {
@@ -9495,6 +9513,12 @@
       "path": "docs/operations/PRE_DEVELOPMENT_TASKS.md",
       "bytes": 3141,
       "sha256": "af367ebd1ef4649b681c3a3c36c74695ef8ac528ba6ddb26ccbe7d9ba888c44d",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/operations/PRIVATE_PILOT.md",
+      "bytes": 8256,
+      "sha256": "05036c151f4bd8b57e1c630653a4ede6e8b77e229e60d58d03870f2caf2e14aa",
       "mode": "0644"
     },
     {
@@ -11460,6 +11484,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/compose_pilot_environment.py",
+      "bytes": 12587,
+      "sha256": "d39c84ebf98d46d7e388233631214f6b2981e05040139c673c594a2e50388ac6",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/conversation_retention.py",
       "bytes": 5673,
       "sha256": "b64cc7a00bac813c75b2367fafddb4d4528be1ae79e278ab985a9a9c47946e17",
@@ -12061,8 +12091,8 @@
     },
     {
       "path": "scripts/generate_desired_state.py",
-      "bytes": 3595,
-      "sha256": "c018844582c174aff410fed0b551861708433dda6bbba040cbed469999e30008",
+      "bytes": 3464,
+      "sha256": "9b2dfeffeb9d1d57a8c75ad1e01bf24c10b15ba1aee642bf1413d8b05f9add2c",
       "mode": "0755"
     },
     {
@@ -12825,6 +12855,12 @@
       "path": "scripts/run_builtin_security_gate.py",
       "bytes": 10933,
       "sha256": "0ba3f9921c0109c858bcab33aa46e14248f1e5329e88a56f81534c79d32a5f6c",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/run_compose_pilot_smoke.py",
+      "bytes": 14947,
+      "sha256": "11bec5dce38091211bb11f10638116ef40b3e3383923395962e845b88335ccac",
       "mode": "0755"
     },
     {

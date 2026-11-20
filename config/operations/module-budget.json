@@ -609,6 +609,24 @@
     }
   ],
   "modules": {
+    "scripts/compose_pilot_environment.py": {
+      "lines": 323,
+      "max_complexity": 7,
+      "max_function_args": 2,
+      "max_function_lines": 34,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #124: initial measured ceiling for disposable Compose ownership, private inputs and canonical runtime guards; every dimension is within the unchanged new-module defaults."
+    },
+    "scripts/run_compose_pilot_smoke.py": {
+      "lines": 393,
+      "max_complexity": 5,
+      "max_function_args": 4,
+      "max_function_lines": 32,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "Issue #124: initial measured ceiling for real Compose startup, scoped token minting, authenticated HTTP qualification and owned cleanup; every dimension is within the unchanged new-module defaults."
+    },
     "scripts/pilot_acceptance_contract.py": {
       "lines": 352,
       "max_complexity": 8,
