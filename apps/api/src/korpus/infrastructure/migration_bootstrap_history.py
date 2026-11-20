@@ -15,6 +15,7 @@ BOOTSTRAP_REVISIONS = (
     "0025_sealed_provenance_integrity",
     "0026_learning_history_integrity",
     "0027_learning_competency_integrity",
+    "0028_reviewer_update_scope",
 )
 BOOTSTRAP_HEAD = BOOTSTRAP_REVISIONS[-1]
 

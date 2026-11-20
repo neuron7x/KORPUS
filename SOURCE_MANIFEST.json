@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2271,
-  "root_sha256": "777a77e5e909b7ad03c8154bf5b2ed009745ab274374b864639a58f0f646ef17",
+  "file_count": 2276,
+  "root_sha256": "88842e3b4224f745ed481d8c2fafc73817af61042ea5cb5df83bace61e1db2f1",
   "files": [
     {
       "path": ".dockerignore",
@@ -115,8 +115,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 65748,
-      "sha256": "dbc05fed17b531165a05519231976f9a20914c579bacbd08bb24003e37c87fad",
+      "bytes": 65803,
+      "sha256": "5db17fd6f946dc78833b6ccec3517a92ceca02c734cd828489995a1e91f55eb0",
       "mode": "0644"
     },
     {
@@ -421,8 +421,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 136365,
-      "sha256": "9047cda426f47d244f5d1e1129c9cda0991100929d59d5aa3d2ffb661dbc96fd",
+      "bytes": 136385,
+      "sha256": "56ce4dc927036e70441aa9b05fd338134eaa98708cf7260d279a009bba2a8a6c",
       "mode": "0644"
     },
     {
@@ -735,6 +735,12 @@
       "path": "apps/api/migrations/versions/0027_learning_competency_integrity.py",
       "bytes": 1647,
       "sha256": "7508fa60b40104ca5e16ba5a13dcc78ee03a4e824cdcfe9ad1a2b04a9eaf7b0e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/migrations/versions/0028_reviewer_update_scope.py",
+      "bytes": 3248,
+      "sha256": "b9a896970a9ddeb1dd3f6d13614501a688c6b24568f5609a27b50fb5e0590e67",
       "mode": "0644"
     },
     {
@@ -2479,14 +2485,14 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/migration_baseline_proof.py",
-      "bytes": 8883,
-      "sha256": "e15baf095a5ebaf265c4d3b805ab060943ccd1652f8c7c2ad35fbabacd94f76c",
+      "bytes": 8942,
+      "sha256": "6262a284837ad7bea0986532df243ddb582c40b496220118f9354663734cdae7",
       "mode": "0644"
     },
     {
       "path": "apps/api/src/korpus/infrastructure/migration_bootstrap_history.py",
-      "bytes": 1533,
-      "sha256": "4d1ebc2191320a41271465e1fb7847c356ea37ae1032969792e93b7fd09aa677",
+      "bytes": 1567,
+      "sha256": "e5fcf8d56a871b5ea3fb971f870ea5aec92cbb7767e64ad07c485e2e9bfce267",
       "mode": "0644"
     },
     {
@@ -2611,8 +2617,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/review_transitions.py",
-      "bytes": 10275,
-      "sha256": "843107b80fc7ccf3795e3e3d5d07f095e3985a173d04351532107e9d26b0d016",
+      "bytes": 10396,
+      "sha256": "54c5f914e7f327bac4f6b7d499e704474139d27f29df91c71f07a5b036e5e4b0",
       "mode": "0644"
     },
     {
@@ -2641,8 +2647,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/schema.py",
-      "bytes": 10004,
-      "sha256": "984a652ad9d298369c3e447bd9eb40129e0fce16c9bbe637ffb0fcd93608d660",
+      "bytes": 9996,
+      "sha256": "41f77347c057d116cb61498b5e4e113a03f3b83cbceebb5cc33ba1f2d2b6401b",
       "mode": "0644"
     },
     {
@@ -2955,6 +2961,12 @@
       "path": "apps/api/tests/package_fixtures.py",
       "bytes": 4611,
       "sha256": "7a958f305c8d18c5464411e6ab612f5ee9ec7cccad3d0f396292f02be41ba9fc",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/review_postgres_support.py",
+      "bytes": 7740,
+      "sha256": "ee6ff91ea6f3bbd613e187cb0e7335a2b7d8f4e08e55d737129b9acd4d4111d6",
       "mode": "0644"
     },
     {
@@ -3277,8 +3289,8 @@
     },
     {
       "path": "apps/api/tests/test_branch_consolidation.py",
-      "bytes": 6374,
-      "sha256": "2444c0c163c089f8f90f212ba750b8403a84e7bd8c794fc95d695c9e1153aa01",
+      "bytes": 6366,
+      "sha256": "a230647a9722ea23ec6b9ebc4d2a6e588a7816c5b9a6e6ec78353ece5116f72c",
       "mode": "0644"
     },
     {
@@ -3397,8 +3409,8 @@
     },
     {
       "path": "apps/api/tests/test_capability_effect_schema_boundary.py",
-      "bytes": 2629,
-      "sha256": "62d8d05396b34f97ea2424d22fcce56e26cb084f416c5f902f263676d44cb8b9",
+      "bytes": 2621,
+      "sha256": "93567a1cc48cd3ad21f571ed36f19af8d86840af27cf9055e5d9a4de437dc0c1",
       "mode": "0644"
     },
     {
@@ -4442,7 +4454,7 @@
     {
       "path": "apps/api/tests/test_gcp_migration_compatibility.py",
       "bytes": 38682,
-      "sha256": "9cd937deb0f43fb36272d65bd8459a76e4e329a540e9fe232b6c5633d92a5ddf",
+      "sha256": "d500e5130ee022de9dabaa62ca6956e7596bf266823e9743c5b86498bcf57bef",
       "mode": "0644"
     },
     {
@@ -4503,6 +4515,12 @@
       "path": "apps/api/tests/test_gcp_production_inputs.py",
       "bytes": 2506,
       "sha256": "aff0abaed536fc31ccdabc4bad21db7af1b33adcaa7e8f46b714a5531dd16914",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_gcp_reviewer_policy_expansion.py",
+      "bytes": 5912,
+      "sha256": "1cb75e993a370fb0e1996eb58680773d966f4e551070241f383bbfae019adeb1",
       "mode": "0644"
     },
     {
@@ -4861,14 +4879,14 @@
     },
     {
       "path": "apps/api/tests/test_migration_admission_policy.py",
-      "bytes": 14397,
-      "sha256": "a44daac029bc6f48ce7f6a9d4a1122ab1a179a9b926a467f0ca549b9a07b22bc",
+      "bytes": 14411,
+      "sha256": "1a6b005f4a110084340743f4dd9930c13bbfb1e1103b4be9d1e801af39b48503",
       "mode": "0644"
     },
     {
       "path": "apps/api/tests/test_migration_baseline_adversarial_branches.py",
-      "bytes": 9829,
-      "sha256": "a8100ca27da2dd358c4ea94ea9cab9a2d56cd7cd19e6f55bc3da08fb1e2f49f1",
+      "bytes": 10492,
+      "sha256": "e2a08b6c7f2008dad04930488ac2528c2c2d961982f2e2107b957204ec9b7519",
       "mode": "0644"
     },
     {
@@ -4879,8 +4897,8 @@
     },
     {
       "path": "apps/api/tests/test_migration_runtime_admission.py",
-      "bytes": 7804,
-      "sha256": "29cfccd49f336705258fd63c5337e02f6f55ba2bc80de83a7f9b09b18bf077e1",
+      "bytes": 7796,
+      "sha256": "bb0de1844578707434d17e1950252b462be4b668c35acc71c5cd303f299f4a2e",
       "mode": "0644"
     },
     {
@@ -5395,8 +5413,14 @@
     },
     {
       "path": "apps/api/tests/test_postgres_migration_admission.py",
-      "bytes": 6381,
-      "sha256": "b96e7c3a11c43612535d34c8488a545fa2c66a70541c6c8e7b54df2e4275d3fa",
+      "bytes": 6373,
+      "sha256": "999dc87a8917ad4db4d38192d4d5eb88e5032cfdd4358377794253f62cdf025b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_postgres_reviewer_scope.py",
+      "bytes": 9931,
+      "sha256": "6a07402dc35d0adf9616f22fe08d5eeb7d2b3ead218415a62d4146252a37f7ba",
       "mode": "0644"
     },
     {
@@ -5413,8 +5437,8 @@
     },
     {
       "path": "apps/api/tests/test_postgres_rls_policy_state.py",
-      "bytes": 9525,
-      "sha256": "3b393ecb912f23f53e129af516751f63920e041b123f719322caca4cb3e13556",
+      "bytes": 10783,
+      "sha256": "035cd65ce0cb9a602e1c8b7aaaa02f0f83da917ebb4100d8a29bbf0610e4ecf5",
       "mode": "0644"
     },
     {
@@ -5887,8 +5911,8 @@
     },
     {
       "path": "apps/api/tests/test_review_transition_refusals.py",
-      "bytes": 13077,
-      "sha256": "440085d188d87f58bfd721c604a9ed982f2242e3921153ec4111fa63d768cf6a",
+      "bytes": 15763,
+      "sha256": "5fcb91d0340679732ec3ae733fafc812dbaa6f9f9d6c57a560c94720a77ff835",
       "mode": "0644"
     },
     {
@@ -8678,7 +8702,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 6050,
-      "sha256": "86bd61c3191b9bf3eb7416c4d8371f6d3321f67730d3001c7c51bfe971a432bd",
+      "sha256": "1bf5abf20c146545cdcea11e57e5129ed7908c6cce4a4fd658f438915ea7bb10",
       "mode": "0644"
     },
     {
@@ -8719,8 +8743,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 788995,
-      "sha256": "16816f272a52d3673a5cef87956a7a20761cfe3ce34761a2d57291ade11ef202",
+      "bytes": 791109,
+      "sha256": "308213a8e2231d33a76a4f2f81418c2a3d3c87753ae342b1c588a8094faf871b",
       "mode": "0644"
     },
     {
@@ -9529,8 +9553,8 @@
     },
     {
       "path": "docs/operations/PILOT_ACCEPTANCE.md",
-      "bytes": 9137,
-      "sha256": "ead419eec6cf127b85c9e598f1cc88f3ba1c1763db09c2a1ce7aef9d53d87c12",
+      "bytes": 10632,
+      "sha256": "0539194461eef7fc41b46384481f0bbd2f3fd869551e61daf1975aadc0486052",
       "mode": "0644"
     },
     {
@@ -11911,14 +11935,20 @@
     },
     {
       "path": "scripts/gcp/migration_raw_ddl_proof.py",
-      "bytes": 2252,
-      "sha256": "1a9f998f5a431948b3fad7e238479c29d5237045b7de6968e2815230fa931c11",
+      "bytes": 2404,
+      "sha256": "67a9a6756cde1f7ec067c65509a8613e9b4c656d2bcd112952a830cd565dc34e",
       "mode": "0644"
     },
     {
       "path": "scripts/gcp/migration_reachability.py",
       "bytes": 5241,
       "sha256": "9a15f1cf25673c93ca9ec67626ed1f62f478db22699bc78823b44d6e4dd6aac5",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/gcp/migration_review_policy_proof.py",
+      "bytes": 2502,
+      "sha256": "2b90694f165086bc82a9a1d1b9fbd9e3abac9df3c50d937d9c6091d6c89cff78",
       "mode": "0644"
     },
     {
@@ -13003,8 +13033,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 346351,
-      "sha256": "44176f84e398087400e48b393160db345a8fcdba45d426591457d3f5ac2853ac",
+      "bytes": 346343,
+      "sha256": "6e7fd1125f38c161bd62765276dd395ad77a92b4b31a1d52b07c08035dc7ee8c",
       "mode": "0755"
     },
     {
