@@ -281,3 +281,43 @@ def test_redirect_to_another_ready_responder_is_refused() -> None:
             thread.join()
         for server in servers:
             server.server_close()
+
+
+@pytest.mark.parametrize(
+    ("status", "body", "expected_status"),
+    [
+        (200, b'{"status":"ready"}', 200),
+        (200, b'{"status":"ready","audit_head":0,"telemetry":"\xff"}', None),
+        (503, b"\xff", 503),
+        (503, b'{"detail":{"database":false}}', 503),
+    ],
+)
+def test_non_utf8_probes_fail_closed_with_structured_observations(
+    status: int, body: bytes, expected_status: int | None
+) -> None:
+    class Responder(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            self.send_response(status)
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, _format: str, *_args: object) -> None:
+            return
+
+    server = HTTPServer(("127.0.0.1", 0), Responder)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        observed = GATE.probe(server.server_port)
+        assert observed["status"] == expected_status
+        result = GATE.verdict(["pilot.service"], [server.server_port], [observed])
+        assert result["status"] == ("PASS" if expected_status == 200 else "FAIL")
+        assert result["serving"] == ([server.server_port] if expected_status == 200 else [])
+        if expected_status is None:
+            assert "UnicodeDecodeError" in observed["body"]
+        if status == 503 and body.startswith(b'{"detail":'):
+            assert result["refusing"][0]["false_checks"] == ["database"]
+    finally:
+        server.shutdown()
+        thread.join()
+        server.server_close()

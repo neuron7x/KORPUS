@@ -45,9 +45,9 @@ def probe(port: int, path: str = "/ready", timeout: float = TIMEOUT) -> dict[str
                 "status": response.status if response.geturl() == url else None,
                 "body": response.read(4096).decode(),
             }
-    except urllib.error.HTTPError as error:
-        return {"port": port, "path": path, "status": error.code, "body": error.read(4096).decode()}
-    except OSError as error:
+    except urllib.error.HTTPError as e:
+        return dict(port=port, path=path, status=e.code, body=e.read(4096).decode(errors="replace"))
+    except (UnicodeDecodeError, OSError) as error:
         return {
             "port": port,
             "path": path,
