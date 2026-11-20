@@ -609,6 +609,33 @@
     }
   ],
   "modules": {
+    "scripts/pilot_acceptance_contract.py": {
+      "lines": 352,
+      "max_complexity": 8,
+      "max_function_args": 5,
+      "max_function_lines": 35,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #119: initial measured ceiling for independent synthetic-fixture answer, visible envelope and exact-source assertions; every dimension is within the unchanged new-module defaults."
+    },
+    "scripts/pilot_acceptance_http.py": {
+      "lines": 192,
+      "max_complexity": 9,
+      "max_function_args": 7,
+      "max_function_lines": 41,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "Issue #119: initial measured ceiling for credential references, bounded live HTTP transport and durable ingestion polling; every dimension is within the unchanged new-module defaults."
+    },
+    "scripts/run_pilot_acceptance.py": {
+      "lines": 327,
+      "max_complexity": 5,
+      "max_function_args": 3,
+      "max_function_lines": 24,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #119: initial measured ceiling for real authenticated pilot acceptance orchestration and sanitized reporting; every dimension is within the unchanged new-module defaults."
+    },
     "scripts/ready_response_contract.py": {
       "lines": 34,
       "max_complexity": 8,

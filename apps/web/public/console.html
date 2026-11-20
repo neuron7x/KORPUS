@@ -137,16 +137,17 @@
                 </div>
                 <div class="actions">
                   <button id="ingest-preview" type="button" class="secondary">Показати, що буде записано</button>
-                  <button id="ingest-submit" type="submit" disabled>Внести до карантину</button>
+                  <button id="ingest-submit" type="submit" disabled>Надіслати документ</button>
                 </div>
               </div>
             </form>
 
             <form id="job-form" class="card">
-              <h3>Стан довготривалого завдання</h3>
+              <h3>Стан обробки документа</h3>
               <p class="limitation">
-                У durable-режимі внесення повертає завдання, а не результат. Без цього
-                перегляду єдиний спосіб дізнатися його стан — запит до API вручну.
+                Якщо документ обробляється в черзі, ідентифікатор з’явиться тут автоматично.
+                Натисніть «Показати стан», щоб оновити результат. Після успішної обробки
+                версія потребує перевірки й затвердження.
               </p>
               <label for="job-id">Ідентифікатор завдання</label>
               <input id="job-id" type="text" required placeholder="UUID завдання">

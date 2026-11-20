@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2255,
-  "root_sha256": "19911e29f28658ba330eebe287f35f72cab46391d0d5fa1212fb3a61cfb31691",
+  "file_count": 2261,
+  "root_sha256": "f04b36b079ceea4ed45cba5d99b1236ce06aae671a08b7492bb74779cbf186c2",
   "files": [
     {
       "path": ".dockerignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 135143,
-      "sha256": "bce145c09f588071af44dc61753a9703a5664cff4262d71e0550720390d709eb",
+      "bytes": 135691,
+      "sha256": "8ab03c424755cafe8cbdd295ee728136809f5996e304601e44b22a2ca8ba2e75",
       "mode": "0644"
     },
     {
@@ -5292,6 +5292,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_pilot_acceptance.py",
+      "bytes": 22610,
+      "sha256": "3e9692e85ef6ffd64970c586781d2ff11425dd76fe90a6fe00ad42ec53a50830",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_pilot_runtime_units.py",
       "bytes": 4756,
       "sha256": "42b54640d2d23923b3b5b042639fde38618ef8f45e19b53e1d7dcea828a8677f",
@@ -6481,14 +6487,14 @@
     },
     {
       "path": "apps/web/public/console.html",
-      "bytes": 21259,
-      "sha256": "3a6fc233f01ef52afa51040d7ddcbbad512ddb0ebbfcd4d2bda54d7f4d27e291",
+      "bytes": 21377,
+      "sha256": "fe92d0b80aa5f8a7f2303f420af756c66fcd0ff7dc52921afe535e9b4800329a",
       "mode": "0644"
     },
     {
       "path": "apps/web/public/console.js",
-      "bytes": 12307,
-      "sha256": "7cdaa9818ec54884327983ea43665dda741bbd7a34cc6fd532c9233f9cb36882",
+      "bytes": 12463,
+      "sha256": "4d9c6ee8a3fc1cfd9c08970d05bf4882872a6dc46c5ade96312455789ab9f7cd",
       "mode": "0644"
     },
     {
@@ -6499,8 +6505,8 @@
     },
     {
       "path": "apps/web/public/console_mutations.js",
-      "bytes": 3313,
-      "sha256": "48f5d17711a609a055cfe9f426624623de1f5041107cc3fd5b270fb2bbe1d8a8",
+      "bytes": 4273,
+      "sha256": "8d8e581a509f00e88405438c99ecf7fbbb800c24302da8a3ddbb058a895abd0e",
       "mode": "0644"
     },
     {
@@ -6511,8 +6517,8 @@
     },
     {
       "path": "apps/web/public/console_rules.js",
-      "bytes": 9614,
-      "sha256": "a94a5c0f74a851c17fd2f527963e3acdca6b6eac6c53da4644a507d6930c3aa3",
+      "bytes": 10359,
+      "sha256": "b0d164b8625b2dc8a8ad5f71aa7b81b20b43f6f7933d409abe6b32c4196abe50",
       "mode": "0644"
     },
     {
@@ -6741,6 +6747,12 @@
       "path": "apps/web/tests/chat_fsm.test.mjs",
       "bytes": 1692,
       "sha256": "5a0074ee69c1a45fd79c7454986671a2c1743f1a82ae7ccf5ea2671063e93b0a",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/web/tests/console_ingestion.test.mjs",
+      "bytes": 5990,
+      "sha256": "66b74317a55f8c86f000cd9063022cee49c5c6f001c98983adb7eee79222117d",
       "mode": "0644"
     },
     {
@@ -8677,8 +8689,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 785659,
-      "sha256": "22203ac827be4a1b4cd7cb5519e1c84ad616abbd5992cbe7a65f7b606c97ff8a",
+      "bytes": 786881,
+      "sha256": "e4c8950ba90caaf9f6fc467ea25bd1a6946bfefbe70b2f555b263f9563dcb8bb",
       "mode": "0644"
     },
     {
@@ -9471,6 +9483,12 @@
       "path": "docs/operations/MIGRATION_RUNTIME_ADMISSION.md",
       "bytes": 4640,
       "sha256": "246991e31ed153aa180825eab26773d2359d0b8c226e8f1fe671fc551eb815b2",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/operations/PILOT_ACCEPTANCE.md",
+      "bytes": 7896,
+      "sha256": "c023f3d96d60857b5ba6655e0b251fa89400f3401634173a284da66712c596f0",
       "mode": "0644"
     },
     {
@@ -12462,6 +12480,18 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/pilot_acceptance_contract.py",
+      "bytes": 14923,
+      "sha256": "f7152ec274f6f27bb65f4ab7c562dbf390c88e033d01f9c9f697aa630ffa786e",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/pilot_acceptance_http.py",
+      "bytes": 7194,
+      "sha256": "cbc9a4f8e6f49abf3640808a930ac93ab7684205511c0bfa3d27187148b6692e",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/plan_retention.py",
       "bytes": 3682,
       "sha256": "40a52ebc71f518f741f5c3475529cf3d7ad85bc0f2da706db9f57f56896bb612",
@@ -12958,6 +12988,12 @@
       "bytes": 4639,
       "sha256": "d6e7cbe9a6ea2678b1db97fe4ae422b16d746c25d9b4e9adef53c762389a0757",
       "mode": "0755"
+    },
+    {
+      "path": "scripts/run_pilot_acceptance.py",
+      "bytes": 13497,
+      "sha256": "9497574f2357fe6b3320ba4d0bc4dea88c2fffeef0f95f126c3c5a7a1df8fe23",
+      "mode": "0644"
     },
     {
       "path": "scripts/run_plasticity_gate.py",
