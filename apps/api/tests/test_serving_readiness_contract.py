@@ -170,7 +170,6 @@ def test_cli_accepts_complete_topology_and_probes_each_subject(monkeypatch, tmp_
     assert calls == [(8040, "/ready"), (8041, "/ready"), (8040, "/health"), (8041, "/health")]
 
 
-
 @pytest.mark.parametrize(
     ("discovered_unit", "expected_exit"),
     [("pilot.service", 0), ("other.service", 1)],
@@ -209,9 +208,8 @@ def test_cli_uses_one_declaration_snapshot_for_discovery_and_verdict(
     assert recorded["status"] == ("PASS" if expected_exit == 0 else "FAIL")
     assert recorded["probed_ports"] == ([8041] if expected_exit == 0 else [])
     assert snapshots == [["pilot.service"]]
-    assert calls == (
-        [(8041, "/ready"), (8041, "/health")] if expected_exit == 0 else []
-    )
+    assert calls == ([(8041, "/ready"), (8041, "/health")] if expected_exit == 0 else [])
+
 
 @pytest.mark.parametrize(
     "body",
