@@ -242,6 +242,7 @@ def test_actual_http_200_false_ready_body_cannot_be_credited() -> None:
         thread.join()
         server.server_close()
 
+
 def test_redirect_to_another_ready_responder_is_refused() -> None:
     class Ready(BaseHTTPRequestHandler):
         def do_GET(self) -> None:
