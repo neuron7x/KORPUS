@@ -619,8 +619,8 @@
       "reason": "Issue #124: initial measured ceiling for private laptop Compose ownership, local persistence paths, canonical runtime guards and exact host checks; every dimension is within the unchanged new-module defaults."
     },
     "scripts/run_compose_pilot_smoke.py": {
-      "lines": 382,
-      "max_complexity": 5,
+      "lines": 384,
+      "max_complexity": 6,
       "max_function_args": 4,
       "max_function_lines": 36,
       "max_nesting": 3,
@@ -13674,6 +13674,19 @@
         "lines": 382
       },
       "reason": "Issue #124: the native cold start exposed Compose 2.38.2 rejecting the worker disabled HTTP probe under --wait. Start worker after web/dependency readiness with a bounded build deadline; preserve service-state validation and actual durable-job acceptance. Five new readiness cases cover stopped/restarting worker, unhealthy API and failed migration; no default ceilings or runtime guards change."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/run_compose_pilot_smoke.py",
+      "from": {
+        "lines": 382,
+        "max_complexity": 5
+      },
+      "to": {
+        "lines": 384,
+        "max_complexity": 6
+      },
+      "reason": "Issue #124: the native upload failure showed combined log truncation could evict the PostgreSQL error behind collector chatter. Collect each owned service separately under the existing per-service redaction and 6000-character bound; no success predicate, resource ownership guard, default budget or runtime policy changes."
     }
   ],
   "recorded_at": "2026-10-04",

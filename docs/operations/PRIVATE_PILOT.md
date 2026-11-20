@@ -109,7 +109,8 @@ For a rebuild of this same persistent pilot, use:
 ```sh
 dc up -d --build --wait --wait-timeout 600 web &&
 dc up -d --build worker &&
-test "$(dc ps --status running --services worker)" = worker
+PILOT_WORKER_SERVICES="$(dc ps --status running --services worker)" &&
+test "$PILOT_WORKER_SERVICES" = worker
 ```
 
 API and worker run as UID 10001 and mount `korpus-pilot_pilot-objects` at `/data`.
@@ -137,7 +138,8 @@ dc() {
 dc config --quiet &&
 dc up -d --build --wait --wait-timeout 600 web &&
 dc up -d --build worker &&
-test "$(dc ps --status running --services worker)" = worker
+PILOT_WORKER_SERVICES="$(dc ps --status running --services worker)" &&
+test "$PILOT_WORKER_SERVICES" = worker
 ```
 
 Compose refuses a missing hostname; the shell check above rejects wildcard/list

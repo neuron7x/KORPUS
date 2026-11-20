@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2269,
-  "root_sha256": "b5758f3248f4db3f1f125e84d89c9f831914d41c33cb636678187321234a0cbf",
+  "root_sha256": "825b6bbae52166e8756fa633eeb4ee114c2b5325aeeb80e152bb7ddc8592a2b0",
   "files": [
     {
       "path": ".dockerignore",
@@ -421,8 +421,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 136314,
-      "sha256": "1aed8118fa91ad79f6fdf94db1a1e50648e3119b19b0c1ae06eb933975273a22",
+      "bytes": 136365,
+      "sha256": "9047cda426f47d244f5d1e1129c9cda0991100929d59d5aa3d2ffb661dbc96fd",
       "mode": "0644"
     },
     {
@@ -3793,8 +3793,8 @@
     },
     {
       "path": "apps/api/tests/test_compose_pilot_smoke.py",
-      "bytes": 23982,
-      "sha256": "8f79e4ce3b8b70e7c6c6b0e068108d3ffeea3251ca3a0ccd0612521d19ec9ef9",
+      "bytes": 26313,
+      "sha256": "71fe8332f4cb82744ec9d7fdadfcfc19100dae22ec0f6ee1fdbe8508e6a2e236",
       "mode": "0644"
     },
     {
@@ -8707,8 +8707,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 788415,
-      "sha256": "e83eaf374cba379f1585f14e0e0d772c027eed59c400a492ea7777c410c251cb",
+      "bytes": 788995,
+      "sha256": "16816f272a52d3673a5cef87956a7a20761cfe3ce34761a2d57291ade11ef202",
       "mode": "0644"
     },
     {
@@ -9529,8 +9529,8 @@
     },
     {
       "path": "docs/operations/PRIVATE_PILOT.md",
-      "bytes": 11730,
-      "sha256": "b878f27eb38dec3d859a1c60e03383b40110e2cf8eb312bc1de03598eaab5f83",
+      "bytes": 11830,
+      "sha256": "d7fdb4a195524bd9af136e6967faa1d49cc89709a1270a90946229fea21f7fb3",
       "mode": "0644"
     },
     {
@@ -12877,8 +12877,8 @@
     },
     {
       "path": "scripts/run_compose_pilot_smoke.py",
-      "bytes": 14758,
-      "sha256": "5d9347c6860217f7d3f55e36bcc95ffe1eba0785c24187feca6712b2d950f031",
+      "bytes": 14850,
+      "sha256": "63aeb303c0833913d472b5456575dfedfa067d759db2e1caeb2e048a84b7d00a",
       "mode": "0755"
     },
     {

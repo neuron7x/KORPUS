@@ -1541,7 +1541,7 @@ pilot-compose-check:
 pilot-up: pilot-compose-check infra-secrets
 	$(PILOT_COMPOSE) up -d --build --wait --wait-timeout 600 web
 	$(PILOT_COMPOSE) up -d --build worker
-	test "$$($(PILOT_COMPOSE) ps --status running --services worker)" = worker
+	PILOT_WORKER_SERVICES="$$($(PILOT_COMPOSE) ps --status running --services worker)" && test "$$PILOT_WORKER_SERVICES" = worker
 
 compose-pilot-smoke: pilot-compose-check
 	$(PY) scripts/run_compose_pilot_smoke.py

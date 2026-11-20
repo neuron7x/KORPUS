@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import shutil
 import socket
 import stat
@@ -586,6 +587,67 @@ def test_cleanup_requires_every_owned_resource_to_be_gone(
     with pytest.raises(SmokeFailure, match="resources remain after cleanup"):
         smoke.cleanup()
     assert workspace.state.exists()
+
+
+def test_chatty_service_cannot_evict_another_services_failure(
+    workspace: Workspace, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    smoke = prepared_smoke(workspace)
+    smoke.started = True
+
+    def logs(arguments: list[str], timeout: int = 30) -> str:
+        if arguments[0] == "ps":
+            return "[]"
+        if arguments[-1] == "postgres":
+            return "synthetic database boundary failure"
+        return "unrelated service output\n" * 1000
+
+    monkeypatch.setattr(smoke, "compose", logs)
+    smoke.failure_logs()
+    assert smoke.report["sanitized_postgres_diagnostics"] == "synthetic database boundary failure"
+    for key, value in smoke.report.items():
+        if key.startswith("sanitized_"):
+            assert len(value) <= 6000
+
+
+@pytest.mark.parametrize("failure", ["none", "web", "worker", "ps"])
+def test_operator_start_propagates_each_command_failure(tmp_path: Path, failure: str) -> None:
+    """Exercise the real Make recipe with a protocol stub; never invoke Docker or secrets."""
+    fake = tmp_path / "compose.py"
+    log = tmp_path / "commands.jsonl"
+    fake.write_text(
+        "import json,pathlib,sys\n"
+        "mode,log,*args=sys.argv[1:]\n"
+        "with pathlib.Path(log).open('a') as out: out.write(json.dumps(args)+'\\n')\n"
+        "if args[0]=='up': raise SystemExit(11 if args[-1]==mode else 0)\n"
+        "if args[0]=='ps':\n"
+        "    print('worker')\n"
+        "    raise SystemExit(7 if mode=='ps' else 0)\n"
+        "raise SystemExit(19)\n"
+    )
+    result = subprocess.run(
+        [
+            "make",
+            "--no-print-directory",
+            "-f",
+            str(ROOT / "Makefile"),
+            "-o",  # Only the shell recipe is under test; no runtime gate is exercised here.
+            "pilot-compose-check",
+            "-o",
+            "infra-secrets",
+            "PILOT_COMPOSE=" + shlex.join([sys.executable, str(fake), failure, str(log)]),
+            "pilot-up",
+        ],
+        cwd=tmp_path,
+        text=True,
+        capture_output=True,
+        check=False,
+        timeout=10,
+    )
+    commands = [json.loads(line) for line in log.read_text().splitlines()]
+    assert (result.returncode == 0) == (failure == "none")
+    expected = {"web": 1, "worker": 2, "ps": 3, "none": 3}
+    assert len(commands) == expected[failure]
 
 
 def test_private_hostname_overlay_only_changes_explicit_origins() -> None:

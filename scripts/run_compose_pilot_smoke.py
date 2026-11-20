@@ -335,10 +335,12 @@ class ComposeSmoke:
     def failure_logs(self) -> None:
         if not self.started:
             return
-        for name, arguments in (
-            ("service_states_at_failure", ["ps", "--all", "--format", "json"]),
-            ("sanitized_service_diagnostics", ["logs", "--no-color", "--tail", "25"]),
-        ):
+        commands = {"service_states_at_failure": ["ps", "--all", "--format", "json"]}
+        commands.update(
+            (f"sanitized_{name}_diagnostics", ["logs", "--no-color", "--tail", "25", name])
+            for name in sorted(SERVICES)
+        )
+        for name, arguments in commands.items():
             try:
                 output = self.compose(arguments, 20)
                 self.report[name] = (
