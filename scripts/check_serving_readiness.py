@@ -28,7 +28,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_serving_freshness import required_units, serving_processes, unit_states  # noqa: E402
-from serving_readiness_contract import owned_ports, readiness_checks  # noqa: E402
+from serving_readiness_contract import owned_ports, readiness_checks, ready_response  # noqa: E402
 
 TIMEOUT = 10.0
 
@@ -61,7 +61,7 @@ def refusing_detail(body: str) -> list[str]:
         payload = json.loads(body)
     except json.JSONDecodeError:
         return []
-    detail = payload.get("detail")
+    detail = payload.get("detail") if isinstance(payload, dict) else {}
     detail = detail if isinstance(detail, dict) else payload
     return sorted(key for key, value in detail.items() if value is False)
 
@@ -74,7 +74,7 @@ def liveness_masking(ready: list[dict[str, Any]], live: list[dict[str, Any]]) ->
     «здатний відповісти» — різні твердження, і перше не є свідченням про друге.
     """
     healthy = {item["port"] for item in live if item["status"] == 200}
-    return sorted({item["port"] for item in ready if item["status"] != 200} & healthy)
+    return sorted({item["port"] for item in ready if not ready_response(item)} & healthy)
 
 
 def verdict(
@@ -86,8 +86,8 @@ def verdict(
     """Оголошено — значить мусить відповідати. Порожній перелік не є згодою."""
     checks = readiness_checks(units, ports, probes)
     admitted = probes if checks["probe_set_complete"] else []
-    serving = [item for item in admitted if item["status"] == 200]
-    refusing = [item for item in admitted if item["status"] != 200]
+    serving = [item for item in admitted if ready_response(item)]
+    refusing = [item for item in admitted if not ready_response(item)]
     masked = liveness_masking(admitted, liveness or [])
     failures = [name for name, ok in checks.items() if not ok]
     return {

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import sys
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from threading import Thread
 
 import pytest
 
@@ -166,3 +168,75 @@ def test_cli_accepts_complete_topology_and_probes_each_subject(monkeypatch, tmp_
     assert GATE.main() == 0
     assert json.loads(out.read_text())["status"] == "PASS"
     assert calls == [(8040, "/ready"), (8041, "/ready"), (8040, "/health"), (8041, "/health")]
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        '{"status":"not_ready"}',
+        '{"ready":false}',
+        "<html>unrelated responder</html>",
+        "",
+        "null",
+        "{",
+        '{"status":"ready","ready":false}',
+        '{"status":"not_ready","status":"ready"}',
+        '{"status":"ready","audit_head":true,"telemetry":"ok"}',
+        '{"status":"ready","audit_head":-1,"telemetry":"ok"}',
+        '{"status":"ready","audit_head":0}',
+        '{"status":"ready","audit_head":0,"telemetry":null}',
+        '{"status":"ready","audit_head":0,"telemetry":""}',
+        '{"status":"ready","audit_head":0,"telemetry":"ok","extra":true}',
+        '[{"status":"ready"}]',
+        '"ready"',
+        '{"status":"ready","audit_head":0,"audit_head":1,"telemetry":"ok"}',
+    ],
+)
+def test_http_200_without_canonical_ready_envelope_fails_closed(body: str) -> None:
+    result = GATE.verdict(["pilot.service"], [8040], [{**_ready(), "body": body}])
+    assert result["status"] == "FAIL"
+    assert result["checks"]["probe_set_complete"] is True
+    assert result["checks"]["every_declared_port_answers"] is False
+    assert result["serving"] == []
+    assert [refusal["port"] for refusal in result["refusing"]] == [8040]
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        '{"status":"ready"}',
+        '{"status":"ready","audit_head":0,"telemetry":"UNKNOWN"}',
+        '{"telemetry":"ok","audit_head":81,"status":"ready"}',
+    ],
+)
+def test_public_and_privileged_server_ready_envelopes_remain_accepted(body: str) -> None:
+    result = GATE.verdict(["pilot.service"], [8040], [{**_ready(), "body": body}])
+    assert result["status"] == "PASS"
+    assert result["serving"] == [8040]
+    assert result["refusing"] == []
+
+
+def test_actual_http_200_false_ready_body_cannot_be_credited() -> None:
+    class FalseReady(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"ready":false}')
+
+        def log_message(self, _format: str, *_args: object) -> None:
+            return
+
+    server = HTTPServer(("127.0.0.1", 0), FalseReady)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        observation = GATE.probe(server.server_port)
+        assert observation["status"] == 200
+        result = GATE.verdict(["pilot.service"], [server.server_port], [observation])
+        assert result["status"] == "FAIL"
+        assert result["serving"] == []
+        assert result["refusing"][0]["port"] == server.server_port
+    finally:
+        server.shutdown()
+        thread.join()
+        server.server_close()

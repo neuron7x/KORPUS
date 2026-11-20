@@ -609,6 +609,15 @@
     }
   ],
   "modules": {
+    "scripts/ready_response_contract.py": {
+      "lines": 34,
+      "max_complexity": 8,
+      "max_function_lines": 18,
+      "max_function_args": 1,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Initial measured ceiling for strict JSON readiness envelopes and duplicate-field rejection; no existing module ratchet changed."
+    },
     "scripts/serving_readiness_contract.py": {
       "lines": 84,
       "max_complexity": 13,
