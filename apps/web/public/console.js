@@ -121,7 +121,8 @@ function fillEnums() {
 
 // ------------------------------------------------- preview / submit gating
 
-function gate(form, previewButton, submitButton, outcome, build, consequence, send) {
+function gate(form, previewButton, submitButton, outcome, build, consequence, send,
+  resultHeading = () => "Виконано") {
   let confirmed = null;
 
   const invalidate = () => {
@@ -162,7 +163,8 @@ function gate(form, previewButton, submitButton, outcome, build, consequence, se
     submitButton.disabled = true;
     busy(outcome, "Надсилаю…");
     try {
-      renderJson(outcome, "Виконано", await send(payload));
+      const result = await send(payload);
+      renderJson(outcome, resultHeading(result, payload), result);
     } catch (error) {
       renderRefusal(outcome, error);
     } finally {
@@ -219,8 +221,10 @@ function wireTabs() {
 //: Held here rather than read from a form — the subject is the server's answer, not a
 //: field somebody can type into.
 let signedIn = null;
+let bootstrap = null;
 
 function applyBootstrap(currentBootstrap) {
+  bootstrap = currentBootstrap;
   signedIn = currentBootstrap?.identity ?? null;
   const visible = new Set(currentBootstrap ? visibleConsoles(currentBootstrap) : []);
   for (const name of TABS) {
@@ -298,7 +302,7 @@ $("logout").addEventListener("click", async () => {
   }
 });
 
-wireMutationForms(gate);
+wireMutationForms(gate, () => bootstrap);
 wireReadOnly({busy, renderProblems, renderRefusal});
 wireAccounts({
   gate, renderJson, renderProblems, renderRefusal, busy,
