@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v0.9.7",
-  "root_sha256": "6aa91a873f565b755528007a3343c5cb4604aaeea519ae911fd44179a0ec6db5",
+  "root_sha256": "51413ab39cf79e9b78ebef50977f208339773afd54200cde69015dce2bf3c096",
   "records": [
     {
       "path": ".github/dependabot.yml",
@@ -145,8 +145,8 @@
     },
     {
       "path": "docker-compose.yml",
-      "sha256": "de5d5cf97f3d30c0535844f5a2c85e5bb672ce02d6a4ec33c26594431f3039c1",
-      "bytes": 16726
+      "sha256": "0e50b31aac19fd3b9919a8f7e1ff63a0b909cbaae8e5f0e4e75c0c3c4263c5e9",
+      "bytes": 18091
     },
     {
       "path": "infra/minio/korpus-app-policy.json",
