@@ -88,7 +88,7 @@ def test_every_protected_table_has_rls_enabled_and_forced() -> None:
 
 
 def test_no_policy_still_consumes_a_caller_settable_claim() -> None:
-    """Повнота міграції 0020, поставлена як питання до КАТАЛОГУ, а не до наміру."""
+    """Verify the exact current policy inventory and trusted claims in the real catalog."""
     engine = _engine(APP_URL)
     try:
         with engine.connect() as connection:
@@ -101,12 +101,51 @@ def test_no_policy_still_consumes_a_caller_settable_claim() -> None:
                 ),
                 {"tables": sorted(PROTECTED_TABLES)},
             ).all()
-        by_table: dict[str, int] = {name: 0 for name in PROTECTED_TABLES}
+        by_table: dict[str, set[str]] = {name: set() for name in PROTECTED_TABLES}
         policy_sql: list[str] = []
-        for table, _policy, qual, check in rows:
-            by_table[str(table)] += 1
+        for table, policy, qual, check in rows:
+            by_table[str(table)].add(str(policy))
             policy_sql.extend((str(qual), str(check)))
-        assert all(count == 4 for count in by_table.values()), by_table
+        assert by_table == {
+            "documents": {
+                "document_select",
+                "document_insert",
+                "document_update",
+                "document_delete",
+                "reviewer_document_tier_update",
+            },
+            "document_versions": {
+                "version_select",
+                "version_insert",
+                "version_update",
+                "version_delete",
+                "reviewer_version_update",
+            },
+            "document_compartments": {
+                "document_compartment_select",
+                "document_compartment_insert",
+                "document_compartment_update",
+                "document_compartment_delete",
+            },
+            "evidence_spans": {
+                "evidence_span_select",
+                "evidence_span_insert",
+                "evidence_span_update",
+                "evidence_span_delete",
+            },
+            "span_embeddings": {
+                "embedding_select",
+                "embedding_insert",
+                "embedding_update",
+                "embedding_delete",
+            },
+            "ingestion_jobs": {
+                "ingestion_job_select",
+                "ingestion_job_insert",
+                "ingestion_job_update",
+                "ingestion_job_delete",
+            },
+        }, by_table
         rendered = "\n".join(policy_sql)
         assert "current_setting('korpus." not in rendered, rendered
         for accessor in CLAIM_ACCESSORS:

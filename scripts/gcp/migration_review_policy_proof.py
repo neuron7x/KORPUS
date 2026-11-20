@@ -2,14 +2,35 @@
 
 This is a closed SQL language, not a general CREATE POLICY allowance. Existing grants
 and trusted visibility predicates remain required in both old-row and new-row checks.
-Quoted literal contents and case are preserved; only whitespace between tokens varies.
+Quoted literals and case are preserved; only PostgreSQL ASCII token spacing varies.
 """
 
 from __future__ import annotations
 
 import re
 
-_TOKEN = re.compile(r"'(?:''|[^'])*'|[A-Za-z_][A-Za-z_0-9]*|<=|::|[^\s]")
+_SPACE = " \t\n\r\f\v"
+_TOKEN = re.compile(r"'(?:''|[^'])*'|[A-Za-z_][A-Za-z_0-9]*|[0-9]+(?![A-Za-z_0-9])|<=|::|[().,=]")
+
+
+def _tokens(statement: str) -> tuple[str, ...] | None:
+    """Consume every byte; Python Unicode whitespace and PostgreSQL integer junk differ."""
+    if not statement.isascii():
+        return None
+    tokens: list[str] = []
+    offset = 0
+    while offset < len(statement):
+        if statement[offset] in _SPACE:
+            offset += 1
+            continue
+        match = _TOKEN.match(statement, offset)
+        if match is None:
+            return None
+        tokens.append(match.group())
+        offset = match.end()
+    return tuple(tokens)
+
+
 _VERSION = """
 pg_catalog.has_column_privilege(CURRENT_USER, 'public.document_versions', 'review_state', 'UPDATE')
 AND 'reviewer' = ANY(public.korpus_rls_roles())
@@ -31,7 +52,7 @@ _POLICIES = (
     ("reviewer_document_tier_update", "documents", _DOCUMENT),
 )
 _PROVEN_TOKENS = tuple(
-    _TOKEN.findall(
+    _tokens(
         f"CREATE POLICY {name} ON public.{table} AS PERMISSIVE FOR UPDATE TO PUBLIC "
         f"USING ({predicate}) WITH CHECK ({predicate})"
     )
@@ -41,4 +62,5 @@ _PROVEN_TOKENS = tuple(
 
 def reviewer_policy_is_expanding(statement: str) -> bool:
     """Admit only the complete reviewed forms; every other SQL token is a refusal."""
-    return _TOKEN.findall(statement) in _PROVEN_TOKENS
+    tokens = _tokens(statement)
+    return tokens is not None and tokens in _PROVEN_TOKENS

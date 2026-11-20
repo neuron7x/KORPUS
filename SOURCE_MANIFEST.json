@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2267,
-  "root_sha256": "704efe45846a7bdf68082362fe61c9d99b79f424e88e67777ed322bedf89a424",
+  "root_sha256": "7fd784a5d4bb93776f1867101b075411232177a59b7469f6911d6acdc7e322df",
   "files": [
     {
       "path": ".dockerignore",
@@ -4507,8 +4507,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_reviewer_policy_expansion.py",
-      "bytes": 4099,
-      "sha256": "a689048110774f769a74d8d1326341fb652e83cf4ffb32dff3a461c05c9b7b38",
+      "bytes": 5912,
+      "sha256": "1cb75e993a370fb0e1996eb58680773d966f4e551070241f383bbfae019adeb1",
       "mode": "0644"
     },
     {
@@ -5419,8 +5419,8 @@
     },
     {
       "path": "apps/api/tests/test_postgres_rls_policy_state.py",
-      "bytes": 9525,
-      "sha256": "3b393ecb912f23f53e129af516751f63920e041b123f719322caca4cb3e13556",
+      "bytes": 10783,
+      "sha256": "035cd65ce0cb9a602e1c8b7aaaa02f0f83da917ebb4100d8a29bbf0610e4ecf5",
       "mode": "0644"
     },
     {
@@ -8725,8 +8725,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 787951,
-      "sha256": "20485ddf0cff7d53b2bbae4f6285cafed567dad96d5429ec76952898c79c95b8",
+      "bytes": 788642,
+      "sha256": "1a8df7f28c8166badcc3d66a971a0ceeadb20e42cb475e3b1e3716f3d8c2737d",
       "mode": "0644"
     },
     {
@@ -11893,8 +11893,8 @@
     },
     {
       "path": "scripts/gcp/migration_raw_ddl_proof.py",
-      "bytes": 2391,
-      "sha256": "ae58e4140e2493937342fe25e035578caabab11f6c4b9764149711461b5d852d",
+      "bytes": 2404,
+      "sha256": "67a9a6756cde1f7ec067c65509a8613e9b4c656d2bcd112952a830cd565dc34e",
       "mode": "0644"
     },
     {
@@ -11905,8 +11905,8 @@
     },
     {
       "path": "scripts/gcp/migration_review_policy_proof.py",
-      "bytes": 1874,
-      "sha256": "273d91c40c239d0ad15b1cd259077250003a629b83b74ee38c8b06c7b561086c",
+      "bytes": 2502,
+      "sha256": "2b90694f165086bc82a9a1d1b9fbd9e3abac9df3c50d937d9c6091d6c89cff78",
       "mode": "0644"
     },
     {

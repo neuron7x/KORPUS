@@ -40,6 +40,48 @@ def test_only_the_two_complete_additive_policies_are_proven() -> None:
         assert _problem(statement.replace(" AND ", "\nAND\n")) is None
 
 
+@pytest.mark.parametrize("space", [" ", "\t", "\n", "\r", "\f", "\v"])
+def test_only_postgresql_ascii_whitespace_separates_tokens(space: str) -> None:
+    for statement in _statements():
+        assert (
+            _problem(
+                space + statement.replace("SELECT 1 FROM", f"SELECT{space}1{space}FROM") + space
+            )
+            is None
+        )
+
+
+@pytest.mark.parametrize("space", ["\u00a0", "\x1c"])
+@pytest.mark.parametrize("position", ["leading", "trailing", "keyword", "identifier", "function"])
+def test_python_only_whitespace_is_not_discarded(space: str, position: str) -> None:
+    for statement in _statements():
+        poisoned = {
+            "leading": space + statement,
+            "trailing": statement + space,
+            "keyword": statement.replace("CREATE POLICY", f"CREATE{space}POLICY"),
+            "identifier": statement.replace("ON public.", f"ON public.{space}"),
+            "function": statement.replace(
+                "public.korpus_rls_roles", f"public.{space}korpus_rls_roles"
+            ),
+        }[position]
+        assert _problem(poisoned) is not None
+
+
+def test_unicode_relation_and_qualifier_do_not_match_the_reviewed_relation() -> None:
+    statement = _statements()[0]
+    poisoned = statement.replace(
+        "ON public.document_versions", "ON public.\u00a0document_versions"
+    ).replace("= document_versions.document_id", "= \u00a0document_versions.document_id")
+    assert "'public.document_versions'" in poisoned
+    assert _problem(poisoned) is not None
+
+
+@pytest.mark.parametrize("integer", ["1FROM", "1_FROM", "11FROM", "1$FROM"])
+def test_number_and_identifier_junk_cannot_be_split_into_proven_tokens(integer: str) -> None:
+    for statement in _statements():
+        assert _problem(statement.replace("1 FROM", integer)) is not None
+
+
 @pytest.mark.parametrize(
     ("old", "new"),
     [

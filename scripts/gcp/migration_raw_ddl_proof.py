@@ -48,7 +48,7 @@ def execute_is_expanding(node: ast.Call, created: frozenset[str] = frozenset()) 
     first = node.args[0]
     if not isinstance(first, ast.Constant) or not isinstance(first.value, str):
         return "op.execute requires a literal SQL statement"
-    statement = first.value.strip()
+    statement = first.value.strip(" \t\n\r\f\v")
     if any(marker in statement for marker in (";", "--", "/*", "*/", "\x00")):
         return "op.execute with stacked or commented SQL is not expand-safe"
     if _CREATE.fullmatch(statement) or reviewer_policy_is_expanding(statement):
