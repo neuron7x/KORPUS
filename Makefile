@@ -1460,6 +1460,12 @@ pilot-posture:
 install-pilot-runtime:
 	$(PY) scripts/install_pilot_runtime.py
 
+.PHONY: pilot-acceptance
+# Explicit live mutations are confined to a synthetic pilot-smoke-* corpus.
+# Pass credential references, never bearer values: see docs/operations/PILOT_ACCEPTANCE.md.
+pilot-acceptance:
+	$(PY) scripts/run_pilot_acceptance.py $(ARGS)
+
 # `serving-freshness` ПЕРШИМ у цьому лані. Чотири осі профілю відповідей міряються
 # запитом до живого процесу, тож вони описують ПРОЦЕС, а не дерево. Гейт існував із
 # власним негативним контролем і не входив у жоден лан: виміряно 02.09.2026, він був
