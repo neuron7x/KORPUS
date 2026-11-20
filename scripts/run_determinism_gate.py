@@ -31,6 +31,8 @@ TESTS = (
     "apps/api/tests/test_pdf_page_fidelity.py",
     "apps/api/tests/test_docx_table_fidelity.py",
     "apps/api/tests/test_section_span_fidelity.py",
+    "apps/api/tests/test_question_obligations.py",
+    "apps/api/tests/test_question_obligations_api.py",
 )
 
 

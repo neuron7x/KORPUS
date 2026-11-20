@@ -665,6 +665,22 @@
         "max_function_lines": 27
       },
       "reason": "Issue #132: section-bounded exact spans and extracted bounded PDF/DOCX helpers reduce the measured production ceiling without widening any gate."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "apps/api/src/korpus/application/answer_query.py",
+      "from": {
+        "lines": 845
+      },
+      "to": {
+        "lines": 749
+      },
+      "new_modules": [
+        "apps/api/src/korpus/application/answer_candidates.py",
+        "apps/api/src/korpus/application/answer_obligations.py",
+        "apps/api/src/korpus/application/question_obligations.py"
+      ],
+      "reason": "Issue #133: isolate deterministic candidate selection and independently recheck recognized subjects and complete same-version facet evidence."
     }
   ],
   "modules": {
@@ -1044,13 +1060,13 @@
       "reason": "v0.6.0: pure source-bound query audit envelope"
     },
     "apps/api/src/korpus/application/answer_query.py": {
-      "lines": 845,
+      "lines": 749,
       "max_complexity": 21,
       "max_function_args": 12,
       "max_function_lines": 200,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": "+28 рядків: захоплення знімка на початку відповіді й запис про те, ЧОМУ його відсутність законна. Розгортання без читача знімка працює як раніше, лише без поля в журналі — знімок ОПИСУЄ відповідь, а не виробляє її, тож його поломка не сміє відібрати в читача знайдену підставу."
+      "reason": "Issue #133: sentence selection extracted into a bounded helper; final applicability gate and exact provenance retained without increasing function complexity."
     },
     "apps/api/src/korpus/application/answer_request_snapshot.py": {
       "lines": 146,
@@ -5760,7 +5776,7 @@
       "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
     "scripts/run_determinism_gate.py": {
-      "lines": 64,
+      "lines": 66,
       "max_complexity": 4,
       "max_function_args": 0,
       "max_function_lines": 24,
@@ -7440,6 +7456,33 @@
       "max_function_args": 3,
       "max_nesting": 2,
       "reason": "Issue #132: measured first-version per-page painted-content completeness and native-text preservation checks; all dimensions remain below unchanged new-module defaults."
+    },
+    "apps/api/src/korpus/application/answer_candidates.py": {
+      "lines": 143,
+      "max_complexity": 9,
+      "max_function_args": 6,
+      "max_function_lines": 35,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #133: initial measured ceiling for the bounded deterministic question-obligation contract."
+    },
+    "apps/api/src/korpus/application/answer_obligations.py": {
+      "lines": 75,
+      "max_complexity": 13,
+      "max_function_args": 4,
+      "max_function_lines": 35,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #133: initial measured ceiling for the bounded deterministic question-obligation contract."
+    },
+    "apps/api/src/korpus/application/question_obligations.py": {
+      "lines": 223,
+      "max_complexity": 14,
+      "max_function_args": 3,
+      "max_function_lines": 21,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #133: initial measured ceiling for the bounded deterministic question-obligation contract."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -13979,6 +14022,28 @@
         "lines": 64
       },
       "reason": "Issues #131/#132/#133 integration: preserve the union of 13 existing and newly reviewed deterministic test files. Only literal registry entries grow; seeds, timeouts, verdicts and executable complexity remain unchanged."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "from": {
+        "lines": 57
+      },
+      "to": {
+        "lines": 59
+      },
+      "reason": "Issue #133: two declarative test-path entries add subject/facet/dedup controls and the finite three-facet availability matrix to every configured seed. Existing six suites, runner logic, timeouts and function ceilings are unchanged."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "from": {
+        "lines": 64
+      },
+      "to": {
+        "lines": 66
+      },
+      "reason": "Issues #131/#132/#133 integration: preserve the union of 15 existing and newly reviewed deterministic test files. Only literal registry entries grow; seeds, timeouts, verdicts and executable complexity remain unchanged."
     }
   ],
   "recorded_at": "2026-10-04",

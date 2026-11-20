@@ -23,11 +23,8 @@ def test_answer_and_ranking_load_one_calibration(monkeypatch):
         Mock(), PolicyEngine(), settings, EvidenceQueryCache(), None
     )
     assert loader.call_count == 1
-    assert (
-        service.answer_policy.calibration_id
-        == service.retriever.configuration_id
-        == "first-profile"
-    )
+    assert service.answer_policy.calibration_id == "first-profile"
+    assert service.retriever.configuration_id == "first-profile:obligations-v1"
     assert service.answer_policy.minimum_score == 0.41
     assert service.retriever.delegate.parameters == first.bm25_parameters
     assert service.retriever.delegate.weights == first.retrieval_weights
@@ -71,7 +68,7 @@ def test_absent_adapters_still_use_existing_factories(monkeypatch):
     assert service.query_planner is planner
     assert service.answer_composer is composer
     assert service.answer_policy.calibration_id == "development-unvalidated"
-    assert service.retriever.configuration_id == "development-default-ranking-v5"
+    assert service.retriever.configuration_id == "development-default-ranking-v6"
 
 
 def test_composition_factory_is_usable_without_http_dependency_injection():

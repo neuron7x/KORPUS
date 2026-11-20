@@ -11,7 +11,6 @@ from korpus.application.answer_analysis import (
     ScopeBreach,
     SentenceCandidate,
     confine_to_top_authority,
-    contains_control_injection,
     find_contradiction,
     scope_breaches,
     sentence_candidates,
@@ -19,6 +18,8 @@ from korpus.application.answer_analysis import (
     unsourced_quotes,
 )
 from korpus.application.answer_audit import append_answer_audit
+from korpus.application.answer_candidates import candidate_offers
+from korpus.application.answer_obligations import unmet_answer_obligations
 from korpus.application.answer_request_snapshot import (
     RequestBoundRetriever,
     retrieval_failure_reason,
@@ -32,7 +33,7 @@ from korpus.application.corpus_snapshot import (
     ReleaseIdentityUnavailable,
     release_token,
 )
-from korpus.application.declared_subject import declared_subject_documents, subject_tokens
+from korpus.application.declared_subject import declared_subject_documents
 from korpus.application.egress import ModelEgressPolicy
 from korpus.application.evidence import (
     SupportVerdict,
@@ -50,6 +51,7 @@ from korpus.application.predictive_evidence_control import (
     PredictiveEvidenceController,
 )
 from korpus.application.query_plan import QueryPlan, QueryPlanner
+from korpus.application.question_obligations import question_obligations
 from korpus.application.retrieval import (
     RetrievalDeadlineExceeded,
     RetrievalUnavailable,
@@ -100,14 +102,6 @@ class AnswerPolicy:
         return eligible_evidence(
             evidence, thresholds, declared_subject_documents(question, evidence)
         )
-
-
-#: Стеля довжини цитати, та сама, що валідує `Citation.quote`. Тримається тут як
-#: константа, бо кандидат, довший за неї, не може стати цитатою в принципі.
-MAX_QUOTE_CHARS = 1600
-
-#: Порядок присуду: підтверджене попереду дотичного, дотичне попереду спірного.
-_PRESENTATION_RANK = {"supported": 0, "tangential": 1, "contested": 2}
 
 
 def _dissent(verdicts: tuple[AxisVerdict, ...]) -> str:
@@ -293,12 +287,16 @@ class ExtractiveAnswerService:
             return answer
         # Initialize before branches: otherwise audit raises UnboundLocalError.
         composition_reason = "not attempted"
-        if not claims or not coverage_admits(query_coverage, thresholds.minimum_query_coverage):
+        retrieval_score = max((item.score for item in eligible), default=0.0)
+        unmet = unmet_answer_obligations(query.text, claims, citations, eligible)
+        if unmet:
+            answer = self._obligation_refusal(unmet, release_id, retrieval_score, query_coverage)
+        elif not claims or not coverage_admits(query_coverage, thresholds.minimum_query_coverage):
             answer = self._abstain(
                 release_id,
                 "claim_support_gate_failed",
                 "Джерела знайдено, але вони не підтримують конкретну відповідь на запит.",
-                max((item.score for item in eligible), default=0.0),
+                retrieval_score,
                 query_coverage=query_coverage,
             )
         else:
@@ -321,7 +319,7 @@ class ExtractiveAnswerService:
                     opening=composition.opening if composition is not None else "",
                     claims=claims,
                     citations=citations,
-                    retrieval_score=max(item.score for item in eligible),
+                    retrieval_score=retrieval_score,
                     evidence_coverage=evidence_coverage,
                     query_coverage=query_coverage,
                     decision_reason="extractive_claims_passed_calibrated_gates",
@@ -496,122 +494,16 @@ class ExtractiveAnswerService:
         seen_sentences: set[str] = set()
         covered_tokens: set[str] = set()
 
-        for item in eligible:
-            # Threshold first, then order. Filtering by the same bar the chosen candidate
-            # had to clear leaves the admission decision exactly as it was — the best
-            # candidate is the highest-covering one, so if it fails, all of them do —
-            # and lets the ordering below choose among passages that are already allowed.
-            #: Речення не мусить повторювати те, що документ оголошує про себе сам.
-            #: Стаття «Обов'язки: Головний сержант роти» каже «Він зобов'язаний…» і не
-            #: називає роль жодного разу, тож проти повного питання її покриття нульове
-            #: і вона не давала ЖОДНОЇ цитати. Слова предмета знімаються з вимоги лише
-            #: для документа, який цей предмет оголосив; якщо після зняття не лишається
-            #: чого покривати, вимога стоїть як була — інакше збіг предмета пропускав би
-            #: будь-яке речення.
-            declared = subject_tokens([item.document.canonical_title]).intersection(query_tokens)
-            remaining = query_tokens - declared
-            effective_tokens = remaining if declared and remaining else query_tokens
-            offered = self._candidates(item.span.text, effective_tokens)
-            # Речення, довше за ліміт цитати, обвалювало відповідь HTTP 500: `Citation`
-            # валідує `quote` на 1600 символів, і виняток летів із `_extract` повз усі
-            # гілки відмови. Виміряно 31.08.2026 на питанні «Як навчити собаку команді
-            # сидіти?» — падіння, а не «підстав немає».
-            #
-            # Кандидат просто не розглядається: обрізати його не можна, бо цитата
-            # дослівна за побудовою, а обрізана цитата з тим самим хешем була б брехнею
-            # про джерело.
-            #
-            # МУТАНТА НА ЦЕЙ РЯДОК НЕМАЄ, і це названо навмисно. Інжест ріже сторінку на
-            # шматки не довші за 1400 символів, тож речення понад 1600 не може виникнути
-            # з даних, зібраних конвеєром: перше й єдине таке речення з'явилось після
-            # ремонту меж прольотів, який ту стелю порушував. Стелю тепер тримає сам
-            # ремонт (`recut_span_boundaries.MAX_SPAN_CHARS`), і мутація першого порядку
-            # більше не має шляху сюди. Захист лишається як другий рубіж для корпусу,
-            # зміненого поза конвеєром — саме такий і обвалив відповідь 31.08.2026.
-            offered = [item for item in offered if len(item.text) <= MAX_QUOTE_CHARS]
-            # Той самий предикат, що судить допуск уривка й вирок відповіді. Три
-            # місця, які виражають одне правило кожне по-своєму, розійдуться мовчки:
-            # речення пройшло б за «>=», а відповідь упала б за «>», і причина відмови
-            # називала б не те.
-            passing = [
-                candidate
-                for candidate in offered
-                if coverage_admits(candidate.query_coverage, thresholds.minimum_query_coverage)
-            ]
-            # Стаття, чий ОГОЛОШЕНИЙ предмет — предмет питання, не повторює ані своєї
-            # назви, ані слова «обов'язки»: заголовок каже «Обов'язки: Вивідний», а текст
-            # каже «охороняти за наказом начальника варти…». Виміряно 31.08.2026: у
-            # правильної статті НУЛЬ спільних токенів із питанням, тож поріг покриття тут
-            # не має на що спрацювати — і саме тому на 92 предмети перша цитата жодного
-            # разу не була документом про предмет.
-            #
-            # Покриття тут структурно сліпе, а не суворе. Замість послаблювати поріг для
-            # всіх, вибір передається тій осі, яка бачить те, чого не бачить лексика:
-            # чи несе речення формулювання ТИПУ ПИТАННЯ. На «Які обов'язки має X?» це
-            # обов'язок — «зобов'язаний», «відповідає за», — і в тілі статті воно є.
-            # Осі судять цитату далі як завжди, тож допущене цим шляхом не стає
-            # непідсудним: воно лише перестає бути невидимим.
-            if declared and not passing:
-                by_type = [
-                    candidate
-                    for candidate in offered
-                    if any(
-                        verdict.axis == "interrogative" and verdict.verdict == "SUPPORTS"
-                        for verdict in adjudicate(
-                            question,
-                            candidate.text,
-                            candidate.query_coverage,
-                            thresholds.minimum_query_coverage,
-                            subject_declared=bool(declared),
-                        )
-                    )
-                ]
-                # Стаття «Обов'язки: Вивідний» подає обов'язки ІНФІНІТИВАМИ —
-                # «охороняти за наказом начальника варти», «попереджувати заарештованого»
-                # — і не каже ані «обов'язки», ані «зобов'язаний». Вісь типу питання
-                # чесно утримується, і це не привід відкинути документ: він про того,
-                # кого спитали, а решта видачі — ні.
-                #
-                # Тому останній крок бере речення статті як вони є. Присуд осей нижче
-                # позначить їх `tangential`: підстава з правильної статті й без
-                # підтвердження другою віссю чесніша за впевнену цитату з чужої.
-                passing = by_type or list(offered)
-            # A whole sentence outranks a headless one even when the fragment mentions
-            # more of the question. Query coverage measures overlap with the question;
-            # it says nothing about whether the passage still carries its own subject.
-            # Судять чотири осі, і порядок серед допущених кандидатів визначає їхній
-            # присуд, а не саме лише покриття питання. Спірне речення програє дотичному,
-            # дотичне — підтвердженому: вісь, яка відхилила, побачила те, куди інші не
-            # дивляться, і її голос важить більше за згоду решти.
-            candidates = sorted(
-                passing,
-                key=lambda candidate: (
-                    _PRESENTATION_RANK[
-                        presentation(
-                            adjudicate(
-                                question,
-                                candidate.text,
-                                candidate.query_coverage,
-                                thresholds.minimum_query_coverage,
-                                subject_declared=bool(declared),
-                            )
-                        )
-                    ],
-                    starts_mid_sentence(candidate.text),
-                    -candidate.query_coverage,
-                    candidate.start,
-                ),
-            )
-            candidate = next(
-                (
-                    current
-                    for current in candidates
-                    if current.text not in seen_sentences
-                    and not contains_control_injection(current.text)
-                ),
-                None,
-            )
-            if candidate is None:
+        obligations = question_obligations(question)
+        used_spans: set[str] = set()
+        offers = candidate_offers(
+            eligible, query_tokens, thresholds, question, obligations, self._candidates
+        )
+        for offer in offers:
+            item, candidate, declared = offer.evidence, offer.candidate, offer.declared
+            if candidate.text in seen_sentences:
+                continue
+            if not obligations.multi_facet and str(item.span.id) in used_spans:
                 continue
             # Measured rather than asserted. It used to be the constant 1.0 against a
             # threshold clamped to at most 1.0, so the branch below was unreachable in
@@ -661,6 +553,7 @@ class ExtractiveAnswerService:
                 )
             )
             seen_sentences.add(candidate.text)
+            used_spans.add(str(item.span.id))
             covered_tokens.update(set(tokenize(candidate.text)).intersection(query_tokens))
             #: Слова предмета, який документ оголошує про себе, покриті ним самим.
             covered_tokens.update(declared)
@@ -773,6 +666,19 @@ class ExtractiveAnswerService:
         eligible: list[RetrievedEvidence],
     ) -> str | None:
         return find_contradiction(claims, citations, eligible)
+
+    def _obligation_refusal(
+        self, unmet: tuple[str, ...], release_id: str, retrieval_score: float, query_coverage: float
+    ) -> Answer:
+        return self._abstain(
+            release_id,
+            "question_obligations_unmet",
+            "Джерела не підтверджують усі розпізнані частини запиту для вказаного "
+            "об'єкта. Уточніть запит або додайте відповідне джерело.",
+            retrieval_score,
+            query_coverage=query_coverage,
+            limitations=[f"Не підтверджено: {label}." for label in unmet],
+        )
 
     def _abstain(
         self,

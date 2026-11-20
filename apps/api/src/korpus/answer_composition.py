@@ -76,7 +76,7 @@ def build_answer_service(
         repository,
         _retriever(repository, settings, semantic_source, profile),
         cache,
-        profile.profile_id if profile else "development-default-ranking-v5",
+        f"{profile.profile_id}:obligations-v1" if profile else "development-default-ranking-v6",
     )
     return ExtractiveAnswerService(
         repository,

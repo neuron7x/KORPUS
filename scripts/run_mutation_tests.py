@@ -49,6 +49,63 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M825_GENITIVE_DUTIES_BECOME_A_LITERAL_PROPERTY",
+        "apps/api/src/korpus/application/question_obligations.py",
+        '    if len(facets) == 1 and question_kind(_normal(facets[0].label)) == "duty":',
+        "    if False:",
+        (
+            "apps/api/tests/test_question_obligations_api.py::"
+            "test_declared_archivist_duties_keep_genitive_and_predicate_forms",
+        ),
+    ),
+    Mutant(
+        "M824_UNCITED_CLAIM_BORROWS_ANOTHER_QUOTES_SPAN",
+        "apps/api/src/korpus/application/answer_obligations.py",
+        "    if not _claim_citations_bound(claims, citations):",
+        "    if False:",
+        (
+            "apps/api/tests/test_question_obligations_api.py::"
+            "test_final_gate_refuses_an_extra_claim_borrowing_a_cited_span",
+        ),
+    ),
+    Mutant(
+        "M820_QUESTION_SUBJECT_OBLIGATION_BYPASS",
+        "apps/api/src/korpus/application/question_obligations.py",
+        "        return tuple(item.label for item in self.subjects if not item.met(text, context))",
+        "        return ()",
+        (
+            "apps/api/tests/test_question_obligations_api.py::test_explicit_entity_in_generic_question_is_still_mandatory",
+            "apps/api/tests/test_question_obligations_api.py::test_wrong_entity_cannot_reach_supported_answer",
+        ),
+    ),
+    Mutant(
+        "M821_MISSING_QUESTION_FACET_ACCEPTED",
+        "apps/api/src/korpus/application/answer_obligations.py",
+        "    if required and not any(required <= value for value in covered.values()):",
+        "    if False:",
+        (
+            "apps/api/tests/test_question_obligations_api.py::test_missing_requested_property_is_an_explicit_refusal",
+        ),
+    ),
+    Mutant(
+        "M822_DUPLICATE_SENTENCE_REEMITTED",
+        "apps/api/src/korpus/application/answer_query.py",
+        "            if candidate.text in seen_sentences:",
+        "            if False:",
+        (
+            "apps/api/tests/test_question_obligations.py::test_duplicate_sentences_do_not_spend_claim_budget_or_multiply_sources",
+        ),
+    ),
+    Mutant(
+        "M823_FINAL_QUESTION_SUBJECT_CHECK_BYPASS",
+        "apps/api/src/korpus/application/answer_obligations.py",
+        "        failures.update(obligations.missing_subjects(citation.quote, declared))",
+        "        failures.update(())",
+        (
+            "apps/api/tests/test_question_obligations.py::test_final_gate_rechecks_subject_after_substituted_extraction",
+        ),
+    ),
+    Mutant(
         "M814_DOCX_TEXTBOX_TABLE_BYPASSES_STRUCTURE_CHECKS",
         "apps/api/src/korpus/infrastructure/docx_blocks.py",
         '    if any(node.tag == f"{WORD}tbl" for node in paragraph.iter()):',
@@ -2401,9 +2458,9 @@ MUTANTS = (
         # Покриття питання каже, скільки слів збіглося, і мовчить про те, чи вціліла
         # думка. Знявши цей ключ, уривок із вищим покриттям знову стає головним доказом.
         "M346_FRAGMENT_MAY_OUTRANK_A_WHOLE_SENTENCE",
-        "apps/api/src/korpus/application/answer_query.py",
-        "                    starts_mid_sentence(candidate.text),\n",
-        "                    False,\n",
+        "apps/api/src/korpus/application/answer_candidates.py",
+        "        starts_mid_sentence(candidate.text),\n",
+        "        False,\n",
         (
             "apps/api/tests/test_citation_fragments.py::"
             "test_a_whole_sentence_outranks_a_fragment_that_matches_more_of_the_question",

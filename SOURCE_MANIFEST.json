@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2298,
-  "root_sha256": "910578df1b3182ac0cfffb5cec5c617a054de27b3965c5e26299b9deb4f90c64",
+  "file_count": 2304,
+  "root_sha256": "1b1b3d798f5c7790bfe29a7c37126f04dd5bab601209da6f35ebfcbe1eaa9bdd",
   "files": [
     {
       "path": ".dockerignore",
@@ -769,8 +769,8 @@
     },
     {
       "path": "apps/api/src/korpus/answer_composition.py",
-      "bytes": 3899,
-      "sha256": "e62a16de9933e4faa9085a4849331bf46c6833116cc7f7900588644a83b12ac5",
+      "bytes": 3919,
+      "sha256": "ad1fbe90224f2bb363130b4d54046bda7605e459aac8db2c4911a6e6b167acd5",
       "mode": "0644"
     },
     {
@@ -966,9 +966,21 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/src/korpus/application/answer_candidates.py",
+      "bytes": 5282,
+      "sha256": "0ceba06bbad06de5c4df2b750f25207d1567454df97599ecdbbfd288e8088fa3",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/answer_obligations.py",
+      "bytes": 3107,
+      "sha256": "8b5404f18fd401431fc7f24fec7b4582133b60963615a01814939c8609cc8d14",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/src/korpus/application/answer_query.py",
-      "bytes": 41517,
-      "sha256": "b8e2ba1390405d32dd80d440bf792ddedbba7eff36748c3b57a1e97a1fc7ca24",
+      "bytes": 33160,
+      "sha256": "7d537e9667e1a4b2130a80fb8062818e963dd6000020e0dd726b592f8517d2d6",
       "mode": "0644"
     },
     {
@@ -1824,6 +1836,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/src/korpus/application/question_obligations.py",
+      "bytes": 8382,
+      "sha256": "a347b174b54a4cd87cf1e7d8c7df934d12c811ff9c1bafb43331a776d86d39f8",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/src/korpus/application/ranking_evaluation.py",
       "bytes": 3426,
       "sha256": "53e17441b25125ad1ec107ff4be22a1b3b0e5b29056d6addeff54c0a453e8e9f",
@@ -1939,8 +1957,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/retrieval_hybrid.py",
-      "bytes": 8024,
-      "sha256": "6fb9531596c4867391421e3df8678886fd1e02ecac57d0a43cd266ea37293e1b",
+      "bytes": 8096,
+      "sha256": "5346e5259971527c2bbef121dea8c8d48b6855aa1a4ae28015d3923acfb28aa6",
       "mode": "0644"
     },
     {
@@ -3109,8 +3127,8 @@
     },
     {
       "path": "apps/api/tests/test_answer_composition_boundary.py",
-      "bytes": 3217,
-      "sha256": "08035533297eef5ceecf3f40a67da133810c8ff6e77ad7fe6ffb500469e22b4a",
+      "bytes": 3227,
+      "sha256": "d7ed540afdf36ecfb3f652634fd700d77ada7fea25485c2e37dfce5e1ad82d22",
       "mode": "0644"
     },
     {
@@ -5661,6 +5679,18 @@
       "path": "apps/api/tests/test_query_planner_boundary.py",
       "bytes": 9216,
       "sha256": "e0a7469c791423f947def4560ab49bd6791f5ec5f15cec312a2c7fd4dbc041b7",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_question_obligations.py",
+      "bytes": 12141,
+      "sha256": "307faec29febccd8d45190f6c04b28d2920c2a6e3f54ae0a35f70c43718e286d",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_question_obligations_api.py",
+      "bytes": 12414,
+      "sha256": "5e9a31c460e5f670e6f9579718a876bbc9af03f378ec9da0ecc83d9397b14e4e",
       "mode": "0644"
     },
     {
@@ -8815,8 +8845,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 799353,
-      "sha256": "a58a045890b3a40fc3fdec2766593bcf65372411e138a788284d1f56688911eb",
+      "bytes": 801460,
+      "sha256": "6782c037857ce0060867852b81b7de5627b4e2da5dcdaeb0b59654857697f518",
       "mode": "0644"
     },
     {
@@ -10417,8 +10447,8 @@
     },
     {
       "path": "docs/protocols/ANSWER.md",
-      "bytes": 919,
-      "sha256": "91a56a20e9cca389487feb50a307e2c6866b59f7f2e0c98646b29ce5b1193973",
+      "bytes": 1086,
+      "sha256": "ad1cbc4452d589d1fedba775f65e30c6004328a9a49f1b6fabfe0ec7829f1661",
       "mode": "0644"
     },
     {
@@ -10437,6 +10467,12 @@
       "path": "docs/protocols/INTEGRATIONS_V3.md",
       "bytes": 1817,
       "sha256": "93bee8180728da3b91cdf2cf67788153ea96006270df6383a8228d43b706500d",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/protocols/QUESTION_OBLIGATIONS.md",
+      "bytes": 9411,
+      "sha256": "bf6cdb21d4a9088188f76058f766f2b9f302054150e5c5096bfb55c12b6c03a0",
       "mode": "0644"
     },
     {
@@ -13063,8 +13099,8 @@
     },
     {
       "path": "scripts/run_determinism_gate.py",
-      "bytes": 2475,
-      "sha256": "8f7b2c93d9fb32a17edf14320a8c582fc9f969dd9f7ec16c19bcdc520c6e042e",
+      "bytes": 2581,
+      "sha256": "fce503bde9404c9faa687cdb8e6f12ce9a40d9479bd5caa2c973fb393b5d6baa",
       "mode": "0755"
     },
     {
@@ -13165,8 +13201,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 351250,
-      "sha256": "bb7d3f0054b3290ef36c3bd3d8f6e7754cd88267246d9dfe24b22620e89b6246",
+      "bytes": 353736,
+      "sha256": "c9fbf1f0bbb01ab1393c93a122528fde23b3d3d0bf74d2d268236d3cd6a3897e",
       "mode": "0755"
     },
     {
