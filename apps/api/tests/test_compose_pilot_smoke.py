@@ -31,6 +31,7 @@ def workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Works
     for relative in (
         "scripts/init_local_secrets.sh",
         "docker-compose.yml",
+        environment.PROFILE_RELATIVE,
         "deploy/pilot/compose.private.yaml",
         *(relative for relative, _ in environment.CONFIG_BINDS.values()),
     ):
@@ -45,7 +46,7 @@ def workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Works
     private = Workspace.create(source)
     secret_directory = private.state / "infra/secrets"
     secret_directory.mkdir(mode=0o700)
-    for name in yaml.safe_load((source / "docker-compose.yml").read_text())["secrets"]:
+    for name in yaml.safe_load((source / environment.PROFILE_RELATIVE).read_text())["secrets"]:
         path = secret_directory / f"{name}.txt"
         path.write_text(f"synthetic-{name}-{'x' * 48}\n")
         path.chmod(0o644)
@@ -62,13 +63,18 @@ def rendered_configuration(workspace: Workspace) -> dict[str, Any]:
         services[name]["environment"] = {
             "KORPUS_AUTH_MODE": "jwt",
             "KORPUS_SCHEMA_MODE": "migrations",
-            "KORPUS_OBJECT_STORE_MODE": "s3",
+            "KORPUS_OBJECT_STORE_MODE": "local",
+            "KORPUS_OBJECT_ROOT": "/data/objects",
+            "KORPUS_QUARANTINE_OBJECT_ROOT": "/data/quarantine",
             "KORPUS_MALWARE_SCAN_MODE": "clamd",
             "KORPUS_INGESTION_MODE": "durable_async",
             "KORPUS_REVIEW_SEPARATION_REQUIRED": "true",
             "KORPUS_TRUSTED_HOSTS": f"localhost,127.0.0.1,{environment.HOSTNAME}",
             "KORPUS_CORS_ORIGINS": f"http://127.0.0.1:3000,http://localhost:3000,https://{environment.HOSTNAME}",
         }
+        services[name]["volumes"] = [
+            {"type": "volume", "source": "pilot-objects", "target": "/data"}
+        ]
     services["api"]["environment"].update(
         KORPUS_QUERY_PLANNER_API_KEY="",
         KORPUS_QUERY_PLANNER_ENABLED="false",
@@ -87,7 +93,10 @@ def rendered_configuration(workspace: Workspace) -> dict[str, Any]:
     return {
         "name": workspace.project,
         "services": services,
-        "volumes": {"data": {"name": workspace.project + "_data"}},
+        "volumes": {
+            "data": {"name": workspace.project + "_data"},
+            "pilot-objects": {"name": workspace.project + "_pilot-objects"},
+        },
         "networks": {"backend": {"name": workspace.project + "_backend", "internal": True}},
         "secrets": {name: {"file": str(path)} for name, path in workspace.secret_files.items()},
     }
@@ -165,8 +174,8 @@ def test_original_dollars_and_explicit_empty_env_survive_freezing(workspace: Wor
     assert command[command.index("--project-directory") + 1] == str(workspace.source)
     assert Path(command[command.index("--env-file") + 1]).read_text() == ""
     snapshot = (workspace.state / "base.compose.yaml").read_bytes()
-    assert snapshot == (workspace.source / "docker-compose.yml").read_bytes()
-    assert b"$$(cat /run/secrets/minio_root_password)" in snapshot
+    assert snapshot == (workspace.source / environment.PROFILE_RELATIVE).read_bytes()
+    assert b"${KORPUS_QUERY_PLANNER_API_KEY:-}" in snapshot
     assert all(
         str(workspace.state) in command[index + 1]
         for index, value in enumerate(command)
@@ -197,6 +206,10 @@ def test_changed_frozen_input_blocks_commands(workspace: Workspace, relative: st
     [
         "foreign_volume",
         "external_volume",
+        "volume_bind_driver",
+        "volume_plugin",
+        "network_host_driver",
+        "inherited_volumes",
         "foreign_network",
         "operator_secret",
         "host_port",
@@ -209,6 +222,13 @@ def test_changed_frozen_input_blocks_commands(workspace: Workspace, relative: st
         "model_key",
         "dev_auth",
         "wildcard_host",
+        "s3_mode",
+        "s3_credentials",
+        "ephemeral_objects",
+        "ephemeral_quarantine",
+        "unshared_objects",
+        "read_only_objects",
+        "disabled_copyup",
     ],
 )
 def test_unsafe_configuration_cannot_be_adopted(workspace: Workspace, poison: str) -> None:
@@ -217,6 +237,14 @@ def test_unsafe_configuration_cannot_be_adopted(workspace: Workspace, poison: st
     mutations = {
         "foreign_volume": (configuration["volumes"]["data"], "name", "operator_data"),
         "external_volume": (configuration["volumes"]["data"], "external", True),
+        "volume_bind_driver": (
+            configuration["volumes"]["data"],
+            "driver_opts",
+            {"type": "none", "o": "bind", "device": "/operator/existing-data"},
+        ),
+        "volume_plugin": (configuration["volumes"]["data"], "driver", "operator-plugin"),
+        "network_host_driver": (configuration["networks"]["backend"], "driver", "host"),
+        "inherited_volumes": (services["api"], "volumes_from", ["container:operator-api"]),
         "foreign_network": (configuration["networks"]["backend"], "name", "operator_network"),
         "operator_secret": (
             configuration["secrets"]["jwt_secret"],
@@ -225,8 +253,8 @@ def test_unsafe_configuration_cannot_be_adopted(workspace: Workspace, poison: st
         ),
         "host_port": (services["web"]["ports"][0], "host_ip", "0.0.0.0"),
         "backend_port": (services["postgres"], "ports", [{"published": "5432"}]),
-        "writable_bind": (services["minio-init"]["volumes"][0], "read_only", False),
-        "operator_bind": (services["minio-init"]["volumes"][0], "source", "/operator/data"),
+        "writable_bind": (services["otel-collector"]["volumes"][0], "read_only", False),
+        "operator_bind": (services["otel-collector"]["volumes"][0], "source", "/operator/data"),
         "host_network": (services["api"], "network_mode", "host"),
         "container_name": (services["api"], "container_name", "operator-api"),
         "threshold": (services["api"]["environment"], "KORPUS_MIN_RETRIEVAL_SCORE", "0"),
@@ -237,6 +265,21 @@ def test_unsafe_configuration_cannot_be_adopted(workspace: Workspace, poison: st
         ),
         "dev_auth": (services["api"]["environment"], "KORPUS_AUTH_MODE", "dev"),
         "wildcard_host": (services["api"]["environment"], "KORPUS_TRUSTED_HOSTS", "*"),
+        "s3_mode": (services["api"]["environment"], "KORPUS_OBJECT_STORE_MODE", "s3"),
+        "s3_credentials": (
+            services["worker"]["environment"],
+            "AWS_SECRET_ACCESS_KEY",
+            "operator-secret",
+        ),
+        "ephemeral_objects": (services["api"]["environment"], "KORPUS_OBJECT_ROOT", "/tmp/objects"),
+        "ephemeral_quarantine": (
+            services["worker"]["environment"],
+            "KORPUS_QUARANTINE_OBJECT_ROOT",
+            "/tmp/quarantine",
+        ),
+        "unshared_objects": (services["worker"]["volumes"][0], "source", "data"),
+        "read_only_objects": (services["api"]["volumes"][0], "read_only", True),
+        "disabled_copyup": (services["worker"]["volumes"][0], "volume", {"nocopy": True}),
     }
     target, key, value = mutations[poison]
     target[key] = value

@@ -4,6 +4,24 @@ KORPUS is a bounded-evidence, multi-tenant knowledge/inference system with fail-
 
 **Authoritative start:** `README_FIRST.md`.
 
+## Private laptop pilot
+
+For one owner and three to five invited readers, start with the dedicated local-storage
+profile and its real PostgreSQL/worker/ClamAV qualification:
+
+```sh
+make api-install
+make compose-pilot-smoke
+make pilot-up
+```
+
+The browser opens at `http://127.0.0.1:3000`. Follow
+[the private pilot runbook](docs/operations/PRIVATE_PILOT.md) to issue scoped JWT
+sessions, upload/review a corpus and configure an exact private HTTPS hostname.
+The persistent project is `korpus-pilot`; it uses local object/quarantine volumes
+and does not reuse the legacy S3 project's data. This qualification does not claim
+S3, WORM, owner-host access, public HTTPS, load or recovery evidence.
+
 | Surface | Where the current value is read |
 |---|---|
 | Behavioral source | `compute_source_digest` над `EVIDENCE_SOURCE_PATHS` (`scope=evidence_paths`) |

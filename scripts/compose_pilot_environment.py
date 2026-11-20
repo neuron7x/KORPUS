@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import os
@@ -15,35 +16,30 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+import httpx
 import yaml
+from generate_pilot_compose import OBJECT_VOLUME, PROFILE_RELATIVE, current
 
 HOSTNAME = "pilot-smoke.example.test"
-SERVICES = frozenset(
-    {
-        "postgres",
-        "migrate",
-        "minio",
-        "minio-init",
-        "otel-collector",
-        "clamav",
-        "api",
-        "worker",
-        "web",
-    }
-)
+SERVICES = frozenset({"postgres", "migrate", "otel-collector", "clamav", "api", "worker", "web"})
 PROJECT_PATTERN = re.compile(r"korpus-smoke-[a-f0-9]{32}")
 CONFIG_BINDS = {
-    "minio-init": ("infra/minio/korpus-app-policy.json", "/config/korpus-app-policy.json"),
     "otel-collector": ("infra/otel-collector.yaml", "/etc/otelcol/config.yaml"),
 }
 RUNTIME_INSPECTION = """
 import json
+import os
 from korpus.config import Settings
 from sqlalchemy.engine import make_url
 s = Settings(_env_file=None)
 print(json.dumps({
     "database": make_url(s.database_url).get_backend_name(),
     "object_store": s.object_store_mode,
+    "object_root": str(s.object_root),
+    "quarantine_root": str(s.quarantine_object_root),
+    "process_uid": os.getuid(),
+    "object_owner_uid": s.object_root.stat().st_uid,
+    "quarantine_owner_uid": s.quarantine_object_root.stat().st_uid,
     "malware_scan": s.malware_scan_mode,
     "ingestion": s.ingestion_mode,
     "auth": s.auth_mode,
@@ -95,6 +91,7 @@ class Workspace:
 
     @classmethod
     def create(cls, source: Path) -> Workspace:
+        require(current(source), "pilot Compose profile is stale; run generate_pilot_compose.py")
         project = "korpus-smoke-" + uuid4().hex
         state = Path(tempfile.mkdtemp(prefix=project + "-"))
         (state / "owner").write_text(project, encoding="utf-8")
@@ -102,7 +99,7 @@ class Workspace:
         scripts = state / "scripts"
         scripts.mkdir()
         shutil.copyfile(source / "scripts/init_local_secrets.sh", scripts / "init_local_secrets.sh")
-        shutil.copyfile(source / "docker-compose.yml", state / "base.compose.yaml")
+        shutil.copyfile(source / PROFILE_RELATIVE, state / "base.compose.yaml")
         shutil.copyfile(
             source / "deploy/pilot/compose.private.yaml", state / "private.compose.yaml"
         )
@@ -201,7 +198,7 @@ class Workspace:
     def freeze(self, configuration: dict[str, Any]) -> None:
         validate_configuration(configuration, self)
         # Reuse the inspected original inputs: feeding rendered JSON back to Compose
-        # would interpolate shell dollars a second time (notably MinIO's secret reads).
+        # would interpolate shell dollars a second time.
         self.frozen_digest = self.input_digest()
 
 
@@ -209,6 +206,11 @@ def validate_resources(configuration: dict[str, Any], workspace: Workspace) -> N
     for family in ("volumes", "networks"):
         for value in configuration[family].values():
             require(not value.get("external"), "external Compose resources are not disposable")
+            require(not value.get("driver_opts"), "custom resource driver options are forbidden")
+            require(
+                value.get("driver") in (None, "local" if family == "volumes" else "bridge"),
+                "only default local resource drivers are disposable",
+            )
             require(
                 value.get("name", "").startswith(workspace.project + "_"),
                 "Compose resource name is outside the disposable project",
@@ -227,6 +229,7 @@ def validate_services(configuration: dict[str, Any], workspace: Workspace) -> No
     for name, service in configuration["services"].items():
         require(not service.get("container_name"), "explicit container names are not disposable")
         require(not service.get("network_mode"), "shared network modes are forbidden in the smoke")
+        require(not service.get("volumes_from"), "inherited container volumes are forbidden")
         for mount in service.get("volumes", []):
             if mount["type"] == "bind":
                 require(
@@ -253,7 +256,9 @@ def validate_runtime(configuration: dict[str, Any]) -> None:
     expected = {
         "KORPUS_AUTH_MODE": "jwt",
         "KORPUS_SCHEMA_MODE": "migrations",
-        "KORPUS_OBJECT_STORE_MODE": "s3",
+        "KORPUS_OBJECT_STORE_MODE": "local",
+        "KORPUS_OBJECT_ROOT": "/data/objects",
+        "KORPUS_QUARANTINE_OBJECT_ROOT": "/data/quarantine",
         "KORPUS_MALWARE_SCAN_MODE": "clamd",
         "KORPUS_INGESTION_MODE": "durable_async",
         "KORPUS_REVIEW_SEPARATION_REQUIRED": "true",
@@ -270,6 +275,11 @@ def validate_runtime(configuration: dict[str, Any]) -> None:
             not any(key.startswith("KORPUS_MIN_") for key in environment),
             "the smoke must use canonical admission thresholds",
         )
+        require(
+            not any(key.startswith(("AWS_", "KORPUS_S3_")) for key in environment),
+            "S3 configuration entered local pilot",
+        )
+        validate_storage_mount(configuration["services"][name])
     api = configuration["services"]["api"]["environment"]
     require(
         api.get("KORPUS_QUERY_PLANNER_API_KEY") == "",
@@ -285,10 +295,23 @@ def validate_runtime(configuration: dict[str, Any]) -> None:
     )
 
 
+def validate_storage_mount(service: dict[str, Any]) -> None:
+    mounts = [mount for mount in service.get("volumes", []) if mount.get("target") == "/data"]
+    require(len(mounts) == 1, "pilot requires one shared object volume at /data")
+    mount = mounts[0]
+    require(
+        mount.get("type") == "volume"
+        and mount.get("source") == OBJECT_VOLUME
+        and not mount.get("read_only")
+        and not mount.get("volume", {}).get("nocopy"),
+        "pilot object volume must preserve image ownership and remain writable",
+    )
+
+
 def validate_configuration(configuration: dict[str, Any], workspace: Workspace) -> None:
     workspace.assert_owned()
     require(configuration.get("name") == workspace.project, "rendered project name changed")
-    require(set(configuration["services"]) == SERVICES, "canonical Compose service set changed")
+    require(set(configuration["services"]) == SERVICES, "local pilot Compose service set changed")
     validate_resources(configuration, workspace)
     validate_services(configuration, workspace)
     validate_runtime(configuration)
@@ -321,3 +344,25 @@ def parse_services(output: str) -> dict[str, dict[str, Any]]:
         }
         for row in rows
     }
+
+
+async def check_edge() -> None:
+    try:
+        async with (
+            asyncio.timeout(15),
+            httpx.AsyncClient(timeout=5, trust_env=False, follow_redirects=False) as client,
+        ):
+            for hostname, expected in (
+                ("127.0.0.1", 200),
+                (HOSTNAME, 200),
+                ("unassigned.example.test", 400),
+            ):
+                async with client.stream(
+                    "GET", "http://127.0.0.1:3000/api/ready", headers={"Host": hostname}
+                ) as response:
+                    require(
+                        response.status_code == expected,
+                        "nginx readiness or exact hostname boundary failed",
+                    )
+    except (TimeoutError, httpx.HTTPError) as exc:
+        raise SmokeFailure("nginx readiness request failed") from exc

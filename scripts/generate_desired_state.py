@@ -13,6 +13,7 @@ EXACT = [
     ".gitlab-ci.yml",
     "docker-compose.yml",
     "deploy/pilot/compose.private.yaml",
+    "deploy/pilot/compose.local.yaml",
     "apps/api/Dockerfile",
     "apps/web/Dockerfile",
     "apps/api/requirements.runtime.lock",

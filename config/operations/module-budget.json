@@ -610,22 +610,22 @@
   ],
   "modules": {
     "scripts/compose_pilot_environment.py": {
-      "lines": 323,
+      "lines": 368,
       "max_complexity": 7,
       "max_function_args": 2,
-      "max_function_lines": 34,
-      "max_nesting": 3,
-      "proof_lines": 0,
-      "reason": "Issue #124: initial measured ceiling for disposable Compose ownership, private inputs and canonical runtime guards; every dimension is within the unchanged new-module defaults."
-    },
-    "scripts/run_compose_pilot_smoke.py": {
-      "lines": 393,
-      "max_complexity": 5,
-      "max_function_args": 4,
-      "max_function_lines": 32,
+      "max_function_lines": 41,
       "max_nesting": 4,
       "proof_lines": 0,
-      "reason": "Issue #124: initial measured ceiling for real Compose startup, scoped token minting, authenticated HTTP qualification and owned cleanup; every dimension is within the unchanged new-module defaults."
+      "reason": "Issue #124: initial measured ceiling for private laptop Compose ownership, local persistence paths, canonical runtime guards and exact host checks; every dimension is within the unchanged new-module defaults."
+    },
+    "scripts/run_compose_pilot_smoke.py": {
+      "lines": 378,
+      "max_complexity": 5,
+      "max_function_args": 4,
+      "max_function_lines": 36,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #124: initial measured ceiling for real laptop Compose startup, scoped tokens, authenticated HTTP qualification and owned cleanup; every dimension is within the unchanged new-module defaults."
     },
     "scripts/pilot_acceptance_contract.py": {
       "lines": 352,
@@ -7272,6 +7272,15 @@
       "max_function_args": 1,
       "max_nesting": 0,
       "reason": "2026-11-19 / #100: initial measured bounds for the unmerged forward PostgreSQL course-parent and lifecycle-lock guards; every pre-existing ceiling is unchanged."
+    },
+    "scripts/generate_pilot_compose.py": {
+      "lines": 110,
+      "max_complexity": 8,
+      "max_function_args": 1,
+      "max_function_lines": 27,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #124: initial measured ceiling for deterministic laptop-profile derivation from canonical Compose settings and fail-closed drift checking; every dimension is within the unchanged new-module defaults."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

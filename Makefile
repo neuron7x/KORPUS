@@ -1529,8 +1529,17 @@ release: assemble-assurance snapshot validate owner-packet-check handoff-verify-
 infra-secrets:
 	bash scripts/init_local_secrets.sh
 
-.PHONY: compose-pilot-smoke
-compose-pilot-smoke:
+.PHONY: compose-pilot-smoke pilot-compose pilot-compose-check pilot-up
+pilot-compose:
+	$(PY) scripts/generate_pilot_compose.py
+
+pilot-compose-check:
+	$(PY) scripts/generate_pilot_compose.py --check
+
+pilot-up: pilot-compose-check infra-secrets
+	docker compose --project-directory . --project-name korpus-pilot -f deploy/pilot/compose.local.yaml up -d --build --wait --wait-timeout 600 web worker
+
+compose-pilot-smoke: pilot-compose-check
 	$(PY) scripts/run_compose_pilot_smoke.py
 
 infra-up: infra-secrets

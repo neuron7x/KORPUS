@@ -1,10 +1,34 @@
 # Private laptop pilot
 
 The first usable scope is one owner, one narrow corpus and three to five invited
-readers. The canonical Compose stack serves the browser through Nginx at
-`http://127.0.0.1:3000`; its API uses PostgreSQL, MinIO, ClamAV and the durable worker.
+readers. The dedicated laptop profile serves the browser through Nginx at
+`http://127.0.0.1:3000`; its API uses PostgreSQL, the existing local object store,
+ClamAV and the durable worker. Documents and quarantine share a persistent volume
+between API and worker. JWT, parser isolation and evidence thresholds remain intact.
 Local JWT sessions are short lived and manually issued. They provide a private
 pilot session, not an invitation/password-management product.
+
+## Storage choice and qualification scope
+
+The first hosted cold start on 20 November 2026 stopped when the pinned legacy
+MinIO image could not be pulled. Upstream also reports that
+[GHSA-hv4r-mvr4-25vw](https://github.com/minio/minio/security/advisories/GHSA-hv4r-mvr4-25vw)
+and [GHSA-9c4q-hq6p-c237](https://github.com/minio/minio/security/advisories/GHSA-9c4q-hq6p-c237)
+affect all open-source MinIO releases through the final release. Repacking those
+binaries would restore availability without resolving those security defects.
+
+This small laptop pilot uses the existing content-addressed local adapter, which
+checks SHA-256 on write/read and writes through atomic replacement and filesystem
+synchronization. `deploy/pilot/compose.local.yaml` is generated deterministically
+from `docker-compose.yml`, changing storage and project identity while retaining
+the other services and security settings. `make pilot-compose-check` rejects drift;
+after a deliberate canonical change, regenerate with `make pilot-compose` and review
+the result. The smoke also rejects a stale profile before creating a project.
+
+The canonical MinIO/S3 topology remains unchanged and blocked by its legacy
+availability/security issues. This pilot does not qualify S3, Object Lock/WORM,
+remote durability or controlled production. The existing controlled-environment
+refusal of local object storage remains enabled.
 
 ## Qualify a disposable stack first
 
@@ -20,16 +44,16 @@ make api-install
 make compose-pilot-smoke
 ```
 
-The command builds the pinned stack in a fresh random project, generates synthetic
+The command builds the seven-service laptop profile in a fresh random project, generates synthetic
 secrets in a private temporary directory, enables review separation, and runs
 `run_pilot_acceptance.py` against `http://127.0.0.1:3000/api`. Five distinct readers,
 three separate reviewers and an outsider exercise a neutral archive-color fixture.
 It also checks Nginx readiness with the configured exact hostname and rejects an
 unassigned hostname. `infra/secrets`, application credentials and operator `.env` files
 are not used or modified. Container images may use the ordinary build cache;
-database, object-store, scanner and audit volumes are new for every run.
-The two read-only infrastructure configuration files are copied byte for byte into
-private state and given the existing generator's container-readable file modes.
+database, local object/quarantine, scanner and audit volumes are new for every run.
+The read-only collector configuration is copied byte for byte into private state
+and given the existing generator's container-readable file mode.
 The probe pauses 250 ms after each completed stage; it does not change rate limits
 or retry failed write requests.
 
@@ -45,28 +69,49 @@ Read `var/compose-pilot-smoke.json`. The same command runs in
 It contains no tokens, signing secrets or raw service logs. A missing Docker daemon
 is a failure, not a successful or skipped qualification.
 
-This establishes the measured **Compose and authenticated HTTP journey**. It does
+The artifact names `profile: local_laptop`, reports the actual storage paths and UID,
+and keeps `s3_verified` and `worm_verified` false. A PASS establishes the measured
+**laptop Compose and authenticated HTTP journey**. It does
 not prove deployment on the owner's computer, external HTTPS, browser interaction,
 load capacity, recovery or answer quality on the owner's documents.
 
 ## Start the owner's stack
 
-Use a reviewed merged revision, then create persistent operator secrets and build:
+Use a reviewed merged revision after the disposable qualification passes:
 
 ```sh
-make infra-secrets
-docker compose up -d --build --wait --wait-timeout 600 web worker
+make pilot-up
+dc() {
+  docker compose --project-directory . --project-name korpus-pilot \
+    -f deploy/pilot/compose.local.yaml "$@"
+}
+dc ps
 curl --fail --silent --show-error http://127.0.0.1:3000/healthz
 curl --fail --silent --show-error http://127.0.0.1:3000/api/ready
 ```
 
-Keep the generated secrets and named volumes. `docker compose down` stops the stack
+`pilot-up` checks derivation, prepares operator secrets, builds and waits for readiness.
+Run it from the checkout root. The stable project name `korpus-pilot` creates its own
+PostgreSQL, object/quarantine and audit volumes; it does not migrate or adopt a legacy
+`korpus` database whose source bytes live in S3. Port 3000 must be available. A bind
+conflict is an error; these commands do not stop another stack to claim the port.
+
+Keep the generated secrets and named volumes. `dc down` stops this pilot stack
 without deleting volumes; the disposable smoke's volume cleanup is not an operator
 shutdown command. First-time image and scanner startup must complete before upload.
+For a rebuild of this same persistent pilot, use
+`dc up -d --build --wait --wait-timeout 600 web worker`.
+
+API and worker run as UID 10001 and mount `korpus-pilot_pilot-objects` at `/data`.
+Normal fresh-volume initialization preserves the image's ownership; ingested source
+bytes live in `/data/objects` and uploaded job bytes in `/data/quarantine`. Quarantine
+currently remains after successful jobs. Neither path is a temporary container layer.
+An incorrectly owned existing volume fails visibly; do not grant privileged startup
+or repoint the profile at an unrelated existing data volume.
 
 ## Use an exact private HTTPS hostname
 
-The base Compose file hardcodes loopback trusted hosts and CORS origins. Merely
+The generated profile inherits hardcoded loopback trusted hosts and CORS origins. Merely
 exporting those `KORPUS_*` variables does not override it. Use the supplied overlay
 with a hostname whose DNS and HTTPS route the operator controls:
 
@@ -76,7 +121,8 @@ case "$PILOT_HOSTNAME" in
   ''|*[!A-Za-z0-9.-]*|.*|*.) printf '%s\n' 'Use one exact DNS hostname, without scheme, port, wildcard or list.' >&2; exit 1 ;;
 esac
 dc() {
-  docker compose -f docker-compose.yml -f deploy/pilot/compose.private.yaml "$@"
+  docker compose --project-directory . --project-name korpus-pilot \
+    -f deploy/pilot/compose.local.yaml -f deploy/pilot/compose.private.yaml "$@"
 }
 dc config --quiet
 dc up -d --build --wait --wait-timeout 600 web worker
@@ -86,7 +132,7 @@ Compose refuses a missing hostname; the shell check above rejects wildcard/list
 input. There is no wildcard or anonymous-auth default. Persist
 the value in the operator's private shell/environment configuration for subsequent
 commands. The overlay preserves JWT and the single `127.0.0.1:3000` publication;
-PostgreSQL, MinIO and the API remain unpublished.
+PostgreSQL and the API remain unpublished.
 
 A stable HTTPS reverse proxy or named tunnel on that computer must forward the
 exact Host to `http://127.0.0.1:3000`. Provisioning its DNS/TLS/account requires the
@@ -150,10 +196,10 @@ its own isolated stack; the live probe deliberately retains its audit evidence.
 
 ## Persistence and recovery boundary
 
-The named PostgreSQL, MinIO and audit-anchor volumes survive an ordinary restart.
+The named PostgreSQL, local object/quarantine and audit-anchor volumes survive an ordinary restart.
 That is not a backup. The existing encrypted PostgreSQL backup and restore commands
 are documented in [BACKUP_RESTORE.md](../runbooks/BACKUP_RESTORE.md); the host needs
 a PostgreSQL client/connection path or an explicit container adapter. Database
-backup alone does not preserve MinIO source objects or the independent audit anchor.
+backup alone does not preserve `/data/objects`, `/data/quarantine` or the independent audit anchor.
 A complete restore drill for all three components and a known cited answer remains
 required before claiming recoverability of the owner's pilot.

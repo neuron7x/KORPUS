@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Qualify the real Compose stack with disposable data and an authenticated HTTP journey."""
+"""Qualify the local-storage laptop Compose profile with a real authenticated HTTP journey."""
 
 from __future__ import annotations
 
@@ -17,13 +17,12 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-import httpx
 from compose_pilot_environment import (
-    HOSTNAME,
     RUNTIME_INSPECTION,
     SERVICES,
     SmokeFailure,
     Workspace,
+    check_edge,
     check_port,
     isolated_environment,
     parse_services,
@@ -61,6 +60,9 @@ class ComposeSmoke:
             "status": "FAIL",
             "measured_at": datetime.now(UTC).isoformat(),
             "transport": "real_compose_http",
+            "profile": "local_laptop",
+            "s3_verified": False,
+            "worm_verified": False,
             "owner_host_verified": False,
             "external_https_verified": False,
             "browser_ui_verified": False,
@@ -184,7 +186,7 @@ class ComposeSmoke:
         services = parse_services(output)
         require(set(services) == SERVICES, "Compose did not create every expected service")
         for name, state in services.items():
-            if name in {"migrate", "minio-init"}:
+            if name == "migrate":
                 require(
                     state["state"] == "exited" and state["exit_code"] == 0,
                     "initialization service did not succeed",
@@ -213,7 +215,12 @@ class ComposeSmoke:
             facts
             == {
                 "database": "postgresql",
-                "object_store": "s3",
+                "object_store": "local",
+                "object_root": "/data/objects",
+                "quarantine_root": "/data/quarantine",
+                "process_uid": 10001,
+                "object_owner_uid": 10001,
+                "quarantine_owner_uid": 10001,
                 "malware_scan": "clamd",
                 "ingestion": "durable_async",
                 "auth": "jwt",
@@ -341,28 +348,6 @@ class ComposeSmoke:
 
 def safe_failure(error: Exception) -> str:
     return str(error) if isinstance(error, SmokeFailure) else type(error).__name__
-
-
-async def check_edge() -> None:
-    try:
-        async with (
-            asyncio.timeout(15),
-            httpx.AsyncClient(timeout=5, trust_env=False, follow_redirects=False) as client,
-        ):
-            for hostname, expected in (
-                ("127.0.0.1", 200),
-                (HOSTNAME, 200),
-                ("unassigned.example.test", 400),
-            ):
-                async with client.stream(
-                    "GET", "http://127.0.0.1:3000/api/ready", headers={"Host": hostname}
-                ) as response:
-                    require(
-                        response.status_code == expected,
-                        "nginx readiness or exact hostname boundary failed",
-                    )
-    except (TimeoutError, httpx.HTTPError) as exc:
-        raise SmokeFailure("nginx readiness request failed") from exc
 
 
 def interrupted(_signal: int, _frame: object) -> None:
