@@ -175,7 +175,10 @@ def main() -> None:
                 print(issue_token(identity, settings, args.lifetime_minutes))
             return
 
-        queue = SqlIngestionJobQueue(repository.engine)
+        queue = SqlIngestionJobQueue(
+            repository.engine,
+            bind_identity=repository._apply_postgres_identity,  # noqa: SLF001
+        )
         worker = IngestionWorker(
             queue,
             quarantine_store,

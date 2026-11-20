@@ -140,3 +140,25 @@ readers synchronously and five through durable ingestion. Pure negative cases po
 source hashes, offsets, permission sets and abstention payloads to verify the probe
 rejects false successes. A real TCP trickle-response test checks the total deadline.
 Neither live case overrides `get_identity` or stubs answers.
+
+## PostgreSQL durable queue boundary
+
+The API and worker must bind each queue transaction through the repository's separate
+authorization broker. Migration `0020_rls_identity_boundary` reads that trusted context;
+the old `korpus.subject` / `korpus.roles` session settings grant no queue access. Missing
+broker wiring now fails at queue construction on PostgreSQL. Application, authorization
+and review database identities retain their existing distinct permissions.
+
+Run the native regression against the runner's disposable migrated database:
+
+```sh
+scripts/run_postgres_suite.sh --targeted apps/api/tests/test_postgres_ingestion_queue.py
+```
+
+It proves app-role enqueue, owner/auditor visibility, worker claim/retry/completion,
+wrong-worker refusal and expired-lease reaping, with direct-SQL forged-claim denial.
+The fixture refuses reset outside `korpus_suite`, `korpus_coverage` or `korpus_test` and
+requires app, owner and broker URLs to address the same database with distinct logins.
+Only suite cleanup uses the owner; queue operations never do. Synthetic completion
+metadata proves queue persistence. The authenticated live acceptance above still has
+to prove actual upload, document processing, review and source-grounded answers.

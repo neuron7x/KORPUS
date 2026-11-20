@@ -102,9 +102,7 @@ class RlsBoundSqlRepository(SqlRepository):
             "backend_pid": int(target.backend_pid),
             "transaction_id": int(target.transaction_id),
             "session_login": str(target.session_login),
-            # `korpus.subject` ставив окремий виклик в `ingestion_jobs.py`, і брокер
-            # GitHub-лінії його не носив: політика черги порівнювала б власника
-            # роботи з порожнім рядком.
+            # The durable queue binds its owner through this same trusted context.
             "subject": identity.subject,
             "clearance": int(identity.clearance),
             "corpora": json.dumps(sorted(identity.corpora), separators=(",", ":")),
