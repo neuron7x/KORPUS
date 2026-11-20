@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2253,
-  "root_sha256": "da51f1b0d4752fa0f83f9f63c72aaef31770eea8215e173a0d30e9e24df4e85f",
+  "file_count": 2254,
+  "root_sha256": "bf03f19d7a9f901abf1faf63d64734bd54e8c1a50babcc450ef6a757c186fbc7",
   "files": [
     {
       "path": ".dockerignore",
@@ -553,8 +553,8 @@
     },
     {
       "path": "apps/api/docker-entrypoint.sh",
-      "bytes": 1696,
-      "sha256": "1c4e6df04d3cb0040fa496b28e5dcdc81d085e62c847cfd2a017e47306267623",
+      "bytes": 1710,
+      "sha256": "ac5d208620333807953d5a7939856b70106a1b97cfc410d8c77663387dc8c6b7",
       "mode": "0755"
     },
     {
@@ -2113,8 +2113,8 @@
     },
     {
       "path": "apps/api/src/korpus/config_namespace.py",
-      "bytes": 2099,
-      "sha256": "814cdfe6aaeebfc9c09c2962cc9799dc29ee8619a68dea6c3e443df3300f992a",
+      "bytes": 1707,
+      "sha256": "f8dfdecf27c6567cfb40a2073dbc5e7d2bdfb394457f6cd1dc112fd96643e43c",
       "mode": "0644"
     },
     {
@@ -3777,6 +3777,12 @@
       "path": "apps/api/tests/test_competency_repository.py",
       "bytes": 2624,
       "sha256": "383717df8afc5e6d678f2ed139e1effd04de242ef9cb756168f16123a1778aca",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_compose_database_identities.py",
+      "bytes": 8568,
+      "sha256": "8575c60c315321370c531aac3d22915132813105903c573507d44b9fdea3e979",
       "mode": "0644"
     },
     {
@@ -8917,8 +8923,8 @@
     },
     {
       "path": "docker-compose.yml",
-      "bytes": 16726,
-      "sha256": "de5d5cf97f3d30c0535844f5a2c85e5bb672ce02d6a4ec33c26594431f3039c1",
+      "bytes": 18091,
+      "sha256": "0e50b31aac19fd3b9919a8f7e1ff63a0b909cbaae8e5f0e4e75c0c3c4263c5e9",
       "mode": "0644"
     },
     {
@@ -12127,8 +12133,8 @@
     },
     {
       "path": "scripts/init_local_secrets.sh",
-      "bytes": 2287,
-      "sha256": "cd1fbf7bcd5452af37f4ecd6d7a832cb70e6eb7ce7b08fa3febd96ff1a8217c3",
+      "bytes": 2336,
+      "sha256": "d167c01fed4e1962742c59e0773be5215994670db5905bbbf761963ee76b2c3c",
       "mode": "0755"
     },
     {
