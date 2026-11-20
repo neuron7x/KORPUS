@@ -169,6 +169,7 @@ def test_cli_accepts_complete_topology_and_probes_each_subject(monkeypatch, tmp_
     assert json.loads(out.read_text())["status"] == "PASS"
     assert calls == [(8040, "/ready"), (8041, "/ready"), (8040, "/health"), (8041, "/health")]
 
+
 @pytest.mark.parametrize(
     "body",
     [
