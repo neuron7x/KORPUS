@@ -33,8 +33,81 @@ from korpus.domain.models import (
 )
 from korpus.infrastructure.object_store import LocalObjectStore
 from korpus.infrastructure.repository import NonRetryableWriteError, SqlRepository
+from sqlalchemy import text
 
 CONTENT = b"Order No. 33. Basis: article 5.\n"
+
+
+def _review_snapshot(repository: SqlRepository) -> dict[str, list[tuple]]:
+    with repository.engine.connect() as connection:
+        return {
+            table: [tuple(row) for row in connection.execute(text(f"SELECT * FROM {table}"))]
+            for table in (
+                "documents",
+                "document_versions",
+                "audit_events",
+                "audit_heads",
+                "audit_anchor_outbox",
+            )
+        }
+
+
+def test_zero_row_tier_update_rolls_back_retirement_version_and_audit(
+    repository, service, curator
+) -> None:
+    first = service.ingest(
+        curator,
+        DocumentCreate(canonical_title="Archive label", issuer="Synthetic fixture"),
+        VersionCreate(
+            revision="1", authority=AuthorityClass.ANALYTICAL, publication_date=date(2020, 1, 1)
+        ),
+        "archive.txt",
+        "text/plain",
+        b"The archive label is blue.\n",
+    )
+    _advance_to_content_reviewed(repository, curator, first.version.id)
+    repository.transition_version(
+        curator,
+        first.version.id,
+        ReviewState.CONTENT_REVIEWED,
+        ReviewState.APPROVED,
+        "first approval",
+        access_tier=AccessTier.PUBLIC,
+    )
+    second = service.ingest_version(
+        curator,
+        first.document.id,
+        VersionCreate(
+            revision="2",
+            authority=AuthorityClass.ANALYTICAL,
+            publication_date=date(2020, 1, 2),
+            supersedes_version_id=first.version.id,
+        ),
+        "archive-next.txt",
+        "text/plain",
+        b"The archive label is green.\n",
+    )
+    _advance_to_content_reviewed(repository, curator, second.version.id)
+    with repository.engine.begin() as connection:
+        connection.exec_driver_sql(
+            "CREATE TRIGGER refuse_tier BEFORE UPDATE OF access_tier ON documents "
+            "BEGIN SELECT RAISE(IGNORE); END"
+        )
+    before = _review_snapshot(repository)
+    with pytest.raises(NonRetryableWriteError, match="optimistic document tier update failed"):
+        repository.transition_version(
+            curator,
+            second.version.id,
+            ReviewState.CONTENT_REVIEWED,
+            ReviewState.APPROVED,
+            "must roll back",
+            access_tier=AccessTier.AUTHENTICATED,
+        )
+    assert _review_snapshot(repository) == before
+    assert repository.get_version(curator, first.version.id).is_current is True
+    successor = repository.get_version(curator, second.version.id)
+    assert successor.review_state is ReviewState.CONTENT_REVIEWED
+    assert repository.get_document(curator, first.document.id).access_tier is AccessTier.PUBLIC
 
 
 @pytest.fixture

@@ -664,13 +664,13 @@
       "reason": "2026-11-19 / #100: exact initial AST measurements for bounded source authorization, publication transaction, and explicit bootstrap history; existing ceilings unchanged."
     },
     "apps/api/src/korpus/infrastructure/migration_bootstrap_history.py": {
-      "lines": 40,
+      "lines": 41,
       "max_complexity": 7,
       "max_function_args": 1,
       "max_function_lines": 16,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "2026-11-19 / #100: exact initial AST measurements for bounded source authorization, publication transaction, and explicit bootstrap history; existing ceilings unchanged."
+      "reason": "Issue #129: one explicit forward revision in the frozen fresh-bootstrap chain; populated-deployment retirement admission remains unchanged."
     },
     "apps/api/src/korpus/__init__.py": {
       "lines": 7,
@@ -3241,13 +3241,13 @@
       "reason": "31.08.2026: клас «оголошений предмет». На 92 предмети, які корпус оголошує заголовками «Обов'язки: <роль>», перша цитата була документом про предмет 0 разів. Причина — чотири стадії поспіль винагороджують ПОВТОР слів питання, а стаття про роль своєї назви не повторює. Додано: допуск за предметом повз лексичні пороги (структурні лишаються), клас предмета першим ключем ранжування, збереження порядку в `_search_plan` замість пересортування за сирою оцінкою, і утримання лексичної осі там, де вона структурно сліпа. Вимір: top1 0.000 → 0.826, recall 0.348 → 0.978, confidence_inverted TRUE → FALSE; заморожений еталон і межа домену без змін."
     },
     "apps/api/src/korpus/infrastructure/review_transitions.py": {
-      "lines": 284,
+      "lines": 286,
       "max_complexity": 9,
       "max_function_args": 13,
       "max_function_lines": 67,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "Запечатування доказів ПЕРЕД зміною стану, не після: дайджест мусить описувати те, що затверджують, а не те, у що воно перетвориться. Без цього рядка `evidence_digest` лишається None і схваленню немає чого прив'язати до себе."
+      "reason": "Issue #129: abort the existing review transaction unless the document access-tier UPDATE affects exactly one row, preventing partial retirement/audit publication after an RLS-hidden update."
     },
     "apps/api/src/korpus/infrastructure/rls_repository.py": {
       "lines": 130,
@@ -6941,13 +6941,13 @@
       "reason": "Issue #109: extract positive-domain nonnumeric default proof and proven absence; unsupported type/default combinations fail closed without increasing existing ceilings."
     },
     "scripts/gcp/migration_raw_ddl_proof.py": {
-      "lines": 54,
-      "max_complexity": 8,
+      "lines": 56,
+      "max_complexity": 9,
       "max_function_args": 2,
       "max_function_lines": 17,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "Issue #109: bounded local-effect DDL, declaration and referent proofs extracted without raising existing module ceilings; first-version source measurements."
+      "reason": "Issue #129: dispatch to the exact two-policy reviewer expansion proof after the existing literal/comment/stacked-statement guards; all other CREATE POLICY forms remain refused."
     },
     "scripts/gcp/migration_create_table_proof.py": {
       "lines": 52,
@@ -7254,6 +7254,15 @@
       "max_function_args": 1,
       "max_nesting": 0,
       "reason": "2026-11-19 / #100: initial measured bounds for the unmerged forward PostgreSQL course-parent and lifecycle-lock guards; every pre-existing ceiling is unchanged."
+    },
+    "scripts/gcp/migration_review_policy_proof.py": {
+      "lines": 66,
+      "max_complexity": 5,
+      "max_function_args": 1,
+      "max_function_lines": 16,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #129 independent parser review: consume every byte with PostgreSQL ASCII whitespace and closed punctuation; reject non-ASCII relations, Python-only whitespace and adjacent integer/identifier junk before the exact policy-token comparison."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -13636,6 +13645,58 @@
         "lines": 34
       },
       "reason": "Address exact PR #86 isolated package context and PR #87 scripts-mypy no-any-return failures; source-format measurement, no security gate relaxation."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "apps/api/src/korpus/infrastructure/migration_bootstrap_history.py",
+      "from": {
+        "lines": 40
+      },
+      "to": {
+        "lines": 41
+      },
+      "reason": "Issue #129: one explicit forward revision in the frozen fresh-bootstrap chain; populated-deployment retirement admission remains unchanged."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "apps/api/src/korpus/infrastructure/review_transitions.py",
+      "from": {
+        "lines": 284
+      },
+      "to": {
+        "lines": 286
+      },
+      "reason": "Issue #129: abort the existing review transaction unless the document access-tier UPDATE affects exactly one row, preventing partial retirement/audit publication after an RLS-hidden update."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/gcp/migration_raw_ddl_proof.py",
+      "from": {
+        "lines": 54,
+        "max_complexity": 8
+      },
+      "to": {
+        "lines": 56,
+        "max_complexity": 9
+      },
+      "reason": "Issue #129: dispatch to the exact two-policy reviewer expansion proof after the existing literal/comment/stacked-statement guards; all other CREATE POLICY forms remain refused."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/gcp/migration_review_policy_proof.py",
+      "from": {
+        "lines": 44,
+        "max_complexity": 1,
+        "max_function_lines": 3,
+        "max_nesting": 0
+      },
+      "to": {
+        "lines": 66,
+        "max_complexity": 5,
+        "max_function_lines": 16,
+        "max_nesting": 2
+      },
+      "reason": "Issue #129 independent parser review: consume every byte with PostgreSQL ASCII whitespace and closed punctuation; reject non-ASCII relations, Python-only whitespace and adjacent integer/identifier junk before the exact policy-token comparison."
     }
   ],
   "recorded_at": "2026-10-04",
