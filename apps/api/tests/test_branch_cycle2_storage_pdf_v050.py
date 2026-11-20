@@ -305,6 +305,9 @@ def test_pdf_open_embedded_ocr_branch_matrix(
                 raise self.exc
             return self.text
 
+        def get_contents(self):
+            return SimpleNamespace(operations=[([], b"Tj" if self.text else b"Do")])
+
     class Reader:
         def __init__(self, pages, *, encrypted=False, decrypt_result=1, decrypt_exc=None):
             self.pages = pages

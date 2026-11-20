@@ -637,6 +637,34 @@
         "max_nesting": 3,
         "proof_lines": 0
       }
+    },
+    {
+      "on": "2026-11-20",
+      "path": "apps/api/src/korpus/infrastructure/extraction.py",
+      "from": {
+        "lines": 745,
+        "max_function_lines": 72
+      },
+      "to": {
+        "lines": 718,
+        "max_function_lines": 71
+      },
+      "reason": "Issue #132: section-bounded exact spans and extracted bounded PDF/DOCX helpers reduce the measured production ceiling without widening any gate."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "apps/api/src/korpus/infrastructure/pdf_extraction.py",
+      "from": {
+        "lines": 166,
+        "max_complexity": 10,
+        "max_function_lines": 45
+      },
+      "to": {
+        "lines": 143,
+        "max_complexity": 7,
+        "max_function_lines": 27
+      },
+      "reason": "Issue #132: section-bounded exact spans and extracted bounded PDF/DOCX helpers reduce the measured production ceiling without widening any gate."
     }
   ],
   "modules": {
@@ -2971,13 +2999,13 @@
       "reason": "Портовано знімок корпусу з GitHub-лінії 01.09.2026: одна відповідь читає ОДИН стан корпусу, а не кілька незалежних читань під датою `as_of`. `corpus_state_epoch` дає монотонний маркер, `evidence_sealing` прив'язує схвалення до конкретного набору доказів, і журнал відповіді несе `corpus_snapshot` поруч із `corpus_release`."
     },
     "apps/api/src/korpus/infrastructure/extraction.py": {
-      "lines": 745,
+      "lines": 718,
       "max_complexity": 25,
       "max_function_args": 12,
-      "max_function_lines": 72,
+      "max_function_lines": 71,
       "max_nesting": 6,
       "proof_lines": 0,
-      "reason": "Raised 610 -> 618 on 2026-08-28 for three coverage exclusions with their reasons: RLIMIT_NPROC is absent only on macOS, and the two chunking self-checks are unreachable by construction and kept for the day the construction changes. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one. | 2026-08-30: +31 рядок — вирок нюхача `file` більше не остаточний для .html. Дві сторінки (офіційна позиція НАТО щодо РФ і аналітика ICDS) відхилялись як «HTML content detected as application/javascript», віддаючи 8209 і 2311 слів справжнього тексту: нюхача збиває довгий рядок вбудованого скрипту. Додано структурну перевірку розмітки в перших 1024 байтах; це не послаблення — три сигнали й далі мусять збігтися, а перейменований PDF/ZIP і справжній скрипт відхиляються п'ятьма негативними контролями. | 2026-08-30: 657 -> 716. Обстановка сторінки перестала бути текстом документа. Питання поза доменом «Яка ставка податку на прибуток підприємств у 2019 році?» мало покриття 0.500 при порозі відмови 0.25: найкращим реченням корпусу для нього був `<title>` сторінки zakon.rada.gov.ua з написами кнопок панелі. Додано NON_DOCUMENT_ELEMENTS (title, button, select, nav, aside) і поступку незакритому `<title>`, без якої зламана розмітка давала б ПОРОЖНІЙ документ замість шумного. Стеля поза доменом 0.500 -> 0.250, жодне з семи питань у домені не змінилось; сім тестів, три отрути вбито."
+      "reason": "Raised 610 -> 618 on 2026-08-28 for three coverage exclusions with their reasons: RLIMIT_NPROC is absent only on macOS, and the two chunking self-checks are unreachable by construction and kept for the day the construction changes. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one. | 2026-08-30: +31 рядок — вирок нюхача `file` більше не остаточний для .html. Дві сторінки (офіційна позиція НАТО щодо РФ і аналітика ICDS) відхилялись як «HTML content detected as application/javascript», віддаючи 8209 і 2311 слів справжнього тексту: нюхача збиває довгий рядок вбудованого скрипту. Додано структурну перевірку розмітки в перших 1024 байтах; це не послаблення — три сигнали й далі мусять збігтися, а перейменований PDF/ZIP і справжній скрипт відхиляються п'ятьма негативними контролями. | 2026-08-30: 657 -> 716. Обстановка сторінки перестала бути текстом документа. Питання поза доменом «Яка ставка податку на прибуток підприємств у 2019 році?» мало покриття 0.500 при порозі відмови 0.25: найкращим реченням корпусу для нього був `<title>` сторінки zakon.rada.gov.ua з написами кнопок панелі. Додано NON_DOCUMENT_ELEMENTS (title, button, select, nav, aside) і поступку незакритому `<title>`, без якої зламана розмітка давала б ПОРОЖНІЙ документ замість шумного. Стеля поза доменом 0.500 -> 0.250, жодне з семи питань у домені не змінилось; сім тестів, три отрути вбито. | Issue #132: section-bounded exact spans and extracted bounded PDF/DOCX helpers reduce the measured production ceiling without widening any gate."
     },
     "apps/api/src/korpus/infrastructure/gcp_identity.py": {
       "lines": 122,
@@ -3218,13 +3246,13 @@
       "proof_lines": 0
     },
     "apps/api/src/korpus/infrastructure/pdf_extraction.py": {
-      "lines": 166,
-      "max_complexity": 10,
+      "lines": 143,
+      "max_complexity": 7,
       "max_function_args": 7,
-      "max_function_lines": 45,
+      "max_function_lines": 27,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "v6.9.0: split PDF/OCR parsing from generic extraction to reduce parser-path cyclomatic concentration without changing refusal semantics"
+      "reason": "v6.9.0: split PDF/OCR parsing from generic extraction to reduce parser-path cyclomatic concentration without changing refusal semantics | Issue #132: section-bounded exact spans and extracted bounded PDF/DOCX helpers reduce the measured production ceiling without widening any gate."
     },
     "apps/api/src/korpus/infrastructure/pec_observability.py": {
       "lines": 98,
@@ -5732,13 +5760,13 @@
       "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
     "scripts/run_determinism_gate.py": {
-      "lines": 61,
+      "lines": 64,
       "max_complexity": 4,
       "max_function_args": 0,
       "max_function_lines": 24,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "v0.6.0: exact test outcome + semantic replay equivalence across hash seeds; decomposed complexity"
+      "reason": "v0.6.0: exact test outcome + semantic replay equivalence across hash seeds; decomposed complexity | Issue #132: add three focused real PDF/OOXML/section-fidelity test files to the existing multi-seed TESTS list; no seed, timeout, verdict, or threshold change."
     },
     "scripts/run_embedding_backfill.py": {
       "lines": 208,
@@ -7385,6 +7413,33 @@
       "max_function_lines": 19,
       "max_nesting": 2,
       "proof_lines": 0
+    },
+    "apps/api/src/korpus/infrastructure/docx_blocks.py": {
+      "lines": 106,
+      "proof_lines": 0,
+      "max_complexity": 8,
+      "max_function_lines": 22,
+      "max_function_args": 2,
+      "max_nesting": 4,
+      "reason": "Issue #132: measured ordered OOXML block/grid traversal with explicit unsupported geometry, paragraph-embedded table refusal and lossless JSON-quoted TSV including Unicode line separators. All dimensions remain below unchanged new-module defaults."
+    },
+    "apps/api/src/korpus/infrastructure/pdf_ocr.py": {
+      "lines": 76,
+      "proof_lines": 0,
+      "max_complexity": 10,
+      "max_function_lines": 23,
+      "max_function_args": 6,
+      "max_nesting": 2,
+      "reason": "Issue #132: measured first-version selected-page OCR rendering and exact image inventory under the existing monotonic deadline; all dimensions remain below unchanged new-module defaults."
+    },
+    "apps/api/src/korpus/infrastructure/pdf_page_evidence.py": {
+      "lines": 57,
+      "proof_lines": 0,
+      "max_complexity": 5,
+      "max_function_lines": 12,
+      "max_function_args": 3,
+      "max_nesting": 2,
+      "reason": "Issue #132: measured first-version per-page painted-content completeness and native-text preservation checks; all dimensions remain below unchanged new-module defaults."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -13902,6 +13957,28 @@
         "proof_lines": 66
       },
       "reason": "Issue #131 independent review: one selftest fixture line now carries the frozen 20/20 case counts; the same eight cases and executable logic remain bounded."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "from": {
+        "lines": 57
+      },
+      "to": {
+        "lines": 60
+      },
+      "reason": "Issue #132: add three focused real PDF/OOXML/section-fidelity test files to the existing multi-seed TESTS list; no seed, timeout, verdict, or threshold change."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "from": {
+        "lines": 61
+      },
+      "to": {
+        "lines": 64
+      },
+      "reason": "Issues #131/#132/#133 integration: preserve the union of 13 existing and newly reviewed deterministic test files. Only literal registry entries grow; seeds, timeouts, verdicts and executable complexity remain unchanged."
     }
   ],
   "recorded_at": "2026-10-04",

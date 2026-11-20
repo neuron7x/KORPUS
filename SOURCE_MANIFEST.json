@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2290,
-  "root_sha256": "77f19c8fbece7a86b1c2f0b0041cb553a9186c010eda5c9c91724246efed5681",
+  "file_count": 2298,
+  "root_sha256": "910578df1b3182ac0cfffb5cec5c617a054de27b3965c5e26299b9deb4f90c64",
   "files": [
     {
       "path": ".dockerignore",
@@ -2310,6 +2310,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/src/korpus/infrastructure/docx_blocks.py",
+      "bytes": 4298,
+      "sha256": "676b9b6a5d26425a10acda671aaf4a51bd9b0b5224eabfe1d768d8447a038996",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/src/korpus/infrastructure/embedding_backfill.py",
       "bytes": 5964,
       "sha256": "2d6c700f71135e8cb201ac5392baf04b550f92595d6d49eda5728f3bc3281e54",
@@ -2347,8 +2353,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/extraction.py",
-      "bytes": 32900,
-      "sha256": "40149093ee10d7c5d0c006fef280873275050c6deba70739c205e83fe318149c",
+      "bytes": 31636,
+      "sha256": "f6a53b5cb8b1672605ee70339a6fbdb816cc26a8cfc191df5dc9fcc51e6428d9",
       "mode": "0644"
     },
     {
@@ -2569,8 +2575,20 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/pdf_extraction.py",
-      "bytes": 6030,
-      "sha256": "34bd6cc8441d08481b362e46cd0fd67a041aada26ab81822d4eccfae290781c6",
+      "bytes": 5638,
+      "sha256": "996af3d16b1a2a4bd7286959aca8387b9382908f657fdddae7ec576686a0ce9f",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/pdf_ocr.py",
+      "bytes": 2770,
+      "sha256": "ee40167f29fe00fe3e77fa5328fe91b8f5de656bac66b8eee6fc6f310cad4ba6",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/pdf_page_evidence.py",
+      "bytes": 2222,
+      "sha256": "7981b43c15a8d136c7b678e0922fa0072c2d206ae1e9b4fb20de76ca515891d3",
       "mode": "0644"
     },
     {
@@ -2949,6 +2967,12 @@
       "path": "apps/api/tests/evaluation_fixtures.py",
       "bytes": 3720,
       "sha256": "3a723be287abec0603535431d6837ceda896c1fff6e2dd486f04ed37a1e43d7d",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/extraction_fidelity_fixtures.py",
+      "bytes": 5475,
+      "sha256": "f777bee4914c66ec5da2ba99becf477cc0c17f8d74a61f11465da7edfb244ea6",
       "mode": "0644"
     },
     {
@@ -3337,8 +3361,8 @@
     },
     {
       "path": "apps/api/tests/test_branch_cycle2_storage_pdf_v050.py",
-      "bytes": 14774,
-      "sha256": "91b2ea3c352ef57b5c8a038ef8d4d4256c3624d03cd8ef1c795551e252ca8c13",
+      "bytes": 14892,
+      "sha256": "f028d46af5dcf02c77bdf033364cad831704d969d9da256a89bf63d6b1f58332",
       "mode": "0644"
     },
     {
@@ -4113,6 +4137,12 @@
       "path": "apps/api/tests/test_document_references.py",
       "bytes": 6234,
       "sha256": "ac9e32aa6661ac9b7a937b75c49fc71c0a4b8a0a2afa546d5670a42084acbc1e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_docx_table_fidelity.py",
+      "bytes": 8224,
+      "sha256": "b3f7f60bc32eaedcc987dc95e1741b74d8e600e5fe1d173e4a4f82c784ecea15",
       "mode": "0644"
     },
     {
@@ -5196,6 +5226,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_pdf_page_fidelity.py",
+      "bytes": 9348,
+      "sha256": "9191b058681b7e89b5e6f937047f9079151ad648b5938e948323cc792442982b",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_pec_act_hardening.py",
       "bytes": 4317,
       "sha256": "369e9af3c3b9945d65d07c3cbf509cbe6fc4d65ea404ac6aa4a4908297bce50d",
@@ -6039,6 +6075,12 @@
       "path": "apps/api/tests/test_search_index.py",
       "bytes": 2953,
       "sha256": "1e9cd86cc4684918c4066f23ce26d0146715ca35009f293ed45d3dd751890f74",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_section_span_fidelity.py",
+      "bytes": 5322,
+      "sha256": "a302a00bd20fc7cbfaa34b61d02693797370fff2fbdd3209a62e2f5ec8b2a64e",
       "mode": "0644"
     },
     {
@@ -8773,8 +8815,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 795887,
-      "sha256": "e0fd45eb84b1f463a34d8bbe13715e3ca1766800273dec29409804d0f6c2672b",
+      "bytes": 799353,
+      "sha256": "a58a045890b3a40fc3fdec2766593bcf65372411e138a788284d1f56688911eb",
       "mode": "0644"
     },
     {
@@ -9561,6 +9603,12 @@
       "path": "docs/operations/EXTERNAL_ASSESSMENT_SCOPE.md",
       "bytes": 10870,
       "sha256": "deb35b14a074f728ede4568cf74723d47f24ceba0dcfe9a5e809bcc75269560d",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/operations/EXTRACTION_FIDELITY_ISSUE_132.md",
+      "bytes": 6931,
+      "sha256": "40259363dbeb5e878450e5b46cc88f38bf14f83639689633e07969d3e4b11238",
       "mode": "0644"
     },
     {
@@ -13015,8 +13063,8 @@
     },
     {
       "path": "scripts/run_determinism_gate.py",
-      "bytes": 2325,
-      "sha256": "29e9f9fa9c721271210eb617ce845a731a256f6445100dc3fefa66d42601dce2",
+      "bytes": 2475,
+      "sha256": "8f7b2c93d9fb32a17edf14320a8c582fc9f969dd9f7ec16c19bcdc520c6e042e",
       "mode": "0755"
     },
     {
@@ -13117,8 +13165,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 348782,
-      "sha256": "5682dd2e0bc1ed2484d04e735f7963c2dd0061750136bba65facaadcf1037f37",
+      "bytes": 351250,
+      "sha256": "bb7d3f0054b3290ef36c3bd3d8f6e7754cd88267246d9dfe24b22620e89b6246",
       "mode": "0755"
     },
     {

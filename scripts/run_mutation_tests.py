@@ -49,6 +49,62 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M814_DOCX_TEXTBOX_TABLE_BYPASSES_STRUCTURE_CHECKS",
+        "apps/api/src/korpus/infrastructure/docx_blocks.py",
+        '    if any(node.tag == f"{WORD}tbl" for node in paragraph.iter()):',
+        "    if False:",
+        (
+            "apps/api/tests/test_docx_table_fidelity.py::"
+            "test_table_inside_a_textbox_cannot_bypass_table_structure_checks[direct]",
+        ),
+    ),
+    Mutant(
+        "M815_DOCX_UNICODE_CELL_SEPARATOR_FORGES_ROWS",
+        "apps/api/src/korpus/infrastructure/docx_blocks.py",
+        r'    return encoded.translate({0x85: "\\u0085", 0x2028: "\\u2028", 0x2029: "\\u2029"})',
+        "    return encoded",
+        (
+            "apps/api/tests/test_docx_table_fidelity.py::"
+            "test_unicode_line_separators_stay_inside_their_original_cell",
+        ),
+    ),
+    Mutant(
+        "M810_PDF_TEXT_HEADER_HIDES_UNEXTRACTED_IMAGE",
+        "apps/api/src/korpus/infrastructure/pdf_page_evidence.py",
+        "    return bool(operators & _IMAGE_PAINT) or (not text and bool(operators & _VISIBLE_PAINT))",
+        "    return not text and bool(operators & _VISIBLE_PAINT)",
+        (
+            "apps/api/tests/test_pdf_page_fidelity.py::test_unextracted_raster_page_is_never_accepted_as_complete[header-and-scan-direct]",
+        ),
+    ),
+    Mutant(
+        "M811_DOCX_EMPTY_CELLS_DISAPPEAR",
+        "apps/api/src/korpus/infrastructure/docx_blocks.py",
+        "        rows.append(cells)",
+        "        rows.append([cell for cell in cells if cell])",
+        (
+            "apps/api/tests/test_docx_table_fidelity.py::test_table_rows_headers_and_empty_cells_are_preserved[direct]",
+        ),
+    ),
+    Mutant(
+        "M812_SPANS_CROSS_SECTION_BOUNDARIES",
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        "            end = min(section_end, position + max_chars)",
+        "            end = min(len(text), position + max_chars)",
+        (
+            "apps/api/tests/test_section_span_fidelity.py::test_short_spans_cannot_assign_the_previous_section_to_a_later_fact",
+        ),
+    ),
+    Mutant(
+        "M813_PDF_OCR_DISCARDS_KNOWN_EMBEDDED_TEXT",
+        "apps/api/src/korpus/infrastructure/pdf_page_evidence.py",
+        '    if " ".join(embedded.split()) not in " ".join(recognized.split()):',
+        "    if False:",
+        (
+            "apps/api/tests/test_pdf_page_fidelity.py::test_ocr_cannot_discard_known_embedded_header[header-lost]",
+        ),
+    ),
+    Mutant(
         "M804_REFERENCE_CITATION_METADATA_SHAPE_NOT_VERIFIED",
         "scripts/reference_eval_citations.py",
         '    _metadata_shape(citation, "title")',
