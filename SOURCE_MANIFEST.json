@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2267,
-  "root_sha256": "7fd784a5d4bb93776f1867101b075411232177a59b7469f6911d6acdc7e322df",
+  "file_count": 2276,
+  "root_sha256": "88842e3b4224f745ed481d8c2fafc73817af61042ea5cb5df83bace61e1db2f1",
   "files": [
     {
       "path": ".dockerignore",
@@ -51,6 +51,12 @@
       "path": ".github/workflows/ci.yml",
       "bytes": 12818,
       "sha256": "c30aa14f186c1e7f9eecf58f2cc3d8c578573f2d32387fbde6a3d756de3f7bdf",
+      "mode": "0644"
+    },
+    {
+      "path": ".github/workflows/compose-pilot-smoke.yml",
+      "bytes": 1528,
+      "sha256": "803254454bd5d8f510c8b85497b7e0eca6ca720a0bf9cc9458311f242975c26e",
       "mode": "0644"
     },
     {
@@ -109,8 +115,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 65748,
-      "sha256": "dbc05fed17b531165a05519231976f9a20914c579bacbd08bb24003e37c87fad",
+      "bytes": 65803,
+      "sha256": "5db17fd6f946dc78833b6ccec3517a92ceca02c734cd828489995a1e91f55eb0",
       "mode": "0644"
     },
     {
@@ -415,20 +421,20 @@
     },
     {
       "path": "Makefile",
-      "bytes": 135691,
-      "sha256": "8ab03c424755cafe8cbdd295ee728136809f5996e304601e44b22a2ca8ba2e75",
+      "bytes": 136385,
+      "sha256": "56ce4dc927036e70441aa9b05fd338134eaa98708cf7260d279a009bba2a8a6c",
       "mode": "0644"
     },
     {
       "path": "README.md",
-      "bytes": 2569,
-      "sha256": "67522d9be6a86fcb9bf5ac3818f11253c9a4d8e7aa3b135046850560a8544fd4",
+      "bytes": 3262,
+      "sha256": "cda2fff7c7718fa06b3673f7886756da9820783b02f1b5639933ab92505014f4",
       "mode": "0644"
     },
     {
       "path": "README_FIRST.md",
-      "bytes": 5590,
-      "sha256": "270f50aa8dcdc34bb0d9c7ffba3a694042b26701e6209ad65ab20af36582a538",
+      "bytes": 6237,
+      "sha256": "cdd9645aa41ac1b563060b7d95930cc35aab8458fa10b1ed62defd284059cca9",
       "mode": "0644"
     },
     {
@@ -3798,6 +3804,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_compose_pilot_smoke.py",
+      "bytes": 26313,
+      "sha256": "71fe8332f4cb82744ec9d7fdadfcfc19100dae22ec0f6ee1fdbe8508e6a2e236",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_config_and_readiness_refusals.py",
       "bytes": 10455,
       "sha256": "5ec0c71ef3aa8a58502db0b0954841e0bda9afc50f216035af3590b42bd5df1d",
@@ -5319,6 +5331,12 @@
       "path": "apps/api/tests/test_pilot_acceptance.py",
       "bytes": 22610,
       "sha256": "3e9692e85ef6ffd64970c586781d2ff11425dd76fe90a6fe00ad42ec53a50830",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_pilot_compose_profile.py",
+      "bytes": 8795,
+      "sha256": "ddafea7cf2df9f356aad642630f451b769856e01445ce6b3e84f0b6c69cd5f3f",
       "mode": "0644"
     },
     {
@@ -8683,8 +8701,8 @@
     },
     {
       "path": "config/operations/desired-state.json",
-      "bytes": 5540,
-      "sha256": "ec3e4149d5571dad450ec678e2e665af5c2bb2bff09ef0f74cb799d169992e4b",
+      "bytes": 6050,
+      "sha256": "1bf5abf20c146545cdcea11e57e5129ed7908c6cce4a4fd658f438915ea7bb10",
       "mode": "0644"
     },
     {
@@ -8725,8 +8743,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 788642,
-      "sha256": "1a8df7f28c8166badcc3d66a971a0ceeadb20e42cb475e3b1e3716f3d8c2737d",
+      "bytes": 791109,
+      "sha256": "308213a8e2231d33a76a4f2f81418c2a3d3c87753ae342b1c588a8094faf871b",
       "mode": "0644"
     },
     {
@@ -8901,6 +8919,18 @@
       "path": "deploy/kubernetes/overlays/production/kustomization.yaml",
       "bytes": 507,
       "sha256": "05c05536298180f9834bdffe250b52b08ad3728296a33648991a091c45cecb4d",
+      "mode": "0644"
+    },
+    {
+      "path": "deploy/pilot/compose.local.yaml",
+      "bytes": 12881,
+      "sha256": "86296fa985d38c2a0cc0d2cb3aaae543f2883ccc2968ce20f22132243530c3d2",
+      "mode": "0644"
+    },
+    {
+      "path": "deploy/pilot/compose.private.yaml",
+      "bytes": 700,
+      "sha256": "946d5ce41c30a7ba78c1f902c2777012a1a408197145ebbd5b0df47645f9f741",
       "mode": "0644"
     },
     {
@@ -9531,6 +9561,12 @@
       "path": "docs/operations/PRE_DEVELOPMENT_TASKS.md",
       "bytes": 3141,
       "sha256": "af367ebd1ef4649b681c3a3c36c74695ef8ac528ba6ddb26ccbe7d9ba888c44d",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/operations/PRIVATE_PILOT.md",
+      "bytes": 11830,
+      "sha256": "d7fdb4a195524bd9af136e6967faa1d49cc89709a1270a90946229fea21f7fb3",
       "mode": "0644"
     },
     {
@@ -11496,6 +11532,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/compose_pilot_environment.py",
+      "bytes": 14927,
+      "sha256": "ba4223dd5e82c320e7885f7156a2e09c15afac51794a1a2ee065e48ca4bbf536",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/conversation_retention.py",
       "bytes": 5673,
       "sha256": "b64cc7a00bac813c75b2367fafddb4d4528be1ae79e278ab985a9a9c47946e17",
@@ -12103,8 +12145,8 @@
     },
     {
       "path": "scripts/generate_desired_state.py",
-      "bytes": 3595,
-      "sha256": "c018844582c174aff410fed0b551861708433dda6bbba040cbed469999e30008",
+      "bytes": 3503,
+      "sha256": "8bff180f6630342f57b2a84d81731daf5a75186df09930f5933683f5201dbb18",
       "mode": "0755"
     },
     {
@@ -12117,6 +12159,12 @@
       "path": "scripts/generate_manifest.py",
       "bytes": 2337,
       "sha256": "180a9b6c7643cbb8757284a637d057b1882d82165d10ce4f87f9ff56bb42a2db",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/generate_pilot_compose.py",
+      "bytes": 3847,
+      "sha256": "b0280d68bb16079401594fc81ee0611036f57a11c127e3d8b5acd4b0216d38cc",
       "mode": "0755"
     },
     {
@@ -12867,6 +12915,12 @@
       "path": "scripts/run_builtin_security_gate.py",
       "bytes": 10933,
       "sha256": "0ba3f9921c0109c858bcab33aa46e14248f1e5329e88a56f81534c79d32a5f6c",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/run_compose_pilot_smoke.py",
+      "bytes": 14850,
+      "sha256": "63aeb303c0833913d472b5456575dfedfa067d759db2e1caeb2e048a84b7d00a",
       "mode": "0755"
     },
     {

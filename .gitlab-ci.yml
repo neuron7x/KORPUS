@@ -69,6 +69,7 @@ repository:validate:
   script:
     - python scripts/openapi_contract.py
     - python scripts/generate_desired_state.py --check
+    - python scripts/generate_pilot_compose.py --check
     # The browser's copy of the request constraints and the role table. Stale means the
     # operator consoles validate against rules the API no longer has — and that failure
     # is invisible from the API side, because a form refusing something the server would
