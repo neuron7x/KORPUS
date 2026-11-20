@@ -59,6 +59,7 @@ def selftest() -> int:
         },
         "floors": {"in_corpus_answered_rate": 0.9},
         "ceilings": {"out_of_corpus_answered_rate": 0.25},
+        "case_counts": {"in_corpus": 20, "out_of_corpus": 20},
         "relaxed": [],
     }
     good: dict[str, Any] = {

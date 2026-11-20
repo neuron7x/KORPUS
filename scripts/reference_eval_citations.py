@@ -20,7 +20,25 @@ def _hash(text: str) -> str:
         raise InvalidEvidence("source text is not valid UTF-8") from exc
 
 
+def _metadata_shape(payload: dict[str, Any], title: str) -> None:
+    fields = {title, "revision", "page", "section", "source_uri"}
+    if not fields.issubset(payload):
+        raise InvalidEvidence("required source metadata is missing")
+    for key, maximum in ((title, 500), ("revision", 120)):
+        value = payload[key]
+        if not isinstance(value, str) or not value.strip() or len(value) > maximum:
+            raise InvalidEvidence("invalid required source metadata")
+    page = payload["page"]
+    if page is not None and (type(page) is not int or page < 1):
+        raise InvalidEvidence("invalid source page")
+    for key, maximum in (("section", 500), ("source_uri", 2000)):
+        value = payload[key]
+        if value is not None and (not isinstance(value, str) or len(value) > maximum):
+            raise InvalidEvidence("invalid optional source metadata")
+
+
 def _citation_shape(citation: dict[str, Any]) -> None:
+    _metadata_shape(citation, "title")
     for key in ("document_id", "version_id", "span_id"):
         canonical_uuid(citation.get(key))
     for key in ("source_hash", "span_hash", "quote_hash"):
@@ -40,6 +58,7 @@ def _citation_shape(citation: dict[str, Any]) -> None:
 
 def validate_citation(citation: dict[str, Any], span: dict[str, Any]) -> None:
     _citation_shape(citation)
+    _metadata_shape(span, "document_title")
     for citation_key, span_key in (
         ("document_id", "document_id"),
         ("version_id", "version_id"),

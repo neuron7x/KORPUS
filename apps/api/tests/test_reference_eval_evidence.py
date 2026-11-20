@@ -40,6 +40,64 @@ def test_valid_source_is_required_even_for_expected_version() -> None:
 
 
 @pytest.mark.parametrize(
+    "citation_key,source_key",
+    [
+        ("title", "document_title"),
+        ("revision", "revision"),
+        ("page", "page"),
+        ("section", "section"),
+        ("source_uri", "source_uri"),
+    ],
+)
+def test_matching_absent_metadata_is_not_source_evidence(
+    citation_key: str, source_key: str
+) -> None:
+    citation, span = evidence()
+    citation.pop(citation_key)
+    span.pop(source_key)
+    result = runner._judge(case(), {"status": "answered", "citations": [citation]}, lambda _: span)
+    assert result["passed"] is False and result["unavailable"] is False
+
+
+@pytest.mark.parametrize(
+    "citation_key,source_key,value",
+    [
+        ("title", "document_title", None),
+        ("title", "document_title", {}),
+        ("revision", "revision", ""),
+        ("revision", "revision", []),
+        ("page", "page", True),
+        ("page", "page", 0),
+        ("page", "page", 1.0),
+        ("section", "section", {}),
+        ("source_uri", "source_uri", []),
+    ],
+)
+def test_matching_invalid_metadata_types_do_not_pass(
+    citation_key: str, source_key: str, value: object
+) -> None:
+    citation, span = evidence()
+    citation[citation_key] = span[source_key] = value
+    result = runner._judge(case(), {"status": "answered", "citations": [citation]}, lambda _: span)
+    assert result["passed"] is False
+
+
+def test_boolean_citation_page_cannot_equal_integer_source_page() -> None:
+    citation, span = evidence()
+    citation["page"] = True
+    result = runner._judge(case(), {"status": "answered", "citations": [citation]}, lambda _: span)
+    assert result["passed"] is False
+
+
+def test_explicit_optional_null_metadata_remains_valid() -> None:
+    citation, span = evidence()
+    for key in ("page", "section", "source_uri"):
+        citation[key] = span[key] = None
+    result = runner._judge(case(), {"status": "answered", "citations": [citation]}, lambda _: span)
+    assert result["passed"] is True
+
+
+@pytest.mark.parametrize(
     "field,value",
     [
         ("document_id", OTHER),

@@ -49,6 +49,28 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M804_REFERENCE_CITATION_METADATA_SHAPE_NOT_VERIFIED",
+        "scripts/reference_eval_citations.py",
+        '    _metadata_shape(citation, "title")',
+        "    # Metadata shape check removed.",
+        (
+            "apps/api/tests/test_reference_eval_evidence.py::"
+            "test_boolean_citation_page_cannot_equal_integer_source_page",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M805_QUALITY_FROZEN_CARDINALITY_NOT_VERIFIED",
+        "scripts/answer_quality_validation.py",
+        "    problems.extend(_cardinality_problems(report, config))",
+        "    # Frozen cardinality check removed.",
+        (
+            "apps/api/tests/test_answer_quality_validation.py::"
+            "test_a_partial_or_inflated_measurement_cannot_claim_the_full_set[1]",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M800_REFERENCE_SET_DIGEST_NOT_VERIFIED",
         "scripts/reference_eval_set.py",
         '    if digest != meta["content_digest"]:',

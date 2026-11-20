@@ -138,6 +138,7 @@ def test_exact_zero_one_and_fraction_controls_remain_accepted() -> None:
     config["floors"]["in_corpus_answered_rate"] = 0
     config["ceilings"]["out_of_corpus_answered_rate"] = 1
     for answered, judged in ((0, 1), (1, 1), (2, 3)):
+        config["case_counts"] = {"in_corpus": judged, "out_of_corpus": judged}
         bucket = {"answered": answered, "judged": judged, "rate": answered / judged}
         report = {**GOOD, "in_corpus": bucket, "out_of_corpus": bucket}
         assert problems(report, config) == []
@@ -151,4 +152,31 @@ def test_recorded_baseline_retains_rates_and_full_existing_dataset_identity() ->
     assert config["measured"]["set_digest"] == meta["digest"]
     assert config["measured"]["in_corpus_answered_rate"] == 0.95
     assert config["measured"]["out_of_corpus_answered_rate"] == 0.2
+    assert config["case_counts"] == {key: meta[key] for key in ("in_corpus", "out_of_corpus")}
     assert problems(GOOD, config) == []
+
+
+@pytest.mark.parametrize("judged", [1, 19, 21, 200])
+def test_a_partial_or_inflated_measurement_cannot_claim_the_full_set(judged: int) -> None:
+    report = {
+        **GOOD,
+        "in_corpus": {"answered": judged, "judged": judged, "rate": 1.0},
+        "out_of_corpus": {"answered": 0, "judged": judged, "rate": 0.0},
+    }
+    assert problems(report, CONFIG)
+
+
+@pytest.mark.parametrize(
+    "counts",
+    [
+        None,
+        {},
+        [],
+        {"in_corpus": 20},
+        {"in_corpus": True, "out_of_corpus": 20},
+        {"in_corpus": 20.0, "out_of_corpus": 20},
+        {"in_corpus": 0, "out_of_corpus": 20},
+    ],
+)
+def test_frozen_cardinality_policy_requires_both_positive_integer_counts(counts: object) -> None:
+    assert problems(GOOD, {**CONFIG, "case_counts": counts})

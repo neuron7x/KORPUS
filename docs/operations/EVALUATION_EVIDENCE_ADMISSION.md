@@ -65,8 +65,9 @@ measurement. Recorded rates **0.95 / 0.20** and thresholds **0.90 / 0.25** are u
 
 The ordinary pytest suite and determinism gate include valid synthetic archive cases
 and adversarial dataset, source, transport, and numeric controls. The mutation catalog
-adds M800–M803 for a skipped dataset digest, a skipped source-substring check, a skipped
-numeric domain check, and redirect following. Existing M355 still tests a coherent
+adds M800–M805 for a skipped dataset digest, a skipped source-substring check, a skipped
+numeric domain check, redirect following, malformed metadata, and incomplete sample
+cardinality. Existing M355 still tests a coherent
 foreign-question rate above the ceiling; its fixture now carries matching counts.
 The fixtures contain no real corpus or credentials.
 
@@ -74,7 +75,7 @@ New helpers remain below the unchanged module defaults. The reference runner is
 reduced from a recorded 260-line / complexity-26 ceiling to a measured 94 lines /
 complexity 6. The boundary runner remains within its existing 116-line / complexity-6
 ceiling. Two narrow data/proof budget changes are recorded: the unchanged eight
-ratchet selftest cases need **48 → 65 proof lines** for their now-valid schemas,
+ratchet selftest cases need **48 → 66 proof lines** for their now-valid schemas,
 complete identities and integer counts; four added determinism test entries need
 **57 → 61 module lines**, without changing executable complexity. Neither change
 raises a global default or exempts executable logic.
@@ -83,3 +84,20 @@ Local focused tests are implementation checks, not independent review or a canon
 hosted mutation result. Git/process ownership refusals remain failures and are not
 suppressed. Release authority still requires the existing independent review and
 hosted gates on the published candidate.
+
+## Independent review corrections
+
+Source and citation metadata are validated independently before equality comparison.
+Required title/revision values cannot disappear through matching missing keys or
+null values. Page numbers require strict positive integers, so a JSON boolean cannot
+impersonate page 1. Nullable page/section/source URI values remain valid when explicitly
+present. Citation shape is checked before source transport, so a known malformed
+citation remains FAIL even if the source would be unavailable.
+
+The ratchet policy also pins 20 cases per stratum from the existing frozen metadata.
+Each measured denominator must equal that cardinality. A two-case sample cannot claim
+the full 40-case identity merely by reporting internally consistent rates. These
+cardinalities describe the frozen inputs; no historical rates were remeasured.
+
+Measured local module-ceiling changes for the new metadata/cardinality guards are
+recorded individually in the budget ledger, without changing global defaults.

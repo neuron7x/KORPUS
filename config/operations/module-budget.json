@@ -4107,7 +4107,7 @@
       "max_function_args": 2,
       "max_function_lines": 24,
       "max_nesting": 2,
-      "proof_lines": 65,
+      "proof_lines": 66,
       "reason": "Ратчет на дві протилежні осі якості відповідей. Кожен новий клас порушення — рядок у переліку `problems`, а не гілка."
     },
     "scripts/check_budget_raises_are_named.py": {
@@ -7323,10 +7323,10 @@
       "reason": "Issue #129 independent parser review: consume every byte with PostgreSQL ASCII whitespace and closed punctuation; reject non-ASCII relations, Python-only whitespace and adjacent integer/identifier junk before the exact policy-token comparison."
     },
     "scripts/answer_quality_validation.py": {
-      "lines": 79,
+      "lines": 95,
       "max_complexity": 9,
       "max_function_args": 2,
-      "max_function_lines": 15,
+      "max_function_lines": 16,
       "max_nesting": 2,
       "proof_lines": 0
     },
@@ -7355,10 +7355,10 @@
       "proof_lines": 0
     },
     "scripts/reference_eval_citations.py": {
-      "lines": 101,
+      "lines": 120,
       "max_complexity": 15,
       "max_function_args": 2,
-      "max_function_lines": 34,
+      "max_function_lines": 35,
       "max_nesting": 3,
       "proof_lines": 0
     },
@@ -13865,6 +13865,43 @@
       "to": {
         "lines": 61
       }
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/reference_eval_citations.py",
+      "from": {
+        "lines": 101,
+        "max_function_lines": 34
+      },
+      "to": {
+        "lines": 120,
+        "max_function_lines": 35
+      },
+      "reason": "Issue #131 independent review: validate each required and nullable metadata field before comparison and before source I/O, rejecting missing/null titles and boolean page numbers. Only measured local ceilings change; global defaults remain fixed."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/answer_quality_validation.py",
+      "from": {
+        "lines": 79,
+        "max_function_lines": 15
+      },
+      "to": {
+        "lines": 95,
+        "max_function_lines": 16
+      },
+      "reason": "Issue #131 independent review: bind measured denominators to the frozen set cardinalities and validate the two positive integer policy counts, preventing partial or inflated samples from claiming the full dataset identity."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/check_answer_quality_ratchet.py",
+      "from": {
+        "proof_lines": 65
+      },
+      "to": {
+        "proof_lines": 66
+      },
+      "reason": "Issue #131 independent review: one selftest fixture line now carries the frozen 20/20 case counts; the same eight cases and executable logic remain bounded."
     }
   ],
   "recorded_at": "2026-10-04",

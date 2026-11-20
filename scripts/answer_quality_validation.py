@@ -62,6 +62,21 @@ def _policy_problems(config: dict[str, Any]) -> list[str]:
     return problems
 
 
+def _cardinality_problems(report: dict[str, Any], config: dict[str, Any]) -> list[str]:
+    counts = config.get("case_counts")
+    if not isinstance(counts, dict) or set(counts) != {"in_corpus", "out_of_corpus"}:
+        return ["invalid frozen set cardinality policy"]
+    problems: list[str] = []
+    for stratum, expected in counts.items():
+        if type(expected) is not int or expected <= 0:
+            problems.append(f"invalid frozen case count for {stratum}")
+            continue
+        bucket = report.get(stratum)
+        if not isinstance(bucket, dict) or bucket.get("judged") != expected:
+            problems.append(f"measured count differs from frozen set for {stratum}")
+    return problems
+
+
 def validation_problems(report: object, config: object) -> list[str]:
     if not isinstance(report, dict) or not isinstance(config, dict):
         return ["measurement and policy must be JSON objects"]
@@ -76,4 +91,5 @@ def validation_problems(report: object, config: object) -> list[str]:
         problems.append("invalid complete measured set digest")
     for stratum in ("in_corpus", "out_of_corpus"):
         problems.extend(_bucket_problems(report.get(stratum), stratum))
+    problems.extend(_cardinality_problems(report, config))
     return problems
