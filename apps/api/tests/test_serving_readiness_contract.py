@@ -241,3 +241,42 @@ def test_actual_http_200_false_ready_body_cannot_be_credited() -> None:
         server.shutdown()
         thread.join()
         server.server_close()
+
+def test_redirect_to_another_ready_responder_is_refused() -> None:
+    class Ready(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b'{"status":"ready"}')
+
+        def log_message(self, _format: str, *_args: object) -> None:
+            return
+
+    class Redirect(Ready):
+        def do_GET(self) -> None:
+            self.send_response(302)
+            self.send_header("Location", f"http://127.0.0.1:{ready.server_port}/ready")
+            self.end_headers()
+
+    ready = HTTPServer(("127.0.0.1", 0), Ready)
+    redirect = HTTPServer(("127.0.0.1", 0), Redirect)
+    servers = (ready, redirect)
+    threads = [Thread(target=server.serve_forever, daemon=True) for server in servers]
+    for thread in threads:
+        thread.start()
+    try:
+        positive = GATE.probe(ready.server_port)
+        assert GATE.verdict(["pilot.service"], [ready.server_port], [positive])["status"] == "PASS"
+        poisoned = GATE.probe(redirect.server_port)
+        assert poisoned["status"] is None
+        verdict = GATE.verdict(["pilot.service"], [redirect.server_port], [poisoned])
+        assert verdict["status"] == "FAIL"
+        assert verdict["serving"] == []
+        assert verdict["refusing"][0]["port"] == redirect.server_port
+    finally:
+        for server in servers:
+            server.shutdown()
+        for thread in threads:
+            thread.join()
+        for server in servers:
+            server.server_close()

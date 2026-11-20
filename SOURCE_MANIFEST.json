@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2261,
-  "root_sha256": "f04b36b079ceea4ed45cba5d99b1236ce06aae671a08b7492bb74779cbf186c2",
+  "root_sha256": "b545952097e365397c847232ccb3e41a753024a50e037da4d31d1182264ef3e7",
   "files": [
     {
       "path": ".dockerignore",
@@ -6013,8 +6013,8 @@
     },
     {
       "path": "apps/api/tests/test_serving_readiness_contract.py",
-      "bytes": 8659,
-      "sha256": "9d4ffbccab458efec66b9e40ab66b1865816f27a1bf310750812233fc8dfae14",
+      "bytes": 10186,
+      "sha256": "37502e299f08933edbb23f82a69bc2eeb4e63dd21640a55e0b91e75be33f696c",
       "mode": "0644"
     },
     {
@@ -11425,8 +11425,8 @@
     },
     {
       "path": "scripts/check_serving_readiness.py",
-      "bytes": 8860,
-      "sha256": "0f3692cf2580372eb684b58a90a032a4b6f9e688b3b1817b6364aa542379dce7",
+      "bytes": 8980,
+      "sha256": "9daf139ffa95e8e150eec89c19c9958c1fe0366fa7c6c0c6feb68292aa0c284c",
       "mode": "0755"
     },
     {

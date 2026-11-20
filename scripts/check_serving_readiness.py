@@ -41,7 +41,8 @@ def probe(port: int, path: str = "/ready", timeout: float = TIMEOUT) -> dict[str
             return {
                 "port": port,
                 "path": path,
-                "status": response.status,
+                # Redirected answers do not prove readiness at the declared port.
+                "status": response.status if response.geturl() == url else None,
                 "body": response.read(4096).decode(),
             }
     except urllib.error.HTTPError as error:
