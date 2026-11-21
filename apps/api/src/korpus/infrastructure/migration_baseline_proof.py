@@ -214,7 +214,7 @@ def verify_passive_revision(root: Path, revision: str, parent: str) -> RevisionS
         if name.startswith("__") or name in bindings:
             raise BaselineProofError("DENIED_REVISION_INITIALIZATION_UNPROVEN")
         bindings.add(name)
-    if imports != allowed_imports:
+    if imports not in (allowed_imports, allowed_imports - {("collections.abc", "Sequence")}):
         raise BaselineProofError("DENIED_REVISION_INITIALIZATION_UNPROVEN")
     expected = {
         "revision": revision,

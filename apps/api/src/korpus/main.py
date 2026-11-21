@@ -73,7 +73,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         corpus_snapshot_reader.initialize(create_schema=selected.schema_mode == "auto")
         object_store = create_object_store(selected)
         quarantine_store = create_quarantine_store(selected)
-        ingestion_jobs = SqlIngestionJobQueue(repository.engine)
+        bind = repository._apply_postgres_identity  # noqa: SLF001
         observability = Observability(
             service_name=selected.service_name, otlp_endpoint=selected.otlp_endpoint
         )
@@ -97,7 +97,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     max_response_bytes=selected.embedding_max_response_bytes,
                 ),
                 corpus_governance=corpus_governance,
-                bind_identity=repository._apply_postgres_identity,  # noqa: SLF001
+                bind_identity=bind,
             )
             if selected.semantic_retrieval_enabled
             else None
@@ -144,7 +144,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         install_model_executors(app.state, selected)
         app.state.object_store = object_store
         app.state.quarantine_store = quarantine_store
-        app.state.ingestion_jobs = ingestion_jobs
+        app.state.ingestion_jobs = SqlIngestionJobQueue(repository.engine, bind_identity=bind)
         app.state.query_cache = EvidenceQueryCache(
             selected.retrieval_cache_entries, selected.retrieval_cache_ttl_seconds
         )

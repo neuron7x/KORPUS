@@ -170,6 +170,13 @@ def test_policy_nonobject_denied(tmp_path: Path) -> None:
             b"def upgrade()", b"branch_labels = 'forged'\ndef upgrade()"
         ),
         _source(parent="expected").replace(b"from alembic import op\n", b""),
+        _source(parent="expected").replace(b"from __future__ import annotations\n", b""),
+        _source(parent="expected").replace(
+            b"from collections.abc import Sequence", b"from untrusted_dependency import Sequence"
+        ),
+        _source(parent="expected").replace(
+            b"from collections.abc import Sequence", b"from collections.abc import Sequence as op"
+        ),
         _source(parent="expected").replace(
             b"down_revision: str | None = 'expected'", b"down_revision: str | None = 'wrong'"
         ),
@@ -181,8 +188,14 @@ def test_future_revision_requires_passive_graph_and_imports(tmp_path: Path, sour
         proof.verify_passive_revision(tmp_path, "0001_base", "expected")
 
 
-def test_valid_passive_revision(tmp_path: Path) -> None:
-    _write(tmp_path, f"{VERSIONS}/0001_base.py", _source(parent="0002_next"))
+@pytest.mark.parametrize("sequence_import", [False, True])
+def test_valid_passive_revision(tmp_path: Path, sequence_import: bool) -> None:
+    source = _source(parent="0002_next")
+    if not sequence_import:
+        source = source.replace(b"from collections.abc import Sequence\n", b"").replace(
+            b" | Sequence[str]", b""
+        )
+    _write(tmp_path, f"{VERSIONS}/0001_base.py", source)
     assert proof.verify_passive_revision(tmp_path, "0001_base", "0002_next").revision == "0001_base"
 
 

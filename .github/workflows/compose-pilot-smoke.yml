@@ -1,0 +1,46 @@
+name: compose-pilot-smoke
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compose-pilot-smoke-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  compose-pilot-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install exact Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12.13"
+          check-latest: false
+      - name: Install locked qualification dependencies
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Check the derived laptop profile
+        run: python scripts/generate_pilot_compose.py --check
+      - name: Qualify the disposable laptop profile
+        run: python scripts/run_compose_pilot_smoke.py --out var/compose-pilot-smoke.json
+      - name: Upload sanitized qualification report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: compose-pilot-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: var/compose-pilot-smoke.json
+          if-no-files-found: error
+          retention-days: 14

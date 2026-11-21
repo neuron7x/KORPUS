@@ -49,6 +49,257 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M832_SOURCE_PREDICATE_ESTABLISHES_BINDING_OMITTED",
+        "apps/api/src/korpus/application/question_obligations.py",
+        "|встановлює",
+        "",
+        (
+            "apps/api/tests/test_question_obligations_api.py::"
+            "test_establishes_predicate_keeps_subject_and_facet_head_binding[bound-procedure]",
+        ),
+    ),
+    Mutant(
+        "M831_REQUIRED_CONTROL_PREDICATE_BECOMES_LITERAL_PROPERTY",
+        "apps/api/src/korpus/application/question_obligations.py",
+        '        "потрібен",\n',
+        "",
+        (
+            "apps/api/tests/test_question_obligations_api.py::"
+            "test_required_control_predicate_keeps_safe_source_after_injection[masculine]",
+        ),
+    ),
+    Mutant(
+        "M830_PDF_ANNOTATION_APPEARANCE_SILENTLY_OMITTED",
+        "apps/api/src/korpus/infrastructure/pdf_page_evidence.py",
+        '    if any(annotation.get_object().get("/AP") is not None for annotation in annotations):',
+        "    if False:",
+        (
+            "apps/api/tests/test_pdf_page_fidelity.py::"
+            "test_visible_annotation_appearance_is_refused_before_successful_page_extraction[no-header-no-ocr-direct]",
+        ),
+    ),
+    Mutant(
+        "M829_QUOTED_SINGLE_LETTER_BORROWS_AN_ARTICLE",
+        "apps/api/src/korpus/application/question_obligations.py",
+        "        if self.named and len(self.literal) == 1 and self.literal in _FUNCTIONS:",
+        "        if False:",
+        (
+            "apps/api/tests/test_question_obligations_api.py::"
+            "test_quoted_single_letter_name_cannot_borrow_an_ordinary_article",
+        ),
+    ),
+    Mutant(
+        "M828_AMBIGUOUS_TRAILING_FUNCTION_LABEL_DISAPPEARS",
+        "apps/api/src/korpus/application/question_obligations.py",
+        "        ambiguous_label=ambiguous_trailing_label(question, _FUNCTIONS),",
+        "        ambiguous_label=False,",
+        (
+            "apps/api/tests/test_question_obligations_api.py::"
+            "test_unquoted_single_letter_function_label_requires_explicit_disambiguation",
+        ),
+    ),
+    Mutant(
+        "M827_GENERIC_ANSWER_BYPASSES_SOURCE_IDENTITY",
+        "apps/api/src/korpus/application/answer_obligations.py",
+        "    evidence = {item.span.id: item for item in eligible}",
+        "    if not obligations.subjects and not obligations.facets:\n"
+        "        return ()\n"
+        "    evidence = {item.span.id: item for item in eligible}",
+        (
+            "apps/api/tests/test_question_obligations_api.py::"
+            "test_generic_question_refuses_foreign_citation_identity",
+        ),
+    ),
+    Mutant(
+        "M826_REMAPPED_REFERENCE_RETAINS_OLD_SAMPLED_HOLDER",
+        "scripts/remap_reference_versions.py",
+        '            "sampled_from_version": sampled,',
+        '            "sampled_from_version": case["sampled_from_version"],',
+        (
+            "apps/api/tests/test_reference_eval_admission.py::"
+            "test_remapped_reference_rebinds_sampled_holder_and_preserves_source_provenance",
+        ),
+    ),
+    Mutant(
+        "M825_GENITIVE_DUTIES_BECOME_A_LITERAL_PROPERTY",
+        "apps/api/src/korpus/application/question_obligations.py",
+        '    if len(facets) == 1 and question_kind(_normal(facets[0].label)) == "duty":',
+        "    if False:",
+        (
+            "apps/api/tests/test_question_obligations_api.py::"
+            "test_declared_archivist_duties_keep_genitive_and_predicate_forms",
+        ),
+    ),
+    Mutant(
+        "M824_UNCITED_CLAIM_BORROWS_ANOTHER_QUOTES_SPAN",
+        "apps/api/src/korpus/application/answer_obligations.py",
+        "    if not _claim_citations_bound(claims, citations):",
+        "    if False:",
+        (
+            "apps/api/tests/test_question_obligations_api.py::"
+            "test_final_gate_refuses_an_extra_claim_borrowing_a_cited_span",
+        ),
+    ),
+    Mutant(
+        "M820_QUESTION_SUBJECT_OBLIGATION_BYPASS",
+        "apps/api/src/korpus/application/question_obligations.py",
+        "        return tuple(item.label for item in self.subjects if not item.met(text, context))",
+        "        return ()",
+        (
+            "apps/api/tests/test_question_obligations_api.py::test_explicit_entity_in_generic_question_is_still_mandatory",
+            "apps/api/tests/test_question_obligations_api.py::test_wrong_entity_cannot_reach_supported_answer",
+        ),
+    ),
+    Mutant(
+        "M821_MISSING_QUESTION_FACET_ACCEPTED",
+        "apps/api/src/korpus/application/answer_obligations.py",
+        "    if required and not any(required <= value for value in covered.values()):",
+        "    if False:",
+        (
+            "apps/api/tests/test_question_obligations_api.py::test_missing_requested_property_is_an_explicit_refusal",
+        ),
+    ),
+    Mutant(
+        "M822_DUPLICATE_SENTENCE_REEMITTED",
+        "apps/api/src/korpus/application/answer_query.py",
+        "            if candidate.text in seen_sentences:",
+        "            if False:",
+        (
+            "apps/api/tests/test_question_obligations.py::test_duplicate_sentences_do_not_spend_claim_budget_or_multiply_sources",
+        ),
+    ),
+    Mutant(
+        "M823_FINAL_QUESTION_SUBJECT_CHECK_BYPASS",
+        "apps/api/src/korpus/application/answer_obligations.py",
+        "        failures.update(obligations.missing_subjects(citation.quote, declared))",
+        "        failures.update(())",
+        (
+            "apps/api/tests/test_question_obligations.py::test_final_gate_rechecks_subject_after_substituted_extraction",
+        ),
+    ),
+    Mutant(
+        "M814_DOCX_TEXTBOX_TABLE_BYPASSES_STRUCTURE_CHECKS",
+        "apps/api/src/korpus/infrastructure/docx_blocks.py",
+        '    if any(node.tag == f"{WORD}tbl" for node in paragraph.iter()):',
+        "    if False:",
+        (
+            "apps/api/tests/test_docx_table_fidelity.py::"
+            "test_table_inside_a_textbox_cannot_bypass_table_structure_checks[direct]",
+        ),
+    ),
+    Mutant(
+        "M815_DOCX_UNICODE_CELL_SEPARATOR_FORGES_ROWS",
+        "apps/api/src/korpus/infrastructure/docx_blocks.py",
+        r'    return encoded.translate({0x85: "\\u0085", 0x2028: "\\u2028", 0x2029: "\\u2029"})',
+        "    return encoded",
+        (
+            "apps/api/tests/test_docx_table_fidelity.py::"
+            "test_unicode_line_separators_stay_inside_their_original_cell",
+        ),
+    ),
+    Mutant(
+        "M810_PDF_TEXT_HEADER_HIDES_UNEXTRACTED_IMAGE",
+        "apps/api/src/korpus/infrastructure/pdf_page_evidence.py",
+        "    return bool(operators & (_IMAGE_PAINT if text else _VISIBLE_PAINT))",
+        "    return not text and bool(operators & _VISIBLE_PAINT)",
+        (
+            "apps/api/tests/test_pdf_page_fidelity.py::test_unextracted_raster_page_is_never_accepted_as_complete[header-and-scan-direct]",
+        ),
+    ),
+    Mutant(
+        "M811_DOCX_EMPTY_CELLS_DISAPPEAR",
+        "apps/api/src/korpus/infrastructure/docx_blocks.py",
+        "        rows.append(cells)",
+        "        rows.append([cell for cell in cells if cell])",
+        (
+            "apps/api/tests/test_docx_table_fidelity.py::test_table_rows_headers_and_empty_cells_are_preserved[direct]",
+        ),
+    ),
+    Mutant(
+        "M812_SPANS_CROSS_SECTION_BOUNDARIES",
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        "            end = min(section_end, position + max_chars)",
+        "            end = min(len(text), position + max_chars)",
+        (
+            "apps/api/tests/test_section_span_fidelity.py::test_short_spans_cannot_assign_the_previous_section_to_a_later_fact",
+        ),
+    ),
+    Mutant(
+        "M813_PDF_OCR_DISCARDS_KNOWN_EMBEDDED_TEXT",
+        "apps/api/src/korpus/infrastructure/pdf_page_evidence.py",
+        '    if " ".join(embedded.split()) not in " ".join(recognized.split()):',
+        "    if False:",
+        (
+            "apps/api/tests/test_pdf_page_fidelity.py::test_ocr_cannot_discard_known_embedded_header[header-lost]",
+        ),
+    ),
+    Mutant(
+        "M804_REFERENCE_CITATION_METADATA_SHAPE_NOT_VERIFIED",
+        "scripts/reference_eval_citations.py",
+        '    _metadata_shape(citation, "title")',
+        "    # Metadata shape check removed.",
+        (
+            "apps/api/tests/test_reference_eval_evidence.py::"
+            "test_boolean_citation_page_cannot_equal_integer_source_page",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M805_QUALITY_FROZEN_CARDINALITY_NOT_VERIFIED",
+        "scripts/answer_quality_validation.py",
+        "    problems.extend(_cardinality_problems(report, config))",
+        "    # Frozen cardinality check removed.",
+        (
+            "apps/api/tests/test_answer_quality_validation.py::"
+            "test_a_partial_or_inflated_measurement_cannot_claim_the_full_set[1]",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M800_REFERENCE_SET_DIGEST_NOT_VERIFIED",
+        "scripts/reference_eval_set.py",
+        '    if digest != meta["content_digest"]:',
+        "    if False:",
+        (
+            "apps/api/tests/test_reference_eval_admission.py::"
+            "test_changed_reference_query_is_rejected_before_network",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M801_REFERENCE_CITATION_SUBSTRING_NOT_VERIFIED",
+        "scripts/reference_eval_citations.py",
+        "    if text[start:end] != quote:",
+        "    if False:",
+        (
+            "apps/api/tests/test_reference_eval_evidence.py::"
+            "test_self_consistent_fabricated_quote_is_rejected_against_source",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M802_QUALITY_RATE_DOMAIN_NOT_VERIFIED",
+        "scripts/answer_quality_validation.py",
+        "    return 0 <= value <= 1 and math.isfinite(value)",
+        "    return True",
+        (
+            "apps/api/tests/test_answer_quality_validation.py::"
+            "test_nonfinite_floor_is_rejected_before_comparison",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M803_EVALUATION_FOLLOWS_UNTRUSTED_REDIRECT",
+        "scripts/evaluation_http.py",
+        "timeout=timeout, follow_redirects=False, trust_env=False, transport=transport",
+        "timeout=timeout, follow_redirects=True, trust_env=False, transport=transport",
+        (
+            "apps/api/tests/test_reference_eval_evidence.py::"
+            "test_answer_redirect_never_sends_bearer_to_location",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M777_SOURCE_SECURITY_IGNORES_NATIVE_LOG_ERRORS",
         "scripts/source_security_native.py",
         "    _reject_diagnostics(text)",
@@ -1682,7 +1933,7 @@ MUTANTS = (
     Mutant(
         "M94_SCHEMA_REVISION_PIN_UNCHECKED",
         "apps/api/src/korpus/infrastructure/schema.py",
-        'SCHEMA_REVISION = "0027_learning_competency_integrity"',
+        'SCHEMA_REVISION = "0028_reviewer_update_scope"',
         'SCHEMA_REVISION = "0016_learning_course_graph"',
         (
             "apps/api/tests/test_schema_revision_pin.py::test_the_code_pins_the_head_of_the_migration_graph",
@@ -2641,9 +2892,9 @@ MUTANTS = (
         # Покриття питання каже, скільки слів збіглося, і мовчить про те, чи вціліла
         # думка. Знявши цей ключ, уривок із вищим покриттям знову стає головним доказом.
         "M346_FRAGMENT_MAY_OUTRANK_A_WHOLE_SENTENCE",
-        "apps/api/src/korpus/application/answer_query.py",
-        "                    starts_mid_sentence(candidate.text),\n",
-        "                    False,\n",
+        "apps/api/src/korpus/application/answer_candidates.py",
+        "        starts_mid_sentence(candidate.text),\n",
+        "        False,\n",
         (
             "apps/api/tests/test_citation_fragments.py::"
             "test_a_whole_sentence_outranks_a_fragment_that_matches_more_of_the_question",

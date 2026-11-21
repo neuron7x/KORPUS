@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v0.9.7",
-  "root_sha256": "81e5b5f9ec120451002cc7b83ca539d8965a368286ecc56b958c366ad0e95ef7",
+  "root_sha256": "474f4ca79da2d54c3119d3241903f9aa08270c0a8c87c9658508434d30bc5bdc",
   "records": [
     {
       "path": ".github/dependabot.yml",
@@ -17,6 +17,11 @@
       "path": ".github/workflows/ci.yml",
       "sha256": "75cf1cf09cf6390b48fb41427c555bd1253b00451c98865a8d8df01ad213d30e",
       "bytes": 16240
+    },
+    {
+      "path": ".github/workflows/compose-pilot-smoke.yml",
+      "sha256": "803254454bd5d8f510c8b85497b7e0eca6ca720a0bf9cc9458311f242975c26e",
+      "bytes": 1528
     },
     {
       "path": ".github/workflows/dependency-review.yml",
@@ -70,8 +75,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "sha256": "dbc05fed17b531165a05519231976f9a20914c579bacbd08bb24003e37c87fad",
-      "bytes": 65748
+      "sha256": "5db17fd6f946dc78833b6ccec3517a92ceca02c734cd828489995a1e91f55eb0",
+      "bytes": 65803
     },
     {
       "path": "apps/api/Dockerfile",
@@ -154,9 +159,19 @@
       "bytes": 507
     },
     {
+      "path": "deploy/pilot/compose.local.yaml",
+      "sha256": "86296fa985d38c2a0cc0d2cb3aaae543f2883ccc2968ce20f22132243530c3d2",
+      "bytes": 12881
+    },
+    {
+      "path": "deploy/pilot/compose.private.yaml",
+      "sha256": "946d5ce41c30a7ba78c1f902c2777012a1a408197145ebbd5b0df47645f9f741",
+      "bytes": 700
+    },
+    {
       "path": "docker-compose.yml",
-      "sha256": "de5d5cf97f3d30c0535844f5a2c85e5bb672ce02d6a4ec33c26594431f3039c1",
-      "bytes": 16726
+      "sha256": "0e50b31aac19fd3b9919a8f7e1ff63a0b909cbaae8e5f0e4e75c0c3c4263c5e9",
+      "bytes": 18091
     },
     {
       "path": "infra/minio/korpus-app-policy.json",

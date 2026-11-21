@@ -296,7 +296,7 @@ def test_pdf_open_embedded_ocr_branch_matrix(
     path = tmp_path / "x.pdf"
     path.write_bytes(b"pdf")
 
-    class Page:
+    class Page(dict):
         def __init__(self, text: str | None = None, exc: Exception | None = None):
             self.text, self.exc = text, exc
 
@@ -304,6 +304,9 @@ def test_pdf_open_embedded_ocr_branch_matrix(
             if self.exc:
                 raise self.exc
             return self.text
+
+        def get_contents(self):
+            return SimpleNamespace(operations=[([], b"Tj" if self.text else b"Do")])
 
     class Reader:
         def __init__(self, pages, *, encrypted=False, decrypt_result=1, decrypt_exc=None):

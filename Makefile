@@ -908,7 +908,7 @@ public-health:
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
 .NOTPARALLEL: validate
-validate: mutation-delta-gate-selftest serving-readiness-selftest evidence-epistemics-selftest corpus-transport-selftest production-hard-predicates-selftest assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget stemmer-closure admission-differential adjudication-properties file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates package-build-identity production-observability production-inference-security production-exact-environment
+validate: pilot-compose-check mutation-delta-gate-selftest serving-readiness-selftest evidence-epistemics-selftest corpus-transport-selftest production-hard-predicates-selftest assurance-model-selftest unit-exec-arguments public-env-parity gate-closure ci-mirror corpus-path-declarations document-references declared-metrics builtin-security selftest-coverage mutation-report-freshness evidence-freshness release-surface handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map bibliography-check import-cycles release-identity module-budget stemmer-closure admission-differential adjudication-properties file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree catalog-uri-uniqueness publication-mirrors refusal-retryability github-actions-validate production-hard-predicates package-build-identity production-observability production-inference-security production-exact-environment
 	python3 scripts/validate_repository.py --context $(REPOSITORY_CONTEXT)
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py
@@ -1460,6 +1460,17 @@ pilot-posture:
 install-pilot-runtime:
 	$(PY) scripts/install_pilot_runtime.py
 
+.PHONY: pilot-acceptance
+# Explicit live mutations are confined to a synthetic pilot-smoke-* corpus.
+# Pass credential references, never bearer values: see docs/operations/PILOT_ACCEPTANCE.md.
+pilot-acceptance:
+	$(PY) scripts/run_pilot_acceptance.py \
+	  --base-url "$(PILOT_BASE_URL)" --corpus-id "$(PILOT_CORPUS_ID)" \
+	  --owner-credential "$(PILOT_OWNER_CREDENTIAL)" \
+	  --reader-credential "$(PILOT_READER_1_CREDENTIAL)" \
+	  --reader-credential "$(PILOT_READER_2_CREDENTIAL)" \
+	  --reader-credential "$(PILOT_READER_3_CREDENTIAL)" $(ARGS)
+
 # `serving-freshness` ПЕРШИМ у цьому лані. Чотири осі профілю відповідей міряються
 # запитом до живого процесу, тож вони описують ПРОЦЕС, а не дерево. Гейт існував із
 # власним негативним контролем і не входив у жоден лан: виміряно 02.09.2026, він був
@@ -1517,6 +1528,23 @@ release: assemble-assurance snapshot validate owner-packet-check handoff-verify-
 
 infra-secrets:
 	bash scripts/init_local_secrets.sh
+
+.PHONY: compose-pilot-smoke pilot-compose pilot-compose-check pilot-up
+PILOT_COMPOSE := docker compose --project-directory . --project-name korpus-pilot -f deploy/pilot/compose.local.yaml
+
+pilot-compose:
+	$(PY) scripts/generate_pilot_compose.py
+
+pilot-compose-check:
+	$(PY) scripts/generate_pilot_compose.py --check
+
+pilot-up: pilot-compose-check infra-secrets
+	$(PILOT_COMPOSE) up -d --build --wait --wait-timeout 600 web
+	$(PILOT_COMPOSE) up -d --build worker
+	PILOT_WORKER_SERVICES="$$($(PILOT_COMPOSE) ps --status running --services worker)" && test "$$PILOT_WORKER_SERVICES" = worker
+
+compose-pilot-smoke: pilot-compose-check
+	$(PY) scripts/run_compose_pilot_smoke.py
 
 infra-up: infra-secrets
 	docker compose up -d --wait web worker

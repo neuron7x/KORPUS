@@ -578,34 +578,109 @@
       "on": "2026-09-08"
     },
     {
-      "on": "2026-10-20",
-      "path": "scripts/artifact_snapshot.py",
       "from": {
         "lines": 28,
         "max_complexity": 4,
         "max_function_lines": 15
       },
+      "on": "2026-10-20",
+      "path": "scripts/artifact_snapshot.py",
+      "reason": "Codex independent P2 review: reject stale permissive snapshot ratchet after extraction into separately budgeted snapshot_admission.py.",
       "to": {
         "lines": 25,
         "max_complexity": 3,
         "max_function_lines": 11
-      },
-      "reason": "Codex independent P2 review: reject stale permissive snapshot ratchet after extraction into separately budgeted snapshot_admission.py."
+      }
     },
     {
-      "on": "2026-10-20",
-      "path": "scripts/distribution_runtime_policy.py",
       "from": {
         "max_complexity": 7,
         "max_function_lines": 14,
         "max_nesting": 1
       },
+      "on": "2026-10-20",
+      "path": "scripts/distribution_runtime_policy.py",
+      "reason": "Adversarial path normalization reduced branching and eliminated mutable wrapper-root admission assumptions.",
       "to": {
         "max_complexity": 4,
         "max_function_lines": 7,
         "max_nesting": 0
+      }
+    },
+    {
+      "from": {
+        "lines": 260,
+        "max_complexity": 26,
+        "max_function_args": 4,
+        "max_function_lines": 85,
+        "max_nesting": 5,
+        "proof_lines": 0
       },
-      "reason": "Adversarial path normalization reduced branching and eliminated mutable wrapper-root admission assumptions."
+      "new_modules": [
+        "scripts/answer_quality_validation.py",
+        "scripts/boundary_eval_set.py",
+        "scripts/evaluation_http.py",
+        "scripts/evaluation_json.py",
+        "scripts/reference_eval_citations.py",
+        "scripts/reference_eval_judge.py",
+        "scripts/reference_eval_report.py",
+        "scripts/reference_eval_set.py"
+      ],
+      "on": "2026-11-20",
+      "path": "scripts/run_reference_eval.py",
+      "reason": "Issue #131: bounded input admission, evidence verification and report helpers replace the monolithic reference evaluator without raising global defaults.",
+      "to": {
+        "lines": 94,
+        "max_complexity": 6,
+        "max_function_args": 3,
+        "max_function_lines": 28,
+        "max_nesting": 3,
+        "proof_lines": 0
+      }
+    },
+    {
+      "from": {
+        "lines": 745,
+        "max_function_lines": 72
+      },
+      "on": "2026-11-20",
+      "path": "apps/api/src/korpus/infrastructure/extraction.py",
+      "reason": "Issue #132: section-bounded exact spans and extracted bounded PDF/DOCX helpers reduce the measured production ceiling without widening any gate.",
+      "to": {
+        "lines": 718,
+        "max_function_lines": 71
+      }
+    },
+    {
+      "from": {
+        "lines": 166,
+        "max_complexity": 10,
+        "max_function_lines": 45
+      },
+      "on": "2026-11-20",
+      "path": "apps/api/src/korpus/infrastructure/pdf_extraction.py",
+      "reason": "Issue #132: section-bounded exact spans and extracted bounded PDF/DOCX helpers reduce the measured production ceiling without widening any gate.",
+      "to": {
+        "lines": 143,
+        "max_complexity": 7,
+        "max_function_lines": 27
+      }
+    },
+    {
+      "from": {
+        "lines": 845
+      },
+      "new_modules": [
+        "apps/api/src/korpus/application/answer_candidates.py",
+        "apps/api/src/korpus/application/answer_obligations.py",
+        "apps/api/src/korpus/application/question_obligations.py"
+      ],
+      "on": "2026-11-20",
+      "path": "apps/api/src/korpus/application/answer_query.py",
+      "reason": "Issue #133: isolate deterministic candidate selection and independently recheck recognized subjects and complete same-version facet evidence.",
+      "to": {
+        "lines": 749
+      }
     }
   ],
   "modules": {
@@ -903,14 +978,32 @@
       "proof_lines": 0,
       "reason": "v0.6.0: pure source-bound query audit envelope"
     },
+    "apps/api/src/korpus/application/answer_candidates.py": {
+      "lines": 143,
+      "max_complexity": 9,
+      "max_function_args": 6,
+      "max_function_lines": 35,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #133: initial measured ceiling for the bounded deterministic question-obligation contract."
+    },
+    "apps/api/src/korpus/application/answer_obligations.py": {
+      "lines": 75,
+      "max_complexity": 13,
+      "max_function_args": 4,
+      "max_function_lines": 35,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #133: initial measured ceiling for the bounded deterministic question-obligation contract."
+    },
     "apps/api/src/korpus/application/answer_query.py": {
-      "lines": 845,
+      "lines": 749,
       "max_complexity": 21,
       "max_function_args": 12,
       "max_function_lines": 200,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": "+28 рядків: захоплення знімка на початку відповіді й запис про те, ЧОМУ його відсутність законна. Розгортання без читача знімка працює як раніше, лише без поля в журналі — знімок ОПИСУЄ відповідь, а не виробляє її, тож його поломка не сміє відібрати в читача знайдену підставу."
+      "reason": "Issue #133: sentence selection extracted into a bounded helper; final applicability gate and exact provenance retained without increasing function complexity."
     },
     "apps/api/src/korpus/application/answer_request_snapshot.py": {
       "lines": 146,
@@ -2164,6 +2257,24 @@
       "proof_lines": 0,
       "reason": "Lower ratchet after per-request executor removal"
     },
+    "apps/api/src/korpus/application/question_labels.py": {
+      "lines": 57,
+      "max_complexity": 3,
+      "max_function_args": 2,
+      "max_function_lines": 7,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Issue #136: initial measured ceiling for conservative single-letter name disambiguation; preserves existing question-module ceilings."
+    },
+    "apps/api/src/korpus/application/question_obligations.py": {
+      "lines": 223,
+      "max_complexity": 14,
+      "max_function_args": 3,
+      "max_function_lines": 21,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #133: initial measured ceiling for the bounded deterministic question-obligation contract."
+    },
     "apps/api/src/korpus/application/ranking_evaluation.py": {
       "lines": 96,
       "max_complexity": 10,
@@ -2876,6 +2987,15 @@
       "max_nesting": 2,
       "proof_lines": 0
     },
+    "apps/api/src/korpus/infrastructure/docx_blocks.py": {
+      "lines": 106,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 22,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "Issue #132: measured ordered OOXML block/grid traversal with explicit unsupported geometry, paragraph-embedded table refusal and lossless JSON-quoted TSV including Unicode line separators. All dimensions remain below unchanged new-module defaults."
+    },
     "apps/api/src/korpus/infrastructure/embedding_backfill.py": {
       "lines": 128,
       "max_complexity": 11,
@@ -2931,13 +3051,13 @@
       "reason": "Портовано знімок корпусу з GitHub-лінії 01.09.2026: одна відповідь читає ОДИН стан корпусу, а не кілька незалежних читань під датою `as_of`. `corpus_state_epoch` дає монотонний маркер, `evidence_sealing` прив'язує схвалення до конкретного набору доказів, і журнал відповіді несе `corpus_snapshot` поруч із `corpus_release`."
     },
     "apps/api/src/korpus/infrastructure/extraction.py": {
-      "lines": 745,
+      "lines": 718,
       "max_complexity": 25,
       "max_function_args": 12,
-      "max_function_lines": 72,
+      "max_function_lines": 71,
       "max_nesting": 6,
       "proof_lines": 0,
-      "reason": "Raised 610 -> 618 on 2026-08-28 for three coverage exclusions with their reasons: RLIMIT_NPROC is absent only on macOS, and the two chunking self-checks are unreachable by construction and kept for the day the construction changes. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one. | 2026-08-30: +31 рядок — вирок нюхача `file` більше не остаточний для .html. Дві сторінки (офіційна позиція НАТО щодо РФ і аналітика ICDS) відхилялись як «HTML content detected as application/javascript», віддаючи 8209 і 2311 слів справжнього тексту: нюхача збиває довгий рядок вбудованого скрипту. Додано структурну перевірку розмітки в перших 1024 байтах; це не послаблення — три сигнали й далі мусять збігтися, а перейменований PDF/ZIP і справжній скрипт відхиляються п'ятьма негативними контролями. | 2026-08-30: 657 -> 716. Обстановка сторінки перестала бути текстом документа. Питання поза доменом «Яка ставка податку на прибуток підприємств у 2019 році?» мало покриття 0.500 при порозі відмови 0.25: найкращим реченням корпусу для нього був `<title>` сторінки zakon.rada.gov.ua з написами кнопок панелі. Додано NON_DOCUMENT_ELEMENTS (title, button, select, nav, aside) і поступку незакритому `<title>`, без якої зламана розмітка давала б ПОРОЖНІЙ документ замість шумного. Стеля поза доменом 0.500 -> 0.250, жодне з семи питань у домені не змінилось; сім тестів, три отрути вбито."
+      "reason": "Raised 610 -> 618 on 2026-08-28 for three coverage exclusions with their reasons: RLIMIT_NPROC is absent only on macOS, and the two chunking self-checks are unreachable by construction and kept for the day the construction changes. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one. | 2026-08-30: +31 рядок — вирок нюхача `file` більше не остаточний для .html. Дві сторінки (офіційна позиція НАТО щодо РФ і аналітика ICDS) відхилялись як «HTML content detected as application/javascript», віддаючи 8209 і 2311 слів справжнього тексту: нюхача збиває довгий рядок вбудованого скрипту. Додано структурну перевірку розмітки в перших 1024 байтах; це не послаблення — три сигнали й далі мусять збігтися, а перейменований PDF/ZIP і справжній скрипт відхиляються п'ятьма негативними контролями. | 2026-08-30: 657 -> 716. Обстановка сторінки перестала бути текстом документа. Питання поза доменом «Яка ставка податку на прибуток підприємств у 2019 році?» мало покриття 0.500 при порозі відмови 0.25: найкращим реченням корпусу для нього був `<title>` сторінки zakon.rada.gov.ua з написами кнопок панелі. Додано NON_DOCUMENT_ELEMENTS (title, button, select, nav, aside) і поступку незакритому `<title>`, без якої зламана розмітка давала б ПОРОЖНІЙ документ замість шумного. Стеля поза доменом 0.500 -> 0.250, жодне з семи питань у домені не змінилось; сім тестів, три отрути вбито. | Issue #132: section-bounded exact spans and extracted bounded PDF/DOCX helpers reduce the measured production ceiling without widening any gate."
     },
     "apps/api/src/korpus/infrastructure/gcp_identity.py": {
       "lines": 122,
@@ -3021,20 +3141,20 @@
     },
     "apps/api/src/korpus/infrastructure/learning_competency_schema.py": {
       "lines": 78,
-      "proof_lines": 0,
       "max_complexity": 4,
-      "max_function_lines": 20,
       "max_function_args": 3,
+      "max_function_lines": 20,
       "max_nesting": 3,
+      "proof_lines": 0,
       "reason": "2026-11-19 / #100: initial measured bounds for competency edge immutability on SQLite bootstrap and forward PostgreSQL/SQLite migration; existing ceilings unchanged."
     },
     "apps/api/src/korpus/infrastructure/learning_history_concurrency.py": {
       "lines": 87,
-      "proof_lines": 0,
       "max_complexity": 1,
-      "max_function_lines": 4,
       "max_function_args": 1,
+      "max_function_lines": 4,
       "max_nesting": 0,
+      "proof_lines": 0,
       "reason": "2026-11-19 / #100: initial measured bounds for the unmerged forward PostgreSQL course-parent and lifecycle-lock guards; every pre-existing ceiling is unchanged."
     },
     "apps/api/src/korpus/infrastructure/learning_progress_schema.py": {
@@ -3145,13 +3265,13 @@
       "reason": "PR #108: exact new-module measurements for sealed provenance, runtime migration admission and measured process/test execution; existing ceilings unchanged."
     },
     "apps/api/src/korpus/infrastructure/migration_bootstrap_history.py": {
-      "lines": 40,
+      "lines": 41,
       "max_complexity": 7,
       "max_function_args": 1,
       "max_function_lines": 16,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "2026-11-19 / #100: exact initial AST measurements for bounded source authorization, publication transaction, and explicit bootstrap history; existing ceilings unchanged."
+      "reason": "Issue #129: one explicit forward revision in the frozen fresh-bootstrap chain; populated-deployment retirement admission remains unchanged."
     },
     "apps/api/src/korpus/infrastructure/migration_frozen_loader.py": {
       "lines": 61,
@@ -3259,13 +3379,31 @@
       "proof_lines": 0
     },
     "apps/api/src/korpus/infrastructure/pdf_extraction.py": {
-      "lines": 166,
-      "max_complexity": 10,
+      "lines": 143,
+      "max_complexity": 7,
       "max_function_args": 7,
-      "max_function_lines": 45,
+      "max_function_lines": 27,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "v6.9.0: split PDF/OCR parsing from generic extraction to reduce parser-path cyclomatic concentration without changing refusal semantics"
+      "reason": "v6.9.0: split PDF/OCR parsing from generic extraction to reduce parser-path cyclomatic concentration without changing refusal semantics | Issue #132: section-bounded exact spans and extracted bounded PDF/DOCX helpers reduce the measured production ceiling without widening any gate."
+    },
+    "apps/api/src/korpus/infrastructure/pdf_ocr.py": {
+      "lines": 76,
+      "max_complexity": 10,
+      "max_function_args": 6,
+      "max_function_lines": 23,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #132: measured first-version selected-page OCR rendering and exact image inventory under the existing monotonic deadline; all dimensions remain below unchanged new-module defaults."
+    },
+    "apps/api/src/korpus/infrastructure/pdf_page_evidence.py": {
+      "lines": 57,
+      "max_complexity": 5,
+      "max_function_args": 3,
+      "max_function_lines": 12,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #132: measured first-version per-page painted-content completeness and native-text preservation checks; all dimensions remain below unchanged new-module defaults."
     },
     "apps/api/src/korpus/infrastructure/pec_observability.py": {
       "lines": 98,
@@ -3331,13 +3469,13 @@
       "reason": "31.08.2026: клас «оголошений предмет». На 92 предмети, які корпус оголошує заголовками «Обов'язки: <роль>», перша цитата була документом про предмет 0 разів. Причина — чотири стадії поспіль винагороджують ПОВТОР слів питання, а стаття про роль своєї назви не повторює. Додано: допуск за предметом повз лексичні пороги (структурні лишаються), клас предмета першим ключем ранжування, збереження порядку в `_search_plan` замість пересортування за сирою оцінкою, і утримання лексичної осі там, де вона структурно сліпа. Вимір: top1 0.000 → 0.826, recall 0.348 → 0.978, confidence_inverted TRUE → FALSE; заморожений еталон і межа домену без змін."
     },
     "apps/api/src/korpus/infrastructure/review_transitions.py": {
-      "lines": 284,
+      "lines": 286,
       "max_complexity": 9,
       "max_function_args": 13,
       "max_function_lines": 67,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "Запечатування доказів ПЕРЕД зміною стану, не після: дайджест мусить описувати те, що затверджують, а не те, у що воно перетвориться. Без цього рядка `evidence_digest` лишається None і схваленню немає чого прив'язати до себе."
+      "reason": "Issue #129: abort the existing review transaction unless the document access-tier UPDATE affects exactly one row, preventing partial retirement/audit publication after an RLS-hidden update."
     },
     "apps/api/src/korpus/infrastructure/rls_repository.py": {
       "lines": 130,
@@ -3802,6 +3940,14 @@
       "proof_lines": 0,
       "reason": "ACT-007: aggregate pinned CI scanner execution markers; initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
+    "scripts/answer_quality_validation.py": {
+      "lines": 95,
+      "max_complexity": 9,
+      "max_function_args": 2,
+      "max_function_lines": 16,
+      "max_nesting": 2,
+      "proof_lines": 0
+    },
     "scripts/archive_atomic_publish.py": {
       "lines": 42,
       "max_complexity": 5,
@@ -3859,8 +4005,8 @@
     "scripts/assurance_snapshot_contract.py": {
       "lines": 66,
       "max_complexity": 11,
-      "max_function_lines": 15,
       "max_function_args": 2,
+      "max_function_lines": 15,
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Issue #105 / #6 / #12: initial measured ceiling for shared packaged-source and research-evidence verification; existing module ceilings unchanged."
@@ -4006,6 +4152,14 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "the local bootstrap: approval refuses a version stating neither effective_from nor publication_date, so this script had to state one"
+    },
+    "scripts/boundary_eval_set.py": {
+      "lines": 57,
+      "max_complexity": 9,
+      "max_function_args": 1,
+      "max_function_lines": 17,
+      "max_nesting": 2,
+      "proof_lines": 0
     },
     "scripts/bounded_process.py": {
       "lines": 18,
@@ -4166,7 +4320,7 @@
       "max_function_args": 2,
       "max_function_lines": 24,
       "max_nesting": 2,
-      "proof_lines": 48,
+      "proof_lines": 66,
       "reason": "Ратчет на дві протилежні осі якості відповідей. Кожен новий клас порушення — рядок у переліку `problems`, а не гілка."
     },
     "scripts/check_budget_raises_are_named.py": {
@@ -4401,6 +4555,15 @@
       "proof_lines": 0,
       "reason": "New 2026-08-29: lock-SBOM against tree-scan SBOM; unpinned material is the finding. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
+    "scripts/compose_pilot_environment.py": {
+      "lines": 368,
+      "max_complexity": 7,
+      "max_function_args": 2,
+      "max_function_lines": 41,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "Issue #124: initial measured ceiling for private laptop Compose ownership, local persistence paths, canonical runtime guards and exact host checks; every dimension is within the unchanged new-module defaults."
+    },
     "scripts/conversation_retention.py": {
       "lines": 142,
       "max_complexity": 12,
@@ -4559,6 +4722,22 @@
       "max_function_args": 1,
       "max_function_lines": 19,
       "max_nesting": 1,
+      "proof_lines": 0
+    },
+    "scripts/evaluation_http.py": {
+      "lines": 122,
+      "max_complexity": 11,
+      "max_function_args": 5,
+      "max_function_lines": 24,
+      "max_nesting": 3,
+      "proof_lines": 0
+    },
+    "scripts/evaluation_json.py": {
+      "lines": 78,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 8,
+      "max_nesting": 2,
       "proof_lines": 0
     },
     "scripts/evidence_access_route.py": {
@@ -4937,13 +5116,13 @@
       "reason": "Issue #109: shared equal-cardinality FK collection proof with extracted literal signature checks; exact initial limits, existing ceilings unchanged."
     },
     "scripts/gcp/migration_raw_ddl_proof.py": {
-      "lines": 54,
-      "max_complexity": 8,
+      "lines": 56,
+      "max_complexity": 9,
       "max_function_args": 2,
       "max_function_lines": 17,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "Issue #109: bounded local-effect DDL, declaration and referent proofs extracted without raising existing module ceilings; first-version source measurements."
+      "reason": "Issue #129: dispatch to the exact two-policy reviewer expansion proof after the existing literal/comment/stacked-statement guards; all other CREATE POLICY forms remain refused."
     },
     "scripts/gcp/migration_reachability.py": {
       "lines": 152,
@@ -4953,6 +5132,15 @@
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "Issue #109: the previously unbounded transitive Alembic call-graph walk is isolated from the existing migration admission controller. This records measured non-relaxed per-module limits and keeps fail-closed static dispatch inspection independently bounded."
+    },
+    "scripts/gcp/migration_review_policy_proof.py": {
+      "lines": 66,
+      "max_complexity": 5,
+      "max_function_args": 1,
+      "max_function_lines": 16,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #129 independent parser review: consume every byte with PostgreSQL ASCII whitespace and closed punctuation; reject non-ASCII relations, Python-only whitespace and adjacent integer/identifier junk before the exact policy-token comparison."
     },
     "scripts/gcp/migration_revision_identity.py": {
       "lines": 55,
@@ -5249,6 +5437,15 @@
       "max_nesting": 1,
       "proof_lines": 0
     },
+    "scripts/generate_pilot_compose.py": {
+      "lines": 110,
+      "max_complexity": 8,
+      "max_function_args": 1,
+      "max_function_lines": 27,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #124: initial measured ceiling for deterministic laptop-profile derivation from canonical Compose settings and fail-closed drift checking; every dimension is within the unchanged new-module defaults."
+    },
     "scripts/generate_release_truth.py": {
       "lines": 56,
       "max_complexity": 1,
@@ -5404,11 +5601,11 @@
     },
     "scripts/github_evidence_upload.py": {
       "lines": 50,
-      "proof_lines": 0,
       "max_complexity": 6,
-      "max_function_lines": 19,
       "max_function_args": 3,
+      "max_function_lines": 19,
       "max_nesting": 2,
+      "proof_lines": 0,
       "reason": "2026-11-19 / #102 / measured initial limits for invocation-bound authenticated upload evidence; all previous ceilings and the original time window are unchanged."
     },
     "scripts/github_evidence_wait.py": {
@@ -5549,8 +5746,8 @@
     "scripts/kb_reference_admission.py": {
       "lines": 242,
       "max_complexity": 15,
-      "max_function_lines": 43,
       "max_function_args": 1,
+      "max_function_lines": 43,
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "PR #88 Codex P2 4334124081: add a single-descriptor, nofollow/nonblocking, byte-bounded reader and observable-change refusal. Only this not-yet-merged module grows; input limits, function ceilings, other module budgets and existing tests are unchanged. Twenty-four new file-boundary controls and six isolated guard mutations verify the added behavior."
@@ -5603,8 +5800,8 @@
     "scripts/manifest_lib/source_verification.py": {
       "lines": 37,
       "max_complexity": 9,
-      "max_function_lines": 25,
       "max_function_args": 2,
+      "max_function_lines": 25,
       "max_nesting": 3,
       "proof_lines": 0,
       "reason": "Issue #105 / #6 / #12: initial measured ceiling for shared packaged-source and research-evidence verification; existing module ceilings unchanged."
@@ -5763,8 +5960,8 @@
     "scripts/package_contracts.py": {
       "lines": 79,
       "max_complexity": 6,
-      "max_function_lines": 28,
       "max_function_args": 3,
+      "max_function_lines": 28,
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Issue #105 / #6 / #12: initial measured ceiling for shared packaged-source and research-evidence verification; existing module ceilings unchanged."
@@ -5953,6 +6150,24 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "v0.9.6 executable research/generalization gates; exact initial verified ratchet ceiling"
+    },
+    "scripts/pilot_acceptance_contract.py": {
+      "lines": 352,
+      "max_complexity": 8,
+      "max_function_args": 5,
+      "max_function_lines": 35,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #119: initial measured ceiling for independent synthetic-fixture answer, visible envelope and exact-source assertions; every dimension is within the unchanged new-module defaults."
+    },
+    "scripts/pilot_acceptance_http.py": {
+      "lines": 192,
+      "max_complexity": 9,
+      "max_function_args": 7,
+      "max_function_lines": 41,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "Issue #119: initial measured ceiling for credential references, bounded live HTTP transport and durable ingestion polling; every dimension is within the unchanged new-module defaults."
     },
     "scripts/plan_retention.py": {
       "lines": 102,
@@ -6158,6 +6373,15 @@
       "proof_lines": 0,
       "reason": "05.09.2026: виробник доказу CLM-WEB, якого доти не було НІ ОДНОГО. `WEB_REGRESSION_REPORT.json` оголошувався доказом і не писався жодним кроком, тож претензія була вічним PENDING_EVIDENCE за побудовою. Стелі — точний вимір при внесенні, як і решта реєстру: ратчет ставиться там, де модуль стоїть зараз, а не там, куди він міг би вирости."
     },
+    "scripts/ready_response_contract.py": {
+      "lines": 34,
+      "max_complexity": 8,
+      "max_function_args": 1,
+      "max_function_lines": 18,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Initial measured ceiling for strict JSON readiness envelopes and duplicate-field rejection; no existing module ratchet changed."
+    },
     "scripts/recheck_blocked_sources.py": {
       "lines": 275,
       "max_complexity": 10,
@@ -6194,6 +6418,22 @@
       "proof_lines": 55,
       "reason": "Ремонт меж прольотів: провідний уламок речення переноситься до попереднього прольоту без втрати символів і без виходу за стелю 1400. Кожна нова умова відмови — рядок у `skipped`, а не гілка."
     },
+    "scripts/reference_eval_citations.py": {
+      "lines": 120,
+      "max_complexity": 15,
+      "max_function_args": 2,
+      "max_function_lines": 35,
+      "max_nesting": 3,
+      "proof_lines": 0
+    },
+    "scripts/reference_eval_judge.py": {
+      "lines": 75,
+      "max_complexity": 10,
+      "max_function_args": 3,
+      "max_function_lines": 33,
+      "max_nesting": 1,
+      "proof_lines": 0
+    },
     "scripts/reference_eval_metrics.py": {
       "lines": 47,
       "max_complexity": 8,
@@ -6202,6 +6442,22 @@
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Initial measured ceiling for retrieval-yield and Wilson uncertainty reporting"
+    },
+    "scripts/reference_eval_report.py": {
+      "lines": 54,
+      "max_complexity": 10,
+      "max_function_args": 4,
+      "max_function_lines": 29,
+      "max_nesting": 2,
+      "proof_lines": 0
+    },
+    "scripts/reference_eval_set.py": {
+      "lines": 124,
+      "max_complexity": 14,
+      "max_function_args": 2,
+      "max_function_lines": 19,
+      "max_nesting": 2,
+      "proof_lines": 0
     },
     "scripts/refresh_owner_packet.py": {
       "lines": 150,
@@ -6332,8 +6588,8 @@
     "scripts/research_assurance_verification.py": {
       "lines": 32,
       "max_complexity": 6,
-      "max_function_lines": 23,
       "max_function_args": 7,
+      "max_function_lines": 23,
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Issue #105 / #6 / #12: initial measured ceiling for shared packaged-source and research-evidence verification; existing module ceilings unchanged."
@@ -6410,6 +6666,15 @@
       "proof_lines": 0,
       "reason": "zero-install security floor: high-confidence dangerous primitive and hardcoded-secret checks; external scanners remain mandatory"
     },
+    "scripts/run_compose_pilot_smoke.py": {
+      "lines": 384,
+      "max_complexity": 6,
+      "max_function_args": 4,
+      "max_function_lines": 36,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Issue #124: initial measured ceiling for real laptop Compose startup, scoped tokens, authenticated HTTP qualification and owned cleanup; every dimension is within the unchanged new-module defaults."
+    },
     "scripts/run_counterfactual_replay.py": {
       "lines": 9,
       "max_complexity": 0,
@@ -6420,13 +6685,13 @@
       "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
     "scripts/run_determinism_gate.py": {
-      "lines": 57,
+      "lines": 66,
       "max_complexity": 4,
       "max_function_args": 0,
       "max_function_lines": 24,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "v0.6.0: exact test outcome + semantic replay equivalence across hash seeds; decomposed complexity"
+      "reason": "v0.6.0: exact test outcome + semantic replay equivalence across hash seeds; decomposed complexity | Issue #132: add three focused real PDF/OOXML/section-fidelity test files to the existing multi-seed TESTS list; no seed, timeout, verdict, or threshold change."
     },
     "scripts/run_embedding_backfill.py": {
       "lines": 208,
@@ -6629,6 +6894,15 @@
       "proof_lines": 0,
       "reason": "v0.9.6 executable research/generalization gates; exact initial verified ratchet ceiling"
     },
+    "scripts/run_pilot_acceptance.py": {
+      "lines": 327,
+      "max_complexity": 5,
+      "max_function_args": 3,
+      "max_function_lines": 24,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #119: initial measured ceiling for real authenticated pilot acceptance orchestration and sanitized reporting; every dimension is within the unchanged new-module defaults."
+    },
     "scripts/run_plasticity_gate.py": {
       "lines": 64,
       "max_complexity": 5,
@@ -6666,11 +6940,11 @@
       "reason": " | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "scripts/run_reference_eval.py": {
-      "lines": 260,
-      "max_complexity": 26,
-      "max_function_args": 4,
-      "max_function_lines": 85,
-      "max_nesting": 5,
+      "lines": 94,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 28,
+      "max_nesting": 3,
       "proof_lines": 0,
       "reason": "Повтор на `http_429` і його класифікація як відсутності виміру: контроль допуску відхиляв за навантаженням, а судилося це як вирок. Той самий клас лагодили 30.08 для 5xx і проґавили 429, бо префікс описував КОДИ, а спільним є не код, а те, що розгортання не виносило судження."
     },
@@ -6727,13 +7001,22 @@
       "max_nesting": 2,
       "proof_lines": 0
     },
+    "scripts/run_scanner_engine_diagnostic.py": {
+      "lines": 145,
+      "max_complexity": 5,
+      "max_function_args": 3,
+      "max_function_lines": 42,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
+    },
     "scripts/run_source_security.py": {
       "lines": 188,
-      "proof_lines": 0,
       "max_complexity": 5,
-      "max_function_lines": 38,
       "max_function_args": 5,
+      "max_function_lines": 38,
       "max_nesting": 2,
+      "proof_lines": 0,
       "reason": "2026-11-19 / #102 / initial measured ceilings for provenance-bound native source scanner producer; no existing module ceiling raised."
     },
     "scripts/run_stress_gate.py": {
@@ -6772,6 +7055,69 @@
       "proof_lines": 0,
       "reason": "v0.9.4 package hardening: bounded safe-extraction primitive; exact initial ceiling"
     },
+    "scripts/scanner_engine_artifact.py": {
+      "lines": 93,
+      "max_complexity": 9,
+      "max_function_args": 2,
+      "max_function_lines": 38,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
+    },
+    "scripts/scanner_engine_commands.py": {
+      "lines": 118,
+      "max_complexity": 4,
+      "max_function_args": 5,
+      "max_function_lines": 36,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
+    },
+    "scripts/scanner_engine_download.py": {
+      "lines": 133,
+      "max_complexity": 7,
+      "max_function_args": 2,
+      "max_function_lines": 41,
+      "max_nesting": 4,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
+    },
+    "scripts/scanner_engine_fixtures.py": {
+      "lines": 144,
+      "max_complexity": 5,
+      "max_function_args": 2,
+      "max_function_lines": 33,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
+    },
+    "scripts/scanner_engine_probes.py": {
+      "lines": 161,
+      "max_complexity": 7,
+      "max_function_args": 3,
+      "max_function_lines": 40,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
+    },
+    "scripts/scanner_engine_result.py": {
+      "lines": 188,
+      "max_complexity": 8,
+      "max_function_args": 2,
+      "max_function_lines": 27,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
+    },
+    "scripts/scanner_engine_subject.py": {
+      "lines": 81,
+      "max_complexity": 10,
+      "max_function_args": 1,
+      "max_function_lines": 46,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
+    },
     "scripts/seed_recovery_fixture.py": {
       "lines": 115,
       "max_complexity": 9,
@@ -6793,8 +7139,8 @@
     "scripts/serving_readiness_contract.py": {
       "lines": 84,
       "max_complexity": 13,
-      "max_function_lines": 15,
       "max_function_args": 3,
+      "max_function_lines": 15,
       "max_nesting": 1,
       "proof_lines": 0,
       "reason": "Initial measured ceiling for complete serving-unit, process and probe identity admission; existing module ceilings remain unchanged."
@@ -6862,74 +7208,83 @@
     },
     "scripts/source_security_commands.py": {
       "lines": 137,
-      "proof_lines": 0,
       "max_complexity": 2,
-      "max_function_lines": 57,
       "max_function_args": 6,
+      "max_function_lines": 57,
       "max_nesting": 1,
+      "proof_lines": 0,
       "reason": "2026-11-19 / #102 / initial measured ceilings for provenance-bound native source scanner producer; no existing module ceiling raised."
     },
     "scripts/source_security_container.py": {
       "lines": 145,
-      "proof_lines": 0,
       "max_complexity": 9,
-      "max_function_lines": 23,
       "max_function_args": 3,
+      "max_function_lines": 23,
       "max_nesting": 2,
+      "proof_lines": 0,
       "reason": "2026-11-19 / #102 / measured initial limits for owned scanner container cleanup and bounded execution; all previous module ceilings unchanged."
     },
     "scripts/source_security_contract.py": {
       "lines": 271,
-      "proof_lines": 0,
       "max_complexity": 7,
-      "max_function_lines": 33,
       "max_function_args": 3,
+      "max_function_lines": 33,
       "max_nesting": 1,
+      "proof_lines": 0,
       "reason": "2026-11-19 / #102 / initial measured ceilings for provenance-bound native source scanner producer; no existing module ceiling raised."
     },
     "scripts/source_security_execution.py": {
       "lines": 58,
-      "proof_lines": 0,
       "max_complexity": 5,
-      "max_function_lines": 17,
       "max_function_args": 4,
+      "max_function_lines": 17,
       "max_nesting": 3,
+      "proof_lines": 0,
       "reason": "2026-11-19 / #102 / measured initial limits for owned scanner container cleanup and bounded execution; all previous module ceilings unchanged."
     },
     "scripts/source_security_gitleaks.py": {
       "lines": 35,
       "max_complexity": 2,
-      "max_function_lines": 26,
       "max_function_args": 1,
+      "max_function_lines": 26,
       "max_nesting": 0,
       "proof_lines": 0,
       "reason": "2026-11-19 / #102 / measured initial limits for fixed Gitleaks scope, original deadline and diagnostic policy; all existing module ceilings unchanged."
     },
     "scripts/source_security_images.py": {
       "lines": 45,
-      "proof_lines": 0,
       "max_complexity": 4,
-      "max_function_lines": 34,
       "max_function_args": 5,
+      "max_function_lines": 34,
       "max_nesting": 0,
+      "proof_lines": 0,
       "reason": "2026-11-19 / #102 / initial measured ceilings for separate bounded immutable scanner-image provisioning; no existing ceiling raised."
     },
     "scripts/source_security_lock.py": {
       "lines": 83,
-      "proof_lines": 0,
       "max_complexity": 13,
-      "max_function_lines": 25,
       "max_function_args": 2,
+      "max_function_lines": 25,
       "max_nesting": 3,
+      "proof_lines": 0,
       "reason": "2026-11-19 / #102 / initial measured ceilings for provenance-bound native source scanner producer; no existing module ceiling raised."
+    },
+    "scripts/source_security_native.py": {
+      "lines": 78,
+      "max_complexity": 12,
+      "max_function_args": 1,
+      "max_function_lines": 16,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for shared native source-security log capture and v2 input-error refusal; no prior module ceiling is raised."
     },
     "scripts/source_security_source.py": {
       "lines": 128,
-      "proof_lines": 0,
       "max_complexity": 9,
-      "max_function_lines": 28,
       "max_function_args": 3,
+      "max_function_lines": 28,
       "max_nesting": 2,
+      "proof_lines": 0,
       "reason": "2026-11-19 / #102 / initial measured ceilings for provenance-bound native source scanner producer; no existing module ceiling raised."
     },
     "scripts/stage_doctrine_corpus.py": {
@@ -7136,11 +7491,11 @@
     },
     "scripts/validate_scanner_toolchain.py": {
       "lines": 43,
-      "proof_lines": 0,
       "max_complexity": 2,
-      "max_function_lines": 22,
       "max_function_args": 0,
+      "max_function_lines": 22,
       "max_nesting": 1,
+      "proof_lines": 0,
       "reason": "2026-11-19 / #102 / initial measured ceilings for fatal native scanner-toolchain audit census validation; no existing ceilings raised."
     },
     "scripts/validate_span_hygiene.py": {
@@ -7479,105 +7834,24 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
-    },
-    "scripts/run_scanner_engine_diagnostic.py": {
-      "lines": 145,
-      "max_complexity": 5,
-      "max_function_args": 3,
-      "max_function_lines": 42,
-      "max_nesting": 4,
-      "proof_lines": 0,
-      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
-    },
-    "scripts/scanner_engine_artifact.py": {
-      "lines": 93,
-      "max_complexity": 9,
-      "max_function_args": 2,
-      "max_function_lines": 38,
-      "max_nesting": 3,
-      "proof_lines": 0,
-      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
-    },
-    "scripts/scanner_engine_commands.py": {
-      "lines": 118,
-      "max_complexity": 4,
-      "max_function_args": 5,
-      "max_function_lines": 36,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
-    },
-    "scripts/scanner_engine_download.py": {
-      "lines": 133,
-      "max_complexity": 7,
-      "max_function_args": 2,
-      "max_function_lines": 41,
-      "max_nesting": 4,
-      "proof_lines": 0,
-      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
-    },
-    "scripts/scanner_engine_fixtures.py": {
-      "lines": 144,
-      "max_complexity": 5,
-      "max_function_args": 2,
-      "max_function_lines": 33,
-      "max_nesting": 1,
-      "proof_lines": 0,
-      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
-    },
-    "scripts/scanner_engine_probes.py": {
-      "lines": 161,
-      "max_complexity": 7,
-      "max_function_args": 3,
-      "max_function_lines": 40,
-      "max_nesting": 3,
-      "proof_lines": 0,
-      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
-    },
-    "scripts/scanner_engine_result.py": {
-      "lines": 188,
-      "max_complexity": 8,
-      "max_function_args": 2,
-      "max_function_lines": 27,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
-    },
-    "scripts/scanner_engine_subject.py": {
-      "lines": 81,
-      "max_complexity": 10,
-      "max_function_args": 1,
-      "max_function_lines": 46,
-      "max_nesting": 2,
-      "proof_lines": 0,
-      "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
-    },
-    "scripts/source_security_native.py": {
-      "lines": 78,
-      "proof_lines": 0,
-      "max_complexity": 12,
-      "max_function_lines": 16,
-      "max_function_args": 1,
-      "max_nesting": 2,
-      "reason": "Initial measured limits for shared native source-security log capture and v2 input-error refusal; no prior module ceiling is raised."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
     {
-      "on": "2026-10-20",
-      "path": "scripts/install_pilot_runtime.py",
       "from": {
         "lines": 34,
         "max_complexity": 2,
         "max_function_lines": 10
       },
+      "on": "2026-10-20",
+      "path": "scripts/install_pilot_runtime.py",
+      "reason": "Issue #83: validate systemd workspace paths and unit names, escape literal percent specifiers, and render both units before filesystem writes. Supported-path regex keeps render at 9 lines; main gains one pre-render step. Verified by 29 collected pilot tests (27 added); no default ceilings or gate logic changed.",
       "to": {
         "lines": 46,
         "max_complexity": 3,
         "max_function_lines": 11
-      },
-      "reason": "Issue #83: validate systemd workspace paths and unit names, escape literal percent specifiers, and render both units before filesystem writes. Supported-path regex keeps render at 9 lines; main gains one pre-render step. Verified by 29 collected pilot tests (27 added); no default ceilings or gate logic changed."
+      }
     },
     {
       "changes": [
@@ -13885,63 +14159,242 @@
       "to": 130
     },
     {
-      "on": "2026-10-20",
-      "path": "scripts/distribution_runtime_policy.py",
       "from": {
         "lines": 21
       },
-      "to": {
-        "lines": 22
-      },
-      "reason": "P1 review found runtime-path alias and mixed-root bypass; one additional line permits a clearer type-safe component predicate with narrower complexity, function-length and nesting ceilings."
-    },
-    {
       "on": "2026-10-20",
       "path": "scripts/distribution_runtime_policy.py",
+      "reason": "P1 review found runtime-path alias and mixed-root bypass; one additional line permits a clearer type-safe component predicate with narrower complexity, function-length and nesting ceilings.",
+      "to": {
+        "lines": 22
+      }
+    },
+    {
       "from": {
         "lines": 22,
         "max_complexity": 4,
         "max_function_lines": 7
       },
+      "on": "2026-10-20",
+      "path": "scripts/distribution_runtime_policy.py",
+      "reason": "Independent P1 review proved reports/release evidence false positives and Windows extraction alias evasion. Added explicit admissible report roots and normalized path components with regression tests, no default gate changed.",
       "to": {
         "lines": 29,
         "max_complexity": 5,
         "max_function_lines": 14
-      },
-      "reason": "Independent P1 review proved reports/release evidence false positives and Windows extraction alias evasion. Added explicit admissible report roots and normalized path components with regression tests, no default gate changed."
+      }
     },
     {
-      "on": "2026-10-21",
-      "path": "scripts/distribution_runtime_policy.py",
       "from": {
         "lines": 29
       },
+      "on": "2026-10-21",
+      "path": "scripts/distribution_runtime_policy.py",
+      "reason": "Canonical Ruff RUF007 requires importing itertools.pairwise rather than adjacent list-zip; one additional standard-library import, no behavior or function-shape growth.",
       "to": {
         "lines": 30
-      },
-      "reason": "Canonical Ruff RUF007 requires importing itertools.pairwise rather than adjacent list-zip; one additional standard-library import, no behavior or function-shape growth."
+      }
     },
     {
-      "on": "2026-10-21",
-      "path": "scripts/kb_reference_admission.py",
       "from": {
         "lines": 212
       },
+      "on": "2026-10-21",
+      "path": "scripts/kb_reference_admission.py",
+      "reason": "PR #88 Codex P2 4334124081: add a single-descriptor, nofollow/nonblocking, byte-bounded reader and observable-change refusal. Only this not-yet-merged module grows; input limits, function ceilings, other module budgets and existing tests are unchanged. Twenty-four new file-boundary controls and six isolated guard mutations verify the added behavior.",
       "to": {
         "lines": 242
-      },
-      "reason": "PR #88 Codex P2 4334124081: add a single-descriptor, nofollow/nonblocking, byte-bounded reader and observable-change refusal. Only this not-yet-merged module grows; input limits, function ceilings, other module budgets and existing tests are unchanged. Twenty-four new file-boundary controls and six isolated guard mutations verify the added behavior."
+      }
     },
     {
-      "on": "2026-10-23",
-      "path": "scripts/distribution_runtime_policy.py",
       "from": {
         "lines": 30
       },
+      "on": "2026-10-23",
+      "path": "scripts/distribution_runtime_policy.py",
+      "reason": "Address exact PR #86 isolated package context and PR #87 scripts-mypy no-any-return failures; source-format measurement, no security gate relaxation.",
       "to": {
         "lines": 34
+      }
+    },
+    {
+      "from": {
+        "lines": 378
       },
-      "reason": "Address exact PR #86 isolated package context and PR #87 scripts-mypy no-any-return failures; source-format measurement, no security gate relaxation."
+      "on": "2026-11-20",
+      "path": "scripts/run_compose_pilot_smoke.py",
+      "reason": "Issue #124: the native cold start exposed Compose 2.38.2 rejecting the worker disabled HTTP probe under --wait. Start worker after web/dependency readiness with a bounded build deadline; preserve service-state validation and actual durable-job acceptance. Five new readiness cases cover stopped/restarting worker, unhealthy API and failed migration; no default ceilings or runtime guards change.",
+      "to": {
+        "lines": 382
+      }
+    },
+    {
+      "from": {
+        "lines": 382,
+        "max_complexity": 5
+      },
+      "on": "2026-11-20",
+      "path": "scripts/run_compose_pilot_smoke.py",
+      "reason": "Issue #124: the native upload failure showed combined log truncation could evict the PostgreSQL error behind collector chatter. Collect each owned service separately under the existing per-service redaction and 6000-character bound; no success predicate, resource ownership guard, default budget or runtime policy changes.",
+      "to": {
+        "lines": 384,
+        "max_complexity": 6
+      }
+    },
+    {
+      "from": {
+        "lines": 40
+      },
+      "on": "2026-11-20",
+      "path": "apps/api/src/korpus/infrastructure/migration_bootstrap_history.py",
+      "reason": "Issue #129: one explicit forward revision in the frozen fresh-bootstrap chain; populated-deployment retirement admission remains unchanged.",
+      "to": {
+        "lines": 41
+      }
+    },
+    {
+      "from": {
+        "lines": 284
+      },
+      "on": "2026-11-20",
+      "path": "apps/api/src/korpus/infrastructure/review_transitions.py",
+      "reason": "Issue #129: abort the existing review transaction unless the document access-tier UPDATE affects exactly one row, preventing partial retirement/audit publication after an RLS-hidden update.",
+      "to": {
+        "lines": 286
+      }
+    },
+    {
+      "from": {
+        "lines": 54,
+        "max_complexity": 8
+      },
+      "on": "2026-11-20",
+      "path": "scripts/gcp/migration_raw_ddl_proof.py",
+      "reason": "Issue #129: dispatch to the exact two-policy reviewer expansion proof after the existing literal/comment/stacked-statement guards; all other CREATE POLICY forms remain refused.",
+      "to": {
+        "lines": 56,
+        "max_complexity": 9
+      }
+    },
+    {
+      "from": {
+        "lines": 44,
+        "max_complexity": 1,
+        "max_function_lines": 3,
+        "max_nesting": 0
+      },
+      "on": "2026-11-20",
+      "path": "scripts/gcp/migration_review_policy_proof.py",
+      "reason": "Issue #129 independent parser review: consume every byte with PostgreSQL ASCII whitespace and closed punctuation; reject non-ASCII relations, Python-only whitespace and adjacent integer/identifier junk before the exact policy-token comparison.",
+      "to": {
+        "lines": 66,
+        "max_complexity": 5,
+        "max_function_lines": 16,
+        "max_nesting": 2
+      }
+    },
+    {
+      "from": {
+        "proof_lines": 48
+      },
+      "on": "2026-11-20",
+      "path": "scripts/check_answer_quality_ratchet.py",
+      "reason": "Issue #131: the same eight selftest cases now include complete dataset identity, schema, baseline rates and internally consistent integer counts. Only proof lines grow; executable complexity decreases.",
+      "to": {
+        "proof_lines": 65
+      }
+    },
+    {
+      "from": {
+        "lines": 57
+      },
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "reason": "Issue #131: four critical evaluation test modules join the existing determinism test registry. Only registry lines grow; executable complexity is unchanged.",
+      "to": {
+        "lines": 61
+      }
+    },
+    {
+      "from": {
+        "lines": 101,
+        "max_function_lines": 34
+      },
+      "on": "2026-11-20",
+      "path": "scripts/reference_eval_citations.py",
+      "reason": "Issue #131 independent review: validate each required and nullable metadata field before comparison and before source I/O, rejecting missing/null titles and boolean page numbers. Only measured local ceilings change; global defaults remain fixed.",
+      "to": {
+        "lines": 120,
+        "max_function_lines": 35
+      }
+    },
+    {
+      "from": {
+        "lines": 79,
+        "max_function_lines": 15
+      },
+      "on": "2026-11-20",
+      "path": "scripts/answer_quality_validation.py",
+      "reason": "Issue #131 independent review: bind measured denominators to the frozen set cardinalities and validate the two positive integer policy counts, preventing partial or inflated samples from claiming the full dataset identity.",
+      "to": {
+        "lines": 95,
+        "max_function_lines": 16
+      }
+    },
+    {
+      "from": {
+        "proof_lines": 65
+      },
+      "on": "2026-11-20",
+      "path": "scripts/check_answer_quality_ratchet.py",
+      "reason": "Issue #131 independent review: one selftest fixture line now carries the frozen 20/20 case counts; the same eight cases and executable logic remain bounded.",
+      "to": {
+        "proof_lines": 66
+      }
+    },
+    {
+      "from": {
+        "lines": 57
+      },
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "reason": "Issue #132: add three focused real PDF/OOXML/section-fidelity test files to the existing multi-seed TESTS list; no seed, timeout, verdict, or threshold change.",
+      "to": {
+        "lines": 60
+      }
+    },
+    {
+      "from": {
+        "lines": 61
+      },
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "reason": "Issues #131/#132/#133 integration: preserve the union of 13 existing and newly reviewed deterministic test files. Only literal registry entries grow; seeds, timeouts, verdicts and executable complexity remain unchanged.",
+      "to": {
+        "lines": 64
+      }
+    },
+    {
+      "from": {
+        "lines": 57
+      },
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "reason": "Issue #133: two declarative test-path entries add subject/facet/dedup controls and the finite three-facet availability matrix to every configured seed. Existing six suites, runner logic, timeouts and function ceilings are unchanged.",
+      "to": {
+        "lines": 59
+      }
+    },
+    {
+      "from": {
+        "lines": 64
+      },
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "reason": "Issues #131/#132/#133 integration: preserve the union of 15 existing and newly reviewed deterministic test files. Only literal registry entries grow; seeds, timeouts, verdicts and executable complexity remain unchanged.",
+      "to": {
+        "lines": 66
+      }
     }
   ],
   "recorded_at": "2026-10-04",

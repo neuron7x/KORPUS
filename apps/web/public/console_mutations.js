@@ -1,12 +1,12 @@
 import {call} from "./api.js";
 import {
-  ingestConsequence, ingestProblems, rescissionConsequence, rescissionProblems,
+  ingestConsequence, ingestProblems, ingestionEndpoint, rescissionConsequence, rescissionProblems,
   reviewConsequence, reviewProblems,
 } from "./console_rules.js";
 
 const $ = id => document.getElementById(id);
 
-function buildIngest() {
+function buildIngest(bootstrap) {
   const compartments = $("doc-compartments").value
     .split(",").map(part => part.trim().toLowerCase()).filter(Boolean);
   const document_ = {
@@ -31,19 +31,34 @@ function buildIngest() {
     if (value) version[key] = value;
   }
   const file = $("ingest-file").files?.[0];
+  const ingestionMode = bootstrap?.capabilities?.ingestion_mode ?? null;
+  const problems = ingestProblems(document_, version, Boolean(file));
+  if (!ingestionEndpoint(ingestionMode)) {
+    problems.push("режим внесення не підтверджено сервером; перевірте сесію ще раз");
+  }
   return {
-    body: {document: document_, version, filename: file?.name ?? null},
-    problems: ingestProblems(document_, version, Boolean(file)),
+    body: {document: document_, version, filename: file?.name ?? null, ingestion_mode: ingestionMode},
+    problems,
     file,
   };
 }
 
-async function sendIngest(payload) {
+async function sendIngest(payload, bootstrap) {
+  const mode = payload.body.ingestion_mode;
+  const endpoint = ingestionEndpoint(mode);
+  if (!endpoint || bootstrap?.capabilities?.ingestion_mode !== mode) {
+    throw new Error("режим внесення змінився; перегляньте запит ще раз");
+  }
   const form = new FormData();
   form.append("document_json", JSON.stringify(payload.body.document));
   form.append("version_json", JSON.stringify(payload.body.version));
   form.append("file", payload.file);
-  return call("/v1/documents/ingest", {method: "POST", form});
+  const result = await call(endpoint, {method: "POST", form});
+  if (mode === "durable_async") {
+    $("job-id").value = result.id;
+    $("job-form").requestSubmit();
+  }
+  return result;
 }
 
 function buildReview() {
@@ -75,9 +90,11 @@ const sendRescission = payload =>
   call(`/v1/document-versions/${encodeURIComponent(payload.versionId)}/rescission`,
     {method: "POST", body: payload.body});
 
-export function wireMutationForms(gate) {
+export function wireMutationForms(gate, getBootstrap) {
   gate($("ingest-form"), $("ingest-preview"), $("ingest-submit"), $("ingest-result"),
-    buildIngest, ingestConsequence, sendIngest);
+    () => buildIngest(getBootstrap()), ingestConsequence,
+    payload => sendIngest(payload, getBootstrap()),
+    (_, payload) => payload.body.ingestion_mode === "durable_async" ? "Прийнято до обробки" : "Виконано");
   gate($("review-form"), $("review-preview"), $("review-submit"), $("review-result"),
     buildReview, reviewConsequence, sendReview);
   gate($("rescind-form"), $("rescind-preview"), $("rescind-submit"), $("rescind-result"),

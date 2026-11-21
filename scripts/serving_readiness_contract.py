@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any, TypeGuard
 
+from ready_response_contract import ready_response
+
 
 def _valid_port(value: object) -> bool:
     return type(value) is int and 1 <= value <= 65535
@@ -47,14 +49,13 @@ def valid_probes(probes: list[dict[str, Any]] | None, path: str = "/ready") -> b
 def readiness_checks(
     units: list[str], ports: list[int], probes: list[dict[str, Any]]
 ) -> dict[str, bool]:
-    records_valid = valid_probes(probes)
-    observed = [item["port"] for item in probes] if records_valid else []
+    observed = [item["port"] for item in probes] if valid_probes(probes) else []
     complete = _valid_ports(ports) and _valid_ports(observed) and set(ports) == set(observed)
     return {
         "units_declared": _valid_units(units),
         "ports_found": _valid_ports(ports),
         "probe_set_complete": complete,
-        "every_declared_port_answers": complete and all(item["status"] == 200 for item in probes),
+        "every_declared_port_answers": complete and all(ready_response(item) for item in probes),
     }
 
 
@@ -70,7 +71,6 @@ def _active_pid(state: dict[str, Any]) -> str | None:
 def owned_ports(
     units: list[str], states: list[dict[str, Any]], processes: list[dict[str, Any]]
 ) -> list[int]:
-    """Refuse an absent unit instead of crediting a healthy process beside it."""
     names = [state.get("unit") for state in states]
     if not _valid_units(units) or not _valid_units(names) or set(names) != set(units):
         return []

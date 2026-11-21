@@ -157,6 +157,12 @@ export function ingestProblems(document_, version, hasFile) {
   return problems;
 }
 
+export function ingestionEndpoint(mode) {
+  if (mode === "synchronous") return "/v1/documents/ingest";
+  if (mode === "durable_async") return "/v1/ingestion-jobs/documents";
+  return null;
+}
+
 // ------------------------------------------------------------ consequences
 //
 // What the operator is told will happen, shown before the action fires. These are the
@@ -164,6 +170,14 @@ export function ingestProblems(document_, version, hasFile) {
 // which is not the same as being told the version becomes citable.
 
 export function ingestConsequence(body) {
+  if (body.ingestion_mode === "durable_async") {
+    return (
+      `Файл документа «${body.document.canonical_title}» буде поставлено в чергу. ` +
+      "Стежте за результатом у розділі «Стан обробки документа». Після успішної обробки " +
+      `версія «${body.version.revision}» потрапить до карантину. ` +
+      "Цитування стане можливим лише після затвердження."
+    );
+  }
   return (
     `Версія «${body.version.revision}» документа «${body.document.canonical_title}» ` +
     "потрапляє до карантину. Подія внесення входить до ланцюга аудиту разом із " +

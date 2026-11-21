@@ -26,7 +26,23 @@ Canonical engineering-closure repository snapshot — **23 August 2026**.
 > оголошення рухомого числа розходиться мовчки, і саме так воно й розійшлось.
 
 
-## Підняти й перевірити, що воно відповідає
+## Private laptop pilot — three to five invited readers
+
+```sh
+make api-install
+make compose-pilot-smoke
+make pilot-up
+```
+
+Open `http://127.0.0.1:3000` and follow the
+[private pilot runbook](docs/operations/PRIVATE_PILOT.md) for owner/reader JWT
+sessions, document review and the exact private HTTPS hostname. The dedicated
+`korpus-pilot` project retains PostgreSQL, ClamAV, the durable worker and audit anchor;
+its documents and quarantine use a shared persistent local volume. The legacy
+MinIO/S3 topology is not the pilot startup path. Source derivation and the hosted
+Compose gate must pass; operator-host deployment and recovery remain separate checks.
+
+## Локальна розробка API — лише loopback
 
 Цього розділу тут не було, і його відсутність була вадою, не пропуском: свіжий клон
 віддавав `503` на кожному ендпоінті, а рядок, потрібний щоб зрушити, не траплявся
