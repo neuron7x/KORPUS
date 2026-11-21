@@ -1,5 +1,4 @@
-"""Build two exact stdlib diagnostic binaries without changing scanner trust."""
-
+# Build two exact stdlib diagnostic binaries without changing scanner trust.
 from __future__ import annotations
 
 import hashlib
@@ -36,6 +35,7 @@ class BuildCommands:
         remaining = min(240.0, self.deadline - time.monotonic())
         require(remaining > 0, "source-build deadline exhausted")
         started = time.monotonic()
+        stdout: str
         code, stdout, stderr, timed_out, termination = run_bounded(
             command, cwd=cwd, env=self.environment, timeout_seconds=remaining
         )

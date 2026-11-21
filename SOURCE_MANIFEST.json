@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2388,
-  "root_sha256": "a27b5912c481aeaa7a0be76cf7f00d70891ffdc109187a7bdef6a3aa267ce0db",
+  "file_count": 2390,
+  "root_sha256": "565ad257c3ecaeedf3852e4e863e93466e97b77c36e5ca5e7a85a831ae2312b4",
   "files": [
     {
       "path": ".dockerignore",
@@ -121,8 +121,8 @@
     },
     {
       "path": ".github/workflows/scanner-stdlib-diagnostic.yml",
-      "bytes": 2062,
-      "sha256": "75c00b288a3bbc9999aac9c8322b240176b2bee7889fac00650e779abf48bfff",
+      "bytes": 2124,
+      "sha256": "9bc8039911c2c5b61d7460ee291effaca2a65d962c6926561e8eb0865ab12aec",
       "mode": "0644"
     },
     {
@@ -6222,9 +6222,15 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_scanner_stdlib_compiler_install.py",
+      "bytes": 3551,
+      "sha256": "269e86f897c25502072c32ad64558fbe4f497031662b5e171f432dba22cc1ddf",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_scanner_stdlib_native.py",
-      "bytes": 9893,
-      "sha256": "3944d38efd48befe4e90e12647f60bd2f0049fbfe0ad8b5abea85ef79c4831b3",
+      "bytes": 9869,
+      "sha256": "a41645daaa2b78a9e9f39d8d714a9e8ac0d90ee14ec936b2da364f7a4e18fb93",
       "mode": "0644"
     },
     {
@@ -8996,7 +9002,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 6586,
-      "sha256": "85bc5890b423bf25e772e213fb28e732d87dc290875c1313c547ad00bdc473cd",
+      "sha256": "e5056697150d8045f258e03a84974a49e3cf172ec4c8cb4b08b2e1843ad3d064",
       "mode": "0644"
     },
     {
@@ -9037,8 +9043,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 817773,
-      "sha256": "a9d39903d66df6705485e860cba9cb07f30e4846e5e41d9a3d6f9da6eb307660",
+      "bytes": 818146,
+      "sha256": "44d3cabba3f5f427f1e2ebdfe4b332281017408fba24b995ac94f4f002ae6edf",
       "mode": "0644"
     },
     {
@@ -10771,8 +10777,8 @@
     },
     {
       "path": "docs/scanner-stdlib-diagnostic.md",
-      "bytes": 11304,
-      "sha256": "7e47e09c18e38722ccb1ea17126694f1c5d168f23d5018b4adea9cfb54c6ec49",
+      "bytes": 14134,
+      "sha256": "ba0f75fcb87efae7e4394dd11ccfb85a1e23d62df349477279420667ded66bc9",
       "mode": "0644"
     },
     {
@@ -12768,6 +12774,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/install_scanner_compiler.py",
+      "bytes": 2711,
+      "sha256": "4a822c342491c29159c55f5cf7c562068eb5d75d2d5b1826fda732685e1936ba",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/iso_dates.py",
       "bytes": 1553,
       "sha256": "5bac3f07ff86affb76199050c15e5632e8a6ba18405c71f64804284f2005467b",
@@ -13699,8 +13711,8 @@
     },
     {
       "path": "scripts/run_scanner_stdlib_diagnostic.py",
-      "bytes": 5578,
-      "sha256": "bc9c660958be514072f7040ef7d5bda784e30ef6bb5732b99a5f82c6a9f6576d",
+      "bytes": 5594,
+      "sha256": "3471801545003b2f93a3d297830c3b2e7c67025b6351eaae393adc532cf015a7",
       "mode": "0644"
     },
     {
@@ -13771,8 +13783,8 @@
     },
     {
       "path": "scripts/scanner_engine_result.py",
-      "bytes": 5610,
-      "sha256": "014bfc22df9ab5319b4a1caf046cba40e46220d871d27c80fe346730488e0289",
+      "bytes": 5660,
+      "sha256": "a366a86577efa86a3aebe6a0f4a75f9fcae58a3a6080cccf167251fa8886ddd5",
       "mode": "0644"
     },
     {
@@ -13783,8 +13795,8 @@
     },
     {
       "path": "scripts/scanner_stdlib_build.py",
-      "bytes": 6839,
-      "sha256": "addd9aceccfa454dcae78bbb2717f3583e200e317247c7fb2ded0a0ffab73668",
+      "bytes": 6854,
+      "sha256": "9d5f183e25e60094650cbbd4ebb3f2a1223f32895349cbf90e7302c6150250ad",
       "mode": "0644"
     },
     {
@@ -13801,8 +13813,8 @@
     },
     {
       "path": "scripts/scanner_stdlib_probes.py",
-      "bytes": 5071,
-      "sha256": "9a668406fd6bc6a8f3a7ea4c4de2dcd4871befd43fc7223b7331fbeebc41d637",
+      "bytes": 5089,
+      "sha256": "7e66b44b1afabd24f8951e3e469b74facf5a2f742be9db3ceccef9ad7a4798c5",
       "mode": "0644"
     },
     {

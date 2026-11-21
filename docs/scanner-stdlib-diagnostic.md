@@ -187,3 +187,49 @@ compiler files, executable-mode changes or additions before the build.
 Native paired qualification remains pending until a reviewer publishes this
 diagnostic candidate and the exact resulting hosted artifacts are read back.
 No canonical scanner promotion follows automatically from this workflow.
+
+
+## Native preparation failures and exact-archive repair (2026-11-21)
+
+Published candidate `ec2e901334999507601c67fe7b2dc0bbc0ccd4c2`, tree
+`3c3c30b10b2ee173d5e5b8b8099dfecf80b1168c`, was not qualified by its first native
+stdlib run. Run `44885109362/1` reached `source-pinned-paired-build` and refused
+with `ValueError` before recording compiler/build executions. Artifact
+`14699602329` has SHA-256
+`ea8513b5d0833441bd0d85408b9785c7c1bdb9fc5fe98f363c5405dbf67f7fe1`.
+Its 2,015 captured source-file hashes and before/after digest were independently
+matched to that exact Git tree. No full-history or timing success is inferred.
+
+The hosted logs identify `actions/go-versions` release asset
+`go-1.24.11-linux-x64.tar.gz`, release `1.24.11-19880504225`, rather than the pinned
+`go.dev` distribution. Independent exact-asset readback (79,352,089 bytes,
+SHA-256 `209c26fb1e76bb80abd48bff02af948094187124362eceb6854f3805a21f8b34`)
+found every official compiler file unchanged plus one additional 695-byte
+`setup.sh`. The unchanged complete-toolchain validator rejects that exact asset.
+This is an exact-asset/action-path reproduction; the failed native receipt did
+not retain a measured compiler inventory, so it is not represented as one.
+
+The workflow now installs the existing pinned official archive into a fresh
+owned runner directory. `install_scanner_compiler.py` verifies the unchanged
+archive digest before parsing, bounds transfer/member/expanded size, rejects
+noncanonical or nonregular tar inputs, and refuses an existing destination.
+The subsequent original compiler admission still checks the executable and
+complete 14,178-file / 253,338,050-byte inventory. No toolcache files are deleted
+or accepted as exceptions, and no compiler pin, resource limit, scanner policy,
+engine, or trusted-tool guard is changed.
+
+A local positive extracted the actual 78,702,669-byte official archive and passed
+that unchanged full-tree admission. It did not execute a canonical native
+scanner. Synthetic archive negatives are separate parser/installer controls;
+they do not substitute for that real distribution identity proof.
+
+The same published candidate's whole-scripts type gate also exposed four
+`no-any-return` errors that the earlier selected-module invocation did not expose.
+Explicit local result types now preserve the existing runtime import identity
+and behavior. The canonical invocation from `scripts/`, with `MYPYPATH` pointing
+to `apps/api/src`, passes all 447 scripts. No type-ignore, cast, checker exception,
+or existing module-budget increase was introduced. The installer's new module
+receives its initial measured registry entry; all prior entries are unchanged.
+
+A fresh exact-head native run remains mandatory. Previous source/security,
+mutation/package and production-authorization limitations remain in force.

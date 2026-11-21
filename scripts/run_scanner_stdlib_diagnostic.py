@@ -112,7 +112,7 @@ def produce(root: Path, output: Path) -> dict[str, Any]:
         "diagnostic destination is outside the checkout or has a symlink parent",
     )
     output.mkdir(parents=True, mode=0o700)
-    receipt = diagnostic_receipt()
+    receipt: dict[str, Any] = diagnostic_receipt()
     try:
         experiment(root, output, receipt)
     except EXPECTED_FAILURES as error:

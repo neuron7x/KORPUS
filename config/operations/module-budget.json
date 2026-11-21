@@ -5734,6 +5734,15 @@
       "proof_lines": 0,
       "reason": "Initial measured ceiling for idempotent user-systemd watchdog installation | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
+    "scripts/install_scanner_compiler.py": {
+      "lines": 73,
+      "max_complexity": 14,
+      "max_function_args": 2,
+      "max_function_lines": 29,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Initial measured bounds for exact official compiler archive installation; existing toolchain pins and all prior module ceilings remain unchanged."
+    },
     "scripts/iso_dates.py": {
       "lines": 31,
       "max_complexity": 3,

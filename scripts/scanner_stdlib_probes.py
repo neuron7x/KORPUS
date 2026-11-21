@@ -1,5 +1,4 @@
-"""Paired native stdlib controls; no alternate engine or admission authority."""
-
+# Paired native stdlib controls; no alternate engine or admission authority.
 from __future__ import annotations
 
 import hashlib
@@ -34,7 +33,8 @@ def positive_fixture(root: Path) -> str:
     (root / "positive.txt").write_bytes(synthetic_positive_text())
     checked_git(root, ["add", "--", "positive.txt"])
     checked_git(root, ["commit", "--quiet", "-m", "neutral stdlib rule controls"])
-    return checked_git(root, ["rev-parse", "HEAD"]).decode().strip()
+    head: bytes = checked_git(root, ["rev-parse", "HEAD"])
+    return head.decode().strip()
 
 
 def normalized_findings(output: Path) -> tuple[list[dict[str, Any]], str]:

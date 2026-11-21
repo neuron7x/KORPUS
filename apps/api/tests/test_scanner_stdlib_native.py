@@ -218,9 +218,9 @@ def test_diagnostic_workflow_has_no_admission_permissions_or_artifact_name() -> 
     assert set(workflow["on"]) == {"pull_request", "workflow_dispatch"}
     steps = workflow["jobs"]["paired-native-stdlib-observation"]["steps"]
     assert steps[0]["with"] == {"fetch-depth": "0", "persist-credentials": "false"}
-    compiler = next(step for step in steps if step.get("uses", "").startswith("actions/setup-go@"))
-    assert compiler["uses"] == "actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16"
-    assert compiler["with"] == {"go-version": "1.24.11", "check-latest": "false", "cache": "false"}
+    compiler = next(step for step in steps if "install_scanner_compiler.py" in step.get("run", ""))
+    assert '--destination "$RUNNER_TEMP/korpus-pinned-go"' in compiler["run"]
+    assert '"$RUNNER_TEMP/korpus-pinned-go/go/bin" >> "$GITHUB_PATH"' in compiler["run"]
     assert steps[-1]["with"]["name"] == "scanner-stdlib-diagnostic-${{ github.run_attempt }}"
     assert (
         "source-security-evidence" not in path.read_text()

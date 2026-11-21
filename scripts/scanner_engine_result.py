@@ -164,4 +164,7 @@ def export_outputs(source: Path, destination: Path) -> dict[str, Any]:
     # Resolve after this module initializes: the shared projection uses its readers.
     from scripts.scanner_stdlib_result import export_labels
 
-    return export_labels(source, destination, LABELS, ("release-full-history",), MAX_EXPORT_BYTES)
+    result: dict[str, Any] = export_labels(
+        source, destination, LABELS, ("release-full-history",), MAX_EXPORT_BYTES
+    )
+    return result
