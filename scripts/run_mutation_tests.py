@@ -139,6 +139,37 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M849_SOURCE_STREAM_SIZE_CHANGE_ACCEPTED",
+        "apps/api/src/korpus/application/provenance.py",
+        "        if observed_size != expected_size:",
+        "        if False:",
+        (
+            "apps/api/tests/test_source_digest_framing.py::"
+            "test_live_digest_refuses_size_change_and_closes_the_member",
+        ),
+    ),
+    Mutant(
+        "M850_MAKEFILE_OMITTED_FROM_EVIDENCE_SCOPE",
+        "apps/api/src/korpus/application/provenance_surface.py",
+        '    "Makefile",\n',
+        "",
+        (
+            "apps/api/tests/test_source_digest_framing.py::"
+            "test_orchestration_mutation_changes_live_and_record_evidence_identity[Makefile]",
+        ),
+    ),
+    Mutant(
+        "M851_WORKFLOW_OMITTED_FROM_EVIDENCE_SCOPE",
+        "apps/api/src/korpus/application/provenance_surface.py",
+        '    ".github/workflows",\n',
+        "",
+        (
+            "apps/api/tests/test_source_digest_framing.py::"
+            "test_orchestration_mutation_changes_live_and_record_evidence_identity"
+            "[.github/workflows/assurance.yml]",
+        ),
+    ),
+    Mutant(
         "M834_CONTEXTUAL_RELEASE_IGNORES_ISSUER",
         "apps/api/src/korpus/application/corpus_snapshot.py",
         "        _frame(digest, member.issuer)\n",
@@ -1372,12 +1403,8 @@ MUTANTS = (
         "apps/api/src/korpus/application/provenance.py",
         '        hasher.update(len(relative).to_bytes(4, "big"))\n'
         "        hasher.update(relative)\n"
-        '        with path.open("rb") as handle:\n'
-        "            expected_size = path.stat().st_size\n"
-        '            hasher.update(expected_size.to_bytes(8, "big"))',
-        "        hasher.update(relative)\n"
-        '        with path.open("rb") as handle:\n'
-        "            expected_size = path.stat().st_size",
+        '        hasher.update(expected_size.to_bytes(8, "big"))',
+        "        hasher.update(relative)",
         ("apps/api/tests/test_evidence_provenance.py::test_digest_separates_path_from_content",),
     ),
     Mutant(

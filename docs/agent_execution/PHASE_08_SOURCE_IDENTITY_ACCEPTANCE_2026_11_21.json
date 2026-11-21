@@ -1,0 +1,114 @@
+{
+  "schema": "korpus.phase08.source-identity-local-review.v1",
+  "predecessor_commit": "981794e6968ca7e169c9326369d9a03a4764b592",
+  "scope": "local bounded compatibility and direct assertion diagnostics; not canonical hosted or production evidence",
+  "compatibility": {
+    "scope": "Read-only immutable Git object and Git-free source experiment; not canonical trusted-Git release verification",
+    "base_commit": "981794e6968ca7e169c9326369d9a03a4764b592",
+    "base_tree": "c5e0d06bdb019a07bbbed796c413e48e340bc61b",
+    "source_records": 1940,
+    "git_blob_hashes_verified": 1941,
+    "published_format_digest": "f937745ea982256717d4a388ee4f6fb5204c106cec1c754e26ed3ae08122bf51",
+    "new_record_digest": "f937745ea982256717d4a388ee4f6fb5204c106cec1c754e26ed3ae08122bf51",
+    "new_live_digest": "f937745ea982256717d4a388ee4f6fb5204c106cec1c754e26ed3ae08122bf51",
+    "current_implementation_sha256": "678e571bf97770820ff243b26ad27e83d0cdb2b6c16221dec02771adf6b38ce9",
+    "production_authorized": false
+  },
+  "receipts": [
+    {
+      "name": "phase08-complete-source-format-proof.json",
+      "bytes": 723,
+      "sha256": "76dd354187f22afb26086c4925d16d28310da23167371e6ef78990744a2b9b3a"
+    },
+    {
+      "name": "phase08-framing-before-fixed-harness.xml",
+      "bytes": 2478,
+      "sha256": "488efed97e2f99fd1d74e024100b63902b984d75ed059214bcea45551e66096a"
+    },
+    {
+      "name": "phase08-framing-after.xml",
+      "bytes": 13990,
+      "sha256": "376031d26aa6769dce021f969967e96c28624f47cd5d1e75bbbfdbd73d8d2c5c"
+    },
+    {
+      "name": "phase08-direct-mutation-probes.json",
+      "bytes": 11167,
+      "sha256": "1113bb9c9e3be904b028d18e88b27f2ff6abe35ebe4179bbbaad65f74e25e0ee"
+    },
+    {
+      "name": "phase08-integrated-format-proof.json",
+      "bytes": 3151,
+      "sha256": "74438f6f0cb1aa9728ac911ee1fcfb77ccda8f2966d123d0c902b999ac896c8a"
+    },
+    {
+      "name": "phase08-integrated-format-input-map.json",
+      "bytes": 495799,
+      "sha256": "bf3a2e4022f59cabf55018852a0a72602363978973ac32c3880e3f2534e0fbac"
+    }
+  ],
+  "canonical_mutation_execution": "NOT_EXECUTED_LOCAL",
+  "native_current_candidate": "NOT_EXECUTED",
+  "production_authorized": false,
+  "predecessor_commit_role": "Historical 1940-record compatibility input; not the integrated candidate publication parent",
+  "compatibility_role": "Historical proof on 981794e6 input bytes; retained without promotion to current source identity",
+  "local_review_checkpoint": {
+    "commit": "8d8c80d41edbd4d8d6998c59af95a955560099c8",
+    "tree": "f52bc3c995f89faffe722e530f04865b8b2ae5aa",
+    "role": "Local source review checkpoint only; not required remote or published parent"
+  },
+  "planned_publication_parent": "7877507569863d45d47b63608f27c2915f74bab7",
+  "integrated_compatibility": {
+    "scope": "Independent published-format transcription, isolated historical published function, unchanged reviewed new record/live functions on one exact integrated input map; ordinary Git blob transport and metadata-free live export, not trusted local Git/release qualification",
+    "input_tree_before_documentation_and_derived_identity_refresh": "5c378fc99e42d8b20e450156bc26ecc3b8564cd1",
+    "all_git_blobs_and_modes_verified": 3169,
+    "evidence_source_records": 1947,
+    "total_evidence_bytes": 37280451,
+    "input_map_digest_definition": "SHA256 over UTF-8 json.dumps(records, sort_keys=True, separators=(comma,colon))",
+    "input_map_sha256": "06735319d5eb52f9f272c729756a0eb14c384ba44131926a3c5b1817718ac586",
+    "published_scope_file_sha256": "18959ac43e6a9e42df876527b33894f6e18aa970f43f70b73587ebd2a7d9d6be",
+    "current_implementation_sha256": "678e571bf97770820ff243b26ad27e83d0cdb2b6c16221dec02771adf6b38ce9",
+    "digests": {
+      "independent_published_format": "da9f8f89013ae9461cce97e559e107b24b67edbdb8f2ebaff81b9e7a5c369174",
+      "historical_published_function": "da9f8f89013ae9461cce97e559e107b24b67edbdb8f2ebaff81b9e7a5c369174",
+      "new_record_function": "da9f8f89013ae9461cce97e559e107b24b67edbdb8f2ebaff81b9e7a5c369174",
+      "new_live_function": "da9f8f89013ae9461cce97e559e107b24b67edbdb8f2ebaff81b9e7a5c369174"
+    },
+    "all_four_equal": true,
+    "live_candidate_paths_equal_input_map": true,
+    "documentation_and_root_identity_files_are_outside_evidence_scope": true,
+    "final_freeze_requirement": "All evidence input records must match the final frozen Git blobs; final SOURCE_MANIFEST root is separately regenerated and recorded."
+  },
+  "mutation_catalogue": {
+    "count": 717,
+    "checkpoint_faults_preserved": [
+      "M62_DIGEST_DROPS_LENGTH_FRAMING",
+      "M849_SOURCE_STREAM_SIZE_CHANGE_ACCEPTED",
+      "M850_MAKEFILE_OMITTED_FROM_EVIDENCE_SCOPE",
+      "M851_WORKFLOW_OMITTED_FROM_EVIDENCE_SCOPE"
+    ],
+    "incoming_M852_through_M860_preserved": true,
+    "M62_failure_hypothesis_and_retargeted_anchor_unchanged": true
+  },
+  "budget_registry": {
+    "entries": 773,
+    "unchanged_from_published_phase02_parent": true
+  },
+  "integrated_local_compatibility": {
+    "cases": 278,
+    "passed": 268,
+    "skipped": 10,
+    "failed": 0,
+    "errors": 0,
+    "skip_scope": {
+      "native_postgresql_approval_seal": 9,
+      "missing_eval_mutation_migration_scale_artifacts": 1
+    },
+    "subject": "merged evidence input map before documentation and root-identity refresh; final frozen source requires its own bound validation receipt",
+    "junit": {
+      "name": "phase08-integration-local.xml",
+      "bytes": 55590,
+      "sha256": "be59c58f7201b2a2611767e808058b48ad40a58fef38ca39d336c5aad41cfcf5"
+    },
+    "native_postgresql_executed": false
+  }
+}
