@@ -21,7 +21,7 @@ import argparse
 import json
 import sys
 import urllib.error
-import urllib.request
+import urllib.request as u
 from pathlib import Path
 from typing import Any
 
@@ -33,7 +33,7 @@ from serving_readiness_contract import owned_ports, readiness_checks, ready_resp
 TIMEOUT = 10.0
 
 
-class _NoRedirect(urllib.request.HTTPRedirectHandler):
+class _NoRedirect(u.HTTPRedirectHandler):
     def redirect_request(self, *_args: object, **_kwargs: object) -> None:
         return None
 
@@ -42,7 +42,7 @@ def probe(port: int, path: str = "/ready", timeout: float = TIMEOUT) -> dict[str
     """Стан одного шляху на одному порту. Недосяжність — теж стан, не брак виміру."""
     url = f"http://127.0.0.1:{port}{path}"
     try:
-        with urllib.request.build_opener(_NoRedirect).open(url, timeout=timeout) as response:
+        with u.build_opener(_NoRedirect, u.ProxyHandler({})).open(url, timeout=timeout) as response:
             body = response.read(4097)
             return {
                 "port": port,

@@ -330,6 +330,56 @@ def test_redirect_to_another_ready_responder_is_refused() -> None:
             server.server_close()
 
 
+def test_injected_http_proxy_cannot_impersonate_loopback_readiness(monkeypatch) -> None:
+    proxy_hits: list[str] = []
+    target_hits: list[str] = []
+
+    class Unready(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            target_hits.append(self.path)
+            self.send_response(503)
+            self.end_headers()
+            self.wfile.write(b'{"detail":{"database":false}}')
+
+        def log_message(self, _format: str, *_args: object) -> None:
+            return
+
+    class ImpostorProxy(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            proxy_hits.append(self.path)
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b'{"status":"ready"}')
+
+        def log_message(self, _format: str, *_args: object) -> None:
+            return
+
+    target = HTTPServer(("127.0.0.1", 0), Unready)
+    proxy = HTTPServer(("127.0.0.1", 0), ImpostorProxy)
+    servers = (target, proxy)
+    threads = [Thread(target=server.serve_forever, daemon=True) for server in servers]
+    for thread in threads:
+        thread.start()
+    try:
+        for key in ("http_proxy", "HTTP_PROXY"):
+            monkeypatch.setenv(key, f"http://127.0.0.1:{proxy.server_port}")
+        for key in ("no_proxy", "NO_PROXY"):
+            monkeypatch.setenv(key, "")
+        observed = GATE.probe(target.server_port)
+        result = GATE.verdict(["pilot.service"], [target.server_port], [observed])
+        assert observed["status"] == 503
+        assert result["status"] == "FAIL"
+        assert proxy_hits == []
+        assert target_hits == ["/ready"]
+    finally:
+        for server in servers:
+            server.shutdown()
+        for thread in threads:
+            thread.join()
+        for server in servers:
+            server.server_close()
+
+
 @pytest.mark.parametrize(
     ("status", "body", "expected_status"),
     [
