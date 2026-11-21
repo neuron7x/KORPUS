@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2315,
-  "root_sha256": "22739c82aa73abd1aead3708e76e771a2afb96ab18b3cd6df9c348e891705892",
+  "root_sha256": "aa672532d1526946ade9231cd47b25ae568b8d1ddcc5913d433d223fda563ccf",
   "files": [
     {
       "path": ".dockerignore",
@@ -1237,8 +1237,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/corpus_read_context.py",
-      "bytes": 4427,
-      "sha256": "48fd7992cfbe25dced24caaf564bcefbb47ece781b92e955f49116f1bfccf096",
+      "bytes": 4351,
+      "sha256": "f7286fae2cee7e6b7cce6c0e1486ab255b1830b5453c3de8eb7f36f5ad87e770",
       "mode": "0644"
     },
     {

@@ -39,7 +39,8 @@ class _ReadScope:
         self, reader: CorpusSnapshotReader, arguments: ReadArguments, repository: object | None
     ) -> None:
         if self.reader is not reader or (
-            self.repository is not None and repository is not None
+            self.repository is not None
+            and repository is not None
             and self.repository is not repository
         ):
             raise CorpusConsistencyError("retrieval borrowed a different snapshot authority")
@@ -118,7 +119,6 @@ def cache_release_token(
 
 
 def validate_active_read(repository: object | None = None) -> None:
-    """Scope-free data-cache use is allowed; a bound read cannot lose its authority."""
     active = _ACTIVE_SCOPE.get()
     if active is None:
         return
