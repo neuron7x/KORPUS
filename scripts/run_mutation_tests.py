@@ -49,6 +49,16 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M832_SOURCE_PREDICATE_ESTABLISHES_BINDING_OMITTED",
+        "apps/api/src/korpus/application/question_obligations.py",
+        "|встановлює",
+        "",
+        (
+            "apps/api/tests/test_question_obligations_api.py::"
+            "test_establishes_predicate_keeps_subject_and_facet_head_binding[bound-procedure]",
+        ),
+    ),
+    Mutant(
         "M831_REQUIRED_CONTROL_PREDICATE_BECOMES_LITERAL_PROPERTY",
         "apps/api/src/korpus/application/question_obligations.py",
         '        "потрібен",\n',

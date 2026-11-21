@@ -106,6 +106,24 @@ source fixtures, expected answers, thresholds and evaluation gate are unchanged.
 The observed failure is recorded in
 [research-assurance run 44872617873](https://github.com/neuron7x/KORPUS/actions/runs/44872617873/job/136750290714).
 
+The subsequent native run for `0b4ef3374e43d0124dc6d921f33e284eb7ea58ad`
+passed all 30 evaluation cases and killed all 700 then-registered mutants. Its
+[PostgreSQL suite](https://github.com/neuron7x/KORPUS/actions/runs/44873328016/job/136752557488)
+still found two real regressions. A valid effective-date procedure answer was
+refused because `встановлює` did not delimit its subject/property head from its
+predicate/value. That exact source predicate now uses the existing head-binding
+contract; a foreign subject, a name appearing only after the predicate, and a
+missing coordinated property remain refusals. M832 restores the omitted delimiter.
+The unchanged temporal test still requires refusal before the effective date and
+an answer on that date.
+
+The same run found an import cycle through the retrieval facade. Evidence helpers
+now import `normalize_text` and `tokenize` directly from their existing leaf module,
+`retrieval_math`; the facade already re-exported those exact objects. No function
+implementation, graph edge exclusion or acyclicity expectation is changed. Both
+original failing tests remain unchanged. Downstream coverage, repository and package
+jobs were skipped in that failed run and require fresh execution after this repair.
+
 The integrated commit requires fresh focused regression, static-quality, registry
 and source/package-identity checks, independent review, and the protected hosted
 checks. Hosted PostgreSQL, mutation, Compose, package and other applicable checks

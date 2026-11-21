@@ -33,7 +33,9 @@ _VERSION = re.compile(
     re.IGNORECASE,
 )
 _CLAUSE = re.compile(r"[;,\n]+|\s+(?:а|але|однак|but|whereas|while)\s+", re.IGNORECASE)
-_BINDING = re.compile(r"\s*[—=:]\s*|\s+-\s+|\s+(?:is|are|є|становить|дорівнює)\s+", re.IGNORECASE)
+_BINDING = re.compile(
+    r"\s*[—=:]\s*|\s+-\s+|\s+(?:is|are|є|становить|дорівнює|встановлює)\s+", re.IGNORECASE
+)
 _SOURCE_ALIAS = re.compile(r'«([^»]+)»\s*\(([^()]+)\)|"([^"\n]+)"\s*\(([^()]+)\)')
 _CONNECTORS = frozenset({"і", "й", "та", "and"})
 _CLAUSE_WORDS = frozenset(

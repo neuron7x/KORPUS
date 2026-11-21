@@ -74,6 +74,48 @@ def test_required_control_predicate_retains_explicit_subject_obligation(
     assert answer["claims"] == answer["citations"] == []
 
 
+@pytest.mark.parametrize(
+    ("question", "text", "expected"),
+    [
+        (
+            "Який порядок архіву Липи?",
+            "Порядок архіву Липи встановлює щоденний облік карток.",
+            "answered",
+        ),
+        (
+            "Який порядок архіву Липи?",
+            "Порядок архіву Кедра встановлює щоденний облік карток для архіву Липи.",
+            "insufficient_evidence",
+        ),
+        (
+            "Який порядок архіву Липи?",
+            "Порядок архіву Кедра для архіву Липи встановлює щоденний облік карток.",
+            "insufficient_evidence",
+        ),
+        (
+            "Який порядок і строк архіву Липи?",
+            "Порядок архіву Липи встановлює щоденний облік карток.",
+            "insufficient_evidence",
+        ),
+    ],
+    ids=("bound-procedure", "name-in-value", "foreign-head", "missing-second-property"),
+)
+def test_establishes_predicate_keeps_subject_and_facet_head_binding(
+    production_threshold_client, question, text, expected
+):
+    client = production_threshold_client
+    result = ingest_text(client, text=text)
+    approve(client, result["version"]["id"])
+    answer = client.post("/v1/answers", json={"text": question}).json()
+    assert answer["status"] == expected, answer
+    if expected == "answered":
+        assert [item["quote"] for item in answer["citations"]] == [text]
+        assert answer["citations"][0]["version_id"] == result["version"]["id"]
+    else:
+        assert answer["decision_reason"] == "question_obligations_unmet"
+        assert answer["claims"] == answer["citations"] == []
+
+
 @pytest.mark.parametrize("subject", ["Полтави", "полтави", "Смарагду", "невідомограда"])
 def test_wrong_entity_cannot_reach_supported_answer(production_threshold_client, subject):
     client = production_threshold_client

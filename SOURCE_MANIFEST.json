@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2307,
-  "root_sha256": "7d4299bb574555122b3cb832375abc8cc83b60272362f61f0dc38e8d7099bc76",
+  "root_sha256": "033e56b7ae76f2cacab302233fe780e105f3e354edead95df95e118b3b35da75",
   "files": [
     {
       "path": ".dockerignore",
@@ -1339,8 +1339,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/evidence.py",
-      "bytes": 13865,
-      "sha256": "f855d52b86b5c24c907b1d91f34ef3a115f2935a2db7b140c9aeaf19c5308ccb",
+      "bytes": 13870,
+      "sha256": "53d91cf9a698363a526a1d9fa24de9672c673482e2851bc0c18a09c4637e2bd1",
       "mode": "0644"
     },
     {
@@ -1843,8 +1843,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/question_obligations.py",
-      "bytes": 8594,
-      "sha256": "6aadf626bf4acbb3841bdf6b2a7c02f8affeed5443ed5c9f2d5b91b5d831c671",
+      "bytes": 8621,
+      "sha256": "ee2d37f91386c130679861c5f94a5ff242cfa7376f293fd7ffe4bb7e2566ab60",
       "mode": "0644"
     },
     {
@@ -5695,8 +5695,8 @@
     },
     {
       "path": "apps/api/tests/test_question_obligations_api.py",
-      "bytes": 19235,
-      "sha256": "14305bbe937fdf638231e69a1e06cdd2d82788d6cd286e49198ddba4ef81c79f",
+      "bytes": 21115,
+      "sha256": "882fbb3c71acad3a6ccea67d1aa9ae566d4331bd8b37470c49b6a493c0c437e7",
       "mode": "0644"
     },
     {
@@ -9613,8 +9613,8 @@
     },
     {
       "path": "docs/operations/CANONICAL_MAIN_CONVERGENCE_2026_11_21.md",
-      "bytes": 8048,
-      "sha256": "afb0f6b70be7fa05100fa290dd86ef57650bf2698eea619f866e8250475455e6",
+      "bytes": 9311,
+      "sha256": "982e057393b8c7be57186be7fb2e17383b95f73643759a18fda30fc61044267c",
       "mode": "0644"
     },
     {
@@ -13219,8 +13219,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 356418,
-      "sha256": "cbbf1f28e227791f643b6cdcc5c0015255962d3453b14882b8debbc174f46fbf",
+      "bytes": 356791,
+      "sha256": "754ee824191dbecae6746145f77c31a62303875f62b06617c949aa762847ab91",
       "mode": "0755"
     },
     {
