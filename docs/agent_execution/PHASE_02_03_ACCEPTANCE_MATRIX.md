@@ -1,0 +1,249 @@
+# Phase 02 / 03 acceptance evidence
+
+Audit date: 2026-11-21. Scope: synthetic fixtures and generic database invariants.
+Phase 02 is **PENDING_NATIVE_REQUALIFICATION**. Phase 03 has executed baseline
+controls and remains **DEPENDENCY_PENDING** on accepted phase 02.
+`production_authorized = false`. This document does not close an issue.
+
+The immediate incoming phase-01 parent is the published candidate
+`5112dd3f67c0e3d31ec54f82c937afb1e0065d18`, tree
+`708d8e99d8528ebfaf33cdc217c1953f0fd57e45`
+([PR #138](https://github.com/neuron7x/KORPUS/pull/138)), which is still awaiting
+acceptance. It is merged into the existing phase-02 head
+`981794e6968ca7e169c9326369d9a03a4764b592`, preserving both as direct parents.
+The ordinary merge base is `33aaa5aeec97a9874649a6309ac1297e6815d919`.
+The earlier phase-02 head `0c01afc25ea9629a8892ba627edc4eed86ee122e` remains
+an ancestor of the retained phase-02 parent. Its first native result is recorded
+below; it does not qualify this new combined tree. The dependent PR permits
+native phase-02 CI to run on the combined source, while merge admission still
+requires phase 01 to pass and merge first.
+
+Acceptance owners: [#99](https://github.com/neuron7x/KORPUS/issues/99),
+[#25](https://github.com/neuron7x/KORPUS/issues/25),
+[#31](https://github.com/neuron7x/KORPUS/issues/31),
+[#100](https://github.com/neuron7x/KORPUS/issues/100), and
+[#35](https://github.com/neuron7x/KORPUS/issues/35).
+
+## Executed baseline and its limits
+
+| Identity | Observed value |
+|---|---|
+| Historical merged baseline for the prior evidence | `921ac8b9f2c71aa366c7d2b8c73206b696e9903c` |
+| PR #137 head recorded by GitHub | `ed8c75877524fa0384aa01e18067339788aa93a0` |
+| Tested merge checkout | `fc6d1b0d54bad87b6e07895ebe6bb0a50d004d28` |
+| Tree shared by those three commits | `00562c890a73492b88a1234ed526fad7825acca3` |
+| Hosted execution | [CI run 44874776733, attempt 1](https://github.com/neuron7x/KORPUS/actions/runs/44874776733/attempts/1) |
+| Artifact | [14695996419, postgres-diagnostics-1](https://github.com/neuron7x/KORPUS/actions/runs/44874776733/artifacts/14695996419) |
+| Downloaded ZIP | 1,138,789 bytes; SHA-256 `9147b1f162700aac2569865cb02086f8fef7ae2fc310ba319d1e6a0a5408ff09` |
+| Full PostgreSQL JUnit | `pytest-postgres.xml`: 7,472 nodes = 7,465 passed + 7 skipped; zero failures/errors |
+| Mandatory security JUnit | `postgres-security/pytest-junit.xml`: **129 / 129 passed**, zero skipped/failures/errors |
+| Security gate | `production/postgres_security-gate.json`: PASS, all five checks true, observed/expected 129, runtime exit 0 |
+| Full-suite execution receipt | `coverage-postgres-receipt.json`: PASS, command exit 0, source unchanged during execution |
+
+This is evidence for an identical source tree, not a claim that the merge commit
+itself executed that run. The new tests below were absent from this artifact.
+Do not reuse its 129-pass result as qualification of the new candidate.
+
+The full-suite receipt records:
+
+```sh
+python -m pytest -q -p no:cacheprovider apps/api/tests \
+  --junitxml=var/pytest-postgres.xml --cov=apps/api/src/korpus \
+  --cov-branch --cov-report=json:var/coverage-postgres.json \
+  --cov-report= --cov-fail-under=0
+```
+
+The focused receipt records `bash scripts/run_postgres_suite.sh --targeted`
+with the ten baseline targets from `scripts/run_postgres_security_gate.py`.
+Its clean bootstrap reached `0028_reviewer_update_scope`, including temporal
+guards (0019), broker identity (0020), approval provenance (0022), sealed
+provenance (0025), learning history (0026), and competency immutability (0027).
+
+## Phase 02: approval provenance and RLS
+
+| Acceptance criterion | Baseline observation | Remaining obligation |
+|---|---|---|
+| #25.1: app cannot UPDATE both `review_state='approved'` and a chosen 64-hex seal | Catalog denials and INSERT attacks passed; the exact combined UPDATE was absent from the baseline | New combined UPDATE node passed in the first native candidate; require the amended exact-tree run to pass |
+| #25.2: authorized review atomically seals exact persisted evidence and audit | Exact-span seal test and separated reviewer positives passed; failed tier update rolled back review/audit | Retain those positives; each new case also executes separated metadata/content/approval and recomputes the persisted-span digest |
+| #25.3: once-sealed digest cannot change or clear before/after rejection | Existing changed-digest attacks used the fixture owner; no NULL-seal attack established the requested runtime-role boundary | Eight new app/review x approved/rejected x changed/NULL cases passed natively; require the amended exact-tree run to pass |
+| #25.4: migrated/runtime guard parity with exact grants | Clean migrated bootstrap, runtime guard initialization and 30 approval-provenance nodes passed | Fresh candidate must rerun the native suite; this does not admit a populated production migration |
+| #25.5: preserve ceilings and authorization boundary | No runtime, migration, privilege or budget changes in this patch; local module budget passes | Fresh hosted required checks and independent execution audit; production remains unauthorized |
+| #31: app cannot increase any claim axis or read a hidden row | Four claim-forgery nodes and the five independent app-axis cases in 35 claim-mutation nodes passed | Retain role/clearance/corpus/classification/compartment negatives in fresh CI |
+| #31: app cannot acquire INSERT/UPDATE/DELETE authority through claims | Protected writer-path and isolated visibility-axis attacks in the 35-node module passed | Retain exact native identities and observed row denials |
+| #31: review login cannot exceed intended scope | Review-axis/broker/column controls plus 15 reviewer-scope nodes passed, including WITH CHECK and pool reuse | Retain configured/custom-role positives and review-only scope denials |
+| #31: legitimate app/review flows continue | Native integration and reviewer-only metadata/content/approval positives passed | New attacks must leave the same row able to complete legitimate review |
+| #31: RLS enabled/forced; broker/context/policy boundary intact | Six policy-state nodes, three role-reprovision nodes and binder/context-table denials passed | No weakened grant, policy, search path or fallback is permitted |
+| #31: focused/full native execution and supporting gates | Baseline focused 129/129 and full suite exit 0; the seven unrelated skips are listed below | New candidate requires 138/138 focused native PASS, full CI and phase-01 acceptance |
+| #31: production authorization remains false | No deployment, production credential or real corpus used | Remains false independently of test results |
+
+The full-suite approval/reviewer/integration group is 30 + 15 + 1 = 46 passed
+nodes. It is not 46 independent approval-forgery attacks: many of the 30 nodes
+inspect column grants. The dedicated 129-node gate did not include the separate
+15-node reviewer-scope module.
+
+### New native witnesses
+
+`apps/api/tests/test_postgres_approval_seal_boundary.py` reuses the provisioned
+app/review/authz identities from `review_postgres_support.py`. Document creation,
+review, attempted DML and state observations use runtime connections; the owner
+is only the existing disposable-fixture reset identity.
+
+Each attack proves one visible target and one permitted `state_version` UPDATE
+before the poison statement. The review login also successfully writes the
+unchanged seal. Expected denials are app `42501` and review `P0001` with the
+sealed-digest diagnostic. Explicit rollback must preserve the complete version,
+persisted spans and audit rows, including the preceding permitted write.
+
+Per-node JUnit properties record physical current/session login, PostgreSQL
+version, migration revision, non-superuser/non-bypass/non-owner membership,
+broker-bound subject/roles, SQLSTATE, review/state/seal before and after, and
+evidence/audit row counts. Positive review requires three different subjects,
+the exact recomputed seal and its audit payload.
+
+The frozen mandatory contract is now **138 cases / 76 functions**, retaining all
+129 prior nodes and adding these nine. Collection matched exactly: no missing or
+unexpected IDs. Removing the new target is itself rejected by the gate contract.
+No new runtime predicate or arbitrary duplicate mutant was introduced.
+
+Initial local validation: 46 passed (44 contract + 2 orchestration), **9 skipped**,
+zero failures/errors. All nine skips require the disposable native PostgreSQL
+suite. PostgreSQL, psql and Docker are unavailable locally. Ruff check, Ruff
+formatting, `git diff --check` and module budget passed. A separate agent reviewed
+the source changes; local skips remain collection/orchestration evidence only.
+
+### First native candidate and bounded runner correction
+
+| Identity or result | Observed value |
+|---|---|
+| First phase-02 head / phase-01 base | `0c01afc25ea9629a8892ba627edc4eed86ee122e` / `20c6b6ce361ecf041f6b8973089540dcc0a6ddfe` |
+| Actual checkout from the PostgreSQL job log | `7dde7f3904ac88e368b15ee11617f9897e4146b1` |
+| Shared candidate tree | `015df7f26f4552c3b306a7fef327864e943ff6d2` |
+| Hosted execution | [CI 44879400205, attempt 1, job 136771139261](https://github.com/neuron7x/KORPUS/actions/runs/44879400205/job/136771139261) |
+| Raw diagnostics | [Artifact 14696644826](https://github.com/neuron7x/KORPUS/actions/runs/44879400205/artifacts/14696644826), 1,037,038 bytes; SHA-256 `d3bd79f6f80e8c2cd0773bbd5165cf0ae102758f0483eabe8d2aabb56612773e` |
+| Full PostgreSQL JUnit | 7,485 nodes = **7,477 passed + 7 skipped + 1 failed**, zero errors |
+| Nine new runtime boundary nodes | **9 / 9 passed**, zero skips/failures/errors |
+| Frozen security nodes within that full suite | All **138 / 138 passed** by exact source-tracked node identity |
+| Separate production security gate | **SKIPPED** after the full-suite failure; no focused 138-pass receipt exists for this run |
+| Coverage execution receipt | **FAIL / PRODUCER_FAILED**; no successful before/after source-input receipt |
+
+All nine new nodes recorded PostgreSQL `170010`, migration
+`0028_reviewer_update_scope`, actual `korpus_app` / `korpus_review` current and
+session logins, no superuser/bypass/owner membership, one visible target and one
+permitted write. The five app attempts returned `42501`; the four reviewer
+attempts returned `P0001`. Every rollback preserved the complete observed
+version, span and audit snapshot. These are actual individual test results,
+not overall CI success or independent approval of the builder's own work.
+
+The sole failure was the orchestration assertion in
+`test_security_runtime_selects_its_actual_complete_target_list`: it still
+expected ten targets after the eleventh required module was added. The exact
+`11 != 10` failure was reproduced locally. The correction changes the frozen
+count to eleven and explicitly requires the seal-boundary module; command-list
+equality and the 600-second orchestration bound remain intact. No runtime,
+privilege, fixture or denial assertion changed. After correction the runner,
+security-contract and new boundary modules collected 73 cases: **64 passed,
+9 native-only skipped**, zero failures/errors. Fresh hosted qualification of
+the amended phase-01/02 tree, focused security execution, independent audit
+and the owner merge decision remain pending.
+
+### Integration of the phase-01 intermediate-boundary repair
+
+The next integration uses the actual published phase-01 commit `5112dd3f` and
+retains phase-02 head `981794e6` as the first parent. An ordinary three-way merge
+at base `33aaa5ae` conflicted only in `SOURCE_MANIFEST.json` and
+`PACKAGE_BUILD.json`. Both are recomputed by the unchanged producers from an
+export whose complete Git blob bytes and modes are verified without Git metadata.
+The integration documentation is the only authored-source addition beyond the
+two parents; no control or runtime predicate is edited to make the merge pass.
+
+The incoming phase-01 source checks the original reader token before actual cache
+storage and before ranking after semantic backfill. It also supplies the shared
+standalone/request/legacy read scope and the literal A–L witnesses described in
+`PHASE_01_ACCEPTANCE_2026_11_21.md`. Those files are imported unchanged. Database
+migrations, privilege grants, RLS policies and review-role boundaries retain their
+phase-02-parent bytes.
+
+The nine approval/seal cases, gate contract, exact node JSON, node validator,
+security target list and eleven-target runner assertion remain byte-identical to
+`981794e6`. The dedicated security denominator is still **138 cases / 76 functions /
+11 modules**. Actual collection of the merged source matches every frozen identity,
+with no missing or unexpected nodes. This is collection evidence only; phase-01's
+new actor cases belong to the full suite and do not silently alter that denominator.
+
+All 705 phase-02-parent mutant definitions remain unchanged. The union contains
+714 definitions, including phase-01's M852–M860; it does not add a separate phase-02
+runtime fault. All 771 prior budget rows remain unchanged, with the two measured
+phase-01 module rows bringing the registry to 773. Desired state is unchanged.
+
+The combined local compatibility selection executes 183 cases: **174 passed,
+9 skipped**, zero failures/errors. It includes the 108-case phase-01 repair
+selection and the phase-02 runner, security-contract, runtime-orchestration and
+approval/seal modules. Every skip is one of the nine native approval/seal cases
+and explicitly requires the disposable PostgreSQL suite. Shell orchestration
+fixtures, SQLite actor tests and exact collection do not establish PostgreSQL
+execution. Final frozen-tree receipts record source identity, exact commands and
+static checks. Fresh native PostgreSQL, the full mutation campaign, all required
+CI/package checks and independent review of this combined source remain required.
+Neither predecessor's successful checks qualify a different source tree.
+
+## Phase 03: immutable source-bound course graph
+
+All four #35 controls have baseline native evidence. The application-role proof
+contains **91 passed / zero skipped** nodes: persistence 37, scope/lifecycle 15,
+concurrency 18, and the PostgreSQL subset of competency integrity 21. Each carries
+PostgreSQL `170010`, role `korpus_app`, false superuser/bypass/owner inheritance,
+and migration revision `0028_reviewer_update_scope`. Fixtures assert identical
+current/session login and full graph-table DML grants, so immutability refusals
+are not substitutes for missing write permission.
+
+| #35 control | Executed positive and destruction evidence | Status at the recorded baseline |
+|---|---|---|
+| 1. Valid acyclic exact-source graph publishes | Repository and direct-SQL publication, exact document/version/span round-trip, distinct next revision | PASS |
+| 2. Dangling/cyclic graph rejected | Cycle `23514`; dangling prerequisite/unknown version/span `23503`; rejected publication leaves draft state intact | PASS |
+| 3. Invalid source blocks publication | Unapproved, rescinded, expired, future, document/span mismatch and unbound lesson controls; scope substitution and absent identity/binder controls | PASS |
+| 4. Published content immutable | UPDATE/DELETE across ten graph-content tables, new-content insertion, relation moves, lifecycle reparent/reset, competency edits and stable history after source invalidation | PASS |
+
+Concurrency evidence contains 15 publication-versus-content/competency edit
+races plus three ordering/identity controls. Tests observe `pg_blocking_pids`
+and the actual parent blocker; immutable edits fail `42501` after publication.
+Draft writes and new revisions remain positive controls. Learning bindings
+reference canonical document/version/span IDs; they do not copy normative
+source text into a second authoritative store.
+
+Two additional native migration tests use isolated owner-managed schemas:
+populated 0025-to-head upgrade refuses `DENIED_RETIREMENT_UNPROVEN`, and orphaned
+lifecycle state refuses `LEARNING_HISTORY_REQUIRES_RECONCILIATION`. Both preserve
+the prior revision and relevant rows; neither fabricates publication history.
+They are migration safety evidence, not part of the 91 unprivileged-runtime
+nodes or permission to migrate real populated data.
+
+The 64-node competency module contains only 21 PostgreSQL nodes; the other 43
+are SQLite/migration controls. Domain and SQLite repository/source-authorization
+tests are supplementary and must not be counted as native PostgreSQL proof.
+Phase-03 issue closure still requires accepted phase 02 and a fresh independent
+audit of the integrated candidate; the prior artifact does not establish that
+dependency or authorize a merge.
+
+## Full-suite skipped denominator
+
+Exactly seven baseline nodes skipped; none is a phase-02/03 native control.
+
+| Test module (one skipped node each) | Recorded reason |
+|---|---|
+| `test_admission_subject_share` | `var/load-probe.json` absent |
+| `test_branch_integration` | Canonical local integration branches absent in CI checkout |
+| `test_canonical_declaration` | Detached CI checkout has no named local canonical branch |
+| `test_corpus_snapshot_contract` | SQLite-only epoch trigger definition |
+| `test_evidence_provenance` | Eval/mutation/migration/scale artifacts absent in this job |
+| `test_forge_roles` | Declared local forge remotes absent |
+| `test_tevv_admissibility` | `var/eval-report.json` produced by a separate job |
+
+## Admission handoff
+
+Preserve the nine new cases if hosted execution fails; investigate the observed
+cause before changing a runtime boundary. Admit the phase-02 candidate only after
+phase 01 is accepted, the expanded native gate reports 138/138 with zero skips,
+the full exact-candidate required checks pass, and an independent auditor binds
+the downloaded evidence to the actual tested tree. Then reassess #25/#31 and
+the #100 dependency separately. Real-data migration, corpus recovery and
+production deployment remain outside this test-only change.

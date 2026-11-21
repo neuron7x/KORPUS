@@ -1,6 +1,6 @@
 {
   "schema": "korpus.postgres-security-node-contract.v1",
-  "case_count": 129,
+  "case_count": 138,
   "modules": {
     "test_audit": [
       "test_audit_anchor_detects_file_tampering",
@@ -42,6 +42,17 @@
       "test_the_review_login_can_write_exactly_those_columns[metadata_reviewer_credential_id]",
       "test_the_review_login_can_write_exactly_those_columns[review_state]",
       "test_the_schema_owner_is_not_blocked_by_the_runtime_guard"
+    ],
+    "test_postgres_approval_seal_boundary": [
+      "test_app_update_cannot_forge_approval_and_evidence_seal",
+      "test_runtime_logins_cannot_change_or_clear_seal_after_approval[changed-approved-app]",
+      "test_runtime_logins_cannot_change_or_clear_seal_after_approval[changed-approved-review]",
+      "test_runtime_logins_cannot_change_or_clear_seal_after_approval[changed-rejected-app]",
+      "test_runtime_logins_cannot_change_or_clear_seal_after_approval[changed-rejected-review]",
+      "test_runtime_logins_cannot_change_or_clear_seal_after_approval[null-approved-app]",
+      "test_runtime_logins_cannot_change_or_clear_seal_after_approval[null-approved-review]",
+      "test_runtime_logins_cannot_change_or_clear_seal_after_approval[null-rejected-app]",
+      "test_runtime_logins_cannot_change_or_clear_seal_after_approval[null-rejected-review]"
     ],
     "test_postgres_integration": [
       "test_postgres_migrated_search_rls_access_and_audit"
