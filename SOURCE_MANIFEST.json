@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2315,
-  "root_sha256": "1448d05c212afbc9663f62054dfc2dce28f99de594341ec82baeecce91409c7e",
+  "root_sha256": "22739c82aa73abd1aead3708e76e771a2afb96ab18b3cd6df9c348e891705892",
   "files": [
     {
       "path": ".dockerignore",
@@ -1237,8 +1237,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/corpus_read_context.py",
-      "bytes": 4331,
-      "sha256": "594cbf778a13f7cf2e6747f453a2dd4f69e3b7840d09bb7fabc775ff4c42be06",
+      "bytes": 4427,
+      "sha256": "48fd7992cfbe25dced24caaf564bcefbb47ece781b92e955f49116f1bfccf096",
       "mode": "0644"
     },
     {
@@ -5737,8 +5737,8 @@
     },
     {
       "path": "apps/api/tests/test_read_scope_boundaries.py",
-      "bytes": 9912,
-      "sha256": "87c6afb8b378dd8b2ac9af4e0288ba5298a0cb413700af097e81c9d883570e0f",
+      "bytes": 12262,
+      "sha256": "5a579a92f0553d836543c1a0a3d2aa4af431ad9810c04e97b1fa488e108b5e03",
       "mode": "0644"
     },
     {

@@ -1,13 +1,9 @@
-"""One captured token and reader authority across nested retrieval boundaries.
-
-Only the token/authority are retained. Each validation closes its own database
-transaction before any delegate, semantic provider or model work begins.
-"""
+"""One captured token and reader authority across nested retrieval boundaries."""
 
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import date
@@ -43,8 +39,7 @@ class _ReadScope:
         self, reader: CorpusSnapshotReader, arguments: ReadArguments, repository: object | None
     ) -> None:
         if self.reader is not reader or (
-            self.repository is not None
-            and repository is not None
+            self.repository is not None and repository is not None
             and self.repository is not repository
         ):
             raise CorpusConsistencyError("retrieval borrowed a different snapshot authority")
@@ -67,26 +62,31 @@ _ACTIVE_SCOPE: ContextVar[_ReadScope | None] = ContextVar("korpus_corpus_read_sc
 
 
 @contextmanager
+def _bind_scope(scope: _ReadScope) -> Iterator[CorpusReadToken]:
+    scope.validate()
+    context = _ACTIVE_SCOPE.set(scope)
+    try:
+        yield scope.token
+        scope.validate()
+    finally:
+        _ACTIVE_SCOPE.reset(context)
+
+
 def _read_scope(
     reader: CorpusSnapshotReader,
     arguments: ReadArguments,
     token: CorpusReadToken | None,
     repository: object | None,
-) -> Iterator[CorpusReadToken]:
+) -> AbstractContextManager[CorpusReadToken]:
     active = _ACTIVE_SCOPE.get()
-    if token is None and active is not None:
+    if active is not None and token is not None and token != active.token:
+        raise CorpusConsistencyError("nested retrieval replaced answer snapshot")
+    if active is not None:
         active.require(reader, arguments, repository)
         token = active.token
     if token is None:
         token = reader.capture(*arguments)
-    scope = _ReadScope(reader, token, arguments, repository)
-    scope.validate()
-    context = _ACTIVE_SCOPE.set(scope)
-    try:
-        yield token
-        scope.validate()
-    finally:
-        _ACTIVE_SCOPE.reset(context)
+    return _bind_scope(_ReadScope(reader, token, arguments, repository))
 
 
 @contextmanager

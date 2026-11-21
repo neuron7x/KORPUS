@@ -226,6 +226,56 @@ def test_other_repository_cannot_borrow_an_active_token(shared_reader) -> None:
     assert delegate.calls == 0
 
 
+@pytest.mark.parametrize("shared_reader", (False, True))
+def test_explicit_nested_token_cannot_borrow_a_foreign_repository(shared_reader) -> None:
+    """Explicit tokens cannot bypass the same authority check as implicit tokens."""
+    first, second = _fixture(), _fixture()
+    reader, repository, identity, corpora, as_of, token = first
+    foreign = second[1]
+    if shared_reader:
+        foreign.corpus_snapshot_reader = reader
+    nested_delegate = ModeDelegate(lambda: ["foreign-evidence"])
+    nested = RequestBoundRetriever(foreign, nested_delegate, token if shared_reader else second[-1])
+    outer_delegate = ModeDelegate(
+        lambda: nested.search(identity, "foreign archive", corpora, as_of)
+    )
+    outer = RequestBoundRetriever(repository, outer_delegate, token)
+    with pytest.raises(CorpusConsistencyError, match="authority"):
+        outer.search(identity, "outer archive", corpora, as_of)
+    assert nested_delegate.calls == 0
+    assert outer_delegate.calls == 1
+
+
+def test_explicit_nested_token_cannot_replace_as_of_scope() -> None:
+    reader, repository, identity, corpora, as_of, token = _fixture()
+    other_date = date(2026, 10, 22)
+    foreign_token = reader.capture(identity, corpora, other_date)
+    nested_delegate = ModeDelegate(lambda: ["different-date-evidence"])
+    nested = RequestBoundRetriever(repository, nested_delegate, foreign_token)
+    outer = RequestBoundRetriever(
+        repository,
+        ModeDelegate(lambda: nested.search(identity, "date-shift", corpora, other_date)),
+        token,
+    )
+    with pytest.raises(CorpusConsistencyError, match="nested retrieval replaced answer snapshot"):
+        outer.search(identity, "outer date", corpora, as_of)
+    assert nested_delegate.calls == 0
+
+
+def test_explicit_nested_matching_token_preserves_positive_path() -> None:
+    reader, repository, identity, corpora, as_of, token = _fixture()
+    nested_delegate = ModeDelegate(lambda: ["same-release-evidence"])
+    nested = RequestBoundRetriever(repository, nested_delegate, token)
+    outer = RequestBoundRetriever(
+        repository,
+        ModeDelegate(lambda: nested.search(identity, "inner", corpora, as_of)),
+        token,
+    )
+    assert outer.search(identity, "outer", corpora, as_of) == ["same-release-evidence"]
+    assert nested_delegate.calls == 1
+    assert reader.captures == 1
+
+
 def test_nested_failed_read_restores_the_exact_outer_scope_then_removes_it() -> None:
     outer, inner = _fixture(), _fixture()
     reader, repository, identity, corpora, as_of, token = outer
