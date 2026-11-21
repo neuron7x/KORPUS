@@ -19,7 +19,7 @@ data:
   KORPUS_CALIBRATION_EVALUATION_PROTOCOL_PATH: /etc/korpus/governance/evaluation-protocol.md
   KORPUS_BROWSER_COOKIE_SECURE: "true"
   KORPUS_OIDC_AUTHORIZATION_ENDPOINT: https://idp.invalid/authorize
-  KORPUS_OIDC_TOKEN_ENDPOINT: https://idp.invalid/token
+  PUBLIC_OIDC_EXCHANGE_URL: https://idp.invalid/token
   KORPUS_OIDC_CLIENT_ID: korpus-browser
   KORPUS_OIDC_REDIRECT_URI: https://korpus.invalid/api/v1/auth/callback
   KORPUS_INGESTION_MODE: durable_async

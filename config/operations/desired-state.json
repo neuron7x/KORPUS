@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v0.9.7",
-  "root_sha256": "773dd74a7f7e174e8af1a5969fa91253460bda955f551c37e80e963fbb437d8b",
+  "root_sha256": "26d78a1c2a4a9841e1b4ad6067ea16df221074ac8a724d475d6dc4a5766c8d0b",
   "records": [
     {
       "path": ".github/dependabot.yml",
@@ -15,8 +15,8 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "c30aa14f186c1e7f9eecf58f2cc3d8c578573f2d32387fbde6a3d756de3f7bdf",
-      "bytes": 12818
+      "sha256": "75cf1cf09cf6390b48fb41427c555bd1253b00451c98865a8d8df01ad213d30e",
+      "bytes": 16240
     },
     {
       "path": ".github/workflows/compose-pilot-smoke.yml",
@@ -49,6 +49,11 @@
       "bytes": 26468
     },
     {
+      "path": ".github/workflows/hosted-evidence.yml",
+      "sha256": "c727cb38b9a4e055efffbac4f494f76821193116e013fd1648c42b56371991c6",
+      "bytes": 1495
+    },
+    {
       "path": ".github/workflows/pec-production-evidence.yml",
       "sha256": "14fbd9c318783e96deaa71e63303afaf6927de9736a80e71bd2690eddf9f11a9",
       "bytes": 4383
@@ -62,6 +67,16 @@
       "path": ".github/workflows/release.yml",
       "sha256": "86b5ce5a1c82a18891c1ed65777bdab5cbec64f277c621b30cb6313cd6548bfe",
       "bytes": 3140
+    },
+    {
+      "path": ".github/workflows/scanner-engine-diagnostic.yml",
+      "sha256": "e96fb39da6d59186e340dc7f9c84ef32833a9796ca365f7afdfa09e1bf2d0eee",
+      "bytes": 1749
+    },
+    {
+      "path": ".github/workflows/scanner-stdlib-diagnostic.yml",
+      "sha256": "9bc8039911c2c5b61d7460ee291effaca2a65d962c6926561e8eb0865ab12aec",
+      "bytes": 2124
     },
     {
       "path": ".gitlab-ci.yml",
@@ -80,8 +95,8 @@
     },
     {
       "path": "apps/api/requirements.runtime.lock",
-      "sha256": "c580052d627a63b7d6d9783a0d583498e02da4c80d0e08dfa09f04eeb4f81d3c",
-      "bytes": 7691
+      "sha256": "2f13e583f691366995297813194d644a735eb011b80fc8d5296bb2e28f5443d9",
+      "bytes": 8094
     },
     {
       "path": "apps/web/Dockerfile",
@@ -90,13 +105,13 @@
     },
     {
       "path": "deploy/kubernetes/base/api-deployment.yaml",
-      "sha256": "ec533ad523dd13acf4d39ed22d837c7fbc510e44ed993fc327549f56f1c7cb15",
-      "bytes": 2038
+      "sha256": "cfae84962d65e6194f789f4d95a67715f235f534df363157413666cdcdada2b5",
+      "bytes": 2211
     },
     {
       "path": "deploy/kubernetes/base/configmap.yaml",
-      "sha256": "04a6303734ed9c311868c2457a1a2fdf47e867bc9ccb1d80dd059a74225bfa1b",
-      "bytes": 1748
+      "sha256": "adc5b2667622842054095bf82e9902f44d55656e3cdd6732c10bb467650b442e",
+      "bytes": 1746
     },
     {
       "path": "deploy/kubernetes/base/kustomization.yaml",
@@ -105,8 +120,8 @@
     },
     {
       "path": "deploy/kubernetes/base/migrate-job.yaml",
-      "sha256": "bd2b770fea37bdbe8eaa97cb23eaca7b03cb65ae6a419ec2cbdd7e586abf7b4e",
-      "bytes": 1159
+      "sha256": "d72ad6ff39427ec67131c0b60ad83c43f9b6b00dc70fe77507d18765c1c8ec85",
+      "bytes": 1332
     },
     {
       "path": "deploy/kubernetes/base/namespace.yaml",
@@ -140,8 +155,8 @@
     },
     {
       "path": "deploy/kubernetes/base/worker-deployment.yaml",
-      "sha256": "d58fb190c47eb89a22c2c37513012ff236d1df8b17070bf111d79984afab2fe6",
-      "bytes": 1575
+      "sha256": "d1ec40f125ccc46dd0774253281388e7b2a19998d3acc2da262b2660fd481831",
+      "bytes": 1748
     },
     {
       "path": "deploy/kubernetes/overlays/production/kustomization.yaml",

@@ -3,6 +3,8 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+import pytest
+
 from scripts.verify_gcp_production import evaluate
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -397,12 +399,13 @@ def test_cloudsql_public_ipv4_mutation_is_killed(tmp_path: Path) -> None:
     assert _status(root)["CLOUDSQL_PRIVATE_ONLY"] is False
 
 
-def test_cloudsql_tls_downgrade_mutation_is_killed(tmp_path: Path) -> None:
+@pytest.mark.parametrize("mode", ["ENCRYPTED_ONLY", "ALLOW_UNENCRYPTED_AND_ENCRYPTED"])
+def test_cloudsql_tls_downgrade_mutation_is_killed(tmp_path: Path, mode: str) -> None:
     root = _mutated_repo(
         tmp_path,
         "infra/gcp/foundation/main.tf",
-        '      ssl_mode        = "ENCRYPTED_ONLY"',
-        '      ssl_mode        = "ALLOW_UNENCRYPTED_AND_ENCRYPTED"',
+        '      ssl_mode        = "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"',
+        f'      ssl_mode        = "{mode}"',
     )
     assert _status(root)["CLOUDSQL_TLS_ENFORCED"] is False
 

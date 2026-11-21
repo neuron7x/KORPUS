@@ -1,0 +1,10 @@
+--- a/detect/detect.go
++++ b/detect/detect.go
+@@ -7,0 +8 @@
++	"runtime/pprof"
+@@ -442 +443,4 @@
+-	matches := r.Regex.FindAllStringIndex(currentRaw, -1)
++	var matches [][]int
++	pprof.Do(context.Background(), pprof.Labels("rule", r.RuleID), func(context.Context) {
++		matches = r.Regex.FindAllStringIndex(currentRaw, -1)
++	})

@@ -40,8 +40,8 @@ def evaluate(s: Sources) -> list[tuple[str, bool, str]]:
         ),
         (
             "CLOUDSQL_TLS_ENFORCED",
-            'ssl_mode        = "ENCRYPTED_ONLY"' in s.foundation,
-            "Cloud SQL refuses unencrypted database connections independently of network placement",
+            'ssl_mode        = "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"' in s.foundation,
+            "Cloud SQL requires TLS and a trusted client certificate independently of network placement",
         ),
         (
             "RUNTIME_DIRECT_VPC_DB_PLANE",

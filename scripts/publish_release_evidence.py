@@ -2,8 +2,7 @@
 """Publish only source-bound release evidence from exactly validated bytes.
 
 Reject missing, ambiguous or stale reports. Never re-read a candidate after checking
-its source binding. Coverage remains blocked until issue #66 supplies authenticated
-GitHub run/attempt/artifact-byte admission.
+its source binding. Coverage requires live GitHub run/attempt/artifact admission.
 """
 
 from __future__ import annotations
@@ -14,9 +13,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
+from coverage.exceptions import CoverageException
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(ROOT), str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
+
+from github_evidence_publication import admitted_coverage_projection  # noqa: E402
 from korpus.application.final_release_evidence import strict_signed_json_object  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from korpus.application.release_claims import binding  # noqa: E402
@@ -38,12 +40,19 @@ SOURCES = {
 
 
 def coverage_projection(digest: str, release: str) -> dict[str, Any] | None:
-    """Fail closed until GitHub-imported coverage is verified against exact artifact bytes.
+    """Only fresh, full-subject GitHub admission can produce coverage claims."""
+    return admitted_coverage_projection(ROOT, (digest, release))
 
-    Raw local coverage JSON is not proof of execution or GitHub run identity.
-    Issue #66 must supply a verified importer/admission path before publication.
-    """
-    return None
+
+def _coverage_report(identity: tuple[str, str], refused: list[dict[str, str]]) -> dict | None:
+    try:
+        report = coverage_projection(*identity)
+        if report is None:
+            raise ValueError("no explicit live GitHub evidence admission was requested")
+        return report
+    except (OSError, ValueError, CoverageException) as error:
+        refused.append({"report": "COVERAGE_REPORT.json", "reason": str(error)})
+        return None
 
 
 def _admit_reports(digest: str, refused: list[dict[str, str]]) -> list[tuple[str, bytes]]:
@@ -90,9 +99,7 @@ def main() -> int:
     published: list[str] = []
     refused: list[dict[str, str]] = []
 
-    coverage = coverage_projection(digest, release)
-    if coverage is None:
-        refused.append({"report": "COVERAGE_REPORT.json", "reason": "no coverage totals on disk"})
+    coverage = _coverage_report((digest, release), refused)
 
     approved = _admit_reports(digest, refused)
 

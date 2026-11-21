@@ -25,6 +25,10 @@ spec:
           envFrom:
             - configMapRef: {name: korpus-config}
             - secretRef: {name: korpus-migration-secrets}
+          env:
+            - name: KORPUS_OIDC_TOKEN_ENDPOINT
+              valueFrom:
+                configMapKeyRef: {name: korpus-config, key: PUBLIC_OIDC_EXCHANGE_URL}
           resources:
             requests: {cpu: 100m, memory: 256Mi}
             limits: {cpu: "1", memory: 1Gi}
