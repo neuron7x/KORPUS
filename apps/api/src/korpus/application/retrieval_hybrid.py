@@ -9,6 +9,7 @@ from types import SimpleNamespace
 from typing import Protocol, cast
 from uuid import UUID
 
+from korpus.application.corpus_read_context import validate_active_read
 from korpus.application.declared_subject import declared_subject_documents
 from korpus.application.ports import Repository
 from korpus.application.question_obligations import obligation_version_cap
@@ -137,6 +138,7 @@ def execute_hybrid_search_impl(
             as_of,
             candidate_budget,
         )
+    validate_active_read(repository)
     if not candidates:
         if (time.monotonic() - started) * 1000 > timeout_ms:
             raise deadline_error("candidate retrieval exceeded deadline")
@@ -155,15 +157,7 @@ def execute_hybrid_search_impl(
         ],
         weights=weights,
     )
-    # Довжина збігу, а не членство. `subjects_in_question` уже впорядковує предмети від
-    # довшого до коротшого, бо «Командир» є підрядком «Безпосередні командири» — і цей
-    # порядок губився при перетворенні на множину. Далі всі троє потрапляли в один клас
-    # і змагалися релевантністю, де узагальнення виграє: виміряно 31.08.2026, першим
-    # ставав «Командир (начальник)» (0.4129) перед «Безпосередні командири» (0.3356).
-    # ОДНЕ обчислення на всю систему. Тут стояла власна копія тієї самої логіки, а шлях
-    # відповіді кликав `declared_subject_documents` — два незалежні означення одного
-    # поняття, які мали всі шанси розійтися мовчки. Саме цей клас розходження дав нам
-    # сьогодні два якорі під одну чергу й дві копії оточення під один сервіс.
+    # Use the same ordered subject-match calculation as the answer path.
     subject_documents = declared_subject_documents(
         text, [SimpleNamespace(document=document) for _, document, _ in candidates]
     )
