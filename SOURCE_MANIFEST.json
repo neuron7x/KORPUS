@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2276,
-  "root_sha256": "88842e3b4224f745ed481d8c2fafc73817af61042ea5cb5df83bace61e1db2f1",
+  "file_count": 2277,
+  "root_sha256": "e7b113ca014d3150d0eb0f43ce13b69089a9d5d273074c427648cf65f1969d95",
   "files": [
     {
       "path": ".dockerignore",
@@ -6067,8 +6067,8 @@
     },
     {
       "path": "apps/api/tests/test_serving_readiness_contract.py",
-      "bytes": 5846,
-      "sha256": "3086c9f9433ced076f944d533e9c1da6978d1808de3c4c5299fc3651a9de119b",
+      "bytes": 15698,
+      "sha256": "41c59dec3ab54861d1689fcfb74fab34b4d118c347225c8ab3838d3e179455fa",
       "mode": "0644"
     },
     {
@@ -8743,8 +8743,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 791109,
-      "sha256": "308213a8e2231d33a76a4f2f81418c2a3d3c87753ae342b1c588a8094faf871b",
+      "bytes": 791462,
+      "sha256": "06e21f2a66ec92f8d887985e9d8921bad668cdc4f286fcecb2c06bac073d2b1b",
       "mode": "0644"
     },
     {
@@ -11497,8 +11497,8 @@
     },
     {
       "path": "scripts/check_serving_readiness.py",
-      "bytes": 8802,
-      "sha256": "24c2e56bec1a02253252896dcc5b47e247cced070ba66af5c8fd92b5c9f3c1ff",
+      "bytes": 9284,
+      "sha256": "a9b01ca28a3a090eeb7ab023c53110fa455d2d37b1533c45b10031713c8e565a",
       "mode": "0755"
     },
     {
@@ -12732,6 +12732,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/ready_response_contract.py",
+      "bytes": 1143,
+      "sha256": "9ae249a9c845bf13936f9c8a514b5f599586d50f4288a7eaa4cbc231bae9d45b",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/recheck_blocked_sources.py",
       "bytes": 17742,
       "sha256": "80d0d6fb9108e3cce85aafe90acfbe1c112ddc5253ca7fdfa8c5001f9649d9f1",
@@ -13237,8 +13243,8 @@
     },
     {
       "path": "scripts/serving_readiness_contract.py",
-      "bytes": 2947,
-      "sha256": "333967478ada73f31a94691858f240fa62990090b925d1d25d89296b56d5bce4",
+      "bytes": 2882,
+      "sha256": "ca7351d6de29dbee31e997af061ed071ce619b7ec8ab20f31be4730325720219",
       "mode": "0644"
     },
     {

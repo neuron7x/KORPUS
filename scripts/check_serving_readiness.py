@@ -21,32 +21,39 @@ import argparse
 import json
 import sys
 import urllib.error
-import urllib.request
+import urllib.request as u
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_serving_freshness import required_units, serving_processes, unit_states  # noqa: E402
-from serving_readiness_contract import owned_ports, readiness_checks  # noqa: E402
+from serving_readiness_contract import owned_ports, readiness_checks, ready_response  # noqa: E402
 
 TIMEOUT = 10.0
+
+
+class _NoRedirect(u.HTTPRedirectHandler):
+    def redirect_request(self, *_args: object, **_kwargs: object) -> None:
+        return None
 
 
 def probe(port: int, path: str = "/ready", timeout: float = TIMEOUT) -> dict[str, Any]:
     """Стан одного шляху на одному порту. Недосяжність — теж стан, не брак виміру."""
     url = f"http://127.0.0.1:{port}{path}"
     try:
-        with urllib.request.urlopen(url, timeout=timeout) as response:
+        with u.build_opener(_NoRedirect, u.ProxyHandler({})).open(url, timeout=timeout) as response:
+            body = response.read(4097)
             return {
                 "port": port,
                 "path": path,
-                "status": response.status,
-                "body": response.read(4096).decode(),
+                "status": response.status if len(body) <= 4096 else None,
+                "body": body.decode() if len(body) <= 4096 else "READINESS_BODY_TOO_LARGE",
             }
-    except urllib.error.HTTPError as error:
-        return {"port": port, "path": path, "status": error.code, "body": error.read(4096).decode()}
-    except OSError as error:
+    except urllib.error.HTTPError as e:
+        status = None if 300 <= e.code < 400 else e.code
+        return dict(port=port, path=path, status=status, body=e.read(4096).decode(errors="replace"))
+    except (UnicodeDecodeError, OSError) as error:
         return {
             "port": port,
             "path": path,
@@ -61,7 +68,7 @@ def refusing_detail(body: str) -> list[str]:
         payload = json.loads(body)
     except json.JSONDecodeError:
         return []
-    detail = payload.get("detail")
+    detail = payload.get("detail") if isinstance(payload, dict) else {}
     detail = detail if isinstance(detail, dict) else payload
     return sorted(key for key, value in detail.items() if value is False)
 
@@ -74,7 +81,7 @@ def liveness_masking(ready: list[dict[str, Any]], live: list[dict[str, Any]]) ->
     «здатний відповісти» — різні твердження, і перше не є свідченням про друге.
     """
     healthy = {item["port"] for item in live if item["status"] == 200}
-    return sorted({item["port"] for item in ready if item["status"] != 200} & healthy)
+    return sorted({item["port"] for item in ready if not ready_response(item)} & healthy)
 
 
 def verdict(
@@ -86,8 +93,8 @@ def verdict(
     """Оголошено — значить мусить відповідати. Порожній перелік не є згодою."""
     checks = readiness_checks(units, ports, probes)
     admitted = probes if checks["probe_set_complete"] else []
-    serving = [item for item in admitted if item["status"] == 200]
-    refusing = [item for item in admitted if item["status"] != 200]
+    serving = [item for item in admitted if ready_response(item)]
+    refusing = [item for item in admitted if not ready_response(item)]
     masked = liveness_masking(admitted, liveness or [])
     failures = [name for name, ok in checks.items() if not ok]
     return {
@@ -117,9 +124,9 @@ def verdict(
     }
 
 
-def declared_ports() -> list[int]:
+def declared_ports(units: list[str] | None = None) -> list[int]:
     """Порти процесів, що належать ОГОЛОШЕНИМ юнітам."""
-    units = required_units()
+    units = required_units() if units is None else units
     return owned_ports(units, unit_states(units), serving_processes())
 
 
@@ -168,7 +175,8 @@ def main() -> int:
     args = parser.parse_args()
     if args.selftest:
         return selftest()
-    units, ports = required_units(), declared_ports()
+    units = required_units()
+    ports = declared_ports(units)
     payload = verdict(
         units,
         ports,
