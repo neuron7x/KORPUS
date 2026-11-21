@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2310,
-  "root_sha256": "5a00e5348fd204d3531d1489065caf68c810ea56bca18e10c515500b9f4f7b8b",
+  "file_count": 2311,
+  "root_sha256": "4a17742a6be1e240068b6941e30bddccd89fb976a304d2f305a3f3367faf9f05",
   "files": [
     {
       "path": ".dockerignore",
@@ -3894,6 +3894,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_contextual_release_binding.py",
+      "bytes": 8581,
+      "sha256": "02ecac1fcf0f201b421fb66a9ef10ee584f3a89346e269625c3be0dbbd12e067",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_contracts.py",
       "bytes": 1157,
       "sha256": "e96713b9e68e09dd5eebc8d255f42a2f0360789121c241a6ff9efa43dfdd10db",
@@ -5539,8 +5545,8 @@
     },
     {
       "path": "apps/api/tests/test_postgres_runner_execution.py",
-      "bytes": 11108,
-      "sha256": "84b725d4875a20a0c14425bc3a8f462cc71cc21a3b3122b8f0a2430b619dd68e",
+      "bytes": 11192,
+      "sha256": "acb19c7be55b18e62f16f21dbb7327796d276d3844e84a4ee7a29c59d33639e8",
       "mode": "0644"
     },
     {
@@ -9187,14 +9193,14 @@
     },
     {
       "path": "docs/agent_execution/PHASE_01_ACCEPTANCE_2026_11_21.md",
-      "bytes": 11086,
-      "sha256": "97c231ef439950ff979e918e43e798f2d22203aec0bf0bd6a80b373567caa26f",
+      "bytes": 14278,
+      "sha256": "c373a76fead6de0f822f1ba989f03910fa2ddb42bf63b1fed95e471c09225776",
       "mode": "0644"
     },
     {
       "path": "docs/agent_execution/PHASE_02_03_ACCEPTANCE_MATRIX.md",
-      "bytes": 12359,
-      "sha256": "e8c3365833d451b6ba2129cac15c0946a5ee25e96d28d1fdf6a469bab1308236",
+      "bytes": 15115,
+      "sha256": "f861c6b30a958fd4d69e189cf2ccc41f6efa79b474964efb83e54c0e3e2e48a7",
       "mode": "0644"
     },
     {
@@ -13237,8 +13243,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 357165,
-      "sha256": "c14272960975b621b3817123873eeb5a0e4cbd1a32ed1cb9555d9d93ccd02711",
+      "bytes": 358537,
+      "sha256": "095c3c149648e5cd1c10fed84dc076c0355a5a93ab3f0ca9ba67b06033e9c075",
       "mode": "0755"
     },
     {

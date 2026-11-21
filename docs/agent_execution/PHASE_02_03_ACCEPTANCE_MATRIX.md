@@ -1,15 +1,18 @@
 # Phase 02 / 03 acceptance evidence
 
 Audit date: 2026-11-21. Scope: synthetic fixtures and generic database invariants.
-Phase 02 is **PENDING_NATIVE_QUALIFICATION**. Phase 03 has executed baseline
+Phase 02 is **PENDING_NATIVE_REQUALIFICATION**. Phase 03 has executed baseline
 controls and remains **DEPENDENCY_PENDING** on accepted phase 02.
 `production_authorized = false`. This document does not close an issue.
 
-The immediate parent is the published phase-01 candidate
-`20c6b6ce361ecf041f6b8973089540dcc0a6ddfe`
+The immediate phase-01 parent is the amended published candidate
+`33aaa5aeec97a9874649a6309ac1297e6815d919`
 ([PR #138](https://github.com/neuron7x/KORPUS/pull/138)), which is still awaiting
 acceptance. The dependent PR permits native phase-02 CI to run on the combined
 tree; phase-02 merge admission still requires phase 01 to pass and merge first.
+The earlier phase-02 head `0c01afc25ea9629a8892ba627edc4eed86ee122e` is
+preserved as the other merge parent. Its first native result is recorded below;
+it does not qualify this amended combined tree.
 
 Acceptance owners: [#99](https://github.com/neuron7x/KORPUS/issues/99),
 [#25](https://github.com/neuron7x/KORPUS/issues/25),
@@ -56,9 +59,9 @@ provenance (0025), learning history (0026), and competency immutability (0027).
 
 | Acceptance criterion | Baseline observation | Remaining obligation |
 |---|---|---|
-| #25.1: app cannot UPDATE both `review_state='approved'` and a chosen 64-hex seal | Catalog denials and INSERT attacks passed; the exact combined UPDATE was not executed | **NOT_EXECUTED:** new `test_app_update_cannot_forge_approval_and_evidence_seal` must pass natively |
+| #25.1: app cannot UPDATE both `review_state='approved'` and a chosen 64-hex seal | Catalog denials and INSERT attacks passed; the exact combined UPDATE was absent from the baseline | New combined UPDATE node passed in the first native candidate; require the amended exact-tree run to pass |
 | #25.2: authorized review atomically seals exact persisted evidence and audit | Exact-span seal test and separated reviewer positives passed; failed tier update rolled back review/audit | Retain those positives; each new case also executes separated metadata/content/approval and recomputes the persisted-span digest |
-| #25.3: once-sealed digest cannot change or clear before/after rejection | Existing changed-digest attacks used the fixture owner; no NULL-seal attack established the requested runtime-role boundary | **NOT_EXECUTED:** eight new cases cover app/review x approved/rejected x changed/NULL |
+| #25.3: once-sealed digest cannot change or clear before/after rejection | Existing changed-digest attacks used the fixture owner; no NULL-seal attack established the requested runtime-role boundary | Eight new app/review x approved/rejected x changed/NULL cases passed natively; require the amended exact-tree run to pass |
 | #25.4: migrated/runtime guard parity with exact grants | Clean migrated bootstrap, runtime guard initialization and 30 approval-provenance nodes passed | Fresh candidate must rerun the native suite; this does not admit a populated production migration |
 | #25.5: preserve ceilings and authorization boundary | No runtime, migration, privilege or budget changes in this patch; local module budget passes | Fresh hosted required checks and independent execution audit; production remains unauthorized |
 | #31: app cannot increase any claim axis or read a hidden row | Four claim-forgery nodes and the five independent app-axis cases in 35 claim-mutation nodes passed | Retain role/clearance/corpus/classification/compartment negatives in fresh CI |
@@ -98,12 +101,45 @@ The frozen mandatory contract is now **138 cases / 76 functions**, retaining all
 unexpected IDs. Removing the new target is itself rejected by the gate contract.
 No new runtime predicate or arbitrary duplicate mutant was introduced.
 
-Local validation: 46 passed (44 contract + 2 orchestration), **9 skipped**,
-zero failures/errors. All nine skips say the disposable native PostgreSQL suite
-is required. PostgreSQL, psql and Docker are unavailable locally. Ruff check,
-Ruff formatting, `git diff --check` and module budget passed. These observations
-are collection/orchestration proof only; **none of the nine new DB attacks has
-executed yet**. A separate agent reviewed the source changes; hosted execution
+Initial local validation: 46 passed (44 contract + 2 orchestration), **9 skipped**,
+zero failures/errors. All nine skips require the disposable native PostgreSQL
+suite. PostgreSQL, psql and Docker are unavailable locally. Ruff check, Ruff
+formatting, `git diff --check` and module budget passed. A separate agent reviewed
+the source changes; local skips remain collection/orchestration evidence only.
+
+### First native candidate and bounded runner correction
+
+| Identity or result | Observed value |
+|---|---|
+| First phase-02 head / phase-01 base | `0c01afc25ea9629a8892ba627edc4eed86ee122e` / `20c6b6ce361ecf041f6b8973089540dcc0a6ddfe` |
+| Actual checkout from the PostgreSQL job log | `7dde7f3904ac88e368b15ee11617f9897e4146b1` |
+| Shared candidate tree | `015df7f26f4552c3b306a7fef327864e943ff6d2` |
+| Hosted execution | [CI 44879400205, attempt 1, job 136771139261](https://github.com/neuron7x/KORPUS/actions/runs/44879400205/job/136771139261) |
+| Raw diagnostics | [Artifact 14696644826](https://github.com/neuron7x/KORPUS/actions/runs/44879400205/artifacts/14696644826), 1,037,038 bytes; SHA-256 `d3bd79f6f80e8c2cd0773bbd5165cf0ae102758f0483eabe8d2aabb56612773e` |
+| Full PostgreSQL JUnit | 7,485 nodes = **7,477 passed + 7 skipped + 1 failed**, zero errors |
+| Nine new runtime boundary nodes | **9 / 9 passed**, zero skips/failures/errors |
+| Frozen security nodes within that full suite | All **138 / 138 passed** by exact source-tracked node identity |
+| Separate production security gate | **SKIPPED** after the full-suite failure; no focused 138-pass receipt exists for this run |
+| Coverage execution receipt | **FAIL / PRODUCER_FAILED**; no successful before/after source-input receipt |
+
+All nine new nodes recorded PostgreSQL `170010`, migration
+`0028_reviewer_update_scope`, actual `korpus_app` / `korpus_review` current and
+session logins, no superuser/bypass/owner membership, one visible target and one
+permitted write. The five app attempts returned `42501`; the four reviewer
+attempts returned `P0001`. Every rollback preserved the complete observed
+version, span and audit snapshot. These are actual individual test results,
+not overall CI success or independent approval of the builder's own work.
+
+The sole failure was the orchestration assertion in
+`test_security_runtime_selects_its_actual_complete_target_list`: it still
+expected ten targets after the eleventh required module was added. The exact
+`11 != 10` failure was reproduced locally. The correction changes the frozen
+count to eleven and explicitly requires the seal-boundary module; command-list
+equality and the 600-second orchestration bound remain intact. No runtime,
+privilege, fixture or denial assertion changed. After correction the runner,
+security-contract and new boundary modules collected 73 cases: **64 passed,
+9 native-only skipped**, zero failures/errors. Fresh hosted qualification of
+the amended phase-01/02 tree, focused security execution, independent audit
 and the owner merge decision remain pending.
 
 ## Phase 03: immutable source-bound course graph
