@@ -33,6 +33,7 @@ REQUIRED_DESTRUCTION_CONTROLS = {
     "apps/api/tests/test_postgres_rls_policy_state.py",
     "apps/api/tests/test_postgres_role_reprovision_boundary.py",
     "apps/api/tests/test_postgres_approval_provenance.py",
+    "apps/api/tests/test_postgres_approval_seal_boundary.py",
 }
 
 #: І хоча б один, що питає протилежне: чи чесний шлях узагалі працює. Набір із
