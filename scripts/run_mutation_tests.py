@@ -49,6 +49,16 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M833_CACHE_KEY_IGNORES_CONFIGURATION",
+        "apps/api/src/korpus/application/cache.py",
+        "                self.configuration_id,\n",
+        '                "fixed-configuration",\n',
+        (
+            "apps/api/tests/test_query_cache.py::"
+            "test_shared_cache_recomputes_only_for_a_different_configuration",
+        ),
+    ),
+    Mutant(
         "M832_SOURCE_PREDICATE_ESTABLISHES_BINDING_OMITTED",
         "apps/api/src/korpus/application/question_obligations.py",
         "|встановлює",

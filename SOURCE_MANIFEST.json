@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2307,
-  "root_sha256": "033e56b7ae76f2cacab302233fe780e105f3e354edead95df95e118b3b35da75",
+  "file_count": 2308,
+  "root_sha256": "5a4e822eac540b4ee610148d8ea42c38e6004f917a4345f5bd87646e7e8bee7b",
   "files": [
     {
       "path": ".dockerignore",
@@ -5671,8 +5671,8 @@
     },
     {
       "path": "apps/api/tests/test_query_cache.py",
-      "bytes": 5809,
-      "sha256": "5ce35d09921a5ecca89d38ca6bd24e35586211621818b8fdfcf88ccb2a360dab",
+      "bytes": 7563,
+      "sha256": "b87d9f7e402ac14fabc2a13d4352c29ca3c486a2a64216bd020ef575e3e92ff0",
       "mode": "0644"
     },
     {
@@ -9177,6 +9177,12 @@
       "path": "docs/agent_execution/KORPUS_NINE_PR_RUNBOOK.md",
       "bytes": 14897,
       "sha256": "f16461ea3c522e1ca434c34e1e48dc83fd5284d8ea2243d133d129ae0c569b49",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/agent_execution/PHASE_01_ACCEPTANCE_2026_11_21.md",
+      "bytes": 11086,
+      "sha256": "97c231ef439950ff979e918e43e798f2d22203aec0bf0bd6a80b373567caa26f",
       "mode": "0644"
     },
     {
@@ -13219,8 +13225,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 356791,
-      "sha256": "754ee824191dbecae6746145f77c31a62303875f62b06617c949aa762847ab91",
+      "bytes": 357165,
+      "sha256": "c14272960975b621b3817123873eeb5a0e4cbd1a32ed1cb9555d9d93ccd02711",
       "mode": "0755"
     },
     {
