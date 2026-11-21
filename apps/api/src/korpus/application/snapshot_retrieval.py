@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from datetime import date
+from functools import partial
 
+from korpus.application.corpus_read_context import read_with_token
 from korpus.application.corpus_snapshot import (
     CorpusReadToken,
     CorpusSnapshotReader,
@@ -29,7 +31,5 @@ class SnapshotBoundRetriever(SnapshotRetriever):
         token: CorpusReadToken,
         limit: int = 8,
     ) -> list[RetrievedEvidence]:
-        self.snapshot_reader.validate(identity, corpus_ids, as_of, token)
-        result = self.delegate.search(identity, text, corpus_ids, as_of, limit)
-        self.snapshot_reader.validate(identity, corpus_ids, as_of, token)
-        return result
+        action = partial(self.delegate.search, identity, text, corpus_ids, as_of, limit)
+        return read_with_token(self.snapshot_reader, token, (identity, corpus_ids, as_of), action)

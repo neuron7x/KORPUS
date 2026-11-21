@@ -197,8 +197,9 @@ def test_approval_between_token_validation_and_retrieval_fails_closed(
             as_of,
             token_a,
         )
-    assert interleaved.result
-    assert any(str(item.version.id) == second_version for item in interleaved.result)
+    assert interleaved.result == []  # The changed state is refused before ranking returns.
+    current = delegate.search(admin_identity, "BRAVO-RACE", corpora, as_of)
+    assert any(str(item.version.id) == second_version for item in current)
 
 
 def test_rescission_after_retrieval_before_revalidation_fails_closed(

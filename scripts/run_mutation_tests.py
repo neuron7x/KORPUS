@@ -49,6 +49,96 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M852_STALE_RESULT_REACHES_CACHE_STORAGE",
+        "apps/api/src/korpus/application/cache.py",
+        "        validate_active_read()\n",
+        "        # Pre-storage token validation removed.\n",
+        (
+            "apps/api/tests/test_read_scope_boundaries.py::test_changed_delegate_result_never_reaches_cache_storage",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M853_MIXED_CANDIDATES_REACH_RANKING",
+        "apps/api/src/korpus/application/retrieval_hybrid.py",
+        "    validate_active_read(repository)\n",
+        "    # Pre-ranking token validation removed.\n",
+        (
+            "apps/api/tests/test_read_scope_boundaries.py::test_complete_semantic_backfill_is_validated_before_actual_scoring",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M854_NESTED_CACHE_RECAPTURES_TOKEN",
+        "apps/api/src/korpus/application/corpus_read_context.py",
+        "        token = active.token\n",
+        "        token = reader.capture(*arguments)\n",
+        (
+            "apps/api/tests/test_read_scope_boundaries.py::test_stable_snapshot_preserves_real_cache_hit_and_single_capture",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M855_LEGACY_RETRIEVER_DROPS_SHARED_SCOPE",
+        "apps/api/src/korpus/application/corpus_read_context.py",
+        '    with _read_scope(reader, arguments, token, getattr(reader, "repository", None)):',
+        '    with __import__("contextlib").nullcontext():',
+        (
+            "apps/api/tests/test_read_scope_boundaries.py::test_complete_semantic_backfill_is_validated_before_actual_scoring[changed-snapshot-direct]",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M856_FOREIGN_REPOSITORY_BORROWS_TOKEN_AUTHORITY",
+        "apps/api/src/korpus/application/corpus_read_context.py",
+        "self.reader is not reader or (\n            self.repository is not None\n            and repository is not None\n            and self.repository is not repository\n        )",
+        "False",
+        (
+            "apps/api/tests/test_read_scope_boundaries.py::test_other_repository_cannot_borrow_an_active_token",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M857_NESTED_READ_SCOPE_IS_NOT_RESTORED",
+        "apps/api/src/korpus/application/corpus_read_context.py",
+        "        _ACTIVE_SCOPE.reset(context)",
+        "        _ = context",
+        (
+            "apps/api/tests/test_read_scope_boundaries.py::test_nested_failed_read_restores_the_exact_outer_scope_then_removes_it",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M858_RELEASE_IGNORES_DERIVED_EVIDENCE_LAYOUT",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        "        _frame(digest, member.evidence_digest)",
+        '        _frame(digest, "fixed-derived-evidence")',
+        (
+            "apps/api/tests/test_snapshot_literal_acceptance.py::test_same_raw_source_and_ids_with_new_derived_layout_change_seal_and_release",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M859_MALFORMED_STORED_SEAL_SUPPORTS_READ",
+        "apps/api/src/korpus/infrastructure/semantic_release.py",
+        "        if not _valid_sha256(evidence_digest):",
+        "        if False:",
+        (
+            "apps/api/tests/test_snapshot_literal_acceptance.py::test_native_missing_or_malformed_seal_cannot_support_a_read[malformed]",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M860_MISSING_EPOCH_BECOMES_ZERO",
+        "apps/api/src/korpus/infrastructure/corpus_snapshot.py",
+        '            raise CorpusConsistencyError("corpus state epoch is not initialized")',
+        "            return 0",
+        (
+            "apps/api/tests/test_snapshot_literal_acceptance.py::test_native_missing_epoch_row_refuses_capture_and_http",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M834_CONTEXTUAL_RELEASE_IGNORES_ISSUER",
         "apps/api/src/korpus/application/corpus_snapshot.py",
         "        _frame(digest, member.issuer)\n",

@@ -4,7 +4,12 @@ import json
 from datetime import date
 
 from fastapi.testclient import TestClient
-from korpus.application.corpus_snapshot import CorpusConsistencyError, CorpusReadToken
+from korpus.application.corpus_snapshot import (
+    CorpusConsistencyError,
+    CorpusReadToken,
+    authorization_scope_id,
+)
+from korpus.domain.models import Identity
 
 
 def ingest_text(
@@ -126,7 +131,9 @@ class StubSnapshotReader:
         self.epoch = epoch
         self.captures = 0
 
-    def capture(self, identity: object, corpus_ids: frozenset[str], as_of: date) -> CorpusReadToken:
+    def capture(
+        self, identity: Identity, corpus_ids: frozenset[str], as_of: date
+    ) -> CorpusReadToken:
         self.captures += 1
         corpora = frozenset(corpus_ids) & frozenset(getattr(identity, "corpora", corpus_ids))
         return CorpusReadToken(
@@ -134,7 +141,7 @@ class StubSnapshotReader:
             release_id=self.release,
             as_of=as_of,
             corpus_ids=corpora,
-            authorization_scope_id="b" * 64,
+            authorization_scope_id=authorization_scope_id(identity, corpora),
         )
 
     def validate(

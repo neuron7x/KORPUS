@@ -5,14 +5,18 @@ Phase 02 is **PENDING_NATIVE_REQUALIFICATION**. Phase 03 has executed baseline
 controls and remains **DEPENDENCY_PENDING** on accepted phase 02.
 `production_authorized = false`. This document does not close an issue.
 
-The immediate phase-01 parent is the amended published candidate
-`33aaa5aeec97a9874649a6309ac1297e6815d919`
+The immediate incoming phase-01 parent is the published candidate
+`5112dd3f67c0e3d31ec54f82c937afb1e0065d18`, tree
+`708d8e99d8528ebfaf33cdc217c1953f0fd57e45`
 ([PR #138](https://github.com/neuron7x/KORPUS/pull/138)), which is still awaiting
-acceptance. The dependent PR permits native phase-02 CI to run on the combined
-tree; phase-02 merge admission still requires phase 01 to pass and merge first.
-The earlier phase-02 head `0c01afc25ea9629a8892ba627edc4eed86ee122e` is
-preserved as the other merge parent. Its first native result is recorded below;
-it does not qualify this amended combined tree.
+acceptance. It is merged into the existing phase-02 head
+`981794e6968ca7e169c9326369d9a03a4764b592`, preserving both as direct parents.
+The ordinary merge base is `33aaa5aeec97a9874649a6309ac1297e6815d919`.
+The earlier phase-02 head `0c01afc25ea9629a8892ba627edc4eed86ee122e` remains
+an ancestor of the retained phase-02 parent. Its first native result is recorded
+below; it does not qualify this new combined tree. The dependent PR permits
+native phase-02 CI to run on the combined source, while merge admission still
+requires phase 01 to pass and merge first.
 
 Acceptance owners: [#99](https://github.com/neuron7x/KORPUS/issues/99),
 [#25](https://github.com/neuron7x/KORPUS/issues/25),
@@ -141,6 +145,46 @@ security-contract and new boundary modules collected 73 cases: **64 passed,
 9 native-only skipped**, zero failures/errors. Fresh hosted qualification of
 the amended phase-01/02 tree, focused security execution, independent audit
 and the owner merge decision remain pending.
+
+### Integration of the phase-01 intermediate-boundary repair
+
+The next integration uses the actual published phase-01 commit `5112dd3f` and
+retains phase-02 head `981794e6` as the first parent. An ordinary three-way merge
+at base `33aaa5ae` conflicted only in `SOURCE_MANIFEST.json` and
+`PACKAGE_BUILD.json`. Both are recomputed by the unchanged producers from an
+export whose complete Git blob bytes and modes are verified without Git metadata.
+The integration documentation is the only authored-source addition beyond the
+two parents; no control or runtime predicate is edited to make the merge pass.
+
+The incoming phase-01 source checks the original reader token before actual cache
+storage and before ranking after semantic backfill. It also supplies the shared
+standalone/request/legacy read scope and the literal A–L witnesses described in
+`PHASE_01_ACCEPTANCE_2026_11_21.md`. Those files are imported unchanged. Database
+migrations, privilege grants, RLS policies and review-role boundaries retain their
+phase-02-parent bytes.
+
+The nine approval/seal cases, gate contract, exact node JSON, node validator,
+security target list and eleven-target runner assertion remain byte-identical to
+`981794e6`. The dedicated security denominator is still **138 cases / 76 functions /
+11 modules**. Actual collection of the merged source matches every frozen identity,
+with no missing or unexpected nodes. This is collection evidence only; phase-01's
+new actor cases belong to the full suite and do not silently alter that denominator.
+
+All 705 phase-02-parent mutant definitions remain unchanged. The union contains
+714 definitions, including phase-01's M852–M860; it does not add a separate phase-02
+runtime fault. All 771 prior budget rows remain unchanged, with the two measured
+phase-01 module rows bringing the registry to 773. Desired state is unchanged.
+
+The combined local compatibility selection executes 183 cases: **174 passed,
+9 skipped**, zero failures/errors. It includes the 108-case phase-01 repair
+selection and the phase-02 runner, security-contract, runtime-orchestration and
+approval/seal modules. Every skip is one of the nine native approval/seal cases
+and explicitly requires the disposable PostgreSQL suite. Shell orchestration
+fixtures, SQLite actor tests and exact collection do not establish PostgreSQL
+execution. Final frozen-tree receipts record source identity, exact commands and
+static checks. Fresh native PostgreSQL, the full mutation campaign, all required
+CI/package checks and independent review of this combined source remain required.
+Neither predecessor's successful checks qualify a different source tree.
 
 ## Phase 03: immutable source-bound course graph
 
