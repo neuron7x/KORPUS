@@ -49,6 +49,39 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M834_CONTEXTUAL_RELEASE_IGNORES_ISSUER",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        "        _frame(digest, member.issuer)\n",
+        '        _frame(digest, "fixed-issuer")\n',
+        (
+            "apps/api/tests/test_contextual_release_binding.py::"
+            "test_contextual_metadata_mutation_rebinds_candidates_cache_and_audit"
+            "[application-issuer]",
+        ),
+    ),
+    Mutant(
+        "M835_CONTEXTUAL_RELEASE_IGNORES_JURISDICTION",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        "        _frame(digest, member.jurisdiction)\n",
+        '        _frame(digest, "fixed-jurisdiction")\n',
+        (
+            "apps/api/tests/test_contextual_release_binding.py::"
+            "test_contextual_metadata_mutation_rebinds_candidates_cache_and_audit"
+            "[application-jurisdiction]",
+        ),
+    ),
+    Mutant(
+        "M836_CONTEXTUAL_RELEASE_IGNORES_DOCUMENT_TYPE",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        "        _frame(digest, member.document_type)\n",
+        '        _frame(digest, "fixed-document-type")\n',
+        (
+            "apps/api/tests/test_contextual_release_binding.py::"
+            "test_contextual_metadata_mutation_rebinds_candidates_cache_and_audit"
+            "[application-document_type]",
+        ),
+    ),
+    Mutant(
         "M833_CACHE_KEY_IGNORES_CONFIGURATION",
         "apps/api/src/korpus/application/cache.py",
         "                self.configuration_id,\n",

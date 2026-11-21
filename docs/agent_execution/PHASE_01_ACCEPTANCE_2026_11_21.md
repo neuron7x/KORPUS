@@ -6,7 +6,8 @@ Original acceptance: [#23](https://github.com/neuron7x/KORPUS/issues/23),
 [#27](https://github.com/neuron7x/KORPUS/issues/27).
 
 This record distinguishes the verified merged baseline from the follow-up that
-strengthens configuration-isolation evidence. It grants no production authority.
+strengthens configuration isolation and contextual metadata evidence. It grants
+no production authority.
 The follow-up requires its own exact-candidate hosted checks and independent
 review; the baseline's successful reports are not new-candidate results.
 
@@ -84,9 +85,12 @@ No additional uncovered corpus-metadata field was reproduced in this review.
 
 All 22 field-sensitivity controls pass, together with order/join multiplicity,
 set framing, absent-versus-empty distinctions and actual issuer/jurisdiction/type
-database mutations. The source-only inspection of configuration binding was
-insufficient test evidence: the former test named configuration without varying
-it. The follow-up closes that specific gap below.
+database mutations. Independent review found two incomplete acceptance witnesses:
+the former cache test named configuration without varying it, and the original
+persisted metadata test used a database-owner connection and checked only release
+inequality. It did not execute the contextual candidate/cache/audit path requested
+in [the #26 acceptance comment](https://github.com/neuron7x/KORPUS/issues/26#issuecomment-6496166482).
+The two follow-ups below address those distinct evidence gaps.
 
 ## #27: candidate admission precedes the result budget
 
@@ -124,6 +128,49 @@ With the constant-configuration fault, all four new cases fail at the expected
 `delegate.calls == 2` assertion (exit 1). With unchanged production code they
 pass. M833 preserves this causal mutation in the ordinary hosted campaign.
 No runtime behavior, threshold, dependency, visibility policy or budget is changed.
+
+## Follow-up: contextual metadata has an end-to-end witness
+
+`test_contextual_release_binding.py` runs six cases: each of `issuer`,
+`jurisdiction` and `document_type` changed through the application connection or
+the separately labelled database-owner connection. On PostgreSQL the application
+case asserts `current_user == session_user ==` the configured application login,
+no superuser/BYPASSRLS status and no membership in the table-owner role. The
+database-owner case separately verifies its configured owner login. A domain-admin
+identity is bound before its SQL update; the target is visible and exactly one
+approved document row changes. Public retrieval and answers use a separate reader.
+
+Both the real HTTP answer-service configuration and the direct candidate probe
+enable contextual retrieval. A neutral marker absent from the evidence changes
+the candidate set from empty to the exact persisted span set. The complete stored
+version and span rows, including the sealed evidence digest, remain identical.
+Contextual projection bytes change while evidence text and its hash do not.
+
+Two identical-before/after HTTP questions each run twice on each side of the
+metadata update: the ordinary body question and the metadata-only marker. Each
+has a miss then a hit before mutation and a new miss then a hit afterward. The
+marker path's persisted retrieved count changes from zero to one, while its
+answer honestly abstains because metadata alone supplies no textual support.
+The body question remains answered. Final cache counts are four misses/four hits.
+The release changes and the epoch increases. All eight independently read
+persisted `answer.completed` events match their responses and all five expected
+snapshot fields. Body citation document/version/span IDs, revision and quote hash
+match the original persisted evidence; metadata is not inserted into quotations.
+No mock database or stub audit supplies these observations.
+
+Local SQLite execution: six cases pass, exit 0. Independent API-source-overlay
+probes replace each of the three digest frames with a constant, one at a time.
+All three exit 1 at `after.release_id != before.release_id`, with exactly one
+replacement target; no collection/import failure is counted. M834, M835 and M836
+preserve these omitted-field faults in the hosted mutation catalogue, now 705
+entries including M833. The canonical local bounded mutation runner refuses with
+`unsupported_child_ownership:cleanup_unproven`; its local status remains
+NOT_EXECUTED. The direct pytest probes are explicitly narrower evidence.
+
+These observations do not relabel the earlier 20c6b6c candidate's successful native
+run as execution of the six new cases. Their exact new-candidate PostgreSQL nodes,
+all 705 native mutation outcomes and the complete required checks must pass before
+acceptance. The existing v3 runtime mechanism required no change.
 
 ## Skips, local boundary and acceptance handoff
 

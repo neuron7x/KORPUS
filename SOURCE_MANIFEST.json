@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2308,
-  "root_sha256": "5a4e822eac540b4ee610148d8ea42c38e6004f917a4345f5bd87646e7e8bee7b",
+  "file_count": 2309,
+  "root_sha256": "a2adb61a4212f3b16fc17b3162659af05eeee2206d7afc68eb98dd54718e2b57",
   "files": [
     {
       "path": ".dockerignore",
@@ -3891,6 +3891,12 @@
       "path": "apps/api/tests/test_configuration_typos.py",
       "bytes": 6169,
       "sha256": "3cde3b2df725267034913c5d1901d50463c651c0bd225048b1ea5699ad019c19",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_contextual_release_binding.py",
+      "bytes": 8581,
+      "sha256": "02ecac1fcf0f201b421fb66a9ef10ee584f3a89346e269625c3be0dbbd12e067",
       "mode": "0644"
     },
     {
@@ -9181,8 +9187,8 @@
     },
     {
       "path": "docs/agent_execution/PHASE_01_ACCEPTANCE_2026_11_21.md",
-      "bytes": 11086,
-      "sha256": "97c231ef439950ff979e918e43e798f2d22203aec0bf0bd6a80b373567caa26f",
+      "bytes": 14278,
+      "sha256": "c373a76fead6de0f822f1ba989f03910fa2ddb42bf63b1fed95e471c09225776",
       "mode": "0644"
     },
     {
@@ -13225,8 +13231,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 357165,
-      "sha256": "c14272960975b621b3817123873eeb5a0e4cbd1a32ed1cb9555d9d93ccd02711",
+      "bytes": 358537,
+      "sha256": "095c3c149648e5cd1c10fed84dc076c0355a5a93ab3f0ca9ba67b06033e9c075",
       "mode": "0755"
     },
     {
