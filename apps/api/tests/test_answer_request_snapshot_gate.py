@@ -100,7 +100,8 @@ def test_cache_reuses_answer_token_instead_of_recapturing_release() -> None:
         assert bound.search(identity, "контрольний запит", corpora, as_of) == []
     assert delegate.calls == 1
     assert reader.captures == 1
-    assert reader.validations == 4
+    # Request boundaries plus the shared cache scope and pre-storage validation.
+    assert reader.validations == 9
 
 
 def test_approval_after_capture_cannot_return_new_corpus_evidence() -> None:

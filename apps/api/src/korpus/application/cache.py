@@ -6,9 +6,12 @@ import time
 from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import date
+from functools import partial
 
 from korpus.application.answer_request_snapshot import cache_release_token
+from korpus.application.corpus_read_context import validate_active_read
 from korpus.application.ports import Repository, Retriever
+from korpus.application.query_cache_read import read_cached
 from korpus.domain.models import Identity, RetrievedEvidence
 
 
@@ -59,6 +62,7 @@ class EvidenceQueryCache:
             return entry.value
 
     def put(self, key: str, value: list[RetrievedEvidence]) -> None:
+        validate_active_read()
         with self._lock:
             self._entries[key] = _Entry(time.monotonic() + self.ttl_seconds, tuple(value))
             self._entries.move_to_end(key)
@@ -130,10 +134,11 @@ class CachedRetriever(Retriever):
         as_of: date,
         limit: int = 8,
     ) -> list[RetrievedEvidence]:
-        key = self._key(identity, text, corpus_ids, as_of, limit)
-        cached = self.cache.get(key)
-        if cached is not None:
-            return list(cached)
-        result = self.delegate.search(identity, text, corpus_ids, as_of, limit)
-        self.cache.put(key, result)
-        return result
+        arguments = (identity, text, corpus_ids, as_of, limit)
+        return read_cached(
+            self.repository,
+            self.cache,
+            (identity, corpus_ids, as_of),
+            partial(self._key, *arguments),
+            partial(self.delegate.search, *arguments),
+        )

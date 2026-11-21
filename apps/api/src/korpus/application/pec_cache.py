@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import hashlib
 from datetime import date
-from typing import cast
+from functools import partial
 
 from korpus.application.cache import CachedRetriever
+from korpus.application.query_cache_read import read_cached
 from korpus.domain.models import Identity, RetrievedEvidence
 
 
@@ -41,20 +42,11 @@ class PECCachedRetriever(CachedRetriever):
         method = getattr(self.delegate, "search_with_semantic", None)
         if not callable(method):
             return self.search(identity, text, corpus_ids, as_of, limit)
-        key = self._mode_key(identity, text, corpus_ids, as_of, limit, semantic_enabled)
-        cached = self.cache.get(key)
-        if cached is not None:
-            return list(cached)
-        result = cast(
-            list[RetrievedEvidence],
-            method(
-                identity,
-                text,
-                corpus_ids,
-                as_of,
-                limit,
-                semantic_enabled=semantic_enabled,
-            ),
+        arguments = (identity, text, corpus_ids, as_of, limit)
+        return read_cached(
+            self.repository,
+            self.cache,
+            (identity, corpus_ids, as_of),
+            partial(self._mode_key, *arguments, semantic_enabled),
+            partial(method, *arguments, semantic_enabled=semantic_enabled),
         )
-        self.cache.put(key, result)
-        return result
