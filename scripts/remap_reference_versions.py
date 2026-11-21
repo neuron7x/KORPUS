@@ -1,19 +1,9 @@
 #!/usr/bin/env python3
-"""Перенести еталонний набір на іншу базу з ТИМИ САМИМИ документами.
+"""Remap a frozen reference set to the same source bytes in another database.
 
-Порівняння двох конфігурацій вимагає ОДНАКОВИХ питань і ОДНАКОВИХ цілей. Але
-`import_corpus.py` видає новий UUID кожній версії, тож той самий документ у SQLite
-і в PostgreSQL має різні `version_id`, а еталон називає саме їх у
-`must_cite_one_of_if_answered`. Прогін замороженого набору проти другої бази провалив
-би всі випадки пошуку — і не через семантику, а через ідентифікатори.
-
-Це та сама вада, що весь день: вимір, який показує різницю там, де її немає.
-Тому версії зіставляються за `source_hash` — вмістом файла, з якого версію зроблено.
-Він однаковий в обох базах за побудовою: імпорт ішов з одного маніфесту й тих самих
-файлів. Зіставлення за назвою було б слабшим: назви повторюються, хеш ні.
-
-Випадок, чию ціль не вдалося зіставити, НЕ переноситься мовчки — він вибувае з набору
-з іменем, бо тихо зменшений знаменник це те, чим вимір бреше найчастіше.
+Expected holders and the sampled holder must move together. The original frozen
+digest retains source-set provenance; an unmapped sampled holder drops its named
+case instead of substituting evidence from a different expected holder.
 """
 
 from __future__ import annotations
@@ -25,6 +15,9 @@ import sqlite3
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
+
+from reference_eval_set import load_reference_set, validate_case
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
@@ -61,47 +54,43 @@ def main() -> int:
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
 
+    source_meta, cases = load_reference_set(args.reference)
     by_id = sqlite_map(args.source_sqlite)
     by_hash = target_map(args.target_url)
+
+    def remap_case(case: dict[str, Any]) -> dict[str, Any] | None:
+        if case["kind"] != "retrieval":
+            return dict(case)
+        mapping = {
+            vid: by_hash.get(source_hash) if (source_hash := by_id.get(vid)) else None
+            for vid in case["must_cite_one_of_if_answered"]
+        }
+        sampled = mapping[case["sampled_from_version"]]
+        if sampled is None:
+            return None
+        result = {
+            **case,
+            "sampled_from_version": sampled,
+            "must_cite_one_of_if_answered": list(dict.fromkeys(v for v in mapping.values() if v)),
+        }
+        validate_case(result)
+        return result
+
     print(f"  версій: у джерелі {len(by_id)} · у цілі {len(by_hash)}")
 
     kept, dropped = [], []
-    for line in args.reference.open(encoding="utf-8"):
-        case = json.loads(line)
-        want = case.get("must_cite_one_of_if_answered")
-        if not want:
-            kept.append(case)
-            continue
-        if isinstance(want, str):
-            want = json.loads(want.replace("'", '"'))
-        mapped = []
-        for vid in want:
-            sh = by_id.get(vid)
-            tid = by_hash.get(sh) if sh else None
-            if tid:
-                mapped.append(tid)
-        if not mapped:
+    for case in cases:
+        mapped = remap_case(case)
+        if mapped is None:
             dropped.append(case["id"])
             continue
-        case["must_cite_one_of_if_answered"] = mapped
-        kept.append(case)
+        kept.append(mapped)
 
     args.out.write_text(
         "".join(json.dumps(c, ensure_ascii=False) + "\n" for c in kept), encoding="utf-8"
     )
 
-    # Набір без свого meta не набір: `run_reference_eval.py` вимагає його і без нього
-    # мовчки виходить, тож перенесений еталон був непридатний до вжитку, а помилка
-    # виглядала як «немає замороженого набору». Свій відбиток тут ОБОВʼЯЗКОВО новий —
-    # ідентифікатори цілей інші, отже це інший набір, — але він носить відбиток
-    # джерела, бо порівнювати число проти перенесеного набору можна лише з числом
-    # проти набору, з якого його перенесли.
-    source_meta_path = args.reference.with_suffix(".meta.json")
-    source_meta = (
-        json.loads(source_meta_path.read_text(encoding="utf-8"))
-        if source_meta_path.is_file()
-        else {}
-    )
+    # Remapped identities require a new digest bound to the admitted source set.
     digest = hashlib.sha256()
     for case in kept:
         digest.update(json.dumps(case, ensure_ascii=False, sort_keys=True).encode("utf-8"))

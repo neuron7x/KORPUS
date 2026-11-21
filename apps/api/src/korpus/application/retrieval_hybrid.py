@@ -11,6 +11,7 @@ from uuid import UUID
 
 from korpus.application.declared_subject import declared_subject_documents
 from korpus.application.ports import Repository
+from korpus.application.question_obligations import obligation_version_cap
 from korpus.application.retrieval_math import (
     BM25Parameters,
     RetrievalWeights,
@@ -171,15 +172,14 @@ def execute_hybrid_search_impl(
     # оголошена й ніколи не наповнювалась, тож «розростання набору кандидатів» не
     # відрізнялося від «промаху кеша» і від «черги за GIL» ЖОДНИМ спостереженням.
     # Друге число — різних версій — теж не прикраса: саме різноманітність крутить
-    # складність відбору, і без неї «кандидатів побільшало» не відрізняється від
-    # «кандидати стали різнішими».
+    # складність відбору; число відрізняє приріст кандидатів від приросту різноманітності.
     emit_retrieval_observation(len(ranked), len({str(item.version.id) for item in ranked}))
     return diversify(
         ranked,
         limit=limit,
         diversity_lambda=diversity_lambda,
         authority_relevance_floor=authority_relevance_floor,
-        per_version_cap=per_version_cap,
+        per_version_cap=obligation_version_cap(text, per_version_cap, limit),
         authority_priors=authority_priors,
         subject_documents=subject_documents,
     )

@@ -8,6 +8,8 @@
 6. Require evidence threshold; otherwise return `insufficient_evidence`.
 7. Generate structured claims referencing evidence IDs only.
 8. Verify each externally checkable claim has supporting evidence.
+   Apply the bounded [question-obligation contract](QUESTION_OBLIGATIONS.md): exact
+   quotation does not establish subject applicability or complete requested facts.
 9. Block answers containing unauthorized evidence or unsupported claims.
 10. Display answer, citations, revision, confidence and limitations.
 11. Record trace IDs and minimized telemetry; collect correction feedback.

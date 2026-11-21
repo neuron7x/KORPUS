@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from uuid import UUID
 
-from korpus.application.retrieval import normalize_text, tokenize
+from korpus.application.retrieval_math import normalize_text, tokenize
 
 _ZERO_WIDTH = dict.fromkeys(map(ord, "\u200b\u200c\u200d\u2060\ufeff"), None)
 _ZERO_WIDTH_AS_SPACE = dict.fromkeys(map(ord, "\u200b\u200c\u200d\u2060\ufeff"), " ")

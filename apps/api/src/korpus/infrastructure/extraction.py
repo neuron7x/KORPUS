@@ -10,14 +10,15 @@ import sys
 import tempfile
 import unicodedata
 import zipfile
+from bisect import bisect_right
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
-from xml.etree import ElementTree
 
 from pypdf import PdfReader
 
 from korpus.domain.models import ExtractedPage
+from korpus.infrastructure.docx_blocks import extract_docx_blocks
 from korpus.infrastructure.pdf_extraction import extract_pdf_pages
 
 DOCX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -476,7 +477,6 @@ _DOCX_MAX_MEMBERS = 512
 _DOCX_MAX_MEMBER_BYTES = 64 * 1024 * 1024
 _DOCX_MAX_TOTAL_BYTES = 128 * 1024 * 1024
 _DOCX_BODY = "word/document.xml"
-_WORD_NS = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 
 
 def _docx_body_xml(path: Path) -> bytes:
@@ -515,33 +515,8 @@ def _docx_body_xml(path: Path) -> bytes:
 
 
 def _docx_paragraphs(body: bytes) -> list[str]:
-    """Visible paragraph text, in document order.
-
-    Only the body. Headers and footers are page furniture — a page number and a
-    classification stamp repeated on every sheet — and pulling them in would put text
-    into quotable spans that the document does not say once.
-    """
-    try:
-        root = ElementTree.fromstring(body)
-    except ElementTree.ParseError as exc:
-        raise ValueError("DOCX body is not well-formed XML") from exc
-    paragraphs: list[str] = []
-    for paragraph in root.iter(f"{_WORD_NS}p"):
-        pieces: list[str] = []
-        for node in paragraph.iter():
-            if node.tag == f"{_WORD_NS}t" and node.text:
-                pieces.append(node.text)
-            elif node.tag == f"{_WORD_NS}tab":
-                # A tab is a column boundary in a flattened table, and
-                # `table_integrity.py` looks for exactly that gap to notice a row that
-                # lost a cell. Dropping it would erase the evidence of the damage.
-                pieces.append("\t")
-            elif node.tag in {f"{_WORD_NS}br", f"{_WORD_NS}cr"}:
-                pieces.append("\n")
-        text = "".join(pieces).strip()
-        if text:
-            paragraphs.append(text)
-    return paragraphs
+    """Visible body blocks; headers and footers stay outside the body archive member."""
+    return extract_docx_blocks(body)
 
 
 def _hard_chunks(text: str, max_chars: int, overlap_chars: int) -> list[str]:
@@ -619,17 +594,13 @@ def make_spans(
     *,
     max_spans: int = 20_000,
 ) -> list[dict[str, object]]:
-    """Every span is a slice of its page, never assembled from two of them.
+    """Every span is an exact page slice bounded by its structural section.
 
-    The previous implementation joined the tail of one span to the head of the next
-    with a space (`f"{previous_tail} {piece}"`) and paragraphs with a blank line. Both
-    manufacture text: a sentence that exists in no document comes out of the answer as
-    a verbatim quote, stamped with `quote_hash` and `source_hash`. Reproduced end to
-    end on 2026-08-03 — `status=answered`, `quote in source == False`,
-    `support_score=1.0`. Since a citation is the one thing KORPUS promises to get
-    right, spans are now slices `page.text[start:end]`, so being a substring of the
-    document is a property of the construction and not of a later check. The assertion
-    at the end is there for the day someone changes the construction.
+    Rejoining overlaps or paragraphs used to manufacture quotations absent from the
+    source (reproduced 2026-08-03). Slicing preserves exact source substrings. Stopping
+    before the next heading also prevents a later fact inheriting the previous
+    section's citation address. Overlap stays inside the section and always advances.
+    The final assertions guard these construction invariants against later changes.
     """
     if max_chars < 100:
         raise ValueError("max_chars is too small")
@@ -640,10 +611,12 @@ def make_spans(
     for page in pages:
         text = page.text
         markers = section_markers(text)
+        boundaries = [start for start, _label in markers] + [len(text)]
         position = 0
         while position < len(text):
-            end = min(len(text), position + max_chars)
-            if end < len(text):
+            section_end = boundaries[bisect_right(boundaries, position)]
+            end = min(section_end, position + max_chars)
+            if end < section_end:
                 end = position + _cut_point(text[position:end], max_chars // 4)
             raw = text[position:end]
             chunk = raw.strip()
@@ -667,7 +640,7 @@ def make_spans(
                 break
             # Step forward by at least one character so a pathological page cannot
             # spin here, and keep the overlap so no local window is lost at a seam.
-            position = max(position + 1, end - overlap_chars)
+            position = end if end == section_end else max(position + 1, end - overlap_chars)
     if not output:
         raise ValueError("document yielded no evidence spans")
     # Unreachable by construction: every chunk is a slice bounded by `max_chars` above.
