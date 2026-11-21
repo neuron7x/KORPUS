@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v0.9.7",
-  "root_sha256": "474f4ca79da2d54c3119d3241903f9aa08270c0a8c87c9658508434d30bc5bdc",
+  "root_sha256": "56dc145dd4216e9e7a13d60337b8622287ba8e91f4b6852d04cfc75d1a987387",
   "records": [
     {
       "path": ".github/dependabot.yml",
@@ -72,6 +72,11 @@
       "path": ".github/workflows/scanner-engine-diagnostic.yml",
       "sha256": "e96fb39da6d59186e340dc7f9c84ef32833a9796ca365f7afdfa09e1bf2d0eee",
       "bytes": 1749
+    },
+    {
+      "path": ".github/workflows/scanner-stdlib-diagnostic.yml",
+      "sha256": "75c00b288a3bbc9999aac9c8322b240176b2bee7889fac00650e779abf48bfff",
+      "bytes": 2062
     },
     {
       "path": ".gitlab-ci.yml",

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import os
 import re
 import stat
@@ -62,6 +61,8 @@ def diagnostic_receipt() -> dict[str, Any]:
         "scope": "alternate fixed release binary measurement; no scanner admission",
         "performance_ratio_established": False,
         "engine_causality_established": False,
+        "raw_native_output_exported": False,
+        "raw_cpu_profiles_exported": False,
     }
 
 
@@ -160,29 +161,7 @@ def full_observation(execution: dict[str, Any], output: Path) -> dict[str, Any]:
 
 
 def export_outputs(source: Path, destination: Path) -> dict[str, Any]:
-    relatives = [Path("image-gitleaks.log")]
-    relatives += [
-        Path(label) / member
-        for label in LABELS
-        for member in ("execution.json", "gitleaks.log", "gitleaks.json")
-    ]
-    relatives.append(Path("release-full-history/gitleaks-profile/cpu.pprof"))
-    inventory, total = {}, 0
-    for relative in relatives:
-        path = source / relative
-        if not path.exists() and not path.is_symlink():
-            continue
-        raw = read_output(path, source)
-        if relative.name == "gitleaks.json":
-            parse_findings(raw)
-        total += len(raw)
-        require(total <= MAX_EXPORT_BYTES, "diagnostic export exceeds its total byte budget")
-        target = destination / "native" / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        with target.open("xb") as stream:
-            stream.write(raw)
-        inventory[relative.as_posix()] = {
-            "size": len(raw),
-            "sha256": hashlib.sha256(raw).hexdigest(),
-        }
-    return inventory
+    # Resolve after this module initializes: the shared projection uses its readers.
+    from scripts.scanner_stdlib_result import export_labels
+
+    return export_labels(source, destination, LABELS, ("release-full-history",), MAX_EXPORT_BYTES)

@@ -7010,6 +7010,15 @@
       "proof_lines": 0,
       "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
     },
+    "scripts/run_scanner_stdlib_diagnostic.py": {
+      "lines": 137,
+      "max_complexity": 5,
+      "max_function_args": 3,
+      "max_function_lines": 47,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for a separate source-pinned stdlib diagnostic; no existing ceiling, detector rule, timeout or admission policy changes."
+    },
     "scripts/run_source_security.py": {
       "lines": 188,
       "max_complexity": 5,
@@ -7117,6 +7126,51 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Initial measured limits for the separate nonauthoritative native engine diagnostic; no prior ceiling or authoritative scanner is changed."
+    },
+    "scripts/scanner_stdlib_build.py": {
+      "lines": 176,
+      "max_complexity": 2,
+      "max_function_args": 5,
+      "max_function_lines": 32,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for a separate source-pinned stdlib diagnostic; no existing ceiling, detector rule, timeout or admission policy changes."
+    },
+    "scripts/scanner_stdlib_identity.py": {
+      "lines": 85,
+      "max_complexity": 10,
+      "max_function_args": 2,
+      "max_function_lines": 30,
+      "max_nesting": 3,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for a separate source-pinned stdlib diagnostic; no existing ceiling, detector rule, timeout or admission policy changes."
+    },
+    "scripts/scanner_stdlib_pins.py": {
+      "lines": 40,
+      "max_complexity": 0,
+      "max_function_args": 0,
+      "max_function_lines": 0,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for a separate source-pinned stdlib diagnostic; no existing ceiling, detector rule, timeout or admission policy changes."
+    },
+    "scripts/scanner_stdlib_probes.py": {
+      "lines": 111,
+      "max_complexity": 7,
+      "max_function_args": 2,
+      "max_function_lines": 47,
+      "max_nesting": 1,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for a separate source-pinned stdlib diagnostic; no existing ceiling, detector rule, timeout or admission policy changes."
+    },
+    "scripts/scanner_stdlib_result.py": {
+      "lines": 116,
+      "max_complexity": 8,
+      "max_function_args": 5,
+      "max_function_lines": 36,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Initial measured limits for a separate source-pinned stdlib diagnostic; no existing ceiling, detector rule, timeout or admission policy changes."
     },
     "scripts/seed_recovery_fixture.py": {
       "lines": 115,

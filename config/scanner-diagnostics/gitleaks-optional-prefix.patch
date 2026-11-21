@@ -1,0 +1,211 @@
+diff --git a/detect/detect.go b/detect/detect.go
+index d5a21bb..c8b4a7c 100644
+--- a/detect/detect.go
++++ b/detect/detect.go
+@@ -90,0 +91,3 @@ type Detector struct {
++	// Diagnostic only: equivalent existence checks for exact optional-prefix rules.
++	optionalPrefixPrechecks map[*regexp.Regexp]optionalPrefixPrecheck
++
+@@ -124,8 +127,9 @@ func NewDetectorContext(ctx context.Context, cfg config.Config) *Detector {
+-		commitMap:      make(map[string]bool),
+-		gitleaksIgnore: make(map[string]struct{}),
+-		findingMutex:   &sync.Mutex{},
+-		commitMutex:    &sync.Mutex{},
+-		findings:       make([]report.Finding, 0),
+-		Config:         cfg,
+-		prefilter:      *ahocorasick.NewTrieBuilder().AddStrings(maps.Keys(cfg.Keywords)).Build(),
+-		Sema:           semgroup.NewGroup(ctx, 40),
++		commitMap:               make(map[string]bool),
++		gitleaksIgnore:          make(map[string]struct{}),
++		findingMutex:            &sync.Mutex{},
++		commitMutex:             &sync.Mutex{},
++		findings:                make([]report.Finding, 0),
++		Config:                  cfg,
++		prefilter:               *ahocorasick.NewTrieBuilder().AddStrings(maps.Keys(cfg.Keywords)).Build(),
++		optionalPrefixPrechecks: buildOptionalPrefixPrechecks(cfg),
++		Sema:                    semgroup.NewGroup(ctx, 40),
+@@ -444,0 +449,3 @@ func (d *Detector) detectRule(fragment Fragment, currentRaw string, r config.Rul
++		if precheck, exists := d.optionalPrefixPrechecks[r.Regex]; exists && r.Regex.String() == precheck.expected && !precheck.suffix.MatchString(currentRaw) {
++			return
++		}
+diff --git a/detect/optional_prefix_precheck.go b/detect/optional_prefix_precheck.go
+new file mode 100644
+index 0000000..ed83278
+--- /dev/null
++++ b/detect/optional_prefix_precheck.go
+@@ -0,0 +1,42 @@
++package detect
++
++import (
++	"strings"
++
++	"github.com/zricethezav/gitleaks/v8/config"
++	"github.com/zricethezav/gitleaks/v8/regexp"
++)
++
++// NONAUTHORITATIVE DIAGNOSTIC ONLY. This does not replace the canonical image.
++// Each expression begins with a nullable character-class prefix. On the same
++// complete input, the suffix has a match iff the original has a match: a full
++// match contains a suffix match, and every suffix match admits the empty prefix.
++// Keep (?i), the stdlib engine, and the original finder to preserve all captures,
++// leftmost/nonoverlapping ordering, byte offsets, and invalid-UTF8 semantics.
++// The precheck is used only for these byte-exact upstream default expressions.
++var optionalPrefixRuleExpressions = map[string]string{
++	"generic-api-key":      `(?i)[\w.-]{0,50}?(?:access|auth|(?-i:[Aa]pi|API)|credential|creds|key|passw(?:or)?d|secret|token)(?:[ \t\w.-]{0,20})[\s'"]{0,3}(?:=|>|:{1,3}=|\|\||:|=>|\?=|,)[\x60'"\s=]{0,5}([\w.=-]{10,150}|[a-z0-9][a-z0-9+/]{11,}={0,3})(?:[\x60'"\s;]|\\[nr]|$)`,
++	"gocardless-api-token": `(?i)[\w.-]{0,50}?(?:gocardless)(?:[ \t\w.-]{0,20})[\s'"]{0,3}(?:=|>|:{1,3}=|\|\||:|=>|\?=|,)[\x60'"\s=]{0,5}(live_(?i)[a-z0-9\-_=]{40})(?:[\x60'"\s;]|\\[nr]|$)`,
++	"lob-api-key":          `(?i)[\w.-]{0,50}?(?:lob)(?:[ \t\w.-]{0,20})[\s'"]{0,3}(?:=|>|:{1,3}=|\|\||:|=>|\?=|,)[\x60'"\s=]{0,5}((live|test)_[a-f0-9]{35})(?:[\x60'"\s;]|\\[nr]|$)`,
++	"lob-pub-api-key":      `(?i)[\w.-]{0,50}?(?:lob)(?:[ \t\w.-]{0,20})[\s'"]{0,3}(?:=|>|:{1,3}=|\|\||:|=>|\?=|,)[\x60'"\s=]{0,5}((test|live)_pub_[a-f0-9]{31})(?:[\x60'"\s;]|\\[nr]|$)`,
++}
++
++type optionalPrefixPrecheck struct {
++	expected string
++	suffix   *regexp.Regexp
++}
++
++func buildOptionalPrefixPrechecks(cfg config.Config) map[*regexp.Regexp]optionalPrefixPrecheck {
++	checks := make(map[*regexp.Regexp]optionalPrefixPrecheck)
++	const prefix = `(?i)[\w.-]{0,50}?`
++	for id, expected := range optionalPrefixRuleExpressions {
++		rule, exists := cfg.Rules[id]
++		if !exists || rule.Regex == nil || rule.Regex.String() != expected || !strings.HasPrefix(expected, prefix) {
++			continue
++		}
++		// Exact binding above prevents custom expressions from being transformed.
++		suffix := "(?i)" + strings.TrimPrefix(expected, prefix)
++		checks[rule.Regex] = optionalPrefixPrecheck{expected: expected, suffix: regexp.MustCompile(suffix)}
++	}
++	return checks
++}
+diff --git a/detect/optional_prefix_precheck_test.go b/detect/optional_prefix_precheck_test.go
+new file mode 100644
+index 0000000..2157fdb
+--- /dev/null
++++ b/detect/optional_prefix_precheck_test.go
+@@ -0,0 +1,127 @@
++package detect
++
++import (
++	"encoding/base64"
++	"encoding/hex"
++	"encoding/json"
++	"fmt"
++	"sort"
++	"strings"
++	"testing"
++
++	"github.com/zricethezav/gitleaks/v8/config"
++	"github.com/zricethezav/gitleaks/v8/regexp"
++	"github.com/zricethezav/gitleaks/v8/report"
++)
++
++func TestOptionalPrefixExactRuleAndPointerBinding(t *testing.T) {
++	d, err := NewDetectorDefaultConfig()
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(d.optionalPrefixPrechecks) != 4 {
++		t.Fatalf("expected exactly four prechecks, got %d", len(d.optionalPrefixPrechecks))
++	}
++	for id, expression := range optionalPrefixRuleExpressions {
++		r := d.Config.Rules[id]
++		if r.Regex.String() != expression || d.optionalPrefixPrechecks[r.Regex].suffix == nil {
++			t.Fatalf("default expression not bound for %s", id)
++		}
++		modified := regexp.MustCompile(expression + `|NEUTRAL_CUSTOM_MATCH`)
++		if d.optionalPrefixPrechecks[modified].suffix != nil {
++			t.Fatalf("custom regex pointer was bound for %s", id)
++		}
++		cfg := config.Config{Rules: map[string]config.Rule{id: {RuleID: id, Regex: modified}}}
++		if len(buildOptionalPrefixPrechecks(cfg)) != 0 {
++			t.Fatalf("custom expression was transformed for %s", id)
++		}
++	}
++}
++
++func canonicalSyntheticFindings(t *testing.T, findings []report.Finding) string {
++	t.Helper()
++	items := make([]string, len(findings))
++	for i, finding := range findings {
++		data, err := json.Marshal(finding)
++		if err != nil {
++			t.Fatal(err)
++		}
++		items[i] = string(data)
++	}
++	sort.Strings(items)
++	return strings.Join(items, "\n")
++}
++
++func TestOptionalPrefixCompleteFindingEquivalence(t *testing.T) {
++	candidate, err := NewDetectorDefaultConfig()
++	if err != nil {
++		t.Fatal(err)
++	}
++	control := NewDetector(candidate.Config)
++	control.optionalPrefixPrechecks = nil
++	control.MaxDecodeDepth, candidate.MaxDecodeDepth = 3, 3
++	// Generate new test payloads from a public alphabet; never ingest credentials.
++	syntheticPayload := strings.Repeat("0123456789abcdef", 3)
++	seeds := []string{
++		"api_key=" + fmt.Sprintf("%q", "q7Nz9RW4pfK2jm8B"),
++		"gocardless=" + fmt.Sprintf("%q", "live_"+syntheticPayload[:40]),
++		"lob=" + fmt.Sprintf("%q", "live_"+syntheticPayload[:35]),
++		"lob=" + fmt.Sprintf("%q", "test_pub_"+syntheticPayload[:31]),
++	}
++	var corpus strings.Builder
++	for _, seed := range seeds {
++		for _, n := range []int{0, 1, 49, 50, 51, 100} {
++			fmt.Fprintf(&corpus, "%s%s\n", strings.Repeat("x", n), seed)
++		}
++		for b := 0; b < 256; b++ {
++			fmt.Fprintf(&corpus, "%c%s%c\n", rune(b), seed, rune(b))
++			corpus.WriteByte(byte(b))
++			corpus.WriteString(seed)
++			corpus.WriteByte(byte(b))
++			corpus.WriteByte('\n')
++		}
++		for _, text := range []string{"K", "ſ", "\uFFFD", "\xC0\x80", "\xED\xA0\x80", "\xF4\x90\x80\x80", "\xE2\x82"} {
++			fmt.Fprintf(&corpus, "%s%s%s\n", text, seed, text)
++		}
++		fmt.Fprintf(&corpus, "payload=%s\n", base64.StdEncoding.EncodeToString([]byte(seed)))
++		fmt.Fprintf(&corpus, "payload=%s\n", hex.EncodeToString([]byte(seed)))
++	}
++	input := corpus.String()
++	want := control.DetectString(input)
++	got := candidate.DetectString(input)
++	if canonicalSyntheticFindings(t, want) != canonicalSyntheticFindings(t, got) {
++		t.Fatalf("full finding records differ: control=%d candidate=%d", len(want), len(got))
++	}
++	counts := map[string]int{}
++	for _, f := range want {
++		counts[f.RuleID]++
++	}
++	for id := range optionalPrefixRuleExpressions {
++		if counts[id] == 0 {
++			t.Fatalf("missing positive control for %s", id)
++		}
++	}
++	t.Logf("identical complete finding records: %d; each optimized rule has positive controls", len(got))
++}
++
++func TestOptionalPrefixInPlaceRegexMutationFallsBack(t *testing.T) {
++	candidate, err := NewDetectorDefaultConfig()
++	if err != nil {
++		t.Fatal(err)
++	}
++	rule := candidate.Config.Rules["generic-api-key"]
++	if err := rule.Regex.UnmarshalText([]byte(`NEUTRAL_CUSTOM_MATCH`)); err != nil {
++		t.Fatal(err)
++	}
++	rule.Entropy = 0
++	rule.SecretGroup = 0
++	rule.Allowlists = nil
++	control := NewDetector(candidate.Config)
++	control.optionalPrefixPrechecks = nil
++	fragment := Fragment{Raw: "NEUTRAL_CUSTOM_MATCH", FilePath: "neutral.txt"}
++	want := control.detectRule(fragment, fragment.Raw, rule, nil)
++	got := candidate.detectRule(fragment, fragment.Raw, rule, nil)
++	if len(want) != 1 || canonicalSyntheticFindings(t, want) != canonicalSyntheticFindings(t, got) {
++		t.Fatalf("same-pointer regex mutation lost original finding: control=%d candidate=%d", len(want), len(got))
++	}
++}

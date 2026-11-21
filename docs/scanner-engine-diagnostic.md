@@ -90,13 +90,14 @@ measurement. Container peak memory and OOM state are not inferred from Docker-cl
 resource usage. There is no performance ratio or engine-causality conclusion from
 different runners or cache states.
 
-Native files stay in temporary storage. Only named, regular, bounded logs, execution
-records, redacted reports and the CPU profile are copied into the diagnostic artifact.
-The export rejects symlink files/parents, oversized data, unexpected finding fields,
-non-null raw fragments and secrets that lack the full-redaction marker. It preserves
-accepted native bytes; it does not rewrite a failing report. Finding metadata and
-surrounding match context are not claimed to be globally secret-free. Downloaded
-archives, binaries, fixture sources and raw Git history are never exported.
+Native files stay in temporary storage. The shared diagnostic exporter publishes only
+structural summary JSON with byte counts, SHA256 values, numeric census observations
+and fixed diagnostic booleans. It rejects symlink files/parents, oversized data,
+unexpected finding fields, non-null raw fragments and secrets that lack the redaction
+marker. That marker does not redact arbitrary commit metadata or surrounding match
+context, so full findings, raw logs, execution-file bytes and CPU profile bytes are
+not copied. Native byte hashes preserve their identity without publishing their text.
+Downloaded archives, binaries, fixture sources and raw Git history are never exported.
 
 The artifact uses the separate scanner-engine-diagnostic name and diagnostic schema.
 Every receipt sets `not_authoritative: true`, `production_authorized: false`,

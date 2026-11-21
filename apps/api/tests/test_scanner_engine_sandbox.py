@@ -223,7 +223,7 @@ def test_export_rejects_malformed_or_unredacted_native_reports(tmp_path, report)
     assert not (destination / "native/release-full-history/gitleaks.json").exists()
 
 
-def test_export_keeps_original_regular_bytes_and_ignores_unrequested_files(tmp_path) -> None:
+def test_export_summarizes_original_regular_bytes_and_ignores_unrequested_files(tmp_path) -> None:
     source, destination = tmp_path / "source", tmp_path / "destination"
     output = source / "release-full-history"
     _report(output, [_finding(Match="surrounding REDACTED context")])
@@ -233,18 +233,29 @@ def test_export_keeps_original_regular_bytes_and_ignores_unrequested_files(tmp_p
     profile.write_bytes(b"neutral profile bytes")
     inventory = results.export_outputs(source, destination)
     assert set(inventory) == {
-        "release-full-history/gitleaks.log",
-        "release-full-history/gitleaks.json",
-        "release-full-history/gitleaks-profile/cpu.pprof",
+        "release-full-history/gitleaks.log.summary.json",
+        "release-full-history/gitleaks.json.summary.json",
+        "release-full-history/gitleaks-profile/cpu.pprof.summary.json",
     }
     for relative, metadata in inventory.items():
-        original = (source / relative).read_bytes()
-        assert (destination / "native" / relative).read_bytes() == original
-        assert metadata == {"size": len(original), "sha256": hashlib.sha256(original).hexdigest()}
+        original = (source / relative.removesuffix(".summary.json")).read_bytes()
+        exported = (destination / "native" / relative).read_bytes()
+        summary = json.loads(exported)
+        assert summary["raw_content_exported"] is False
+        assert summary["source_sha256"] == hashlib.sha256(original).hexdigest()
+        assert summary["source_bytes"] == len(original)
+        assert metadata == {
+            "bytes": len(exported),
+            "sha256": hashlib.sha256(exported).hexdigest(),
+            "source_bytes": len(original),
+            "source_sha256": hashlib.sha256(original).hexdigest(),
+        }
+        assert b"surrounding REDACTED context" not in exported
+        assert b"neutral profile bytes" not in exported
     assert not (destination / "native/unrequested-history.txt").exists()
 
 
-def test_export_validates_the_exact_bytes_it_will_copy(tmp_path, monkeypatch) -> None:
+def test_export_validates_exact_bytes_before_summarizing(tmp_path, monkeypatch) -> None:
     source, destination = tmp_path / "source", tmp_path / "destination"
     output = source / "release-full-history"
     _report(output)

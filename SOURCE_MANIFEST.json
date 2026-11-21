@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2376,
-  "root_sha256": "4b583280601fbf3c64d73feebf8ced4ad9c85aec6fb0e8ea1e64d783fe6c8b1e",
+  "file_count": 2388,
+  "root_sha256": "a27b5912c481aeaa7a0be76cf7f00d70891ffdc109187a7bdef6a3aa267ce0db",
   "files": [
     {
       "path": ".dockerignore",
@@ -117,6 +117,12 @@
       "path": ".github/workflows/scanner-engine-diagnostic.yml",
       "bytes": 1749,
       "sha256": "e96fb39da6d59186e340dc7f9c84ef32833a9796ca365f7afdfa09e1bf2d0eee",
+      "mode": "0644"
+    },
+    {
+      "path": ".github/workflows/scanner-stdlib-diagnostic.yml",
+      "bytes": 2062,
+      "sha256": "75c00b288a3bbc9999aac9c8322b240176b2bee7889fac00650e779abf48bfff",
       "mode": "0644"
     },
     {
@@ -6205,8 +6211,20 @@
     },
     {
       "path": "apps/api/tests/test_scanner_engine_sandbox.py",
-      "bytes": 13909,
-      "sha256": "a0a07688c3bc58494dc72476e8f09448027951881c960d15610c3f958a6ff9bf",
+      "bytes": 14473,
+      "sha256": "585b6e8ecefb9763a095837e416a85588e4916d6e3a3fc2b404279109f568e73",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_scanner_stdlib_build.py",
+      "bytes": 5604,
+      "sha256": "427d6d3ca824d1e4ea91d7166ceb99c309fc8f10f4408acca3b3bfd7f4f6c5ae",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_scanner_stdlib_native.py",
+      "bytes": 9893,
+      "sha256": "3944d38efd48befe4e90e12647f60bd2f0049fbfe0ad8b5abea85ef79c4831b3",
       "mode": "0644"
     },
     {
@@ -8977,8 +8995,8 @@
     },
     {
       "path": "config/operations/desired-state.json",
-      "bytes": 6404,
-      "sha256": "d778c52858cc2145f711f87365e30ca589c3c0f56dcaafceeca2676298cd18f0",
+      "bytes": 6586,
+      "sha256": "85bc5890b423bf25e772e213fb28e732d87dc290875c1313c547ad00bdc473cd",
       "mode": "0644"
     },
     {
@@ -9019,8 +9037,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 815554,
-      "sha256": "e8cf200934c3a800df3c2a7220b2b0e674cd8721c04d5c5dff0ae1af02d70c3a",
+      "bytes": 817773,
+      "sha256": "a9d39903d66df6705485e860cba9cb07f30e4846e5e41d9a3d6f9da6eb307660",
       "mode": "0644"
     },
     {
@@ -9081,6 +9099,18 @@
       "path": "config/production/migration-policy.json",
       "bytes": 8547,
       "sha256": "323b53f6967e713b47f87b898bacce0cb5eacfda436e4bca4f33f119e2d4ed43",
+      "mode": "0644"
+    },
+    {
+      "path": "config/scanner-diagnostics/gitleaks-optional-prefix.patch",
+      "bytes": 8822,
+      "sha256": "e6a984ffb8a4b7f846952ab78fdcbbc281c60cb5440e86a0af8da1ddebe1964f",
+      "mode": "0644"
+    },
+    {
+      "path": "config/scanner-diagnostics/gitleaks-rule-profile.patch",
+      "bytes": 324,
+      "sha256": "d7d8e053f72e4fb647f5b5e8bcb9ca51ff7f42bfbb62aafd006603ffe9265072",
       "mode": "0644"
     },
     {
@@ -10735,8 +10765,14 @@
     },
     {
       "path": "docs/scanner-engine-diagnostic.md",
-      "bytes": 7133,
-      "sha256": "194230a867328d585c17be629907f0b47313287d694a99c33997137bfd90a552",
+      "bytes": 7230,
+      "sha256": "284d8198d6897d802f0bb3678927377ab44d55ae3628711976897b5459af129d",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/scanner-stdlib-diagnostic.md",
+      "bytes": 11304,
+      "sha256": "7e47e09c18e38722ccb1ea17126694f1c5d168f23d5018b4adea9cfb54c6ec49",
       "mode": "0644"
     },
     {
@@ -13519,8 +13555,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 369534,
-      "sha256": "131227b8067e5675b0db6d8646d1be4865b28f566a6be5031c28f2ccb54cdf8b",
+      "bytes": 369573,
+      "sha256": "690c2117630c5d802ddc875ac8a539eabf7b7742239df4e9fb1270d587b30c20",
       "mode": "0755"
     },
     {
@@ -13662,6 +13698,12 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/run_scanner_stdlib_diagnostic.py",
+      "bytes": 5578,
+      "sha256": "bc9c660958be514072f7040ef7d5bda784e30ef6bb5732b99a5f82c6a9f6576d",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/run_source_security.py",
       "bytes": 5423,
       "sha256": "6b82098da1ea8628538c2cc8a675e807cc03f59dbc384e73011ab88e50aee033",
@@ -13729,14 +13771,44 @@
     },
     {
       "path": "scripts/scanner_engine_result.py",
-      "bytes": 6316,
-      "sha256": "a8275e17c584d3f739b08f3645deeb64383a352f4990c71d7ac6810547ea0d85",
+      "bytes": 5610,
+      "sha256": "014bfc22df9ab5319b4a1caf046cba40e46220d871d27c80fe346730488e0289",
       "mode": "0644"
     },
     {
       "path": "scripts/scanner_engine_subject.py",
       "bytes": 3453,
       "sha256": "57459587358d3545e6e697d1142bd6b169d53c12e9be094eb4655b2af9536d67",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_stdlib_build.py",
+      "bytes": 6839,
+      "sha256": "addd9aceccfa454dcae78bbb2717f3583e200e317247c7fb2ded0a0ffab73668",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_stdlib_identity.py",
+      "bytes": 3133,
+      "sha256": "34440eb1b0cb812192ec30e786e644b7ad09fa828fdb4bb1b048ae5949e4b201",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_stdlib_pins.py",
+      "bytes": 1707,
+      "sha256": "75b0a81bbefb1913b1c1957cc57185a1b68d680b88e4d0938a24460f52b45057",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_stdlib_probes.py",
+      "bytes": 5071,
+      "sha256": "9a668406fd6bc6a8f3a7ea4c4de2dcd4871befd43fc7223b7331fbeebc41d637",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_stdlib_result.py",
+      "bytes": 4321,
+      "sha256": "e264d31f8808673600afe1cd9ec1bbe6e72019581e9abcc3ec5715fb8cb05ae5",
       "mode": "0644"
     },
     {

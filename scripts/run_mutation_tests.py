@@ -341,11 +341,11 @@ MUTANTS = (
     ),
     Mutant(
         "M774_ENGINE_DIAGNOSTIC_EXPORT_VALIDATES_DIFFERENT_BYTES",
-        "scripts/scanner_engine_result.py",
-        "            parse_findings(raw)",
-        "            findings(path.parent)",
+        "scripts/scanner_stdlib_result.py",
+        "        report = native.parse_findings(raw)",
+        "        report = native.findings(source / relative.parent)",
         (
-            "apps/api/tests/test_scanner_engine_sandbox.py::test_export_validates_the_exact_bytes_it_will_copy",
+            "apps/api/tests/test_scanner_engine_sandbox.py::test_export_validates_exact_bytes_before_summarizing",
         ),
         full_copy=True,
     ),
