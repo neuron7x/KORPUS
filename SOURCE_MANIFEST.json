@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2307,
-  "root_sha256": "71f72da4ce8b4ce9e5b3f6db7cc3e6f858ae76f108cb0a9f64e390230df4c476",
+  "root_sha256": "7d4299bb574555122b3cb832375abc8cc83b60272362f61f0dc38e8d7099bc76",
   "files": [
     {
       "path": ".dockerignore",
@@ -1843,8 +1843,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/question_obligations.py",
-      "bytes": 8482,
-      "sha256": "74346c758e267e24c02a3169b7b000daf735997acefa2fca621928d752a94725",
+      "bytes": 8594,
+      "sha256": "6aadf626bf4acbb3841bdf6b2a7c02f8affeed5443ed5c9f2d5b91b5d831c671",
       "mode": "0644"
     },
     {
@@ -5695,8 +5695,8 @@
     },
     {
       "path": "apps/api/tests/test_question_obligations_api.py",
-      "bytes": 16807,
-      "sha256": "6ac772350932ee7a2bf3625eb2aed8f0359a3f548dfbc05cf1216aa60554b53a",
+      "bytes": 19235,
+      "sha256": "14305bbe937fdf638231e69a1e06cdd2d82788d6cd286e49198ddba4ef81c79f",
       "mode": "0644"
     },
     {
@@ -9613,8 +9613,8 @@
     },
     {
       "path": "docs/operations/CANONICAL_MAIN_CONVERGENCE_2026_11_21.md",
-      "bytes": 6831,
-      "sha256": "8cbf5b8a79e5d48b2fe8b0075fd24f4d8bd1f16381754fcd67d8cf7f39ed5505",
+      "bytes": 8048,
+      "sha256": "afb0f6b70be7fa05100fa290dd86ef57650bf2698eea619f866e8250475455e6",
       "mode": "0644"
     },
     {
@@ -13219,8 +13219,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 356034,
-      "sha256": "0babdf3166e0096450493034b37fb90b90ba38ec228a1a95ae3e1ebb36243da7",
+      "bytes": 356418,
+      "sha256": "cbbf1f28e227791f643b6cdcc5c0015255962d3453b14882b8debbc174f46fbf",
       "mode": "0755"
     },
     {

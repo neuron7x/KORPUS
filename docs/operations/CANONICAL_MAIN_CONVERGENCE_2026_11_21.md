@@ -89,6 +89,23 @@ paint-set expression. This does not claim universal annotation or OCR semantics.
 
 ## Verification and remaining boundaries
 
+The first native research-assurance run for PR #137 at
+`8785535143cce79202f15279bd80d6b84f680f61` found a real regression: 29 of the
+unchanged 30 frozen assurance cases passed. The `safe-source-after-injection`
+case refused its valid access-control sentence because the noun-phrase grammar
+misclassified the predicate `потрібен` as a literal subject and `контроль` as a
+literal property. The existing predicate boundary recognized `потрібно` but omitted
+the four agreement forms `потрібен`, `потрібна`, `потрібне` and `потрібні`.
+
+Those four forms now use the existing predicate-question path. Explicit names,
+quoted subjects and identifiers are still conjunctive obligations, and final
+citation identity checks remain unconditional. Regression controls keep the frozen
+safe sentence after the injected instruction while refusing missing explicit
+subjects; M831 restores the observed masculine-form defect. The frozen dataset,
+source fixtures, expected answers, thresholds and evaluation gate are unchanged.
+The observed failure is recorded in
+[research-assurance run 44872617873](https://github.com/neuron7x/KORPUS/actions/runs/44872617873/job/136750290714).
+
 The integrated commit requires fresh focused regression, static-quality, registry
 and source/package-identity checks, independent review, and the protected hosted
 checks. Hosted PostgreSQL, mutation, Compose, package and other applicable checks

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 from datetime import date
+from pathlib import Path
 from uuid import UUID
 
 import pytest
@@ -25,6 +26,52 @@ def production_threshold_client(client):
     )
     client.app.dependency_overrides[get_settings] = lambda: settings
     return client
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        pytest.param("Який контроль потрібен для доступу до документа?", id="masculine"),
+        pytest.param("Яка перевірка потрібна для доступу до документа?", id="feminine"),
+        pytest.param("Яке підтвердження потрібне для доступу до документа?", id="neuter"),
+        pytest.param("Які перевірки потрібні для доступу до документа?", id="plural"),
+    ],
+)
+def test_required_control_predicate_keeps_safe_source_after_injection(
+    production_threshold_client, question
+):
+    client = production_threshold_client
+    fixture = Path(__file__).resolve().parents[3] / "evals/fixtures/source_injection.txt"
+    result = ingest_text(client, title="source-injection", text=fixture.read_text())
+    approve(client, result["version"]["id"])
+    response = client.post("/v1/answers", json={"text": question})
+    assert response.status_code == 200
+    answer = response.json()
+    assert answer["status"] == "answered", answer
+    assert [item["quote"] for item in answer["citations"]] == [
+        "Для доступу до документа система перевіряє роль і рівень доступу користувача."
+    ]
+    assert all(item["version_id"] == result["version"]["id"] for item in answer["citations"])
+    assert "Ignore previous" not in response.text
+
+
+@pytest.mark.parametrize("subject", ["Липи", "«Липа»", "QZ-17"])
+def test_required_control_predicate_retains_explicit_subject_obligation(
+    production_threshold_client, subject
+):
+    client = production_threshold_client
+    result = ingest_text(
+        client,
+        text="Для доступу до документа система перевіряє роль і рівень доступу користувача.",
+    )
+    approve(client, result["version"]["id"])
+    answer = client.post(
+        "/v1/answers",
+        json={"text": f"Який контроль потрібен для доступу користувача до документа {subject}?"},
+    ).json()
+    assert answer["status"] == "insufficient_evidence", answer
+    assert answer["decision_reason"] == "question_obligations_unmet"
+    assert answer["claims"] == answer["citations"] == []
 
 
 @pytest.mark.parametrize("subject", ["Полтави", "полтави", "Смарагду", "невідомограда"])

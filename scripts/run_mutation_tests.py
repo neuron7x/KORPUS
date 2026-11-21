@@ -49,6 +49,16 @@ class Mutant:
 # а не мутанти.
 MUTANTS = (
     Mutant(
+        "M831_REQUIRED_CONTROL_PREDICATE_BECOMES_LITERAL_PROPERTY",
+        "apps/api/src/korpus/application/question_obligations.py",
+        '        "потрібен",\n',
+        "",
+        (
+            "apps/api/tests/test_question_obligations_api.py::"
+            "test_required_control_predicate_keeps_safe_source_after_injection[masculine]",
+        ),
+    ),
+    Mutant(
         "M830_PDF_ANNOTATION_APPEARANCE_SILENTLY_OMITTED",
         "apps/api/src/korpus/infrastructure/pdf_page_evidence.py",
         '    if any(annotation.get_object().get("/AP") is not None for annotation in annotations):',
