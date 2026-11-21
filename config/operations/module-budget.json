@@ -606,6 +606,81 @@
         "max_nesting": 0
       },
       "reason": "Adversarial path normalization reduced branching and eliminated mutable wrapper-root admission assumptions."
+    },
+    {
+      "from": {
+        "lines": 260,
+        "max_complexity": 26,
+        "max_function_args": 4,
+        "max_function_lines": 85,
+        "max_nesting": 5,
+        "proof_lines": 0
+      },
+      "new_modules": [
+        "scripts/answer_quality_validation.py",
+        "scripts/boundary_eval_set.py",
+        "scripts/evaluation_http.py",
+        "scripts/evaluation_json.py",
+        "scripts/reference_eval_citations.py",
+        "scripts/reference_eval_judge.py",
+        "scripts/reference_eval_report.py",
+        "scripts/reference_eval_set.py"
+      ],
+      "on": "2026-11-20",
+      "path": "scripts/run_reference_eval.py",
+      "reason": "Issue #131: bounded input admission, evidence verification and report helpers replace the monolithic reference evaluator without raising global defaults.",
+      "to": {
+        "lines": 94,
+        "max_complexity": 6,
+        "max_function_args": 3,
+        "max_function_lines": 28,
+        "max_nesting": 3,
+        "proof_lines": 0
+      }
+    },
+    {
+      "on": "2026-11-20",
+      "path": "apps/api/src/korpus/infrastructure/extraction.py",
+      "from": {
+        "lines": 745,
+        "max_function_lines": 72
+      },
+      "to": {
+        "lines": 718,
+        "max_function_lines": 71
+      },
+      "reason": "Issue #132: section-bounded exact spans and extracted bounded PDF/DOCX helpers reduce the measured production ceiling without widening any gate."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "apps/api/src/korpus/infrastructure/pdf_extraction.py",
+      "from": {
+        "lines": 166,
+        "max_complexity": 10,
+        "max_function_lines": 45
+      },
+      "to": {
+        "lines": 143,
+        "max_complexity": 7,
+        "max_function_lines": 27
+      },
+      "reason": "Issue #132: section-bounded exact spans and extracted bounded PDF/DOCX helpers reduce the measured production ceiling without widening any gate."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "apps/api/src/korpus/application/answer_query.py",
+      "from": {
+        "lines": 845
+      },
+      "to": {
+        "lines": 749
+      },
+      "new_modules": [
+        "apps/api/src/korpus/application/answer_candidates.py",
+        "apps/api/src/korpus/application/answer_obligations.py",
+        "apps/api/src/korpus/application/question_obligations.py"
+      ],
+      "reason": "Issue #133: isolate deterministic candidate selection and independently recheck recognized subjects and complete same-version facet evidence."
     }
   ],
   "modules": {
@@ -985,13 +1060,13 @@
       "reason": "v0.6.0: pure source-bound query audit envelope"
     },
     "apps/api/src/korpus/application/answer_query.py": {
-      "lines": 845,
+      "lines": 749,
       "max_complexity": 21,
       "max_function_args": 12,
       "max_function_lines": 200,
       "max_nesting": 3,
       "proof_lines": 0,
-      "reason": "+28 рядків: захоплення знімка на початку відповіді й запис про те, ЧОМУ його відсутність законна. Розгортання без читача знімка працює як раніше, лише без поля в журналі — знімок ОПИСУЄ відповідь, а не виробляє її, тож його поломка не сміє відібрати в читача знайдену підставу."
+      "reason": "Issue #133: sentence selection extracted into a bounded helper; final applicability gate and exact provenance retained without increasing function complexity."
     },
     "apps/api/src/korpus/application/answer_request_snapshot.py": {
       "lines": 146,
@@ -2940,13 +3015,13 @@
       "reason": "Портовано знімок корпусу з GitHub-лінії 01.09.2026: одна відповідь читає ОДИН стан корпусу, а не кілька незалежних читань під датою `as_of`. `corpus_state_epoch` дає монотонний маркер, `evidence_sealing` прив'язує схвалення до конкретного набору доказів, і журнал відповіді несе `corpus_snapshot` поруч із `corpus_release`."
     },
     "apps/api/src/korpus/infrastructure/extraction.py": {
-      "lines": 745,
+      "lines": 718,
       "max_complexity": 25,
       "max_function_args": 12,
-      "max_function_lines": 72,
+      "max_function_lines": 71,
       "max_nesting": 6,
       "proof_lines": 0,
-      "reason": "Raised 610 -> 618 on 2026-08-28 for three coverage exclusions with their reasons: RLIMIT_NPROC is absent only on macOS, and the two chunking self-checks are unreachable by construction and kept for the day the construction changes. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one. | 2026-08-30: +31 рядок — вирок нюхача `file` більше не остаточний для .html. Дві сторінки (офіційна позиція НАТО щодо РФ і аналітика ICDS) відхилялись як «HTML content detected as application/javascript», віддаючи 8209 і 2311 слів справжнього тексту: нюхача збиває довгий рядок вбудованого скрипту. Додано структурну перевірку розмітки в перших 1024 байтах; це не послаблення — три сигнали й далі мусять збігтися, а перейменований PDF/ZIP і справжній скрипт відхиляються п'ятьма негативними контролями. | 2026-08-30: 657 -> 716. Обстановка сторінки перестала бути текстом документа. Питання поза доменом «Яка ставка податку на прибуток підприємств у 2019 році?» мало покриття 0.500 при порозі відмови 0.25: найкращим реченням корпусу для нього був `<title>` сторінки zakon.rada.gov.ua з написами кнопок панелі. Додано NON_DOCUMENT_ELEMENTS (title, button, select, nav, aside) і поступку незакритому `<title>`, без якої зламана розмітка давала б ПОРОЖНІЙ документ замість шумного. Стеля поза доменом 0.500 -> 0.250, жодне з семи питань у домені не змінилось; сім тестів, три отрути вбито."
+      "reason": "Raised 610 -> 618 on 2026-08-28 for three coverage exclusions with their reasons: RLIMIT_NPROC is absent only on macOS, and the two chunking self-checks are unreachable by construction and kept for the day the construction changes. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one. | 2026-08-30: +31 рядок — вирок нюхача `file` більше не остаточний для .html. Дві сторінки (офіційна позиція НАТО щодо РФ і аналітика ICDS) відхилялись як «HTML content detected as application/javascript», віддаючи 8209 і 2311 слів справжнього тексту: нюхача збиває довгий рядок вбудованого скрипту. Додано структурну перевірку розмітки в перших 1024 байтах; це не послаблення — три сигнали й далі мусять збігтися, а перейменований PDF/ZIP і справжній скрипт відхиляються п'ятьма негативними контролями. | 2026-08-30: 657 -> 716. Обстановка сторінки перестала бути текстом документа. Питання поза доменом «Яка ставка податку на прибуток підприємств у 2019 році?» мало покриття 0.500 при порозі відмови 0.25: найкращим реченням корпусу для нього був `<title>` сторінки zakon.rada.gov.ua з написами кнопок панелі. Додано NON_DOCUMENT_ELEMENTS (title, button, select, nav, aside) і поступку незакритому `<title>`, без якої зламана розмітка давала б ПОРОЖНІЙ документ замість шумного. Стеля поза доменом 0.500 -> 0.250, жодне з семи питань у домені не змінилось; сім тестів, три отрути вбито. | Issue #132: section-bounded exact spans and extracted bounded PDF/DOCX helpers reduce the measured production ceiling without widening any gate."
     },
     "apps/api/src/korpus/infrastructure/gcp_identity.py": {
       "lines": 122,
@@ -3187,13 +3262,13 @@
       "proof_lines": 0
     },
     "apps/api/src/korpus/infrastructure/pdf_extraction.py": {
-      "lines": 166,
-      "max_complexity": 10,
+      "lines": 143,
+      "max_complexity": 7,
       "max_function_args": 7,
-      "max_function_lines": 45,
+      "max_function_lines": 27,
       "max_nesting": 2,
       "proof_lines": 0,
-      "reason": "v6.9.0: split PDF/OCR parsing from generic extraction to reduce parser-path cyclomatic concentration without changing refusal semantics"
+      "reason": "v6.9.0: split PDF/OCR parsing from generic extraction to reduce parser-path cyclomatic concentration without changing refusal semantics | Issue #132: section-bounded exact spans and extracted bounded PDF/DOCX helpers reduce the measured production ceiling without widening any gate."
     },
     "apps/api/src/korpus/infrastructure/pec_observability.py": {
       "lines": 98,
@@ -4076,7 +4151,7 @@
       "max_function_args": 2,
       "max_function_lines": 24,
       "max_nesting": 2,
-      "proof_lines": 48,
+      "proof_lines": 66,
       "reason": "Ратчет на дві протилежні осі якості відповідей. Кожен новий клас порушення — рядок у переліку `problems`, а не гілка."
     },
     "scripts/check_budget_raises_are_named.py": {
@@ -5701,13 +5776,13 @@
       "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
     "scripts/run_determinism_gate.py": {
-      "lines": 57,
+      "lines": 66,
       "max_complexity": 4,
       "max_function_args": 0,
       "max_function_lines": 24,
       "max_nesting": 1,
       "proof_lines": 0,
-      "reason": "v0.6.0: exact test outcome + semantic replay equivalence across hash seeds; decomposed complexity"
+      "reason": "v0.6.0: exact test outcome + semantic replay equivalence across hash seeds; decomposed complexity | Issue #132: add three focused real PDF/OOXML/section-fidelity test files to the existing multi-seed TESTS list; no seed, timeout, verdict, or threshold change."
     },
     "scripts/run_embedding_backfill.py": {
       "lines": 208,
@@ -5947,11 +6022,11 @@
       "reason": " | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "scripts/run_reference_eval.py": {
-      "lines": 260,
-      "max_complexity": 26,
-      "max_function_args": 4,
-      "max_function_lines": 85,
-      "max_nesting": 5,
+      "lines": 94,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 28,
+      "max_nesting": 3,
       "proof_lines": 0,
       "reason": "Повтор на `http_429` і його класифікація як відсутності виміру: контроль допуску відхиляв за навантаженням, а судилося це як вирок. Той самий клас лагодили 30.08 для 5xx і проґавили 429, бо префікс описував КОДИ, а спільним є не код, а те, що розгортання не виносило судження."
     },
@@ -7299,6 +7374,133 @@
       "max_nesting": 2,
       "proof_lines": 0,
       "reason": "Initial measured ceiling for strict JSON readiness envelopes and duplicate-field rejection; no existing module ratchet changed."
+    },
+    "scripts/answer_quality_validation.py": {
+      "lines": 95,
+      "max_complexity": 9,
+      "max_function_args": 2,
+      "max_function_lines": 16,
+      "max_nesting": 2,
+      "proof_lines": 0
+    },
+    "scripts/boundary_eval_set.py": {
+      "lines": 57,
+      "max_complexity": 9,
+      "max_function_args": 1,
+      "max_function_lines": 17,
+      "max_nesting": 2,
+      "proof_lines": 0
+    },
+    "scripts/evaluation_http.py": {
+      "lines": 122,
+      "max_complexity": 11,
+      "max_function_args": 5,
+      "max_function_lines": 24,
+      "max_nesting": 3,
+      "proof_lines": 0
+    },
+    "scripts/evaluation_json.py": {
+      "lines": 78,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 8,
+      "max_nesting": 2,
+      "proof_lines": 0
+    },
+    "scripts/reference_eval_citations.py": {
+      "lines": 120,
+      "max_complexity": 15,
+      "max_function_args": 2,
+      "max_function_lines": 35,
+      "max_nesting": 3,
+      "proof_lines": 0
+    },
+    "scripts/reference_eval_judge.py": {
+      "lines": 75,
+      "max_complexity": 10,
+      "max_function_args": 3,
+      "max_function_lines": 33,
+      "max_nesting": 1,
+      "proof_lines": 0
+    },
+    "scripts/reference_eval_report.py": {
+      "lines": 54,
+      "max_complexity": 10,
+      "max_function_args": 4,
+      "max_function_lines": 29,
+      "max_nesting": 2,
+      "proof_lines": 0
+    },
+    "scripts/reference_eval_set.py": {
+      "lines": 124,
+      "max_complexity": 14,
+      "max_function_args": 2,
+      "max_function_lines": 19,
+      "max_nesting": 2,
+      "proof_lines": 0
+    },
+    "apps/api/src/korpus/infrastructure/docx_blocks.py": {
+      "lines": 106,
+      "proof_lines": 0,
+      "max_complexity": 8,
+      "max_function_lines": 22,
+      "max_function_args": 2,
+      "max_nesting": 4,
+      "reason": "Issue #132: measured ordered OOXML block/grid traversal with explicit unsupported geometry, paragraph-embedded table refusal and lossless JSON-quoted TSV including Unicode line separators. All dimensions remain below unchanged new-module defaults."
+    },
+    "apps/api/src/korpus/infrastructure/pdf_ocr.py": {
+      "lines": 76,
+      "proof_lines": 0,
+      "max_complexity": 10,
+      "max_function_lines": 23,
+      "max_function_args": 6,
+      "max_nesting": 2,
+      "reason": "Issue #132: measured first-version selected-page OCR rendering and exact image inventory under the existing monotonic deadline; all dimensions remain below unchanged new-module defaults."
+    },
+    "apps/api/src/korpus/infrastructure/pdf_page_evidence.py": {
+      "lines": 57,
+      "proof_lines": 0,
+      "max_complexity": 5,
+      "max_function_lines": 12,
+      "max_function_args": 3,
+      "max_nesting": 2,
+      "reason": "Issue #132: measured first-version per-page painted-content completeness and native-text preservation checks; all dimensions remain below unchanged new-module defaults."
+    },
+    "apps/api/src/korpus/application/answer_candidates.py": {
+      "lines": 143,
+      "max_complexity": 9,
+      "max_function_args": 6,
+      "max_function_lines": 35,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #133: initial measured ceiling for the bounded deterministic question-obligation contract."
+    },
+    "apps/api/src/korpus/application/answer_obligations.py": {
+      "lines": 75,
+      "max_complexity": 13,
+      "max_function_args": 4,
+      "max_function_lines": 35,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #133: initial measured ceiling for the bounded deterministic question-obligation contract."
+    },
+    "apps/api/src/korpus/application/question_obligations.py": {
+      "lines": 223,
+      "max_complexity": 14,
+      "max_function_args": 3,
+      "max_function_lines": 21,
+      "max_nesting": 2,
+      "proof_lines": 0,
+      "reason": "Issue #133: initial measured ceiling for the bounded deterministic question-obligation contract."
+    },
+    "apps/api/src/korpus/application/question_labels.py": {
+      "lines": 57,
+      "max_complexity": 3,
+      "max_function_args": 2,
+      "max_function_lines": 7,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "Issue #136: initial measured ceiling for conservative single-letter name disambiguation; preserves existing question-module ceilings."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -13757,6 +13959,109 @@
         "max_nesting": 2
       },
       "reason": "Issue #129 independent parser review: consume every byte with PostgreSQL ASCII whitespace and closed punctuation; reject non-ASCII relations, Python-only whitespace and adjacent integer/identifier junk before the exact policy-token comparison."
+    },
+    {
+      "from": {
+        "proof_lines": 48
+      },
+      "on": "2026-11-20",
+      "path": "scripts/check_answer_quality_ratchet.py",
+      "reason": "Issue #131: the same eight selftest cases now include complete dataset identity, schema, baseline rates and internally consistent integer counts. Only proof lines grow; executable complexity decreases.",
+      "to": {
+        "proof_lines": 65
+      }
+    },
+    {
+      "from": {
+        "lines": 57
+      },
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "reason": "Issue #131: four critical evaluation test modules join the existing determinism test registry. Only registry lines grow; executable complexity is unchanged.",
+      "to": {
+        "lines": 61
+      }
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/reference_eval_citations.py",
+      "from": {
+        "lines": 101,
+        "max_function_lines": 34
+      },
+      "to": {
+        "lines": 120,
+        "max_function_lines": 35
+      },
+      "reason": "Issue #131 independent review: validate each required and nullable metadata field before comparison and before source I/O, rejecting missing/null titles and boolean page numbers. Only measured local ceilings change; global defaults remain fixed."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/answer_quality_validation.py",
+      "from": {
+        "lines": 79,
+        "max_function_lines": 15
+      },
+      "to": {
+        "lines": 95,
+        "max_function_lines": 16
+      },
+      "reason": "Issue #131 independent review: bind measured denominators to the frozen set cardinalities and validate the two positive integer policy counts, preventing partial or inflated samples from claiming the full dataset identity."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/check_answer_quality_ratchet.py",
+      "from": {
+        "proof_lines": 65
+      },
+      "to": {
+        "proof_lines": 66
+      },
+      "reason": "Issue #131 independent review: one selftest fixture line now carries the frozen 20/20 case counts; the same eight cases and executable logic remain bounded."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "from": {
+        "lines": 57
+      },
+      "to": {
+        "lines": 60
+      },
+      "reason": "Issue #132: add three focused real PDF/OOXML/section-fidelity test files to the existing multi-seed TESTS list; no seed, timeout, verdict, or threshold change."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "from": {
+        "lines": 61
+      },
+      "to": {
+        "lines": 64
+      },
+      "reason": "Issues #131/#132/#133 integration: preserve the union of 13 existing and newly reviewed deterministic test files. Only literal registry entries grow; seeds, timeouts, verdicts and executable complexity remain unchanged."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "from": {
+        "lines": 57
+      },
+      "to": {
+        "lines": 59
+      },
+      "reason": "Issue #133: two declarative test-path entries add subject/facet/dedup controls and the finite three-facet availability matrix to every configured seed. Existing six suites, runner logic, timeouts and function ceilings are unchanged."
+    },
+    {
+      "on": "2026-11-20",
+      "path": "scripts/run_determinism_gate.py",
+      "from": {
+        "lines": 64
+      },
+      "to": {
+        "lines": 66
+      },
+      "reason": "Issues #131/#132/#133 integration: preserve the union of 15 existing and newly reviewed deterministic test files. Only literal registry entries grow; seeds, timeouts, verdicts and executable complexity remain unchanged."
     }
   ],
   "recorded_at": "2026-10-04",
