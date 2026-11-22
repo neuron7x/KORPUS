@@ -25,6 +25,8 @@ def _reader(repository: object) -> CorpusSnapshotReader:
     reader = attached_snapshot_reader(repository)
     if reader is None:
         raise CorpusConsistencyError("corpus snapshot reader disappeared during answer")
+    if getattr(reader, "repository", repository) is not repository:
+        raise CorpusConsistencyError("snapshot reader repository authority mismatched")
     return reader
 
 
@@ -46,15 +48,13 @@ class _ReadScope:
             raise CorpusConsistencyError("retrieval borrowed a different snapshot authority")
         identity, corpus_ids, as_of = arguments
         authorized = frozenset(corpus_ids.intersection(identity.corpora))
-        if (
-            self.token.as_of != as_of
-            or self.token.corpus_ids != authorized
-            or self.token.authorization_scope_id != authorization_scope_id(identity, authorized)
+        if (self.token.as_of, self.token.corpus_ids, self.token.authorization_scope_id) != (
+            as_of, authorized, authorization_scope_id(identity, authorized)
         ):
             raise CorpusConsistencyError("cached retrieval scope differs from answer snapshot")
 
     def validate(self) -> None:
-        if self.repository is not None and _reader(self.repository) is not self.reader:
+        if _reader(self.repository) is not self.reader:
             raise CorpusConsistencyError("corpus snapshot authority changed during retrieval")
         self.reader.validate(*self.arguments, self.token)
 
@@ -84,7 +84,7 @@ def _read_scope(
         raise CorpusConsistencyError("nested retrieval replaced answer snapshot")
     if active is not None:
         active.require(reader, arguments, repository)
-        token = active.token
+        token, repository = active.token, active.repository if repository is None else repository
     if token is None:
         token = reader.capture(*arguments)
     return _bind_scope(_ReadScope(reader, token, arguments, repository))

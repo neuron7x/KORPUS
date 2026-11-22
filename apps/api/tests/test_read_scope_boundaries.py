@@ -8,6 +8,7 @@ from functools import partial
 
 import pytest
 from korpus.application import retrieval_hybrid
+from korpus.application.corpus_read_context import repository_read_scope
 from korpus.application.answer_request_snapshot import RequestBoundRetriever, cache_release_token
 from korpus.application.cache import CachedRetriever, EvidenceQueryCache
 from korpus.application.corpus_snapshot import CorpusConsistencyError
@@ -317,3 +318,57 @@ def test_reader_replacement_after_key_capture_refuses_before_storage() -> None:
     with pytest.raises(CorpusConsistencyError, match="authority"):
         search()
     assert cache._entries.insertions == []
+
+def test_ownerless_top_level_snapshot_adapter_fails_before_delegate() -> None:
+    reader, _repository, identity, corpora, as_of, token = _fixture()
+    del reader.repository
+    delegate = ModeDelegate(lambda: ["unbound-evidence"])
+    bound = SnapshotBoundRetriever(reader, delegate)
+    with pytest.raises(CorpusConsistencyError, match="disappeared during answer"):
+        bound.search(identity, "ownerless", corpora, as_of, token)
+    assert delegate.calls == 0
+
+
+def test_declared_reader_owner_refuses_foreign_repository_root() -> None:
+    reader, repo_a, identity, corpora, as_of, token = _fixture()
+    repo_b = type(repo_a)(reader)
+    reader.repository = repo_b
+    with pytest.raises(CorpusConsistencyError, match="authority mismatched"):
+        with repository_read_scope(repo_a, (identity, corpora, as_of), token):
+            pytest.fail("foreign root authority was admitted")
+
+
+def test_ownerless_nested_adapter_cannot_downgrade_explicit_outer_owner() -> None:
+    reader, repo_a, identity, corpora, as_of, token = _fixture()
+    del reader.repository
+    repo_b = type(repo_a)(reader)
+    arguments = (identity, corpora, as_of)
+
+    def foreign():
+        with repository_read_scope(repo_b, arguments):
+            return ["foreign-repository-evidence"]
+
+    delegate = ModeDelegate(foreign)
+    bound = SnapshotBoundRetriever(reader, delegate)
+    with repository_read_scope(repo_a, arguments, token):
+        with pytest.raises(CorpusConsistencyError, match="authority"):
+            bound.search(identity, "nested", corpora, as_of, token)
+    assert delegate.calls == 1
+
+
+def test_ownerless_nested_adapter_preserves_same_repository_positive() -> None:
+    reader, repository, identity, corpora, as_of, token = _fixture()
+    del reader.repository
+    arguments = (identity, corpora, as_of)
+
+    def own():
+        with repository_read_scope(repository, arguments):
+            return ["same-repository-evidence"]
+
+    delegate = ModeDelegate(own)
+    bound = SnapshotBoundRetriever(reader, delegate)
+    with repository_read_scope(repository, arguments, token):
+        assert bound.search(identity, "nested", corpora, as_of, token) == [
+            "same-repository-evidence"
+        ]
+    assert delegate.calls == 1

@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2315,
-  "root_sha256": "aa672532d1526946ade9231cd47b25ae568b8d1ddcc5913d433d223fda563ccf",
+  "root_sha256": "9d2763e3c4199aa1640cf042e32f8770c3e24a646a54b196cc5558333ecc08e0",
   "files": [
     {
       "path": ".dockerignore",
@@ -1237,8 +1237,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/corpus_read_context.py",
-      "bytes": 4351,
-      "sha256": "f7286fae2cee7e6b7cce6c0e1486ab255b1830b5453c3de8eb7f36f5ad87e770",
+      "bytes": 4514,
+      "sha256": "e25fc89e4ab11deb5208f88bda7f64d576700621cb7e6eb49432cfcfdaeac4fb",
       "mode": "0644"
     },
     {
@@ -3181,8 +3181,8 @@
     },
     {
       "path": "apps/api/tests/test_answer_request_snapshot_gate.py",
-      "bytes": 8383,
-      "sha256": "5929f236e5ddd610a26a901ad3d5c1c4ae8d021f4cb5de2ddb7c4e3e86a37554",
+      "bytes": 8412,
+      "sha256": "bae0ca780cfe204c40b47bdb83720d6198860ee0dfdbcdf1772169e3db897ed3",
       "mode": "0644"
     },
     {
@@ -5737,8 +5737,8 @@
     },
     {
       "path": "apps/api/tests/test_read_scope_boundaries.py",
-      "bytes": 12262,
-      "sha256": "5a579a92f0553d836543c1a0a3d2aa4af431ad9810c04e97b1fa488e108b5e03",
+      "bytes": 14575,
+      "sha256": "404ad4e029c3597cd325dfbb849a18de08b688ba63c6da3fc6894a523dce96ed",
       "mode": "0644"
     },
     {

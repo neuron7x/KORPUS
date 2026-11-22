@@ -84,6 +84,7 @@ def _identity(compartments=frozenset()) -> Identity:
 def _fixture():
     reader = _SnapshotReader()
     repo = _Repo(reader)
+    reader.repository = repo
     identity = _identity()
     corpora = frozenset({"public"})
     as_of = date(2026, 10, 23)
