@@ -48,9 +48,9 @@ class _ReadScope:
             raise CorpusConsistencyError("retrieval borrowed a different snapshot authority")
         identity, corpus_ids, as_of = arguments
         authorized = frozenset(corpus_ids.intersection(identity.corpora))
-        if (self.token.as_of, self.token.corpus_ids, self.token.authorization_scope_id) != (
-            as_of, authorized, authorization_scope_id(identity, authorized)
-        ):
+        expected = as_of, authorized, authorization_scope_id(identity, authorized)
+        token = self.token
+        if (token.as_of, token.corpus_ids, token.authorization_scope_id) != expected:
             raise CorpusConsistencyError("cached retrieval scope differs from answer snapshot")
 
     def validate(self) -> None:

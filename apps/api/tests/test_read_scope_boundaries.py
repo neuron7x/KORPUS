@@ -8,9 +8,9 @@ from functools import partial
 
 import pytest
 from korpus.application import retrieval_hybrid
-from korpus.application.corpus_read_context import repository_read_scope
 from korpus.application.answer_request_snapshot import RequestBoundRetriever, cache_release_token
 from korpus.application.cache import CachedRetriever, EvidenceQueryCache
+from korpus.application.corpus_read_context import repository_read_scope
 from korpus.application.corpus_snapshot import CorpusConsistencyError
 from korpus.application.pec_cache import PECCachedRetriever
 from korpus.application.retrieval import HybridLexicalRetriever, RetrievalWeights
@@ -319,6 +319,7 @@ def test_reader_replacement_after_key_capture_refuses_before_storage() -> None:
         search()
     assert cache._entries.insertions == []
 
+
 def test_ownerless_top_level_snapshot_adapter_fails_before_delegate() -> None:
     reader, _repository, identity, corpora, as_of, token = _fixture()
     del reader.repository
@@ -333,9 +334,11 @@ def test_declared_reader_owner_refuses_foreign_repository_root() -> None:
     reader, repo_a, identity, corpora, as_of, token = _fixture()
     repo_b = type(repo_a)(reader)
     reader.repository = repo_b
-    with pytest.raises(CorpusConsistencyError, match="authority mismatched"):
-        with repository_read_scope(repo_a, (identity, corpora, as_of), token):
-            pytest.fail("foreign root authority was admitted")
+    with (
+        pytest.raises(CorpusConsistencyError, match="authority mismatched"),
+        repository_read_scope(repo_a, (identity, corpora, as_of), token),
+    ):
+        pytest.fail("foreign root authority was admitted")
 
 
 def test_ownerless_nested_adapter_cannot_downgrade_explicit_outer_owner() -> None:
@@ -350,9 +353,11 @@ def test_ownerless_nested_adapter_cannot_downgrade_explicit_outer_owner() -> Non
 
     delegate = ModeDelegate(foreign)
     bound = SnapshotBoundRetriever(reader, delegate)
-    with repository_read_scope(repo_a, arguments, token):
-        with pytest.raises(CorpusConsistencyError, match="authority"):
-            bound.search(identity, "nested", corpora, as_of, token)
+    with (
+        repository_read_scope(repo_a, arguments, token),
+        pytest.raises(CorpusConsistencyError, match="authority"),
+    ):
+        bound.search(identity, "nested", corpora, as_of, token)
     assert delegate.calls == 1
 
 
