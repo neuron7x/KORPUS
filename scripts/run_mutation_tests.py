@@ -71,8 +71,8 @@ MUTANTS = (
     Mutant(
         "M854_NESTED_CACHE_RECAPTURES_TOKEN",
         "apps/api/src/korpus/application/corpus_read_context.py",
-        "        token = active.token\n",
-        "        token = reader.capture(*arguments)\n",
+        "        token, repository = active.token,",
+        "        token, repository = reader.capture(*arguments),",
         (
             "apps/api/tests/test_read_scope_boundaries.py::test_stable_snapshot_preserves_real_cache_hit_and_single_capture",
         ),
