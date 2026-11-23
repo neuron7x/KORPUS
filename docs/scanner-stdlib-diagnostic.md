@@ -205,7 +205,9 @@ The hosted logs identify `actions/go-versions` release asset
 `go.dev` distribution. Independent exact-asset readback (79,352,089 bytes,
 SHA-256 `209c26fb1e76bb80abd48bff02af948094187124362eceb6854f3805a21f8b34`)
 found every official compiler file unchanged plus one additional 695-byte
-`setup.sh`. The unchanged complete-toolchain validator rejects that exact asset.
+`setup.sh` file in the rejected external archive. This historical external file is
+absent from the canonical repository; the unchanged complete-toolchain validator
+rejects that asset.
 This is an exact-asset/action-path reproduction; the failed native receipt did
 not retain a measured compiler inventory, so it is not represented as one.
 
