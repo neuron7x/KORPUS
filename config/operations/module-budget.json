@@ -7314,6 +7314,15 @@
       "proof_lines": 0,
       "reason": "2026-11-19 / #102 / measured initial limits for fixed Gitleaks scope, original deadline and diagnostic policy; all existing module ceilings unchanged."
     },
+    "scripts/source_security_history_admission.py": {
+      "lines": 41,
+      "max_complexity": 5,
+      "max_function_args": 1,
+      "max_function_lines": 30,
+      "max_nesting": 0,
+      "proof_lines": 0,
+      "reason": "2026-11-23 / #102 / measured initial ceilings for Git history metadata admission; no existing module ceiling raised."
+    },
     "scripts/source_security_images.py": {
       "lines": 45,
       "max_complexity": 4,
