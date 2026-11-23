@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 
 from scripts.source_security_commands import scanner_commands
+from scripts.source_security_history_admission import require_complete_history_metadata
 
 MERGE_ONLY = "NEUTRAL_TWO_PARENT_NOVEL_CONTENT"
 REMOVED_SIDE = "NEUTRAL_SIDE_HISTORY_REMOVED_BEFORE_MERGE"
@@ -232,3 +233,22 @@ def test_scanner_command_disables_git_replace_refs(history: History) -> None:
         _complete(history, restored.stdout)
     finally:
         _git(history.root, "replace", "-d", history.head)
+
+
+@pytest.mark.parametrize("metadata", ("shallow", "info/grafts"))
+def test_scanner_history_preflight_rejects_boundary_poison(
+    history: History, metadata: str
+) -> None:
+    require_complete_history_metadata(history.root)
+    relative = Path(_git(history.root, "rev-parse", "--git-path", metadata).strip())
+    path = history.root / relative
+    assert not path.exists() and not path.is_symlink()
+    try:
+        path.write_text(history.head + "\n", encoding="ascii")
+        # Ordinary Git traversal can terminate successfully after hiding ancestors.
+        assert len(_git(history.root, "rev-list", history.head).splitlines()) == 1
+        with pytest.raises(ValueError, match="shallow or"):
+            require_complete_history_metadata(history.root)
+    finally:
+        path.unlink(missing_ok=True)
+    require_complete_history_metadata(history.root)

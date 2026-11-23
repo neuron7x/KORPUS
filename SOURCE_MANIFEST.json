@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2390,
-  "root_sha256": "b10f5e4f17bf4e8edca74754949e036db9f017ef5f83ac10af564838a2d30ba4",
+  "file_count": 2391,
+  "root_sha256": "b5f4d27dc3ba4b478b9da399e294308e0ff04709e15e27a917fc1c2499d4622c",
   "files": [
     {
       "path": ".dockerignore",
@@ -6397,8 +6397,8 @@
     },
     {
       "path": "apps/api/tests/test_source_security_history.py",
-      "bytes": 8912,
-      "sha256": "3972ab832e9aed2b5fba689ddc89388f651cadcf27c27711d92a450f5f351e73",
+      "bytes": 9862,
+      "sha256": "d5b7393df596a3a64d0dce906dcf2150b871704682d91b447c77d1849fafda7f",
       "mode": "0644"
     },
     {
@@ -6409,8 +6409,8 @@
     },
     {
       "path": "apps/api/tests/test_source_security_producer.py",
-      "bytes": 20216,
-      "sha256": "5a8838963f20412813228c16ff3293250aa5856eabd3f611e24411490a94db77",
+      "bytes": 20305,
+      "sha256": "fbc040988f1ee6383822f87b20fdf5372beb2f50ef0d593aa2bb5e875de3a265",
       "mode": "0644"
     },
     {
@@ -13938,6 +13938,12 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/source_security_history_admission.py",
+      "bytes": 1083,
+      "sha256": "a9e6bf2ccbb064545fe67503c5461c31a2c1da8308adce89ea44c16484067a16",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/source_security_images.py",
       "bytes": 1214,
       "sha256": "b461ad847e752de35235b72e8821a4e8a14d9fbcebe53cfb202ae69ed430b216",
@@ -13957,8 +13963,8 @@
     },
     {
       "path": "scripts/source_security_source.py",
-      "bytes": 4344,
-      "sha256": "6981bd9420fe3690e4a0cd0bd09ad42e1a90fd766c8ba95438e59f3cb072ae39",
+      "bytes": 4475,
+      "sha256": "a3651d0f15cfe99f71d9b327dc328049f2591a89b148c647b39288377f70e9a1",
       "mode": "0644"
     },
     {

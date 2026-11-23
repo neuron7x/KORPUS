@@ -55,6 +55,7 @@ def prepared(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, dic
     monkeypatch.setattr(source, "run_identity", lambda: dict(identity))
     monkeypatch.setattr(source, "checkout_identity", lambda _root: (state["checkout"], "b" * 40))
     monkeypatch.setattr(source, "git_files", lambda _root: list(files))
+    monkeypatch.setattr(source, "require_complete_history_metadata", lambda _root: None)
     monkeypatch.setattr(producer, "trusted_executable", lambda path: path)
     monkeypatch.setattr(producer, "verify_scanner_python", lambda _path, _root: None)
 

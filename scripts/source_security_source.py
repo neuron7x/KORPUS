@@ -11,6 +11,7 @@ from korpus.application.release_claim_git_tree import TreeFile, git_files
 
 from scripts.coverage_execution_contract import SOURCE_INPUTS, run_identity, snapshot
 from scripts.source_security_contract import require
+from scripts.source_security_history_admission import require_complete_history_metadata
 from scripts.trusted_system_tools import git_environment, git_executable
 
 
@@ -50,6 +51,7 @@ def admit_source(root: Path) -> tuple[dict[str, Any], list[TreeFile]]:
         identity["kind"] == "github-actions", "source-security requires a GitHub Actions execution"
     )
     commit, tree = checkout_identity(root)
+    require_complete_history_metadata(root)
     require(commit == identity["GITHUB_SHA"], "checkout commit differs from the workflow source")
     files = git_files(root)
     require(bool(files), "working source does not match its exact committed Git inventory")
@@ -121,8 +123,6 @@ def runner_temporary(root: Path) -> Path:
         candidate.is_absolute() and candidate.is_dir(),
         "RUNNER_TEMP must be an existing absolute directory",
     )
-    require(
-        not candidate.resolve().is_relative_to(root.resolve()),
-        "scanner temporary files cannot enter the source tree",
-    )
+    outside = not candidate.resolve().is_relative_to(root.resolve())
+    require(outside, "scanner temporary files cannot enter the source tree")
     return candidate
