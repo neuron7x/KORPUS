@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 2390,
-  "root_sha256": "492edbd8c1ed4afad8084728e0bfe6b9cbb0bae58b2f090903fd16e48f23516b",
+  "root_sha256": "b10f5e4f17bf4e8edca74754949e036db9f017ef5f83ac10af564838a2d30ba4",
   "files": [
     {
       "path": ".dockerignore",
@@ -6409,8 +6409,8 @@
     },
     {
       "path": "apps/api/tests/test_source_security_producer.py",
-      "bytes": 20156,
-      "sha256": "5fe664d7b93f97a97518b3c9718e724d331e2422bf771af6c7ebb6dbbfcb423d",
+      "bytes": 20216,
+      "sha256": "5a8838963f20412813228c16ff3293250aa5856eabd3f611e24411490a94db77",
       "mode": "0644"
     },
     {

@@ -236,9 +236,10 @@ def test_gitleaks_cpu_alignment_is_fixed_and_does_not_change_other_container_lim
         command = commands[tool]
         prefix = command[: command.index(IMAGES[tool])]
         environment = [prefix[index + 1] for index, value in enumerate(prefix) if value == "--env"]
-        assert environment == ["SYFT_CHECK_FOR_APP_UPDATE=false"] + (
-            ["GOMAXPROCS=2"] if tool == "gitleaks" else []
-        )
+        expected = ["SYFT_CHECK_FOR_APP_UPDATE=false"]
+        if tool == "gitleaks":
+            expected.extend(("GOMAXPROCS=2", "GIT_NO_REPLACE_OBJECTS=1"))
+        assert environment == expected
         assert prefix.count("--cpus=2") == prefix.count("--memory=2g") == 1
         assert "--network" in prefix and prefix[prefix.index("--network") + 1] == "none"
         assert "--read-only" in prefix and "--cap-drop=ALL" in prefix
