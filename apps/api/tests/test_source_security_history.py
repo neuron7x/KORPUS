@@ -197,3 +197,38 @@ def test_separate_parent_diffs_repeat_more_input_without_adding_marker_coverage(
     separate_added = _complete(history, separate)
     assert len(separate_added) > len(first_added)
     assert len(separate.encode("utf-8")) > len(first.encode("utf-8"))
+
+
+def test_scanner_command_disables_git_replace_refs(history: History) -> None:
+    command = scanner_commands(
+        history.root,
+        history.root,
+        history.root / "output",
+        history.root / "temporary",
+        Path(sys.executable),
+        history.head,
+    )["gitleaks"]
+    assert command.count("GIT_NO_REPLACE_OBJECTS=1") == 1
+    options = _native_options(history).split(" ")
+    replacement = _git(history.root, "rev-parse", "unreachable").strip()
+    try:
+        _git(history.root, "replace", history.head, replacement)
+        with pytest.raises(AssertionError):
+            _complete(history, _stream(history, " ".join(options)))
+        restored = subprocess.run(
+            ["/usr/bin/git", "-C", str(history.root), "log", "-p", "-U0", *options],
+            env={
+                "PATH": "/usr/bin:/bin",
+                "LANG": "C.UTF-8",
+                "GIT_CONFIG_NOSYSTEM": "1",
+                "GIT_CONFIG_GLOBAL": os.devnull,
+                "GIT_NO_REPLACE_OBJECTS": "1",
+            },
+            capture_output=True,
+            check=True,
+            timeout=10,
+            text=True,
+        )
+        _complete(history, restored.stdout)
+    finally:
+        _git(history.root, "replace", "-d", history.head)

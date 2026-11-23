@@ -10,6 +10,10 @@ from scripts.source_security_gitleaks import gitleaks_arguments, gitleaks_enviro
 from scripts.source_security_lock import LOCK_PATHS
 
 
+def _git_history_environment(tool: str) -> list[str]:
+    return ["--env", "GIT_NO_REPLACE_OBJECTS=1"] if tool == "gitleaks" else []
+
+
 def _container(tool: str, source: Path, output: Path, temporary: Path) -> list[str]:
     return [
         "/usr/bin/docker",
@@ -41,6 +45,7 @@ def _container(tool: str, source: Path, output: Path, temporary: Path) -> list[s
         "--env",
         "SYFT_CHECK_FOR_APP_UPDATE=false",
         *gitleaks_environment(tool),
+        *_git_history_environment(tool),
         IMAGES[tool],
     ]
 
