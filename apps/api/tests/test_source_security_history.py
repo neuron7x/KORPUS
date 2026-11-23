@@ -236,9 +236,7 @@ def test_scanner_command_disables_git_replace_refs(history: History) -> None:
 
 
 @pytest.mark.parametrize("metadata", ("shallow", "info/grafts"))
-def test_scanner_history_preflight_rejects_boundary_poison(
-    history: History, metadata: str
-) -> None:
+def test_scanner_history_preflight_rejects_boundary_poison(history: History, metadata: str) -> None:
     require_complete_history_metadata(history.root)
     relative = Path(_git(history.root, "rev-parse", "--git-path", metadata).strip())
     path = history.root / relative

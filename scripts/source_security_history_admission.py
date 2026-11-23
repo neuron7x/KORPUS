@@ -14,16 +14,28 @@ def require_complete_history_metadata(root: Path) -> None:
     require(git is not None, "trusted Git executable unavailable")
     result = subprocess.run(
         [
-            str(git), "--no-replace-objects", "-C", str(root), "rev-parse",
-            "--is-shallow-repository", "--git-path", "shallow", "--git-path", "info/grafts",
+            str(git),
+            "--no-replace-objects",
+            "-C",
+            str(root),
+            "rev-parse",
+            "--is-shallow-repository",
+            "--git-path",
+            "shallow",
+            "--git-path",
+            "info/grafts",
         ],
-        env=git_environment(), capture_output=True, check=True, timeout=30,
+        env=git_environment(),
+        capture_output=True,
+        check=True,
+        timeout=30,
     )
     paths = result.stdout.decode("utf-8").splitlines()
     require(len(paths) == 3 and paths[0] == "false", "shallow or unreadable Git history")
     require(
-        all(not (path.exists() or path.is_symlink()) for path in (
-            root / Path(item) for item in paths[1:]
-        )),
+        all(
+            not (path.exists() or path.is_symlink())
+            for path in (root / Path(item) for item in paths[1:])
+        ),
         "shallow or grafted Git history",
     )
