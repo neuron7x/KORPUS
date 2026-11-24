@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 
@@ -24,6 +25,8 @@ def require_complete_history_metadata(root: Path) -> None:
             "shallow",
             "--git-path",
             "info/grafts",
+            "--git-path",
+            "info/attributes",
         ],
         env=git_environment(),
         capture_output=True,
@@ -31,11 +34,8 @@ def require_complete_history_metadata(root: Path) -> None:
         timeout=30,
     )
     paths = result.stdout.decode("utf-8").splitlines()
-    require(len(paths) == 3 and paths[0] == "false", "shallow or unreadable Git history")
+    require(len(paths) == 4 and paths[0] == "false", "shallow or unreadable Git history")
     require(
-        all(
-            not (path.exists() or path.is_symlink())
-            for path in (root / Path(item) for item in paths[1:])
-        ),
-        "shallow or grafted Git history",
+        all(not os.path.lexists(root / item) for item in paths[1:]),
+        "shallow or grafted Git history or local attributes",
     )

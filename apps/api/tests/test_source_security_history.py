@@ -250,3 +250,26 @@ def test_scanner_history_preflight_rejects_boundary_poison(history: History, met
     finally:
         path.unlink(missing_ok=True)
     require_complete_history_metadata(history.root)
+
+
+@pytest.mark.parametrize("metadata_kind", ("file", "dangling-symlink"))
+def test_scanner_history_preflight_rejects_local_attributes(
+    history: History, metadata_kind: str
+) -> None:
+    require_complete_history_metadata(history.root)
+    path = history.root / _git(history.root, "rev-parse", "--git-path", "info/attributes").strip()
+    assert not path.exists() and not path.is_symlink()
+    try:
+        if metadata_kind == "file":
+            path.write_text("base.txt -diff\n", encoding="ascii")
+            assert "NEUTRAL_BASE_CONTENT" not in _added_lines(
+                _stream(history, _native_options(history))
+            )
+        else:
+            path.symlink_to(path.with_name("missing-attributes"))
+        with pytest.raises(ValueError, match="local attributes"):
+            require_complete_history_metadata(history.root)
+    finally:
+        path.unlink(missing_ok=True)
+    require_complete_history_metadata(history.root)
+    _complete(history, _stream(history, _native_options(history)))
