@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2307,
-  "root_sha256": "033e56b7ae76f2cacab302233fe780e105f3e354edead95df95e118b3b35da75",
+  "file_count": 2391,
+  "root_sha256": "853e194dcc908f82793501459097ea1de2b638941445dad3aa636f2704457fe6",
   "files": [
     {
       "path": ".dockerignore",
@@ -49,8 +49,8 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "bytes": 12818,
-      "sha256": "c30aa14f186c1e7f9eecf58f2cc3d8c578573f2d32387fbde6a3d756de3f7bdf",
+      "bytes": 16240,
+      "sha256": "75cf1cf09cf6390b48fb41427c555bd1253b00451c98865a8d8df01ad213d30e",
       "mode": "0644"
     },
     {
@@ -90,6 +90,12 @@
       "mode": "0644"
     },
     {
+      "path": ".github/workflows/hosted-evidence.yml",
+      "bytes": 1495,
+      "sha256": "c727cb38b9a4e055efffbac4f494f76821193116e013fd1648c42b56371991c6",
+      "mode": "0644"
+    },
+    {
       "path": ".github/workflows/pec-production-evidence.yml",
       "bytes": 4383,
       "sha256": "14fbd9c318783e96deaa71e63303afaf6927de9736a80e71bd2690eddf9f11a9",
@@ -105,6 +111,18 @@
       "path": ".github/workflows/release.yml",
       "bytes": 3140,
       "sha256": "86b5ce5a1c82a18891c1ed65777bdab5cbec64f277c621b30cb6313cd6548bfe",
+      "mode": "0644"
+    },
+    {
+      "path": ".github/workflows/scanner-engine-diagnostic.yml",
+      "bytes": 1749,
+      "sha256": "e96fb39da6d59186e340dc7f9c84ef32833a9796ca365f7afdfa09e1bf2d0eee",
+      "mode": "0644"
+    },
+    {
+      "path": ".github/workflows/scanner-stdlib-diagnostic.yml",
+      "bytes": 2124,
+      "sha256": "9bc8039911c2c5b61d7460ee291effaca2a65d962c6926561e8eb0865ab12aec",
       "mode": "0644"
     },
     {
@@ -133,8 +151,8 @@
     },
     {
       "path": ".gitleaks-baseline.json",
-      "bytes": 37274,
-      "sha256": "605fb1f1823121075ceffc7ee1d352432f0cdf36a3f8470f7e3a9c41ddd2ab6a",
+      "bytes": 43904,
+      "sha256": "c460c0623fe7c8acde749f134fc90564c22c387623be803763cd15e9bd848f91",
       "mode": "0644"
     },
     {
@@ -745,8 +763,8 @@
     },
     {
       "path": "apps/api/pyproject.toml",
-      "bytes": 3440,
-      "sha256": "2592fb298bf1aa161f6eb6698227c7a930b4ad96035c2c490583fcbcd3b6e931",
+      "bytes": 3446,
+      "sha256": "f3cb11c0329958cdca830c01f69fe0ea0dea5b3795e30c4a925cacc0a12ca662",
       "mode": "0644"
     },
     {
@@ -757,8 +775,14 @@
     },
     {
       "path": "apps/api/requirements.runtime.lock",
-      "bytes": 7691,
-      "sha256": "c580052d627a63b7d6d9783a0d583498e02da4c80d0e08dfa09f04eeb4f81d3c",
+      "bytes": 8094,
+      "sha256": "2f13e583f691366995297813194d644a735eb011b80fc8d5296bb2e28f5443d9",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/requirements.scanners.lock",
+      "bytes": 3240,
+      "sha256": "385c0ff9438bb143c05853b162940695c97c399ab55cb0467608464b459e8a7d",
       "mode": "0644"
     },
     {
@@ -3000,9 +3024,27 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/fixtures/github_upload_window_v7.json",
+      "bytes": 6135,
+      "sha256": "dd339dd8374affa34094d280e38db42ce7bcb550106b9f957f086f844b76f0e2",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/fixtures/gitleaks_native_logs_v8_30_1.json",
+      "bytes": 6021,
+      "sha256": "a38419f175a698511c260395c066232550f235e6d78f64e6ab1dc5b3d2689169",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/helpers.py",
       "bytes": 6152,
       "sha256": "4998c02f20b64facc9c41f1a512dc18bd11f1fe205344e8ae8fb1d61890b368e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/hosted_evidence_fixtures.py",
+      "bytes": 16083,
+      "sha256": "05c6d840e47373a3a0454c1f611ba59c195e15f471413633aa75a816d9fa66f7",
       "mode": "0644"
     },
     {
@@ -3027,6 +3069,12 @@
       "path": "apps/api/tests/security_fixtures.py",
       "bytes": 8868,
       "sha256": "721d2e96251ed4491253cc8d0e83f24b1067e17ff7d866e9de9ba560f0c7c6b3",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/source_security_fixtures.py",
+      "bytes": 5191,
+      "sha256": "952595055af7b16f886c35edeb1935109e4bb4b7b001104335ca36fa832d4ef8",
       "mode": "0644"
     },
     {
@@ -4471,8 +4519,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 173563,
-      "sha256": "10609774e1f1c14a686f8a856d88c6ab1bd4378e579bcf4157348effd56c1b81",
+      "bytes": 173875,
+      "sha256": "8a6b99ed4e8002beeb50ddf530a10465fbebca32b632f26a224ae76aa2d9b8b9",
       "mode": "0644"
     },
     {
@@ -4579,8 +4627,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_production_contract.py",
-      "bytes": 20696,
-      "sha256": "8135a7b2af65bc5dababc43358a6d24662b7906456f3549ec91acb8253390d0b",
+      "bytes": 20807,
+      "sha256": "8ff8642fa9620771a99505c9954d63fe3e2a0405c41ed487ed4f065765272032",
       "mode": "0644"
     },
     {
@@ -4641,6 +4689,72 @@
       "path": "apps/api/tests/test_github_actions_policy.py",
       "bytes": 6354,
       "sha256": "9c9101178084e653d9690070fd0e6bbb2180de722bda14b0b8348259c7fcfc46",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_github_coverage_admission.py",
+      "bytes": 8855,
+      "sha256": "412d1f8ed52b50c0140c3809bf85231639e286e5a6761d4975231623efd12e04",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_github_evidence_full_admission.py",
+      "bytes": 20895,
+      "sha256": "eae3566c334fcca970cf7c9569439377382575622878a67f6b96b8c064029422",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_github_evidence_live_base.py",
+      "bytes": 9752,
+      "sha256": "5e5e9b35f3b739f2ca526426fda6dcfdf2c540b3c6adad831bfe315d463af866",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_github_evidence_pr_mapping.py",
+      "bytes": 5144,
+      "sha256": "99335c7e5a16fd1e18e0bcfdaaa363661f4ec1ff44385adb902aac21c3e69757",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_github_evidence_publication.py",
+      "bytes": 1377,
+      "sha256": "dfeb0134c93e5e981a94096784f5620dfdca3ea6ee4e6d970d8083a35b53fd0e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_github_evidence_receipts.py",
+      "bytes": 10090,
+      "sha256": "95c7b4f9a32b568cc4fc8e7ab30a4800108747499544eb2cb85ec7ead941f21b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_github_evidence_request_budget.py",
+      "bytes": 5149,
+      "sha256": "328f581f578d7e67015f469746cf2f9149c0bd6ff2c37a8cbc0c203ed449b137",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_github_evidence_transport.py",
+      "bytes": 8651,
+      "sha256": "20c341c48646667ba277310dcc7050176718666770a62224b43c6e0634134b2b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_github_evidence_upload.py",
+      "bytes": 7720,
+      "sha256": "a7499efc29aa49d9d3e4ba57783d1b18f8517e17c9f5431eef622e5d38453c33",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_github_evidence_wait.py",
+      "bytes": 4819,
+      "sha256": "298ad3471622eea50970e71260b9d2c4a6ae516bdaed3be89f9f31ac3bf08dc6",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_github_source_identity.py",
+      "bytes": 5226,
+      "sha256": "6dbabf6b9270ee4b918561c3957d52e7c15090215ced87f5b39e7b9a1cef293c",
       "mode": "0644"
     },
     {
@@ -6078,6 +6192,48 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_scanner_engine_artifact.py",
+      "bytes": 10567,
+      "sha256": "342d75120b9e55d1562f424282e3fd4170ffe4066a4aca5228b0143fb02c5580",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_scanner_engine_authority.py",
+      "bytes": 16461,
+      "sha256": "2491d65045ffed8b522af584fe839242be9cd9784cf420d07276319bf1445a9e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_scanner_engine_probes.py",
+      "bytes": 10960,
+      "sha256": "e4766b5f52e31ec1a5dcfef9b72150760fdeb7cdcc69288810b72975fbe73710",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_scanner_engine_sandbox.py",
+      "bytes": 14473,
+      "sha256": "585b6e8ecefb9763a095837e416a85588e4916d6e3a3fc2b404279109f568e73",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_scanner_stdlib_build.py",
+      "bytes": 5604,
+      "sha256": "427d6d3ca824d1e4ea91d7166ceb99c309fc8f10f4408acca3b3bfd7f4f6c5ae",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_scanner_stdlib_compiler_install.py",
+      "bytes": 3551,
+      "sha256": "269e86f897c25502072c32ad64558fbe4f497031662b5e171f432dba22cc1ddf",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_scanner_stdlib_native.py",
+      "bytes": 9869,
+      "sha256": "a41645daaa2b78a9e9f39d8d714a9e8ac0d90ee14ec936b2da364f7a4e18fb93",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_schema_revision_pin.py",
       "bytes": 3319,
       "sha256": "3dcb29a5eb166971db6e9da5daa54a061df361989939af352f29663efba5c62b",
@@ -6219,6 +6375,42 @@
       "path": "apps/api/tests/test_source_manifest_evidence.py",
       "bytes": 6022,
       "sha256": "ac1b9620292820f477e1d27eeb639769c50efeb931da3fd91d71d7407a76abfb",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_source_security_cleanup.py",
+      "bytes": 9790,
+      "sha256": "9a58cf10155d81f46e93da4e71eab056ad32f4806200052554ce4b74a71e79bf",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_source_security_contract.py",
+      "bytes": 10203,
+      "sha256": "3492f3b4ee48fd7e7de3cfbf73c52d79d9fcc5f361c1cc7f511f726a1397554d",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_source_security_deploy_config.py",
+      "bytes": 2695,
+      "sha256": "448c6b739c2ec36ce6b2e5b021e1b17915af808d8b2eaf50cafc4c4c1c3b876b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_source_security_history.py",
+      "bytes": 10871,
+      "sha256": "e4829461e49cfcc9bd458ead990830d75ada38b5a822ba871aae9b223d28aedf",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_source_security_native_log.py",
+      "bytes": 7459,
+      "sha256": "c8a892768ade3c14a666fda2a15ac9bcabe50c6e36b128f43320e1e55521f4d5",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_source_security_producer.py",
+      "bytes": 20305,
+      "sha256": "fbc040988f1ee6383822f87b20fdf5372beb2f50ef0d593aa2bb5e875de3a265",
       "mode": "0644"
     },
     {
@@ -8809,8 +9001,8 @@
     },
     {
       "path": "config/operations/desired-state.json",
-      "bytes": 6050,
-      "sha256": "1bf5abf20c146545cdcea11e57e5129ed7908c6cce4a4fd658f438915ea7bb10",
+      "bytes": 6586,
+      "sha256": "e5056697150d8045f258e03a84974a49e3cf172ec4c8cb4b08b2e1843ad3d064",
       "mode": "0644"
     },
     {
@@ -8851,8 +9043,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 802187,
-      "sha256": "dc10e195a13a4792e68c108b17729a6b979bf8f9ecdf9deca682127f8c8be0c4",
+      "bytes": 818498,
+      "sha256": "b494c086f1c4bbfb41485b0923d277542574e59732a15f2aef3278b95f518aa8",
       "mode": "0644"
     },
     {
@@ -8916,6 +9108,18 @@
       "mode": "0644"
     },
     {
+      "path": "config/scanner-diagnostics/gitleaks-optional-prefix.patch",
+      "bytes": 8822,
+      "sha256": "e6a984ffb8a4b7f846952ab78fdcbbc281c60cb5440e86a0af8da1ddebe1964f",
+      "mode": "0644"
+    },
+    {
+      "path": "config/scanner-diagnostics/gitleaks-rule-profile.patch",
+      "bytes": 324,
+      "sha256": "d7d8e053f72e4fb647f5b5e8bcb9ca51ff7f42bfbb62aafd006603ffe9265072",
+      "mode": "0644"
+    },
+    {
       "path": "config/security/trust-boundary-map-v2.json",
       "bytes": 1943,
       "sha256": "ed130e774b436e00224204fe77a963b093a528d2d78e05fab9e580695ed1b684",
@@ -8959,14 +9163,14 @@
     },
     {
       "path": "deploy/kubernetes/base/api-deployment.yaml",
-      "bytes": 2038,
-      "sha256": "ec533ad523dd13acf4d39ed22d837c7fbc510e44ed993fc327549f56f1c7cb15",
+      "bytes": 2211,
+      "sha256": "cfae84962d65e6194f789f4d95a67715f235f534df363157413666cdcdada2b5",
       "mode": "0644"
     },
     {
       "path": "deploy/kubernetes/base/configmap.yaml",
-      "bytes": 1748,
-      "sha256": "04a6303734ed9c311868c2457a1a2fdf47e867bc9ccb1d80dd059a74225bfa1b",
+      "bytes": 1746,
+      "sha256": "adc5b2667622842054095bf82e9902f44d55656e3cdd6732c10bb467650b442e",
       "mode": "0644"
     },
     {
@@ -8977,8 +9181,8 @@
     },
     {
       "path": "deploy/kubernetes/base/migrate-job.yaml",
-      "bytes": 1159,
-      "sha256": "bd2b770fea37bdbe8eaa97cb23eaca7b03cb65ae6a419ec2cbdd7e586abf7b4e",
+      "bytes": 1332,
+      "sha256": "d72ad6ff39427ec67131c0b60ad83c43f9b6b00dc70fe77507d18765c1c8ec85",
       "mode": "0644"
     },
     {
@@ -9019,8 +9223,8 @@
     },
     {
       "path": "deploy/kubernetes/base/worker-deployment.yaml",
-      "bytes": 1575,
-      "sha256": "d58fb190c47eb89a22c2c37513012ff236d1df8b17070bf111d79984afab2fe6",
+      "bytes": 1748,
+      "sha256": "d1ec40f125ccc46dd0774253281388e7b2a19998d3acc2da262b2660fd481831",
       "mode": "0644"
     },
     {
@@ -9450,6 +9654,12 @@
       "mode": "0644"
     },
     {
+      "path": "docs/audit/gitleaks-merge-baseline-reconciliation-2026-11-19.md",
+      "bytes": 3958,
+      "sha256": "6629331dcb746a6517ad9eba7b853325520319387031a62c4b35ff59324fe150",
+      "mode": "0644"
+    },
+    {
       "path": "docs/audit/source/KORPUS_v4_AUDIT_ARTIFACTS_2026-08-01.sha256",
       "bytes": 674,
       "sha256": "6b5a55122f8ec316146b800e11b6d720c572dae9fd9e04fe4fdd929dd25d69b3",
@@ -9537,6 +9747,12 @@
       "path": "docs/formal/RELEASE_STATE_MACHINE.md",
       "bytes": 1748,
       "sha256": "ff924538da25adfaa90579ba02b5c7e3d3665b6acb027233c3475fae5e78eb43",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/github-hosted-evidence.md",
+      "bytes": 15150,
+      "sha256": "121f3ec4a1e7e953ac08ffb77ba9a5c0a7b19e9b26e6e6101c95e3d17cfe75f3",
       "mode": "0644"
     },
     {
@@ -10554,6 +10770,18 @@
       "mode": "0644"
     },
     {
+      "path": "docs/scanner-engine-diagnostic.md",
+      "bytes": 7230,
+      "sha256": "284d8198d6897d802f0bb3678927377ab44d55ae3628711976897b5459af129d",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/scanner-stdlib-diagnostic.md",
+      "bytes": 14237,
+      "sha256": "5c304a69e93a005af1e1c458325a8d4dbfe31f79a5219040e72a3f5fe502161c",
+      "mode": "0644"
+    },
+    {
       "path": "docs/security/KEY_AND_BREAK_GLASS_V5.md",
       "bytes": 1183,
       "sha256": "482d07d4a3b5b2c3e8971773dbb00e09bc52a178d01a3ddd9c92fc2d5bedeac3",
@@ -10569,6 +10797,12 @@
       "path": "docs/security/THREAT_MODEL_V6.md",
       "bytes": 7343,
       "sha256": "ba7db48b2cb0bc3c02c01de0f57ac5a1784353521016f4a2be5c2edf18eadb60",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/source-security-evidence.md",
+      "bytes": 28510,
+      "sha256": "8a51630236fee8c9d2a992d26c21d2838f73bd25ebdae2167cb5a2409658f187",
       "mode": "0644"
     },
     {
@@ -11065,8 +11299,8 @@
     },
     {
       "path": "infra/gcp/foundation/main.tf",
-      "bytes": 16466,
-      "sha256": "73c88d16df8b752a369e7b45de609effaddc6d7e8540835e7d86cd26f00b1937",
+      "bytes": 16487,
+      "sha256": "2d873412f11577d3d78325b04b1c33f8e485c0539bc3966666081e29447d228c",
       "mode": "0644"
     },
     {
@@ -11356,6 +11590,12 @@
       "bytes": 5684,
       "sha256": "fda280ac033618c35ce70f04e6dd65265ee892028ef2e09fff6b4acef89b4a04",
       "mode": "0644"
+    },
+    {
+      "path": "scripts/await_github_evidence.py",
+      "bytes": 1789,
+      "sha256": "14d3f9295ba4a8cf5c837c39c398116c01bd5268e767f186c93d54abedc29c9c",
+      "mode": "0755"
     },
     {
       "path": "scripts/backfill_span_embeddings_sqlite.py",
@@ -11701,8 +11941,8 @@
     },
     {
       "path": "scripts/coverage_execution_contract.py",
-      "bytes": 12891,
-      "sha256": "a66018178dd3264c0bb5442872cde66eafe829616adfe31b6fc939d7c6f57bd4",
+      "bytes": 11338,
+      "sha256": "ca7acff6e5b1926d7b3c280a1891641a52ae7d070962866e85541c0fe9b31d16",
       "mode": "0644"
     },
     {
@@ -11710,6 +11950,12 @@
       "bytes": 4496,
       "sha256": "3998f547128a87e7894770fd8fb4e754fc69ce9ff23910430b841924380077e9",
       "mode": "0755"
+    },
+    {
+      "path": "scripts/coverage_receipt_contract.py",
+      "bytes": 2768,
+      "sha256": "4bad747f60d4b340ecedd535c6d77fdad2fb5bb19f59c0e65094c1a269b45ee6",
+      "mode": "0644"
     },
     {
       "path": "scripts/coverage_union.py",
@@ -12193,8 +12439,8 @@
     },
     {
       "path": "scripts/gcp/production_contract_network.py",
-      "bytes": 2893,
-      "sha256": "d7ebb524776e780619e3ce3fd807c3cd759207e942d048ffca80460c9e51df3e",
+      "bytes": 2919,
+      "sha256": "6ccc8815b63dc2749c552c99f02dad3fc23af3949ec6fe437cb94b665b1fe08c",
       "mode": "0644"
     },
     {
@@ -12307,8 +12553,8 @@
     },
     {
       "path": "scripts/generate_lock_sbom.py",
-      "bytes": 1725,
-      "sha256": "8605210c275d108d5b42e0c135efcd3e950ef4bdfcee6809cf4ed08ee069a692",
+      "bytes": 723,
+      "sha256": "328f89578f60b61963d57a75498d5e822c7d1043f419004124d66e357aae2c1d",
       "mode": "0755"
     },
     {
@@ -12366,6 +12612,96 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/github_coverage_admission.py",
+      "bytes": 4505,
+      "sha256": "67a6ddb8e3f893680c5f43a2fd96ebfbe8338bc544073abbf5f8bd34175ba90e",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_evidence_artifact.py",
+      "bytes": 5945,
+      "sha256": "ab74c3bed3b103c3b34f8b96a387bd3b30855899fbda2fef3995e8a4c61cd0b6",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_evidence_base.py",
+      "bytes": 4115,
+      "sha256": "a98937a4c5c007ca7f2aaf1ff1f211d8d5d08912994f11be047beca7c9f70478",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_evidence_import.py",
+      "bytes": 2574,
+      "sha256": "eea129759db84d415c91de28f857f6bf0004df902e705fbc37f18c9e307e6fd3",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_evidence_policy.py",
+      "bytes": 921,
+      "sha256": "4af9dd589be9fad31a257465826ef6ccd9ea0e208b8f749c4b569031e8fb7a0d",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_evidence_publication.py",
+      "bytes": 1430,
+      "sha256": "25d37bf951dd3e8f1c32c346ca5a046720b7a700156343ad16fb48ed810571a2",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_evidence_result.py",
+      "bytes": 5178,
+      "sha256": "242a4981a9e66379a7b48df4e243715b2a2c24de8e78eecdc4e7c46a5717f6a0",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_evidence_run.py",
+      "bytes": 10070,
+      "sha256": "61e960d281eb22b0b9995b2242b3ee722030dee2c028e395428d53ebdd49426b",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_evidence_source.py",
+      "bytes": 3756,
+      "sha256": "6c352ac5a6f781e6287d0ffec92cf88d82bf3acca92433373247f035954ff097",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_evidence_transport.py",
+      "bytes": 4856,
+      "sha256": "6516ee4896c66811e59de6b3ec52aaf1f06d75434adf64bf86f61617977b8601",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_evidence_upload.py",
+      "bytes": 1976,
+      "sha256": "16295d07e753f4a0d201579474627712ed9d88b1c518823c5d455824b685ddfe",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_evidence_wait.py",
+      "bytes": 4058,
+      "sha256": "869ca909a47bd00acb6a0ab33e697e7966a2247831f850e16b7fa75e372aaf05",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_package_admission.py",
+      "bytes": 1189,
+      "sha256": "a597826496346008781c9d231cd55519ac19555d2b0bd2c3dd88dbcce5c5b1de",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_security_admission.py",
+      "bytes": 4274,
+      "sha256": "9cee03e8bf84e861bdfe9d81c61b822fd29cea87e6aa44561674ace83581cdc4",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/github_source_identity.py",
+      "bytes": 2312,
+      "sha256": "fa47659a6a60c89fe03d0bc61dede6651f555c4676f191505c5a5153c1e83791",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/guarded_commit.sh",
       "bytes": 1595,
       "sha256": "946602d0522f039243ca5a053c99531d69c64a580f06cf7917b3247ec5c33ae5",
@@ -12381,6 +12717,12 @@
       "path": "scripts/import_corpus.py",
       "bytes": 17653,
       "sha256": "f5fe872abe95d9785cfd8d3b119c266c2a76566e930f64d5b087d53ed3d111f7",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/import_github_evidence.py",
+      "bytes": 2137,
+      "sha256": "f052b8b16348f0f8a16f5b6fde57a9acd3becb7ed7c52e37bfd461f9056a7dca",
       "mode": "0755"
     },
     {
@@ -12430,6 +12772,12 @@
       "bytes": 1222,
       "sha256": "f1fed80bf9053d5267bfd402666e354e6c7aa70584692f9a36dd2b4417c2b37c",
       "mode": "0755"
+    },
+    {
+      "path": "scripts/install_scanner_compiler.py",
+      "bytes": 2711,
+      "sha256": "4a822c342491c29159c55f5cf7c562068eb5d75d2d5b1826fda732685e1936ba",
+      "mode": "0644"
     },
     {
       "path": "scripts/iso_dates.py",
@@ -12877,8 +13225,8 @@
     },
     {
       "path": "scripts/publish_release_evidence.py",
-      "bytes": 5019,
-      "sha256": "e4ea21d0ca6c5cc6e229c98b1f25c68205f7fa0a379efc906ef3809625921616",
+      "bytes": 5327,
+      "sha256": "6aeda66db879b7273738c70a1233d9189b8ab512af475e8c9ebf0048b56c73d8",
       "mode": "0755"
     },
     {
@@ -13219,8 +13567,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 356791,
-      "sha256": "754ee824191dbecae6746145f77c31a62303875f62b06617c949aa762847ab91",
+      "bytes": 369573,
+      "sha256": "690c2117630c5d802ddc875ac8a539eabf7b7742239df4e9fb1270d587b30c20",
       "mode": "0755"
     },
     {
@@ -13356,6 +13704,24 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/run_scanner_engine_diagnostic.py",
+      "bytes": 5777,
+      "sha256": "9106a7006953378e61f60b11492b06c149b6e66323f859a781d1558310a324b1",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/run_scanner_stdlib_diagnostic.py",
+      "bytes": 5594,
+      "sha256": "3471801545003b2f93a3d297830c3b2e7c67025b6351eaae393adc532cf015a7",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/run_source_security.py",
+      "bytes": 5423,
+      "sha256": "6b82098da1ea8628538c2cc8a675e807cc03f59dbc384e73011ab88e50aee033",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/run_sqlite_recovery_drill.sh",
       "bytes": 3385,
       "sha256": "d123683e0b9be9bda2287cf3bb77fefbf00184feabc388199edbf375c2f7b1ed",
@@ -13383,6 +13749,78 @@
       "path": "scripts/safe_archive_extract.py",
       "bytes": 728,
       "sha256": "433622a10bfde73e9906109f2530c3d8b72d7654f3a7fa5e760e2e5d3a2cd248",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_engine_artifact.py",
+      "bytes": 3458,
+      "sha256": "6bc185d40d1dedf29ecf6293f031f0ae17d427b8ba92949c8f7229a3a202b12a",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_engine_commands.py",
+      "bytes": 4125,
+      "sha256": "d9777a29aabf762d41b48aca2002c640cf4991159ea7b56d01063fa3a9b84870",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_engine_download.py",
+      "bytes": 4910,
+      "sha256": "569ffb394e79fba4800406a2a4e5eb521272fc2bdf2ec9002605a5d473aa51df",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_engine_fixtures.py",
+      "bytes": 5498,
+      "sha256": "e357236bbcc71ee52b712cf76cb2adebbf24185f72404bdbcd3b67f2286ff59b",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_engine_probes.py",
+      "bytes": 6184,
+      "sha256": "62a0c516dcaed3d2c877f42680e826eb4f73d802a5255f466940bceedc7e71e5",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_engine_result.py",
+      "bytes": 5660,
+      "sha256": "a366a86577efa86a3aebe6a0f4a75f9fcae58a3a6080cccf167251fa8886ddd5",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_engine_subject.py",
+      "bytes": 3453,
+      "sha256": "57459587358d3545e6e697d1142bd6b169d53c12e9be094eb4655b2af9536d67",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_stdlib_build.py",
+      "bytes": 6854,
+      "sha256": "9d5f183e25e60094650cbbd4ebb3f2a1223f32895349cbf90e7302c6150250ad",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_stdlib_identity.py",
+      "bytes": 3133,
+      "sha256": "34440eb1b0cb812192ec30e786e644b7ad09fa828fdb4bb1b048ae5949e4b201",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_stdlib_pins.py",
+      "bytes": 1707,
+      "sha256": "75b0a81bbefb1913b1c1957cc57185a1b68d680b88e4d0938a24460f52b45057",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_stdlib_probes.py",
+      "bytes": 5089,
+      "sha256": "7e66b44b1afabd24f8951e3e469b74facf5a2f742be9db3ceccef9ad7a4798c5",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/scanner_stdlib_result.py",
+      "bytes": 4321,
+      "sha256": "e264d31f8808673600afe1cd9ec1bbe6e72019581e9abcc3ec5715fb8cb05ae5",
       "mode": "0644"
     },
     {
@@ -13468,6 +13906,66 @@
       "bytes": 5112,
       "sha256": "af1accf47868bd3b3706ccb92ef56a93abb3b3c7cd0d305c44b7a1afab3dbe86",
       "mode": "0755"
+    },
+    {
+      "path": "scripts/source_security_commands.py",
+      "bytes": 3472,
+      "sha256": "196918c9a6b3af36c91fdcefb8be1f563ae863d840fdfb5a380591f34d85bc5e",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/source_security_container.py",
+      "bytes": 5358,
+      "sha256": "13c1e21d62667e834dec2b2f6bc0f148dc6ae8c2a5189363459b799be624de86",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/source_security_contract.py",
+      "bytes": 9722,
+      "sha256": "8ba7574ebb5f8287eba0f2453d9b6e831f4417c72ba088f39df5ab735ead14c3",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/source_security_execution.py",
+      "bytes": 1879,
+      "sha256": "80fc577212c6394db0dc90489f17bf486c8e3dd4838d543e28201f447d905344",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/source_security_gitleaks.py",
+      "bytes": 890,
+      "sha256": "e180b1fc434326bc98fb2a6be68178c0422f1cbf3357f108abd62cb9fdae0b1f",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/source_security_history_admission.py",
+      "bytes": 1228,
+      "sha256": "f829f4e68e95f5bc9665118799e01b9233779629046e417e576b97bbfb06979e",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/source_security_images.py",
+      "bytes": 1214,
+      "sha256": "b461ad847e752de35235b72e8821a4e8a14d9fbcebe53cfb202ae69ed430b216",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/source_security_lock.py",
+      "bytes": 3239,
+      "sha256": "908f2c5b6a327e717fc27a8cc5980bca6c69ea314b6a067427888477babcec0a",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/source_security_native.py",
+      "bytes": 2847,
+      "sha256": "1b9a1ce17b199e77a8c3160386064fc0ca14347f465504ed8cae10be76cb1093",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/source_security_source.py",
+      "bytes": 4475,
+      "sha256": "a3651d0f15cfe99f71d9b327dc328049f2591a89b148c647b39288377f70e9a1",
+      "mode": "0644"
     },
     {
       "path": "scripts/stage_doctrine_corpus.py",
@@ -13605,6 +14103,12 @@
       "path": "scripts/validate_repository.py",
       "bytes": 1996,
       "sha256": "2e03e868f35de992ff557e52988bb57d561d0f22fdf8d6befc8a020caa057835",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/validate_scanner_toolchain.py",
+      "bytes": 1149,
+      "sha256": "4bd9046e53cc6fcaf0041e4ec2639154d6ae8c67f01746f686ea81282086a942",
       "mode": "0755"
     },
     {

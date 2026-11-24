@@ -18,9 +18,17 @@ from tempfile import NamedTemporaryFile
 from typing import Any
 
 import coverage
+from coverage_receipt_contract import SCHEMA as SCHEMA
+from coverage_receipt_contract import CoverageContractError as CoverageContractError
+from coverage_receipt_contract import (
+    ReceiptSubject,
+    object_mapping,
+    require,
+    verify_execution,
+    verify_subject,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMA = "korpus.dialect-coverage-execution.v1"
 DEFAULT_SOURCE = ("apps/api/src/korpus",)
 # Include tests, locks, producer code and workflow definitions, not just measured
 # Python modules. Generated evidence and dependency caches are not source inputs.
@@ -57,17 +65,6 @@ RUN_FIELDS = ("GITHUB_REPOSITORY", "GITHUB_SHA", "GITHUB_RUN_ID", "GITHUB_RUN_AT
 GITLAB_FIELDS = ("CI_PROJECT_PATH", "CI_COMMIT_SHA", "CI_PIPELINE_ID")
 
 
-class CoverageContractError(ValueError):
-    def __init__(self, code: str, message: str) -> None:
-        super().__init__(message)
-        self.code = code
-
-
-def require(condition: bool, code: str, message: str) -> None:
-    if not condition:
-        raise CoverageContractError(code, message)
-
-
 def sha256(path: Path) -> str:
     require(path.is_file(), "MISSING_INPUT", f"required coverage input is missing: {path}")
     with path.open("rb") as stream:
@@ -83,12 +80,6 @@ def load_json(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     require(isinstance(value, dict), "INVALID_JSON", f"expected JSON object: {path}")
     return dict(value)
-
-
-def object_mapping(value: Any, name: str) -> dict[str, Any]:
-    if not isinstance(value, dict):
-        raise CoverageContractError("INVALID_REPORT", f"{name} must be an object")
-    return value
 
 
 def write_json(path: Path, value: dict[str, Any]) -> None:
@@ -320,46 +311,17 @@ def verify_receipt(
     root: Path,
     sources: Sequence[str],
 ) -> None:
-    require(
-        receipt.get("schema") == SCHEMA and receipt.get("status") == "PASS",
-        "PRODUCER_NOT_PASSED",
-        f"{dialect} has no successful coverage execution receipt",
+    verify_execution(receipt, dialect)
+    subject = ReceiptSubject(
+        dialect=dialect,
+        version=locked_version(),
+        source=source,
+        sources=tuple(sources),
+        configuration=config_text(sources),
+        run=run_identity(),
+        artifacts={
+            kind: {"path": relative_path(root, path), "sha256": sha256(path)}
+            for kind, path in (("data", data), ("report", report))
+        },
     )
-    require(
-        receipt.get("dialect") == dialect, "DIALECT_MISMATCH", f"receipt must measure {dialect}"
-    )
-    execution = object_mapping(receipt.get("execution"), "execution receipt")
-    require(
-        type(execution.get("exit_code")) is int and execution["exit_code"] == 0,
-        "PRODUCER_NOT_PASSED",
-        f"{dialect} producer did not exit successfully",
-    )
-    require(
-        receipt.get("coverage_version") == locked_version(),
-        "COVERAGE_VERSION",
-        "receipt version differs from lock",
-    )
-    require(
-        receipt.get("source_before") == source
-        and receipt.get("source_after_sha256") == source["sha256"],
-        "SOURCE_MISMATCH",
-        f"{dialect} execution measured different source bytes or source changed during execution",
-    )
-    require(
-        receipt.get("sources") == list(sources)
-        and receipt.get("coverage_config") == config_text(sources),
-        "COVERAGE_CONFIG",
-        f"{dialect} execution used a different source/configuration",
-    )
-    require(
-        receipt.get("run") == run_identity(),
-        "RUN_MISMATCH",
-        f"{dialect} execution belongs to another repository/SHA/run/attempt",
-    )
-    artifacts = object_mapping(receipt.get("artifacts"), "receipt artifacts")
-    for kind, path in (("data", data), ("report", report)):
-        require(
-            artifacts.get(kind) == {"path": relative_path(root, path), "sha256": sha256(path)},
-            "ARTIFACT_MISMATCH",
-            f"{dialect} {kind} does not match its execution receipt: {path}",
-        )
+    verify_subject(receipt, subject)

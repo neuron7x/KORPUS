@@ -300,32 +300,166 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
-        "M760_READINESS_ACCEPTS_INCOMPLETE_PROBE_SUBJECT",
-        "scripts/serving_readiness_contract.py",
-        "and set(ports) == set(observed)",
-        "and True",
+        "M777_SOURCE_SECURITY_IGNORES_NATIVE_LOG_ERRORS",
+        "scripts/source_security_native.py",
+        "    _reject_diagnostics(text)",
+        "    len(text)",
         (
-            "apps/api/tests/test_serving_readiness_contract.py::test_incomplete_or_ambiguous_probe_identity_fails",
+            "apps/api/tests/test_github_evidence_full_admission.py::test_coherent_native_error_log_cannot_be_laundered_by_receipt_or_zip_hashes[framed-error]",
         ),
         full_copy=True,
     ),
     Mutant(
-        "M761_READINESS_ACCEPTS_INACTIVE_DECLARED_UNIT",
-        "scripts/serving_readiness_contract.py",
-        '    if state.get("active") != "active" or not isinstance(pid, str):',
-        "    if not isinstance(pid, str):",
+        "M778_SOURCE_SECURITY_ACCEPTS_UNBOUND_NATIVE_LOG",
+        "scripts/github_security_admission.py",
+        '        record.get("artifacts") == artifacts, "security output does not match its execution receipt"',
+        '        {key: value for key, value in record.get("artifacts", {}).items() if key != "gitleaks.log"}\n        == {key: value for key, value in artifacts.items() if key != "gitleaks.log"},\n        "security output does not match its execution receipt",',
         (
-            "apps/api/tests/test_serving_readiness_contract.py::test_discovery_rejects_partial_or_ambiguous_topology[inactive-unit]",
+            "apps/api/tests/test_github_evidence_full_admission.py::test_different_benign_log_bytes_cannot_reuse_a_stale_native_receipt_digest",
         ),
         full_copy=True,
     ),
     Mutant(
-        "M762_READINESS_ACCEPTS_MISSING_DECLARED_UNIT",
-        "scripts/serving_readiness_contract.py",
-        "or set(names) != set(units)",
-        "or False",
+        "M779_SOURCE_SECURITY_ACCEPTS_LEGACY_SCHEMA",
+        "scripts/github_security_admission.py",
+        '        record.get("schema") == SCHEMA',
+        '        record.get("schema") in {SCHEMA, "korpus.source-security-execution.v1"}',
         (
-            "apps/api/tests/test_serving_readiness_contract.py::test_discovery_rejects_partial_or_ambiguous_topology[missing-unit]",
+            "apps/api/tests/test_github_evidence_full_admission.py::test_v1_receipt_is_refused_even_with_a_complete_new_native_log_artifact",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M773_ENGINE_DIAGNOSTIC_ARCHIVE_DIGEST_BYPASS",
+        "scripts/scanner_engine_download.py",
+        "        hashlib.sha256(raw).hexdigest() == ARCHIVE_SHA256,",
+        "        True,",
+        (
+            "apps/api/tests/test_scanner_engine_artifact.py::test_archive_digest_mismatch_stops_before_any_archive_inspection",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M774_ENGINE_DIAGNOSTIC_EXPORT_VALIDATES_DIFFERENT_BYTES",
+        "scripts/scanner_stdlib_result.py",
+        "        report = native.parse_findings(raw)",
+        "        report = native.findings(source / relative.parent)",
+        (
+            "apps/api/tests/test_scanner_engine_sandbox.py::test_export_validates_exact_bytes_before_summarizing",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M775_ENGINE_DIAGNOSTIC_MISSING_PENDING_NATIVE_EXECUTION",
+        "scripts/scanner_engine_commands.py",
+        '        self.executions.append(record)\n        record.update(execute("gitleaks", command, output, self.source))',
+        '        record.update(execute("gitleaks", command, output, self.source))',
+        (
+            "apps/api/tests/test_scanner_engine_authority.py::test_unreturned_native_execution_cannot_export_after_unproven_cleanup",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M776_ENGINE_DIAGNOSTIC_ZERO_EXIT_HIDES_NATIVE_INPUT_ERRORS",
+        "scripts/scanner_engine_result.py",
+        '        "partial_or_failed": any(diagnostics.values()) or execution["exit_code"] != 0,',
+        '        "partial_or_failed": execution["exit_code"] != 0,',
+        (
+            "apps/api/tests/test_scanner_engine_sandbox.py::test_clean_exit_never_hides_observed_input_errors_or_claims_eof",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M772_HOSTED_EVIDENCE_SPLICES_UPLOAD_INVOCATIONS",
+        "scripts/github_evidence_upload.py",
+        "        if message.startswith(RUN_HEADER):",
+        "        if not invocations:",
+        (
+            "apps/api/tests/test_github_evidence_upload.py::test_artifact_download_rejects_cross_invocation_log_splicing",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M768_SOURCE_SECURITY_OMITS_MERGE_ONLY_CONTENT",
+        "scripts/source_security_gitleaks.py",
+        '        f"{commit} --full-history --diff-merges=first-parent",',
+        "        commit,",
+        (
+            "apps/api/tests/test_source_security_history.py::test_actual_scanner_stream_includes_two_parent_merge_only_content",
+            "apps/api/tests/test_source_security_history.py::test_actual_scanner_stream_includes_octopus_merge_only_content",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M769_SOURCE_SECURITY_PRUNES_REACHABLE_SIDE_HISTORY",
+        "scripts/source_security_gitleaks.py",
+        '        f"{commit} --full-history --diff-merges=first-parent",',
+        '        f"{commit} --full-history --first-parent --diff-merges=first-parent",',
+        (
+            "apps/api/tests/test_source_security_history.py::test_actual_scanner_stream_retains_side_content_removed_before_merge",
+            "apps/api/tests/test_source_security_history.py::test_actual_scanner_stream_keeps_every_reachable_commit_and_text_introduction",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M770_SOURCE_SECURITY_RELAXES_NATIVE_DEADLINE",
+        "scripts/source_security_gitleaks.py",
+        '        "230",',
+        '        "900",',
+        (
+            "apps/api/tests/test_source_security_producer.py::test_fixed_scanner_commands_preserve_source_history_lock_and_policy_scope",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M771_SOURCE_SECURITY_RELAXES_PARENT_DEADLINE",
+        "scripts/source_security_execution.py",
+        "            timeout=240,",
+        "            timeout=930,",
+        (
+            "apps/api/tests/test_source_security_cleanup.py::test_known_owned_container_is_absent_after_execution",
+            "apps/api/tests/test_source_security_cleanup.py::test_non_container_executions_keep_the_original_parent_deadline",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M765_HOSTED_EVIDENCE_ACCEPTS_FOREIGN_LIVE_BASE_REF",
+        "scripts/github_evidence_base.py",
+        '    insist(record.get("ref") == f"refs/heads/{ref}", "GitHub base ref changed its subject")',
+        '    insist(bool(record.get("ref")), "GitHub base ref changed its subject")',
+        (
+            "apps/api/tests/test_github_evidence_live_base.py::test_live_base_requires_the_exact_named_commit_ref",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M766_HOSTED_EVIDENCE_SKIPS_RECORDED_BASE_ANCESTRY",
+        "scripts/github_evidence_base.py",
+        "        _recorded_ancestor(api, recorded, current)",
+        "        len(recorded)",
+        (
+            "apps/api/tests/test_github_evidence_live_base.py::test_repointed_base_cannot_discard_the_recorded_pr_ancestor",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M767_HOSTED_EVIDENCE_SKIPS_PR_SUBJECT_STABILITY",
+        "scripts/github_evidence_run.py",
+        "        stable_pr_base(api, subject)",
+        "        len(subject.subject_bytes)",
+        (
+            "apps/api/tests/test_github_evidence_live_base.py::test_final_pr_read_rejects_retargeting_or_movement_of_every_subject_edge",
+            "apps/api/tests/test_github_evidence_live_base.py::test_final_base_read_rejects_a_ref_advance_during_admission",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M764_HOSTED_EVIDENCE_SILENTLY_DROPS_PR_AUTHENTICATION",
+        "scripts/github_evidence_transport.py",
+        "        if host == API_HOST and self._token:",
+        '        if host == API_HOST and self._token and not path.startswith(API_PREFIX + "/pulls/"):',
+        (
+            "apps/api/tests/test_github_evidence_transport.py::test_pr_metadata_uses_the_existing_contents_read_token",
         ),
         full_copy=True,
     ),
@@ -370,6 +504,76 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M760_READINESS_ACCEPTS_INCOMPLETE_PROBE_SUBJECT",
+        "scripts/serving_readiness_contract.py",
+        "and set(ports) == set(observed)",
+        "and True",
+        (
+            "apps/api/tests/test_serving_readiness_contract.py::test_incomplete_or_ambiguous_probe_identity_fails",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M761_READINESS_ACCEPTS_INACTIVE_DECLARED_UNIT",
+        "scripts/serving_readiness_contract.py",
+        '    if state.get("active") != "active" or not isinstance(pid, str):',
+        "    if not isinstance(pid, str):",
+        (
+            "apps/api/tests/test_serving_readiness_contract.py::test_discovery_rejects_partial_or_ambiguous_topology[inactive-unit]",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M762_READINESS_ACCEPTS_MISSING_DECLARED_UNIT",
+        "scripts/serving_readiness_contract.py",
+        "or set(names) != set(units)",
+        "or False",
+        (
+            "apps/api/tests/test_serving_readiness_contract.py::test_discovery_rejects_partial_or_ambiguous_topology[missing-unit]",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M763_SOURCE_SECURITY_LEAVES_CREATED_CONTAINER_WITH_EMPTY_CID",
+        "scripts/source_security_container.py",
+        "    if info.st_size == 0 and not value:\n        return None\n",
+        '    if info.st_size == 0 and not value:\n        raise ValueError("empty CID skipped before owned-name cleanup")\n',
+        (
+            "apps/api/tests/test_source_security_cleanup.py::test_timeout_during_creation_resolves_empty_cid_by_owned_name",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M757_SOURCE_SECURITY_ACCEPTS_UNPROVEN_CONTAINER_CLEANUP",
+        "scripts/source_security_execution.py",
+        "        and cleanup_valid(execution)",
+        "        and True",
+        (
+            "apps/api/tests/test_source_security_cleanup.py::test_zero_exit_cannot_hide_missing_or_foreign_cleanup",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M758_SOURCE_SECURITY_ACCEPTS_SURVIVING_CONTAINER",
+        "scripts/source_security_container.py",
+        '    require(not _ids(owned, "id=" + cid, environment), "scanner container survived cleanup")',
+        '    require(True, "scanner container survived cleanup")',
+        (
+            "apps/api/tests/test_source_security_cleanup.py::test_unproven_cleanup_cannot_pass_or_delete_unknown_resources",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M759_SOURCE_SECURITY_REMOVES_UNOWNED_CONTAINER",
+        "scripts/source_security_container.py",
+        '        inspected.returncode == 0 and inspected.stdout.decode().strip() == cid + " " + owned.owner,',
+        "        inspected.returncode == 0,",
+        (
+            "apps/api/tests/test_source_security_cleanup.py::test_unproven_cleanup_cannot_pass_or_delete_unknown_resources",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M735_LEARNING_DOCUMENT_SCOPE_CHECK_REMOVED",
         "apps/api/src/korpus/infrastructure/learning_source_access.py",
         "            self._authorize_documents(connection, states, identity)",
@@ -388,6 +592,166 @@ MUTANTS = (
             "apps/api/tests/test_learning_source_authorization.py::"
             "test_learning_hidden_source_does_not_invalidate_publication",
         ),
+    ),
+    Mutant(
+        "M745_HOSTED_EVIDENCE_ACCEPTS_FOREIGN_OWNER_ID",
+        "scripts/github_evidence_run.py",
+        '    exact_integer(owner.get("id"), OWNER_ID, "repository owner numeric ID")',
+        '    exact_integer(owner.get("id"), owner["id"], "repository owner numeric ID")',
+        (
+            "apps/api/tests/test_github_evidence_receipts.py::test_authenticated_run_fields_cannot_be_replaced_by_candidate_identity",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M746_HOSTED_EVIDENCE_ACCEPTS_STALE_ATTEMPT",
+        "scripts/github_evidence_run.py",
+        '    exact_integer(record.get("run_attempt"), selected.attempt, "run attempt")',
+        '    exact_integer(record.get("run_attempt"), record["run_attempt"], "run attempt")',
+        (
+            "apps/api/tests/test_github_evidence_receipts.py::test_exact_attempt_response_is_checked_separately_from_latest",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M747_HOSTED_EVIDENCE_ACCEPTS_FAILED_PRODUCER",
+        "scripts/github_evidence_run.py",
+        "    successful(job, producer.job)",
+        "    insist(bool(job), producer.job)",
+        (
+            "apps/api/tests/test_github_evidence_receipts.py::test_named_producer_must_belong_to_successful_exact_hosted_attempt",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M748_HOSTED_EVIDENCE_ACCEPTS_REPLACED_ZIP_BYTES",
+        "scripts/github_evidence_artifact.py",
+        '    insist("sha256:" + checksum == record["digest"], "downloaded artifact SHA256 mismatch")',
+        '    insist(len(checksum) == 64, "downloaded artifact SHA256 mismatch")',
+        (
+            "apps/api/tests/test_github_evidence_receipts.py::test_downloaded_zip_bytes_must_match_authenticated_digest",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M749_HOSTED_EVIDENCE_ACCEPTS_FOREIGN_NATIVE_RUN",
+        "scripts/coverage_receipt_contract.py",
+        '        receipt.get("run") == subject.run,',
+        '        isinstance(receipt.get("run"), dict),',
+        (
+            "apps/api/tests/test_github_coverage_admission.py::test_inner_execution_cannot_borrow_another_run",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M750_HOSTED_EVIDENCE_ACCEPTS_FORGED_NATIVE_REPORT",
+        "scripts/github_coverage_admission.py",
+        "        semantic_report(reported) == semantic_report(regenerated),",
+        "        bool(semantic_report(regenerated)),",
+        (
+            "apps/api/tests/test_github_coverage_admission.py::test_native_data_refutes_report_with_coherent_receipt_and_zip_hashes",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M751_HOSTED_EVIDENCE_ACCEPTS_WRONG_PR_MERGE_PARENTS",
+        "scripts/github_evidence_run.py",
+        '        and [parent.get("sha") for parent in parents] == [authority.sha, head.get("sha")],',
+        '        and [parent.get("sha") for parent in parents] == [parent.get("sha") for parent in parents],',
+        (
+            "apps/api/tests/test_github_evidence_pr_mapping.py::test_same_tree_does_not_substitute_for_exact_pr_merge_parents",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M752_HOSTED_EVIDENCE_SKIPS_SECURITY_SUBJECT",
+        "scripts/github_evidence_import.py",
+        "    verified_security(run, security)",
+        "    len(security.members)",
+        (
+            "apps/api/tests/test_github_evidence_full_admission.py::test_coherent_security_archive_cannot_rebind_its_source_or_verdict",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M737_SOURCE_SECURITY_ACCEPTS_GITLEAKS_FINDINGS",
+        "scripts/source_security_contract.py",
+        '    require(parsed["gitleaks.json"] == [], "Gitleaks reports findings or invalid output")',
+        '    require(True, "Gitleaks reports findings or invalid output")',
+        (
+            "apps/api/tests/test_source_security_contract.py::test_gitleaks_requires_native_empty_findings",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M738_SOURCE_SECURITY_ACCEPTS_INCOMPLETE_LOCK_AUDIT",
+        "scripts/source_security_contract.py",
+        '    require(actual == locked_packages(root, kind), f"pip-audit {kind} lock census differs")',
+        '    require(True, f"pip-audit {kind} lock census differs")',
+        (
+            "apps/api/tests/test_source_security_contract.py::test_audit_census_and_findings_are_not_replaceable_by_exit_zero",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M739_SOURCE_SECURITY_ACCEPTS_FOREIGN_LOCK_SBOM",
+        "scripts/source_security_contract.py",
+        '        json.dumps(parsed["lock-sbom.cdx.json"], sort_keys=True)\n        == json.dumps(build_lock_sbom(root), sort_keys=True),',
+        "        True,",
+        (
+            "apps/api/tests/test_source_security_contract.py::test_lock_sbom_is_exact_not_an_arbitrary_cyclonedx_document",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M740_SOURCE_SECURITY_ACCEPTS_FAILED_SCANNER",
+        "scripts/source_security_execution.py",
+        '        type(execution.get("exit_code")) is int\n        and execution["exit_code"] == 0',
+        "        True",
+        (
+            "apps/api/tests/test_source_security_producer.py::test_failed_or_noninteger_execution_cannot_be_pass_with_clean_outputs",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M741_SOURCE_SECURITY_IGNORES_SOURCE_CHANGE",
+        "scripts/run_source_security.py",
+        '    receipt["source_after_sha256"] = verify_source_after(root, before, files)',
+        '    receipt["source_after_sha256"] = before["source_before"]["sha256"]',
+        (
+            "apps/api/tests/test_source_security_producer.py::test_source_change_missing_output_or_native_finding_refuses_pass",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M742_SOURCE_SECURITY_IGNORES_FROZEN_SCAN_INPUT_CHANGE",
+        "scripts/run_source_security.py",
+        "    verify_frozen_source(source, files)",
+        '    require(source.is_dir(), "frozen source missing")',
+        (
+            "apps/api/tests/test_source_security_producer.py::test_source_change_missing_output_or_native_finding_refuses_pass",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M743_SOURCE_SECURITY_ACCEPTS_UNCHECKED_TRIVY_RESULTS",
+        "scripts/source_security_contract.py",
+        '    _trivy(parsed["trivy.json"])',
+        '    _object(parsed["trivy.json"], "Trivy")',
+        (
+            "apps/api/tests/test_source_security_contract.py::test_trivy_requires_actual_passing_configuration_checks",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M744_SOURCE_SECURITY_ACCEPTS_FOREIGN_DISCOVERY",
+        "scripts/source_security_contract.py",
+        '    _tree_sbom(parsed["tree-sbom.cdx.json"])',
+        '    _object(parsed["tree-sbom.cdx.json"], "Syft")',
+        (
+            "apps/api/tests/test_source_security_contract.py::test_tree_sbom_must_be_native_bound_discovery",
+        ),
+        full_copy=True,
     ),
     Mutant(
         "M734_MIXED_ROOT_ALIASES_BYPASS_WRAPPER_POLICY",
@@ -2183,8 +2547,6 @@ MUTANTS = (
             "test_a_duration_without_provenance_is_not_a_measurement",
         ),
     ),
-    # OPS-004. Every one of these turns a finding into a silence, which is the only
-    # way a drift checker fails without anyone noticing: it keeps reporting IN_SYNC.
     Mutant(
         # The binding between an answer's text and its citations is decided once. A
         # mutable Answer lets anything downstream change the sentence while keeping the
@@ -2973,10 +3335,6 @@ MUTANTS = (
             "test_manifest_without_records_refuses_rather_than_returning_empty",
         ),
     ),
-    # ---------------------------------------------------------------- ACT-001
-    # Every mutant below turns a narrowing rule into a widening one, or removes a
-    # refusal. They are the shapes the account/billing/conversation layer fails in, and
-    # each one would leave the system running and answering.
     Mutant(
         "M130_ENTITLEMENT_UNIONS_INSTEAD_OF_INTERSECTS",
         "apps/api/src/korpus/application/paid_access.py",
@@ -4303,10 +4661,6 @@ MUTANTS = (
             "apps/api/tests/test_supply_chain_attestation_v097.py::test_in_toto_subject_rejects_artifact_mutation",
         ),
     ),
-    # --- doctrine catalog provenance rules 9-14 (scripts/validate_doctrine_catalog.py) ----
-    # Added 2026-08-29. The catalogue carried 349 mutants and none of them touched the rules
-    # that decide whether a doctrine source may be staged at all: every one of the 73 tests
-    # in test_doctrine_catalog.py was a negative control nobody had falsified.
     Mutant(
         "M313_CATALOG_EVIDENCE_FLOOR_DISABLED",
         "scripts/validate_doctrine_catalog.py",
@@ -4591,8 +4945,6 @@ MUTANTS = (
             "test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost",
         ),
     ),
-    # ── Публічна поверхня. Отрута по ПОВЕДІНЦІ правила, не по його оформленню:
-    # мутант, що ламає лише текст повідомлення, вижив би й не довів нічого про охорону.
     Mutant(
         "M399_CONSOLE_CLOSURE_FOLLOWS_NAVIGATION",
         "scripts/public_operator_surface.py",
@@ -4736,8 +5088,6 @@ MUTANTS = (
         ("apps/api/tests/test_public_surface.py::test_gate_reddens_on_every_defect_separately",),
         full_copy=True,
     ),
-    # Закриття як математичний об'єкт. Обидві отрути ламають ВЛАСТИВІСТЬ, не текст:
-    # перша робить обхід одношаровим, друга — знімає віднімання читацького закриття.
     Mutant(
         "M420_TRAVERSAL_STOPS_AT_ONE_LEVEL",
         "scripts/public_operator_surface.py",
@@ -4891,7 +5241,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Покриття гейтами. Отрути ламають ОЗНАЧЕННЯ покриття, не його оформлення.
     Mutant(
         "M434_COVERAGE_IGNORES_SCRIPT_EQUIVALENCE",
         "scripts/verify_gate_closure.py",
@@ -5597,8 +5946,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Приймальна перевірка зведення. Сторож, який довіряє власному застарілому
-    # входові, видає непроміряний стан за перевірений — і саме це сталося 01.09.2026.
     Mutant(
         "M553_A_LANE_REPORT_OLDER_THAN_HEAD_IS_STILL_TRUSTED",
         "scripts/verify_branch_consolidation.py",
@@ -5629,8 +5976,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Сплячі підсистеми. Гейт мусить падати в ОБИДВА боки: той, що ловить лише
-    # пробудження, не помітить тихого видалення, і реєстр стане описом неіснуючого.
     Mutant(
         "M549_A_PACKAGE_IMPORT_HIDES_THE_MODULE_IT_BRINGS",
         "scripts/check_dormant_subsystems.py",
@@ -5672,8 +6017,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Бігун лану. `make -k` дає два стани; тут первинний саме ТРЕТІЙ, і мутанти
-    # цілять у нього: невиконане, зараховане як пройдене, — це і є та вада.
     Mutant(
         "M546_A_TARGET_NEVER_REACHED_IS_COUNTED_AS_PASSED",
         "scripts/run_lane.py",
@@ -5704,8 +6047,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Допуск оголошеного предмета за початком слова. Дослівний підрядок вимагав від
-    # людини називного відмінка: виміряно 1 із 14 у родовому проти 13 після зміни.
     Mutant(
         "M527_THE_SUBJECT_MUST_BE_SPELLED_AS_THE_TITLE_SPELLS_IT",
         "apps/api/src/korpus/application/declared_subject.py",
@@ -5736,8 +6077,6 @@ MUTANTS = (
             "test_a_subject_with_no_long_word_is_not_admitted",
         ),
     ),
-    # ── Друга форма питання. Лінійка, що зараховує довшу роль за коротшу або цитату
-    # не першою, показала б високе число там, де воно 1/14.
     Mutant(
         "M525_A_LONGER_ROLE_COUNTS_AS_THE_ROLE_ASKED_FOR",
         "scripts/benchmark_subject_precision.py",
@@ -5760,8 +6099,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Свіжість обслуговуючого процесу. П'ять осей міряються запитом до сервера, тож
-    # вони кредитують ПРОЦЕС, а не дерево, і жодне поле звіту про це не каже.
     Mutant(
         "M523_A_SERVER_OLDER_THAN_THE_CODE_STILL_COUNTS_AS_SERVING_IT",
         "scripts/check_serving_freshness.py",
@@ -5795,8 +6132,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Бази доказів. Гейт проти неоголошених баз, який сам спирається на оголошення,
-    # зелений саме в тому стані, заради якого існує: M498 — це та отрута, що проходила.
     Mutant(
         "M498_A_BASE_EXISTS_ONLY_IF_THE_REGISTRY_NAMES_IT",
         "scripts/measure_evidence_bases.py",
@@ -5829,10 +6164,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Навчальний шар: 1516 рядків коду й 1036 рядків тестів, і ЖОДНОГО мутанта до
-    # 01.09.2026. Жоден маршрут API його не імпортує, усі його таблиці порожні в обох
-    # базах — тобто «тести є» було твердженням, яке ніхто не перевіряв. Шість мутантів
-    # цілять у шість РІЗНИХ тверджень цього шару, а не в шість рядків одного.
     Mutant(
         "M492_A_SUPERSET_OF_THE_CORRECT_ANSWERS_COUNTS_AS_CORRECT",
         "apps/api/src/korpus/application/learning_assessment.py",
@@ -5927,7 +6258,6 @@ MUTANTS = (
             "test_a_comparably_responsive_official_source_still_outranks_a_better_match",
         ),
     ),
-    # ── Паритет двох оголошень оточення. Отрути по ПРАВИЛУ, не по переліку змінних.
     Mutant(
         "M450_A_VARIABLE_MISSING_FROM_THE_UNIT_IS_TOLERATED",
         "scripts/check_public_env_parity.py",
@@ -5956,7 +6286,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Ратчет прийнятого боргу розгортання.
     Mutant(
         "M460_WORSENING_PAST_THE_CEILING_IS_TOLERATED",
         "scripts/check_deployment_debt.py",
@@ -6443,7 +6772,6 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
-    # ── Проба некаталогізованих мутацій не сміє лишати стану в дереві.
     Mutant(
         "M480_THE_PROBE_EDITS_THE_SERVED_TREE_BY_DEFAULT",
         "scripts/probe_uncatalogued_mutation.py",
@@ -7342,6 +7670,26 @@ MUTANTS = (
         (
             "apps/api/tests/test_coverage_closure_v097.py::"
             "test_identical_source_history_follows_valid_second_merge_parent",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M780_SOURCE_SECURITY_ACCEPTS_ZERO_COMMITS",
+        "scripts/source_security_native.py",
+        '    re.compile(INFO_PREFIX + r"[1-9][0-9]* commits scanned\\."),',
+        '    re.compile(INFO_PREFIX + r"\\d+ commits scanned\\."),',
+        (
+            "apps/api/tests/test_github_evidence_full_admission.py::test_full_admission_requires_positive_reported_native_census[zero-commits]",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M781_SOURCE_SECURITY_ACCEPTS_ZERO_BYTES",
+        "scripts/source_security_native.py",
+        '    re.compile(INFO_PREFIX + r"scanned ~[1-9][0-9]* bytes \\([^\\r\\n)]+\\) in \\S+"),',
+        '    re.compile(INFO_PREFIX + r"scanned ~\\d+ bytes \\([^\\r\\n)]+\\) in \\S+"),',
+        (
+            "apps/api/tests/test_github_evidence_full_admission.py::test_full_admission_requires_positive_reported_native_census[zero-bytes]",
         ),
         full_copy=True,
     ),

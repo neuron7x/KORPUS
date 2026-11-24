@@ -1298,11 +1298,18 @@ def test_every_lock_file_is_audited_for_known_vulnerabilities() -> None:
     credentials. Running pip-audit against the dev lock for the first time on
     2026-08-06 found PYSEC-2026-1845 in pytest 9.0.2.
     """
-    script = _ci_script("python:audit")
+    import yaml
+
+    workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())
+    steps = workflow["jobs"]["source-security"]["steps"]
+    active = [
+        line for step in steps for line in step.get("run", "").replace("\\\n", " ").splitlines()
+    ]
+    script = [*_ci_script("python:audit"), *active]
     audited = {
         line.rsplit(" ", 1)[-1]
         for line in script
-        if "pip-audit" in line and line.rstrip().endswith(".lock")
+        if ("pip-audit" in line or "-m pip_audit " in line) and line.rstrip().endswith(".lock")
     }
     locks = {f"apps/api/{path.name}" for path in (ROOT / "apps/api").glob("requirements*.lock")}
 

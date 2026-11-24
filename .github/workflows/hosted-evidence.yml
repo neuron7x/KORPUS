@@ -1,0 +1,49 @@
+name: hosted-evidence
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: hosted-evidence-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  readback:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    steps:
+      - name: Check out exact event source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up locked Python version
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12.13'
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Read back completed same-checkout CI evidence
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          EVIDENCE_REF: ${{ github.ref }}
+        run: python scripts/await_github_evidence.py --ref "$EVIDENCE_REF" --out var/hosted-evidence
+      - name: Preserve hosted evidence readback
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: hosted-evidence-admission-${{ github.run_attempt }}
+          path: var/hosted-evidence/
+          if-no-files-found: warn
+          retention-days: 14

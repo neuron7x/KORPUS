@@ -1,0 +1,49 @@
+{
+  "schema": "korpus.native-log-regression-fixture.v1",
+  "records": {
+    "clean_stdlib": {
+      "run_id": 44616015657,
+      "run_attempt": 1,
+      "job_id": 135884788331,
+      "artifact_id": 14574822427,
+      "artifact_sha256": "d76bc117b396354821a4b6ec89cdc149b39159aae5b763e4a6fc64236394c079",
+      "member": "gitleaks.log",
+      "member_sha256": "412825619ff40faf7d57f0b8f92d573b660ff55bafe859368aeefaa4f09faab5",
+      "log": "\u001b[90m9:18PM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1m1297 commits scanned.\u001b[0m\n\u001b[90m9:18PM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1mscanned ~544179939 bytes (544.18 MB) in 7m6s\u001b[0m\n\u001b[90m9:18PM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1mno leaks found\u001b[0m\n",
+      "scope": "Historical native clean-log-format control only; that run exceeded230s and omitted merge-only input, so it is not accepted scanner qualification."
+    },
+    "clean_release": {
+      "run_id": 44643158063,
+      "run_attempt": 1,
+      "job_id": 135979036192,
+      "artifact_id": 14587007971,
+      "artifact_sha256": "38b9767febbd8adef37e7ff0cc9fb7d30fc03e83d847798713e246fd7576fe9a",
+      "member": "native/release-full-history/gitleaks.log",
+      "member_sha256": "6fedc1c0603236cef881c8b3bf8e61948ce9442f250b72815e5130aafb14b488",
+      "log": "\u001b[90m12:07AM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1mStarting diagnostics...\u001b[0m\n\u001b[90m12:08AM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1m1414 commits scanned.\u001b[0m\n\u001b[90m12:08AM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1mCPU profile written to: /output/gitleaks-profile/cpu.pprof\u001b[0m\n\u001b[90m12:08AM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1mscanned ~676720731 bytes (676.72 MB) in 58.5s\u001b[0m\n\u001b[90m12:08AM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1mno leaks found\u001b[0m\n",
+      "scope": "Exact nonauthoritative native diagnostic bytes; no engine equivalence or canonical EOF claim."
+    },
+    "damaged_stdlib": {
+      "run_id": 44643158063,
+      "run_attempt": 1,
+      "job_id": 135979036192,
+      "artifact_id": 14587007971,
+      "artifact_sha256": "38b9767febbd8adef37e7ff0cc9fb7d30fc03e83d847798713e246fd7576fe9a",
+      "member": "native/stdlib-history-damaged/gitleaks.log",
+      "member_sha256": "73f660cb01ad6212596491dde44c282465913710a9484c663fa4d99555666b39",
+      "log": "\u001b[90m12:07AM\u001b[0m DBG using stdlib regex engine\n\u001b[90m12:07AM\u001b[0m DBG using gitleaks config /source/canary.toml from `--config`\n\u001b[90m12:07AM\u001b[0m DBG no minVersion specified in config... consider adding minVersion to ensure compatibility. \u001b[36mconfig path=\u001b[0m/source/canary.toml\n\u001b[90m12:07AM\u001b[0m DBG executing: /usr/bin/git -C /source log -p -U0 f265936b40324f6936c13d4cf8c6090a0ff8b0a2 --full-history --diff-merges=first-parent\n\u001b[90m12:07AM\u001b[0m \u001b[31mERR\u001b[0m \u001b[1m[git] fatal: unable to read 9a5bd7049cdaa2c6dd3c34d8b9117aa0059c5264\u001b[0m\n\u001b[90m12:07AM\u001b[0m DBG skipping finding links: repository has no configured remote.\n\u001b[90m12:07AM\u001b[0m \u001b[31mERR\u001b[0m \u001b[36merror=\u001b[0m\u001b[31m\u001b[1m\"stderr is not empty\"\u001b[0m\u001b[0m\n\u001b[90m12:07AM\u001b[0m DBG command aborted \u001b[36merror=\u001b[0m\u001b[31m\u001b[1m\"exit status 128\"\u001b[0m\u001b[0m \u001b[36mcmd=\u001b[0m\"/usr/bin/git -C /source log -p -U0 f265936b40324f6936c13d4cf8c6090a0ff8b0a2 --full-history --diff-merges=first-parent\"\n\u001b[90m12:07AM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1m0 commits scanned.\u001b[0m\n\u001b[90m12:07AM\u001b[0m DBG Note: this number might be smaller than expected due to commits with no additions\n\u001b[90m12:07AM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1mscanned ~0 bytes (0) in 3.68ms\u001b[0m\n\u001b[90m12:07AM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1mno leaks found\u001b[0m\n",
+      "scope": "Exact nonauthoritative native diagnostic bytes; no engine equivalence or canonical EOF claim."
+    },
+    "damaged_release": {
+      "run_id": 44643158063,
+      "run_attempt": 1,
+      "job_id": 135979036192,
+      "artifact_id": 14587007971,
+      "artifact_sha256": "38b9767febbd8adef37e7ff0cc9fb7d30fc03e83d847798713e246fd7576fe9a",
+      "member": "native/release-history-damaged/gitleaks.log",
+      "member_sha256": "0a849a1d608a0b03c77bb1bf04bd27886b667e194c14b3a13716c832e356d4d8",
+      "log": "\u001b[90m12:07AM\u001b[0m DBG using github.com/wasilibs/go-re2 regex engine\n\u001b[90m12:07AM\u001b[0m DBG using gitleaks config /source/canary.toml from `--config`\n\u001b[90m12:07AM\u001b[0m DBG no minVersion specified in config... consider adding minVersion to ensure compatibility. \u001b[36mconfig path=\u001b[0m/source/canary.toml\n\u001b[90m12:07AM\u001b[0m DBG executing: /usr/bin/git -C /source log -p -U0 f265936b40324f6936c13d4cf8c6090a0ff8b0a2 --full-history --diff-merges=first-parent\n\u001b[90m12:07AM\u001b[0m \u001b[31mERR\u001b[0m \u001b[1m[git] fatal: unable to read 9a5bd7049cdaa2c6dd3c34d8b9117aa0059c5264\u001b[0m\n\u001b[90m12:07AM\u001b[0m DBG skipping finding links: repository has no configured remote.\n\u001b[90m12:07AM\u001b[0m \u001b[31mERR\u001b[0m \u001b[36merror=\u001b[0m\u001b[31m\u001b[1m\"stderr is not empty\"\u001b[0m\u001b[0m\n\u001b[90m12:07AM\u001b[0m DBG command aborted \u001b[36merror=\u001b[0m\u001b[31m\u001b[1m\"exit status 128\"\u001b[0m\u001b[0m \u001b[36mcmd=\u001b[0m\"/usr/bin/git -C /source log -p -U0 f265936b40324f6936c13d4cf8c6090a0ff8b0a2 --full-history --diff-merges=first-parent\"\n\u001b[90m12:07AM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1m0 commits scanned.\u001b[0m\n\u001b[90m12:07AM\u001b[0m DBG Note: this number might be smaller than expected due to commits with no additions\n\u001b[90m12:07AM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1mscanned ~0 bytes (0) in 4.36ms\u001b[0m\n\u001b[90m12:07AM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1mno leaks found\u001b[0m\n",
+      "scope": "Exact nonauthoritative native diagnostic bytes; no engine equivalence or canonical EOF claim."
+    }
+  }
+}
