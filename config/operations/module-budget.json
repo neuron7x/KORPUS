@@ -684,6 +684,22 @@
     }
   ],
   "modules": {
+    "apps/api/src/korpus/application/corpus_read_context.py": {
+      "lines": 127,
+      "max_complexity": 6,
+      "max_function_args": 4,
+      "max_function_lines": 20,
+      "max_nesting": 1,
+      "proof_lines": 0
+    },
+    "apps/api/src/korpus/application/query_cache_read.py": {
+      "lines": 31,
+      "max_complexity": 3,
+      "max_function_args": 5,
+      "max_function_lines": 15,
+      "max_nesting": 2,
+      "proof_lines": 0
+    },
     "scripts/compose_pilot_environment.py": {
       "lines": 368,
       "max_complexity": 7,

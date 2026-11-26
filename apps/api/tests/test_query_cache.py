@@ -1,6 +1,8 @@
 from datetime import date
 
+import pytest
 from korpus.application.cache import CachedRetriever, EvidenceQueryCache
+from korpus.application.pec_cache import PECCachedRetriever
 from korpus.domain.models import AccessTier, Identity
 
 from apps.api.tests.helpers import StubSnapshotReader
@@ -53,6 +55,51 @@ def test_cache_is_bound_to_identity_release_and_configuration():
     retriever.search(identity("alice"), "query", frozenset({"public"}), date(2026, 1, 1))
     assert delegate.calls == 3
     assert cache.stats().hits == 1
+
+
+@pytest.mark.parametrize(
+    ("retriever_type", "semantic_enabled"),
+    [
+        (CachedRetriever, None),
+        (PECCachedRetriever, None),
+        (PECCachedRetriever, False),
+        (PECCachedRetriever, True),
+    ],
+    ids=("baseline", "pec-default", "pec-lexical", "pec-semantic"),
+)
+def test_shared_cache_recomputes_only_for_a_different_configuration(
+    retriever_type, semantic_enabled
+):
+    """One corpus state must not share cached evidence across ranking contracts."""
+
+    class ModeDelegate(Delegate):
+        def search_with_semantic(
+            self, identity, text, corpus_ids, as_of, limit=8, *, semantic_enabled
+        ):
+            return self.search(identity, text, corpus_ids, as_of, limit)
+
+    repo = Repo()
+    delegate = ModeDelegate()
+    cache = EvidenceQueryCache(maximum_entries=8, ttl_seconds=60)
+    first = retriever_type(repo, delegate, cache, "same-profile:obligations-v1")
+    changed = retriever_type(repo, delegate, cache, "same-profile:obligations-v2")
+    same = retriever_type(repo, delegate, cache, "same-profile:obligations-v1")
+
+    def search(retriever):
+        arguments = (identity("alice"), "archive card", frozenset({"public"}), date(2026, 1, 1))
+        if semantic_enabled is None:
+            return retriever.search(*arguments)
+        return retriever.search_with_semantic(*arguments, semantic_enabled=semantic_enabled)
+
+    assert search(first) == []
+    assert delegate.calls == 1
+    assert search(changed) == []
+    assert delegate.calls == 2
+    assert search(same) == []
+    assert search(changed) == []
+    assert delegate.calls == 2
+    assert cache.stats().hits == 2
+    assert cache.stats().misses == 2
 
 
 def test_cache_is_bounded_lru():
