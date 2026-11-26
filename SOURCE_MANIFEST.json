@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 2317,
-  "root_sha256": "7703616d5856ce68ddee5459c4517d88ce789d2f620b87020580bc569cb78e6c",
+  "file_count": 2320,
+  "root_sha256": "24c5dc37fe01503e347ef33ab8923655ceeb607ecee9599d639e65b891ec821e",
   "files": [
     {
       "path": ".dockerignore",
@@ -1819,8 +1819,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/provenance.py",
-      "bytes": 14293,
-      "sha256": "359925f6e1b688ef7182ef25a5fff07b5cbf099fc11c0261fdde998e101e7b24",
+      "bytes": 13331,
+      "sha256": "678e571bf97770820ff243b26ad27e83d0cdb2b6c16221dec02771adf6b38ce9",
       "mode": "0644"
     },
     {
@@ -6252,6 +6252,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_source_digest_framing.py",
+      "bytes": 6327,
+      "sha256": "270180db5c9ca93a209f1875df77d4f8fc17da6c1f3459e994eec79612808185",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_source_digest_git_environment.py",
       "bytes": 3995,
       "sha256": "c2716e283782c665b0ef85c9d72b77b2861dbdd1ae623b20541763895706a4d0",
@@ -9237,6 +9243,18 @@
       "path": "docs/agent_execution/PHASE_02_03_ACCEPTANCE_MATRIX.md",
       "bytes": 18015,
       "sha256": "dd492296d4ca41f75c4a2ae3aec04c5abc8c130dd8a7063cc1d76cfb2cf44ce5",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/agent_execution/PHASE_08_SOURCE_IDENTITY_ACCEPTANCE_2026_11_21.json",
+      "bytes": 5622,
+      "sha256": "191e710ca2467128d1ecf9422756a209bc52c9d697b7c16dd980fcc2b03463e2",
+      "mode": "0644"
+    },
+    {
+      "path": "docs/agent_execution/PHASE_08_SOURCE_IDENTITY_ACCEPTANCE_2026_11_21.md",
+      "bytes": 9135,
+      "sha256": "2e11c01965ac25bccc0eda391819af5a3669a429af00e759037eb9ed0b546ecb",
       "mode": "0644"
     },
     {
@@ -13279,8 +13297,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 362392,
-      "sha256": "95d3167c2ec36cb3d4a56e2163626db0732b77aa8c9348b9dff8f3daebecf623",
+      "bytes": 363287,
+      "sha256": "7445aee8c597a943d893d42c0f8616e8c49b4bea9f915c91f619851b195043f7",
       "mode": "0755"
     },
     {

@@ -20,9 +20,11 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
-from collections.abc import Iterable, Mapping
+from collections.abc import Generator, Iterable, Mapping
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -146,60 +148,49 @@ def _digest_candidates(root: Path, sources: Iterable[str]) -> list[Path]:
 #: scope makes that failure name itself.
 DIGEST_SCOPE = "evidence_paths"
 
-#: Домен хешу. Винесено константою, бо його тепер читають ДВА обчислювачі —
-#: над файлами дерева й над байтами з git-посилання, — і розбіжність у домені
-#: дала б два різні числа про той самий вміст.
+# One published byte format for live files, committed records and packaged source.
 _SOURCE_DIGEST_DOMAIN = b"korpus-source-digest-v2\0"
 
 
-def compute_source_digest(root: Path, sources: Iterable[str] = EVIDENCE_SOURCE_PATHS) -> str:
-    """Digest the evidence-bearing source surface of a working tree.
-
-    Length-prefixed path and content are both fed to the hash so that moving a
-    byte from a file name into its content cannot produce the same digest.
-
-    Scope is DIGEST_SCOPE. It is NOT the whole tree — see scripts/source_digest for that,
-    and never compare the two.
-    """
-
+def _digest_source_streams(records: Iterable[tuple[str, int, Iterable[bytes]]]) -> str:
+    """Apply the sole length framing, preserving streamed size-change refusal."""
     hasher = hashlib.sha256()
     hasher.update(_SOURCE_DIGEST_DOMAIN)
-    for path in _digest_candidates(root, sources):
-        relative = path.relative_to(root).as_posix().encode("utf-8")
-        hasher.update(len(relative).to_bytes(4, "big"))
-        hasher.update(relative)
-        with path.open("rb") as handle:
-            expected_size = path.stat().st_size
-            hasher.update(expected_size.to_bytes(8, "big"))
-            observed_size = 0
-            while chunk := handle.read(1024 * 1024):
-                observed_size += len(chunk)
-                hasher.update(chunk)
-        if observed_size != expected_size:
-            raise ProvenanceError(f"source changed while hashing: {path}")
-    return hasher.hexdigest()
-
-
-def digest_source_records(records: Iterable[tuple[str, bytes]]) -> str:
-    """Той САМИЙ дайджест, але над парами (шлях, байти) замість файлів на диску.
-
-    Потрібен, щоб дайджест ЗАКОМІЧЕНИХ байтів рахувався тією самою функцією, що й
-    дайджест робочого дерева. Друга реалізація того ж числа — це дві тотожності
-    одного предмета: вони розійшлися б на першому ж уточненні правила, і
-    розбіжність читалась би як «дерево змінилось».
-
-    Записи мусять прийти ВІДСОРТОВАНИМИ за шляхом — так само, як `_digest_candidates`
-    їх сортує; порядок входить у хеш.
-    """
-    hasher = hashlib.sha256()
-    hasher.update(_SOURCE_DIGEST_DOMAIN)
-    for name, payload in records:
+    for name, expected_size, chunks in records:
         relative = name.encode("utf-8")
         hasher.update(len(relative).to_bytes(4, "big"))
         hasher.update(relative)
-        hasher.update(len(payload).to_bytes(8, "big"))
-        hasher.update(payload)
+        hasher.update(expected_size.to_bytes(8, "big"))
+        observed_size = 0
+        for chunk in chunks:
+            observed_size += len(chunk)
+            hasher.update(chunk)
+        if observed_size != expected_size:
+            raise ProvenanceError(f"source changed while hashing: {name}")
     return hasher.hexdigest()
+
+
+def _source_file_streams(
+    root: Path, sources: Iterable[str]
+) -> Generator[tuple[str, int, Iterable[bytes]], None, None]:
+    for path in _digest_candidates(root, sources):
+        with path.open("rb") as handle:
+            yield (
+                path.relative_to(root).as_posix(),
+                path.stat().st_size,
+                iter(partial(handle.read, 1024 * 1024), b""),
+            )
+
+
+def compute_source_digest(root: Path, sources: Iterable[str] = EVIDENCE_SOURCE_PATHS) -> str:
+    """Digest the evidence surface through the shared format with bounded file reads."""
+    with closing(_source_file_streams(root, sources)) as records:
+        return _digest_source_streams(records)
+
+
+def digest_source_records(records: Iterable[tuple[str, bytes]]) -> str:
+    """Digest sorted committed/package records using the identical streaming format."""
+    return _digest_source_streams((name, len(payload), (payload,)) for name, payload in records)
 
 
 def evidence_source_path_included(relative: str) -> bool:
